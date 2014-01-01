@@ -14,12 +14,21 @@ from flask.ext.assets import Environment
 from watchdog.observers import Observer
 
 import os
+import time
 import logging
 import logging.config
+
+EPOCH = 1388534490 #Jan 1, 2014
 
 SUCCESS = {}
 NO_CONTENT = ("", 204)
 OK = ("", 200)
+
+#This is needed in case the device starts without network (not ntpd) or correct time.
+#a baseline needs to be stablished
+
+if (time.time() - EPOCH) < 0:
+	os.system('date -s @%s' % EPOCH)
 
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
 app.config.from_object('octoprint.server.settings')
