@@ -202,7 +202,8 @@ table {
     overflow: hidden;
 
     // gcode files
-    &.gcode_files_name {
+    &.gcode_files_name,
+    &.cloud_slicer_name {
       text-overflow: ellipsis;
       white-space: nowrap;
       text-align: left;
@@ -225,6 +226,25 @@ table {
           color: #ccc;
           cursor: default;
         }
+      }
+    }
+
+    &.cloud_slicer_action {
+      text-align: center;
+      width: 15px;
+
+      a {
+        text-decoration: none;
+        color: #000;
+      }
+    }
+
+    &.cloud_slicer_progress {
+      width: 50px;
+
+      .progress {
+        margin: 2px 0;
+        height: 15px;
       }
     }
 
@@ -404,6 +424,14 @@ ul.dropdown-menu li a {
   .flipH.flipV {
     -webkit-transform: scaleX(-1) scaleY(-1);
     -moz-transform: scaleX(-1) scaleY(-1);
+  }
+}
+
+/** Cloud Slicer **/
+
+#cloud_slicer {
+  .fileinput-button {
+    float: none;
   }
 }
 

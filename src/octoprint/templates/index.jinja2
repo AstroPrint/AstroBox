@@ -32,6 +32,7 @@
             var CONFIG_WEBCAM_STREAM = "{{ webcamStream }}";
             var CONFIG_ACCESS_CONTROL = {% if enableAccessControl -%} true; {% else %} false; {%- endif %}
             var CONFIG_SD_SUPPORT = {% if enableSdSupport -%} true; {% else %} false; {%- endif %}
+            var CONFIG_CLOUD_SLICER_SUPPORT = {% if isCloudSlicerConfigured -%} true {%- else -%} false {%- endif %};
             var CONFIG_FIRST_RUN = {%  if firstRun -%} true; {% else %} false; {%- endif %}
             var CONFIG_TEMPERATURE_GRAPH = {%  if enableTemperatureGraph -%} true; {% else %} false; {%- endif %}
             var CONFIG_GCODE_SIZE_THRESHOLD = {{ gcodeThreshold }};
@@ -146,6 +147,69 @@
                             </div>
                         </div>
                     </div>
+                    {% if isCloudSlicerConfigured %}
+                    <div class="accordion-group" id="cloud_slicer_accordion" data-bind="visible: loginState.isUser">
+                        <div class="accordion-heading">
+                            <a class="accordion-toggle" data-toggle="collapse" href="#cloud_slicer">
+                                <i class="icon-cloud-download"></i> Cloud Slicer
+                            </a>
+                            <div class="settings-trigger accordion-heading-button btn-group">
+                                <a href="#" data-bind="click: function() { $root.refresh(); }">
+                                    <span class="icon-refresh"></span>
+                                </a>    
+                            </div>
+                        </div>
+                        <div class="accordion-body collapse in" id="cloud_slicer">
+                            <div class="accordion-inner">
+                                <table class="table table-condensed table-hover" id="sliced_files">
+                                    <thead>
+                                        <tr>
+                                            <th class="cloud_slicer_name">Name</th>
+                                            <th class="cloud_slicer_progress"></th>
+                                            <th class="cloud_slicer_action"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody data-bind="foreach: listHelper.paginatedItems">
+                                        <tr>
+                                            <td class="cloud_slicer_name" data-bind="text: name"></td>
+                                            <td class="cloud_slicer_progress">
+                                                <div class="progress" style="display:none" data-bind="attr: {'id': 'cloud_download_progress_' + id}">
+                                                    <div class="bar" style="width: 0%"></div>
+                                                </div>
+                                            </td>
+                                            <td class="cloud_slicer_action">
+                                                <a href="#" data-bind="click: function() { $root.downloadFile($data.id, $data.name); }">
+                                                    <i class="icon-download"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div class="pagination pagination-mini pagination-centered">
+                                    <ul>
+                                        <li data-bind="css: {disabled: listHelper.currentPage() === 0}"><a href="#" data-bind="click: listHelper.prevPage">«</a></li>
+                                    </ul>
+                                    <ul data-bind="foreach: listHelper.pages">
+                                        <li data-bind="css: { active: $data.number === $root.listHelper.currentPage(), disabled: $data.number === -1 }"><a href="#" data-bind="text: $data.text, click: function() { $root.listHelper.changePage($data.number); }"></a></li>
+                                    </ul>
+                                    <ul>
+                                        <li data-bind="css: {disabled: listHelper.currentPage() === listHelper.lastPage()}"><a href="#" data-bind="click: listHelper.nextPage">»</a></li>
+                                    </ul>
+                                </div>
+                                <div align="center">
+                                    <span class="btn btn-primary fileinput-button" style="margin-bottom: 10px">
+                                        <i class="icon-upload-alt icon-white"></i>
+                                        <span>Upload Design File</span>
+                                        <input id="cloud_slicer_upload" type="file" name="file" class="fileinput-button" data-url="/ajax/cloud-slicer/upload">
+                                    </span>
+                                    <div id="cloud_slicer_upload_progress" class="progress" style="display:none">
+                                        <div class="bar" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                     <div class="accordion-group" id="files_accordion">
                         <div class="accordion-heading">
                             <a class="accordion-toggle" data-toggle="collapse" href="#files"><i class="icon-list"></i> Files</a>
@@ -645,6 +709,9 @@
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/firstrun.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/gcode.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/files.js') }}"></script>
+        {% if isCloudSlicerConfigured %}
+            <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/cloudslicer.js') }}"></script>
+        {% endif %}
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/loginstate.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/navigation.js') }}"></script>
         <script type="text/javascript" src="{{ url_for('static', filename='js/app/viewmodels/printerstate.js') }}"></script>

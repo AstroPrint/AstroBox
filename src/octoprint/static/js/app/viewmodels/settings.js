@@ -126,6 +126,9 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
     self.cura_path = ko.observable(undefined);
     self.cura_config = ko.observable(undefined);
 
+    self.cloudSlicer_email = ko.observable(undefined);
+    self.cloudSlicer_privateKey = ko.observable(undefined);
+
     self.temperature_profiles = ko.observableArray(undefined);
 
     self.system_actions = ko.observableArray([]);
@@ -239,6 +242,9 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
         self.cura_path(response.cura.path);
         self.cura_config(response.cura.config);
 
+        self.cloudSlicer_email(response.cloudSlicer.email);
+        self.cloudSlicer_privateKey(response.cloudSlicer.privateKey);
+
         self.temperature_profiles(response.temperature.profiles);
 
         self.system_actions(response.system.actions);
@@ -312,6 +318,10 @@ function SettingsViewModel(loginStateViewModel, usersViewModel) {
                 "enabled": self.cura_enabled(),
                 "path": self.cura_path(),
                 "config": self.cura_config()
+            },
+            "cloudSlicer": {
+                "email": self.cloudSlicer_email(),
+                "privateKey": self.cloudSlicer_privateKey()
             },
             "terminalFilters": self.terminalFilters()
         };

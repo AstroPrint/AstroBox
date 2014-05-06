@@ -15,6 +15,7 @@
                 <li><a href="#settings_features" data-toggle="tab">Features</a></li>
                 <li><a href="#settings_webcam" data-toggle="tab">Webcam</a></li>
                 <li><a href="#settings_cura" data-toggle="tab">Cura</a></li>
+                <li><a href="#settings_cloud_slicer" data-toggle="tab">Cloud Slicer</a></li>
                 {% if enableAccessControl %}<li><a href="#settings_users" data-toggle="tab">Access Control</a></li>{% endif %}
                 <li><a href="#settings_api" data-toggle="tab">Api</a></li>
                 <li class="nav-header">OctoPrint</li>
@@ -420,6 +421,35 @@
                             <label class="control-label" for="settings-curaConfig">Path to Cura config</label>
                             <div class="controls">
                                 <input type="text" class="input-block-level" data-bind="value: cura_config">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="tab-pane" id="settings_cloud_slicer">
+                    <center>
+                        <a href="http://www.proventoprint.com" target="_p2p_tab">
+                            <img src="//d360wfgz11cs0l.cloudfront.net/p2p_logo_230x72.png">
+                        </a>
+                    </center>
+                    <form class="form-horizontal">
+                        <div class="control-group">
+                            <label class="control-label" for="settings-cloudSlicer-username">Email</label>
+                            <div class="controls">
+                                <input type="email" class="input-block-level" data-bind="value: cloudSlicer_email" id="settings-cloudSlicer-email">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label class="control-label" for="settings-cloudSlicer-privateKey">
+                                Access Key<br>
+                                <small><a href="http://www.proventoprint.com/settings">Need one?</a></small>
+                            </label>
+                            <div class="controls">
+                                <input type="text" class="input-block-level" data-bind="value: cloudSlicer_privateKey" id="settings-cloudSlicer-privatekey">
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <div class="controls">
+                                Don't have an account? <a href="http://www.proventoprint.com/account/signup" target="_p2p_tab">Sign up</a>
                             </div>
                         </div>
                     </form>

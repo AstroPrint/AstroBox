@@ -159,6 +159,7 @@ class PrinterStateConnection(SockJSConnection):
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
+		self._eventManager.subscribe("CloudDownloadEvent", self._onCloudDownloadEvent)
 
 		octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
 
@@ -171,6 +172,8 @@ class PrinterStateConnection(SockJSConnection):
 		self._eventManager.fire(Events.CLIENT_CLOSED)
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.unsubscribe(event, self._onEvent)
+
+		self._eventManager.unsubscribe("CloudDownloadEvent", self._onCloudDownloadEvent)
 
 	def on_message(self, message):
 		pass
@@ -222,6 +225,9 @@ class PrinterStateConnection(SockJSConnection):
 
 	def _onEvent(self, event, payload):
 		self.sendEvent(event, payload)
+
+	def _onCloudDownloadEvent(self, event, payload):
+		self.sendUpdateTrigger("cloudDownloadEvent", payload)
 
 	def _emit(self, type, payload):
 		self.send({type: payload})

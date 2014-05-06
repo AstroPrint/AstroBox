@@ -2,10 +2,12 @@
 *.tar.gz
 *.7z
 *.pyc
+*.pyo
 *.zip
 *.exe
 *.gcode
 *.swp
+*.sublime*
 darwin-Cura-*
 win32-Cura-*
 linux-Cura-*

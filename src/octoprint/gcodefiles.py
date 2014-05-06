@@ -16,6 +16,7 @@ import octoprint.util.gcodeInterpreter as gcodeInterpreter
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
+from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 from werkzeug.utils import secure_filename
 
@@ -248,13 +249,13 @@ class GcodeManager:
 		if not file or not destination:
 			return None, True
 
-		curaEnabled = self._settings.getBoolean(["cura", "enabled"])
+		slicerEnabled = self._settings.getBoolean(["cura", "enabled"]) or ProvenToPrintSlicer.cloud_slicer_enabled()
 		filename = file.filename
 
 		absolutePath = self.getAbsolutePath(filename, mustExist=False)
 		gcode = isGcodeFileName(filename)
 
-		if absolutePath is None or (not curaEnabled and not gcode):
+		if absolutePath is None or (not slicerEnabled and not gcode):
 			return None, True
 
 		file.save(absolutePath)
@@ -267,6 +268,10 @@ class GcodeManager:
 			else:
 				return filename, False
 
+			if slicerEnabled and isSTLFileName(filename):
+				self.processStl(absolutePath, destination, uploadCallback)
+			return filename, False
+
 	def getFutureFileName(self, file):
 		if not file:
 			return None
@@ -278,14 +283,7 @@ class GcodeManager:
 		return self._getBasicFilename(absolutePath)
 
 	def processStl(self, absolutePath, destination, uploadCallback=None):
-		from octoprint.slicers.cura import CuraFactory
-
-		cura = CuraFactory.create_slicer()
-		gcodePath = genGcodeFileName(absolutePath)
-		config = self._settings.get(["cura", "config"])
-
-		slicingStart = time.time()
-
+		
 		def stlProcessed(stlPath, gcodePath, error=None):
 			if error:
 				eventManager().fire(Events.SLICING_FAILED, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(gcodePath), "reason": error})

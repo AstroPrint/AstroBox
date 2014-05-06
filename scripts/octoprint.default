@@ -17,3 +17,6 @@ UMASK=022
 
 # Should we run at startup?
 START=yes
+
+# run python in optimized mode (-OO)
+export PYTHONOPTIMIZE=2

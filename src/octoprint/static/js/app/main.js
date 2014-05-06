@@ -10,6 +10,9 @@ $(function() {
         var temperatureViewModel = new TemperatureViewModel(loginStateViewModel, settingsViewModel);
         var controlViewModel = new ControlViewModel(loginStateViewModel, settingsViewModel);
         var terminalViewModel = new TerminalViewModel(loginStateViewModel, settingsViewModel);
+        if (CONFIG_CLOUD_SLICER_SUPPORT) {
+            var cloudSlicerViewModel = new CloudSlicerViewModel(loginStateViewModel);
+        }
         var gcodeFilesViewModel = new GcodeFilesViewModel(printerStateViewModel, loginStateViewModel);
         var gcodeViewModel = new GcodeViewModel(loginStateViewModel, settingsViewModel);
         var navigationViewModel = new NavigationViewModel(loginStateViewModel, appearanceViewModel, settingsViewModel, usersViewModel);
@@ -102,7 +105,7 @@ $(function() {
         function gcode_upload_fail(e, data) {
             $.pnotify({
                 title: "Upload failed",
-                text: "<p>Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\" and Cura support is enabled and configured.</p><p>Server reported: <pre>" + data.jqXHR.responseText + "</pre></p>",
+                text: "<p>Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\" and slicing support is enabled and configured.</p><p>Server reported: <pre>" + data.jqXHR.responseText + "</pre></p>",
                 type: "error",
                 hide: false
             });
@@ -301,6 +304,10 @@ $(function() {
 
         ko.applyBindings(connectionViewModel, document.getElementById("connection_accordion"));
         ko.applyBindings(printerStateViewModel, document.getElementById("state_accordion"));
+        if (CONFIG_CLOUD_SLICER_SUPPORT) {
+            ko.applyBindings(cloudSlicerViewModel, document.getElementById("cloud_slicer_accordion"));
+            cloudSlicerViewModel.refresh();
+        }
         ko.applyBindings(gcodeFilesViewModel, document.getElementById("files_accordion"));
         ko.applyBindings(temperatureViewModel, document.getElementById("temp"));
         ko.applyBindings(controlViewModel, document.getElementById("control"));

@@ -4,10 +4,11 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 
-from flask import request, jsonify
+from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
 from octoprint.printer import getConnectionOptions
+from octoprint.slicers.cloud import CloudSlicer
 
 from octoprint.server import restricted_access, admin_permission
 from octoprint.server.api import api
@@ -94,6 +95,10 @@ def getSettings():
 			"enabled": s.getBoolean(["cura", "enabled"]),
 			"path": s.get(["cura", "path"]),
 			"config": s.get(["cura", "config"])
+		},
+		"cloudSlicer": {
+			"email": s.get(["cloudSlicer", "email"]),
+			"privateKey": s.get(["cloudSlicer", "privateKey"])
 		}
 	})
 
@@ -179,6 +184,24 @@ def setSettings():
 		if "system" in data.keys():
 			if "actions" in data["system"].keys(): s.set(["system", "actions"], data["system"]["actions"])
 			if "events" in data["system"].keys(): s.set(["system", "events"], data["system"]["events"])
+
+		if "cloudSlicer" in data.keys():
+			email = data["cloudSlicer"]["email"]
+			privateKey = data["cloudSlicer"]["privateKey"]
+			if s.get(["cloudSlicer", "email"]) != email or s.get(["cloudSlicer", "privateKey"]) != privateKey:
+				if not email and not privateKey:
+					s.set(["cloudSlicer", "publicKey"], "")
+					
+				else:
+					cloud_slicer = CloudSlicer.get_slicer_instance("ProvenToPrint")
+					public_key = cloud_slicer.get_public_key(email, privateKey)
+					if public_key:
+						s.set(["cloudSlicer", "publicKey"], public_key)
+					else:
+						return make_response('Invalid Cloud Slicer Settings', 401)
+
+			s.set(["cloudSlicer", "email"], email)
+			s.set(["cloudSlicer", "privateKey"], privateKey)
 
 		cura = data.get("cura", None)
 		if cura:

@@ -10,6 +10,7 @@ from sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response
 from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
+from flask.ext.compress import Compress
 
 import os
 import logging
@@ -19,6 +20,7 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 
 app = Flask("octoprint")
+Compress(app)
 debug = False
 
 printer = None
@@ -54,16 +56,20 @@ def index():
 	except:
 		pass
 
+	s = settings()
+
 	return render_template(
 		"index.jinja2",
-		webcamStream=settings().get(["webcam", "stream"]),
-		enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
-		enableGCodeVisualizer=settings().get(["gcodeViewer", "enabled"]),
-		enableTemperatureGraph=settings().get(["feature", "temperatureGraph"]),
-		enableSystemMenu=settings().get(["system"]) is not None and settings().get(["system", "actions"]) is not None and len(settings().get(["system", "actions"])) > 0,
+		webcamStream=s.get(["webcam", "stream"]),
+		enableTimelapse=(s.get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
+		enableGCodeVisualizer=s.get(["feature", "gCodeVisualizer"]),
+		enableTemperatureGraph=s.get(["feature", "temperatureGraph"]),
+		enableSystemMenu=s.get(["system"]) is not None and s.get(["system", "actions"]) is not None and len(s.get(["system", "actions"])) > 0,
+		isCloudSlicerConfigured = bool(s.get(["cloudSlicer", "publicKey"])),
 		enableAccessControl=userManager is not None,
-		enableSdSupport=settings().get(["feature", "sdSupport"]),
-		firstRun=settings().getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
+		enableSdSupport=s.get(["feature", "sdSupport"]),
+
+		firstRun=s.getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
 		debug=debug,
 		gitBranch=branch,
 		gitCommit=commit,

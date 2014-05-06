@@ -124,6 +124,12 @@ default_settings = {
 		"path": "/default/path/to/cura",
 		"config": "/default/path/to/your/cura/config.ini"
 	},
+	"cloudSlicer": {
+		"apiHost": "",
+		"email": "",
+		"privateKey": "",
+		"publicKey": ""
+	},
 	"events": {
 		"systemCommandTrigger": {
 			"enabled": False
