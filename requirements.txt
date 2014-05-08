@@ -5,6 +5,7 @@ sockjs-tornado>=1.0.0
 PyYAML==3.11
 Flask-Login==0.2.10
 Flask-Principal==0.4.0
+Flask-Assets>=0.9
 pyserial>=2.7
 netaddr>=0.7.11
 mock>=1.0.1
@@ -14,3 +15,5 @@ sphinx_rtd_theme
 requests>=2.2.1
 requests-toolbelt>=0.2.0
 flask-compress>=1.0.0
+scss>=0.8.72
+closure==20121212

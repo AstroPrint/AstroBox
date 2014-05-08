@@ -1,0 +1,71 @@
+@import
+    "foundation/settings";
+
+h1 {
+	font-size: rem-calc(60);
+}
+
+#xy-controls {
+	button {
+		display: inline-block;
+	}
+}
+
+#move-length {
+	display: inline-block;
+	padding: 0;
+}
+
+#temp-control {
+	.current-temp-top {
+		text-align: center;
+		margin-bottom: 10px;
+		font-size: rem-calc(60);
+	}
+
+	.temp-bar {
+		height: 340px;
+		background-color: red;
+		position: relative;
+		margin-bottom: 10px;
+
+		.set-temp {
+			position: absolute;
+			left: -5%;
+			top: 20px;
+			background-color: #505050;
+			padding: 10px;
+			text-align: center;
+			color: white;
+			width: 110%;
+		}
+
+		.current-temp {
+			position: absolute;
+			left: -5%;
+			height: 3px;
+			top: 100px;
+			background-color: #505050;
+			width: 110%;
+		}
+
+		label {
+			text-align: center;
+			color: white;
+			position: absolute;
+			bottom: 5px;
+			left: 0;
+			width: 100%;
+			font-size: rem-calc(28);
+		}
+	}
+
+	.fan-control,
+	.temp-control-cont {
+		text-align: center;
+	}
+
+	.fan-control-push {
+		height: 345px;
+	}
+}

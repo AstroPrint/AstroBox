@@ -1,0 +1,44 @@
+<html>
+<head>
+	<title>AstroBox&trade;</title>
+	{% assets filters="scss", output="css/gen/main.css", "css/scss/main.scss", "css/scss/control.scss" %}
+  	<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+	{% endassets %}
+</head>
+<body>
+	<div class="contain-to-grid">
+		<nav class="top-bar" data-topbar>
+		  <ul class="title-area">
+		    <li class="name">
+		      <h1><img src="/img/astroprint-logo_tm.png"/></h1>
+		    </li>
+		  </ul>
+
+		  <section class="top-bar-section">
+		  	<div class="right">
+		  		Connected
+		  	</div>
+		  </section>
+		</nav>
+	</div>
+	<div id="main">
+		<div class="row">
+			<div id="view-container" class="small-12 columns">
+				{% include 'control.jinja2' %}
+			</div>
+			<ul id="bottom-menu">
+		  	<li><button class="success">Home</button></li>
+		  	<li><button class="success active">Controls</button></li>
+		  	<li><button class="success">Settings</button></li>
+			</ul>
+		</div>
+	</div>
+
+	{% assets filters="closure_js", output="js/gen/packed.js", "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js" %}
+    	<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+	{% endassets %}
+  <script type="text/javascript">
+    $(document).foundation();
+  </script>
+</body>
+</html>

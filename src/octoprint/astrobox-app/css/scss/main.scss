@@ -1,0 +1,77 @@
+@charset "UTF-8";
+
+@font-face {
+    font-family: 'nexa_lightregular';
+    src: url('/font/nexa_light-webfont.eot');
+    src: url('/font/nexa_light-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/font/nexa_light-webfont.woff') format('woff'),
+         url('/font/nexa_light-webfont.ttf') format('truetype'),
+         url('/font/nexa_light-webfont.svg#nexa_lightregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+
+}
+
+@font-face {
+    font-family: 'nexa_boldregular';
+    src: url('/font/nexa_bold-webfont.eot');
+    src: url('/font/nexa_bold-webfont.eot?#iefix') format('embedded-opentype'),
+         url('/font/nexa_bold-webfont.woff') format('woff'),
+         url('/font/nexa_bold-webfont.ttf') format('truetype'),
+         url('/font/nexa_bold-webfont.svg#nexa_boldregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@import
+    "normalize",
+    "foundation/settings",
+    "foundation/components/top-bar",
+    "foundation/components/button-groups";
+
+body {
+	background: url('/img/subtle_dots_v1.png');
+}
+
+b, 
+strong,
+.bold {
+  font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+}
+
+.top-bar {
+	.title-area {
+		max-width: 50%;
+		padding-left: 10px;
+	}
+}
+
+#main {
+	border-top: 1px solid #ccc;
+}
+
+#bottom-menu {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+
+	li {
+		float: left;
+		list-style: none;
+		height: 90px;
+		width: 33.3%;
+		text-align: center;
+
+		button {
+			width: 99%;
+			height: 100%;
+
+			&.active {
+				background-color: darken($success-color, 20%);
+			}
+		}
+	}
+}

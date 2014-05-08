@@ -1,0 +1,72 @@
+<h1 class="bold" align="center">Printer Controls</h1>
+<div class="row">
+	<div class="small-12 medium-7 columns">
+		<div class="row">
+			<div class="small-7 columns" id="xy-controls">
+				<h2 class="bold" align="center">X/Y Axis</h2>
+				<center>
+					<button>U</button><br/>
+					<button>L</button> <button>H</button> <button>R</button><br/>
+					<button>D</button>
+				</center>
+			</div>
+			<div class="small-5 columns">
+				<h2 class="bold" align="center">Z Axis</h2>
+				<center>
+					<button>U</button><br/>
+					<button>H</button><br/>
+					<button>D</button>
+				</center>
+			</div>
+			<div class="small-12 columns">
+				<center>
+				  <ul class="button-group radius" id="move-length">
+				    <li><button class="small button">0.1</button></li>
+				    <li><button class="small button">1</button></li>
+				    <li><button class="small button">10</button></li>
+				    <li><button class="small button">100</button></li>
+				  </ul>
+				</center>
+			</div>
+			<div class="small-12 columns">
+				<h2 class="bold">Extrude Filament</h2>
+				<div class="small-4 columns">
+					<input class="radius" type="text">
+				</div>
+				<div class="small-4 columns">
+					<button class="small radius expand">Extrude</button>
+				</div>
+				<div class="small-4 columns">
+					<button class="small radius expand">Retract</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="small-12 medium-5 columns" id="temp-control">
+		<div class="row">
+			<div class="small-4 columns temp-control-cont">
+				<span class="current-temp-top bold">180&deg;</span>
+				<div class="temp-bar">
+					<div class="set-temp radius">160</div>
+					<div class="current-temp"></div>
+					<label class="bold">Nozzle</label>
+				</div>
+				<button class="secondary small radius expand">OFF</button>
+			</div>
+			<div class="small-4 columns fan-control">
+				<div class="fan-control-push"></div>
+				<h2 class="bold">Fans</h2>
+				<button class="radius small expand">ON</button>
+			</div>
+			<div class="small-4 columns temp-control-cont">
+				<span class="current-temp-top bold">60&deg;</span>
+				<div class="temp-bar">
+					<div class="set-temp radius">160</div>
+					<div class="current-temp"></div>
+					<label class="bold">Bed</label>
+				</div>
+				<button class="secondary small radius expand">OFF</button>
+			</div>
+		</div>
+	</div>
+</div>

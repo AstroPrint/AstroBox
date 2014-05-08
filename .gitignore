@@ -23,3 +23,9 @@ dist
 pypy
 OctoPrint.egg-info
 *.orig
+
+# Auto generated files by webassets
+
+.webassets-cache
+src/octoprint/astrobox-app/css/gen/*.css
+src/octoprint/astrobox-app/js/gen/*.js

@@ -1,9 +1,8 @@
 # coding=utf-8
-import uuid
-
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import uuid
 import flask
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
@@ -11,6 +10,7 @@ from flask import Flask, render_template, send_from_directory, make_response
 from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
+from flask.ext.assets import Environment
 
 import os
 import logging
@@ -19,7 +19,9 @@ import logging.config
 SUCCESS = {}
 NO_CONTENT = ("", 204)
 
-app = Flask("octoprint")
+app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
+assets = Environment(app)
+#app.config['ASSETS_DEBUG'] = True
 Compress(app)
 debug = False
 
@@ -84,6 +86,17 @@ def index():
 def robotsTxt():
 	return send_from_directory(app.static_folder, "robots.txt")
 
+@app.route("/favicon.ico")
+def favion():
+	return send_from_directory(app.static_folder, "favicon.ico")
+
+@app.route('/img/<path:path>')
+def static_proxy_images(path):
+    return app.send_static_file(os.path.join('img', path))
+
+@app.route('/font/<path:path>')
+def static_proxy_fonts(path):
+    return app.send_static_file(os.path.join('font', path))
 
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
