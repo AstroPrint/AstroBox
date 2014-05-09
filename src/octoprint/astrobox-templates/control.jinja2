@@ -4,27 +4,27 @@
 		<div class="row">
 			<div class="small-7 columns" id="xy-controls">
 				<h2 class="bold" align="center">X/Y Axis</h2>
-				<center>
-					<button>U</button><br/>
-					<button>L</button> <button>H</button> <button>R</button><br/>
-					<button>D</button>
-				</center>
+				<div class="control_bg_xy" align="center">
+					<button class="control_btn_Y_plus"></button><br/>
+					<button class="control_btn_X_minus"></button> <button class="home_z"></button> <button class="control_btn_X_plus"></button><br/>
+					<button class="control_btn_Y_minus"></button>
+				</div>
 			</div>
-			<div class="small-5 columns">
+			<div class="small-5 columns" id="z-controls">
 				<h2 class="bold" align="center">Z Axis</h2>
 				<center>
-					<button>U</button><br/>
-					<button>H</button><br/>
-					<button>D</button>
+					<button class="control_btn_Z_plus"></button><br/>
+					<button class="home_z"></button><br/>
+					<button class="control_btn_Z_minus"></button>
 				</center>
 			</div>
-			<div class="small-12 columns">
+			<div class="small-12 columns" id="move-length">
 				<center>
-				  <ul class="button-group radius" id="move-length">
-				    <li><button class="small button">0.1</button></li>
-				    <li><button class="small button">1</button></li>
-				    <li><button class="small button">10</button></li>
-				    <li><button class="small button">100</button></li>
+				  <ul class="button-group radius">
+				    <li><button class="small button bold secondary">0.1</button></li>
+				    <li><button class="small button bold secondary">1</button></li>
+				    <li><button class="small button bold success">10</button></li>
+				    <li><button class="small button bold secondary">100</button></li>
 				  </ul>
 				</center>
 			</div>
@@ -47,11 +47,14 @@
 			<div class="small-4 columns temp-control-cont nozzle">
 				<span class="current-temp-top bold">180&deg;</span>
 				<div class="temp-bar">
-					<div class="set-temp radius">160</div>
-					<div class="current-temp"></div>
 					<label class="bold">Nozzle</label>
+					<div class="current-temp">
+						<div class="triangle_left"></div>
+						<div class="triangle_right"></div>
+					</div>
+					<div class="set-temp radius bold">160</div>
 				</div>
-				<button class="secondary small radius expand">OFF</button>
+				<button class="temp-off secondary small radius expand">OFF</button>
 			</div>
 			<div class="small-4 columns fan-control">
 				<div class="fan-control-push"></div>
@@ -61,11 +64,14 @@
 			<div class="small-4 columns temp-control-cont bed">
 				<span class="current-temp-top bold">60&deg;</span>
 				<div class="temp-bar">
-					<div class="set-temp radius">160</div>
-					<div class="current-temp"></div>
 					<label class="bold">Bed</label>
+					<div class="current-temp">
+						<div class="triangle_left"></div>
+						<div class="triangle_right"></div>
+					</div>
+					<div class="set-temp radius bold">160</div>
 				</div>
-				<button class="secondary small radius expand">OFF</button>
+				<button class="temp-off secondary small radius expand">OFF</button>
 			</div>
 		</div>
 	</div>

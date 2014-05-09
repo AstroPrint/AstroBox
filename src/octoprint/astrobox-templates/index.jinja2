@@ -1,8 +1,9 @@
 <html>
 <head>
 	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<title>AstroBox&trade;</title>
-	{% assets filters="scss", output="css/gen/main.css", "css/scss/main.scss", "css/scss/control.scss" %}
+	{% assets filters="scss", output="css/gen/main.css", "css/scss/main.scss", "css/scss/control.scss", "css/scss/sprites.scss" %}
   	<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
 </head>
@@ -29,9 +30,9 @@
 				</div>
 			</div>
 			<ul id="bottom-menu">
-		  	<li><button class="success">Home</button></li>
-		  	<li><button class="success active">Controls</button></li>
-		  	<li><button class="success">Settings</button></li>
+		  	<li><button class="success"><div class="house_icon"></div></button></li>
+		  	<li><button class="success active"><div class="control_icon"></div></button></li>
+		  	<li><button class="success"><div class="gear_icon"></div></button></li>
 			</ul>
 		</div>
 	</div>

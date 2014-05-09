@@ -4,17 +4,57 @@
 
 h1 {
 	font-size: rem-calc(60);
+	margin: 10px 0;
+}
+
+#xy-controls,
+#z-controls  {
+	button {
+		display: inline-block;
+		margin-bottom: 0;
+		border: 0;
+
+		&:hover, &:active {
+			background-color: transparent;
+		}
+	}
 }
 
 #xy-controls {
 	button {
-		display: inline-block;
+		position: relative;
+		&.home_z {
+			top: -60px;
+			margin: 0 20px;
+		}
+
+		&.control_btn_X_plus,
+		&.control_btn_X_minus {
+			top: -22px;
+		}
+
+		&.control_btn_Y_minus {
+			top: -43px;
+		}
+	}
+}
+
+#z-controls {
+	button.home_z {
+		margin: 30px 0;
 	}
 }
 
 #move-length {
-	display: inline-block;
-	padding: 0;
+	margin-top: 19px;
+
+	ul {
+		display: inline-block;
+		padding: 0;
+		li button {
+			font-size: rem-calc(25);
+		}
+	}
 }
 
 #temp-control {
@@ -22,13 +62,14 @@ h1 {
 		text-align: center;
 		margin-bottom: 10px;
 		font-size: rem-calc(60);
+		color: $alert-color;
 	}
 
 	.temp-bar {
-		height: 340px;
-		background-color: red;
+		height: 382px;
+		background: url(/img/temp_gradient.png) repeat-x;
 		position: relative;
-		margin-bottom: 10px;
+		margin-bottom: 19px;
 
 		.set-temp {
 			position: absolute;
@@ -39,7 +80,8 @@ h1 {
 			text-align: center;
 			color: white;
 			width: 110%;
-			@include radius();
+			font-size: rem-calc(22);
+			border-radius: $global-radius;
 
 			&.moving {
 				background-color: lighten(#505050, 20%);
@@ -49,17 +91,31 @@ h1 {
 		.current-temp {
 			position: absolute;
 			left: -5%;
-			height: 3px;
+			height: 6px;
 			top: 100px;
 			background-color: #505050;
 			width: 110%;
+
+			.triangle_left {
+				position: absolute;
+				left: -8px;
+				top: -6px;
+			}
+
+			.triangle_right {
+				position: absolute;
+				right: -8px;
+				top: -6px;
+			}
+
 		}
 
 		label {
 			text-align: center;
 			color: white;
 			position: absolute;
-			bottom: 5px;
+			bottom: 0px;
+			padding: 5px;
 			left: 0;
 			width: 100%;
 			font-size: rem-calc(28);
@@ -72,6 +128,6 @@ h1 {
 	}
 
 	.fan-control-push {
-		height: 345px;
+		height: 396px;
 	}
 }
