@@ -50,6 +50,30 @@ strong,
 	border-top: 1px solid #ccc;
 }
 
+#connection-view {
+	> div {
+		display: none;
+	}
+
+	&.connecting {
+		.connecting {
+			display: inline-block;
+		}
+	}
+
+	&.connected {
+		.connected {
+			display: inline-block;
+		}
+	}
+
+	&.failed {
+		.failed {
+			display: inline-block;
+		}
+	}
+}
+
 #bottom-menu {
 	position: fixed;
 	bottom: 0;
