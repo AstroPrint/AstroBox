@@ -1,5 +1,6 @@
 <html>
 <head>
+	<meta name="apple-mobile-web-app-capable" content="yes">
 	<title>AstroBox&trade;</title>
 	{% assets filters="scss", output="css/gen/main.css", "css/scss/main.scss", "css/scss/control.scss" %}
   	<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
@@ -13,7 +14,6 @@
 		      <h1><img src="/img/astroprint-logo_tm.png"/></h1>
 		    </li>
 		  </ul>
-
 		  <section class="top-bar-section">
 		  	<div class="right">
 		  		Connected
@@ -24,7 +24,9 @@
 	<div id="main">
 		<div class="row">
 			<div id="view-container" class="small-12 columns">
-				{% include 'control.jinja2' %}
+				<div id="control-view">
+					{% include 'control.jinja2' %}
+				</div>
 			</div>
 			<ul id="bottom-menu">
 		  	<li><button class="success">Home</button></li>
@@ -33,10 +35,12 @@
 			</ul>
 		</div>
 	</div>
-
-	{% assets filters="closure_js", output="js/gen/packed.js", "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js" %}
+	{% assets filters="closure_js", output="js/gen/packed.js", 
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js",
+		"js/app/views/control.js",
+		"js/app/app.js" -%}
     	<script type="text/javascript" src="{{ ASSET_URL }}"></script>
-	{% endassets %}
+	{%- endassets %}
   <script type="text/javascript">
     $(document).foundation();
   </script>
