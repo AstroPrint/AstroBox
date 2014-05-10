@@ -2,6 +2,8 @@ var tempBarView = Backbone.View.extend({
 	containerDimensions: null,
 	handleTop: null,
 	scale: null,
+	type: null,
+	dragging: false,
 	events: {
 		'touchstart .set-temp': 'onTouchStart',
 		'touchmove .set-temp': 'onTouchMove',
@@ -11,24 +13,30 @@ var tempBarView = Backbone.View.extend({
 	},
 	initialize: function(params) {
 		this.scale = params.scale;
+		this.type = params.type;
 		this.onResize();
 	},
 	turnOff: function(e) {
+		this._sendToolCommand('target', this.type, 0);
 		this.setHandle(0);
 	},
 	setHandle: function(value) {
-		var position = this._temp2px(value);
-		var handle = this.$el.find('.set-temp');
+		if (!this.dragging) {
+			var position = this._temp2px(value);
+			var handle = this.$el.find('.set-temp');
 
-		handle.css({transition: 'top 0.5s'});
-		handle.css({top: position + 'px'});
-		handle.text(value);
-		setTimeout(function() {
-			handle.css({transition: ''});
-		}, 500);
+			handle.css({transition: 'top 0.5s'});
+			handle.css({top: position + 'px'});
+			handle.text(value);
+			setTimeout(function() {
+				handle.css({transition: ''});
+			}, 500);
+		}
 	},
 	onTouchStart: function(e) {
 		e.preventDefault();
+
+		this.dragging = true;
 
 		var target = $(e.target);
 
@@ -54,6 +62,11 @@ var tempBarView = Backbone.View.extend({
 		this.handleTop = null;
 
 		$(e.target).removeClass('moving');
+
+		//Set it here
+		this._sendToolCommand('target', this.type, this.$el.find('.set-temp').text());
+
+		this.dragging = false;
 	},
 	onResize: function() {
 		var container = this.$el.find('.temp-bar');
@@ -71,8 +84,11 @@ var tempBarView = Backbone.View.extend({
 		};
 	},
 	setTemps: function(actual, target) {
+		var handleHeight = this.$el.find('.set-temp').innerHeight();
+
 		this.setHandle(target);
 		this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
+		this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
 	},
 	_temp2px: function(temp) {
 		var px = temp * this.containerDimensions.px4degree;
@@ -81,7 +97,48 @@ var tempBarView = Backbone.View.extend({
 	},
 	_px2temp: function(px) {
 		return Math.round( ( (this.containerDimensions.maxTop - px) / this.containerDimensions.px4degree ) );
-	}
+	},
+    _sendToolCommand: function(command, type, temp, successCb, errorCb) {
+        var data = {
+            command: command
+        };
+
+        var endpoint;
+        if (type == "bed") {
+            if ("target" == command) {
+                data["target"] = parseInt(temp);
+            } else if ("offset" == command) {
+                data["offset"] = parseInt(temp);
+            } else {
+                return;
+            }
+
+            endpoint = "bed";
+        } else {
+            var group;
+            if ("target" == command) {
+                group = "targets";
+            } else if ("offset" == command) {
+                group = "offsets";
+            } else {
+                return;
+            }
+            data[group] = {};
+            data[group][type] = parseInt(temp);
+
+            endpoint = "tool";
+        }
+
+        $.ajax({
+            url: API_BASEURL + "printer/" + endpoint,
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data),
+            success: function() { if (successCb !== undefined) successCb(); },
+            error: function() { if (errorCb !== undefined) errorCb(); }
+        });
+    }
 });
 
 var TempView = Backbone.View.extend({
@@ -91,11 +148,13 @@ var TempView = Backbone.View.extend({
 	initialize: function() {
 		this.nozzleTempBar = new tempBarView({
 			scale: [0, 280],
-			el: this.$el.find('.temp-control-cont.nozzle')
+			el: this.$el.find('.temp-control-cont.nozzle'),
+			type: 'tool0'
 		});
 		this.bedTempBar = new tempBarView({
 			scale: [0, 120],
-			el: this.$el.find('.temp-control-cont.bed')
+			el: this.$el.find('.temp-control-cont.bed'),
+			type: 'bed'
 		});
 	},
 	updateBars: function(value) {

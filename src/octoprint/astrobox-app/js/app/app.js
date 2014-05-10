@@ -2,11 +2,12 @@ var AstroBoxApp = Backbone.View.extend({
 	el: 'body',
 	controlView: new ControlView(),
 	connectionView: new ConnectionView(),
-	printerData: new PrinterData(),
+	socketData: new SocketData(),
 	initialize: function() {
-		this.connectionView.connect();
-		this.printerData.connect();
-		this.listenTo(this.printerData, 'change:temps', this.reportTempChange );
+		this.socketData.connectionView = this.connectionView;
+		this.connectionView.socketData = this.socketData;
+		this.socketData.connect();
+		this.listenTo(this.socketData, 'change:temps', this.reportTempChange );
 	},
 	reportTempChange: function(s, value) {
 		this.controlView.updateTemps(value);

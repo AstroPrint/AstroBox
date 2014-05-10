@@ -1,15 +1,21 @@
 var ConnectionView = Backbone.View.extend({
 	el: '#connection-view',
+	events: {
+		'click i.printer': 'printerTapped',
+		'click i.server': 'serverTapped'
+	},
+	socketData: null,
 	connect: function() {
-		this.$el.addClass('connecting').removeClass(['failed', 'connected']);
 		var self = this;
+
+		this.setPrinterConnection('blink');
 
         /*$.ajax({
             url: API_BASEURL + "connection",
             method: "GET",
             dataType: "json",
             success: function(response) {
-            	self.$el.addClass('connected').removeClass('connecting');
+            	indicator.addClass('connected').removeClass('connecting');
             	console.log(response);
             }
         })*/
@@ -28,10 +34,9 @@ var ConnectionView = Backbone.View.extend({
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify(data),
             success: function(response) {
-            	self.$el.addClass('connected').removeClass('connecting');
             },
             error: function() {
-            	self.$el.addClass('failed').removeClass('connecting');
+            	self.setPrinterConnection('failed');
             }
         });
 	},
@@ -46,5 +51,22 @@ var ConnectionView = Backbone.View.extend({
 	        	self.$el.removeClass('connected');
 	        }
 	    });	
+	},
+	setServerConnection: function(className) {
+		this.$el.find('i.server').removeClass('blink connected failed').addClass(className);
+	},
+	setPrinterConnection: function(className) {
+		this.$el.find('i.printer').removeClass('blink connected failed').addClass(className);
+	},
+	printerTapped: function(e) {
+		if ($(e.target).hasClass('failed')) {
+			this.connect();
+		}
+	},
+	serverTapped: function(e) {
+		if ($(e.target).hasClass('failed')) {
+			this.socketData.reconnect();
+			this.connect();
+		}
 	}
 });

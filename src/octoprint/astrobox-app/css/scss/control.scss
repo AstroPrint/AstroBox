@@ -13,6 +13,7 @@ h1 {
 		display: inline-block;
 		margin-bottom: 0;
 		border: 0;
+		background-color: transparent;
 
 		&:hover, &:active {
 			background-color: transparent;
@@ -95,6 +96,7 @@ h1 {
 			top: 100px;
 			background-color: #505050;
 			width: 110%;
+			transition: top 0.5s;
 
 			.triangle_left {
 				position: absolute;
@@ -128,6 +130,24 @@ h1 {
 	}
 
 	.fan-control-push {
-		height: 396px;
+		font-size: rem-calc(17);
+		padding-top: 17px;
+		height: 392px;
+	}
+
+	.fan-control {
+		.fan_icon {
+			display: inline-block;
+			vertical-align: middle;
+		}
+	}
+}
+
+#extrusion-control {
+	input {
+		padding: 0 5px;
+		font-size: rem-calc(20);
+		height: 45px;
+		width: 100%;
 	}
 }

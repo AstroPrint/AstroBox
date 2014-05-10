@@ -3,7 +3,8 @@
 	<meta name="apple-mobile-web-app-capable" content="yes">
 	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<title>AstroBox&trade;</title>
-	{% assets filters="scss", output="css/gen/main.css", "css/scss/main.scss", "css/scss/control.scss", "css/scss/sprites.scss" %}
+	{% assets filters="scss", output="css/gen/main.css", 
+		"css/scss/fontello.scss", "css/scss/main.scss", "css/scss/control.scss", "css/scss/sprites.scss" %}
   	<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
 </head>
@@ -17,9 +18,8 @@
 		  </ul>
 		  <section class="top-bar-section">
 		  	<div class="right" id="connection-view">
-		  		<div class="connected">Connected</div>
-		  		<div class="failed">Failed</div>
-		  		<div class="connecting">Connecting...</div>
+		  		<i class="icon-print printer"></i>
+		  		<i class="icon-exchange server"></i>
 		  	</div>
 		  </section>
 		</nav>
@@ -47,7 +47,7 @@
 	</script>
 	{% assets filters="closure_js", output="js/gen/packed.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/sockjs.js",
-		"js/app/models/printerdata.js",
+		"js/app/models/socketdata.js",
 		"js/app/views/control.js", "js/app/views/connection.js",
 		"js/app/app.js" -%}
     	<script type="text/javascript" src="{{ ASSET_URL }}"></script>

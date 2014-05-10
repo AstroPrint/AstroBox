@@ -1,8 +1,10 @@
-var PrinterData = Backbone.Model.extend({
+var SocketData = Backbone.Model.extend({
+	connectionView: null,
 	_socket: null,
 	_autoReconnecting: false,
 	_autoReconnectTrial: 0,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
+	_currentState: 0,
 	defaults: {
 		temps: {
 			bed: {
@@ -17,6 +19,8 @@ var PrinterData = Backbone.Model.extend({
 	},
 	connect: function()
 	{
+		this.connectionView.setServerConnection('blink');
+
         var options = {};
         if (SOCKJS_DEBUG) {
             options["debug"] = true;
@@ -35,8 +39,13 @@ var PrinterData = Backbone.Model.extend({
    	_onConnect: function() {
         self._autoReconnecting = false;
         self._autoReconnectTrial = 0;
+        this.connectionView.setServerConnection('connected');
     },
     _onClose: function() {
+    	this.connectionView.setServerConnection('failed');
+    	this.connectionView.setPrinterConnection('failed');
+    	this._currentState = 0;
+
         /*$("#offline_overlay_message").html(
             "The server appears to be offline, at least I'm not getting any response from it. I'll try to reconnect " +
                 "automatically <strong>over the next couple of minutes</strong>, however you are welcome to try a manual reconnect " +
@@ -47,11 +56,12 @@ var PrinterData = Backbone.Model.extend({
 
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
-            console.log("Reconnect trial #" + self._autoReconnectTrial + ", waiting " + timeout + "s");
-            setTimeout(this.reconnect, timeout * 1000);
+            console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
+            var self = this;
+            setTimeout(function(){self.reconnect()}, timeout * 1000);
             this._autoReconnectTrial++;
         } else {
-            this._onreconnectfailed();
+            this._onReconnectFailed();
         }
     },
     _onReconnectFailed: function() {
@@ -72,6 +82,8 @@ var PrinterData = Backbone.Model.extend({
                     $.ajaxSetup({
                         headers: {"X-Api-Key": UI_API_KEY}
                     });
+
+                    this.connectionView.connect();
 
                     /*if ($("#offline_overlay").is(":visible")) {
                         $("#offline_overlay").hide();
@@ -101,7 +113,6 @@ var PrinterData = Backbone.Model.extend({
                     break;
                 }*/
                 case "current": {
-                	//console.log(data);
                 	if (data.temps.length) {
 	                	var temps = data.temps[data.temps.length-1];
 	                	this.set('temps', {
@@ -109,6 +120,16 @@ var PrinterData = Backbone.Model.extend({
 	                		extruder: temps.tool0
 	                	});
 	                }
+
+	                if (data.state && data.state.state != this._currentState) {
+	                	this._currentState = data.state.state;
+	                	if (data.state.flags.error) {
+        					this.connectionView.setPrinterConnection('failed');
+	                	} else if (data.state.flags.operational) {
+	                		this.connectionView.setPrinterConnection('connected');
+	                	}
+	                }
+
                     //self.connectionViewModel.fromCurrentData(data);
                     //self.printerStateViewModel.fromCurrentData(data);
                     //self.temperatureViewModel.fromCurrentData(data);

@@ -67,7 +67,9 @@ def restricted_access(func, apiEnabled=True):
 				return func(*args, **kwargs)
 
 		# call regular login_required decorator
-		return login_required(func)(*args, **kwargs)
+		#TODO: remove this temporary disablement of login requirement
+		#return login_required(func)(*args, **kwargs)
+		return func(*args, **kwargs)
 	return decorated_view
 
 
