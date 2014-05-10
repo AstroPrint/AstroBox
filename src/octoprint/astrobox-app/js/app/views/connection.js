@@ -10,35 +10,34 @@ var ConnectionView = Backbone.View.extend({
 
 		this.setPrinterConnection('blink');
 
-        /*$.ajax({
+        $.ajax({
             url: API_BASEURL + "connection",
             method: "GET",
             dataType: "json",
             success: function(response) {
-            	indicator.addClass('connected').removeClass('connecting');
-            	console.log(response);
-            }
-        })*/
+		        var data = {
+		            "command": "connect",
+		            //"port": '/dev/tty.usbmodemfd121',
+		            //"baudrate": 250000,
+		            "port": response.options.portPreference,
+		            "baudrate": response.options.baudratePreference,
+		            "autoconnect": true
+		        };
 
-        var data = {
-            "command": "connect",
-            "port": '/dev/tty.usbmodemfd121',
-            "baudrate": 250000,
-            "autoconnect": true
-        };
-
-        $.ajax({
-            url: API_BASEURL + "connection",
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify(data),
-            success: function(response) {
-            },
-            error: function() {
-            	self.setPrinterConnection('failed');
+		        $.ajax({
+		            url: API_BASEURL + "connection",
+		            type: "POST",
+		            dataType: "json",
+		            contentType: "application/json; charset=UTF-8",
+		            data: JSON.stringify(data),
+		            success: function(response) {
+		            },
+		            error: function() {
+		            	self.setPrinterConnection('failed');
+		            }
+		        });
             }
-        });
+        })
 	},
 	disconnect: function() {
 	    $.ajax({
