@@ -64,9 +64,14 @@
     100% { opacity: 1.0; }
 }
 
+html {
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+}
+
 body {
 	background: url('/img/subtle_dots_v1.png');
-}
+} 
 
 b, 
 strong,
@@ -83,6 +88,10 @@ strong,
 
 #main {
 	border-top: 1px solid #ccc;
+}
+
+#view-container {
+	margin-bottom: 95px;
 }
 
 #connection-view {

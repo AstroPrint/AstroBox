@@ -53,6 +53,7 @@ h1 {
 		display: inline-block;
 		padding: 0;
 		li button {
+			margin-bottom: 0;
 			font-size: rem-calc(25);
 		}
 	}
@@ -67,7 +68,7 @@ h1 {
 	}
 
 	.temp-bar {
-		height: 382px;
+		height: 362px;
 		background: url(/img/temp_gradient.png) repeat-x;
 		position: relative;
 		margin-bottom: 19px;
@@ -132,7 +133,7 @@ h1 {
 	.fan-control-push {
 		font-size: rem-calc(17);
 		padding-top: 17px;
-		height: 392px;
+		height: 372px;
 	}
 
 	.fan-control {

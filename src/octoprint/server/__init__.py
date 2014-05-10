@@ -90,6 +90,10 @@ def robotsTxt():
 def favion():
 	return send_from_directory(app.static_folder, "favicon.ico")
 
+@app.route("/apple-touch-icon.png")
+def apple_icon():
+	return send_from_directory(app.static_folder, "apple-touch-icon.png")
+
 @app.route('/img/<path:path>')
 def static_proxy_images(path):
     return app.send_static_file(os.path.join('img', path))
