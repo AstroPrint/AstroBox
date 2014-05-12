@@ -27,5 +27,6 @@ OctoPrint.egg-info
 # Auto generated files by webassets
 
 .webassets-cache
+.sass-cache
 src/octoprint/astrobox-app/css/gen/*.css
 src/octoprint/astrobox-app/js/gen/*.js
