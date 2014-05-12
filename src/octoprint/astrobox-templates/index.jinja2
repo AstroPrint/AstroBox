@@ -10,34 +10,55 @@
 	{% endassets %}
 </head>
 <body>
-	<div class="contain-to-grid">
-		<nav class="top-bar" data-topbar>
-		  <ul class="title-area">
-		    <li class="name">
-		      <h1><img src="/img/astroprint-logo_tm.png"/></h1>
-		    </li>
-		  </ul>
-		  <section class="top-bar-section">
-		  	<div class="right" id="connection-view">
-		  		<i class="icon-print printer"></i>
-		  		<i class="icon-exchange server"></i>
-		  	</div>
-		  </section>
-		</nav>
-	</div>
-	<div id="main">
-		<div class="row">
-			<div id="view-container" class="small-12 columns">
-				<div id="control-view">
-					{% include 'control.jinja2' %}
+	<div class="off-canvas-wrap" data-offcanvas>
+	<div class="inner-wrap">
+    <nav class="tab-bar">
+      <section class="left-small">
+        <a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
+      </section>
+
+      <section class="middle tab-bar-section">
+        <h1 class="title"><img src="/img/astroprint-logo_tm.png"/></h1>
+      	<div class="right" id="connection-view">
+			  	<i class="icon-print printer"></i>
+			  	<i class="icon-exchange server"></i>
+			  </div>
+      </section>
+    </nav>
+		<aside class="left-off-canvas-menu">
+			<ul class="off-canvas-list">
+				<li><label>AstroPrint&trade;</label></li>
+      	<li><a href="#"><i class="icon-home"></i> Home</a></li>
+      	<li class="active"><a href="#"><i class="icon-move"></i> Control</a></li>
+      	<li><a href="#"><i class="icon-cog"></i> Settings</a></li>
+      </ul>
+		</aside>
+		<!--div class="contain-to-grid">
+			<nav class="top-bar" data-topbar>
+			  <ul class="title-area">
+			    <li class="name">
+			      <h1><img src="/img/astroprint-logo_tm.png"/></h1>
+			    </li>
+			  </ul>
+			  <section class="top-bar-section">
+			  	<div class="right" id="connection-view">
+			  		<i class="icon-print printer"></i>
+			  		<i class="icon-exchange server"></i>
+			  	</div>
+			  </section>
+			</nav>
+		</div-->
+		<div id="main">
+			<div class="row">
+				<div id="view-container" class="small-12 columns">
+					<div id="control-view">
+						{% include 'control.jinja2' %}
+					</div>
 				</div>
 			</div>
-			<ul id="bottom-menu">
-		  	<li><button class="success"><div class="house_icon"></div></button></li>
-		  	<li><button class="success active"><div class="control_icon"></div></button></li>
-		  	<li><button class="success"><div class="gear_icon"></div></button></li>
-			</ul>
 		</div>
+		<a class="exit-off-canvas"></a>
+	</div>
 	</div>
 	<script type="text/javascript">
 		var UI_API_KEY = "{{ uiApiKey }}";
@@ -47,7 +68,7 @@
     var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
 	</script>
 	{% assets filters="closure_js", output="js/gen/packed.js", 
-		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/sockjs.js", "js/lib/fastclick.js",
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/sockjs.js", "js/lib/fastclick.js",
 		"js/app/models/socketdata.js",
 		"js/app/views/control.js", "js/app/views/connection.js",
 		"js/app/app.js" -%}

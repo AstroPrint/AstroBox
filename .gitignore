@@ -23,6 +23,7 @@ dist
 pypy
 OctoPrint.egg-info
 *.orig
+build
 
 # Auto generated files by webassets
 
