@@ -6,8 +6,12 @@ var tempBarView = Backbone.View.extend({
 	dragging: false,
 	events: {
 		'touchstart .set-temp': 'onTouchStart',
+		'mousedown .set-temp': 'onTouchStart',
 		'touchmove .set-temp': 'onTouchMove',
+		'mousemove .set-temp': 'onTouchMove',
 		'touchend .set-temp': 'onTouchEnd',
+		'mouseup .set-temp': 'onTouchEnd',
+		'mouseout .set-temp': 'onTouchEnd',
 		'resize': 'onResize',
 		'click button.temp-off': 'turnOff'
 	},
@@ -45,16 +49,24 @@ var tempBarView = Backbone.View.extend({
 		target.addClass('moving');
 	},
 	onTouchMove: function(e) {
-		e.preventDefault();
+		if (this.dragging) {
+			e.preventDefault();
 
-		var target = $(e.target);
+			var target = $(e.target);
 
-		var newTop = e.originalEvent.changedTouches[0].clientY - this.containerDimensions.top;
-		newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
+			if (e.type == 'mousemove') {
+				var pageY = e.originalEvent.pageY 
+			} else {
+				var pageY = e.originalEvent.changedTouches[0].clientY;
+			}
 
-		target.css({top: newTop+'px'});
+			var newTop = pageY - this.containerDimensions.top - target.innerHeight()/2.0;
+			newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
 
-		target.text(this._px2temp(newTop));
+			target.css({top: newTop+'px'});
+
+			target.text(this._px2temp(newTop));
+		}
 	},
 	onTouchEnd: function(e) {
 		e.preventDefault();
