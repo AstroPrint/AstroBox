@@ -34,7 +34,7 @@ $(CSS_PACKED): $(CSS_LIST)
 	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
 
 clean-js:
-	rm $(JS_PACKED)
+	rm -f $(JS_PACKED)
 
 clean-css:
-	rm $(CSS_PACKED)
+	rm -f $(CSS_PACKED)
