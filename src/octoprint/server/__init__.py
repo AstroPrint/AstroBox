@@ -22,6 +22,7 @@ NO_CONTENT = ("", 204)
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
 assets = Environment(app)
 #app.config['ASSETS_DEBUG'] = True
+app.config['ASSETS_AUTO_BUILD'] = False
 Compress(app)
 debug = False
 
