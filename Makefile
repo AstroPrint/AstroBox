@@ -37,4 +37,4 @@ clean-js:
 	rm $(JS_PACKED)
 
 clean-css:
-	rm src/octoprint/astrobox-app/css/gen/*.css
+	rm $(CSS_PACKED)
