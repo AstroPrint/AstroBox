@@ -19,7 +19,7 @@ var SocketData = Backbone.Model.extend({
 	},
 	connect: function()
 	{
-		this.connectionView.setServerConnection('blink');
+		this.connectionView.setServerConnection('blink-animation');
 
         var options = {};
         if (SOCKJS_DEBUG) {

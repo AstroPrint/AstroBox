@@ -1,10 +1,12 @@
-//@import
-//    "foundation/components/global",
-//    "foundation/settings";
+#control-view {
+	h1 {
+		font-size: rem-calc(60);
+		margin: 10px 0;
+	}
 
-h1 {
-	font-size: rem-calc(60);
-	margin: 10px 0;
+	h2 {
+		font-size: rem-calc(20);
+	}
 }
 
 #xy-controls,
@@ -47,7 +49,7 @@ h1 {
 }
 
 #move-length {
-	margin-top: 19px;
+	margin-top: 40px;
 
 	ul {
 		display: inline-block;
@@ -84,6 +86,7 @@ h1 {
 			width: 110%;
 			font-size: rem-calc(22);
 			border-radius: $global-radius;
+			cursor: pointer;
 
 			&.moving {
 				background-color: lighten(#505050, 20%);
@@ -133,10 +136,14 @@ h1 {
 	.fan-control-push {
 		font-size: rem-calc(17);
 		padding-top: 17px;
-		height: 372px;
+		height: 390px;
 	}
 
 	.fan-control {
+		h2 {
+			margin-bottom: 20px;
+		}
+
 		.fan_icon {
 			display: inline-block;
 			vertical-align: middle;
@@ -145,6 +152,8 @@ h1 {
 }
 
 #extrusion-control {
+	margin-top: 29px;
+
 	input {
 		padding: 0 5px;
 		font-size: rem-calc(20);

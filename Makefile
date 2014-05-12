@@ -9,7 +9,7 @@ JS_LIST := 	$(foreach file, $(JS_FILES), \
 			)
 JS_PACKED := src/octoprint/astrobox-app/js/gen/packed.js
 
-CSS_FILES := fontello.scss main.scss sprites.scss
+CSS_FILES := main.scss
 CSS_LIST := $(foreach file, $(CSS_FILES), \
 				$(addprefix src/octoprint/astrobox-app/css/scss/, $(file)) \
 			)

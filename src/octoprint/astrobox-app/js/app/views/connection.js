@@ -8,7 +8,7 @@ var ConnectionView = Backbone.View.extend({
 	connect: function() {
 		var self = this;
 
-		this.setPrinterConnection('blink');
+		this.setPrinterConnection('blink-animation');
 
         $.ajax({
             url: API_BASEURL + "connection",
@@ -17,8 +17,6 @@ var ConnectionView = Backbone.View.extend({
             success: function(response) {
 		        var data = {
 		            "command": "connect",
-		            //"port": '/dev/tty.usbmodemfd121',
-		            //"baudrate": 250000,
 		            "port": response.options.portPreference,
 		            "baudrate": response.options.baudratePreference,
 		            "autoconnect": true
@@ -52,10 +50,10 @@ var ConnectionView = Backbone.View.extend({
 	    });	
 	},
 	setServerConnection: function(className) {
-		this.$el.find('i.server').removeClass('blink connected failed').addClass(className);
+		this.$el.find('i.server').removeClass('blink-animation connected failed').addClass(className);
 	},
 	setPrinterConnection: function(className) {
-		this.$el.find('i.printer').removeClass('blink connected failed').addClass(className);
+		this.$el.find('i.printer').removeClass('blink-animation connected failed').addClass(className);
 	},
 	printerTapped: function(e) {
 		if ($(e.target).hasClass('failed')) {

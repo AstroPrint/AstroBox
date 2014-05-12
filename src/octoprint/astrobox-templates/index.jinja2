@@ -5,49 +5,34 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 	<title>AstroBox&trade;</title>
 	{% assets filters="scss", output="css/gen/main.css", 
-		"css/scss/fontello.scss", "css/scss/main.scss", "css/scss/sprites.scss" %}
-  	<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+		"css/scss/main.scss" %}
+		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
 </head>
 <body>
 	<div class="off-canvas-wrap" data-offcanvas>
 	<div class="inner-wrap">
-    <nav class="tab-bar">
-      <section class="left-small">
-        <a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
-      </section>
+		<nav class="tab-bar">
+			<section class="left-small">
+				<a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
+			</section>
 
-      <section class="middle tab-bar-section">
-        <h1 class="title"><img src="/img/astroprint-logo_tm.png"/></h1>
-      	<div class="right" id="connection-view">
-			  	<i class="icon-print printer"></i>
-			  	<i class="icon-exchange server"></i>
-			  </div>
-      </section>
-    </nav>
+			<section class="middle tab-bar-section">
+				<!--h1 class="title"><img src="/img/astroprint-logo_tm.png"/></h1-->
+				<div class="right" id="connection-view">
+					<i class="icon-print printer"></i>
+					<i class="icon-exchange server"></i>
+				</div>
+			</section>
+		</nav>
 		<aside class="left-off-canvas-menu">
 			<ul class="off-canvas-list">
 				<li><label>AstroPrint&trade;</label></li>
-      	<li><a href="#"><i class="icon-home"></i> Home</a></li>
-      	<li class="active"><a href="#"><i class="icon-move"></i> Control</a></li>
-      	<li><a href="#"><i class="icon-cog"></i> Settings</a></li>
-      </ul>
+				<li><a href="#"><i class="icon-home"></i> Home</a></li>
+				<li class="active"><a href="#"><i class="icon-move"></i> Control</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Settings</a></li>
+			</ul>
 		</aside>
-		<!--div class="contain-to-grid">
-			<nav class="top-bar" data-topbar>
-			  <ul class="title-area">
-			    <li class="name">
-			      <h1><img src="/img/astroprint-logo_tm.png"/></h1>
-			    </li>
-			  </ul>
-			  <section class="top-bar-section">
-			  	<div class="right" id="connection-view">
-			  		<i class="icon-print printer"></i>
-			  		<i class="icon-exchange server"></i>
-			  	</div>
-			  </section>
-			</nav>
-		</div-->
 		<div id="main">
 			<div class="row">
 				<div id="view-container" class="small-12 columns">
@@ -63,19 +48,19 @@
 	<script type="text/javascript">
 		var UI_API_KEY = "{{ uiApiKey }}";
 		var BASEURL = "{{ url_for('index') }}";
-    var API_BASEURL = BASEURL + "api/";
-    var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-    var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
+		var API_BASEURL = BASEURL + "api/";
+		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
+		var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
 	</script>
 	{% assets filters="closure_js", output="js/gen/packed.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/sockjs.js", "js/lib/fastclick.js",
 		"js/app/models/socketdata.js",
 		"js/app/views/control.js", "js/app/views/connection.js",
 		"js/app/app.js" -%}
-    	<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}
-  <script type="text/javascript">
-    $(document).foundation();
-  </script>
+	<script type="text/javascript">
+		$(document).foundation();
+	</script>
 </body>
 </html>

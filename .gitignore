@@ -26,9 +26,11 @@ OctoPrint.egg-info
 build
 local/*
 
+
 # Auto generated files by webassets
 
 .webassets-cache
 .sass-cache
+src/octoprint/astrobox-app/css/scss/*.css
 src/octoprint/astrobox-app/css/gen/*.css
 src/octoprint/astrobox-app/js/gen/*.js
