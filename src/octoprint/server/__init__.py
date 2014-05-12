@@ -20,9 +20,9 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
+app.config.from_object('octoprint.server.settings')
+app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
 assets = Environment(app)
-#app.config['ASSETS_DEBUG'] = True
-app.config['ASSETS_AUTO_BUILD'] = False
 Compress(app)
 debug = False
 

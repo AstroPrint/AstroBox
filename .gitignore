@@ -24,6 +24,7 @@ pypy
 OctoPrint.egg-info
 *.orig
 build
+local/*
 
 # Auto generated files by webassets
 
