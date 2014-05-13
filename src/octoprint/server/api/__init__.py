@@ -112,11 +112,13 @@ def apiPrinterState():
 
 @api.route("/system", methods=["POST"])
 @restricted_access
-@admin_permission.require(403)
+#@admin_permission.require(403)
 def performSystemAction():
 	logger = logging.getLogger(__name__)
+	print request.values.keys()
 	if request.values.has_key("action"):
 		action = request.values["action"]
+		print action
 		availableActions = s().get(["system", "actions"])
 		for availableAction in availableActions:
 			if availableAction["action"] == action:

@@ -2,6 +2,7 @@ var AstroBoxApp = Backbone.View.extend({
 	el: 'body',
 	controlView: new ControlView(),
 	connectionView: new ConnectionView(),
+	turnoffView: new TurnoffView(),
 	socketData: new SocketData(),
 	initialize: function() {
 		this.socketData.connectionView = this.connectionView;

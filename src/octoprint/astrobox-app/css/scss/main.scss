@@ -31,7 +31,8 @@
     "foundation/settings",
     "foundation/components/top-bar",
     "foundation/components/button-groups",
-    "foundation/components/offcanvas";
+    "foundation/components/offcanvas",
+    "foundation/components/reveal";
 
 html {
     -ms-touch-action: manipulation;
@@ -103,4 +104,7 @@ strong,
 	}
 }
 
-@import "control";
+@import
+    "widgets", 
+    "control",
+    "turnoff";

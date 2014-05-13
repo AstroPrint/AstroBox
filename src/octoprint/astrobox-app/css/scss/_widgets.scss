@@ -1,0 +1,17 @@
+.loading-button {
+	display: inline;
+
+	span.loading {
+		display: none;
+	}
+
+	&.loading {
+		button{
+		  display: none;
+		}
+
+		span.loading {
+		  display: inherit;
+		}
+	}
+}

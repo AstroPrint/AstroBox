@@ -1,8 +1,8 @@
 .SILENT:
 
-JS_FILES := lib/jquery.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/sockjs.js lib/fastclick.js \
+JS_FILES := lib/jquery.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js lib/sockjs.js lib/fastclick.js \
 			app/models/socketdata.js \
-			app/views/control.js app/views/connection.js \
+			app/views/control.js app/views/connection.js app/views/turnoff.js \
 			app/app.js
 JS_LIST := 	$(foreach file, $(JS_FILES), \
 				$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
