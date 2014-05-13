@@ -18,7 +18,7 @@ var tempBarView = Backbone.View.extend({
 	initialize: function(params) {
 		this.scale = params.scale;
 		this.type = params.type;
-		this.onResize();
+		//this.onResize();
 	},
 	turnOff: function(e) {
 		this._sendToolCommand('target', this.type, 0);
@@ -55,10 +55,12 @@ var tempBarView = Backbone.View.extend({
 			var target = $(e.target);
 
 			if (e.type == 'mousemove') {
-				var pageY = e.originalEvent.pageY 
+				var pageY = e.originalEvent.pageY;
 			} else {
 				var pageY = e.originalEvent.changedTouches[0].clientY;
 			}
+
+			console.log(this.containerDimensions.top);
 
 			var newTop = pageY - this.containerDimensions.top - target.innerHeight()/2.0;
 			newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );

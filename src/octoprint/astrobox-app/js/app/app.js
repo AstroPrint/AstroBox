@@ -1,6 +1,28 @@
+var AppMenu = Backbone.View.extend({
+	el: '#main-menu',
+	selected: 'home',
+	events: {
+		'click li.view': 'menuItemClicked'
+	},
+	menuItemClicked: function(e) {
+		e.preventDefault();
+		var el = $(e.currentTarget);
+		var view = el.attr('data-view');
+
+		if (view != this.selected) {
+			this.trigger('view-changed', view);
+			this.selected = view;
+		}
+	}
+});
+
+
 var AstroBoxApp = Backbone.View.extend({
 	el: 'body',
+	appMenu: new AppMenu(),
+	homeView: new HomeView(),
 	controlView: new ControlView(),
+	settingsView: new SettingsView(),
 	connectionView: new ConnectionView(),
 	turnoffView: new TurnoffView(),
 	socketData: new SocketData(),
@@ -9,9 +31,22 @@ var AstroBoxApp = Backbone.View.extend({
 		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:temps', this.reportTempChange );
+		this.listenTo(this.appMenu, 'view-changed', this.menuSelected );
 	},
 	reportTempChange: function(s, value) {
 		this.controlView.updateTemps(value);
+	},
+	menuSelected: function(view) {
+		var currentView = this.$el.find('#'+this.appMenu.selected+'-view');
+		var targetView = this.$el.find('#'+view+'-view');
+
+		currentView.addClass('hide');
+		targetView.removeClass('hide');
+
+		if (view == 'control') {
+			this.controlView.tempView.nozzleTempBar.onResize();
+			this.controlView.tempView.bedTempBar.onResize();
+		}
 	}
 });
 
