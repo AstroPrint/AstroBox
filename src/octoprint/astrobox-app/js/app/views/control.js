@@ -60,8 +60,6 @@ var tempBarView = Backbone.View.extend({
 				var pageY = e.originalEvent.changedTouches[0].clientY;
 			}
 
-			console.log(this.containerDimensions.top);
-
 			var newTop = pageY - this.containerDimensions.top - target.innerHeight()/2.0;
 			newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
 
@@ -193,8 +191,8 @@ var DistanceControl = Backbone.View.extend({
 
 var MovementControlView = Backbone.View.extend({
 	distanceControl: null,
-	initialize: function(distanceControl) {
-		this.distanceControl = distanceControl;
+	initialize: function(params) {
+		this.distanceControl = params.distanceControl;
 	},
     sendJogCommand: function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
@@ -284,8 +282,8 @@ var ControlView = Backbone.View.extend({
 	zControlView: null,
 	el: '#control-view',
 	initialize: function() {
-		this.xyControlView = new XYControlView(this.distanceControl);
-		this.zControlView = new ZControlView(this.distanceControl);
+		this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
+		this.zControlView = new ZControlView({distanceControl: this.distanceControl});
 	},
 	updateTemps: function(value) {
 		this.tempView.updateBars(value);
