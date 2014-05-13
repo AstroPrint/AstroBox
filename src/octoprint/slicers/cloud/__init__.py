@@ -31,6 +31,9 @@ class CloudSlicer(object):
 	def cloud_slicer_enabled():
 		return False
 
+	def get_private_key(email, password):
+		return False
+
 	def get_public_key(self, email, private_key):
 		return None
 

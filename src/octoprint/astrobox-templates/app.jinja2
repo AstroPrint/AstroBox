@@ -1,15 +1,13 @@
-<html>
-<head>
-	<meta name="apple-mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="transparent">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-	<title>AstroBox&trade;</title>
-	{% assets filters="scss", output="css/gen/main.css", 
-		"css/scss/main.scss" %}
+{% extends 'base.jinja2' %}
+
+{% block css %}
+	{% assets filters="scss", output="css/gen/app.css", 
+		"css/scss/app.scss" %}
 		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
 	<div id="app" class="off-canvas-wrap" data-offcanvas>
 		<div class="inner-wrap">
 			<nav class="tab-bar">
@@ -31,9 +29,12 @@
 					<li class="view" data-view="home"><a href="#"><i class="icon-home"></i> Home</a></li>
 					<li class="view" data-view="control"><a href="#"><i class="icon-move"></i> Control</a></li>
 					<li class="view" data-view="settings"><a href="#"><i class="icon-cog"></i> Settings</a></li>
-					<li><label>&nbsp;</label></li>
-					<li><a href="#" data-reveal-id="turnoff-modal"><i class="icon-off"></i> Turn AstroBox&trade; Off</a></li>
+					<li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
+					<li><a href="#"><i class="icon-logout"></i> Sign out</a></li>
 				</ul>
+				<div class="turn-off-area" align="center">
+					<a href="#" class="button alert tiny radius" data-reveal-id="turnoff-modal"><i class="icon-off"></i> Turn AstroBox&trade; Off</a>
+				</div>
 			</aside>
 			<div id="main">
 				<div class="row">
@@ -55,7 +56,9 @@
 	</div>
 
 	{% include 'turnoff.jinja2' %}
+{% endblock %}
 
+{% block js %}
 	<script type="text/javascript">
 		var UI_API_KEY = "{{ uiApiKey }}";
 		var BASEURL = "{{ url_for('index') }}";
@@ -63,7 +66,7 @@
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 		var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
 	</script>
-	{% assets filters="closure_js", output="js/gen/packed.js", 
+	{% assets filters="closure_js", output="js/gen/app.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js", "js/lib/sockjs.js", "js/lib/fastclick.js",
 		"js/app/models/socketdata.js",
 		"js/app/views/home.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js", "js/app/views/turnoff.js",
@@ -73,5 +76,4 @@
 	<script type="text/javascript">
 		$(document).foundation();
 	</script>
-</body>
-</html>
+{% endblock %}

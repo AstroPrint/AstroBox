@@ -16,6 +16,33 @@ from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 #~~ Cloud Slicer control
 
+@api.route('/cloud-slicer/private-key', methods=['POST'])
+def get_private_key():
+	email = request.values.get('email', None)
+	password = request.values.get('password', None)
+
+	if email and password:
+		slicer = ProvenToPrintSlicer()
+
+		private_key = slicer.get_private_key(email, password)
+
+		if private_key:
+			public_key = slicer.get_public_key(email, private_key)
+
+			if public_key:
+				s = settings()
+				s.set(["cloudSlicer", "privateKey"], private_key)
+				s.set(["cloudSlicer", "publicKey"], public_key)
+				s.set(["cloudSlicer", "email"], email)
+				s.save()
+				return jsonify(SUCCESS)
+
+	else:
+		abort(400)
+
+	abort(401)
+
+
 @api.route('/cloud-slicer/upload-data', methods=['GET'])
 @restricted_access
 def upload_data():

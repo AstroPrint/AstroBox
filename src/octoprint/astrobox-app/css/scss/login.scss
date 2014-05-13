@@ -26,13 +26,14 @@
 @import
     "normalize",
     "fontello",
-    "sprites",
     "animations",
+    "widgets",
     "foundation/settings",
-    "foundation/components/top-bar",
-    "foundation/components/button-groups",
-    "foundation/components/offcanvas",
-    "foundation/components/reveal";
+    "foundation/components/global",
+    "foundation/components/grid",
+    "foundation/components/buttons",
+    "foundation/components/forms",
+    "foundation/components/alert-boxes";
 
 html {
     -ms-touch-action: manipulation;
@@ -53,58 +54,25 @@ strong,
   font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
 }
 
-.off-canvas-wrap {
-	min-height: 100%;
+#login-view {
+    label {
+        text-align: left;
+        font-size: rem-calc(25);
+    }
 
-	.inner-wrap {
-		min-height: 100%;
-	}
+    small.error {
+        text-align: left;
+    }
+
+    img {
+        margin-bottom: 20px;
+    }
+
+    .login-container {
+        background-color: white;
+        padding: 20px;
+        margin: 50px 0;
+        @include radius(10px);
+        box-shadow: 0px 0px 20px #ccc;
+    }
 }
-
-.tab-bar {
-	.tab-bar-section.middle {
-		right: 0;
-	}
-
-	h1.title {
-		display: inline-block;
-
-		img {
-			margin-top: 10px;
-			height: 65%;
-		}	
-	}
-}
-
-.off-canvas-list {
-	label {
-		display: block;
-	}
-}
-
-#main {
-	border-top: 1px solid #ccc;
-}
-
-#connection-view {
-	i {
-		font-size: rem-calc(20);
-		padding: 0 5px;
-		display: inline-block;
-        color: #505050;
-
-		&.connected {
-			color: $success-color;
-		}	
-
-		&.failed {
-			color: $alert-color;
-			cursor: pointer;
-		}
-	}
-}
-
-@import
-    "widgets", 
-    "control",
-    "turnoff";

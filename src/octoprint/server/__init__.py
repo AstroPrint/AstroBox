@@ -61,26 +61,34 @@ def index():
 
 	s = settings()
 
-	return render_template(
-		"index.jinja2",
-		webcamStream=s.get(["webcam", "stream"]),
-		enableTimelapse=(s.get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
-		enableGCodeVisualizer=s.get(["feature", "gCodeVisualizer"]),
-		enableTemperatureGraph=s.get(["feature", "temperatureGraph"]),
-		enableSystemMenu=s.get(["system"]) is not None and s.get(["system", "actions"]) is not None and len(s.get(["system", "actions"])) > 0,
-		isCloudSlicerConfigured = bool(s.get(["cloudSlicer", "publicKey"])),
-		enableAccessControl=userManager is not None,
-		enableSdSupport=s.get(["feature", "sdSupport"]),
+	if (s.get(["cloudSlicer", "publicKey"])):
+		return render_template(
+			"app.jinja2",
+			user_email=s.get(["cloudSlicer", "email"]),
+			#webcamStream=s.get(["webcam", "stream"]),
+			#enableTimelapse=(s.get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
+			#enableGCodeVisualizer=s.get(["feature", "gCodeVisualizer"]),
+			#enableTemperatureGraph=s.get(["feature", "temperatureGraph"]),
+			#enableSystemMenu=s.get(["system"]) is not None and s.get(["system", "actions"]) is not None and len(s.get(["system", "actions"])) > 0,
+			#isCloudSlicerConfigured = bool(s.get(["cloudSlicer", "publicKey"])),
+			#enableAccessControl=userManager is not None,
+			#enableSdSupport=s.get(["feature", "sdSupport"]),
 
-		firstRun=s.getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
-		debug=debug,
-		gitBranch=branch,
-		gitCommit=commit,
-		stylesheet=settings().get(["devel", "stylesheet"]),
-		gcodeMobileThreshold=settings().get(["gcodeViewer", "mobileSizeThreshold"]),
-		gcodeThreshold=settings().get(["gcodeViewer", "sizeThreshold"]),
-		uiApiKey=UI_API_KEY
-	)
+			#firstRun=s.getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
+			debug=debug,
+			#gitBranch=branch,
+			#gitCommit=commit,
+			#stylesheet=settings().get(["devel", "stylesheet"]),
+			#gcodeMobileThreshold=settings().get(["gcodeViewer", "mobileSizeThreshold"]),
+			#gcodeThreshold=settings().get(["gcodeViewer", "sizeThreshold"]),
+			uiApiKey=UI_API_KEY
+		)
+	else:
+		# we need to get the user to sign into their AstroPrint account
+		return render_template(
+			"login.jinja2",
+			uiApiKey=UI_API_KEY
+		)
 
 
 @app.route("/robots.txt")
