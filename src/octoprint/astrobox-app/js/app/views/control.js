@@ -177,11 +177,29 @@ var TempView = Backbone.View.extend({
 	}
 });
 
+var DistanceControl = Backbone.View.extend({
+	el: '#distance-control',
+	selected: 10,
+	events: {
+		'click button': 'selectDistance'
+	},
+	selectDistance: function(e) {
+		var el = $(e.currentTarget);
+		this.$el.find('.success').removeClass('success').addClass('secondary');
+		el.addClass('success').removeClass('secondary');
+		this.selected = el.attr('data-value');
+	}
+});
+
 var MovementControlView = Backbone.View.extend({
+	distanceControl: null,
+	initialize: function(distanceControl) {
+		this.distanceControl = distanceControl;
+	},
     sendJogCommand: function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
         	distance = 10;
-        //    distance = $('#jog_distance button.active').data('distance');
+
         //if (self.settings.getPrinterInvertAxis(axis)) {
         //    multiplier *= -1;
         //}
@@ -225,16 +243,16 @@ var XYControlView = MovementControlView.extend({
 		'click .home_z': 'homeTapped'
 	},
 	xPlusTapped: function() {
-		this.sendJogCommand('x', 1);
+		this.sendJogCommand('x', 1, this.distanceControl.selected);
 	},
 	xMinusTapped: function() {
-		this.sendJogCommand('x', -1);
+		this.sendJogCommand('x', -1, this.distanceControl.selected);
 	},
 	yPlusTapped: function() {
-		this.sendJogCommand('y', 1);
+		this.sendJogCommand('y', 1, this.distanceControl.selected);
 	},
 	yMinusTapped: function() {
-		this.sendJogCommand('y', -1);
+		this.sendJogCommand('y', -1, this.distanceControl.selected);
 	},
 	homeTapped: function() {
 		this.sendHomeCommand(['x', 'y']);
@@ -249,10 +267,10 @@ var ZControlView = MovementControlView.extend({
 		'click .home_z': 'homeTapped'
 	},
 	zPlusTapped: function() {
-		this.sendJogCommand('z', 1, 1);
+		this.sendJogCommand('z', 1, this.distanceControl.selected);
 	},
 	zMinusTapped: function() {
-		this.sendJogCommand('z', -1, 1);
+		this.sendJogCommand('z', -1, this.distanceControl.selected);
 	},
 	homeTapped: function() {
 		this.sendHomeCommand('z');
@@ -261,9 +279,14 @@ var ZControlView = MovementControlView.extend({
 
 var ControlView = Backbone.View.extend({
 	tempView: new TempView(),
-	xyControlView: new XYControlView(),
-	zControlView: new ZControlView(),
+	distanceControl: new DistanceControl(),
+	xyControlView: null,
+	zControlView: null,
 	el: '#control-view',
+	initialize: function() {
+		this.xyControlView = new XYControlView(this.distanceControl);
+		this.zControlView = new ZControlView(this.distanceControl);
+	},
 	updateTemps: function(value) {
 		this.tempView.updateBars(value);
 	}
