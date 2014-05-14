@@ -2,7 +2,7 @@
 
 #App JS Files
 
-JS_APP_FILES := lib/jquery.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js lib/sockjs.js lib/fastclick.js \
+JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js lib/sockjs.js lib/fastclick.js lib/jquery.fileupload.js lib/jquery.noty.js lib/jquery.noty.top.js \
 				app/models/socketdata.js \
 				app/views/home.js app/views/control.js app/views/settings.js app/views/connection.js app/views/turnoff.js \
 				app/app.js
@@ -31,11 +31,11 @@ CSS_LOGIN_PACKED := src/octoprint/astrobox-app/css/gen/login.css
 
 #rules
 
-all: js css python release
+all: js css python
 
 clean: clean-js clean-css clean-python clean-release
 
-release:
+release: clean-js clean-css js css python
 	echo "Cleaning build directory..."
 	rm -rf build
 	echo "Creating release..."
@@ -95,7 +95,7 @@ clean-js:
 	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED)
 
 clean-css:
-	rm -f $(CSS_PACKED)
+	rm -f $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED)
 
 clean-python:
 	find src/octoprint -name "*.pyo" -type f -delete

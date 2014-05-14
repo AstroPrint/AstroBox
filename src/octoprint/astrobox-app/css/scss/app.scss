@@ -32,7 +32,8 @@
     "foundation/components/top-bar",
     "foundation/components/button-groups",
     "foundation/components/offcanvas",
-    "foundation/components/reveal";
+    "foundation/components/reveal",
+    "foundation/components/progress-bars";
 
 html {
     -ms-touch-action: manipulation;
@@ -118,6 +119,8 @@ strong,
 }
 
 @import
+    "noty",
     "widgets", 
     "control",
+    "home",
     "turnoff";
