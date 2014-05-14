@@ -52,7 +52,9 @@ var AstroBoxApp = Backbone.View.extend({
 		this.listenTo(this.appMenu, 'view-changed', this.menuSelected );
 	},
 	reportTempChange: function(s, value) {
-		this.controlView.updateTemps(value);
+		if (this.appMenu.selected == 'control') {
+			this.controlView.updateTemps(value);
+		}
 	},
 	menuSelected: function(view) {
 		var currentView = this.$el.find('#'+this.appMenu.selected+'-view');
