@@ -27,9 +27,7 @@ var LoginView = Backbone.View.extend({
             },
             error: function() { 
 				errorContainer.text('Invalid Email/Password').show();
-            },
-            complete: function() {
-            	self.button.removeClass('loading');
+                self.button.removeClass('loading');
             }
         });
 	}

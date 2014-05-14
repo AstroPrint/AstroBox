@@ -2,7 +2,8 @@ var AppMenu = Backbone.View.extend({
 	el: '#main-menu',
 	selected: 'home',
 	events: {
-		'click li.view': 'menuItemClicked'
+		'click li.view': 'menuItemClicked',
+		'click li.logout': 'logoutClicked'
 	},
 	menuItemClicked: function(e) {
 		e.preventDefault();
@@ -13,6 +14,23 @@ var AppMenu = Backbone.View.extend({
 			this.trigger('view-changed', view);
 			this.selected = view;
 		}
+	},
+	logoutClicked: function(e) {
+		e.preventDefault();
+		var el = $(e.currentTarget);
+		var spinIcon = el.find('.icon-spin1');
+
+		spinIcon.removeClass('hide');
+        $.ajax({
+            url: API_BASEURL + "cloud-slicer",
+            type: "DELETE",
+            success: function() { 
+            	location.reload();
+            },
+            complete: function() {
+				spinIcon.addClass('hide');
+            }
+        });
 	}
 });
 

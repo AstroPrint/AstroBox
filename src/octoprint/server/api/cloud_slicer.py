@@ -16,6 +16,16 @@ from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 #~~ Cloud Slicer control
 
+@api.route('/cloud-slicer', methods=['DELETE'])
+@restricted_access
+def cloud_slicer_logout():
+	s = settings()
+	s.set(["cloudSlicer", "privateKey"], '')
+	s.set(["cloudSlicer", "publicKey"], '')
+	s.set(["cloudSlicer", "email"], '')
+	s.save()
+	return jsonify(SUCCESS)	
+
 @api.route('/cloud-slicer/private-key', methods=['POST'])
 def get_private_key():
 	email = request.values.get('email', None)
