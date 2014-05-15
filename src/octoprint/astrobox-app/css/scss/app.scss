@@ -56,13 +56,13 @@ strong,
   font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
 }
 
-.off-canvas-wrap {
+/*.off-canvas-wrap {
 	min-height: 100%;
 
 	.inner-wrap {
 		min-height: 100%;
 	}
-}
+}*/
 
 .tab-bar {
 	.tab-bar-section.middle {
@@ -73,8 +73,7 @@ strong,
 		display: inline-block;
 
 		img {
-			margin-top: 10px;
-			height: 65%;
+			height: 30px;
 		}	
 	}
 }

@@ -31,12 +31,12 @@
 			margin: 0 20px;
 		}
 
-		&.control_btn_X_plus,
-		&.control_btn_X_minus {
+		&.control_btn_x_plus,
+		&.control_btn_x_minus {
 			top: -22px;
 		}
 
-		&.control_btn_Y_minus {
+		&.control_btn_y_minus {
 			top: -43px;
 		}
 	}
@@ -152,7 +152,7 @@
 }
 
 #extrusion-control {
-	margin-top: 29px;
+	margin-top: 26px;
 
 	input {
 		padding: 0 5px;
