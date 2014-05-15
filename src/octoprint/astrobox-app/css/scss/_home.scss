@@ -1,4 +1,8 @@
 #home-view {
+	h2 {
+		font-size: rem-calc(42);
+	}
+
 	.design-file-upload {
 		margin-top: 20px;
 		position: relative;
@@ -10,10 +14,34 @@
 			top: 0;
 			width: 100%;
 			height: 100%;
+			cursor: pointer;
 		}
 	}
 
 	.file-upload-progress {
 		text-align: left;
+	}
+
+	.design-list-container {
+		margin-bottom: 30px;
+
+		table {
+			width: 100%;
+
+			.progress {
+				margin-bottom: 0;
+				height: 15px;
+			}
+		}
+
+		.empty {
+			color: #ccc;
+			font-size: rem-calc(45);
+
+			.empty-icon {
+				display: block;
+				margin: 15px 0;
+			}
+		}
 	}
 }

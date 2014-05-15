@@ -1,13 +1,57 @@
 <div class="row">
 	<div class="small-12 columns" align="center">
+		<h2 class="bold">Choose a File to Print Below<br/>or</h2>
 		<div class="design-file-upload">
-	        <span class="file-upload-button button success radius" style="margin-bottom: 10px">
-	            Upload Design File
-	            <input class="file-upload" type="file" name="file" data-url="/api/cloud-slicer/upload">
-	        </span>
-	        <div class="progress file-upload-progress radius" style="display:none">
-	            <div class="meter" style="width: 0%"></div>
-	        </div>
-       	</div>
+			<span class="file-upload-button button success radius" style="margin-bottom: 10px">
+				<i class="icon-upload-cloud-1"></i> Upload Design File
+				<input class="file-upload" type="file" name="file" data-url="/api/cloud-slicer/upload">
+			</span>
+			<div class="progress file-upload-progress radius" style="display:none">
+				<div class="meter" style="width: 0%"></div>
+			</div>
+		</div>
+	</div>
+	<div class="design-list small-12 columns">
+		<h3 class="bold">My Designs <i class="icon-spin1 animate-spin" style="display:none"></i></h3>
+		<div class="design-list-container"
 	</div>
 </div>
+
+<script type="text/template" id="design-list-template">
+	<% if (designs.length) { %>
+		<table>
+			<thead>
+				<tr>
+					<th class="bold" colspan="2">Name</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% designs.each(function(d) {
+				var gcodes = d.get('gcodes');
+				if (gcodes.length) {
+					_.each(gcodes, function(g) { %>
+						<tr>
+							<td><i class="icon-cloud"></i> <%= g.name %></td>
+							<td>
+								<div class="gcode-options">
+									<a href="#" onclick="home_download_gcode_clicked(this); return false" data-id="<%= g.id %>">
+										<i class="icon-download"></i>
+									</a>
+								</div>
+								<div class="progress round tiny" style="display:none">
+									<div class="meter" style="width: 50%"></div>
+								</div>
+							</td>
+						</tr>
+					<% });
+				}
+			}); %>
+			</tbody>
+		</table>
+	<% } else { %>
+		<div class="empty panel radius" align="center">
+			<i class="icon-inbox empty-icon"></i>
+			Nothing here yet.
+		</div>
+	<% } %>
+</script>

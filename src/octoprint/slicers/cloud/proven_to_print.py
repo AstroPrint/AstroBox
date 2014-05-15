@@ -219,7 +219,7 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
-	def refresh_files(self):
+	def design_files(self):
 		try:
 			r = requests.get( "%s/designs" % self.apiHost, auth=self.hmacAuth )
 			data = r.json()
@@ -228,11 +228,11 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		return json.dumps(data)	
 
-	def download_gcode_file(self, fileId, destFile, progressCb, successCb, errorCb):
+	def download_gcode_file(self, gcodeId, destFile, progressCb, successCb, errorCb):
 		progressCb(2)
 
 		try:
-			r = requests.get('%s/designs/%s/gcode/link' % (self.apiHost, fileId), auth=self.hmacAuth)
+			r = requests.get('%s/gcodes/%s/link' % (self.apiHost, gcodeId), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None

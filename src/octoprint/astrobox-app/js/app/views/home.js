@@ -85,10 +85,64 @@ var FileUploadView = Backbone.View.extend({
 	}
 });
 
+var DesignsView = Backbone.View.extend({
+	template: _.template( $("#design-list-template").html() ),
+	designs: new DesignCollection(),
+	loader: null,
+	initialize: function() {
+		this.loader = this.$el.find('h3 .icon-spin1');
+		this.refresh();
+	},
+	render: function() { 
+        this.$el.find('.design-list-container').html( this.template({ designs: this.designs }) );
+    },
+	refresh: function() {
+		this.loader.show();
+		var self = this;
+
+		this.designs.fetch({
+			success: function() {
+				self.loader.hide();
+				self.render();
+			},
+			error: function() {
+				noty({text: "There was an error retrieving design list", timeout: 3000});
+				self.loader.hide();
+			}
+		});		
+	},
+	onGcodeClicked: function(el) {
+		var self = this;
+		var container = el.closest('tr');
+		var options = container.find('.gcode-options');
+		var progress = container.find('.progress');
+
+		options.hide();
+		progress.show();
+
+        $.getJSON('/api/cloud-slicer/designs/download/'+el.attr('data-id'), 
+        	function(response) {
+        		self.render();
+	        }).fail(function(){
+	            noty({text: "Couldn't download the gcode file.", timeout: 3000});
+	        }).done(function(){
+	            options.show();
+				progress.hide();
+	        });
+	}
+});
+
 var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
+	designsView: null,
 	initialize: function() {
 		this.uploadView = new FileUploadView({el: this.$el.find('.design-file-upload')});
+		this.designsView = new DesignsView({el: this.$el.find('.design-list')});
 	}
 });
+
+function home_download_gcode_clicked(el)
+{
+	app.homeView.designsView.onGcodeClicked.call(app.homeView.designsView, $(el));
+}

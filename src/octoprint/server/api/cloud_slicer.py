@@ -52,7 +52,6 @@ def get_private_key():
 
 	abort(401)
 
-
 @api.route('/cloud-slicer/upload-data', methods=['GET'])
 @restricted_access
 def upload_data():
@@ -66,75 +65,72 @@ def upload_data():
 
 	abort(400)
 
-@api.route("/cloud-slicer/command", methods=["POST"])
+@api.route("/cloud-slicer/designs", methods=["GET"])
 @restricted_access
-def command():
+def designs():
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
 		abort(401)
 
-	if "command" in request.values.keys():
-		slicer = ProvenToPrintSlicer()
+	slicer = ProvenToPrintSlicer()
+	return slicer.design_files()
 
-		command = request.values["command"]
-		if command == "refresh":
-			return slicer.refresh_files()
 
-		elif command == "download":
-			gcode_id = request.values['gcode_id']
-			filename = request.values['filename']
+@api.route("/cloud-slicer/designs/download/<string:id>", methods=["GET"])
+@restricted_access
+def design_download(id):
+	if not bool(settings().get(["cloudSlicer", "publicKey"])):
+		abort(401)
 
-			if gcode_id and filename:
-				filename = (filename[:-4] if filename[-4:] in ['.stl', '.obj' , '.amf'] else filename) + ".gcode"
-				destFile = gcodeManager.getAbsolutePath(filename, mustExist=False)
+	slicer = ProvenToPrintSlicer()
+	em = eventManager()
 
-				def progressCb(progress):
-					eventManager().fire(
-						"CloudDownloadEvent", {
-							"type": "progress",
-							"id": gcode_id,
-							"progress": progress
-						}
-					)
+	destFile = gcodeManager.getAbsolutePath("%s.gcode" % id, mustExist=False)
+	def progressCb(progress):
+		em.fire(
+			"CloudDownloadEvent", {
+				"type": "progress",
+				"id": id,
+				"progress": progress
+			}
+		)
 
-				def successCb():
-					class Callback():
-						def sendUpdateTrigger(self, type):
-							gcodeManager.unregisterCallback(self)
+	def successCb():
+		class Callback():
+			def sendUpdateTrigger(self, type):
+				gcodeManager.unregisterCallback(self)
 
-							eventManager().fire(
-								"CloudDownloadEvent", {
-									"type": "success",
-									"id": gcode_id,
-									"filename": filename
-								}
-							)
+				em.fire(
+					"CloudDownloadEvent", {
+						"type": "success",
+						"id": id
+					}
+				)
 
-					gcodeManager.registerCallback(Callback());
-					if gcodeManager.processGcode(destFile, FileDestinations.LOCAL):
-						eventManager().fire(
-							"CloudDownloadEvent", {
-								"type": "analyzing",
-								"id": gcode_id
-							}
-						)
-					else:
-						errorCb("Couldn't save the file")
+		gcodeManager.registerCallback(Callback());
+		if gcodeManager.processGcode(destFile, FileDestinations.LOCAL):
+			em.fire(
+				"CloudDownloadEvent", {
+					"type": "analyzing",
+					"id": id
+				}
+			)
+		else:
+			errorCb("Couldn't save the file")
 
-				def errorCb(error):
-					eventManager().fire(
-						"CloudDownloadEvent", 
-						{
-							"type": "error",
-							"id": gcode_id,
-							"filename": filename, 
-							"reason": error
-						}
-					)
-					
-					if os.path.exists(destFile):
-						os.remove(destFile)
+	def errorCb(error):
+		em.fire(
+			"CloudDownloadEvent", 
+			{
+				"type": "error",
+				"id": id,
+				"reason": error
+			}
+		)
+		
+		if os.path.exists(destFile):
+			os.remove(destFile)
 
-				if slicer.download_gcode_file(gcode_id, destFile, progressCb, successCb, errorCb):
-					return jsonify(SUCCESS)
+	if slicer.download_gcode_file(id, destFile, progressCb, successCb, errorCb):
+		return jsonify(SUCCESS)
 			
 	return abort(400)
