@@ -96,6 +96,14 @@ strong,
 	.turn-off-area {
 		padding-top: 40px;
 	}
+
+	.copy {
+		width: 100%;
+		position: absolute;
+		font-size: rem-calc(10);
+		bottom: 10px;
+		color: white;
+	}
 }
 
 #main {
