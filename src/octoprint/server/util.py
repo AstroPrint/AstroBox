@@ -229,7 +229,7 @@ class PrinterStateConnection(SockJSConnection):
 		self.sendEvent(event, payload)
 
 	def _onCloudDownloadEvent(self, event, payload):
-		self.sendUpdateTrigger("cloudDownloadEvent", payload)
+		self.sendEvent("cloudDownloadEvent", payload)
 
 	def _emit(self, type, payload):
 		self.send({type: payload})

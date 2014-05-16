@@ -64,6 +64,7 @@ var AstroBoxApp = Backbone.View.extend({
 	socketData: new SocketData(),
 	initialize: function() {
 		this.socketData.connectionView = this.connectionView;
+		this.socketData.homeView = this.homeView;
 		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:temps', this.reportTempChange );

@@ -228,23 +228,29 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		return json.dumps(data)	
 
-	def download_gcode_file(self, gcodeId, destFile, progressCb, successCb, errorCb):
+	def download_gcode_file(self, gcodeId, progressCb, successCb, errorCb):
 		progressCb(2)
 
 		try:
-			r = requests.get('%s/gcodes/%s/link' % (self.apiHost, gcodeId), auth=self.hmacAuth)
+			r = requests.get('%s/gcodes/%s' % (self.apiHost, gcodeId), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None
 
-		if data and "url" in data:
+		destFile = None
+
+		if data and "download_url" in data and "name" in data:
 			progressCb(5)
 
-			r = requests.get(data["url"], stream=True)
+			r = requests.get(data["download_url"], stream=True)
 
 			if r.status_code == 200:
+				from octoprint.server import gcodeManager
+
 				content_length = float(r.headers['Content-Length']);
 				downloaded_size = 0.0
+
+				destFile = gcodeManager.getAbsolutePath(data['name'], mustExist=False)
 
 				with open(destFile, 'wb') as fd:
 					for chunk in r.iter_content(524288): #0.5 MB
@@ -252,13 +258,11 @@ class ProvenToPrintSlicer(CloudSlicer):
 						fd.write(chunk)
 						progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
 
-				successCb()
-				return True
+				successCb(destFile)
+				return True;
 
 			else:
 				r.close()
 
-		errorCb('Unable to download file')
+		errorCb(destFile, 'Unable to download file')
 		return False
-
-

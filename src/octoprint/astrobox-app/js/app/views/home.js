@@ -111,7 +111,7 @@ var DesignsView = Backbone.View.extend({
 			}
 		});		
 	},
-	onGcodeClicked: function(el) {
+	onDownloadClicked: function(el) {
 		var self = this;
 		var container = el.closest('tr');
 		var options = container.find('.gcode-options');
@@ -120,15 +120,58 @@ var DesignsView = Backbone.View.extend({
 		options.hide();
 		progress.show();
 
-        $.getJSON('/api/cloud-slicer/designs/download/'+el.attr('data-id'), 
+        $.getJSON('/api/cloud-slicer/designs/download/'+el.data('id'), 
         	function(response) {
         		self.render();
 	        }).fail(function(){
 	            noty({text: "Couldn't download the gcode file.", timeout: 3000});
-	        }).done(function(){
+	        }).always(function(){
 	            options.show();
 				progress.hide();
 	        });
+	},
+	onDeleteClicked: function(el) {
+		var filename = el.data('local-name');
+		var self = this;
+
+        $.ajax({
+            url: '/api/files/local/'+filename,
+            type: "DELETE",
+            success: function() {            	
+            	//Update model
+            	var gcode = self.designs.findGCode(
+            		self.designs.get(self.$el.find('#gcode-file-'+el.data('id')).data('design-id')), 
+            		el.data('id')
+            	);
+
+            	if (gcode) {
+            		gcode.local_filename = null
+            	}
+
+            	self.render();
+            	noty({text: filename+" deleted form your AstroBox", type:"success", timeout: 3000});
+            },
+            error: function() {
+            	noty({text: "Error deleting "+filename, timeout: 3000});
+            }
+        });
+	},
+	downloadProgress: function(data) {
+		var container = this.$el.find('#gcode-file-'+data.id);
+		var progress = container.find('.progress .meter');
+
+		if (data.type == "progress") {
+			progress.css('width', data.progress+'%');
+		} else if (data.type == "analyzing") {
+			var gcode = this.designs.findGCode(container.data('design-id'), data.id)
+
+			if (gcode) {
+				gcode.local_filename = data.filename;
+			}
+
+		} else if (data.type == "success") {
+			console.log('done');
+		}
 	}
 });
 
@@ -144,5 +187,15 @@ var HomeView = Backbone.View.extend({
 
 function home_download_gcode_clicked(el)
 {
-	app.homeView.designsView.onGcodeClicked.call(app.homeView.designsView, $(el));
+	app.homeView.designsView.onDownloadClicked.call(app.homeView.designsView, $(el));
+}
+
+function home_delete_gcode_clicked(el)
+{
+	app.homeView.designsView.onDeleteClicked.call(app.homeView.designsView, $(el));
+}
+
+function home_print_gcode_clicked(gcode_id)
+{
+	app.printingView.startPrint(gcode_id);
 }

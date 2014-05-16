@@ -6,11 +6,12 @@
 
 var SocketData = Backbone.Model.extend({
 	connectionView: null,
+    homeView: null,
 	_socket: null,
 	_autoReconnecting: false,
 	_autoReconnectTrial: 0,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
-	_currentState: 0,
+	currentState: 0,
 	defaults: {
 		temps: {
 			bed: {
@@ -127,8 +128,8 @@ var SocketData = Backbone.Model.extend({
 	                	});
 	                }
 
-	                if (data.state && data.state.state != this._currentState) {
-	                	this._currentState = data.state.state;
+	                if (data.state && data.state.state != this.currentState) {
+	                	this.currentState = data.state.state;
 	                	if (data.state.flags.error) {
         					this.connectionView.setPrinterConnection('failed');
 	                	} else if (data.state.flags.operational) {
@@ -146,11 +147,15 @@ var SocketData = Backbone.Model.extend({
                     //self.gcodeFilesViewModel.fromCurrentData(data);
                     break;
                 }
-                /*case "event": {
+                case "event": {
                     var type = data["type"];
                     var payload = data["payload"];
 
-                    var gcodeUploadProgress = $("#gcode_upload_progress");
+                    if (type == "cloudDownloadEvent") {
+                        this.homeView.designsView.downloadProgress(payload);
+                    }
+
+                    /*var gcodeUploadProgress = $("#gcode_upload_progress");
                     var gcodeUploadProgressBar = $(".bar", gcodeUploadProgress);
 
                     if ((type == "UpdatedFiles" && payload.type == "gcode") || type == "MetadataAnalysisFinished") {
@@ -187,10 +192,10 @@ var SocketData = Backbone.Model.extend({
                         gcodeUploadProgressBar.text("");
                         $.pnotify({title: "Streaming done", text: "Streamed " + payload.local + " to " + payload.remote + " on SD, took " + _.sprintf("%.2f", payload.time) + " seconds"});
                         gcodeFilesViewModel.requestData(payload.remote, "sdcard");
-                    }
+                    }*/
                     break;
                 }
-                case "feedbackCommandOutput": {
+                /*case "feedbackCommandOutput": {
                     self.controlViewModel.fromFeedbackCommandData(data);
                     break;
                 }

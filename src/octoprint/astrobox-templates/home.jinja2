@@ -22,7 +22,8 @@
 		<table>
 			<thead>
 				<tr>
-					<th class="bold" colspan="2">Name</th>
+					<th class="bold">Name</th>
+					<th style="width:130px"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -30,16 +31,23 @@
 				var gcodes = d.get('gcodes');
 				if (gcodes.length) {
 					_.each(gcodes, function(g) { %>
-						<tr>
-							<td><i class="icon-cloud"></i> <%= g.name %></td>
+						<tr id="gcode-file-<%= g.id%>" data-design-id="<%= d.get('id') %>">
+							<td><i class="<%= g.local_filename ? 'icon-drive' : 'icon-cloud' %>"></i> <%= g.name %></td>
 							<td>
 								<div class="gcode-options">
-									<a href="#" onclick="home_download_gcode_clicked(this); return false" data-id="<%= g.id %>">
-										<i class="icon-download"></i>
-									</a>
+									<% if (g.local_filename) { %>
+										<a href="#" onclick="home_delete_gcode_clicked(this); return false" data-id="<%= g.id %>" data-local-name="<%= g.local_filename %>">
+											<i class="icon-trash"></i>
+										</a>
+										<button class="success radius tiny" onclick="home_print_gcode_clicked('<%= g.local_filename %>')"><i class="icon-print"></i> Print &gt;</button>
+									<% } else { %>
+										<a href="#" onclick="home_download_gcode_clicked(this); return false" data-id="<%= g.id %>" >
+											<i class="icon-download"></i>
+										</a>
+									<% } %>
 								</div>
 								<div class="progress round tiny" style="display:none">
-									<div class="meter" style="width: 50%"></div>
+									<div class="meter" style="width: 0%"></div>
 								</div>
 							</td>
 						</tr>

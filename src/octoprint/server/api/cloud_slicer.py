@@ -3,6 +3,7 @@ __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import os
+import json
 
 from flask import request, jsonify, abort
 
@@ -72,8 +73,20 @@ def designs():
 		abort(401)
 
 	slicer = ProvenToPrintSlicer()
-	return slicer.design_files()
+	cloud_designs = json.loads(slicer.design_files())
 
+	local_files = list(gcodeManager.getAllFileData())
+
+	for d in cloud_designs:
+		for p in d['gcodes']:
+			p['local_filename'] = None
+			for i in range(len(local_files)):
+				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
+					p['local_filename'] = local_files[i]['name']
+					del local_files[i]
+					break
+
+	return json.dumps(cloud_designs)
 
 @api.route("/cloud-slicer/designs/download/<string:id>", methods=["GET"])
 @restricted_access
@@ -84,7 +97,6 @@ def design_download(id):
 	slicer = ProvenToPrintSlicer()
 	em = eventManager()
 
-	destFile = gcodeManager.getAbsolutePath("%s.gcode" % id, mustExist=False)
 	def progressCb(progress):
 		em.fire(
 			"CloudDownloadEvent", {
@@ -94,9 +106,9 @@ def design_download(id):
 			}
 		)
 
-	def successCb():
+	def successCb(destFile):
 		class Callback():
-			def sendUpdateTrigger(self, type):
+			def sendEvent(self, type):
 				gcodeManager.unregisterCallback(self)
 
 				em.fire(
@@ -108,16 +120,23 @@ def design_download(id):
 
 		gcodeManager.registerCallback(Callback());
 		if gcodeManager.processGcode(destFile, FileDestinations.LOCAL):
+			metadata = gcodeManager.getFileMetadata(destFile)
+			metadata["cloud_id"] = id
+			gcodeManager.setFileMetadata(destFile, metadata)
+
+			print metadata
+
 			em.fire(
 				"CloudDownloadEvent", {
 					"type": "analyzing",
-					"id": id
+					"id": id,
+					"filename": gcodeManager._getBasicFilename(destFile)
 				}
 			)
 		else:
-			errorCb("Couldn't save the file")
+			errorCb(destFile, "Couldn't save the file")
 
-	def errorCb(error):
+	def errorCb(destFile, error):
 		em.fire(
 			"CloudDownloadEvent", 
 			{
@@ -130,7 +149,7 @@ def design_download(id):
 		if os.path.exists(destFile):
 			os.remove(destFile)
 
-	if slicer.download_gcode_file(id, destFile, progressCb, successCb, errorCb):
+	if slicer.download_gcode_file(id, progressCb, successCb, errorCb):
 		return jsonify(SUCCESS)
 			
 	return abort(400)

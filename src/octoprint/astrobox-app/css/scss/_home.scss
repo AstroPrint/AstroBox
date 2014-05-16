@@ -28,9 +28,32 @@
 		table {
 			width: 100%;
 
+			.gcode-options {
+				text-align: right;
+			}
+
 			.progress {
 				margin-bottom: 0;
 				height: 15px;
+
+				.meter {
+					transition: width 1s;
+				}
+			}
+
+			.icon-trash {
+				color: $alert-color;
+				vertical-align: middle;
+			}
+
+			.icon-download {
+				color: $success-color;
+			}
+
+			button {
+				margin-left: 10px;
+				margin-bottom: 0;
+				padding: 2px 10px;
 			}
 		}
 
