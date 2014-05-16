@@ -124,8 +124,6 @@ def design_download(id):
 			metadata["cloud_id"] = id
 			gcodeManager.setFileMetadata(destFile, metadata)
 
-			print metadata
-
 			em.fire(
 				"CloudDownloadEvent", {
 					"type": "analyzing",

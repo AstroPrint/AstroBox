@@ -13,6 +13,7 @@ var SocketData = Backbone.Model.extend({
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	currentState: 0,
 	defaults: {
+        printing: false,
 		temps: {
 			bed: {
 				actual: 0,
@@ -136,6 +137,14 @@ var SocketData = Backbone.Model.extend({
 	                		this.connectionView.setPrinterConnection('connected');
 	                	}
 	                }
+
+                    if (this.get('printing') != data.state.flags.printing) {
+                        this.set('printing', data.state.flags.printing);
+                    }
+
+                    if (data.state.flags.printing) {
+                        console.log(data);
+                    }
 
                     //self.connectionViewModel.fromCurrentData(data);
                     //self.printerStateViewModel.fromCurrentData(data);

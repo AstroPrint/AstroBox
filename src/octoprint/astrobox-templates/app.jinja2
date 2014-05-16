@@ -50,6 +50,9 @@
 						<div id="settings-view" class="hide">
 							{% include 'settings.jinja2' %}
 						</div>
+						<div id="printing-view" class="hide">
+							{% include 'printing.jinja2' %}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -58,7 +61,6 @@
 	</div>
 
 	{% include 'turnoff.jinja2' %}
-	{% include 'printing.jinja2' %}
 {% endblock %}
 
 {% block js %}

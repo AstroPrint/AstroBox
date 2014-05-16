@@ -69,10 +69,19 @@ var AstroBoxApp = Backbone.View.extend({
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:temps', this.reportTempChange );
 		this.listenTo(this.appMenu, 'view-changed', this.menuSelected );
+		this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
 	},
 	reportTempChange: function(s, value) {
 		if (this.appMenu.selected == 'control') {
 			this.controlView.updateTemps(value);
+		}
+	},
+	reportPrintingChange: function(s, value) {
+		if (value) {
+			this.showPrinting();
+		} else {
+			this.menuSelected('home');
+			this.$el.find('.tab-bar .left-small').show();
 		}
 	},
 	menuSelected: function(view) {
@@ -86,6 +95,10 @@ var AstroBoxApp = Backbone.View.extend({
 			this.controlView.tempView.nozzleTempBar.onResize();
 			this.controlView.tempView.bedTempBar.onResize();
 		}
+	},
+	showPrinting: function() {
+		this.menuSelected('printing');
+		this.$el.find('.tab-bar .left-small').hide();
 	}
 });
 

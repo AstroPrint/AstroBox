@@ -195,7 +195,12 @@ function home_delete_gcode_clicked(el)
 	app.homeView.designsView.onDeleteClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_print_gcode_clicked(filename)
+function home_print_gcode_clicked(el)
 {
-	app.printingView.startPrint(filename);
+	var $el = $(el);
+
+	$el.addClass('loading');
+	app.printingView.startPrint($el.data('filename'), function() {
+		$el.removeClass('loading');
+	});
 }

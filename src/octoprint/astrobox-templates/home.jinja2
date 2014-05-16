@@ -36,10 +36,15 @@
 							<td>
 								<div class="gcode-options">
 									<% if (g.local_filename) { %>
-										<a href="#" onclick="home_delete_gcode_clicked(this); return false" data-id="<%= g.id %>" data-local-name="<%= g.local_filename %>">
-											<i class="icon-trash"></i>
-										</a>
-										<button class="success radius tiny" onclick="home_print_gcode_clicked('<%= g.local_filename %>')"><i class="icon-print"></i> Print &gt;</button>
+										<div class="loading-button">
+											<a class="trash" href="#" onclick="home_delete_gcode_clicked(this); return false" data-id="<%= g.id %>" data-local-name="<%= g.local_filename %>">
+												<i class="icon-trash"></i>
+											</a>
+											<button class="success tiny radius" onclick="home_print_gcode_clicked(this)" data-filename="<%= g.local_filename %>">
+												<i class="icon-print"></i> Print &gt;
+											</button>
+											<span class="loading button tiny disabled success radius"><i class="icon-spin1 animate-spin"></i> Sending...</span>
+										</div>
 									<% } else { %>
 										<a href="#" onclick="home_download_gcode_clicked(this); return false" data-id="<%= g.id %>" >
 											<i class="icon-download"></i>
