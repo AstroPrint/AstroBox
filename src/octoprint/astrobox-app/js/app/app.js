@@ -54,27 +54,30 @@ var AppMenu = Backbone.View.extend({
 
 var AstroBoxApp = Backbone.View.extend({
 	el: 'body',
-	appMenu: new AppMenu(),
-	homeView: new HomeView(),
-	controlView: new ControlView(),
-	settingsView: new SettingsView(),
-	connectionView: new ConnectionView(),
-	turnoffView: new TurnoffView(),
-	printingView: new PrintingView(),
-	socketData: new SocketData(),
+	appMenu: null,
+	homeView: null,
+	controlView: null,
+	settingsView: null,
+	connectionView: null,
+	turnoffView: null,
+	printingView: null,
+	socketData: null,
 	initialize: function() {
+		this.socketData = new SocketData();
+		this.appMenu = new AppMenu();
+		this.homeView = new HomeView();
+		this.controlView = new ControlView({app: this});
+		this.settingsView = new SettingsView();
+		this.connectionView = new ConnectionView();
+		this.turnoffView = new TurnoffView();
+		this.printingView = new PrintingView();
+
 		this.socketData.connectionView = this.connectionView;
 		this.socketData.homeView = this.homeView;
 		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
-		this.listenTo(this.socketData, 'change:temps', this.reportTempChange );
 		this.listenTo(this.appMenu, 'view-changed', this.menuSelected );
 		this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
-	},
-	reportTempChange: function(s, value) {
-		if (this.appMenu.selected == 'control') {
-			this.controlView.updateTemps(value);
-		}
 	},
 	reportPrintingChange: function(s, value) {
 		if (value) {
@@ -92,8 +95,7 @@ var AstroBoxApp = Backbone.View.extend({
 		targetView.removeClass('hide');
 
 		if (view == 'control') {
-			this.controlView.tempView.nozzleTempBar.onResize();
-			this.controlView.tempView.bedTempBar.onResize();
+			this.controlView.tempView.resetBars();
 		}
 	},
 	showPrinting: function() {
@@ -102,4 +104,4 @@ var AstroBoxApp = Backbone.View.extend({
 	}
 });
 
-var app = new AstroBoxApp();
+app = new AstroBoxApp();

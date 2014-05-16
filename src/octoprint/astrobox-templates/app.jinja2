@@ -70,6 +70,8 @@
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 		var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
+
+		var app = null;
 	</script>
 	{% assets filters="closure_js", output="js/gen/app.js", 
 		"js/lib/jquery.js", "js/lib/jquery.ui.widget.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js",

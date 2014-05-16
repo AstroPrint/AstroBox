@@ -175,6 +175,10 @@ var TempView = Backbone.View.extend({
 			type: 'bed'
 		});
 	},
+	resetBars: function() {
+		this.nozzleTempBar.onResize();
+		this.bedTempBar.onResize();
+	},
 	updateBars: function(value) {
 		this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
 		this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
@@ -282,16 +286,21 @@ var ZControlView = MovementControlView.extend({
 });
 
 var ControlView = Backbone.View.extend({
-	tempView: new TempView(),
-	distanceControl: new DistanceControl(),
+	el: '#control-view',
+	tempView: null,
+	distanceControl: null,
 	xyControlView: null,
 	zControlView: null,
-	el: '#control-view',
-	initialize: function() {
+	initialize: function(params) {
+		this.tempView = new TempView();
+		this.distanceControl = new DistanceControl();
+		this.listenTo(params.app.socketData, 'change:temps', this.updateTemps);
 		this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
 		this.zControlView = new ZControlView({distanceControl: this.distanceControl});
 	},
-	updateTemps: function(value) {
-		this.tempView.updateBars(value);
+	updateTemps: function(s, value) {
+		if (!this.$el.hasClass('hide')) {
+			this.tempView.updateBars(value);
+		}
 	}
 });

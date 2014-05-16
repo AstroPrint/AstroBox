@@ -87,9 +87,10 @@ var FileUploadView = Backbone.View.extend({
 
 var DesignsView = Backbone.View.extend({
 	template: _.template( $("#design-list-template").html() ),
-	designs: new DesignCollection(),
+	designs: null,
 	loader: null,
 	initialize: function() {
+		this.designs = new DesignCollection();
 		this.loader = this.$el.find('h3 .icon-spin1');
 		this.refresh();
 	},

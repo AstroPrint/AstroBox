@@ -19,8 +19,9 @@ var TurnoffConfirmationModal = Backbone.View.extend({
 
 var TurnoffView = Backbone.View.extend({
 	el: '#turnoff-view',
-	turnOffModal: new TurnoffConfirmationModal(),
+	turnOffModal: null,
 	initialize: function() {
+		this.turnOffModal =  new TurnoffConfirmationModal();
 		this.turnOffModal.parent = this;
 	},
 	doTurnoff: function() {
