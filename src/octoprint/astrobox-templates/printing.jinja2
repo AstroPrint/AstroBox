@@ -1,7 +1,19 @@
 <div class="row">
 	<div class="small-12 columns" align="center">
 		<h1 class="bold"> Printing </h1>
+		<div class="progress success radius">
+			<span class="meter" style="width: 0%"></span>
+		</div>
 		<button class="alert radius stop-print">STOP PRINT</button>
 		<button class="radius pause-print">PAUSE PRINT</button>
+		<div>
+			Time Reamining: <span id="printing-time"></span>
+		</div>
+		<div>
+			Bed: <span id="printing-bed-target"></span> - <span id="printing-bed-current"></span>
+		</div>
+		<div>
+			Nozzle: <span id="printing-nozzle-target"></span> - <span id="printing-nozzle-current"></span>
+		</div>
 	</div>
 </div>

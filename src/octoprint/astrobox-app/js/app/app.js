@@ -70,7 +70,7 @@ var AstroBoxApp = Backbone.View.extend({
 		this.settingsView = new SettingsView();
 		this.connectionView = new ConnectionView();
 		this.turnoffView = new TurnoffView();
-		this.printingView = new PrintingView();
+		this.printingView = new PrintingView({app: this});
 
 		this.socketData.connectionView = this.connectionView;
 		this.socketData.homeView = this.homeView;
@@ -84,6 +84,7 @@ var AstroBoxApp = Backbone.View.extend({
 			this.showPrinting();
 		} else {
 			this.menuSelected('home');
+			this.$el.find('#printing-view').addClass('hide');
 			this.$el.find('.tab-bar .left-small').show();
 		}
 	},

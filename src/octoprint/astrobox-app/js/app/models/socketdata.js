@@ -14,14 +14,19 @@ var SocketData = Backbone.Model.extend({
 	currentState: 0,
 	defaults: {
         printing: false,
+        paused: false,
+        printing_progress: {
+            percent: 0.0,
+            time_left: 0
+        },
 		temps: {
 			bed: {
 				actual: 0,
-				set: 0
+				target: 0
 			},
 			extruder: {
 				actual: 0,
-				set: 0
+				target: 0
 			}
 		}
 	},
@@ -82,6 +87,7 @@ var SocketData = Backbone.Model.extend({
     _onMessage: function(e) {
         for (var prop in e.data) {
             var data = e.data[prop];
+            console.log(data);
 
             switch (prop) {
                 case "connected": {
@@ -121,6 +127,8 @@ var SocketData = Backbone.Model.extend({
                     break;
                 }*/
                 case "current": {
+                    var flags = data.state.flags;
+
                 	if (data.temps.length) {
 	                	var temps = data.temps[data.temps.length-1];
 	                	this.set('temps', {
@@ -131,19 +139,30 @@ var SocketData = Backbone.Model.extend({
 
 	                if (data.state && data.state.state != this.currentState) {
 	                	this.currentState = data.state.state;
-	                	if (data.state.flags.error) {
+	                	if (flags.error) {
         					this.connectionView.setPrinterConnection('failed');
-	                	} else if (data.state.flags.operational) {
+	                	} else if (flags.operational) {
 	                		this.connectionView.setPrinterConnection('connected');
 	                	}
 	                }
 
-                    if (this.get('printing') != data.state.flags.printing) {
-                        this.set('printing', data.state.flags.printing);
+                    if (this.get('printing') != flags.printing) {
+                        if (!flags.paused) {
+                            this.set('printing', flags.printing);
+                        }
                     }
 
-                    if (data.state.flags.printing) {
-                        console.log(data);
+                    if (this.get('paused') != flags.paused) {
+                        this.set('paused', flags.paused);
+                    }
+
+                    if (flags.printing) {
+                        var progress = data.progress;
+                        //console.log(data);
+                        this.set('printing_progress', {
+                            percent: progress.completion ? progress.completion.toFixed(1) : 0,
+                            time_left: progress.printTimeLeft ? progress.printTimeLeft : Math.round(data.job.estimatedPrintTime)
+                        });
                     }
 
                     //self.connectionViewModel.fromCurrentData(data);
