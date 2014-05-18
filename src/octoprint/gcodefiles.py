@@ -107,7 +107,7 @@ class GcodeManager:
 		if absolutePath is None:
 			return
 
-		analysisResult = {}
+		analysisResult = {"layerCount": 0}
 		dirty = False
 		if gcode.totalMoveTimeMinute:
 			analysisResult["estimatedPrintTime"] = gcode.totalMoveTimeMinute * 60
@@ -312,6 +312,42 @@ class GcodeManager:
 			self._saveMetadata()
 
 		self._metadataAnalyzer.addFileToQueue(os.path.basename(absolutePath))
+
+		if uploadCallback is not None:
+			return uploadCallback(filename, absolutePath, destination)
+		else:
+			return filename
+
+	def saveCloudGcode(self, absolutePath, fileInfo, destination, uploadCallback=None):
+		if absolutePath is None:
+			return None
+
+		filename = self._getBasicFilename(absolutePath)
+
+		self._metadataDirty = True
+		self._metadata[filename] = {
+			"cloud_id": fileInfo["id"],
+			"gcodeAnalysis": {
+				"estimatedPrintTime": fileInfo["printTime"],
+				"layerCount": fileInfo["layerCount"],
+				"filament": {
+					"tool0": {
+						"length": fileInfo["filamentLength"],
+						"volume": fileInfo["filamentVolume"]
+					}
+				}
+			},
+			"prints": {
+				"success": 0,
+				"failure": 0,
+				"last": {
+					"date": None,
+					"success": None
+				}
+			}
+		}
+
+		self._saveMetadata()
 
 		if uploadCallback is not None:
 			return uploadCallback(filename, absolutePath, destination)

@@ -139,6 +139,7 @@ class MachineCom(object):
 		self._tempOffset = {}
 		self._bedTemp = None
 		self._bedTempOffset = 0
+		self._heatingUp = None
 		self._commandQueue = queue.Queue()
 		self._currentZ = None
 		self._heatupWaitStartTime = 0
@@ -293,6 +294,9 @@ class MachineCom(object):
 
 	def isSdReady(self):
 		return self._sdAvailable
+
+	def isHeatingUp(self):
+		return self._heatingUp
 
 	def getPrintProgress(self):
 		if self._currentFile is None:
@@ -628,7 +632,7 @@ class MachineCom(object):
 		tempRequestTimeout = getNewTimeout("temperature")
 		sdStatusRequestTimeout = getNewTimeout("sdStatus")
 		startSeen = not settings().getBoolean(["feature", "waitForStartOnConnect"])
-		heatingUp = False
+		self._heatingUp = False
 		swallowOk = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
 
@@ -660,7 +664,9 @@ class MachineCom(object):
 
 					#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
 					if not 'ok' in line:
-						heatingUp = True
+						self._heatingUp = True
+						self._callback.mcHeatingUpUpdate(self._heatingUp)
+
 						if self._heatupWaitStartTime != 0:
 							t = time.time()
 							self._heatupWaitTimeLost = t - self._heatupWaitStartTime
@@ -789,8 +795,9 @@ class MachineCom(object):
 					elif "toggle" in pauseTriggers.keys() and pauseTriggers["toggle"].search(line) is not None:
 						self.setPause(not self.isPaused())
 
-				if "ok" in line and heatingUp:
-					heatingUp = False
+				if "ok" in line and self._heatingUp:
+					self._heatingUp = False
+					self._callback.mcHeatingUpUpdate(self._heatingUp)
 
 				### Baudrate detection
 				if self._state == self.STATE_DETECT_BAUDRATE:
@@ -877,11 +884,11 @@ class MachineCom(object):
 						line = 'ok'
 
 					if self.isSdPrinting():
-						if time.time() > tempRequestTimeout and not heatingUp:
+						if time.time() > tempRequestTimeout and not self._heatingUp:
 							self._sendCommand("M105")
 							tempRequestTimeout = getNewTimeout("temperature")
 
-						if time.time() > sdStatusRequestTimeout and not heatingUp:
+						if time.time() > sdStatusRequestTimeout and not self._heatingUp:
 							self._sendCommand("M27")
 							sdStatusRequestTimeout = getNewTimeout("sdStatus")
 					else:
@@ -1213,6 +1220,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcTempUpdate(self, temp, bedTemp):
+		pass
+
+	def mcHeatingUpUpdate(value):
 		pass
 
 	def mcStateChange(self, state):

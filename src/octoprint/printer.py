@@ -60,6 +60,8 @@ class Printer():
 		self._progress = None
 		self._printTime = None
 		self._printTimeLeft = None
+		self._currentLayer = None
+		self._layerCount = None
 
 		self._printAfterSelect = False
 
@@ -251,7 +253,7 @@ class Printer():
 
 		self._printAfterSelect = printAfterSelect
 		self._comm.selectFile(filename, sd)
-		self._setProgressData(0, None, None, None)
+		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
 
 	def unselectFile(self):
@@ -259,7 +261,7 @@ class Printer():
 			return
 
 		self._comm.unselectFile()
-		self._setProgressData(0, None, None, None)
+		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
 
 	def startPrint(self):
@@ -293,16 +295,20 @@ class Printer():
 
 		self._comm.cancelPrint()
 
-		if disableMotorsAndHeater:
+		#if disableMotorsAndHeater:
 			# disable motors, switch off hotends, bed and fan
-			commands = ["M84"]
-			commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
-			commands.extend(["M140 S0", "M106 S0"])
-			self.commands(commands)
+		#	commands = ["M84"]
+		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
+		#	commands.extend(["M140 S0", "M106 S0"])
+		#	self.commands(commands)
+
+		self.home(['x','y'])
+		self.setTemperature('bed', 5.0)
+		self.setTemperature('tool', 5.0)
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
-		self._setProgressData(None, None, None, None)
+		self._setProgressData(None, None, None, None, None)
 
 		# mark print as failure
 		if self._selectedFile is not None:
@@ -333,13 +339,15 @@ class Printer():
 		self._messages.append(message)
 		self._stateMonitor.addMessage(message)
 
-	def _setProgressData(self, progress, filepos, printTime, printTimeLeft):
+	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
 		self._progress = progress
 		self._printTime = printTime
 		self._printTimeLeft = printTimeLeft
+		self._currentLayer = currentLayer
 
 		self._stateMonitor.setProgress({
 			"completion": self._progress * 100 if self._progress is not None else None,
+			"currentLayer": self._currentLayer,
 			"filepos": filepos,
 			"printTime": int(self._printTime) if self._printTime is not None else None,
 			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
@@ -394,6 +402,8 @@ class Printer():
 					estimatedPrintTime = fileData["gcodeAnalysis"]["estimatedPrintTime"]
 				if "filament" in fileData["gcodeAnalysis"].keys():
 					filament = fileData["gcodeAnalysis"]["filament"]
+				if "layerCount" in fileData["gcodeAnalysis"].keys():
+					layerCount = fileData["gcodeAnalysis"]['layerCount']
 
 		self._stateMonitor.setJobData({
 			"file": {
@@ -403,8 +413,11 @@ class Printer():
 				"date": date
 			},
 			"estimatedPrintTime": estimatedPrintTime,
+			"layerCount": layerCount,
 			"filament": filament,
 		})
+
+		self._layerCount = layerCount
 
 	def _sendInitialStateUpdate(self, callback):
 		try:
@@ -428,7 +441,8 @@ class Printer():
 			"error": self.isError(),
 			"paused": self.isPaused(),
 			"ready": self.isReady(),
-			"sdReady": self.isSdReady()
+			"sdReady": self.isSdReady(),
+			"heatingUp": self.isHeatingUp()
 		}
 
 	def getCurrentData(self):
@@ -441,6 +455,9 @@ class Printer():
 		 Callback method for the comm object, called upon log output.
 		"""
 		self._addLog(message)
+
+	def mcHeatingUpUpdate(self, value):
+		self._stateMonitor._state['flags']['heatingUp'] = value
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
@@ -477,7 +494,7 @@ class Printer():
 		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
 		"""
 
-		self._setProgressData(self._comm.getPrintProgress(), self._comm.getPrintFilepos(), self._comm.getPrintTime(), self._comm.getPrintTimeRemainingEstimate())
+		self._setProgressData(self._comm.getPrintProgress(), self._comm.getPrintFilepos(), self._comm.getPrintTime(), self._comm.getPrintTimeRemainingEstimate(), self._currentLayer)
 
 	def mcZChange(self, newZ):
 		"""
@@ -488,6 +505,10 @@ class Printer():
 			# we have to react to all z-changes, even those that might "go backward" due to a slicer's retraction or
 			# anti-backlash-routines. Event subscribes should individually take care to filter out "wrong" z-changes
 			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
+			if newZ > oldZ:
+				self._currentLayer += 1
+			else:
+				self._currentLayer -= 1
 
 		self._setCurrentZ(newZ)
 
@@ -506,14 +527,19 @@ class Printer():
 			self.startPrint()
 
 	def mcPrintjobDone(self):
-		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0)
+		#Not sure if this is the best way to get the layer count
+		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+
+		self.home(['x','y'])
+		self.setTemperature('bed', 5.0)
+		self.setTemperature('tool', 5.0)
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
 
 		self._setJobData(filename, filesize, True)
-		self._setProgressData(0.0, 0, 0, None)
+		self._setProgressData(0.0, 0, 0, None, 1)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcFileTransferDone(self, filename):
@@ -525,7 +551,7 @@ class Printer():
 		self._sdRemoteName = None
 		self._setCurrentZ(None)
 		self._setJobData(None, None, None)
-		self._setProgressData(None, None, None, None)
+		self._setProgressData(None, None, None, None, None)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcReceivedRegisteredMessage(self, command, output):
@@ -641,6 +667,9 @@ class Printer():
 
 	def isPrinting(self):
 		return self._comm is not None and self._comm.isPrinting()
+
+	def isHeatingUp(self):
+		return self._comm is not None and self._comm.isHeatingUp()
 
 	def isPaused(self):
 		return self._comm is not None and self._comm.isPaused()

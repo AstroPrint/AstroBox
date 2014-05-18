@@ -87,7 +87,6 @@ var SocketData = Backbone.Model.extend({
     _onMessage: function(e) {
         for (var prop in e.data) {
             var data = e.data[prop];
-            console.log(data);
 
             switch (prop) {
                 case "connected": {
@@ -158,10 +157,33 @@ var SocketData = Backbone.Model.extend({
 
                     if (flags.printing) {
                         var progress = data.progress;
-                        //console.log(data);
+
+                        //calculate new estimate time
+                        var base1Progress = progress.completion / 100.0;
+                        var originalEstimatedTime = data.job.estimatedPrintTime;
+                        var estimatedTimeLeft = originalEstimatedTime *  (1.0 - base1Progress );
+                        var elaspedTimeVariance = progress.printTime - (originalEstimatedTime - estimatedTimeLeft);
+                        //var newEstimatedTimeLeft = estimatedTimeLeft + elaspedTimeVariance;
+
+                        var adjustedEstimatedTime = originalEstimatedTime + elaspedTimeVariance;
+                        var newEstimatedTimeLeft = adjustedEstimatedTime * (1.0 -  base1Progress);
+
+                        /*console.log({
+                            progress: progress.completion,
+                            printTime: progress.printTime,
+                            originalEstimatedTime: originalEstimatedTime,
+                            estimatedTimeLeft: estimatedTimeLeft,
+                            elaspedTimeVariance: elaspedTimeVariance,
+                            newEstimatedTimeLeft: newEstimatedTimeLeft
+                        });*/
+
                         this.set('printing_progress', {
+                            layer_count: data.job.layerCount,
+                            current_layer: progress.currentLayer,
                             percent: progress.completion ? progress.completion.toFixed(1) : 0,
-                            time_left: progress.printTimeLeft ? progress.printTimeLeft : Math.round(data.job.estimatedPrintTime)
+                            time_left: progress.completion >= 100.0 ? 0.0 : newEstimatedTimeLeft,
+                            time_elapsed: progress.printTime ? progress.printTime : 0,
+                            heating_up: flags.heatingUp
                         });
                     }
 

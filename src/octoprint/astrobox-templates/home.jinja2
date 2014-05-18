@@ -22,7 +22,9 @@
 		<table>
 			<thead>
 				<tr>
-					<th class="bold">Name</th>
+					<th class="bold">Print</th>
+					<th style="width:50px"><center><i class="icon-stopwatch"></i></center></th>
+					<th style="width:70px"><center><i class="icon-layers"></i></center></th>
 					<th style="width:130px"></th>
 				</tr>
 			</thead>
@@ -33,6 +35,8 @@
 					_.each(gcodes, function(g) { %>
 						<tr id="gcode-file-<%= g.id%>" data-design-id="<%= d.get('id') %>">
 							<td><i class="<%= g.local_filename ? 'icon-drive' : 'icon-cloud' %>"></i> <%= g.name %></td>
+							<td align="center"><%= g.local_filename ? time_format(g.print_time) : '' %></td>
+							<td align="center"><%= g.local_filename ? g.layer_count : '' %></td>
 							<td>
 								<div class="gcode-options">
 									<% if (g.local_filename) { %>

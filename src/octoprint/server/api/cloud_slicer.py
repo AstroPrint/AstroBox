@@ -82,7 +82,10 @@ def designs():
 			p['local_filename'] = None
 			for i in range(len(local_files)):
 				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
-					p['local_filename'] = local_files[i]['name']
+					local_file = local_files[i]
+					p['local_filename'] = local_file['name']
+					p['print_time'] =  local_file['gcodeAnalysis']['estimatedPrintTime']
+					p['layer_count'] = local_file['gcodeAnalysis']['layerCount']
 					del local_files[i]
 					break
 
@@ -106,31 +109,18 @@ def design_download(id):
 			}
 		)
 
-	def successCb(destFile):
-		class Callback():
-			def sendEvent(self, type):
-				gcodeManager.unregisterCallback(self)
-
-				em.fire(
-					"CloudDownloadEvent", {
-						"type": "success",
-						"id": id
-					}
-				)
-
-		gcodeManager.registerCallback(Callback());
-		if gcodeManager.processGcode(destFile, FileDestinations.LOCAL):
-			metadata = gcodeManager.getFileMetadata(destFile)
-			metadata["cloud_id"] = id
-			gcodeManager.setFileMetadata(destFile, metadata)
-
+	def successCb(destFile, fileInfo):
+		if gcodeManager.saveCloudGcode(destFile, fileInfo, FileDestinations.LOCAL):
 			em.fire(
 				"CloudDownloadEvent", {
-					"type": "analyzing",
+					"type": "success",
 					"id": id,
-					"filename": gcodeManager._getBasicFilename(destFile)
+					"filename": gcodeManager._getBasicFilename(destFile),
+					"print_time": fileInfo["printTime"],
+					"layer_count": fileInfo["layerCount"]
 				}
 			)
+
 		else:
 			errorCb(destFile, "Couldn't save the file")
 

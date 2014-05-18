@@ -239,7 +239,7 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		destFile = None
 
-		if data and "download_url" in data and "name" in data:
+		if data and "download_url" in data and "name" in data and "info" in data:
 			progressCb(5)
 
 			r = requests.get(data["download_url"], stream=True)
@@ -258,7 +258,16 @@ class ProvenToPrintSlicer(CloudSlicer):
 						fd.write(chunk)
 						progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
 
-				successCb(destFile)
+				fileInfo = {
+					'id': gcodeId,
+					'layerCount': data["info"]["layer_count"],
+					'printTime': data["info"]["print_time"],
+					'filamentLength': data["info"]["filament_length"],
+					'filamentVolume': data["info"]["filament_volume"]
+
+				}
+
+				successCb(destFile, fileInfo)
 				return True;
 
 			else:

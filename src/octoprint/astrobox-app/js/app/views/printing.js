@@ -18,15 +18,21 @@
     onTempsChanged: function(s, value) {
         if (!this.$el.hasClass('hide')) {
             this.$el.find('#printing-bed-target').text(value.bed.target);
-            this.$el.find('#printing-bed-current').text(value.bed.actual);
+            this.$el.find('#printing-bed-current').text(Math.round(value.bed.actual));
             this.$el.find('#printing-nozzle-target').text(value.extruder.target);
-            this.$el.find('#printing-nozzle-current').text(value.extruder.actual);
+            this.$el.find('#printing-nozzle-current').text(Math.round(value.extruder.actual));
         }
     },
     onProgressChanged: function(s, value) {
         this.$el.find('.progress .meter').css('width', value.percent+'%');
-
-        var sec_num = parseInt(value.time_left, 10); // don't forget the second param
+        this.$el.find('#printing-time').text(this._formatTime(value.time_left));
+        this.$el.find('#printing-passed').text(this._formatTime(value.time_elapsed));
+        this.$el.find('#current-layer').text(value.current_layer);
+        this.$el.find('#layer-count').text(value.layer_count);
+        this.$el.find('#heating-up').text(value.heating_up ? 'YES' : 'NO');
+    },
+    _formatTime: function(seconds) {
+        var sec_num = parseInt(seconds, 10); // don't forget the second param
         var hours   = Math.floor(sec_num / 3600);
         var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
         var seconds = sec_num - (hours * 3600) - (minutes * 60);
@@ -34,9 +40,7 @@
         if (hours   < 10) {hours   = "0"+hours;}
         if (minutes < 10) {minutes = "0"+minutes;}
         if (seconds < 10) {seconds = "0"+seconds;}
-        var time    = hours+':'+minutes+':'+seconds;
-
-        this.$el.find('#printing-time').text(time);
+        return hours+':'+minutes+':'+seconds;
     },
     onPausedChanged: function(s, value) {
         var pauseBtn = this.$el.find('button.pause-print')
