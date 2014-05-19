@@ -1,25 +1,58 @@
 <div class="row">
 	<div class="small-12 columns" align="center">
-		<h1 class="bold"> Printing </h1>
+		<h2 class="bold"> Printing </h2>
 		<div class="progress success radius">
 			<span class="meter" style="width: 0%"></span>
+			<span class="filename"></span>
+			<span class="progress-label"></span> 
 		</div>
-		<button class="alert radius stop-print">STOP PRINT</button>
-		<button class="radius pause-print">PAUSE PRINT</button>
-		<div>
-			Time Reamining: <span id="printing-time"></span><br/>
-			Time Elapsed: <span id="printing-passed"></span>
+	</div>
+</div>
+
+<div class="row print-info">
+	<div class="info">
+		<div class="small-12 medium-6 columns" align="center">
+			<h2 class="bold">Time Remaining</h2>
+			<b>
+				<span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
+			</b>
 		</div>
-		<div>
-			Heating up: <span id="heating-up">-</span>
+		<div class="small-12 medium-6 columns" align="center">
+			<h2 class="bold">Printing Layer</h2>
+			<b>
+				<span class="current-layer highlighted">-</span> of <span class="highlighted layer-count">-</span>
+			</b>
 		</div>
-		<div>
-			Bed: <span id="printing-bed-target"></span> - <span id="printing-bed-current"></span>
+	</div>
+	<div class="heating">
+		<div class="small-12 columns" align="center">
+			<i class="icon-temperatire blink-animation"></i>
+			<b>Heating up...</b>
 		</div>
-		<div>
-			Nozzle: <span id="printing-nozzle-target"></span> - <span id="printing-nozzle-current"></span>
+	</div>
+</div>
+
+<div class="row temperatures">
+	<div class="small-12 columns">
+		<h2 class="bold">Printer Temperature</h2>
+		<div class="temp-bar nozzle">
+			<h3 class="bold">Current Temp</h3>
+			<label class="bold">Nozzle</label>
+			<div class="temp-target bold">50</div>
+			<div class="temp-current bold">100&deg;</div>
 		</div>
-		<div>
-			Layer <span id="current-layer">-</span> of <span id="layer-count">-</span>.
+		<div class="temp-bar bed">
+			<label class="bold">Bed</label>
+			<div class="temp-target bold">50</div>
+			<div class="temp-current bold">100&deg;</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+	<div class="small-12 medium-6 columns" align="center">
+		<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+	</div>
+	<div class="small-12 medium-6 columns" align="center">
+		<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
 	</div>
 </div>

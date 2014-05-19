@@ -1,10 +1,10 @@
 @font-face {
   font-family: 'fontello';
-  src: url('/font/fontello.eot?76498659');
-  src: url('/font/fontello.eot?76498659#iefix') format('embedded-opentype'),
-       url('/font/fontello.woff?76498659') format('woff'),
-       url('/font/fontello.ttf?76498659') format('truetype'),
-       url('/font/fontello.svg?76498659#fontello') format('svg');
+  src: url('/font/fontello.eot?77573045');
+  src: url('/font/fontello.eot?77573045#iefix') format('embedded-opentype'),
+       url('/font/fontello.woff?77573045') format('woff'),
+       url('/font/fontello.ttf?77573045') format('truetype'),
+       url('/font/fontello.svg?77573045#fontello') format('svg');
   font-weight: normal;
   font-style: normal;
 }
@@ -14,7 +14,7 @@
 @media screen and (-webkit-min-device-pixel-ratio:0) {
   @font-face {
     font-family: 'fontello';
-    src: url('../font/fontello.svg?76498659#fontello') format('svg');
+    src: url('../font/fontello.svg?77573045#fontello') format('svg');
   }
 }
 */
@@ -52,19 +52,23 @@
  
 .icon-spin1:before { content: '\e807'; } /* '' */
 .icon-stopwatch:before { content: '\e812'; } /* '' */
+.icon-trash:before { content: '\e80f'; } /* '' */
 .icon-cog:before { content: '\e803'; } /* '' */
 .icon-logout:before { content: '\e808'; } /* '' */
 .icon-exchange:before { content: '\e801'; } /* '' */
+.icon-play:before { content: '\e810'; } /* '' */
+.icon-pause:before { content: '\e813'; } /* '' */
 .icon-cloud:before { content: '\e80d'; } /* '' */
 .icon-off:before { content: '\e805'; } /* '' */
 .icon-rocket:before { content: '\e809'; } /* '' */
-.icon-user:before { content: '\e806'; } /* '' */
-.icon-trash:before { content: '\e80f'; } /* '' */
+.icon-cancel-circled:before { content: '\e814'; } /* '' */
+.icon-home:before { content: '\e802'; } /* '' */
 .icon-download:before { content: '\e80c'; } /* '' */
 .icon-upload-cloud-1:before { content: '\e80a'; } /* '' */
 .icon-print:before { content: '\e800'; } /* '' */
 .icon-inbox:before { content: '\e80b'; } /* '' */
 .icon-drive:before { content: '\e80e'; } /* '' */
+.icon-temperatire:before { content: '\e815'; } /* '' */
 .icon-move:before { content: '\e804'; } /* '' */
 .icon-layers:before { content: '\e811'; } /* '' */
-.icon-home:before { content: '\e802'; } /* '' */
+.icon-user:before { content: '\e806'; } /* '' */
