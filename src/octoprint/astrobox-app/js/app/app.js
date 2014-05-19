@@ -102,6 +102,7 @@ var AstroBoxApp = Backbone.View.extend({
 	showPrinting: function() {
 		this.menuSelected('printing');
 		this.$el.find('.tab-bar .left-small').hide();
+		this.printingView.show();
 	}
 });
 

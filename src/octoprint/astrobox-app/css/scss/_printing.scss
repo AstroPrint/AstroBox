@@ -97,6 +97,8 @@
 				position: absolute;
 				top: 12px;
 				left: 10px;
+				padding-right: 30px;
+				display: inline-block;
 			}
 
 			.temp-current {
@@ -105,6 +107,8 @@
 				right: 10px;
 				font-size: rem-calc(28);
 				color: white;
+				padding-left: 25px;
+				display: inline-block;
 			}
 
 			.temp-target {
@@ -112,10 +116,43 @@
 				background-color: #505050;
 				color: white;
 				display: inline-block;
-				padding: 10px;
+				padding: 22px 10px 10px 10px;
 				position: absolute;
-				top: 7px;
-				left: 200px;
+				top: -5px;
+				height: 60px;
+				width: 50px;
+				left: 130px;
+				text-align: center;
+
+				&.moving {
+					background-color: lighten(#505050, 20%);
+				}
+			}
+
+			.temp-curret-line {
+				position: absolute;
+				top: 0px;
+				bottom: 0px;
+				left: 153px;
+				width: 4px;
+				background-color: #505050;
+				transition: left 0.5s;
+				-webkit-transition: left 0.5s;
+				-moz-transition: left 0.5s;
+
+				.triangle_left {
+					position: absolute;
+					top: -13px;
+					left: -5px;
+					-webkit-transform: rotate(90deg); 
+				}
+
+				.triangle_right {
+					position: absolute;
+					bottom: -13px;
+					left: -5px;
+					-webkit-transform: rotate(90deg);
+				}
 			}
 		}
 	}

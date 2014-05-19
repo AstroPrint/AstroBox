@@ -6,7 +6,6 @@
 
 var tempBarView = Backbone.View.extend({
 	containerDimensions: null,
-	handleTop: null,
 	scale: null,
 	type: null,
 	dragging: false,
@@ -17,15 +16,19 @@ var tempBarView = Backbone.View.extend({
 		'mousemove .set-temp': 'onTouchMove',
 		'touchend .set-temp': 'onTouchEnd',
 		'mouseup .set-temp': 'onTouchEnd',
-		'mouseout .set-temp': 'onTouchEnd',
-		'resize': 'onResize',
+		'mouseout .temp-bar': 'onTouchEnd',
+		'click .temp-bar': 'onClicked',
 		'click button.temp-off': 'turnOff'
 	},
 	initialize: function(params) {
 		this.scale = params.scale;
 		this.type = params.type;
-		//this.onResize();
+		$(window).bind("resize.app", _.bind(this.onResize, this));
 	},
+    remove: function() {
+        $(window).unbind("resize.app");
+        Backbone.View.prototype.remove.call(this);
+    },
 	turnOff: function(e) {
 		this._sendToolCommand('target', this.type, 0);
 		this.setHandle(0);
@@ -40,19 +43,13 @@ var tempBarView = Backbone.View.extend({
 			handle.text(value);
 			setTimeout(function() {
 				handle.css({transition: ''});
-			}, 500);
+			}, 800);
 		}
 	},
 	onTouchStart: function(e) {
 		e.preventDefault();
-
 		this.dragging = true;
-
-		var target = $(e.target);
-
-		this.handleTop = target.position().top;
-
-		target.addClass('moving');
+		$(e.target).addClass('moving');
 	},
 	onTouchMove: function(e) {
 		if (this.dragging) {
@@ -70,14 +67,11 @@ var tempBarView = Backbone.View.extend({
 			newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
 
 			target.css({top: newTop+'px'});
-
 			target.text(this._px2temp(newTop));
 		}
 	},
 	onTouchEnd: function(e) {
 		e.preventDefault();
-
-		this.handleTop = null;
 
 		$(e.target).removeClass('moving');
 
@@ -86,6 +80,19 @@ var tempBarView = Backbone.View.extend({
 
 		this.dragging = false;
 	},
+    onClicked: function(e) {
+        e.preventDefault();
+
+        var target = this.$el.find('.set-temp');
+
+		var newTop = e.pageY - this.containerDimensions.top - target.innerHeight()/2.0;
+		newTop = Math.min( Math.max(newTop, 0), this.containerDimensions.maxTop );
+
+        var temp = this._px2temp(newTop);
+
+        this.setHandle(temp);
+        this._sendToolCommand('target', this.type, temp);
+    },
 	onResize: function() {
 		var container = this.$el.find('.temp-bar');
 		var handle = container.find('.set-temp');
@@ -104,7 +111,7 @@ var tempBarView = Backbone.View.extend({
 	setTemps: function(actual, target) {
 		var handleHeight = this.$el.find('.set-temp').innerHeight();
 
-		this.setHandle(target);
+		this.setHandle(Math.min(Math.round(target), this.scale[1]));
 		this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
 		this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
 	},

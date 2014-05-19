@@ -101,6 +101,8 @@
 			background-color: #505050;
 			width: 110%;
 			transition: top 0.5s;
+			-webkit-transition: top 0.5s;
+			-moz-transition: top 0.5s;
 
 			.triangle_left {
 				position: absolute;
