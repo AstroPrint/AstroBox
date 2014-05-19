@@ -292,18 +292,55 @@ var ZControlView = MovementControlView.extend({
 	}
 });
 
+var ExtrusionControlView = Backbone.View.extend({
+	el: '#extrusion-control',
+	events: {
+		'click .extrude': 'extrudeTapped',
+		'click .retract': 'retractTapped'
+	},
+	extrudeTapped: function() {
+		if (this._checkAmount()) {
+			this._sendExtrusionCommand(1);
+		}
+	},
+	retractTapped: function() {
+		if (this._checkAmount()) {
+			this._sendExtrusionCommand(-1);
+		}
+	},
+	_checkAmount: function() {
+		return !isNaN(this.$el.find('.amount-field').val()); 
+	},
+	_sendExtrusionCommand: function(direction) {
+        var data = {
+            command: "extrude",
+            amount: this.$el.find('.amount-field').val() * direction
+        }
+
+        $.ajax({
+            url: API_BASEURL + "printer/tool",
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data)
+        });		
+	}
+});
+
 var ControlView = Backbone.View.extend({
 	el: '#control-view',
 	tempView: null,
 	distanceControl: null,
 	xyControlView: null,
 	zControlView: null,
+	extrusionView: null,
 	initialize: function(params) {
 		this.tempView = new TempView();
 		this.distanceControl = new DistanceControl();
 		this.listenTo(params.app.socketData, 'change:temps', this.updateTemps);
 		this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
 		this.zControlView = new ZControlView({distanceControl: this.distanceControl});
+		this.extrusionView = new ExtrusionControlView();
 	},
 	updateTemps: function(s, value) {
 		if (!this.$el.hasClass('hide')) {

@@ -1,6 +1,6 @@
-<h1 class="bold" align="center">Printer Controls</h1>
 <div class="row">
-	<div class="small-12 medium-7 columns">
+	<h1 class="bold" align="center">Printer Controls</h1>
+	<div class="medium-12 large-7 columns">
 		<div class="row">
 			<div class="small-7 columns" id="xy-controls">
 				<h2 class="bold" align="center">X/Y Axis</h2>
@@ -30,31 +30,44 @@
 			</div>
 			<div class="small-12 columns" id="extrusion-control">
 				<h2 class="bold">Extrude Filament</h2>
-				<div class="small-4 columns">
-					<input type="text" class="expand" placeholder="e.g. 100 mm"/>
+				<div class="small-5 columns">
+					<div class="row collapse">
+						<div class="small-8 columns">
+							<input type="number" class="expand amount-field" placeholder="e.g 100"/>
+						</div>
+						<div class="small-4 columns">
+							<span class="postfix radius">mm</span>
+						</div>
+					</div>
 				</div>
-				<div class="small-4 columns">
-					<button class="small radius expand success">Extrude</button>
-				</div>
-				<div class="small-4 columns">
-					<button class="small radius expand success">Retract</button>
+				<div class="small-7 columns">
+					<div class="row">
+						<div class="small-6 columns">
+							<button class="small radius expand success extrude">Extrude</button>
+						</div>
+						<div class="small-6 columns">
+							<button class="small radius expand success retract">Retract</button>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
-	<div class="small-12 medium-5 columns" id="temp-control">
+	<div class="medium-12 large-5 columns" id="temp-control">
 		<div class="row">
-			<div class="small-4 columns temp-control-cont nozzle">
-				<span class="current-temp-top bold">- -</span>
-				<div class="temp-bar">
-					<label class="bold">Nozzle</label>
-					<div class="current-temp">
-						<div class="triangle_left"></div>
-						<div class="triangle_right"></div>
+			<div class="small-4 columns" align="center">
+				<div class="temp-control-cont nozzle">
+					<span class="current-temp-top bold">- -</span>
+					<div class="temp-bar">
+						<label class="bold">Nozzle</label>
+						<div class="current-temp">
+							<div class="triangle_left"></div>
+							<div class="triangle_right"></div>
+						</div>
+						<div class="set-temp radius bold">- -</div>
 					</div>
-					<div class="set-temp radius bold">- -</div>
+					<button class="temp-off secondary small radius expand">OFF</button>
 				</div>
-				<button class="temp-off secondary small radius expand">OFF</button>
 			</div>
 			<div class="small-4 columns fan-control">
 				<div class="fan-control-push" align="center">
@@ -63,17 +76,19 @@
 				<h2 class="bold">Fans <span class="fan_icon"></span></h2>
 				<button class="radius small expand success">ON</button>
 			</div>
-			<div class="small-4 columns temp-control-cont bed">
-				<span class="current-temp-top bold">- -</span>
-				<div class="temp-bar">
-					<label class="bold">Bed</label>
-					<div class="current-temp">
-						<div class="triangle_left"></div>
-						<div class="triangle_right"></div>
+			<div class="small-4 columns" align="center">
+				<div class="temp-control-cont bed">
+					<span class="current-temp-top bold">- -</span>
+					<div class="temp-bar">
+						<label class="bold">Bed</label>
+						<div class="current-temp">
+							<div class="triangle_left"></div>
+							<div class="triangle_right"></div>
+						</div>
+						<div class="set-temp radius bold">- -</div>
 					</div>
-					<div class="set-temp radius bold">- -</div>
+					<button class="temp-off secondary small radius expand">OFF</button>
 				</div>
-				<button class="temp-off secondary small radius expand">OFF</button>
 			</div>
 		</div>
 	</div>

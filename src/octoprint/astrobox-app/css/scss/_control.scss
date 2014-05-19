@@ -69,6 +69,10 @@
 		color: $alert-color;
 	}
 
+	.temp-control-cont {
+		max-width: 110px;
+	}
+
 	.temp-bar {
 		height: 362px;
 		background: url(/img/temp_gradient.png) repeat-x;
@@ -156,10 +160,14 @@
 #extrusion-control {
 	margin-top: 26px;
 
+	input, .postfix {
+		height: 45px;
+		padding: 3px;
+	}
+
 	input {
 		padding: 0 5px;
 		font-size: rem-calc(20);
-		height: 45px;
 		width: 100%;
 	}
 }
