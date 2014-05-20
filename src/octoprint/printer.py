@@ -505,12 +505,11 @@ class Printer():
 			# we have to react to all z-changes, even those that might "go backward" due to a slicer's retraction or
 			# anti-backlash-routines. Event subscribes should individually take care to filter out "wrong" z-changes
 			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
-			if newZ > oldZ:
-				self._currentLayer += 1
-			else:
-				self._currentLayer -= 1
 
 		self._setCurrentZ(newZ)
+
+	def mcLayerChange(self, layer):
+		self._currentLayer = layer;
 
 	def mcSdStateChange(self, sdReady):
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})

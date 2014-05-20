@@ -142,6 +142,8 @@ class MachineCom(object):
 		self._heatingUp = None
 		self._commandQueue = queue.Queue()
 		self._currentZ = None
+		self._currentLayer = None
+		self._lastLayerHeight = None
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentExtruder = 0
@@ -169,6 +171,7 @@ class MachineCom(object):
 		self._regex_paramSInt = re.compile("S(%s)" % intPattern)
 		self._regex_paramNInt = re.compile("N(%s)" % intPattern)
 		self._regex_paramTInt = re.compile("T(%s)" % intPattern)
+		self._regex_extrusion = re.compile("E%s" % positiveFloatPattern)
 		self._regex_minMaxError = re.compile("Error:[0-9]\n")
 		self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
 		self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
@@ -388,6 +391,11 @@ class MachineCom(object):
 
 		try:
 			self._currentFile.start()
+			self._lastLayerHeight = 0.0;
+			self._currentLayer  = 0;
+			#self._currentLayer = 1;
+			#sefl._lastLayerHeight;
+			#self._callback.mcLayerChange(self._tentativeLayer)
 
 			wasPaused = self.isPaused()
 			self._changeState(self.STATE_PRINTING)
@@ -1142,8 +1150,15 @@ class MachineCom(object):
 					if self._currentZ != z:
 						self._currentZ = z
 						self._callback.mcZChange(z)
+
 				except ValueError:
 					pass
+
+		elif self._currentZ > self._lastLayerHeight and self._regex_extrusion.search(cmd) != None:
+			self._currentLayer += 1
+			self._callback.mcLayerChange(self._currentLayer)
+			self._lastLayerHeight = self._currentZ
+
 		return cmd
 	_gcode_G1 = _gcode_G0
 
@@ -1235,6 +1250,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcZChange(self, newZ):
+		pass
+
+	def mcLayerChange(self, layer):
 		pass
 
 	def mcFileSelected(self, filename, filesize, sd):
