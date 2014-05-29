@@ -23,35 +23,35 @@
 			<thead>
 				<tr>
 					<th class="bold">Print</th>
-					<th style="width:50px"><center><i class="icon-stopwatch"></i></center></th>
-					<th style="width:70px"><center><i class="icon-layers"></i></center></th>
+					<th style="width:50px"><center><i class="icon-stopwatch" title="Estimated time"></i></center></th>
+					<th style="width:70px"><center><i class="icon-layers" title="Layers"></i></center></th>
 					<th style="width:130px"></th>
 				</tr>
 			</thead>
 			<tbody>
 			<% designs.each(function(d) {
-				var gcodes = d.get('gcodes');
-				if (gcodes.length) {
-					_.each(gcodes, function(g) { %>
-						<tr id="gcode-file-<%= g.id%>" data-design-id="<%= d.get('id') %>">
-							<td><i class="<%= g.local_filename ? 'icon-drive' : 'icon-cloud' %>"></i> <%= g.name %></td>
-							<td align="center"><%= g.local_filename ? time_format(g.print_time) : '' %></td>
-							<td align="center"><%= g.local_filename ? g.layer_count : '' %></td>
+				var print_files = d.get('print_files');
+				if (print_files.length) {
+					_.each(print_files, function(p) { %>
+						<tr id="print-file-<%= p.id%>" data-design-id="<%= d.get('id') %>">
+							<td><i class="<%= p.local_filename ? 'icon-drive' : 'icon-cloud' %>"></i> <%= p.name %></td>
+							<td align="center"><%= time_format(p.info.print_time) %></td>
+							<td align="center"><%= p.info.layer_count %></td>
 							<td>
-								<div class="gcode-options">
-									<% if (g.local_filename) { %>
+								<div class="print-file-options">
+									<% if (p.local_filename) { %>
 										<div class="loading-button">
-											<a class="trash" href="#" onclick="home_delete_gcode_clicked(this); return false" data-id="<%= g.id %>" data-local-name="<%= g.local_filename %>">
-												<i class="icon-trash"></i>
+											<a class="trash" href="#" onclick="home_delete_print_file_clicked(this); return false" data-id="<%= p.id %>" data-local-name="<%= p.local_filename %>">
+												<i class="icon-trash" title="Remove from device"></i>
 											</a>
-											<button class="success tiny radius" onclick="home_print_gcode_clicked(this)" data-filename="<%= g.local_filename %>">
+											<button class="success tiny radius" onclick="home_print_print_file_clicked(this)" data-filename="<%= p.local_filename %>">
 												<i class="icon-print"></i> Print &gt;
 											</button>
 											<span class="loading button tiny disabled success radius"><i class="icon-spin1 animate-spin"></i> Sending...</span>
 										</div>
 									<% } else { %>
-										<a href="#" onclick="home_download_gcode_clicked(this); return false" data-id="<%= g.id %>" >
-											<i class="icon-download"></i>
+										<a href="#" onclick="home_download_print_file_clicked(this); return false" data-id="<%= p.id %>" >
+											<i class="icon-download" title="Download"></i>
 										</a>
 									<% } %>
 								</div>

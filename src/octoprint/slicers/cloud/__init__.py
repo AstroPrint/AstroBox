@@ -46,5 +46,5 @@ class CloudSlicer(object):
 	def design_files(self):
 		return None
 
-	def download_gcode_file(self, gcodeId, progressCb, successCb, errorCb):
+	def download_print_file(self, design_id, print_file_id, progressCb, successCb, errorCb):
 		errorCb(None, 'Download function is not implemented')

@@ -228,11 +228,11 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		return json.dumps(data)	
 
-	def download_gcode_file(self, gcodeId, progressCb, successCb, errorCb):
+	def download_print_file(self, design_id, print_file_id, progressCb, successCb, errorCb):
 		progressCb(2)
 
 		try:
-			r = requests.get('%s/gcodes/%s' % (self.apiHost, gcodeId), auth=self.hmacAuth)
+			r = requests.get('%s/designs/%s/print-files/%s' % (self.apiHost, design_id, print_file_id), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None
@@ -259,12 +259,11 @@ class ProvenToPrintSlicer(CloudSlicer):
 						progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
 
 				fileInfo = {
-					'id': gcodeId,
+					'id': print_file_id,
 					'layerCount': data["info"]["layer_count"],
 					'printTime': data["info"]["print_time"],
 					'filamentLength': data["info"]["filament_length"],
 					'filamentVolume': data["info"]["filament_volume"]
-
 				}
 
 				successCb(destFile, fileInfo)

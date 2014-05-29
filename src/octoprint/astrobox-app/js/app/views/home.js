@@ -129,13 +129,13 @@ var DesignsView = Backbone.View.extend({
 	onDownloadClicked: function(el) {
 		var self = this;
 		var container = el.closest('tr');
-		var options = container.find('.gcode-options');
+		var options = container.find('.print-file-options');
 		var progress = container.find('.progress');
 
 		options.hide();
 		progress.show();
 
-        $.getJSON('/api/cloud-slicer/designs/download/'+el.data('id'), 
+        $.getJSON('/api/cloud-slicer/designs/'+container.data('design-id')+'/print-files/'+el.data('id')+'/download', 
         	function(response) {
         		self.render();
 	        }).fail(function(){
@@ -154,13 +154,13 @@ var DesignsView = Backbone.View.extend({
             type: "DELETE",
             success: function() {            	
             	//Update model
-            	var gcode = self.designs.findGCode(
-            		self.designs.get(self.$el.find('#gcode-file-'+el.data('id')).data('design-id')), 
+            	var print_file = self.designs.find_print_file(
+            		self.designs.get(self.$el.find('#print-file-'+el.data('id')).data('design-id')), 
             		el.data('id')
             	);
 
-            	if (gcode) {
-            		gcode.local_filename = null
+            	if (print_file) {
+            		print_file.local_filename = null
             	}
 
             	self.render();
@@ -172,18 +172,18 @@ var DesignsView = Backbone.View.extend({
         });
 	},
 	downloadProgress: function(data) {
-		var container = this.$el.find('#gcode-file-'+data.id);
+		var container = this.$el.find('#print-file-'+data.id);
 		var progress = container.find('.progress .meter');
 
 		if (data.type == "progress") {
 			progress.css('width', data.progress+'%');
 		} else if (data.type == "success") {
-			var gcode = this.designs.findGCode(container.data('design-id'), data.id)
+			var print_file = this.designs.find_print_file(container.data('design-id'), data.id)
 
-			if (gcode) {
-				gcode.local_filename = data.filename;
-				gcode.print_time = data.print_time;
-				gcode.layer_count = data.layer_count
+			if (print_file) {
+				print_file.local_filename = data.filename;
+				print_file.print_time = data.print_time;
+				print_file.layer_count = data.layer_count
 			}
 
 		} else if (data.type == "success") {
@@ -202,17 +202,17 @@ var HomeView = Backbone.View.extend({
 	}
 });
 
-function home_download_gcode_clicked(el)
+function home_download_print_file_clicked(el)
 {
 	app.homeView.designsView.onDownloadClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_delete_gcode_clicked(el)
+function home_delete_print_file_clicked(el)
 {
 	app.homeView.designsView.onDeleteClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_print_gcode_clicked(el)
+function home_print_print_file_clicked(el)
 {
 	var $el = $(el);
 

@@ -78,7 +78,7 @@ def designs():
 	local_files = list(gcodeManager.getAllFileData())
 
 	for d in cloud_designs:
-		for p in d['gcodes']:
+		for p in d['print_files']:
 			p['local_filename'] = None
 			for i in range(len(local_files)):
 				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
@@ -91,9 +91,9 @@ def designs():
 
 	return json.dumps(cloud_designs)
 
-@api.route("/cloud-slicer/designs/download/<string:id>", methods=["GET"])
+@api.route("/cloud-slicer/designs/<string:design_id>/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
-def design_download(id):
+def design_download(design_id, print_file_id):
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
 		abort(401)
 
@@ -104,7 +104,7 @@ def design_download(id):
 		em.fire(
 			"CloudDownloadEvent", {
 				"type": "progress",
-				"id": id,
+				"id": print_file_id,
 				"progress": progress
 			}
 		)
@@ -114,7 +114,7 @@ def design_download(id):
 			em.fire(
 				"CloudDownloadEvent", {
 					"type": "success",
-					"id": id,
+					"id": print_file_id,
 					"filename": gcodeManager._getBasicFilename(destFile),
 					"print_time": fileInfo["printTime"],
 					"layer_count": fileInfo["layerCount"]
@@ -129,7 +129,7 @@ def design_download(id):
 			"CloudDownloadEvent", 
 			{
 				"type": "error",
-				"id": id,
+				"id": print_file_id,
 				"reason": error
 			}
 		)
@@ -137,7 +137,7 @@ def design_download(id):
 		if os.path.exists(destFile):
 			os.remove(destFile)
 
-	if slicer.download_gcode_file(id, progressCb, successCb, errorCb):
+	if slicer.download_print_file(design_id, print_file_id, progressCb, successCb, errorCb):
 		return jsonify(SUCCESS)
 			
 	return abort(400)

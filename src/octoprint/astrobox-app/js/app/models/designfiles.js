@@ -14,13 +14,13 @@ var Design = Backbone.Model.extend({
 var DesignCollection = Backbone.Collection.extend({
 	model: Design,
 	url: API_BASEURL + "cloud-slicer/designs",
-	findGCode: function(designId, gcodeId) {
-		var design = this.get(designId);
-		var gcodes = design.get('gcodes');
+	find_print_file: function(design_id, print_file_id) {
+		var design = this.get(design_id);
+		var print_files = design.get('print_files');
 
-		for(var i=0; i < gcodes.length; i++) {
-			if (gcodes[i].id == gcodeId) {
-				return gcodes[i];
+		for(var i=0; i < print_files.length; i++) {
+			if (print_files[i].id == print_file_id) {
+				return print_files[i];
 			}
 		}
 	}
