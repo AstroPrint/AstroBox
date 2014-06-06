@@ -1,0 +1,57 @@
+#!/bin/sh
+
+PID_FILE=/var/run/network-monitor.pid
+CHECK_INTERVAL=10
+PING_HOST=8.8.8.8
+
+check_internet() {
+	echo $$ > "$PID_FILE"
+	while ping -W 5 -c 1 ${PING_HOST} > /dev/null 2>&1; do
+		sleep ${CHECK_INTERVAL}
+	done
+	create_hotspot
+	rm -f ${PID_FILE}
+}
+
+try_connection() {
+	service wifi_access_point stop > /dev/null 2>&1
+	ifup wlan1 > /dev/null 2>&1
+	if ping -W 5 -c 1 ${PING_HOST} > /dev/null 2>&1; then
+		check_internet
+	else
+		echo "Unable to connect to the internet" 
+	fi
+	
+}
+
+create_hotspot() {
+	ifdown wlan1 > /dev/null 2>&1
+	service wifi_access_point start > /dev/null 2>&1
+}
+
+stop_monitor() {
+	if [ -f $PID_FILE ];then
+		kill `cat ${PID_FILE}`
+		rm -f ${PID_FILE}
+	fi
+}
+
+case "$1" in
+	connect)
+		try_connection	
+	;;
+	hotspot)
+		create_hotspot
+		stop_monitor
+	;;
+	stop)
+		if [ -f $PID_FILE ]; then
+			stop_monitor
+		else
+			echo "No Network Monitor was running"	 
+		fi
+	;;
+	*)
+		check_internet
+	;;
+esac
