@@ -30,7 +30,9 @@ $(function() {
             gcodeViewModel,
             logViewModel
         );
-        
+
+        PNotify.prototype.options.styling = "bootstrap2";
+
         // work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
         // http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
         $.ajaxSetup({
@@ -60,25 +62,15 @@ $(function() {
             terminalViewModel.updateOutput();
         });
 
-        var webcamDisableTimeout;
-        $('#tabs a[data-toggle="tab"]').on('show', function (e) {
-            var current = e.target;
-            var previous = e.relatedTarget;
+        //~~ File list
 
-            if (current.hash == "#control") {
-                clearTimeout(webcamDisableTimeout);
-                var webcamImage = $("#webcam_image");
-                var currentSrc = webcamImage.attr("src");
-                if (currentSrc === undefined || currentSrc.trim() == "") {
-                    webcamImage.attr("src", CONFIG_WEBCAM_STREAM + "?" + new Date().getTime());
-                }
-            } else if (previous.hash == "#control") {
-                // only disable webcam stream if tab is out of focus for more than 5s, otherwise we might cause
-                // more load by the constant connection creation than by the actual webcam stream
-                webcamDisableTimeout = setTimeout(function() {
-                    $("#webcam_image").attr("src", "");
-                }, 5000);
-            }
+        $(".gcode_files").slimScroll({
+            height: "306px",
+            size: "5px",
+            distance: "0",
+            railVisible: true,
+            alwaysVisible: true,
+            scrollBy: "102px"
         });
 
         //~~ Gcode upload
@@ -103,9 +95,11 @@ $(function() {
         }
 
         function gcode_upload_fail(e, data) {
-            $.pnotify({
+            var error = "<p>Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\" and slicing support is enabled and configured.</p>";
+            error += pnotifyAdditionalInfo("<pre>" + data.jqXHR.responseText + "</pre>");
+            new PNotify({
                 title: "Upload failed",
-                text: "<p>Could not upload the file. Make sure that it is a GCODE file and has the extension \".gcode\" or \".gco\" or that it is an STL file with the extension \".stl\" and slicing support is enabled and configured.</p><p>Server reported: <pre>" + data.jqXHR.responseText + "</pre></p>",
+                text: error,
                 type: "error",
                 hide: false
             });
@@ -294,12 +288,24 @@ $(function() {
                 };
                 $(element).popover(options);
             }
-        }
+        };
 
         ko.bindingHandlers.allowBindings = {
-        	init: function (elem, valueAccessor) {
-        		return { controlsDescendantBindings: !valueAccessor() };
-        	}
+            init: function (elem, valueAccessor) {
+                return { controlsDescendantBindings: !valueAccessor() };
+            }
+        };
+
+        ko.bindingHandlers.slimScrolledForeach = {
+            init: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+                return ko.bindingHandlers.foreach.init(element, valueAccessor(), allBindings, viewModel, bindingContext);
+            },
+            update: function(element, valueAccessor, allBindings, viewModel, bindingContext) {
+                setTimeout(function() {
+                    $(element).slimScroll({scrollBy: 0});
+                }, 10);
+                return ko.bindingHandlers.foreach.update(element, valueAccessor(), allBindings, viewModel, bindingContext);
+            }
         };
 
         ko.applyBindings(connectionViewModel, document.getElementById("connection_accordion"));
@@ -352,22 +358,42 @@ $(function() {
 
         //~~ UI stuff
 
+        var webcamDisableTimeout;
+        $('#tabs a[data-toggle="tab"]').on('show', function (e) {
+            var current = e.target;
+            var previous = e.relatedTarget;
+
+            if (current.hash == "#control") {
+                clearTimeout(webcamDisableTimeout);
+                var webcamImage = $("#webcam_image");
+                var currentSrc = webcamImage.attr("src");
+                if (currentSrc === undefined || currentSrc.trim() == "") {
+                    webcamImage.attr("src", CONFIG_WEBCAM_STREAM + "?" + new Date().getTime());
+                }
+            } else if (previous.hash == "#control") {
+                // only disable webcam stream if tab is out of focus for more than 5s, otherwise we might cause
+                // more load by the constant connection creation than by the actual webcam stream
+                webcamDisableTimeout = setTimeout(function() {
+                    $("#webcam_image").attr("src", "");
+                }, 5000);
+            }
+        });
+
         $(".accordion-toggle[href='#files']").click(function() {
-            if ($("#files").hasClass("in")) {
-                $("#files").removeClass("overflow_visible");
+            var files = $("#files");
+            if (files.hasClass("in")) {
+                files.removeClass("overflow_visible");
             } else {
                 setTimeout(function() {
-                    $("#files").addClass("overflow_visible");
+                    files.addClass("overflow_visible");
                 }, 1000);
             }
-        })
-
-        $.pnotify.defaults.history = false;
+        });
 
         $.fn.modal.defaults.maxHeight = function(){
             // subtract the height of the modal header and footer
             return $(window).height() - 165;
-        }
+        };
 
         // Fix input element click problem on login dialog
         $(".dropdown input, .dropdown label").click(function(e) {
@@ -383,6 +409,7 @@ $(function() {
             ko.applyBindings(firstRunViewModel, document.getElementById("first_run_dialog"));
             firstRunViewModel.showDialog();
         }
+
     }
 );
 

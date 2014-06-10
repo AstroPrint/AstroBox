@@ -51,14 +51,17 @@ def _getFileList(origin):
 
 		files = []
 		if sdFileList is not None:
-			for sdFile in sdFileList:
-				files.append({
+			for sdFile, sdSize in sdFileList:
+				file = {
 					"name": sdFile,
 					"origin": FileDestinations.SDCARD,
 					"refs": {
 						"resource": url_for(".readGcodeFile", target=FileDestinations.SDCARD, filename=sdFile, _external=True)
 					}
-				})
+				}
+				if sdSize is not None:
+					file.update({"size": sdSize})
+				files.append(file)
 	else:
 		files = gcodeManager.getAllFileData()
 		for file in files:
@@ -73,7 +76,7 @@ def _getFileList(origin):
 
 def _verifyFileExists(origin, filename):
 	if origin == FileDestinations.SDCARD:
-		availableFiles = printer.getSdFiles()
+		availableFiles = map(lambda x: x[0], printer.getSdFiles())
 	else:
 		availableFiles = gcodeManager.getAllFilenames()
 
@@ -106,11 +109,13 @@ def uploadGcodeFile(target):
 
 	# determine current job
 	currentFilename = None
-	currentSd = None
+	currentOrigin = None
 	currentJob = printer.getCurrentJob()
-	if currentJob is not None and "filename" in currentJob.keys() and "sd" in currentJob.keys():
-		currentFilename = currentJob["filename"]
-		currentSd = currentJob["sd"]
+	if currentJob is not None and "file" in currentJob.keys():
+		currentJobFile = currentJob["file"]
+		if "name" in currentJobFile.keys() and "origin" in currentJobFile.keys():
+			currentFilename = currentJobFile["name"]
+			currentOrigin = currentJobFile["origin"]
 
 	# determine future filename of file to be uploaded, abort if it can't be uploaded
 	futureFilename = gcodeManager.getFutureFilename(file)
@@ -118,7 +123,7 @@ def uploadGcodeFile(target):
 		return make_response("Can not upload file %s, wrong format?" % file.filename, 415)
 
 	# prohibit overwriting currently selected file while it's being printed
-	if futureFilename == currentFilename and sd == currentSd and printer.isPrinting() or printer.isPaused():
+	if futureFilename == currentFilename and target == currentOrigin and printer.isPrinting() or printer.isPaused():
 		return make_response("Trying to overwrite file that is currently being printed: %s" % currentFilename, 409)
 
 	filename = None
@@ -145,12 +150,10 @@ def uploadGcodeFile(target):
 		Selects the just uploaded file if either selectAfterUpload or printAfterSelect are True, or if the
 		exact file is already selected, such reloading it.
 		"""
-		sd = destination == FileDestinations.SDCARD
-		if selectAfterUpload or printAfterSelect or (currentFilename == filename and currentSd == sd):
-			printer.selectFile(nameToSelect, sd, printAfterSelect)
+		if selectAfterUpload or printAfterSelect or (currentFilename == filename and currentOrigin == destination):
+			printer.selectFile(nameToSelect, destination == FileDestinations.SDCARD, printAfterSelect)
 
-	destination = FileDestinations.SDCARD if sd else FileDestinations.LOCAL
-	filename, done = gcodeManager.addFile(file, destination, fileProcessingFinished)
+	filename, done = gcodeManager.addFile(file, target, fileProcessingFinished)
 	if filename is None:
 		return make_response("Could not upload the file %s" % file.filename, 500)
 

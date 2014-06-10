@@ -11,6 +11,7 @@ from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
 from flask.ext.assets import Environment
+from watchdog.observers import Observer
 
 import os
 import logging
@@ -38,7 +39,8 @@ admin_permission = Permission(RoleNeed("admin"))
 user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
-from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator
+from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, \
+	UrlForwardHandler, user_validator, GcodeWatchdogHandler, UploadCleanupWatchdogHandler
 from octoprint.printer import Printer, getConnectionOptions
 from octoprint.settings import settings
 import octoprint.gcodefiles as gcodefiles
@@ -177,9 +179,8 @@ class Server():
 		# configure timelapse
 		octoprint.timelapse.configureTimelapse()
 
-		# setup system and gcode command triggers
-		events.SystemCommandTrigger(printer)
-		events.GcodeCommandTrigger(printer)
+		# setup command triggers
+		events.CommandTrigger(printer)
 		if self._debug:
 			events.DebugEventListener()
 
@@ -216,23 +217,32 @@ class Server():
 
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
-		def admin_access_validation(request):
+		def access_validation_factory(validator):
 			"""
-			Creates a custom wsgi and Flask request context in order to be able to process user information
-			stored in the current session.
+			Creates an access validation wrapper using the supplied validator.
 
-			:param request: The Tornado request for which to create the environment and context
+			:param validator: the access validator to use inside the validation wrapper
+			:return: an access validation wrapper taking a request as parameter and performing the request validation
 			"""
-			wsgi_environ = tornado.wsgi.WSGIContainer.environ(request)
-			with app.request_context(wsgi_environ):
-				app.session_interface.open_session(app, flask.request)
-				loginManager.reload_user()
-				admin_validator(flask.request)
+			def f(request):
+				"""
+				Creates a custom wsgi and Flask request context in order to be able to process user information
+				stored in the current session.
+
+				:param request: The Tornado request for which to create the environment and context
+				"""
+				wsgi_environ = tornado.wsgi.WSGIContainer.environ(request)
+				with app.request_context(wsgi_environ):
+					app.session_interface.open_session(app, flask.request)
+					loginManager.reload_user()
+					validator(flask.request)
+			return f
 
 		self._tornado_app = Application(self._router.urls + [
 			(r"/downloads/timelapse/([^/]*\.mpg)", LargeResponseHandler, {"path": settings().getBaseFolder("timelapse"), "as_attachment": True}),
 			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": settings().getBaseFolder("uploads"), "as_attachment": True}),
-			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": settings().getBaseFolder("logs"), "as_attachment": True, "access_validation": admin_access_validation}),
+			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": settings().getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
+			(r"/downloads/camera/current", UrlForwardHandler, {"url": settings().get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
 		self._server = HTTPServer(self._tornado_app)
@@ -244,6 +254,13 @@ class Server():
 			connectionOptions = getConnectionOptions()
 			if port in connectionOptions["ports"]:
 				printer.connect(port, baudrate)
+
+		# start up watchdogs
+		observer = Observer()
+		observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), settings().getBaseFolder("watched"))
+		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), settings().getBaseFolder("uploads"))
+		observer.start()
+
 		try:
 			IOLoop.instance().start()
 		except KeyboardInterrupt:
@@ -251,6 +268,9 @@ class Server():
 		except:
 			logger.fatal("Now that is embarrassing... Something really really went wrong here. Please report this including the stacktrace below in OctoPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
+		finally:
+			observer.stop()
+		observer.join()
 
 	def _createSocketConnection(self, session):
 		global printer, gcodeManager, userManager, eventManager

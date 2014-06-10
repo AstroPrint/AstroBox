@@ -5,8 +5,8 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
-import subprocess
 import netaddr
+import sarge
 
 from flask import Blueprint, request, jsonify, abort, current_app, session, make_response
 from flask.ext.login import login_user, logout_user, current_user
@@ -32,6 +32,26 @@ from . import users as api_users
 from . import cloud_slicer as api_cloud_slicer
 from . import log as api_logs
 
+def optionsAllowOrigin(request):
+	""" Always reply 200 on OPTIONS request """
+
+	resp = current_app.make_default_options_response()
+
+	# Allow the origin which made the XHR
+	resp.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+	# Allow the actual method
+	resp.headers['Access-Control-Allow-Methods'] = request.headers['Access-Control-Request-Method']
+	# Allow for 10 seconds
+	resp.headers['Access-Control-Max-Age'] = "10"
+
+	# 'preflight' request contains the non-standard headers the real request will have (like X-Api-Key)
+	customRequestHeaders = request.headers.get('Access-Control-Request-Headers', None)
+	if customRequestHeaders is not None:
+		# If present => allow them all
+		resp.headers['Access-Control-Allow-Headers'] = customRequestHeaders
+
+	return resp
+
 @api.before_request
 def beforeApiRequests():
 	"""
@@ -40,6 +60,9 @@ def beforeApiRequests():
 	case it has to be present and must be valid, so anything other than the above three types will result in denying
 	the request.
 	"""
+
+	if request.method == 'OPTIONS' and s().getBoolean(["api", "allowCrossOrigin"]):
+		return optionsAllowOrigin(request)
 
 	apikey = getApiKey(request)
 	if apikey is None:
@@ -65,6 +88,16 @@ def beforeApiRequests():
 
 	# invalid api key => 401
 	return make_response("Invalid API key", 401)
+
+@api.after_request
+def afterApiRequests(resp):
+
+	# Allow crossdomain
+	allowCrossOrigin = s().getBoolean(["api", "allowCrossOrigin"])
+	if request.method != 'OPTIONS' and 'Origin' in request.headers and allowCrossOrigin:
+		resp.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+
+	return resp
 
 
 #~~ first run setup
@@ -99,11 +132,7 @@ def firstRunSetup():
 @api.route("/state", methods=["GET"])
 @restricted_access
 def apiPrinterState():
-	currentData = octoprint.server.printer.getCurrentData()
-	currentData.update({
-		"temperatures": octoprint.server.printer.getCurrentTemperatures()
-	})
-	return jsonify(currentData)
+	return make_response(("/api/state has been deprecated, use /api/printer instead", 405, []))
 
 
 #~~ system control
@@ -114,21 +143,23 @@ def apiPrinterState():
 #@admin_permission.require(403)
 def performSystemAction():
 	logger = logging.getLogger(__name__)
-	if request.values.has_key("action"):
+	if "action" in request.values.keys():
 		action = request.values["action"]
-		availableActions = s().get(["system", "actions"])
-		for availableAction in availableActions:
+		available_actions = s().get(["system", "actions"])
+		for availableAction in available_actions:
 			if availableAction["action"] == action:
 				logger.info("Performing command: %s" % availableAction["command"])
 				return OK
 				try:
-					subprocess.check_output(availableAction["command"], shell=True)
-				except subprocess.CalledProcessError, e:
-					logger.warn("Command failed with return code %i: %s" % (e.returncode, e.message))
-					return make_response(("Command failed with return code %i: %s" % (e.returncode, e.message), 500, []))
-				except Exception, ex:
-					logger.exception("Command failed")
-					return make_response(("Command failed: %r" % ex, 500, []))
+					p = sarge.run(availableAction["command"], stderr=sarge.Capture())
+					if p.returncode != 0:
+						returncode = p.returncode
+						stderr_text = p.stderr.text
+						logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+						return make_response(("Command failed with return code %i: %s" % (returncode, stderr_text), 500, []))
+				except Exception, e:
+					logger.warn("Command failed: %s" % e)
+					return make_response(("Command failed: %s" % e, 500, []))
 	return NO_CONTENT
 
 

@@ -89,7 +89,7 @@ class Printer():
 			addMessageCallback=self._sendAddMessageCallbacks
 		)
 		self._stateMonitor.reset(
-			state={"state": None, "stateString": self.getStateString(), "flags": self._getStateFlags()},
+			state={"text": self.getStateString(), "flags": self._getStateFlags()},
 			jobData={
 				"file": {
 					"name": None,
@@ -329,7 +329,7 @@ class Printer():
 
 	def _setState(self, state):
 		self._state = state
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def _addLog(self, log):
 		self._log.append(log)
@@ -407,7 +407,7 @@ class Printer():
 
 		self._stateMonitor.setJobData({
 			"file": {
-				"name": os.path.basename(filename),
+				"name": os.path.basename(filename) if filename is not None else None,
 				"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
 				"size": filesize,
 				"date": date
@@ -423,9 +423,9 @@ class Printer():
 		try:
 			data = self._stateMonitor.getCurrentData()
 			data.update({
-				"tempHistory": list(self._temps),
-				"logHistory": list(self._log),
-				"messageHistory": list(self._messages)
+				"temps": list(self._temps),
+				"logs": list(self._log),
+				"messages": list(self._messages)
 			})
 			callback.sendHistoryData(data)
 		except Exception, err:
@@ -512,7 +512,7 @@ class Printer():
 		self._currentLayer = layer;
 
 	def mcSdStateChange(self, sdReady):
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcSdFiles(self, files):
 		eventManager().fire(Events.UPDATED_FILES, {"type": "gcode"})
@@ -520,7 +520,7 @@ class Printer():
 
 	def mcFileSelected(self, filename, filesize, sd):
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 		if self._printAfterSelect:
 			self.startPrint()
@@ -529,6 +529,7 @@ class Printer():
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 		self.home(['x','y'])
 		self.setTemperature('bed', 5.0)
@@ -540,6 +541,7 @@ class Printer():
 		self._setJobData(filename, filesize, True)
 		self._setProgressData(0.0, 0, 0, None, 1)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcFileTransferDone(self, filename):
 		self._sdStreaming = False
@@ -552,6 +554,7 @@ class Printer():
 		self._setJobData(None, None, None)
 		self._setProgressData(None, None, None, None, None)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)
@@ -571,7 +574,7 @@ class Printer():
 		self._streamingFinishedCallback = streamingFinishedCallback
 
 		self.refreshSdFiles(blocking=True)
-		existingSdFiles = self._comm.getSdFiles()
+		existingSdFiles = map(lambda x: x[0], self._comm.getSdFiles())
 
 		remoteName = util.getDosFilename(filename, existingSdFiles)
 		self._comm.startFileTransfer(absolutePath, filename, remoteName)
