@@ -1,7 +1,44 @@
-<h1 class="bold" align="center">Settings</h1>
-<div class="row">
-	<div class="small-12 columns">
-		<center>
+<div class="row collapse">
+	<div class="hide-for-small-only medium-5 large-4 columns">
+		<div id="settings-side-bar">
+			<ul class="side-nav">
+				<li class="heading bold">Printer</li>
+				<li class="active"><a class="printer-connection" href="#">Connection</a></li>
+				<li class="divider"></li>
+				<li class="heading bold">Internet</li>
+				<li><a class="internet-wifi" href="#">WiFi</a></li>
+			</ul>
+		</div>
+	</div>
+	<div class="small-12 medium-7 large-8 columns">
+		<div id="printer-connection" class="settings-page">
+		<h1 class="bold show-for-small" align="center">Printer</h1>
+		<form>
+			<div class="row">
+				<div class="small-12">
+					<label for="settings-serial-port" class="bold">Serial Port
+						<select id="settings-serial-port">
+							<option value="AUTO">AUTO</option>
+						</select>
+					</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="small-12">
+					<label for="settings-serial-port" class="bold">Baud Rate
+						<select id="settings-baudrate">
+							<option value="AUTO">AUTO</option>
+						</select>
+					</label>
+				</div>
+			</div>
+		</form>
+		</div>
+		<div id="internet-wifi" align="center" class="settings-page hide">
+			<div class="show-for-small">
+				<hr/>
+				<h1 class="bold" align="center">Internet</h1>
+			</div>
 			<button class="radius upgrade">Upgrade Software</button><br/>
 			<div class="loading-button hotspot">
 				<button class="radius">Create hotspot</button>
@@ -15,6 +52,6 @@
 					<i class="icon-spin1 animate-spin"></i> Connecting to Wifi...
 				</span>
 			</div>
-		</center>
+		</div>
 	</div>
 </div>

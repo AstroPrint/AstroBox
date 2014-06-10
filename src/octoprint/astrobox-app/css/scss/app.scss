@@ -29,6 +29,7 @@
     "sprites",
     "animations",
     "foundation/settings",
+    "foundation/components/visibility",
     "foundation/components/top-bar",
     "foundation/components/button-groups",
     "foundation/components/forms",
@@ -36,7 +37,8 @@
     "foundation/components/reveal",
     "foundation/components/progress-bars",
     "foundation/components/tables",
-    "foundation/components/panels";
+    "foundation/components/panels",
+    "foundation/components/side-nav";
 
 html {
     -ms-touch-action: manipulation;
@@ -68,7 +70,10 @@ strong,
 .tab-bar {
 	.tab-bar-section.middle {
 		right: 0;
+		text-align: left;
 	}
+
+
 
 	h1.title {
 		display: inline-block;
@@ -133,5 +138,6 @@ strong,
     "widgets", 
     "control",
     "home",
+    "settings",
     "turnoff",
     "printing";

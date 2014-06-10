@@ -95,6 +95,10 @@ var AstroBoxApp = Backbone.View.extend({
 		currentView.addClass('hide');
 		targetView.removeClass('hide');
 
+		//fire events
+		currentView.trigger('hide');
+		targetView.trigger('show');
+
 		if (view == 'control') {
 			this.controlView.tempView.resetBars();
 		}

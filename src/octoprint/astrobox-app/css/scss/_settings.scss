@@ -1,0 +1,45 @@
+#settings-side-bar {
+	background: white;
+	padding: 20px 0;
+	height: 100%;
+	margin: 0;
+
+	.side-nav {
+		li {
+			padding: 0 20px;
+			font-size: rem-calc(22);
+
+			a {
+				color: $success-color;
+			}
+
+			.heading {
+				font-size: rem-calc(30);
+			}
+
+			&.active {
+				background-color: #fafafa;
+
+				a {
+					font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+				}
+			}
+		}
+	}
+}
+
+.settings-page {
+	padding: 20px;
+
+	label {
+		font-size: rem-calc(22);
+	}
+}
+
+@media #{$small-only} {
+	#settings-view {
+		.settings-page.hide {
+			display: block;
+		}
+	}
+}
