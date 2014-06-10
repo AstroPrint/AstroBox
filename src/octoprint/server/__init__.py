@@ -18,6 +18,7 @@ import logging.config
 
 SUCCESS = {}
 NO_CONTENT = ("", 204)
+OK = ("", 200)
 
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
 app.config.from_object('octoprint.server.settings')

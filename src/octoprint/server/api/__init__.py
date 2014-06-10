@@ -15,7 +15,7 @@ from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
 import octoprint.util as util
 import octoprint.users
 import octoprint.server
-from octoprint.server import restricted_access, admin_permission, NO_CONTENT, UI_API_KEY
+from octoprint.server import restricted_access, admin_permission, NO_CONTENT, UI_API_KEY, OK
 from octoprint.settings import settings as s, valid_boolean_trues
 
 #~~ init api blueprint, including sub modules
@@ -31,7 +31,6 @@ from . import timelapse as api_timelapse
 from . import users as api_users
 from . import cloud_slicer as api_cloud_slicer
 from . import log as api_logs
-
 
 @api.before_request
 def beforeApiRequests():
@@ -115,14 +114,13 @@ def apiPrinterState():
 #@admin_permission.require(403)
 def performSystemAction():
 	logger = logging.getLogger(__name__)
-	print request.values.keys()
 	if request.values.has_key("action"):
 		action = request.values["action"]
-		print action
 		availableActions = s().get(["system", "actions"])
 		for availableAction in availableActions:
 			if availableAction["action"] == action:
 				logger.info("Performing command: %s" % availableAction["command"])
+				return OK
 				try:
 					subprocess.check_output(availableAction["command"], shell=True)
 				except subprocess.CalledProcessError, e:

@@ -38,11 +38,18 @@ clean: clean-js clean-css clean-python clean-release
 release: clean-js clean-css js css python
 	echo "Cleaning build directory..."
 	rm -rf build
+
 	echo "Creating release..."
 	mkdir -p build/AstroBox
 	cp -p run build/AstroBox/run
 	cp -p requirements.txt build/AstroBox/requirements.txt
 	cp -rfp src build/AstroBox/src
+
+	echo "Copying scripts"
+	mkdir -p build/AstroBox/scripts
+	cp -p scripts/network-monitor build/AstroBox/scripts/network-monitor
+	chmod +x build/AstroBox/scripts/network-monitor
+
 	echo "Cleaning unnecessary files..."
 	find build/AstroBox/src -name "*.py" -type f -delete
 	find build/AstroBox/src -name "*.pyc" -type f -delete
@@ -55,6 +62,7 @@ release: clean-js clean-css js css python
 	rm -rf build/AstroBox/src/octoprint/templates
 	rm -rf build/AstroBox/src/octoprint/static
 	cd build; zip -rq AstroBox-release.zip AstroBox; cd ..
+
 	echo "Release at " $(PWD)/build/AstroBox-release.zip
 
 js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED)
