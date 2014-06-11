@@ -72,7 +72,7 @@
 		<tr>
 			<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
 			<td class="network-name"><%= n.name %></td>
-			<td><button class="radius success tiny" data-id="<%= n.id %>">Connect</button></td>
+			<td><button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>">Connect</button></td>
 		</tr>
 	<% }); %>
 	</table>

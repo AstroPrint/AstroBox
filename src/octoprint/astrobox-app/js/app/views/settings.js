@@ -15,7 +15,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
             networks: networks
         }));
 
-        content.find('button').on('click', this.networkSelected, this);
+        content.find('button').bind('click', _.bind(this.networkSelected, this));
 
         this.$el.foundation('reveal', 'open');
     },
