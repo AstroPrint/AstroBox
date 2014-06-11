@@ -157,6 +157,10 @@ default_settings = {
 			"repetierStyleTargetTemperature": False,
 			"extendedSdFileList": False
 		}
+	},
+	"wifi": {
+		"internetInterface": "wlan0",
+		"hostspotInterface": "wlan1"
 	}
 }
 

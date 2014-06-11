@@ -28,6 +28,23 @@
 	}
 }
 
+#wifi-network-modal {
+	table {
+		max-width: 100%;
+		border: none;
+
+		button {
+			margin-bottom: 0;
+		}
+
+		td.network-name {
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+}
+
 .settings-page {
 	padding: 20px;
 

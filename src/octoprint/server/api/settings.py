@@ -6,12 +6,16 @@ import logging
 
 from flask import request, abort, jsonify, make_response
 
+from sys import platform
+
 from octoprint.settings import settings
 from octoprint.printer import getConnectionOptions
 from octoprint.slicers.cloud import CloudSlicer
 
 from octoprint.server import restricted_access, admin_permission
 from octoprint.server.api import api
+
+from wifi import Cell
 
 
 #~~ settings
@@ -223,3 +227,17 @@ def setSettings():
 
 	return getSettings()
 
+@api.route("/settings/wifi/networks", methods=["GET"])
+@restricted_access
+def getWifiNetworks():
+	if platform == "darwin":
+		networks = {'message': "This operation is only available in a Linux "}
+	else:
+		s = settings()
+
+		networks = [{
+			'id': cell.ssid,
+			'name': cell.ssid, 
+			'secured': cell.encrypted} for cell in Cell.all(s.get(['wifi', 'internetInterface']))]
+
+	return jsonify(networks)

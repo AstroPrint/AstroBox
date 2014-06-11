@@ -4,6 +4,28 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+var WiFiNetworksDialog = Backbone.View.extend({
+    el: '#wifi-network-modal',
+    networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
+    open: function(networks) {
+        var content = this.$el.find('.modal-content');
+        content.empty();
+
+        content.html(this.networksTemplate({ 
+            networks: networks
+        }));
+
+        content.find('button').on('click', this.networkSelected, this);
+
+        this.$el.foundation('reveal', 'open');
+    },
+    networkSelected: function(e) {
+        e.preventDefault();
+
+        console.log('Network selected for '+$(e.target).data('id'));
+    }
+});
+
 var SettingsPage = Backbone.View.extend({
     parent: null,
     initialize: function(params) {
@@ -83,13 +105,15 @@ var PrinterConnectionView = SettingsPage.extend({
 
 var InternetWifiView = SettingsPage.extend({
     el: '#internet-wifi',
+    networksDlg: null,
     events: {
-        'click button.upgrade': 'upgradeClicked',
         'click .loading-button.hotspot button': 'hotspotClicked',
         'click .loading-button.connect button': 'connectClicked'
     },
-    upgradeClicked: function() {
-        alert('upgrading');
+    initialize: function(params) {
+        SettingsPage.prototype.initialize.apply(this, arguments);
+
+        this.networksDlg = new WiFiNetworksDialog();
     },
     hotspotClicked: function(e) {
         var el = $(e.target).closest('.loading-button');
@@ -106,14 +130,14 @@ var InternetWifiView = SettingsPage.extend({
             data: data,
             success: function(data, code, xhr) {
                 if (xhr.status == 204) {
-                    alert('hotspot is not configured on this box');
+                    noty({text: 'hotspot is not configured on this box'});
                 } else {
                     alert('The system is now creating a hotspot. Search and connect to it');
                     window.close();
                 }
             },
             error: function() {
-                console.error('failed to open hotspot');
+                noty({text: 'failed to open hotspot'});
             },
             complete: function() {
                 el.removeClass('loading');
@@ -125,28 +149,21 @@ var InternetWifiView = SettingsPage.extend({
 
         el.addClass('loading');
 
-        var data = {
-            "action": "connect-internet"
-        }
-
-        $.ajax({
-            url: API_BASEURL + "system",
-            type: "POST",
-            data: data,
-            success: function(data, code, xhr) {
-                if (xhr.status == 204) {
-                    alert('connect-internet is not configured on this box');
+        $.getJSON(
+            API_BASEURL + "settings/wifi/networks",
+            _.bind(function(data) {
+                if (data.message) {
+                    noty({text: data.message});
                 } else {
-                    alert('The system has closed the hotspot. Connect to the same network as AstroBox.');
-                    window.close();
+                    this.networksDlg.open(data);
                 }
-            },
-            error: function() {
-                console.error('failed to connect to the internet');
-            },
-            complete: function() {
-                el.removeClass('loading');
-            }
+            }, this)
+        ).
+        fail(function(){
+            noty({text: "There was an error retrieving networks."});
+        }).
+        complete(function(){
+            el.removeClass('loading');
         });
     }
 });
