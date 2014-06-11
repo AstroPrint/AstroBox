@@ -4,9 +4,26 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+var WiFiNetworkPasswordDialog = Backbone.View.extend({
+    el: '#wifi-network-password-modal',
+    events: {
+        'click button.connect': 'connectClicked'
+    },
+    open: function(id, name) {
+        this.$el.find('network-id').val(id);
+        this.$el.foundation('reveal', 'open');
+    },
+    connectClicked: function(e) {
+        e.preventDefault();
+
+        console.log('Connecting to '+this.$el.find('form').serialize());
+    }
+});
+
 var WiFiNetworksDialog = Backbone.View.extend({
-    el: '#wifi-network-modal',
+    el: '#wifi-network-list-modal',
     networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
+    passwordDlg: null,
     open: function(networks) {
         var content = this.$el.find('.modal-content');
         content.empty();
@@ -22,7 +39,13 @@ var WiFiNetworksDialog = Backbone.View.extend({
     networkSelected: function(e) {
         e.preventDefault();
 
-        console.log('Network selected for '+$(e.target).data('id'));
+        var button = $(e.target);
+
+        if (!this.passwordDlg) {
+            this.passwordDlg = new WiFiNetworkPasswordDialog();
+        }
+
+        this.passwordDlg.open(button.data('id'), button.data('name'));
     }
 });
 
