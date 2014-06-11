@@ -10,13 +10,16 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
         'click button.connect': 'connectClicked'
     },
     open: function(id, name) {
-        this.$el.find('network-id').val(id);
+        this.$el.find('.network-id-field').val(id);
+        this.$el.find('.name').text(name);
         this.$el.foundation('reveal', 'open');
+        this.$el.find('.network-password-field').focus();
     },
     connectClicked: function(e) {
         e.preventDefault();
 
         console.log('Connecting to '+this.$el.find('form').serialize());
+        this.$el.foundation('reveal', 'close');
     }
 });
 

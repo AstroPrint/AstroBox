@@ -68,10 +68,10 @@
 
 <div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
 	<h2 class="bold">WiFi Password</h2>
-	<p align="center">Enter the password for <span class="name bold"></span></p>
+	<p align="center">Enter the password for <span class="name bold"></span>.</p>
 	<form>
-		<input type="hidden" id="network-id" name="id"/>
-		<input type="text" id="network-name" name="password"/>
+		<input type="hidden" class="network-id-field" name="id"/>
+		<input type="text" class="network-password-field" name="password"/>
 	</form>
 	<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
 	<button class="success radius connect">Connect</button>
