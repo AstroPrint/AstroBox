@@ -18,9 +18,15 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
     connectClicked: function(e) {
         e.preventDefault();
 
-        console.log('Connecting to '+this.$el.find('form').serialize());
+	var form = this.$el.find('form');
+
+	this.connect(form.find('.network-id-field').val(), form.find('.network-password-field').val());
+
         this.$el.foundation('reveal', 'close');
-    }
+    },
+	connect: function(id, password) {
+		console.log('Connecting to '+id+' - '+password);
+	}
 });
 
 var WiFiNetworksDialog = Backbone.View.extend({
@@ -43,12 +49,16 @@ var WiFiNetworksDialog = Backbone.View.extend({
         e.preventDefault();
 
         var button = $(e.target);
-
+	
         if (!this.passwordDlg) {
-            this.passwordDlg = new WiFiNetworkPasswordDialog();
+            	this.passwordDlg = new WiFiNetworkPasswordDialog();
         }
 
-        this.passwordDlg.open(button.data('id'), button.data('name'));
+	if (button.data('secured') == '1') {
+        	this.passwordDlg.open(button.data('id'), button.data('name'));
+	} else {
+		this.passwordDlg.connect(button.data('id'), null);
+	}
     }
 });
 
