@@ -74,7 +74,12 @@
 		<input type="text" class="network-password-field" name="password"/>
 	</form>
 	<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
-	<button class="success radius connect">Connect</button>
+	<div class="loading-button">
+		<button class="radius success connect">Connect</button>
+		<span class="loading button disabled radius">
+			<i class="icon-spin1 animate-spin"></i> Connecting...
+		</span>
+	</div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 
@@ -84,7 +89,14 @@
 		<tr>
 			<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
 			<td class="network-name"><%= n.name %></td>
-			<td><button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button></td>
+			<td>
+				<div class="loading-button">
+					<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
+					<span class="loading button disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Connecting...
+					</span>
+				</div>
+			</td>
 		</tr>
 	<% }); %>
 	</table>

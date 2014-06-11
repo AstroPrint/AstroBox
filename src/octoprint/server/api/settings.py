@@ -231,7 +231,7 @@ def setSettings():
 @restricted_access
 def getWifiNetworks():
 	if platform == "darwin":
-		networks = {'message': "This operation is only available in a Linux "}
+		networks = {'message': "This operation is only available in Linux "}
 		return jsonify(networks)
 	else:
 		s = settings()
@@ -243,3 +243,13 @@ def getWifiNetworks():
 			'secured': cell.encrypted} for cell in Cell.all(s.get(['wifi', 'internetInterface']))]
 
 		return jsonify(networks = networks)
+
+@api.route("/settings/wifi/networks", methods=["POST"])
+@restricted_access
+def setWifiNetwork():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+
+		return ("{}", 200)
+
+	return ("Invalid Request", 400)
