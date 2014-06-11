@@ -126,7 +126,7 @@ default_settings = {
 		"config": "/default/path/to/your/cura/config.ini"
 	},
 	"cloudSlicer": {
-		"apiHost": "",
+		"apiHost": "http://api.proventoprint.com",
 		"email": "",
 		"privateKey": "",
 		"publicKey": ""

@@ -232,12 +232,14 @@ def setSettings():
 def getWifiNetworks():
 	if platform == "darwin":
 		networks = {'message': "This operation is only available in a Linux "}
+		return jsonify(networks)
 	else:
 		s = settings()
 
 		networks = [{
 			'id': cell.ssid,
+			'signal': cell.signal,
 			'name': cell.ssid, 
 			'secured': cell.encrypted} for cell in Cell.all(s.get(['wifi', 'internetInterface']))]
 
-	return jsonify(networks)
+		return jsonify(networks = networks)

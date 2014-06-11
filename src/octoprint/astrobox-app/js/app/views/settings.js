@@ -52,7 +52,7 @@ var PrinterConnectionView = SettingsPage.extend({
             $.getJSON(API_BASEURL + 'settings', null, _.bind(function(data) {
                 this.settings = data;
                 if (data.serial) {
-                    if (data.serial.baudrateOptions && data.serial.baudrate) {
+                    if (data.serial.baudrateOptions) {
                         var baudList = this.$el.find('#settings-baudrate');
                         _.each(data.serial.baudrateOptions, function(element){
                             baudList.append('<option val="'+element+'">'+element+'</option>');
@@ -60,7 +60,7 @@ var PrinterConnectionView = SettingsPage.extend({
                         baudList.val(data.serial.baudrate);
                     }
 
-                    if (data.serial.portOptions && data.serial.port) {
+                    if (data.serial.portOptions) {
                         var portList = this.$el.find('#settings-serial-port');
                         _.each(data.serial.portOptions, function(element){
                             var option = $('<option val="'+element+'">'+element+'</option>');
@@ -154,8 +154,8 @@ var InternetWifiView = SettingsPage.extend({
             _.bind(function(data) {
                 if (data.message) {
                     noty({text: data.message});
-                } else {
-                    this.networksDlg.open(data);
+                } else if (data.networks) {
+                    this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.id}), true, function(el){return el.id}), function(el){return el.signal}));
                 }
             }, this)
         ).
