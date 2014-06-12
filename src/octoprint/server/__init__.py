@@ -277,6 +277,7 @@ class Server():
 		return PrinterStateConnection(printer, gcodeManager, userManager, eventManager, session)
 
 	def _checkForRoot(self):
+		return
 		if "geteuid" in dir(os) and os.geteuid() == 0:
 			exit("You should not run OctoPrint as root!")
 
