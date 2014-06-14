@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PACKAGES="python-pip haproxy isc-dhcp-server hostapd nscd"
+PACKAGES="python-pip python-dev haproxy isc-dhcp-server hostapd nscd"
 
 for pkg in $PACKAGES; do
 	if dpkg --get-selections | grep -q "^$pkg[[:space:]]*install$" >/dev/null; then
@@ -16,10 +16,10 @@ for pkg in $PACKAGES; do
 done
 
 cp conf/haproxy.cfg /etc/haproxy/haproxy.cfg
+cp conf/haproxy.default /etc/default/haproxy
 
 update-rc.d isc-dhcp-server disable
 update-rc.d hostapd disable
-update-rc.d haproxy defaults
 
 cp /etc/default/isc-dhcp-server /etc/default/isc-dhcp-server.bak
 sed -i /etc/default/isc-dhcp-server \
@@ -77,5 +77,9 @@ if ! grep -q "### AstroBox rc.local ###" /etc/rc.local; then
 fi
 
 if [ ! -f /home/ubuntu/AstroBox/local/users.yaml ]; then
-	cp conf/octoprint/users.yaml /home/ubuntu/AstroBos/local/users.yaml
+	cp conf/octoprint/users.yaml /home/ubuntu/AstroBox/local/users.yaml
+fi
+
+if [ ! -f /home/ubuntu/AstroBox/local/config.yaml ]; then
+	cp conf/octoprint/config.yaml /home/ubuntu/AstroBox/local/config.yaml
 fi
