@@ -45,10 +45,9 @@ release: clean-js clean-css js css python
 	cp -p requirements.txt build/AstroBox/requirements.txt
 	cp -rfp src build/AstroBox/src
 
-	echo "Copying scripts"
-	mkdir -p build/AstroBox/scripts
-	cp -p scripts/network-monitor build/AstroBox/scripts/network-monitor
-	chmod +x build/AstroBox/scripts/network-monitor
+	echo "Copying install scripts"
+	mkdir -p build/AstroBox/install
+	cp -rp install/* build/AstroBox/install
 
 	echo "Cleaning unnecessary files..."
 	find build/AstroBox/src -name "*.py" -type f -delete

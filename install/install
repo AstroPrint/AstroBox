@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PACKAGES="python-pip python-dev haproxy isc-dhcp-server hostapd nscd"
+PACKAGES="python-pip python-dev haproxy isc-dhcp-server hostapd nscd network-manager"
 
 for pkg in $PACKAGES; do
 	if dpkg --get-selections | grep -q "^$pkg[[:space:]]*install$" >/dev/null; then
