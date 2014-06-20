@@ -5,6 +5,8 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import NetworkManager
 
+from dbus.exceptions import DBusException
+
 from flask import request, abort, jsonify, make_response
 
 from sys import platform
@@ -257,7 +259,7 @@ def getActiveWifiNetwork():
 
 		interface = s.get(['wifi', 'internetInterface'])
 		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
-		connection =  wifiDevice.ActiveConnection
+		connection = wifiDevice.ActiveConnection
 
 		if connection:
 			ap = connection.SpecificObject
@@ -297,19 +299,37 @@ def setWifiNetwork():
 					connection = c
 					break
 
-			if connection:
-				NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
-			else:
-				connection = NetworkManager.NetworkManager.AddAndActivateConnection({
-					'connection': {
-						'id': ssid
-					},
-					'802-11-wireless-security': {
-						'psk': data['password']
-					}
-				}, wifiDevice, accessPoint)
+			#store current connection
+			currenctConnection = wifiDevice.ActiveConnection
 
-				print connection
+			try:
+				if connection:
+					NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
+				else:
+					(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection({
+						'connection': {
+							'id': ssid
+						},
+						'802-11-wireless-security': {
+							'psk': data['password']
+						}
+					}, wifiDevice, accessPoint)
+
+			except DBusException as e:
+				if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
+					return jsonify({'message': 'Invalid Password'})
+				else:
+					raise
+
+			print connection.Ssid
+			print activeConnection.Ssid
+			print wifiDevice.State
+
+			if wifiDevice.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
+				#Didn't succeed, restore previous one and delete newly created connection
+				NetworkManager.NetworkManager.ActivateConnection(currenctConnection, wifiDevice)
+				connection.Delete()
+				return ("The connection couldn't be created", 400)
 
 			return jsonify(ssid=ssid)
 		else:
