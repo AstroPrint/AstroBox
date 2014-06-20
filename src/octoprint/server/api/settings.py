@@ -264,12 +264,26 @@ def setWifiNetwork():
 				break
 
 		if accessPoint:
+			ssid = accessPoint.Ssid
+			connection = None
 			for c in NetworkManager.Settings.ListConnections():
-				print c.GetSettings()
+				if c.GetSettings()['connection']['id'] == ssid:
+					connection = c
+					break
 
-			NetworkManager.AddAndActivateConnection({},wifiDevice, accessPoint)
+			if not connection:
+				NetworkManager.NetworkManager.AddAndActivateConnection({
+					'connection': {
+						'id': ssid
+					},
+					'802-11-wireless-security': {
+						'psk': data['password']
+					}
+				}, wifiDevice, accessPoint)
+			else:
+				NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
 
-			return jsonify(ssid=accessPoint.Ssid)
+			return jsonify(ssid=ssid)
 		else:
 			return ("Network %s not found" % data['id'], 404) 
 
