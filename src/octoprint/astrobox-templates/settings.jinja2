@@ -40,7 +40,7 @@
 				<h1 class="bold" align="center">Internet</h1>
 			</div>
 			<div align="center">
-				Connected to <span class="bold">Betaspring</span>
+				Connected to <span class="network-name bold">- -</span>
 				<br/>
 				<div class="loading-button connect">
 					<button class="radius small">Change</button>
@@ -90,12 +90,16 @@
 			<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
 			<td class="network-name"><%= n.name %></td>
 			<td>
-				<div class="loading-button">
-					<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
-					<span class="loading button disabled radius">
-						<i class="icon-spin1 animate-spin"></i> Connecting...
-					</span>
-				</div>
+				<% if (n.active) { %>
+					<div class="active-network"><i class="icon-exchange"></i></div>
+				<% } else { %>
+					<div class="loading-button">
+						<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
+						<span class="loading button disabled radius">
+							<i class="icon-spin1 animate-spin"></i> Connecting...
+						</span>
+					</div>
+				<% } %>
 			</td>
 		</tr>
 	<% }); %>

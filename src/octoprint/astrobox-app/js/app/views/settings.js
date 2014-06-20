@@ -70,7 +70,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		var button = $(e.target);
 	
 		if (!this.passwordDlg) {
-				this.passwordDlg = new WiFiNetworkPasswordDialog();
+			this.passwordDlg = new WiFiNetworkPasswordDialog();
 		}
 
 		if (button.data('secured') == '1') {
@@ -161,6 +161,7 @@ var PrinterConnectionView = SettingsPage.extend({
 var InternetWifiView = SettingsPage.extend({
 	el: '#internet-wifi',
 	networksDlg: null,
+	settings: null,
 	events: {
 		'click .loading-button.hotspot button': 'hotspotClicked',
 		'click .loading-button.connect button': 'connectClicked'
@@ -169,6 +170,25 @@ var InternetWifiView = SettingsPage.extend({
 		SettingsPage.prototype.initialize.apply(this, arguments);
 
 		this.networksDlg = new WiFiNetworksDialog();
+	},
+	show: function() {
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+
+		if (!this.settings) {
+			$.getJSON(API_BASEURL + 'settings/wifi/active', null, _.bind(function(data) {
+				this.settings = data;
+				this.render();
+			}, this))
+			.fail(function() {
+				noty({text: "There was an error getting WiFi settings.", timeout: 3000});
+			});
+		}
+	},
+	render: function() {
+		if (this.settings.network) {
+			this.$el.find('.network-name').text(this.settings.network.name);
+		}
 	},
 	hotspotClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');
@@ -210,7 +230,11 @@ var InternetWifiView = SettingsPage.extend({
 				if (data.message) {
 					noty({text: data.message});
 				} else if (data.networks) {
-					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.id}), true, function(el){return el.id}), function(el){return -el.signal}));
+					var self = this;
+					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
+						el.active = self.settings.network.id == el.id;
+						return -el.signal
+					}));
 				}
 			}, this)
 		).

@@ -246,6 +246,32 @@ def getWifiNetworks():
 
 		return jsonify(networks = networks)
 
+@api.route("/settings/wifi/active", methods=["GET"])
+@restricted_access
+def getActiveWifiNetwork():
+	if platform == "darwin":
+		networks = {'message': "This operation is only available in Linux "}
+		return jsonify(networks)
+	else:
+		s = settings()
+
+		interface = s.get(['wifi', 'internetInterface'])
+		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
+		connection =  wifiDevice.ActiveConnection
+
+		if connection:
+			ap = connection.SpecificObject
+			network = {
+				'id': ap.HwAddress,
+				'signal': ord(ap.Strength),
+				'name': ap.Ssid,
+				'secured': True if ap.WpaFlags or ap.RsnFlags else False}
+
+			return jsonify(network = network)
+
+		else:
+			return {"Not Connected", 404}
+
 @api.route("/settings/wifi/networks", methods=["POST"])
 @restricted_access
 def setWifiNetwork():
@@ -271,8 +297,10 @@ def setWifiNetwork():
 					connection = c
 					break
 
-			if not connection:
-				NetworkManager.NetworkManager.AddAndActivateConnection({
+			if connection:
+				NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
+			else:
+				connection = NetworkManager.NetworkManager.AddAndActivateConnection({
 					'connection': {
 						'id': ssid
 					},
@@ -280,8 +308,8 @@ def setWifiNetwork():
 						'psk': data['password']
 					}
 				}, wifiDevice, accessPoint)
-			else:
-				NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
+
+				print connection
 
 			return jsonify(ssid=ssid)
 		else:

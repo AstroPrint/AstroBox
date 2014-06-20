@@ -37,10 +37,18 @@
 			margin-bottom: 0;
 		}
 
-		td.network-name {
-			overflow: hidden;
-			white-space: nowrap;
-			text-overflow: ellipsis;
+		td {
+			&.network-name {
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+
+			.active-network {
+				padding: 5px;
+				text-align: center;
+				color: $success-color;
+			}
 		}
 	}
 }
