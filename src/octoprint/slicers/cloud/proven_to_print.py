@@ -224,7 +224,7 @@ class ProvenToPrintSlicer(CloudSlicer):
 			r = requests.get( "%s/designs" % self.apiHost, auth=self.hmacAuth )
 			data = r.json()
 		except:
-			data = None	
+			data = []	
 
 		return json.dumps(data)	
 

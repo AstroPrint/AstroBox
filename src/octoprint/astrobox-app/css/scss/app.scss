@@ -116,6 +116,9 @@ strong,
 }
 
 #connection-view {
+	display: inline-block;
+	float: right;
+
 	i {
 		font-size: rem-calc(20);
 		padding: 0 5px;
