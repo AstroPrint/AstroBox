@@ -299,12 +299,9 @@ def setWifiNetwork():
 					connection = c
 					break
 
-			#store current connection
-			currenctConnection = wifiDevice.ActiveConnection
-
 			try:
 				if connection:
-					NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice)
+					NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
 				else:
 					(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection({
 						'connection': {
@@ -321,13 +318,8 @@ def setWifiNetwork():
 				else:
 					raise
 
-			print connection.Ssid
-			print activeConnection.Ssid
-			print wifiDevice.State
-
 			if wifiDevice.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-				#Didn't succeed, restore previous one and delete newly created connection
-				NetworkManager.NetworkManager.ActivateConnection(currenctConnection, wifiDevice)
+				#Didn't succeed, the sytem will restore previous one and delete newly created connection
 				connection.Delete()
 				return ("The connection couldn't be created", 400)
 

@@ -13,7 +13,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		this.$el.find('.network-id-field').val(id);
 		this.$el.find('.name').text(name);
 		this.$el.foundation('reveal', 'open');
-		this.$el.once('opened', _.bind(function() {
+		this.$el.one('opened', _.bind(function() {
 			this.$el.find('.network-password-field').focus();
 		}, this));
 	},
@@ -23,11 +23,11 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		var form = this.$el.find('form');
 
 		this.connect($(e.target), form.find('.network-id-field').val(), form.find('.network-password-field').val());
-
-		this.$el.foundation('reveal', 'close');
 	},
 	connect: function(btn, id, password) {
-		btn.closest('.loading-button').addClass('loading');
+		var loadingBtn = btn.closest('.loading-button');
+		var self = this;
+		loadingBtn.addClass('loading');
 
 		$.ajax({
 			url: API_BASEURL + 'settings/wifi/networks', 
@@ -37,13 +37,19 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 			data: JSON.stringify({id: id, password: password})
 		})
 		.done(function(data) {
-			noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+			if (data.ssid) {
+				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+				self.$el.foundation('reveal', 'close');
+			} else if (data.message) {
+				noty({text: data.message, timeout: 3000});
+			}
 		})
 		.fail(function(){
 			noty({text: "There was an error saving setting.", timeout: 3000});
+			self.$el.foundation('reveal', 'close');
 		})
 		.complete(function() {
-			btn.closest('.loading-button').removeClass('loading');
+			loadingBtn.removeClass('loading');
 		});
 	}
 });
