@@ -3,6 +3,7 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
+import NetworkManager
 
 from flask import request, abort, jsonify, make_response
 
@@ -14,8 +15,6 @@ from octoprint.slicers.cloud import CloudSlicer
 
 from octoprint.server import restricted_access, admin_permission
 from octoprint.server.api import api
-
-from wifi import Cell, Scheme
 
 
 #~~ settings
@@ -236,11 +235,14 @@ def getWifiNetworks():
 	else:
 		s = settings()
 
+		interface = s.get(['wifi', 'internetInterface'])
+		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
+
 		networks = [{
-			'id': cell.ssid,
-			'signal': cell.signal,
-			'name': cell.ssid, 
-			'secured': cell.encrypted} for cell in Cell.all(s.get(['wifi', 'internetInterface']))]
+			'id': ap.HwAddress,
+			'signal': ord(ap.Strength),
+			'name': ap.Ssid,
+			'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.GetAccessPoints()]
 
 		return jsonify(networks = networks)
 
@@ -252,15 +254,23 @@ def setWifiNetwork():
 		data = request.json
 		interface = s.get(['wifi','internetInterface'])
 
-		cell = Cell.where(interface, lambda cell: cell.ssid.lower() == data['id'].lower())
-		if cell and len(cell) > 0:
-			scheme = Scheme.for_cell(interface, 'adhoc', cell[0], data['password'])
-			scheme.delete()
-			scheme.save()
-			scheme.activate()
+		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
+
+		accessPoint = None
+
+		for ap in wifiDevice.SpecificDevice().GetAccessPoints():
+			if ap.HwAddress == data['id']:
+				accessPoint = ap
+				break
+
+		if accessPoint:
+			for c in NetworkManager.Settings.ListConnections():
+				print c.GetSettings()
+
+			NetworkManager.AddAndActivateConnection({},wifiDevice, accessPoint)
+
+			return jsonify(ssid=accessPoint.Ssid)
 		else:
 			return ("Network %s not found" % data['id'], 404) 
-
-		return ("{}", 200)
 
 	return ("Invalid Request", 400)

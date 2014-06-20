@@ -36,11 +36,11 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 			dataType: 'json',
 			data: JSON.stringify({id: id, password: password})
 		})
-		.done(function() {
-			noty({text: "AstroBox is now connected to "+id+".", type: "success"});
+		.done(function(data) {
+			noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
 		})
 		.fail(function(){
-			noty({text: "There was an error saving setting."});
+			noty({text: "There was an error saving setting.", timeout: 3000});
 		})
 		.complete(function() {
 			btn.closest('.loading-button').removeClass('loading');
@@ -128,7 +128,7 @@ var PrinterConnectionView = SettingsPage.extend({
 				} 
 			}, this))
 			.fail(function() {
-				noty({text: "There was an error getting serial settings."});
+				noty({text: "There was an error getting serial settings.", timeout: 3000});
 			});
 		}
 	},
@@ -141,7 +141,7 @@ var PrinterConnectionView = SettingsPage.extend({
 			data: JSON.stringify({serial: { baudrate: $(e.target).val() }})
 		})
 		.fail(function(){
-			noty({text: "There was an error saving setting."});
+			noty({text: "There was an error saving setting.", timeout: 3000});
 		});
 	},
 	portChanged: function(e) {
@@ -153,7 +153,7 @@ var PrinterConnectionView = SettingsPage.extend({
 			data: JSON.stringify({serial: { port: $(e.target).val() }})
 		})
 		.fail(function(){
-			noty({text: "There was an error saving setting."});
+			noty({text: "There was an error saving setting.", timeout: 3000});
 		});
 	}
 });
@@ -185,14 +185,14 @@ var InternetWifiView = SettingsPage.extend({
 			data: data,
 			success: function(data, code, xhr) {
 				if (xhr.status == 204) {
-					noty({text: 'hotspot is not configured on this box'});
+					noty({text: 'hotspot is not configured on this box', timeout:3000});
 				} else {
 					alert('The system is now creating a hotspot. Search and connect to it');
 					window.close();
 				}
 			},
 			error: function() {
-				noty({text: 'failed to open hotspot'});
+				noty({text: 'failed to open hotspot', timeout:3000});
 			},
 			complete: function() {
 				el.removeClass('loading');
@@ -210,12 +210,12 @@ var InternetWifiView = SettingsPage.extend({
 				if (data.message) {
 					noty({text: data.message});
 				} else if (data.networks) {
-					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.id}), true, function(el){return el.id}), function(el){return el.signal}));
+					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.id}), true, function(el){return el.id}), function(el){return -el.signal}));
 				}
 			}, this)
 		).
 		fail(function(){
-			noty({text: "There was an error retrieving networks."});
+			noty({text: "There was an error retrieving networks.", timeout:3000});
 		}).
 		complete(function(){
 			el.removeClass('loading');
