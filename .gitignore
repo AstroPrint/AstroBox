@@ -16,6 +16,7 @@ Printrun
 =======
 .idea
 .DS_Store
+.AppleDouble
 Cura/current_profile.ini
 Cura/preferences.ini
 build
