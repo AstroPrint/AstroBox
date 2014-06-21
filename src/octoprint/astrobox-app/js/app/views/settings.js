@@ -30,7 +30,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		loadingBtn.addClass('loading');
 
 		$.ajax({
-			url: API_BASEURL + 'settings/wifi/networks', 
+			url: API_BASEURL + 'settings/wifi/active', 
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -41,7 +41,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
 				self.$el.foundation('reveal', 'close');
 			} else if (data.message) {
-				noty({text: data.message, timeout: 3000});
+				noty({text: data.message});
 			}
 		})
 		.fail(function(){
@@ -238,7 +238,7 @@ var InternetWifiView = SettingsPage.extend({
 				} else if (data.networks) {
 					var self = this;
 					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
-						el.active = self.settings.network.id == el.id;
+						el.active = self.settings && self.settings.network.id == el.id;
 						return -el.signal
 					}));
 				}

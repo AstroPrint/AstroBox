@@ -3,6 +3,8 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
+
+from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
 import NetworkManager
 
 from dbus.exceptions import DBusException
@@ -261,7 +263,7 @@ def getActiveWifiNetwork():
 		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
 		connection = wifiDevice.ActiveConnection
 
-		if connection:
+		if connection != '/':
 			ap = connection.SpecificObject
 			network = {
 				'id': ap.HwAddress,
@@ -272,9 +274,9 @@ def getActiveWifiNetwork():
 			return jsonify(network = network)
 
 		else:
-			return {"Not Connected", 404}
+			return ("Not Connected", 404)
 
-@api.route("/settings/wifi/networks", methods=["POST"])
+@api.route("/settings/wifi/active", methods=["POST"])
 @restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
@@ -318,12 +320,27 @@ def setWifiNetwork():
 				else:
 					raise
 
-			if wifiDevice.State != NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-				#Didn't succeed, the sytem will restore previous one and delete newly created connection
-				connection.Delete()
-				return ("The connection couldn't be created", 400)
+			import gobject
+			loop = gobject.MainLoop()
 
-			return jsonify(ssid=ssid)
+			result = {}
+
+			def connectionStateChange(new_state, old_state, reason):
+				r = result
+				if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
+					result['ssid'] = ssid
+					loop.quit()
+				elif new_state == NetworkManager.NM_DEVICE_STATE_FAILED:
+					connection.Delete()
+					result['message'] = "The connection could not be created"
+					loop.quit()
+
+			wifiDevice.connect_to_signal('StateChanged', connectionStateChange)
+
+			loop.run()
+
+			return jsonify(result)
+
 		else:
 			return ("Network %s not found" % data['id'], 404) 
 
