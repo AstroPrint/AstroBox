@@ -7,7 +7,7 @@ ASTROBOX_USER=root
 PORT=5000
 
 # Path to the OctoPrint executable, use this to override the default setting "/usr/bin/octoprint"
-#DAEMON=/path/to/octoprint/executable
+DAEMON=/home/ubuntu/AstroBox/run
 
 # What arguments to pass to octoprint, usually no need to touch this
 DAEMON_ARGS="--port=$PORT"

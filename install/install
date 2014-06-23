@@ -66,9 +66,6 @@ if [ ! -f /usr/bin/astrobox ]; then
 	cp init/astrobox.init /etc/init.d/astrobox
 	chmod +x /etc/init.d/astrobox
 
-	cp init/astrobox /usr/bin/astrobox
-	chmod +x /usr/bin/astrobox
-
 	update-rc.d astrobox defaults
 fi
 
