@@ -6,23 +6,14 @@ import logging
 
 from flask import request, abort, jsonify, make_response
 
-from sys import platform
-
 from octoprint.settings import settings
 from octoprint.printer import getConnectionOptions
 from octoprint.slicers.cloud import CloudSlicer
 
-from octoprint.server import restricted_access, admin_permission
+from octoprint.server import restricted_access, admin_permission, networkManager
 from octoprint.server.api import api
 
-if platform == "linux" or platform == "linux2":
-	from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
-	import NetworkManager
-	from dbus.exceptions import DBusException
-
-
 #~~ settings
-
 
 @api.route("/settings", methods=["GET"])
 def getSettings():
@@ -233,115 +224,33 @@ def setSettings():
 @api.route("/settings/wifi/networks", methods=["GET"])
 @restricted_access
 def getWifiNetworks():
-	if platform == "darwin":
-		networks = {'message': "This operation is only available in Linux "}
-		return jsonify(networks)
-	else:
-		s = settings()
+	networks = networkManager.getWifiNetworks()
 
-		interface = s.get(['wifi', 'internetInterface'])
-		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
-
-		networks = [{
-			'id': ap.HwAddress,
-			'signal': ord(ap.Strength),
-			'name': ap.Ssid,
-			'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.GetAccessPoints()]
-
+	if networks:
 		return jsonify(networks = networks)
+	else:
+		return jsonify({'message': "Unable to get WiFi networks"})
 
 @api.route("/settings/wifi/active", methods=["GET"])
 @restricted_access
 def getActiveWifiNetwork():
-	if platform == "darwin":
-		networks = {'message': "This operation is only available in Linux "}
-		return jsonify(networks)
+	network = networkManager.getActiveWifiNetwork()
+
+	if network:
+		return jsonify(network = network)
 	else:
-		s = settings()
-
-		interface = s.get(['wifi', 'internetInterface'])
-		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
-		connection = wifiDevice.ActiveConnection
-
-		if connection != '/':
-			ap = connection.SpecificObject
-			network = {
-				'id': ap.HwAddress,
-				'signal': ord(ap.Strength),
-				'name': ap.Ssid,
-				'secured': True if ap.WpaFlags or ap.RsnFlags else False}
-
-			return jsonify(network = network)
-
-		else:
-			return ("Not Connected", 404)
+		return ("Not Connected", 404)
 
 @api.route("/settings/wifi/active", methods=["POST"])
 @restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
-		s = settings()
 		data = request.json
-		interface = s.get(['wifi','internetInterface'])
+		result = networkManager.setWifiNetwork(data['id'], data['password'])
 
-		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
-
-		accessPoint = None
-
-		for ap in wifiDevice.SpecificDevice().GetAccessPoints():
-			if ap.HwAddress == data['id']:
-				accessPoint = ap
-				break
-
-		if accessPoint:
-			ssid = accessPoint.Ssid
-			connection = None
-			for c in NetworkManager.Settings.ListConnections():
-				if c.GetSettings()['connection']['id'] == ssid:
-					connection = c
-					break
-
-			try:
-				if connection:
-					NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
-				else:
-					(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection({
-						'connection': {
-							'id': ssid
-						},
-						'802-11-wireless-security': {
-							'psk': data['password']
-						}
-					}, wifiDevice, accessPoint)
-
-			except DBusException as e:
-				if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
-					return jsonify({'message': 'Invalid Password'})
-				else:
-					raise
-
-			import gobject
-			loop = gobject.MainLoop()
-
-			result = {}
-
-			def connectionStateChange(new_state, old_state, reason):
-				r = result
-				if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-					result['ssid'] = ssid
-					loop.quit()
-				elif new_state == NetworkManager.NM_DEVICE_STATE_FAILED:
-					connection.Delete()
-					result['message'] = "The connection could not be created"
-					loop.quit()
-
-			wifiDevice.connect_to_signal('StateChanged', connectionStateChange)
-
-			loop.run()
-
+		if result:
 			return jsonify(result)
-
 		else:
-			return ("Network %s not found" % data['id'], 404) 
+			return ("Network %s not found" % data['id'], 404)
 
 	return ("Invalid Request", 400)

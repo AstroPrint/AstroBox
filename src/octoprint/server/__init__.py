@@ -33,6 +33,7 @@ gcodeManager = None
 userManager = None
 eventManager = None
 loginManager = None
+networkManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -147,6 +148,7 @@ class Server():
 		global userManager
 		global eventManager
 		global loginManager
+		global networkManager
 		global debug
 
 		from tornado.wsgi import WSGIContainer
@@ -195,6 +197,9 @@ class Server():
 			loginManager.anonymous_user = users.DummyUser
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
+
+		from octoprint.network import loader as networkManagerLoader
+		networkManager = networkManagerLoader()
 
 		if self._host is None:
 			self._host = settings().get(["server", "host"])
