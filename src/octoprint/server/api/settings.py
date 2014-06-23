@@ -4,11 +4,6 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 
-from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
-import NetworkManager
-
-from dbus.exceptions import DBusException
-
 from flask import request, abort, jsonify, make_response
 
 from sys import platform
@@ -19,6 +14,11 @@ from octoprint.slicers.cloud import CloudSlicer
 
 from octoprint.server import restricted_access, admin_permission
 from octoprint.server.api import api
+
+if platform == "linux" or platform == "linux2":
+	from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
+	import NetworkManager
+	from dbus.exceptions import DBusException
 
 
 #~~ settings

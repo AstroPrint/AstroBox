@@ -48,39 +48,31 @@ import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
 import octoprint.timelapse
+import octoprint._version
 
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
+VERSION = octoprint._version.get_versions()['version']
 
 
 @app.route("/")
 def index():
-	branch = None
-	commit = None
-	try:
-		branch, commit = util.getGitInfo()
-	except:
-		pass
-
 	s = settings()
 
 	if (s.get(["cloudSlicer", "publicKey"])):
 		return render_template(
 			"app.jinja2",
 			user_email=s.get(["cloudSlicer", "email"]),
-			#webcamStream=s.get(["webcam", "stream"]),
-			#enableTimelapse=(s.get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
-			#enableGCodeVisualizer=s.get(["feature", "gCodeVisualizer"]),
-			#enableTemperatureGraph=s.get(["feature", "temperatureGraph"]),
-			#enableSystemMenu=s.get(["system"]) is not None and s.get(["system", "actions"]) is not None and len(s.get(["system", "actions"])) > 0,
-			#isCloudSlicerConfigured = bool(s.get(["cloudSlicer", "publicKey"])),
+			#webcamStream=settings().get(["webcam", "stream"]),
+			#enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
+			#enableGCodeVisualizer=settings().get(["gcodeViewer", "enabled"]),
+			#enableTemperatureGraph=settings().get(["feature", "temperatureGraph"]),
+			#enableSystemMenu=settings().get(["system"]) is not None and settings().get(["system", "actions"]) is not None and len(settings().get(["system", "actions"])) > 0,
 			#enableAccessControl=userManager is not None,
-			#enableSdSupport=s.get(["feature", "sdSupport"]),
-
-			#firstRun=s.getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
+			#enableSdSupport=settings().get(["feature", "sdSupport"]),
+			#firstRun=settings().getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
 			debug=debug,
-			#gitBranch=branch,
-			#gitCommit=commit,
+			version=VERSION,
 			#stylesheet=settings().get(["devel", "stylesheet"]),
 			#gcodeMobileThreshold=settings().get(["gcodeViewer", "mobileSizeThreshold"]),
 			#gcodeThreshold=settings().get(["gcodeViewer", "sizeThreshold"]),
@@ -92,7 +84,6 @@ def index():
 			"login.jinja2",
 			uiApiKey=UI_API_KEY
 		)
-
 
 @app.route("/robots.txt")
 def robotsTxt():
@@ -171,6 +162,8 @@ class Server():
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
+
+		logger.info("Starting OctoPrint (%s)" % VERSION)
 
 		eventManager = events.eventManager()
 		gcodeManager = gcodefiles.GcodeManager()
