@@ -3,6 +3,7 @@ __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import netifaces
+import sarge
 
 #This needs to happen before importing NetworkManager
 from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
@@ -110,6 +111,34 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 		info = netifaces.ifaddresses(interface)
 
-		print info
-
 		return netifaces.AF_INET in info
+
+	def startHotspot(self):
+		try:
+			p = sarge.run("service wifi_access_point start", stderr=sarge.Capture())
+			if p.returncode != 0:
+				returncode = p.returncode
+				stderr_text = p.stderr.text
+				logger.warn("Start hotspot failed with return code %i: %s" % (returncode, stderr_text))
+				return "Start hotspot failed with return code %i: %s" % (returncode, stderr_text)
+			else:
+				return True
+
+		except Exception, e:
+			logger.warn("Start hotspot failed with return code: %s" % e)
+			return "Start hotspot failed with return code: %s" % e
+
+	def stopHotspot(self):
+		try:
+			p = sarge.run("service wifi_access_point stop", stderr=sarge.Capture())
+			if p.returncode != 0:
+				returncode = p.returncode
+				stderr_text = p.stderr.text
+				logger.warn("Stop hotspot failed with return code %i: %s" % (returncode, stderr_text))
+				return "Stop hotspot failed with return code %i: %s" % (returncode, stderr_text)
+			else:
+				return True
+
+		except Exception, e:
+			logger.warn("Stop hotspot failed with return code: %s" % e)
+			return "Stop hotspot failed with return code: %s" % e

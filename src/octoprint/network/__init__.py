@@ -22,6 +22,14 @@ class NetworkManager(object):
 	def isHotspotActive(self):
 		return None
 
+	def startHotspot(self):
+		#return True when succesful
+		return "Starting a hotspot is not supported"
+
+	def stopHotspot(self):
+		#return True when succesful
+		return "Stopping a hotspot is not supported"
+
 def loader():
 	if platform == "linux" or platform == "linux2":
 		from octoprint.network.ubuntu import UbuntuNetworkManager

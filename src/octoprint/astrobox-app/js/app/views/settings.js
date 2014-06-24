@@ -210,24 +210,16 @@ var InternetWifiView = SettingsPage.extend({
 
 		el.addClass('loading');
 
-		var data = {
-			"action": "start-hotspot"
-		}
-
 		$.ajax({
-			url: API_BASEURL + "system",
+			url: API_BASEURL + "settings/wifi/hotspot",
 			type: "POST",
-			data: data,
-			success: function(data, code, xhr) {
-				if (xhr.status == 204) {
-					noty({text: 'hotspot is not configured on this box', timeout:3000});
-				} else {
-					alert('The system is now creating a hotspot. Search and connect to it');
-					window.close();
-				}
-			},
-			error: function() {
-				noty({text: 'failed to open hotspot', timeout:3000});
+			success: _.bind(function(data, code, xhr) {
+				noty({text: 'Your AstroBox&trade; has now <b>created a hotspot</b>. Search and connect to it', type: 'success', timeout:3000});
+				this.settings.isHotspotActive = true;
+				this.render();
+			}, this),
+			error: function(xhr) {
+				noty({text: xhr.responseText, timeout:3000});
 			},
 			complete: function() {
 				el.removeClass('loading');
@@ -239,23 +231,16 @@ var InternetWifiView = SettingsPage.extend({
 
 		el.addClass('loading');
 
-		var data = {
-			"action": "stop-hotspot"
-		}
-
 		$.ajax({
-			url: API_BASEURL + "system",
-			type: "POST",
-			data: data,
-			success: function(data, code, xhr) {
-				if (xhr.status == 204) {
-					noty({text: 'hotspot is not configured on this box', timeout:3000});
-				} else {
-					noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
-				} 
-			},
-			error: function() {
-				noty({text: 'failed to stop hotspot', timeout:3000});
+			url: API_BASEURL + "settings/wifi/hotspot",
+			type: "DELETE",
+			success: _.bind(function(data, code, xhr) {
+				noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
+				this.settings.isHotspotActive = false;
+				this.render();
+			}, this),
+			error: function(xhr) {
+				noty({text: xhr.responseText, timeout:3000});
 			},
 			complete: function() {
 				el.removeClass('loading');

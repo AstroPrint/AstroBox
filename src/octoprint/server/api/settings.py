@@ -255,3 +255,23 @@ def setWifiNetwork():
 			return ("Network %s not found" % data['id'], 404)
 
 	return ("Invalid Request", 400)
+
+@api.route("/settings/wifi/hotspot", methods=["POST"])
+@restricted_access
+def startWifiHotspot():
+	result = networkManager.startHotspot()
+
+	if result is True:
+		return jsonify()
+	else:
+		return (result, 500)
+
+@api.route("/settings/wifi/hotspot", methods=["DELETE"])
+@restricted_access
+def stopWifiHotspot():
+	result = networkManager.stopHotspot()
+
+	if result is True:
+		return jsonify()
+	else:
+		return (result, 500)
