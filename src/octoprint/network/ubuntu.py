@@ -42,7 +42,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 			return network
 
 		else:
-			return None
+			return False
 
 	def setWifiNetwork(self, bssid, password = None):
 		if bssid:

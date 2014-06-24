@@ -9,6 +9,10 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	events: {
 		'click button.connect': 'connectClicked'
 	},
+	parent: null,
+	initialize: function(params) {
+		this.parent = params.parent;
+	},
 	open: function(id, name) {
 		this.$el.find('.network-id-field').val(id);
 		this.$el.find('.name').text(name);
@@ -40,6 +44,8 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 			if (data.ssid) {
 				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
 				self.$el.foundation('reveal', 'close');
+				self.parent.settings.network = {name: data.ssid}
+				self.parent.render();
 			} else if (data.message) {
 				noty({text: data.message});
 			}
@@ -58,6 +64,10 @@ var WiFiNetworksDialog = Backbone.View.extend({
 	el: '#wifi-network-list-modal',
 	networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
 	passwordDlg: null,
+	parent: null,
+	initialize: function(params) {
+		this.parent = params.parent;
+	},
 	open: function(networks) {
 		var content = this.$el.find('.modal-content');
 		content.empty();
@@ -76,7 +86,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		var button = $(e.target);
 	
 		if (!this.passwordDlg) {
-			this.passwordDlg = new WiFiNetworkPasswordDialog();
+			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
 		}
 
 		if (button.data('secured') == '1') {
@@ -166,6 +176,7 @@ var PrinterConnectionView = SettingsPage.extend({
 
 var InternetWifiView = SettingsPage.extend({
 	el: '#internet-wifi',
+	template: _.template( $("#internet-wifi-settings-page-template").html() ),
 	networksDlg: null,
 	settings: null,
 	events: {
@@ -176,7 +187,7 @@ var InternetWifiView = SettingsPage.extend({
 	initialize: function(params) {
 		SettingsPage.prototype.initialize.apply(this, arguments);
 
-		this.networksDlg = new WiFiNetworksDialog();
+		this.networksDlg = new WiFiNetworksDialog({parent: this});
 	},
 	show: function() {
 		//Call Super
@@ -193,17 +204,9 @@ var InternetWifiView = SettingsPage.extend({
 		}
 	},
 	render: function() {
-		if (this.settings.network) {
-			this.$el.find('.network-name').text(this.settings.network.name);
-		}
-
-		if (this.settings.isHotspotActive) {
-			this.$el.find('.loading-button.start-hotspot').hide();
-			this.$el.find('.loading-button.stop-hotspot').show();
-		} else {
-			this.$el.find('.loading-button.start-hotspot').show();
-			this.$el.find('.loading-button.stop-hotspot').hide();
-		}
+		this.$el.html(this.template({ 
+			settings: this.settings
+		}));
 	},
 	startHotspotClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');

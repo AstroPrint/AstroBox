@@ -35,32 +35,6 @@
 			</form>
 		</div>
 		<div id="internet-wifi" class="settings-page hide">
-			<div class="show-for-small">
-				<hr/>
-				<h1 class="bold" align="center">Internet</h1>
-			</div>
-			<div align="center">
-				Connected to <span class="network-name bold">- -</span>
-				<br/>
-				<div class="loading-button connect">
-					<button class="radius small">Change</button>
-					<span class="loading button disabled radius small">
-						<i class="icon-spin1 animate-spin"></i> Looking for Networks...
-					</span>
-				</div>
-			</div>
-			<div class="loading-button start-hotspot">
-				<button class="radius">Start hotspot</button>
-				<span class="loading button disabled radius">
-					<i class="icon-spin1 animate-spin"></i> Starting Hotspot...
-				</span>
-			</div>
-			<div class="loading-button stop-hotspot">
-				<button class="radius">Stop hotspot</button>
-				<span class="loading button disabled radius">
-					<i class="icon-spin1 animate-spin"></i> Stopping Hotspot...
-				</span>
-			</div>
 		</div>
 	</div>
 </div>
@@ -89,6 +63,53 @@
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 
+<script type="text/template" id="internet-wifi-settings-page-template">
+	<div class="show-for-small">
+		<hr/>
+		<h1 class="bold" align="center">Internet</h1>
+	</div>
+	<div align="center">
+		<% if (settings.network) { %>
+			<h4>Connected to <span class="network-name bold"><%= settings.network.name %></span></h4>
+			<div class="loading-button connect">
+				<button class="radius">Change</button>
+				<span class="loading button disabled radius">
+					<i class="icon-spin1 animate-spin"></i> Looking for Networks...
+				</span>
+			</div>
+		<% } else { %>
+			<h2 class="bold">Not Connected</h2>
+			<div class="loading-button connect">
+				<button class="radius small">Scan WiFi networks</button>
+				<span class="loading button disabled radius small">
+					<i class="icon-spin1 animate-spin"></i> Looking for Networks...
+				</span>
+			</div>
+		<% } %>
+		<% if (settings.network || !settings.isHotspotActive) { %>
+			<hr/>
+			<div>
+			<% if (settings.isHotspotActive) { %>
+				<h4>Running a hotspot</h4>
+				<div class="loading-button stop-hotspot">
+					<button class="radius">Stop hotspot</button>
+					<span class="loading button disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Stopping Hotspot...
+					</span>
+				</div>
+			<% } else { %>
+				<div class="loading-button start-hotspot">
+					<button class="radius">Start hotspot</button>
+					<span class="loading button disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Starting Hotspot...
+					</span>
+				</div>
+			<% } %>
+			</div>
+		<% } %>
+	</div>
+</script>
+
 <script type="text/template" id="wifi-network-modal-row">
 	<table>
 	<% _.each(networks, function(n) { %>
@@ -101,7 +122,7 @@
 				<% } else { %>
 					<div class="loading-button">
 						<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
-						<span class="loading button disabled radius">
+						<span class="loading button disabled success radius">
 							<i class="icon-spin1 animate-spin"></i> Connecting...
 						</span>
 					</div>

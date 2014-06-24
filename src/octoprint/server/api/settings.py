@@ -237,10 +237,10 @@ def getWifiSettings():
 	network = networkManager.getActiveWifiNetwork()
 	isHotspotActive = networkManager.isHotspotActive()
 
-	if network and isHotspotActive != None:
+	if network != None and isHotspotActive != None:
 		return jsonify(network = network, isHotspotActive = isHotspotActive)
 	else:
-		return ("Not Connected", 404)
+		return ("Failed to get WiFi settings", 500)
 
 @api.route("/settings/wifi/active", methods=["POST"])
 @restricted_access
