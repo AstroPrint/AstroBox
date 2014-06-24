@@ -64,14 +64,14 @@ pip install -r ../requirements.txt
 if [ ! -f /usr/bin/astrobox ]; then
 	cp init/astrobox.default /etc/default/astrobox
 	cp init/astrobox.init /etc/init.d/astrobox
+	cp init/astrobox.conf /etc/init/astrobox.conf
 	chmod +x /etc/init.d/astrobox
-
-	update-rc.d astrobox defaults
+	#update-rc.d astrobox defaults
 fi
 
-if ! grep -q "### AstroBox rc.local ###" /etc/rc.local; then
-	cat init/rc.local >> /etc/rc.local 
-fi
+#if ! grep -q "### AstroBox rc.local ###" /etc/rc.local; then
+#	cat init/rc.local >> /etc/rc.local 
+#fi
 
 if [ ! -f /home/ubuntu/AstroBox/local/users.yaml ]; then
 	cp conf/octoprint/users.yaml /home/ubuntu/AstroBox/local/users.yaml

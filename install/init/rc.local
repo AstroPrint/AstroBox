@@ -1,7 +1,0 @@
-### AstroBox rc.local ### (Automatically generated)
-
-if ! /usr/bin/network-monitor check; then
-	/usr/bin/network-monitor hotspot
-fi
-
-###

@@ -13,11 +13,11 @@ function stop_wifi_ap {
     
     ### remove the static IP from the wifi interface
     #if grep -q 'auto wlan1' /etc/network/interfaces
-    if grep -q '# AstroBox Hotspot #' /etc/network/interfaces
-    then
-        sed -i /etc/network/interfaces -e '/# AstroBox Hotspot #/,$ d'
-        sed -i /etc/network/interfaces -e '$ d'
-    fi
+    #if grep -q '# AstroBox Hotspot #' /etc/network/interfaces
+    #then
+    #    sed -i /etc/network/interfaces -e '/# AstroBox Hotspot #/,$ d'
+    #    sed -i /etc/network/interfaces -e '$ d'
+    #fi
 
     ip link set dev wlan1 down
     ip address del 10.10.0.1/24 dev wlan1
@@ -34,12 +34,12 @@ function start_wifi_ap {
     ip address add 10.10.0.1/24 dev wlan1
 
     ### protect the static IP from network-manger restart
-    echo >> /etc/network/interfaces
+    #echo >> /etc/network/interfaces
     #echo 'auto wlan1' >> /etc/network/interfaces
     #echo 'iface wlan1' inet static >> /etc/network/interfaces
-    echo '# AstroBox Hotspot #' >> /etc/network/interfaces
-    echo 'address 10.10.0.1' >> /etc/network/interfaces
-    echo 'netmask 255.255.255.0' >> /etc/network/interfaces
+    #echo '# AstroBox Hotspot #' >> /etc/network/interfaces
+    #echo 'address 10.10.0.1' >> /etc/network/interfaces
+    #echo 'netmask 255.255.255.0' >> /etc/network/interfaces
 
     ### enable IP forwarding
     #echo 1 > /proc/sys/net/ipv4/ip_forward
