@@ -20,3 +20,4 @@ flask-compress>=1.0.0
 scss>=0.8.72
 closure==20121212
 python-networkmanager
+netifaces

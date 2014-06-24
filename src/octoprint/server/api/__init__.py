@@ -159,7 +159,6 @@ def performSystemAction():
 		for availableAction in available_actions:
 			if availableAction["action"] == action:
 				logger.info("Performing command: %s" % availableAction["command"])
-				return OK
 				try:
 					p = sarge.run(availableAction["command"], stderr=sarge.Capture())
 					if p.returncode != 0:
@@ -167,10 +166,14 @@ def performSystemAction():
 						stderr_text = p.stderr.text
 						logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
 						return make_response(("Command failed with return code %i: %s" % (returncode, stderr_text), 500, []))
+					else:
+						return OK
+
 				except Exception, e:
 					logger.warn("Command failed: %s" % e)
 					return make_response(("Command failed: %s" % e, 500, []))
-	return NO_CONTENT
+
+	return ("Command not found", 404)
 
 
 #~~ Login/user handling

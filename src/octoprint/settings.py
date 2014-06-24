@@ -160,7 +160,7 @@ default_settings = {
 	},
 	"wifi": {
 		"internetInterface": "wlan0",
-		"hostspotInterface": "wlan1"
+		"hotspotInterface": "wlan1"
 	}
 }
 

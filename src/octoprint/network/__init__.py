@@ -19,6 +19,9 @@ class NetworkManager(object):
 	def setWifiNetwork(self, bssid, password):
 		return None
 
+	def isHotspotActive(self):
+		return None
+
 def loader():
 	if platform == "linux" or platform == "linux2":
 		from octoprint.network.ubuntu import UbuntuNetworkManager

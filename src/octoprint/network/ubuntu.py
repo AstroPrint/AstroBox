@@ -2,6 +2,8 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import netifaces
+
 #This needs to happen before importing NetworkManager
 from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
 import NetworkManager
@@ -102,3 +104,12 @@ class UbuntuNetworkManager(NetworkManagerBase):
 				return result
 
 		return None
+
+	def isHotspotActive(self):
+		interface = self.settings.get(['wifi', 'hotspotInterface'])
+
+		info = netifaces.ifaddresses(interface)
+
+		print info
+
+		return netifaces.AF_INET in info

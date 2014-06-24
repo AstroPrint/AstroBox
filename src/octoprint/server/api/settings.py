@@ -231,13 +231,14 @@ def getWifiNetworks():
 	else:
 		return jsonify({'message': "Unable to get WiFi networks"})
 
-@api.route("/settings/wifi/active", methods=["GET"])
+@api.route("/settings/wifi", methods=["GET"])
 @restricted_access
-def getActiveWifiNetwork():
+def getWifiSettings():
 	network = networkManager.getActiveWifiNetwork()
+	isHotspotActive = networkManager.isHotspotActive()
 
-	if network:
-		return jsonify(network = network)
+	if network and isHotspotActive != None:
+		return jsonify(network = network, isHotspotActive = isHotspotActive)
 	else:
 		return ("Not Connected", 404)
 

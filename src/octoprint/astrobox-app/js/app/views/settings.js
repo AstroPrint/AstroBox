@@ -169,7 +169,8 @@ var InternetWifiView = SettingsPage.extend({
 	networksDlg: null,
 	settings: null,
 	events: {
-		'click .loading-button.hotspot button': 'hotspotClicked',
+		'click .loading-button.start-hotspot button': 'startHotspotClicked',
+		'click .loading-button.stop-hotspot button': 'stopHotspotClicked',
 		'click .loading-button.connect button': 'connectClicked'
 	},
 	initialize: function(params) {
@@ -182,7 +183,7 @@ var InternetWifiView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/wifi/active', null, _.bind(function(data) {
+			$.getJSON(API_BASEURL + 'settings/wifi', null, _.bind(function(data) {
 				this.settings = data;
 				this.render();
 			}, this))
@@ -195,14 +196,22 @@ var InternetWifiView = SettingsPage.extend({
 		if (this.settings.network) {
 			this.$el.find('.network-name').text(this.settings.network.name);
 		}
+
+		if (this.settings.isHotspotActive) {
+			this.$el.find('.loading-button.start-hotspot').hide();
+			this.$el.find('.loading-button.stop-hotspot').show();
+		} else {
+			this.$el.find('.loading-button.start-hotspot').show();
+			this.$el.find('.loading-button.stop-hotspot').hide();
+		}
 	},
-	hotspotClicked: function(e) {
+	startHotspotClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');
 
 		el.addClass('loading');
 
 		var data = {
-			"action": "hotspot"
+			"action": "start-hotspot"
 		}
 
 		$.ajax({
@@ -219,6 +228,34 @@ var InternetWifiView = SettingsPage.extend({
 			},
 			error: function() {
 				noty({text: 'failed to open hotspot', timeout:3000});
+			},
+			complete: function() {
+				el.removeClass('loading');
+			}
+		});
+	},
+	stopHotspotClicked: function(e) {
+		var el = $(e.target).closest('.loading-button');
+
+		el.addClass('loading');
+
+		var data = {
+			"action": "stop-hotspot"
+		}
+
+		$.ajax({
+			url: API_BASEURL + "system",
+			type: "POST",
+			data: data,
+			success: function(data, code, xhr) {
+				if (xhr.status == 204) {
+					noty({text: 'hotspot is not configured on this box', timeout:3000});
+				} else {
+					noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
+				} 
+			},
+			error: function() {
+				noty({text: 'failed to stop hotspot', timeout:3000});
 			},
 			complete: function() {
 				el.removeClass('loading');
