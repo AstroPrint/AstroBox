@@ -35,34 +35,36 @@ all: js css python
 
 clean: clean-js clean-css clean-python clean-release
 
-release: clean-js clean-css js css python
-	echo "Cleaning build directory..."
-	rm -rf build
-
+release: clean-release clean-js clean-css js css python
 	echo "Creating release..."
-	mkdir -p build/AstroBox
-	cp -p run build/AstroBox/run
-	cp -p requirements.txt build/AstroBox/requirements.txt
-	cp -rfp src build/AstroBox/src
+	mkdir -p debian/AstroBox
+	cp -p run debian/AstroBox/run
+	cp -p requirements.txt debian/AstroBox/requirements.txt
+	cp -rfp src debian/AstroBox/src
 
 	echo "Copying install scripts"
-	mkdir -p build/AstroBox/install
-	cp -rp install/* build/AstroBox/install
+	cp -p debian/Makefile debian/AstroBox/Makefile
+	#mkdir -p build/AstroBox/install
+	#cp -rp install/* build/AstroBox/install
 
 	echo "Cleaning unnecessary files..."
-	find build/AstroBox/src -name "*.py" -type f -delete
-	find build/AstroBox/src -name "*.pyc" -type f -delete
-	find build/AstroBox/src -name ".DS_Store" -type f -delete
-	find build/AstroBox/src -name "empty" -type f -delete
-	rm -rf build/AstroBox/src/octoprint/astrobox-app/.webassets*
-	rm -rf build/AstroBox/src/octoprint/astrobox-app/js/app
-	rm -rf build/AstroBox/src/octoprint/astrobox-app/js/lib
-	rm -rf build/AstroBox/src/octoprint/astrobox-app/css/scss
-	rm -rf build/AstroBox/src/octoprint/templates
-	rm -rf build/AstroBox/src/octoprint/static
-	cd build; zip -rq AstroBox-release.zip AstroBox; cd ..
+	find debian/AstroBox/src -name "*.py" -type f -delete
+	find debian/AstroBox/src -name "*.pyc" -type f -delete
+	find debian/AstroBox/src -name ".DS_Store" -type f -delete
+	find debian/AstroBox/src -name "empty" -type f -delete
+	rm -rf debian/AstroBox/src/octoprint/astrobox-app/.webassets*
+	rm -rf debian/AstroBox/src/octoprint/astrobox-app/js/app
+	rm -rf debian/AstroBox/src/octoprint/astrobox-app/js/lib
+	rm -rf debian/AstroBox/src/octoprint/astrobox-app/css/scss
+	rm -rf debian/AstroBox/src/octoprint/templates
+	rm -rf debian/AstroBox/src/octoprint/static
 
-	echo "Release at " $(PWD)/build/AstroBox-release.zip
+	echo "Creating debian package"
+	fakeroot -- dpkg-deb -b debian
+
+	mkdir build
+	mv debian.deb build/AstroBox.deb
+	echo "Release at " $(PWD)/build/AstroBox.deb
 
 js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED)
 
@@ -109,3 +111,4 @@ clean-python:
 
 clean-release:
 	rm -rf build
+	rm -rf debian/AstroBox

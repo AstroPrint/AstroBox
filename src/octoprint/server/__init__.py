@@ -12,13 +12,12 @@ from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded
 from flask.ext.compress import Compress
 from flask.ext.assets import Environment
 from watchdog.observers import Observer
+from sys import platform
 
 import os
 import time
 import logging
 import logging.config
-
-EPOCH = 1388534490 #Jan 1, 2014
 
 SUCCESS = {}
 NO_CONTENT = ("", 204)
@@ -26,13 +25,17 @@ OK = ("", 200)
 
 #This is needed in case the device starts without network (not ntpd) or correct time.
 #a baseline needs to be stablished
+EPOCH = 1388534490 #Jan 1, 2014
 
 if (time.time() - EPOCH) < 0:
 	os.system('date -s @%s' % EPOCH)
 
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
 app.config.from_object('octoprint.server.settings')
-app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
+if platform == "linux2":
+	app.config.from_pyfile('/etc/astrobox/application.cfg', silent=True)
+else:
+	app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
 assets = Environment(app)
 Compress(app)
 debug = False

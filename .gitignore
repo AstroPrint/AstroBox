@@ -25,6 +25,7 @@ pypy
 OctoPrint.egg-info
 *.orig
 build
+debian/AstroBox
 local/*
 
 

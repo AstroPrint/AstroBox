@@ -2,6 +2,7 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import logging
 import netifaces
 import sarge
 
@@ -12,6 +13,8 @@ import NetworkManager
 from dbus.exceptions import DBusException
 
 from octoprint.network import NetworkManager as NetworkManagerBase
+
+logger = logging.getLogger(__name__)
 
 class UbuntuNetworkManager(NetworkManagerBase):
 	def getWifiNetworks(self):
