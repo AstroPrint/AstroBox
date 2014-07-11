@@ -6,8 +6,17 @@
 
 var PrintFileInfoDialog = Backbone.View.extend({
 	el: '#printer-file-info',
+	design_list: null,
 	template: _.template( $("#printerfile-info-template").html() ),
 	printer_file: null,
+	events: {
+		'click .actions .remove': 'onDeleteClicked',
+		'click .actions .print': 'onPrintClicked',
+		'click .actions .download': 'onDownloadClicked'
+	},
+	initialize: function(params) {
+		this.design_list = params.design_list;
+	},
 	render: function() {
 		this.$el.find('.dlg-content').html(this.template({ 
         	p: this.printer_file,
@@ -19,14 +28,17 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		this.render();
 		this.$el.foundation('reveal', 'open');
 	},
-	doDelete: function() {
-
+	onDeleteClicked: function() {
+		this.design_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
+		this.$el.foundation('reveal', 'close');
 	},
-	doPrint: function() {
-
+	onPrintClicked: function() {
+		app.printingView.startPrint(this.printer_file.local_filename /*,completion callback*/);
+		this.$el.foundation('reveal', 'close');
 	},
-	doDownload: function() {
-
+	onDownloadClicked: function() {
+		this.design_list.doDownload(this.printer_file.id);
+		this.$el.foundation('reveal', 'close');
 	}
 });
 
@@ -118,7 +130,7 @@ var DesignsView = Backbone.View.extend({
 	loader: null,
 	initialize: function() {
 		this.designs = new DesignCollection();
-		this.info_dialog = new PrintFileInfoDialog();
+		this.info_dialog = new PrintFileInfoDialog({design_list: this});
 		this.loader = this.$el.find('h3 .icon-refresh');
 		this.refresh();
 	},
@@ -170,27 +182,26 @@ var DesignsView = Backbone.View.extend({
 
 		this.info_dialog.open(print_file);
 	},
-	onDownloadClicked: function(el) {
+	doDownload: function(id) {
 		var self = this;
-		var container = el.closest('.row');
+		var container = this.$el.find('#print-file-'+id);
 		var options = container.find('.print-file-options');
 		var progress = container.find('.progress');
 
 		options.hide();
 		progress.show();
 
-        $.getJSON('/api/cloud-slicer/designs/'+container.data('design-id')+'/print-files/'+el.data('id')+'/download', 
+        $.getJSON('/api/cloud-slicer/designs/'+container.data('design-id')+'/print-files/'+id+'/download', 
         	function(response) {
         		self.render();
 	        }).fail(function(){
-	            noty({text: "Couldn't download the gcode file.", timeout: 3000});
+	            noty({text: "Couldn't download the print file.", timeout: 3000});
 	        }).always(function(){
 	            options.show();
 				progress.hide();
 	        });
 	},
-	onDeleteClicked: function(el) {
-		var filename = el.data('local-name');
+	doDelete: function(id, filename) {
 		var self = this;
 
         $.ajax({
@@ -199,8 +210,8 @@ var DesignsView = Backbone.View.extend({
             success: function() {            	
             	//Update model
             	var print_file = self.designs.find_print_file(
-            		self.designs.get(self.$el.find('#print-file-'+el.data('id')).data('design-id')), 
-            		el.data('id')
+            		self.designs.get(self.$el.find('#print-file-'+id).data('design-id')), 
+            		id
             	);
 
             	if (print_file) {
@@ -258,25 +269,14 @@ function home_info_print_file_clicked(el, evt)
 	app.homeView.designsView.onInfoClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_download_print_file_clicked(el, evt)
+function home_download_print_file_clicked(id, evt)
 {
 	evt.preventDefault();
-	app.homeView.designsView.onDownloadClicked.call(app.homeView.designsView, $(el));
+	app.homeView.designsView.doDownload.call(app.homeView.designsView, id);
 }
 
-function home_delete_print_file_clicked(el, evt)
+function home_print_print_file_clicked(filename, evt)
 {
 	evt.preventDefault();
-	app.homeView.designsView.onDeleteClicked.call(app.homeView.designsView, $(el));
-}
-
-function home_print_print_file_clicked(el, evt)
-{
-	evt.preventDefault();
-	var $el = $(el);
-
-	$el.addClass('loading');
-	app.printingView.startPrint($el.data('filename'), function() {
-		$el.removeClass('loading');
-	});
+	app.printingView.startPrint(filename);
 }

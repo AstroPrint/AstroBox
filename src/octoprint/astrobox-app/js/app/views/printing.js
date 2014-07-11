@@ -260,11 +260,15 @@
         }).
         done(function() {
             self.$el.find('.progress .filename').text(filename);
-        	cb(true);
+            if (cb) {
+        	   cb(true);
+            }
         }).
         fail(function() {
         	noty({text: "There was an error starting the print", timeout: 3000});
-        	cb(false);
+            if (cb) {
+        	   cb(false);
+            }
         });
 	},
     stopPrint: function() {

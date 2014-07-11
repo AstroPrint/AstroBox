@@ -37,14 +37,14 @@
 			<div class="small-12 medium-7 large-8 columns">
 				<div class="actions">
 					<% if (p.local_filename) { %>
-						<a href="#" onclick="home_delete_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+						<a class="remove" href="#">
 							<i class="icon-trash with-separator" title="Remove from AstroBox"></i>
 						</a>
-						<a href="#" onclick="home_print_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+						<a class="print" href="#">
 							<i class="icon-print" title="Print"></i>
 						</a>
 					<% } else { %>
-						<a href="#" onclick="home_download_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+						<a class="download" href="#">
 							<i class="icon-download-cloud" title="Download to AstroBox"></i>
 						</a>
 					<% } %>
@@ -91,11 +91,11 @@
 				<div class="small-2 large-1 columns right-section">
 					<div class="print-file-options">
 						<% if (p.local_filename) { %>
-							<a onclick="home_print_print_file_clicked(this, arguments[0])" data-filename="<%= p.local_filename %>">
+							<a onclick="home_print_print_file_clicked('<%= p.local_filename %>', arguments[0])">
 								<i class="icon-print" title="Print"></i>
 							</a>
 						<% } else { %>
-							<a href="#" onclick="home_download_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>" >
+							<a href="#" onclick="home_download_print_file_clicked('<%= p.id %>', arguments[0])">
 								<i class="icon-download-cloud" title="Download to AstroBox"></i>
 							</a>
 						<% } %>
