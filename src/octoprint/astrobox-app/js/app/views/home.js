@@ -4,6 +4,32 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+var PrintFileInfoDialog = Backbone.View.extend({
+	el: '#printer-file-info',
+	template: _.template( $("#printerfile-info-template").html() ),
+	printer_file: null,
+	render: function() {
+		this.$el.find('.dlg-content').html(this.template({ 
+        	p: this.printer_file,
+        	time_format: app.utils.timeFormat
+        }));
+	},
+	open: function(printer_file) {
+		this.printer_file = printer_file;
+		this.render();
+		this.$el.foundation('reveal', 'open');
+	},
+	doDelete: function() {
+
+	},
+	doPrint: function() {
+
+	},
+	doDownload: function() {
+
+	}
+});
+
 var FileUploadView = Backbone.View.extend({
 	events: {
 		'fileuploadadd .file-upload': 'onFileAdded',
@@ -87,48 +113,66 @@ var FileUploadView = Backbone.View.extend({
 
 var DesignsView = Backbone.View.extend({
 	template: _.template( $("#design-list-template").html() ),
+	info_dialog: null,
 	designs: null,
 	loader: null,
 	initialize: function() {
 		this.designs = new DesignCollection();
-		this.loader = this.$el.find('h3 .icon-spin1');
+		this.info_dialog = new PrintFileInfoDialog();
+		this.loader = this.$el.find('h3 .icon-refresh');
 		this.refresh();
 	},
 	render: function() { 
+		var print_files = [];
+		this.designs.each(function(d) {
+			print_files_design = d.get('print_files');
+			_.each(print_files_design, function(p) {
+				p.design_id = d.get('id');
+				p.thumb = d.get('images').thumbnail;
+				p.image = d.get('images').square;
+			});
+			print_files = print_files.concat(print_files_design);
+		});
         this.$el.find('.design-list-container').html(this.template({ 
-        	designs: this.designs,
-        	time_format: this._timeFormat
+        	print_files: print_files,
+        	time_format: app.utils.timeFormat,
+        	size_format: app.utils.sizeFormat
         }));
     },
-    _timeFormat: function(seconds) {
-    	var sec_num = parseInt(seconds, 10); // don't forget the second param
-        var hours   = Math.floor(sec_num / 3600);
-        var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-        var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-        if (hours   < 10) {hours   = "0"+hours;}
-        if (minutes < 10) {minutes = "0"+minutes;}
-        if (seconds < 10) {seconds = "0"+seconds;}
-        return hours+':'+minutes+':'+seconds;
-    },
 	refresh: function() {
-		this.loader.show();
-		var self = this;
+		if (!this.loader.hasClass('animate-spin')) {
+			this.loader.addClass('animate-spin');
+			var self = this;
 
-		this.designs.fetch({
-			success: function() {
-				self.loader.hide();
-				self.render();
-			},
-			error: function() {
-				noty({text: "There was an error retrieving design list", timeout: 3000});
-				self.loader.hide();
-			}
-		});		
+			this.designs.fetch({
+				success: function() {
+					self.loader.removeClass('animate-spin');
+					self.render();
+				},
+				error: function() {
+					noty({text: "There was an error retrieving design list", timeout: 3000});
+					self.loader.removeClass('animate-spin');
+				}
+			});
+		}	
+	},
+	onInfoClicked: function(el) {
+		var row = $(el).closest('.row');
+		var design_id = row.data('design-id');
+		var printfile_id = row.data('printfile-id');
+
+		var design = this.designs.get(design_id);
+		var print_files = design.get('print_files');
+
+		var print_file = _.find(print_files, function(p) {
+			return p.id == printfile_id;
+		});
+
+		this.info_dialog.open(print_file);
 	},
 	onDownloadClicked: function(el) {
 		var self = this;
-		var container = el.closest('tr');
+		var container = el.closest('.row');
 		var options = container.find('.print-file-options');
 		var progress = container.find('.progress');
 
@@ -196,24 +240,39 @@ var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
 	designsView: null,
+	events: {
+		'click h3 .icon-refresh': 'refreshDesigns' 
+	},
 	initialize: function() {
 		this.uploadView = new FileUploadView({el: this.$el.find('.design-file-upload')});
 		this.designsView = new DesignsView({el: this.$el.find('.design-list')});
+	},
+	refreshDesigns: function() {
+		this.designsView.refresh();
 	}
 });
 
-function home_download_print_file_clicked(el)
+function home_info_print_file_clicked(el, evt) 
 {
+	evt.preventDefault();
+	app.homeView.designsView.onInfoClicked.call(app.homeView.designsView, $(el));
+}
+
+function home_download_print_file_clicked(el, evt)
+{
+	evt.preventDefault();
 	app.homeView.designsView.onDownloadClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_delete_print_file_clicked(el)
+function home_delete_print_file_clicked(el, evt)
 {
+	evt.preventDefault();
 	app.homeView.designsView.onDeleteClicked.call(app.homeView.designsView, $(el));
 }
 
-function home_print_print_file_clicked(el)
+function home_print_print_file_clicked(el, evt)
 {
+	evt.preventDefault();
 	var $el = $(el);
 
 	$el.addClass('loading');

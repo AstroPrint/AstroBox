@@ -7,7 +7,7 @@
 var Design = Backbone.Model.extend({
 	defaults: {
 		name: '',
-		gcodes: []
+		print_files: []
 	}
 });
 

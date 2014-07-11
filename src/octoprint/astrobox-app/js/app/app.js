@@ -62,6 +62,7 @@ var AstroBoxApp = Backbone.View.extend({
 	turnoffView: null,
 	printingView: null,
 	socketData: null,
+	utils: null,
 	initialize: function() {
 		this.socketData = new SocketData();
 		this.appMenu = new AppMenu();
@@ -71,6 +72,7 @@ var AstroBoxApp = Backbone.View.extend({
 		this.connectionView = new ConnectionView();
 		this.turnoffView = new TurnoffView();
 		this.printingView = new PrintingView({app: this});
+		this.utils = new Utils();
 
 		this.socketData.connectionView = this.connectionView;
 		this.socketData.homeView = this.homeView;

@@ -1,6 +1,5 @@
 <div class="row">
 	<div class="small-12 columns" align="center">
-		<h2 class="bold">Choose a File to Print Below<br/>or</h2>
 		<div class="design-file-upload">
 			<span class="file-upload-button button success radius" style="margin-bottom: 10px">
 				<i class="icon-upload-cloud-1"></i> Upload Design File
@@ -12,59 +11,98 @@
 		</div>
 	</div>
 	<div class="design-list small-12 columns">
-		<h3 class="bold">My Designs <i class="icon-spin1 animate-spin" style="display:none"></i></h3>
+		<h3 class="bold">Printable Files <i class="icon-refresh" title="Refresh"></i></h3>
 		<div class="design-list-container"></div>
 	</div>
 </div>
 
+<div id="printer-file-info" class="reveal-modal large" data-reveal>
+	<div class="dlg-content"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<script type="text/template" id="printerfile-info-template">
+	<h2 class="bold"><%= p.name %></h2>
+	<div class="reveal-content">
+		<div class="row">
+			<div class="small-12 medium-5 large-4 columns">
+				<% if (p.image) { %>
+					<div class="photo-container">
+						<img src="<%= p.image%>"/>
+					</div>
+				<% } else { %>
+					<i class="icon-picture"></i>
+				<% } %>			
+			</div>
+			<div class="small-12 medium-7 large-8 columns">
+				<div class="actions">
+					<% if (p.local_filename) { %>
+						<a href="#" onclick="home_delete_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+							<i class="icon-trash with-separator" title="Remove from AstroBox"></i>
+						</a>
+						<a href="#" onclick="home_print_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+							<i class="icon-print" title="Print"></i>
+						</a>
+					<% } else { %>
+						<a href="#" onclick="home_download_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>">
+							<i class="icon-download-cloud" title="Download to AstroBox"></i>
+						</a>
+					<% } %>
+				</div>
+				<div class="print-settings">
+					<a href="#" target="_astroprint">Airwolf 3D</a>
+					/
+					<a href="#" target="_astroprint">PLA</a>
+					/
+					Normal Quality
+				</div>
+				<div class="print-info">
+					<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
+					<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
+					<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
+					<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
+					<b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume.toFixed(2) %></span> mm<sup>3</sup>
+				</div>
+			</div>
+		</div>
+	</div>
+</script>
+
 <script type="text/template" id="design-list-template">
-	<% if (designs.length) { %>
-		<table>
-			<thead>
-				<tr>
-					<th class="bold">Print</th>
-					<th style="width:50px"><center><i class="icon-stopwatch" title="Estimated time"></i></center></th>
-					<th style="width:70px"><center><i class="icon-layers" title="Layers"></i></center></th>
-					<th style="width:130px"></th>
-				</tr>
-			</thead>
-			<tbody>
-			<% designs.each(function(d) {
-				var print_files = d.get('print_files');
-				if (print_files.length) {
-					_.each(print_files, function(p) { %>
-						<tr id="print-file-<%= p.id%>" data-design-id="<%= d.get('id') %>">
-							<td><i class="<%= p.local_filename ? 'icon-drive' : 'icon-cloud' %>"></i> <%= p.name %></td>
-							<td align="center"><%= time_format(p.info.print_time) %></td>
-							<td align="center"><%= p.info.layer_count %></td>
-							<td>
-								<div class="print-file-options">
-									<% if (p.local_filename) { %>
-										<div class="loading-button">
-											<a class="trash" href="#" onclick="home_delete_print_file_clicked(this); return false" data-id="<%= p.id %>" data-local-name="<%= p.local_filename %>">
-												<i class="icon-trash" title="Remove from device"></i>
-											</a>
-											<button class="success tiny radius" onclick="home_print_print_file_clicked(this)" data-filename="<%= p.local_filename %>">
-												<i class="icon-print"></i> Print &gt;
-											</button>
-											<span class="loading button tiny disabled success radius"><i class="icon-spin1 animate-spin"></i> Sending...</span>
-										</div>
-									<% } else { %>
-										<a href="#" onclick="home_download_print_file_clicked(this); return false" data-id="<%= p.id %>" >
-											<i class="icon-download" title="Download"></i>
-										</a>
-									<% } %>
-								</div>
-								<div class="progress round tiny" style="display:none">
-									<div class="meter" style="width: 0%"></div>
-								</div>
-							</td>
-						</tr>
-					<% });
-				}
-			}); %>
-			</tbody>
-		</table>
+	<% if (print_files.length) { %>
+		<% _.each(print_files, function(p, idx) { %>
+			<div id="print-file-<%= p.id%>" class="row<%= idx % 2 ? ' dark' : '' %><%= p.local_filename ? '' : ' remote' %>" data-design-id="<%= p.design_id%>" data-printfile-id="<%= p.id %>">
+				<div class="small-2 large-1 columns left-section" onclick="home_info_print_file_clicked(this, arguments[0])">
+					<% if (p.thumb) { %>
+						<div class="thumb-container">
+							<img src="<%= p.thumb%>"/>
+						</div>
+					<% } else { %>
+						<i class="icon-picture"></i>
+					<% } %>
+				</div>
+				<div class="small-8 large-10 columns middle-section" onclick="home_info_print_file_clicked(this, arguments[0])">
+					<h3 class="bold"> <%= p.name %></h3>
+					<b><%= size_format(p.size) %></b> · <i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
+					<div class="progress round tiny" style="display:none">
+						<div class="meter" style="width: 0%"></div>
+					</div>
+				</div>
+				<div class="small-2 large-1 columns right-section">
+					<div class="print-file-options">
+						<% if (p.local_filename) { %>
+							<a onclick="home_print_print_file_clicked(this, arguments[0])" data-filename="<%= p.local_filename %>">
+								<i class="icon-print" title="Print"></i>
+							</a>
+						<% } else { %>
+							<a href="#" onclick="home_download_print_file_clicked(this, arguments[0])" data-id="<%= p.id %>" >
+								<i class="icon-download-cloud" title="Download to AstroBox"></i>
+							</a>
+						<% } %>
+					</div>
+				</div>
+			</div>
+		<% }); %>
 	<% } else { %>
 		<div class="empty panel radius" align="center">
 			<i class="icon-inbox empty-icon"></i>
