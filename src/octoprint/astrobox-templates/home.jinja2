@@ -50,11 +50,15 @@
 					<% } %>
 				</div>
 				<div class="print-settings">
-					<a href="#" target="_astroprint">Airwolf 3D</a>
+					<a href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %></a>
 					/
-					<a href="#" target="_astroprint">PLA</a>
+					<a href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %></a>
 					/
-					Normal Quality
+					<% if (p.settings.info_link) { %>
+						<a href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %></a>
+					<% } else { %>
+						<%= p.settings.name %>
+					<% } %>
 				</div>
 				<div class="print-info">
 					<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
