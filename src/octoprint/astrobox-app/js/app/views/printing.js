@@ -205,7 +205,7 @@
     onProgressChanged: function(s, value) {
         //progress bar
         this.$el.find('.progress .meter').css('width', value.percent+'%');
-        this.$el.find('.progress .progress-label').text(Math.round(value.percent)+'%');
+        this.$el.find('.progress .progress-label').text(Math.floor(value.percent)+'%');
 
         //time
         var time = this._formatTime(value.time_left);
