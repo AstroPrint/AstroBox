@@ -28,15 +28,18 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		this.render();
 		this.$el.foundation('reveal', 'open');
 	},
-	onDeleteClicked: function() {
+	onDeleteClicked: function(e) {
+		e.preventDefault();
 		this.file_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
 		this.$el.foundation('reveal', 'close');
 	},
-	onPrintClicked: function() {
+	onPrintClicked: function(e) {
+		e.preventDefault();
 		app.printingView.startPrint(this.printer_file.local_filename /*,completion callback*/);
 		this.$el.foundation('reveal', 'close');
 	},
-	onDownloadClicked: function() {
+	onDownloadClicked: function(e) {
+		e.preventDefault();
 		this.file_list.doDownload(this.printer_file.id);
 		this.$el.foundation('reveal', 'close');
 	}
@@ -163,7 +166,11 @@ var PrintFilesListView = Backbone.View.extend({
 		var printfile_id = row.data('printfile-id');
 		var print_file = this.file_list.get(printfile_id);
 
-		this.info_dialog.open(print_file.toJSON());
+		if (print_file) {
+			this.info_dialog.open(print_file.toJSON());
+		} else {
+			console.error('Invalid printfile_id: '+printfile_id);
+		}
 	},
 	doDownload: function(id) {
 		var self = this;
@@ -195,7 +202,11 @@ var PrintFilesListView = Backbone.View.extend({
             	var print_file = self.file_list.get(id);
 
             	if (print_file) {
-            		print_file.set('local_filename', null);
+            		if (print_file.get('local_only')) {
+            			self.file_list.remove(print_file);
+            		} else {
+            			print_file.set('local_filename', false);
+            		}
             	}
 
             	self.render();

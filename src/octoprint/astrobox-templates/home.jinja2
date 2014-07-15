@@ -25,16 +25,14 @@
 	<h2 class="bold"><%= p.name %></h2>
 	<div class="reveal-content">
 		<div class="row">
-			<div class="small-12 medium-5 large-4 columns">
-				<% if (p.images.square) { %>
+			<% if (p.images.square) { %>
+				<div class="small-12 medium-5 large-4 columns">
 					<div class="photo-container">
 						<img src="<%= p.images.square %>"/>
 					</div>
-				<% } else { %>
-					<i class="icon-picture"></i>
-				<% } %>			
-			</div>
-			<div class="small-12 medium-7 large-8 columns">
+				</div>
+			<% } %>
+			<div class="small-12<%= p.images.square ? ' medium-7 large-8' : '' %> columns">
 				<div class="actions">
 					<% if (p.local_filename) { %>
 						<a class="remove" href="#">
@@ -50,15 +48,19 @@
 					<% } %>
 				</div>
 				<div class="print-settings">
-					<a href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %></a>
-					/
-					<a href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %></a>
-					/
-					<% if (p.settings.info_link) { %>
-						<a href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %></a>
+					<% if (p.local_only) { %>
+						This file is <b>only</b> stored on this AstroBox
 					<% } else { %>
-						<%= p.settings.name %>
-					<% } %>
+						<a href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %></a>
+						/
+						<a href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %></a>
+						/
+						<% if (p.settings.info_link) { %>
+							<a href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %></a>
+						<% } else { %>
+							<%= p.settings.name %>
+						<% }
+					} %>
 				</div>
 				<div class="print-info">
 					<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>

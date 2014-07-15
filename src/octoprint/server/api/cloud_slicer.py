@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import os
 import json
+import uuid
 
 from flask import request, jsonify, abort
 
@@ -84,20 +85,18 @@ def designs():
 				local_file = local_files[i]
 				p['local_filename'] = local_file['name']
 				p['local_only'] = False
-				#p['print_time'] =  local_file['gcodeAnalysis']['print_time']
-				#p['layer_count'] = local_file['gcodeAnalysis']['layer_count']
 				del local_files[i]
 				break
 
 	if local_files:
 		for p in local_files:
+			p['id'] = uuid.uuid4().hex
 			p['local_filename'] = p['name']
-			del p['name']
 			p['local_only'] = True
 			p['info'] = p['gcodeAnalysis']
 			del p['gcodeAnalysis']
 
-	return json.dumps(cloud_files + local_files)
+	return json.dumps(local_files + cloud_files)
 
 @api.route("/cloud-slicer/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
