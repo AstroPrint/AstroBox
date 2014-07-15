@@ -66,34 +66,42 @@ def upload_data():
 
 	abort(400)
 
-@api.route("/cloud-slicer/designs", methods=["GET"])
+@api.route("/cloud-slicer/print-files", methods=["GET"])
 @restricted_access
 def designs():
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
 		abort(401)
 
 	slicer = ProvenToPrintSlicer()
-	cloud_designs = json.loads(slicer.design_files())
+	cloud_files = json.loads(slicer.print_files())
 
 	local_files = list(gcodeManager.getAllFileData())
 
-	for d in cloud_designs:
-		for p in d['print_files']:
-			p['local_filename'] = None
-			for i in range(len(local_files)):
-				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
-					local_file = local_files[i]
-					p['local_filename'] = local_file['name']
-					p['print_time'] =  local_file['gcodeAnalysis']['estimatedPrintTime']
-					p['layer_count'] = local_file['gcodeAnalysis']['layerCount']
-					del local_files[i]
-					break
+	for p in cloud_files:
+		p['local_filename'] = None
+		for i in range(len(local_files)):
+			if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
+				local_file = local_files[i]
+				p['local_filename'] = local_file['name']
+				p['local_only'] = False
+				#p['print_time'] =  local_file['gcodeAnalysis']['print_time']
+				#p['layer_count'] = local_file['gcodeAnalysis']['layer_count']
+				del local_files[i]
+				break
 
-	return json.dumps(cloud_designs)
+	if local_files:
+		for p in local_files:
+			p['local_filename'] = p['name']
+			del p['name']
+			p['local_only'] = True
+			p['info'] = p['gcodeAnalysis']
+			del p['gcodeAnalysis']
 
-@api.route("/cloud-slicer/designs/<string:design_id>/print-files/<string:print_file_id>/download", methods=["GET"])
+	return json.dumps(cloud_files + local_files)
+
+@api.route("/cloud-slicer/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
-def design_download(design_id, print_file_id):
+def design_download(print_file_id):
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
 		abort(401)
 
@@ -116,8 +124,7 @@ def design_download(design_id, print_file_id):
 					"type": "success",
 					"id": print_file_id,
 					"filename": gcodeManager._getBasicFilename(destFile),
-					"print_time": fileInfo["printTime"],
-					"layer_count": fileInfo["layerCount"]
+					"info": fileInfo["info"]
 				}
 			)
 
@@ -137,7 +144,7 @@ def design_download(design_id, print_file_id):
 		if os.path.exists(destFile):
 			os.remove(destFile)
 
-	if slicer.download_print_file(design_id, print_file_id, progressCb, successCb, errorCb):
+	if slicer.download_print_file(print_file_id, progressCb, successCb, errorCb):
 		return jsonify(SUCCESS)
 			
 	return abort(400)

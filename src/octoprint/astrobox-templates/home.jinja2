@@ -26,9 +26,9 @@
 	<div class="reveal-content">
 		<div class="row">
 			<div class="small-12 medium-5 large-4 columns">
-				<% if (p.image) { %>
+				<% if (p.images.square) { %>
 					<div class="photo-container">
-						<img src="<%= p.image%>"/>
+						<img src="<%= p.images.square %>"/>
 					</div>
 				<% } else { %>
 					<i class="icon-picture"></i>
@@ -72,14 +72,14 @@
 	</div>
 </script>
 
-<script type="text/template" id="design-list-template">
+<script type="text/template" id="print-file-list-template">
 	<% if (print_files.length) { %>
 		<% _.each(print_files, function(p, idx) { %>
-			<div id="print-file-<%= p.id%>" class="row<%= idx % 2 ? ' dark' : '' %><%= p.local_filename ? '' : ' remote' %>" data-design-id="<%= p.design_id%>" data-printfile-id="<%= p.id %>">
+			<div id="print-file-<%= p.id%>" class="row<%= idx % 2 ? ' dark' : '' %><%= p.local_filename ? '' : ' remote' %>" data-printfile-id="<%= p.id %>">
 				<div class="small-2 large-1 columns left-section" onclick="home_info_print_file_clicked(this, arguments[0])">
-					<% if (p.thumb) { %>
+					<% if (p.images.thumbnail) { %>
 						<div class="thumb-container">
-							<img src="<%= p.thumb%>"/>
+							<img src="<%= p.images.thumbnail %>"/>
 						</div>
 					<% } else { %>
 						<i class="icon-picture"></i>

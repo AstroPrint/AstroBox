@@ -219,20 +219,20 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
-	def design_files(self):
+	def print_files(self):
 		try:
-			r = requests.get( "%s/designs" % self.apiHost, auth=self.hmacAuth )
+			r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
 			data = r.json()
 		except:
-			data = []	
+			data = []
 
 		return json.dumps(data)	
 
-	def download_print_file(self, design_id, print_file_id, progressCb, successCb, errorCb):
+	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
 		progressCb(2)
 
 		try:
-			r = requests.get('%s/designs/%s/print-files/%s' % (self.apiHost, design_id, print_file_id), auth=self.hmacAuth)
+			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None
@@ -260,10 +260,7 @@ class ProvenToPrintSlicer(CloudSlicer):
 
 				fileInfo = {
 					'id': print_file_id,
-					'layerCount': data["info"]["layer_count"],
-					'printTime': data["info"]["print_time"],
-					'filamentLength': data["info"]["filament_length"],
-					'filamentVolume': data["info"]["filament_volume"]
+					'info': data["info"]
 				}
 
 				successCb(destFile, fileInfo)

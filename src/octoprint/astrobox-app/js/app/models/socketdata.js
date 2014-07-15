@@ -202,7 +202,7 @@ var SocketData = Backbone.Model.extend({
                     var payload = data["payload"];
 
                     if (type == "cloudDownloadEvent") {
-                        this.homeView.designsView.downloadProgress(payload);
+                        this.homeView.printFilesListView.downloadProgress(payload);
                     }
 
                     /*var gcodeUploadProgress = $("#gcode_upload_progress");

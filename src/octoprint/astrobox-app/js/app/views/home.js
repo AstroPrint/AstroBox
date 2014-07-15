@@ -6,7 +6,7 @@
 
 var PrintFileInfoDialog = Backbone.View.extend({
 	el: '#printer-file-info',
-	design_list: null,
+	file_list: null,
 	template: _.template( $("#printerfile-info-template").html() ),
 	printer_file: null,
 	events: {
@@ -15,7 +15,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		'click .actions .download': 'onDownloadClicked'
 	},
 	initialize: function(params) {
-		this.design_list = params.design_list;
+		this.file_list = params.file_list;
 	},
 	render: function() {
 		this.$el.find('.dlg-content').html(this.template({ 
@@ -29,7 +29,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		this.$el.foundation('reveal', 'open');
 	},
 	onDeleteClicked: function() {
-		this.design_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
+		this.file_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
 		this.$el.foundation('reveal', 'close');
 	},
 	onPrintClicked: function() {
@@ -37,7 +37,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		this.$el.foundation('reveal', 'close');
 	},
 	onDownloadClicked: function() {
-		this.design_list.doDownload(this.printer_file.id);
+		this.file_list.doDownload(this.printer_file.id);
 		this.$el.foundation('reveal', 'close');
 	}
 });
@@ -123,30 +123,20 @@ var FileUploadView = Backbone.View.extend({
 	}
 });
 
-var DesignsView = Backbone.View.extend({
-	template: _.template( $("#design-list-template").html() ),
+var PrintFilesListView = Backbone.View.extend({
+	template: _.template( $("#print-file-list-template").html() ),
 	info_dialog: null,
-	designs: null,
+	file_list: null,
 	loader: null,
 	initialize: function() {
-		this.designs = new DesignCollection();
-		this.info_dialog = new PrintFileInfoDialog({design_list: this});
+		this.file_list = new PrintFileCollection();
+		this.info_dialog = new PrintFileInfoDialog({file_list: this});
 		this.loader = this.$el.find('h3 .icon-refresh');
 		this.refresh();
 	},
 	render: function() { 
-		var print_files = [];
-		this.designs.each(function(d) {
-			print_files_design = d.get('print_files');
-			_.each(print_files_design, function(p) {
-				p.design_id = d.get('id');
-				p.thumb = d.get('images').thumbnail;
-				p.image = d.get('images').square;
-			});
-			print_files = print_files.concat(print_files_design);
-		});
         this.$el.find('.design-list-container').html(this.template({ 
-        	print_files: print_files,
+        	print_files: this.file_list.toJSON(),
         	time_format: app.utils.timeFormat,
         	size_format: app.utils.sizeFormat
         }));
@@ -156,7 +146,7 @@ var DesignsView = Backbone.View.extend({
 			this.loader.addClass('animate-spin');
 			var self = this;
 
-			this.designs.fetch({
+			this.file_list.fetch({
 				success: function() {
 					self.loader.removeClass('animate-spin');
 					self.render();
@@ -170,17 +160,10 @@ var DesignsView = Backbone.View.extend({
 	},
 	onInfoClicked: function(el) {
 		var row = $(el).closest('.row');
-		var design_id = row.data('design-id');
 		var printfile_id = row.data('printfile-id');
+		var print_file = this.file_list.get(printfile_id);
 
-		var design = this.designs.get(design_id);
-		var print_files = design.get('print_files');
-
-		var print_file = _.find(print_files, function(p) {
-			return p.id == printfile_id;
-		});
-
-		this.info_dialog.open(print_file);
+		this.info_dialog.open(print_file.toJSON());
 	},
 	doDownload: function(id) {
 		var self = this;
@@ -191,7 +174,7 @@ var DesignsView = Backbone.View.extend({
 		options.hide();
 		progress.show();
 
-        $.getJSON('/api/cloud-slicer/designs/'+container.data('design-id')+'/print-files/'+id+'/download', 
+        $.getJSON('/api/cloud-slicer/print-files/'+id+'/download', 
         	function(response) {
         		self.render();
 	        }).fail(function(){
@@ -209,13 +192,10 @@ var DesignsView = Backbone.View.extend({
             type: "DELETE",
             success: function() {            	
             	//Update model
-            	var print_file = self.designs.find_print_file(
-            		self.designs.get(self.$el.find('#print-file-'+id).data('design-id')), 
-            		id
-            	);
+            	var print_file = self.file_list.get(id);
 
             	if (print_file) {
-            		print_file.local_filename = null
+            		print_file.set('local_filename', null);
             	}
 
             	self.render();
@@ -233,12 +213,12 @@ var DesignsView = Backbone.View.extend({
 		if (data.type == "progress") {
 			progress.css('width', data.progress+'%');
 		} else if (data.type == "success") {
-			var print_file = this.designs.find_print_file(container.data('design-id'), data.id)
+			var print_file = this.file_list.get(data.id);
 
 			if (print_file) {
-				print_file.local_filename = data.filename;
-				print_file.print_time = data.print_time;
-				print_file.layer_count = data.layer_count
+				print_file.set('local_filename', data.filename);
+				print_file.set('print_time', data.print_time);
+				print_file.set('layer_count', data.layer_count);
 			}
 
 		} else if (data.type == "success") {
@@ -250,29 +230,29 @@ var DesignsView = Backbone.View.extend({
 var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
-	designsView: null,
+	printFilesListView: null,
 	events: {
-		'click h3 .icon-refresh': 'refreshDesigns' 
+		'click h3 .icon-refresh': 'refreshPrintFiles' 
 	},
 	initialize: function() {
 		this.uploadView = new FileUploadView({el: this.$el.find('.design-file-upload')});
-		this.designsView = new DesignsView({el: this.$el.find('.design-list')});
+		this.printFilesListView = new PrintFilesListView({el: this.$el.find('.design-list')});
 	},
-	refreshDesigns: function() {
-		this.designsView.refresh();
+	refreshPrintFiles: function() {
+		this.printFilesListView.refresh();
 	}
 });
 
 function home_info_print_file_clicked(el, evt) 
 {
 	evt.preventDefault();
-	app.homeView.designsView.onInfoClicked.call(app.homeView.designsView, $(el));
+	app.homeView.printFilesListView.onInfoClicked.call(app.homeView.printFilesListView, $(el));
 }
 
 function home_download_print_file_clicked(id, evt)
 {
 	evt.preventDefault();
-	app.homeView.designsView.doDownload.call(app.homeView.designsView, id);
+	app.homeView.printFilesListView.doDownload.call(app.homeView.printFilesListView, id);
 }
 
 function home_print_print_file_clicked(filename, evt)

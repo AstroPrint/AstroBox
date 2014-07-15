@@ -327,16 +327,7 @@ class GcodeManager:
 		self._metadataDirty = True
 		self._metadata[filename] = {
 			"cloud_id": fileInfo["id"],
-			"gcodeAnalysis": {
-				"estimatedPrintTime": fileInfo["printTime"],
-				"layerCount": fileInfo["layerCount"],
-				"filament": {
-					"tool0": {
-						"length": fileInfo["filamentLength"],
-						"volume": fileInfo["filamentVolume"]
-					}
-				}
-			},
+			"gcodeAnalysis": fileInfo["info"],
 			"prints": {
 				"success": 0,
 				"failure": 0,

@@ -43,8 +43,8 @@ class CloudSlicer(object):
 	def start_slice_job(self, config, gcodePath, stlPath, procesingCb, completionCb):
 		completionCb(stlPath, gcodePath, "Processing function not implemented")
 
-	def design_files(self):
+	def print_files(self):
 		return None
 
-	def download_print_file(self, design_id, print_file_id, progressCb, successCb, errorCb):
+	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
 		errorCb(None, 'Download function is not implemented')
