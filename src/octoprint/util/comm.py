@@ -176,6 +176,7 @@ class MachineCom(object):
 		self._regex_minMaxError = re.compile("Error:[0-9]\n")
 		self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
 		self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
+		self._regex_M114Response = re.compile("X:(%s)Y:(%s)Z:(%s)" % (floatPattern, floatPattern, floatPattern))
 
 		# Regex matching temperature entries in line. Groups will be as follows:
 		# - 1: whole tool designator incl. optional toolNumber ("T", "Tn", "B")
@@ -481,10 +482,12 @@ class MachineCom(object):
 				self.sendCommand("M24")
 			else:
 				#restore position
-				#self.sendCommand("G0 X0 Y0 Z10")
-				#print "G0 Z%.2f" % ( self._currentZ or 0 )
-				#self.sendCommand("G0 Z%.2f" % ( self._currentZ or 0 ))
-				#self._positionWhenPaused
+				if self._positionWhenPaused:
+					self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
+					movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
+					self.sendCommand("G1 X%.4f Y%.4f F%d" % (self._positionWhenPaused[0], self._positionWhenPaused[1], min(movementSpeed["x"], movementSpeed["y"])))
+					self.sendCommand("G1 Z%.4f F%d" % (self._positionWhenPaused[2], movementSpeed["z"]))
+
 				self._sendNext()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
@@ -497,11 +500,8 @@ class MachineCom(object):
 			if self.isSdFileSelected():
 				self.sendCommand("M25") # pause print
 			else:
-				pass
-				#self.sendCommand("M114")
-				#save position
-				#self._positionWhenPaused = self._readline()
-				#print self._positionWhenPaused
+				self.sendCommand("M106 S0") #Stop fans
+				self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
 
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
@@ -912,6 +912,15 @@ class MachineCom(object):
 							swallowOk = True
 						self._handleResendRequest(line)
 
+					else:
+						positionMatch = self._regex_M114Response.search(line)
+						if positionMatch:
+							self._positionWhenPaused = (
+								float(positionMatch.group(1)),
+								float(positionMatch.group(2)),
+								float(positionMatch.group(3))
+							)
+
 				### Printing
 				elif self._state == self.STATE_PRINTING:
 					if line == "" and time.time() > timeout:
@@ -945,6 +954,7 @@ class MachineCom(object):
 							if settings().get(["feature", "swallowOkAfterResend"]):
 								swallowOk = True
 							self._handleResendRequest(line)
+
 			except:
 				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
 

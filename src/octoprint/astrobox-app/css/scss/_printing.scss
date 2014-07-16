@@ -49,25 +49,6 @@
 		.heating {
 			display: none;
 		}
-
-		&.heating-up {
-			.heating {
-				display: block;
-				font-size: rem-calc(50);
-
-				i {
-					display: block;
-					margin-bottom: 20px;
-					font-size: rem-calc(70);
-					color: $alert-color;
-				}
-
-			}
-
-			.info {
-				display: none;
-			}
-		}
 	}
 
 	.temperatures {
@@ -154,6 +135,31 @@
 					-webkit-transform: rotate(90deg);
 				}
 			}
+		}
+	}
+
+	&.heating-up {
+		.print-info {
+			.heating {
+				display: block;
+				font-size: rem-calc(50);
+
+				i {
+					display: block;
+					margin-bottom: 20px;
+					font-size: rem-calc(70);
+					color: $alert-color;
+				}
+
+			}
+
+			.info {
+				display: none;
+			}
+		}
+
+		button.pause-print {
+			display: none;
 		}
 	}
 }

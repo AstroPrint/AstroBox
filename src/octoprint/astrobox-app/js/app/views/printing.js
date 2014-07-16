@@ -196,11 +196,6 @@
         if (!this.$el.hasClass('hide')) {
             this.nozzleBar.setTemps(value.extruder.actual, value.extruder.target);
             this.bedBar.setTemps(value.bed.actual, value.bed.target);
-
-            /*this.$el.find('.temperatures .nozzle .temp-target').text(value.extruder.target);
-            this.$el.find('.temperatures .nozzle .temp-current').html(Math.round(value.extruder.actual)+'&deg;');
-            this.$el.find('.temperatures .bed .temp-target').text(value.bed.target);
-            this.$el.find('.temperatures .bed .temp-current').html(Math.round(value.bed.actual)+'&deg;');*/
         }
     },
     onProgressChanged: function(s, value) {
@@ -226,9 +221,9 @@
 
         //heating up
         if (value.heating_up) {
-            this.$el.find('.print-info').addClass("heating-up");
+            this.$el.addClass("heating-up");
         } else {
-            this.$el.find('.print-info').removeClass("heating-up");
+            this.$el.removeClass("heating-up");
         }
     },
     _formatTime: function(seconds) {
@@ -289,6 +284,7 @@
     },
     showControlPage: function() {
         app.menuSelected('control');
+        this.$el.addClass('hide');
     },
     _jobCommand: function(command) {
         $.ajax({

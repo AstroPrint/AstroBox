@@ -333,6 +333,10 @@ var ExtrusionControlView = Backbone.View.extend({
 
 var ControlView = Backbone.View.extend({
 	el: '#control-view',
+	events: {
+		'click .back-to-print button': 'resumePrinting',
+		'show': 'render'
+	},
 	tempView: null,
 	distanceControl: null,
 	xyControlView: null,
@@ -350,5 +354,18 @@ var ControlView = Backbone.View.extend({
 		if (!this.$el.hasClass('hide')) {
 			this.tempView.updateBars(value);
 		}
+	},
+	render: function() {
+		if (app.socketData.get('paused')) {
+			this.$el.find('.back-to-print .filename').text(app.socketData.get('printing_progress').filename);
+			this.$el.find('.back-to-print').show();
+		} else {
+			this.$el.find('.back-to-print').hide();
+		}
+	},
+	resumePrinting: function() {
+		app.printingView.togglePausePrint();
+		app.showPrinting();
+		this.$el.addClass('hide');
 	}
 });
