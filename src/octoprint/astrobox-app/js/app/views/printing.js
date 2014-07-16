@@ -170,8 +170,9 @@
  var PrintingView = Backbone.View.extend({
 	el: '#printing-view',
     events: {
-        'click .stop-print': 'stopPrint',
-        'click .pause-print': 'togglePausePrint'
+        'click button.stop-print': 'stopPrint',
+        'click button.pause-print': 'togglePausePrint',
+        'click button.controls': 'showControlPage'
     },
     nozzleBar: null,
     bedBar: null,
@@ -203,6 +204,12 @@
         }
     },
     onProgressChanged: function(s, value) {
+        var filenameNode = this.$el.find('.progress .filename');
+
+        if (filenameNode.text() != value.filename) {
+            filenameNode.text(value.filename);
+        }
+
         //progress bar
         this.$el.find('.progress .meter').css('width', value.percent+'%');
         this.$el.find('.progress .progress-label').text(Math.floor(value.percent)+'%');
@@ -236,12 +243,15 @@
         return [hours, minutes, seconds];
     },
     onPausedChanged: function(s, value) {
-        var pauseBtn = this.$el.find('button.pause-print')
+        var pauseBtn = this.$el.find('button.pause-print');
+        var controlBtn = this.$el.find('button.controls');
 
         if (value) {
             pauseBtn.html('<i class="icon-play"></i> Resume Print');
+            controlBtn.show();
         } else {
             pauseBtn.html('<i class="icon-pause"></i> Pause Print');
+            controlBtn.hide();
         }
     },
     show: function() {
@@ -276,6 +286,9 @@
     },
     togglePausePrint: function() {
         this._jobCommand('pause');
+    },
+    showControlPage: function() {
+        app.menuSelected('control');
     },
     _jobCommand: function(command) {
         $.ajax({

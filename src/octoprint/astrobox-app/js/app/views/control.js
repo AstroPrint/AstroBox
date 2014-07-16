@@ -128,6 +128,10 @@ var tempBarView = Backbone.View.extend({
             command: command
         };
 
+        if (temp === null) {
+        	temp = 0;
+        }
+
         var endpoint;
         if (type == "bed") {
             if ("target" == command) {

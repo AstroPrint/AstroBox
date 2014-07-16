@@ -28,22 +28,27 @@ var ConnectionView = Backbone.View.extend({
 		            "autoconnect": true
 		        };
 
-		        if (response.current.state == 'Printing') {
-		        	app.showPrinting();
-		        } else if (response.current.state != 'Operational') {
+		        if (response.current.state.substr(0,5) == 'Error') {
 			        $.ajax({
 			            url: API_BASEURL + "connection",
 			            type: "POST",
 			            dataType: "json",
 			            contentType: "application/json; charset=UTF-8",
 			            data: JSON.stringify(data),
-			            success: function(response) {
-			            },
+			            /*success: function(response) {
+			            	self.setPrinterConnection('connected');
+			            },*/
 			            error: function() {
 			            	self.setPrinterConnection('failed');
 			            }
 			        });
-			    }
+			    } else if (response.current.state != 'Connecting') {
+			    	//self.setPrinterConnection('connected');
+
+			    	if (response.current.state == 'Printing' || response.current.state == 'Paused') {
+		        		app.showPrinting();
+		        	}
+		        }
             }
         })
 	},

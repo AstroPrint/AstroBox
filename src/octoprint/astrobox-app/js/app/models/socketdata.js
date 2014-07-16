@@ -126,6 +126,8 @@ var SocketData = Backbone.Model.extend({
                     break;
                 }*/
                 case "current": {
+                    //console.log(data);
+
                     var flags = data.state.flags;
 
                 	if (data.temps.length) {
@@ -136,13 +138,17 @@ var SocketData = Backbone.Model.extend({
 	                	});
 	                }
 
-	                if (data.state && data.state.state != this.currentState) {
-	                	this.currentState = data.state.state;
+	                if (data.state && data.state.text != this.currentState) {
+	                	this.currentState = data.state.text;
+                        var connectionClass = 'blink-animation';
+                        
 	                	if (flags.error) {
-        					this.connectionView.setPrinterConnection('failed');
+                            connectionClass = 'failed';
 	                	} else if (flags.operational) {
-	                		this.connectionView.setPrinterConnection('connected');
+                            connectionClass = 'connected';
 	                	}
+                        
+                        this.connectionView.setPrinterConnection(connectionClass);
 	                }
 
                     if (this.get('printing') != flags.printing) {
@@ -178,6 +184,7 @@ var SocketData = Backbone.Model.extend({
                         });*/
 
                         this.set('printing_progress', {
+                            filename: data.job.file.name,
                             layer_count: data.job.layerCount,
                             current_layer: progress.currentLayer,
                             percent: progress.completion ? progress.completion.toFixed(1) : 0,

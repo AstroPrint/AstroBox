@@ -302,8 +302,6 @@ class Printer():
 		if self._comm is None:
 			return
 
-		self._comm.cancelPrint()
-
 		#if disableMotorsAndHeater:
 			# disable motors, switch off hotends, bed and fan
 		#	commands = ["M84"]
@@ -314,6 +312,8 @@ class Printer():
 		self.home(['x','y'])
 		self.setTemperature('bed', 5.0)
 		self.setTemperature('tool', 5.0)
+
+		self.commands(["M106 S0", "M1"]); #Fan off, Sleep
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -329,6 +329,8 @@ class Printer():
 			if self._selectedFile["sd"]:
 				payload["origin"] = FileDestinations.SDCARD
 			eventManager().fire(Events.PRINT_FAILED, payload)
+
+		self._comm.cancelPrint()
 
 	#~~ state monitoring
 
@@ -407,12 +409,12 @@ class Printer():
 
 			fileData = self._gcodeManager.getFileData(filename)
 			if fileData is not None and "gcodeAnalysis" in fileData.keys():
-				if "estimatedPrintTime" in fileData["gcodeAnalysis"].keys():
-					estimatedPrintTime = fileData["gcodeAnalysis"]["estimatedPrintTime"]
-				if "filament" in fileData["gcodeAnalysis"].keys():
-					filament = fileData["gcodeAnalysis"]["filament"]
-				if "layerCount" in fileData["gcodeAnalysis"].keys():
-					layerCount = fileData["gcodeAnalysis"]['layerCount']
+				if "print_time" in fileData["gcodeAnalysis"].keys():
+					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
+				if "filament_lenght" in fileData["gcodeAnalysis"].keys():
+					filament = fileData["gcodeAnalysis"]["filament_length"]
+				if "layer_count" in fileData["gcodeAnalysis"].keys():
+					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
 		self._stateMonitor.setJobData({
 			"file": {

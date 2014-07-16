@@ -160,6 +160,7 @@ class MachineCom(object):
 
 		# print job
 		self._currentFile = None
+		self._positionWhenPaused = {}
 
 		# regexes
 		floatPattern = "[-+]?[0-9]*\.?[0-9]+"
@@ -479,6 +480,11 @@ class MachineCom(object):
 			if self.isSdFileSelected():
 				self.sendCommand("M24")
 			else:
+				#restore position
+				#self.sendCommand("G0 X0 Y0 Z10")
+				#print "G0 Z%.2f" % ( self._currentZ or 0 )
+				#self.sendCommand("G0 Z%.2f" % ( self._currentZ or 0 ))
+				#self._positionWhenPaused
 				self._sendNext()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
@@ -490,6 +496,12 @@ class MachineCom(object):
 			self._changeState(self.STATE_PAUSED)
 			if self.isSdFileSelected():
 				self.sendCommand("M25") # pause print
+			else:
+				pass
+				#self.sendCommand("M114")
+				#save position
+				#self._positionWhenPaused = self._readline()
+				#print self._positionWhenPaused
 
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
@@ -1169,7 +1181,7 @@ class MachineCom(object):
 				except ValueError:
 					pass
 
-		elif self._currentZ > self._lastLayerHeight and self._regex_extrusion.search(cmd) != None:
+		elif self._state == self.STATE_PRINTING and self._currentZ > self._lastLayerHeight and self._regex_extrusion.search(cmd) != None:
 			self._currentLayer += 1
 			self._callback.mcLayerChange(self._currentLayer)
 			self._lastLayerHeight = self._currentZ
