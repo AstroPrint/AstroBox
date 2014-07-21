@@ -23,6 +23,8 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 OK = ("", 200)
 
+debug = False
+
 #This is needed in case the device starts without network (not ntpd) or correct time.
 #a baseline needs to be stablished
 EPOCH = 1388534490 #Jan 1, 2014
@@ -32,13 +34,12 @@ if (time.time() - EPOCH) < 0:
 
 app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
 app.config.from_object('octoprint.server.settings')
-if platform == "linux2":
+if platform == "linux2" and not debug:
 	app.config.from_pyfile('/etc/astrobox/application.cfg', silent=True)
 else:
 	app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
 assets = Environment(app)
 Compress(app)
-debug = False
 
 printer = None
 gcodeManager = None
