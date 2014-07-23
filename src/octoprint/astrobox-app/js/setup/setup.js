@@ -35,11 +35,15 @@ var StepShare = StepView.extend({
 	{
 		e.preventDefault();
 		window.open('https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwww.astroprint.com','facebook','width=740,height=280,left=300,top=300');
+		this.$el.find('button.next-step').removeClass('hide');
+		this.$el.find('a.next-step').addClass('hide');
 	},
 	onTwitterClicked: function(e)
 	{
 		e.preventDefault();
 		window.open('https://twitter.com/share?url=http%3A%2F%2Fwww.astroprint.com&text=I+just+setup+my+AstroBox+and+%40AstroPrint3D+for+easy+%233DPrinting.+Get+yours+at','twitter','width=740,height=280,left=300,top=300');
+		this.$el.find('button.next-step').removeClass('hide');
+		this.$el.find('a.next-step').addClass('hide');
 	}
 });
 
