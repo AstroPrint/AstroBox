@@ -6,17 +6,10 @@
 
 var StepView = Backbone.View.extend({
 	setup_view: null,
-	events: {
-		"click .next-step": "doNext"
-	},
+	events: {},
 	initialize: function(params) 
 	{
 		this.setup_view = params.setup_view;
-	},
-	doNext: function(e)
-	{
-		e.preventDefault();
-		this.setup_view.setStep($(e.currentTarget).data('step'));
 	},
 	onHide: function() {},
 	onShow: function() {}
@@ -66,27 +59,34 @@ var StepShare = StepView.extend({
 	{
 	    this.events["click .share-button.facebook"] = "onFacebookClicked";
 	    this.events["click .share-button.twitter"] = "onTwitterClicked";
+	    this.events["click .setup-done"] = "onSetupDone";
 	    StepView.apply(this, arguments);
   	},
 	onFacebookClicked: function(e)
 	{
 		e.preventDefault();
 		window.open('https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwww.astroprint.com','facebook','width=740,height=280,left=300,top=300');
-		this.$el.find('button.next-step').removeClass('hide');
-		this.$el.find('a.next-step').addClass('hide');
+		this.$el.find('a.button.setup-done').show();
+		this.$el.find('a.setup-done').addClass('hide');
 	},
 	onTwitterClicked: function(e)
 	{
 		e.preventDefault();
 		window.open('https://twitter.com/share?url=http%3A%2F%2Fwww.astroprint.com&text=I+just+setup+my+AstroBox+and+%40AstroPrint3D+for+easy+%233DPrinting.+Get+yours+at','twitter','width=740,height=280,left=300,top=300');
-		this.$el.find('button.next-step').removeClass('hide');
-		this.$el.find('a.next-step').addClass('hide');
+		this.$el.find('a.button.setup-done').show();
+		this.$el.find('a.setup-done').addClass('hide');
+	},
+	onSetupDone: function(e)
+	{
+		e.preventDefault();
+		location.href = "/";
 	}
 });
 
 var SetupView = Backbone.View.extend({
 	steps: null,
 	current_step: 'welcome',
+	router: null,
 	initialize: function()
 	{
 		this.steps = {
@@ -98,14 +98,13 @@ var SetupView = Backbone.View.extend({
 			'share': new StepShare({'setup_view': this})
 		};
 
+		this.router = new SetupRouter({'setup_view': this});
+
 		this.setStep(this.current_step);
 	},
 	setStep: function(step)
 	{
-		if (step == 'done') {
-			//last step refresh the screen;
-			location.reload();			
-		} else if (this.steps[step] != undefined) {
+		if (this.steps[step] != undefined) {
 			this.steps[this.current_step].$el.addClass('hide');
 			this.steps[this.current_step].onHide();
 			this.steps[step].$el.removeClass('hide');
@@ -115,4 +114,22 @@ var SetupView = Backbone.View.extend({
 	}
 });
 
+var SetupRouter = Backbone.Router.extend({
+	setup_view: null,
+	routes: {
+		"": "setStep",
+		":step": "setStep"
+	},
+	initialize: function(params)
+	{
+		this.setup_view = params.setup_view;
+	},
+	setStep: function(step) 
+	{
+		this.setup_view.setStep(step || 'welcome');
+	}
+});
+
 var setup_view = new SetupView();
+
+Backbone.history.start();

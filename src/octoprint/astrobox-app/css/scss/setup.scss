@@ -36,12 +36,14 @@
 
 			a {
 				color: $primary-color;
-			}
-		}
 
-		.next-step {
-			i.icon-right-open {
-				font-size: rem-calc(13);
+				&.button {
+					color: white;
+				}
+
+				i.icon-right-open {
+					font-size: rem-calc(13);
+				}
 			}
 		}
 
@@ -76,7 +78,7 @@
 		}
 	}
 
-	button.next-step {
+	a.button.setup-done {
 		margin-top: 20px;
 	}
 }
