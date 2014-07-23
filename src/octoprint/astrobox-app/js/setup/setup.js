@@ -25,7 +25,22 @@ var StepWelcome = StepView.extend({
 });
 
 var StepShare = StepView.extend({
-	el: "#step-share"
+	el: "#step-share",
+	constructor: function() {
+	    this.events["click .share-button.facebook"] = "onFacebookClicked";
+	    this.events["click .share-button.twitter"] = "onTwitterClicked";
+	    StepView.apply(this, arguments);
+  	},
+	onFacebookClicked: function(e)
+	{
+		e.preventDefault();
+		window.open('https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwww.astroprint.com','facebook','width=740,height=280,left=300,top=300');
+	},
+	onTwitterClicked: function(e)
+	{
+		e.preventDefault();
+		window.open('https://twitter.com/share?url=http%3A%2F%2Fwww.astroprint.com&text=I+just+setup+my+AstroBox+and+%40AstroPrint3D+for+easy+%233DPrinting.+Get+yours+at','twitter','width=740,height=280,left=300,top=300');
+	}
 });
 
 var SetupView = Backbone.View.extend({
