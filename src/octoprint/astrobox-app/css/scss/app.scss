@@ -1,29 +1,7 @@
 @charset "UTF-8";
 
-@font-face {
-    font-family: 'nexa_lightregular';
-    src: url('/font/nexa_light-webfont.eot');
-    src: url('/font/nexa_light-webfont.eot?#iefix') format('embedded-opentype'),
-         url('/font/nexa_light-webfont.woff') format('woff'),
-         url('/font/nexa_light-webfont.ttf') format('truetype'),
-         url('/font/nexa_light-webfont.svg#nexa_lightregular') format('svg');
-    font-weight: normal;
-    font-style: normal;
-
-}
-
-@font-face {
-    font-family: 'nexa_boldregular';
-    src: url('/font/nexa_bold-webfont.eot');
-    src: url('/font/nexa_bold-webfont.eot?#iefix') format('embedded-opentype'),
-         url('/font/nexa_bold-webfont.woff') format('woff'),
-         url('/font/nexa_bold-webfont.ttf') format('truetype'),
-         url('/font/nexa_bold-webfont.svg#nexa_boldregular') format('svg');
-    font-weight: normal;
-    font-style: normal;
-}
-
 @import
+	"fonts",
     "normalize",
     "fontello",
     "sprites",
@@ -38,42 +16,14 @@
     "foundation/components/progress-bars",
     "foundation/components/tables",
     "foundation/components/panels",
-    "foundation/components/side-nav";
-
-html {
-    -ms-touch-action: manipulation;
-    touch-action: manipulation;
-}
-
-body {
-	background: url('/img/subtle_dots_v1.png');
-	-moz-user-select: none; 
-	-webkit-user-select: none; 
-	-ms-user-select:none; 
-	user-select:none;
-} 
-
-b, 
-strong,
-.bold {
-  font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-}
-
-/*.off-canvas-wrap {
-	min-height: 100%;
-
-	.inner-wrap {
-		min-height: 100%;
-	}
-}*/
+    "foundation/components/side-nav",
+    "common-main";
 
 .tab-bar {
 	.tab-bar-section.middle {
 		right: 0;
 		text-align: left;
 	}
-
-
 
 	h1.title {
 		display: inline-block;

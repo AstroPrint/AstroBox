@@ -14,13 +14,23 @@ JS_APP_PACKED := src/octoprint/astrobox-app/js/gen/app.js
 
 #Login JS Files
 
-JS_LOGIN_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.abide.js \
-					app/views/login.js
+JS_LOGIN_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js \
+					login/login.js
 
 JS_LOGIN_LIST := 	$(foreach file, $(JS_LOGIN_FILES), \
 						$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
 					)	
 JS_LOGIN_PACKED := src/octoprint/astrobox-app/js/gen/login.js 
+
+#Setup JS Files
+
+JS_SETUP_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js \
+					setup/setup.js
+
+JS_SETUP_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
+						$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
+					)	
+JS_SETUP_PACKED := src/octoprint/astrobox-app/js/gen/setup.js 
 
 #CSS Files
 
@@ -29,6 +39,9 @@ CSS_APP_PACKED := src/octoprint/astrobox-app/css/gen/app.css
 
 CSS_LOGIN_FILE := src/octoprint/astrobox-app/css/scss/login.scss
 CSS_LOGIN_PACKED := src/octoprint/astrobox-app/css/gen/login.css
+
+CSS_SETUP_FILE := src/octoprint/astrobox-app/css/scss/setup.scss
+CSS_SETUP_PACKED := src/octoprint/astrobox-app/css/gen/setup.css
 
 #rules
 
@@ -67,9 +80,9 @@ release: clean-release clean-js clean-css js css python
 	mv debian.deb build/AstroBox.deb
 	echo "Release at " $(PWD)/build/AstroBox.deb
 
-js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED)
+js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
 
-css: $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED)
+css: $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED)
 
 python: 
 	echo "Generating .pyo files..."
@@ -93,6 +106,15 @@ $(JS_LOGIN_PACKED): $(JS_LOGIN_LIST)
 		--js $^ \
 		--js_output_file $@
 
+$(JS_SETUP_PACKED): $(JS_SETUP_LIST)
+	echo "Packing setup javascript..."
+	closure \
+		--warning_level QUIET \
+		--language_in ECMASCRIPT5 \
+		--compilation_level SIMPLE_OPTIMIZATIONS \
+		--js $^ \
+		--js_output_file $@
+
 $(CSS_APP_PACKED): $(CSS_APP_FILE)
 	echo "Packing App CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
@@ -101,11 +123,15 @@ $(CSS_LOGIN_PACKED): $(CSS_LOGIN_FILE)
 	echo "Packing Login CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
 
+$(CSS_SETUP_PACKED): $(CSS_SETUP_FILE)
+	echo "Packing Setup CSS..."
+	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
+
 clean-js:
-	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED)
+	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
 
 clean-css:
-	rm -f $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED)
+	rm -f $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED)
 
 clean-python:
 	find src/octoprint -name "*.pyo" -type f -delete

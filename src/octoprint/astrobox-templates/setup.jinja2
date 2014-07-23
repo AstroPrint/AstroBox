@@ -1,0 +1,51 @@
+{% extends 'base.jinja2' %}
+
+{% block css %}
+	{% assets filters="scss", output="css/gen/setup.css", 
+		"css/scss/setup.scss" %}
+		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+	{% endassets %}
+{% endblock %}
+
+{% block content %}
+<div id="setup-view" class="row">
+	<div class="small-12 medium-10 large-6 medium-centered large-centered columns">
+		<div id="step-welcome" class="step hide">
+			<h1 class="bold">Welcome to AstroPrint&trade;</h1>
+			<div class="content" align="center">
+				<h2 class="bold">Your AstroBox&trade; Setup</h2>
+				<p>Congratulations on receiving your AstroBox</p>
+				<p>We're going to help you get it all setup</p>
+				<button class="success radius next-step">Begin Setup &raquo;</button>
+			</div>
+		</div>
+
+		<div id="step-share" class="step hide">
+			<h1 class="bold">You're done!</h1>
+			<div class="content">
+				<h2 class="bold">Let your friends know!</h2>
+				<p>Nothing but a test</p>
+				<div align="right">
+					<a class="next-step">Skip sharing &raquo;</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript">
+		var UI_API_KEY = "{{ uiApiKey }}";
+		var BASEURL = "{{ url_for('index') }}";
+		var API_BASEURL = BASEURL + "api/";
+	</script>
+	{% assets filters="closure_js", output="js/gen/setup.js", 
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js",
+		"js/setup/setup.js" -%}
+			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+	{%- endassets %}
+	<script type="text/javascript">
+		$(document).foundation();
+	</script>
+{% endblock %}

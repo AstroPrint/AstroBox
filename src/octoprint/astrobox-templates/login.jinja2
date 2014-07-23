@@ -43,8 +43,8 @@
 		var API_BASEURL = BASEURL + "api/";
 	</script>
 	{% assets filters="closure_js", output="js/gen/login.js", 
-		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js",
-		"js/app/views/login.js" -%}
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js",
+		"js/login/login.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}
 	<script type="text/javascript">

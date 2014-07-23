@@ -73,7 +73,8 @@ VERSION = octoprint._version.get_versions()['version']
 def index():
 	s = settings()
 
-	if (s.get(["cloudSlicer", "publicKey"])):
+	#if (s.get(["cloudSlicer", "publicKey"])):
+	if (not s.get(["server", "firstRun"])):
 		return render_template(
 			"app.jinja2",
 			user_email=s.get(["cloudSlicer", "email"]),
@@ -95,8 +96,11 @@ def index():
 	else:
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
-			"login.jinja2",
-			uiApiKey=UI_API_KEY
+			#"login.jinja2",
+			"setup.jinja2",
+			debug=debug,
+			uiApiKey=UI_API_KEY,
+			version=VERSION
 		)
 
 @app.route("/robots.txt")
