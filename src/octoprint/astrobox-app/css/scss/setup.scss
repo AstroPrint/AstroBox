@@ -8,6 +8,7 @@
     "widgets",
     "foundation/settings",
     "foundation/components/global",
+    "foundation/components/reveal",
     "foundation/components/grid",
     "foundation/components/buttons",
     "foundation/components/forms",
@@ -52,16 +53,12 @@
 	}
 
     label {
-        text-align: left;
-        font-size: rem-calc(25);
+    	text-align: left;
+        font-size: rem-calc(15);
     }
 
     small.error {
         text-align: left;
-    }
-
-    img {
-        margin-bottom: 20px;
     }
 }
 
@@ -81,5 +78,43 @@
 
 	button.next-step {
 		margin-top: 20px;
+	}
+}
+
+#step-name {
+	.preview {
+		color: #ccc;
+		font-size: rem-calc(18);
+		line-height: 2em;
+
+		span.bold {
+			color: $success-color;
+		}
+	}
+}
+
+#step-internet {
+	h3 {
+		font-size: rem-calc(30);
+		line-height: 1.3em;
+	}
+
+	.success {
+		i.ok {
+			font-size: rem-calc(50);
+			color: $success-color;
+		}
+	}
+
+	.checking {
+		i.animate-spin {
+			font-size: rem-calc(50);
+		}
+	}
+}
+
+#step-astroprint {
+	form {
+		margin-top: 35px;
 	}
 }

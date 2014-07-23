@@ -16,17 +16,54 @@ var StepView = Backbone.View.extend({
 	doNext: function(e)
 	{
 		e.preventDefault();
-		this.setup_view.nextStep();
-	}
+		this.setup_view.setStep($(e.currentTarget).data('step'));
+	},
+	onHide: function() {},
+	onShow: function() {}
 });
 
 var StepWelcome = StepView.extend({
 	el: "#step-welcome"
 });
 
+var StepName = StepView.extend({
+	el: "#step-name",
+	constructor: function()
+	{
+		this.events["keyup input"] = "onNameChanged";
+		StepView.apply(this, arguments);
+	},
+	onShow: function()
+	{
+		this.$el.find('input').focus();
+	},
+	onNameChanged: function(e) 
+	{
+		this.$el.find('.hotspot-name').text($(e.target).val());
+		this.$el.find('.astrobox-url').text($(e.target).val());
+	}
+});
+
+var StepInternet = StepView.extend({
+	el: "#step-internet"
+});
+
+var StepAstroprint = StepView.extend({
+	el: "#step-astroprint",
+	onShow: function()
+	{
+		this.$el.find('#email').focus();
+	},
+});
+
+var StepPrinter = StepView.extend({
+	el: "#step-printer"
+});
+
 var StepShare = StepView.extend({
 	el: "#step-share",
-	constructor: function() {
+	constructor: function() 
+	{
 	    this.events["click .share-button.facebook"] = "onFacebookClicked";
 	    this.events["click .share-button.twitter"] = "onTwitterClicked";
 	    StepView.apply(this, arguments);
@@ -49,38 +86,31 @@ var StepShare = StepView.extend({
 
 var SetupView = Backbone.View.extend({
 	steps: null,
-	current_step: 0,
+	current_step: 'welcome',
 	initialize: function()
 	{
-		this.steps = [
-			new StepWelcome({'setup_view': this}),
-			new StepShare({'setup_view': this})
-		];
+		this.steps = {
+			'welcome': new StepWelcome({'setup_view': this}),
+			'name': new StepName({'setup_view': this}),
+			'internet': new StepInternet({'setup_view': this}),
+			'astroprint': new StepAstroprint({'setup_view': this}),
+			'printer': new StepPrinter({'setup_view': this}),
+			'share': new StepShare({'setup_view': this})
+		};
 
 		this.setStep(this.current_step);
 	},
 	setStep: function(step)
 	{
-		if (step >= 0 && step < this.steps.length) {
-			this.steps[this.current_step].$el.addClass('hide');
-			this.steps[step].$el.removeClass('hide');
-		}
-	},
-	nextStep: function()
-	{
-		if (this.steps.length > (this.current_step + 1)) {
-			this.setStep(this.current_step + 1);
-			this.current_step++;
-		} else {
+		if (step == 'done') {
 			//last step refresh the screen;
-			location.reload();
-		}
-	},
-	previousStep: function()
-	{
-		if (this.current_step > 0) {
-			this.setStep(this.current_step - 1);
-			this.current_step--;
+			location.reload();			
+		} else if (this.steps[step] != undefined) {
+			this.steps[this.current_step].$el.addClass('hide');
+			this.steps[this.current_step].onHide();
+			this.steps[step].$el.removeClass('hide');
+			this.steps[step].onShow();
+			this.current_step = step;
 		}
 	}
 });

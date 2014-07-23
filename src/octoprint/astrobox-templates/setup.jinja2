@@ -16,7 +16,115 @@
 				<h2 class="bold">Your AstroBox&trade; Setup</h2>
 				<p>Congratulations on receiving your AstroBox</p>
 				<p>We're going to help you get it all setup</p>
-				<button class="success radius next-step">Begin Setup <i class="icon-right-open"></i></button>
+				<button class="success radius next-step" data-step="name">Begin Setup <i class="icon-right-open"></i></button>
+			</div>
+		</div>
+
+		<div id="step-name" class="step hide">
+			<h1 class="bold">Name your AstroBox</h1>
+			<div class="content">
+				<p>
+					If you have more than one box in the same network, they must have different names 
+					so that you can reach them separately.
+				</p>
+				<p>
+					If you only have one, feel free to leave the current name. 
+				</p>
+				<form align="center">
+					<label for="astrobox-name">
+						<b>AstroBox Name:</b>
+						<input id="astrobox-name" class="radius" type="text" name="name" value="astrobox"/>
+					</label>
+				</form>
+				<p>
+					A few important things to remember:
+				</p>
+				<p class="preview">
+					<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold">astrobox</span><br/>
+					<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold">astrobox</span>.local
+				</p>
+				<div align="center">
+					<button class="success radius next-step" data-step="internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></button>
+				</div>
+			</div>
+		</div>
+
+		<div id="step-internet" class="step hide">
+			<h1 class="bold">Internet Setup</h1>
+			<div class="content">
+				<div class="success" align="center">
+					<i class="icon-ok-circled ok"></i>
+					<h3 class="bold" align="center">Your AstroBox is connected to the internet.</h3>
+					<button class="success radius next-step" data-step="astroprint">Next: <b>AstroPrint Account</b> <i class="icon-right-open"></i></button>
+				</div>
+				<div class="checking hide" align="center">
+					<i class="icon-spin1 animate-spin"></i>
+					<h3 class="bold" align="center">Checking connection...</h3>
+				</div>
+				<div class="settings hide">
+					<h2 class="bold" align="center">Pick a WiFi network</h2>
+					<div class="wifi-network-list">
+					</div>
+					<div align="right">
+						<a class="next-step" data-step="printer">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div id="step-astroprint" class="step hide">
+			<h1 class="bold">AstroPrint Account</h1>
+			<div class="content">
+				<p>
+					Please sign into your AstroPrint account below.
+				</p>
+				<p>
+					If you don't have an account, you can <a target="_astroprint" href="http://www.astroprint.com/account/signup">create one</a> now.
+				</p>
+				<form>
+					<label for="email">
+						<i class="icon-user"></i> <b>Email</b> (<a target="_astroprint" href="http://www.astroprint.com/account/signup">don't have account?</a>)
+						<input type="email" id="email" class="radius" name="email"/>
+					</label>
+					<label for="password">
+						<i class="icon-lock"></i> <b>Password</b> (<a target="_astroprint" href="http://www.astroprint.com/account/forgot">forgot?</a>)
+						<input type="password" id="email" class="radius" name="password"/>
+					</label>
+				</form>
+				<center>
+					<button class="success radius next-step" data-step="printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></button>
+				</center>
+				<div align="right">
+					<a class="next-step" data-step="printer">Skip AstroPrint Account <i class="icon-right-open"></i></a>
+				</div>
+			</div>
+		</div>
+
+		<div id="step-printer" class="step hide">
+			<h1 class="bold">Printer Connection</h1>
+			<div class="content">
+				<p>
+					Connect to your printer to the USB port on the AstroBox, select your
+					printer's connection settings and hit Connect. 
+				</p>
+				<form>
+					<label for="port">
+						<b>USB Port</b>
+						<select id="port" name="port">
+						</select>
+					</label>
+					<label for="baud-rate">
+						<b>Baud Rate</b>
+						<select id="baud-rate" name="baud-rate">
+						</select>
+					</label>
+				</form>
+				<div align="center">
+					<button class="success radius next-step" data-step="share">Connect</button>
+				</div>
+				<div align="right">
+					<a class="next-step" data-step="share">Skip Printer Connection <i class="icon-right-open"></i></a>
+				</div>
 			</div>
 		</div>
 
@@ -27,13 +135,14 @@
 				<p align="center">
 					<button class="radius share-button facebook bold"><i class="icon-facebook-squared"></i> Share</button>
 					<button class="radius share-button twitter bold"><i class="icon-twitter"></i> Tweet</button>
-					<button class="radius success next-step bold hide">Start Printing  <i class="icon-right-open"></i></button>
+					<button class="radius success next-step bold hide" data-step="done">Start Printing  <i class="icon-right-open"></i></button>
 				</p>
 				<div align="right">
-					<a class="next-step">Skip sharing <i class="icon-right-open"></i></a>
+					<a class="next-step" data-step="done">Skip sharing <i class="icon-right-open"></i></a>
 				</div>
 			</div>
 		</div>
+
 	</div>
 </div>
 {% endblock %}
@@ -45,7 +154,7 @@
 		var API_BASEURL = BASEURL + "api/";
 	</script>
 	{% assets filters="closure_js", output="js/gen/setup.js", 
-		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js",
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
 		"js/setup/setup.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}

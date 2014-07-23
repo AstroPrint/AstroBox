@@ -24,7 +24,7 @@ JS_LOGIN_PACKED := src/octoprint/astrobox-app/js/gen/login.js
 
 #Setup JS Files
 
-JS_SETUP_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js \
+JS_SETUP_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js lib/foundation/foundation.reveal.js \
 					setup/setup.js
 
 JS_SETUP_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
