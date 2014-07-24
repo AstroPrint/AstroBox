@@ -133,3 +133,9 @@ def save_connection_settings():
 		return make_response("OK", 200)
 
 	return make_response('Invalid Connection Settings', 400)
+
+@api.route('/setup/done', methods=['POST'])
+@not_setup_only
+def set_setup_done():
+	settings().setBoolean(['server', 'firstRun'], False)
+	return make_response("OK", 200)

@@ -348,7 +348,16 @@ var StepShare = StepView.extend({
 	onSetupDone: function(e)
 	{
 		e.preventDefault();
-		location.href = "/";
+		$.ajax({
+			url: API_BASEURL + 'setup/done',
+			method: 'post',
+			success: function() {
+				location.href = "/";
+			},
+			error: function() {
+				noty({text: "There was an error saving your settings.", timeout: 3000});
+			}
+		});
 	}
 });
 
