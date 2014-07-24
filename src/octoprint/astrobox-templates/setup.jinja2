@@ -55,16 +55,16 @@
 		<div id="step-internet" class="step hide">
 			<h1 class="bold">Internet Setup</h1>
 			<div class="content">
-				<div class="success" align="center">
+				<div class="success-state" align="center">
 					<i class="icon-ok-circled ok"></i>
 					<h3 class="bold" align="center">Your AstroBox is connected to the internet.</h3>
 					<a class="button success radius" href="#astroprint">Next: <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
 				</div>
-				<div class="checking" align="center">
+				<div class="checking-state" align="center">
 					<i class="icon-spin1 animate-spin"></i>
 					<h3 class="bold" align="center">Checking connection...</h3>
 				</div>
-				<div class="settings">
+				<div class="settings-state">
 					<h2 class="bold" align="center">Pick a WiFi network</h2>
 					<div class="wifi-network-list">
 					</div>
@@ -78,27 +78,41 @@
 		<div id="step-astroprint" class="step hide">
 			<h1 class="bold">AstroPrint Account</h1>
 			<div class="content">
-				<p>
-					Please sign into your AstroPrint account below.
-				</p>
-				<p>
-					If you don't have an account, you can <a target="_astroprint" href="http://www.astroprint.com/account/signup">create one</a> now.
-				</p>
-				<form>
-					<label for="email">
-						<i class="icon-user"></i> <b>Email</b> (<a target="_astroprint" href="http://www.astroprint.com/account/signup">don't have account?</a>)
-						<input type="email" id="email" class="radius" name="email"/>
-					</label>
-					<label for="password">
-						<i class="icon-lock"></i> <b>Password</b> (<a target="_astroprint" href="http://www.astroprint.com/account/forgot">forgot?</a>)
-						<input type="password" id="email" class="radius" name="password"/>
-					</label>
-				</form>
-				<center>
-					<a class="button success radius next-step" href="#printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></a>
-				</center>
-				<div align="right">
-					<a href="#printer">Skip AstroPrint Account <i class="icon-right-open"></i></a>
+				<div class="checking-state" align="center">
+					<i class="icon-spin1 animate-spin"></i>
+					<h3 class="bold" align="center">Checking AstroPrint...</h3>
+				</div>
+				<div class="success-state" align="center">
+					<i class="icon-user ok"></i>
+					<h4 class="bold" align="center"><span class="email"></span> (<a class="logout" href="#">Logout</a>)</h4>
+					<a class="button success radius" href="#printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></a>
+				</div>
+				<div class="settings-state">
+					<p>
+						Please sign into your AstroPrint account below.
+					</p>
+					<p>
+						If you don't have an account, you can <a target="_astroprint" href="http://www.astroprint.com/account/signup">create one</a> now.
+					</p>
+					<form>
+						<label for="email">
+							<i class="icon-user"></i> <b>Email</b> (<a target="_astroprint" href="http://www.astroprint.com/account/signup">don't have account?</a>)
+							<input type="email" id="email" class="radius" name="email"/>
+						</label>
+						<label for="password">
+							<i class="icon-lock"></i> <b>Password</b> (<a target="_astroprint" href="http://www.astroprint.com/account/forgot">forgot?</a>)
+							<input type="password" id="email" class="radius" name="password"/>
+						</label>
+					</form>
+					<div align="center">
+						<div class="loading-button">
+							<a class="button success radius submit-action" href="#printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></a>
+							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Logging in...</span>
+						</div>
+					</div>
+					<div align="right">
+						<a href="#printer">Skip AstroPrint Account <i class="icon-right-open"></i></a>
+					</div>
 				</div>
 			</div>
 		</div>

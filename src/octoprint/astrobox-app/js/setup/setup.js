@@ -128,6 +128,7 @@ var StepInternet = StepView.extend({
 	el: "#step-internet",
 	onShow: function()
 	{
+		this.$el.removeClass('success settings');
 		this.$el.addClass('checking');
 		$.ajax({
 			url: API_BASEURL + 'setup/internet',
@@ -151,10 +152,78 @@ var StepInternet = StepView.extend({
 
 var StepAstroprint = StepView.extend({
 	el: "#step-astroprint",
+	initialize: function()
+	{
+		this.events["click .submit-action"] = "onSubmitClicked";
+		this.events["click a.logout"] = "onLogoutClicked";
+	},
 	onShow: function()
 	{
+		this.$el.removeClass('success settings');
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/astroprint',
+			method: 'GET',
+			success: _.bind(function(data) {
+				if (data.user) {
+					this.$el.addClass('success');
+					this.$el.find('span.email').text(data.user);
+				} else {
+					this.$el.addClass('settings');
+				}
+			}, this),
+			error: _.bind(function() {
+				this.$el.addClass('settings');
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		});
 		this.$el.find('#email').focus();
 	},
+	onSubmit: function(data) {
+		this.$el.find('.loading-button').addClass('loading');
+		$.ajax({
+			url: API_BASEURL + 'setup/astroprint',
+			method: 'post',
+			data: data,
+			success: _.bind(function() {
+				location.href = this.$el.find('.submit-action').attr('href');
+			}, this),
+			error: _.bind(function(xhr) {
+				if (xhr.status == 400 || xhr.status == 401) {
+					message = xhr.responseText;
+				} else {
+					message = "There was an error logging you in";
+				}
+				noty({text: message, timeout: 3000});
+				this.$el.find('#email').focus();
+			}, this),
+			complete: _.bind(function() {
+				this.$el.find('.loading-button').removeClass('loading');
+			}, this)
+		});
+	},
+	onSubmitClicked: function()
+	{
+		this.$el.find('form').submit();
+		return false;
+	},
+	onLogoutClicked: function(e)
+	{
+		e.preventDefault();
+		$.ajax({
+			url: API_BASEURL + 'setup/astroprint',
+			method: 'delete',
+			success: _.bind(function() {
+				this.$el.removeClass('success');
+				this.$el.addClass('settings');
+			}, this),
+			error: _.bind(function(xhr) {
+				noty({text: "Error logging you out", timeout: 3000});
+			}, this)
+		});		
+	}
 });
 
 /**************

@@ -9,11 +9,12 @@ from functools import wraps
 
 from sys import platform
 
-from flask import make_response, request
+from flask import make_response, request, jsonify
 
 from octoprint.settings import settings
 from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
+from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 def not_setup_only(func):
 	"""
@@ -46,3 +47,53 @@ def save_name():
 @not_setup_only
 def check_internet():
 	return make_response('OK', 200)
+
+@api.route('/setup/astroprint', methods=['GET'])
+@not_setup_only
+def get_astroprint_info():
+	s = settings()
+
+	email = s.get(['cloudSlicer', 'email'])
+
+	if s.get(['cloudSlicer', "privateKey"]) and email:
+		return jsonify(user=email)
+	else:
+		return jsonify(user=None)
+
+@api.route('/setup/astroprint', methods=['DELETE'])
+@not_setup_only
+def astroprint_user():
+	s = settings()
+
+	s.set(['cloudSlicer', "privateKey"], None)
+	s.set(['cloudSlicer', "email"], None)
+	s.set(['cloudSlicer', "publicKey"], None)
+	s.save()
+
+	return make_response("OK", 200)
+
+
+@api.route('/setup/astroprint', methods=['POST'])
+@not_setup_only
+def log_into_astroprint():
+	email = request.values.get('email', None)
+	password = request.values.get('password', None)
+
+	if email and password:
+		slicer = ProvenToPrintSlicer()
+
+		private_key = slicer.get_private_key(email, password)
+
+		if private_key:
+			public_key = slicer.get_public_key(email, private_key)
+
+			if public_key:
+				s = settings()
+				s.set(["cloudSlicer", "privateKey"], private_key)
+				s.set(["cloudSlicer", "publicKey"], public_key)
+				s.set(["cloudSlicer", "email"], email)
+				#s.setBoolean(["server", "firstRun"], False)
+				s.save()
+				return make_response("OK", 200)
+
+	return make_response('Invalid Credentials', 400)

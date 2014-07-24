@@ -127,9 +127,9 @@ default_settings = {
 	},
 	"cloudSlicer": {
 		"apiHost": "http://api.proventoprint.com",
-		"email": "",
-		"privateKey": "",
-		"publicKey": ""
+		"email": None,
+		"privateKey": None,
+		"publicKey": None
 	},
 	"events": {
 		"enabled": False,

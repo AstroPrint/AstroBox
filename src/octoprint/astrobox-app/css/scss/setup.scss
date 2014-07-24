@@ -26,6 +26,11 @@
 			text-align: center;
 		}
 
+		h3 {
+			font-size: rem-calc(30);
+			line-height: 1.3em;
+		}
+
 		.content {
 			padding: 20px;
 
@@ -52,15 +57,35 @@
 	    @include radius(10px);
 	    box-shadow: 0px 0px 20px #ccc;
 	    overflow: hidden;
+
+		.checking-state,
+		.success-state,
+		.settings-state {
+			display: none;
+		}
+
+		&.checking {
+			.checking-state {
+				display: block;
+			}
+		}
+
+		&.success {
+			.success-state {
+				display: block;
+			}
+		}
+
+		&.settings {
+			.settings-state {
+				display: block;
+			}
+		}
 	}
 
     label {
     	text-align: left;
         font-size: rem-calc(15);
-    }
-
-    small.error {
-        text-align: left;
     }
 }
 
@@ -96,43 +121,14 @@
 }
 
 #step-internet {
-	.checking,
-	.success,
-	.settings {
-		display: none;
-	}
-
-	&.checking {
-		.checking {
-			display: block;
-		}
-	}
-
-	&.success {
-		.success {
-			display: block;
-		}
-	}
-
-	&.settings {
-		.settings {
-			display: block;
-		}
-	}
-
-	h3 {
-		font-size: rem-calc(30);
-		line-height: 1.3em;
-	}
-
-	.success {
+	.success-state {
 		i.ok {
 			font-size: rem-calc(50);
 			color: $success-color;
 		}
 	}
 
-	.checking {
+	.checking-state {
 		i.animate-spin {
 			font-size: rem-calc(50);
 		}
@@ -142,6 +138,13 @@
 #step-astroprint {
 	form {
 		margin-top: 35px;
+	}
+
+	.success-state {
+		i.ok {
+			font-size: rem-calc(50);
+			color: $success-color;
+		}
 	}
 }
 
