@@ -4,6 +4,18 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+ // work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
+// http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
+$.ajaxSetup({
+    type: 'POST',
+    headers: { "cache-control": "no-cache" }
+});
+
+// send the current UI API key with any request
+$.ajaxSetup({
+    headers: {"X-Api-Key": UI_API_KEY}
+});
+
 var StepView = Backbone.View.extend({
 	setup_view: null,
 	events: {
@@ -113,7 +125,24 @@ var StepName = StepView.extend({
 ***************/
 
 var StepInternet = StepView.extend({
-	el: "#step-internet"
+	el: "#step-internet",
+	onShow: function()
+	{
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/internet',
+			method: 'GET',
+			success: _.bind(function() {
+				this.$el.addClass('success');
+			}, this),
+			error: _.bind(function() {
+				this.$el.addClass('settings');
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		})
+	}
 });
 
 /**************
@@ -218,15 +247,3 @@ var SetupRouter = Backbone.Router.extend({
 var setup_view = new SetupView();
 
 Backbone.history.start();
-
-// work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
-// http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
-$.ajaxSetup({
-    type: 'POST',
-    headers: { "cache-control": "no-cache" }
-});
-
-// send the current UI API key with any request
-$.ajaxSetup({
-    headers: {"X-Api-Key": UI_API_KEY}
-});

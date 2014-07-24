@@ -14,7 +14,7 @@
     "foundation/components/forms",
     "foundation/components/alert-boxes",
     "common-main";
-    
+
 #setup-view {
 	.step {
 		h1 {
@@ -96,6 +96,30 @@
 }
 
 #step-internet {
+	.checking,
+	.success,
+	.settings {
+		display: none;
+	}
+
+	&.checking {
+		.checking {
+			display: block;
+		}
+	}
+
+	&.success {
+		.success {
+			display: block;
+		}
+	}
+
+	&.settings {
+		.settings {
+			display: block;
+		}
+	}
+
 	h3 {
 		font-size: rem-calc(30);
 		line-height: 1.3em;

@@ -41,3 +41,8 @@ def save_name():
 			return make_response('Not suported', 400)
 		else:
 			return NO_CONTENT
+
+@api.route('/setup/internet', methods=['GET'])
+@not_setup_only
+def check_internet():
+	return make_response('OK', 200)
