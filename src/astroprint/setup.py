@@ -12,8 +12,9 @@ from sys import platform
 from flask import make_response, request, jsonify
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, NO_CONTENT
+from octoprint.server import restricted_access, printer, NO_CONTENT
 from octoprint.server.api import api
+from octoprint.printer import getConnectionOptions
 from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 def not_setup_only(func):
@@ -62,7 +63,7 @@ def get_astroprint_info():
 
 @api.route('/setup/astroprint', methods=['DELETE'])
 @not_setup_only
-def astroprint_user():
+def logout_astroprint():
 	s = settings()
 
 	s.set(['cloudSlicer', "privateKey"], None)
@@ -75,7 +76,7 @@ def astroprint_user():
 
 @api.route('/setup/astroprint', methods=['POST'])
 @not_setup_only
-def log_into_astroprint():
+def login_astroprint():
 	email = request.values.get('email', None)
 	password = request.values.get('password', None)
 
@@ -97,3 +98,38 @@ def log_into_astroprint():
 				return make_response("OK", 200)
 
 	return make_response('Invalid Credentials', 400)
+
+@api.route('/setup/printer', methods=['GET'])
+@not_setup_only
+def connection_settings():
+	connectionOptions = getConnectionOptions()
+
+	if connectionOptions:
+		response = {
+			"port": connectionOptions["portPreference"],
+			"baudrate": connectionOptions["baudratePreference"],
+			"portOptions": connectionOptions["ports"],
+			"baudrateOptions": connectionOptions["baudrates"]
+		}
+
+		return jsonify(response)
+
+	return make_response("Connection options not available", 400)
+
+@api.route('/setup/printer', methods=['POST'])
+@not_setup_only
+def save_connection_settings():
+	port = request.values.get('port', None)
+	baudrate = request.values.get('baudrate', None)
+
+	if port and baudrate:
+		s = settings()
+
+		s.set(["serial", "port"], port)
+		s.setInt(["serial", "baudrate"], baudrate)
+		s.save()
+
+		printer.connect()
+		return make_response("OK", 200)
+
+	return make_response('Invalid Connection Settings', 400)

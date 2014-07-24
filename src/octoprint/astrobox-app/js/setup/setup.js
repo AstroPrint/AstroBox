@@ -16,10 +16,13 @@ $.ajaxSetup({
     headers: {"X-Api-Key": UI_API_KEY}
 });
 
+/******************/
+
 var StepView = Backbone.View.extend({
 	setup_view: null,
 	events: {
-		"submit form": "_onSubmit"
+		"submit form": "_onSubmit",
+		"click .submit-action": "_onSubmitClicked"
 	},
 	initialize: function(params) 
 	{
@@ -38,7 +41,12 @@ var StepView = Backbone.View.extend({
 		});
 
 		this.onSubmit(data);
-	}
+	},
+	_onSubmitClicked: function()
+	{
+		this.$el.find('form').submit();
+		return false;
+	},
 });
 
 /**************
@@ -59,7 +67,6 @@ var StepName = StepView.extend({
 	constructor: function()
 	{
 		this.events["keyup input"] = "onNameChanged";
-		this.events["click .submit-action"] = "onSubmitClicked";
 		StepView.apply(this, arguments);
 	},
 	initialize: function()
@@ -112,11 +119,6 @@ var StepName = StepView.extend({
 		} else {
 			location.href = this.$el.find('.submit-action').attr('href');
 		}
-	},
-	onSubmitClicked: function()
-	{
-		this.$el.find('form').submit();
-		return false;
 	}
 });
 
@@ -154,7 +156,6 @@ var StepAstroprint = StepView.extend({
 	el: "#step-astroprint",
 	initialize: function()
 	{
-		this.events["click .submit-action"] = "onSubmitClicked";
 		this.events["click a.logout"] = "onLogoutClicked";
 	},
 	onShow: function()
@@ -170,16 +171,17 @@ var StepAstroprint = StepView.extend({
 					this.$el.find('span.email').text(data.user);
 				} else {
 					this.$el.addClass('settings');
+					this.$el.find('#email').focus();
 				}
 			}, this),
 			error: _.bind(function() {
 				this.$el.addClass('settings');
+				this.$el.find('#email').focus();
 			}, this),
 			complete: _.bind(function() {
 				this.$el.removeClass('checking');
 			}, this)
 		});
-		this.$el.find('#email').focus();
 	},
 	onSubmit: function(data) {
 		this.$el.find('.loading-button').addClass('loading');
@@ -204,11 +206,6 @@ var StepAstroprint = StepView.extend({
 			}, this)
 		});
 	},
-	onSubmitClicked: function()
-	{
-		this.$el.find('form').submit();
-		return false;
-	},
 	onLogoutClicked: function(e)
 	{
 		e.preventDefault();
@@ -231,7 +228,94 @@ var StepAstroprint = StepView.extend({
 ***************/
 
 var StepPrinter = StepView.extend({
-	el: "#step-printer"
+	el: "#step-printer",
+	onShow: function()
+	{
+		this.$el.removeClass('success settings');
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/printer',
+			method: 'GET',
+			success: _.bind(function(data) {
+				this.$el.addClass('settings');
+				if (data.portOptions && data.baudrateOptions) {
+					var portSelect = this.$el.find('select#port');
+					portSelect.empty();
+					_.each(data.portOptions, function(p) {
+						portSelect.append('<option value="'+p+'">'+p+'</option>');
+					});
+					portSelect.val(data.port);
+
+					var baudSelect = this.$el.find('select#baud-rate');
+					baudSelect.empty();
+					_.each(data.baudrateOptions, function(b) {
+						baudSelect.append('<option value="'+b+'">'+b+'</option>');
+					});
+					baudSelect.val(data.baudrate);
+				} else {
+					noty({text: "Error reading printer connection settings", timeout: 3000});
+				}
+			}, this),
+			error: _.bind(function(xhr) {
+				this.$el.addClass('settings');
+				if (xhr.status == 400) {
+					message = xhr.responseText;
+				} else {
+					message = "Error reading printer connection settings";
+				}
+				noty({text: message, timeout: 3000});
+
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		});
+	},
+	onSubmit: function(data) {
+		this._setConnecting(true);
+		$.ajax({
+			url: API_BASEURL + 'setup/printer',
+			method: 'post',
+			data: data,
+			success: _.bind(function() {
+				//We monitor the connection here for status updates
+		        var socket = new SockJS(SOCKJS_URI);
+		        socket.onmessage = _.bind(function(e){ 
+		        	if (e.type == "message" && e.data.current) {
+		        		var flags = e.data.current.state.flags;
+		        		if (flags.operational) {
+		        			socket.close();
+		        			this._setConnecting(false);
+		        			location.href = this.$el.find('.submit-action').attr('href');
+		        		} else if (flags.error) {
+							noty({text: 'There was an error connecting to the printer.', timeout: 3000});
+							socket.close();
+							this._setConnecting(false);
+		        		}
+		        	}
+		        }, this);
+			}, this),
+			error: _.bind(function(xhr) {
+				if (xhr.status == 400 || xhr.status == 401) {
+					message = xhr.responseText;
+				} else {
+					message = "There was an error connecting to your printer";
+				}
+				noty({text: message, timeout: 3000});
+				this._setConnecting(false);
+			}, this)
+		});
+	},
+	_setConnecting: function(connecting)
+	{
+		if (connecting) {
+			this.$el.find('.loading-button').addClass('loading');
+			this.$el.find('.skip-step').hide();
+		} else {
+			this.$el.find('.loading-button').removeClass('loading');
+			this.$el.find('.skip-step').show();			
+		}
+	}
 });
 
 /**************

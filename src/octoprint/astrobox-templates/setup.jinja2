@@ -120,27 +120,36 @@
 		<div id="step-printer" class="step hide">
 			<h1 class="bold">Printer Connection</h1>
 			<div class="content">
-				<p>
-					Connect to your printer to the USB port on the AstroBox, select your
-					printer's connection settings and hit Connect. 
-				</p>
-				<form>
-					<label for="port">
-						<b>USB Port</b>
-						<select id="port" name="port">
-						</select>
-					</label>
-					<label for="baud-rate">
-						<b>Baud Rate</b>
-						<select id="baud-rate" name="baud-rate">
-						</select>
-					</label>
-				</form>
-				<div align="center">
-					<a class="button success radius next-step" href="#share">Connect</a>
+				<div class="checking-state" align="center">
+					<i class="icon-spin1 animate-spin"></i>
+					<h3 class="bold" align="center">Checking Printer Settings...</h3>
 				</div>
-				<div align="right">
-					<a href="#share">Skip Printer Connection <i class="icon-right-open"></i></a>
+				<div class="settings-state">
+					<p>
+						Connect to your printer to the USB port on the AstroBox, select your
+						printer's connection settings and hit Connect. 
+					</p>
+					<form>
+						<label for="port">
+							<b>USB Port</b>
+							<select id="port" name="port">
+							</select>
+						</label>
+						<label for="baud-rate">
+							<b>Baud Rate</b>
+							<select id="baud-rate" name="baudrate">
+							</select>
+						</label>
+					</form>
+					<div align="center">
+						<div class="loading-button">
+							<a class="button success radius submit-action" href="#share">Connect</a>
+							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Connecting...</span>
+						</div>
+					</div>
+					<div align="right">
+						<a href="#share" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -169,10 +178,11 @@
 		var UI_API_KEY = "{{ uiApiKey }}";
 		var BASEURL = "{{ url_for('index') }}";
 		var API_BASEURL = BASEURL + "api/";
+		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 	</script>
 	{% assets filters="closure_js", output="js/gen/setup.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
-		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js",
+		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
 		"js/setup/setup.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}

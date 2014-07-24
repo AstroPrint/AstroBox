@@ -81,31 +81,18 @@
 				display: block;
 			}
 		}
+
+		.checking-state {
+			i.animate-spin {
+				font-size: rem-calc(50);
+			}
+		}
 	}
 
     label {
     	text-align: left;
         font-size: rem-calc(15);
     }
-}
-
-#step-share {
-	.share-button {
-		width: 70%;
-		font-size: rem-calc(30);
-
-		&.facebook {
-			background-color: #45619d;
-		}
-
-		&.twitter {
-			background-color: #2fc2ef;
-		}
-	}
-
-	a.button.setup-done {
-		margin-top: 20px;
-	}
 }
 
 #step-name {
@@ -127,10 +114,17 @@
 			color: $success-color;
 		}
 	}
+}
 
-	.checking-state {
-		i.animate-spin {
+#step-astroprint {
+	form {
+		margin-top: 35px;
+	}
+
+	.success-state {
+		i.ok {
 			font-size: rem-calc(50);
+			color: $success-color;
 		}
 	}
 }
@@ -145,6 +139,25 @@
 			font-size: rem-calc(50);
 			color: $success-color;
 		}
+	}
+}
+
+#step-share {
+	.share-button {
+		width: 70%;
+		font-size: rem-calc(30);
+
+		&.facebook {
+			background-color: #45619d;
+		}
+
+		&.twitter {
+			background-color: #2fc2ef;
+		}
+	}
+
+	a.button.setup-done {
+		margin-top: 20px;
 	}
 }
 
