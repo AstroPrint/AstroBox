@@ -6,25 +6,55 @@
 
 var StepView = Backbone.View.extend({
 	setup_view: null,
-	events: {},
+	events: {
+		"submit form": "_onSubmit"
+	},
 	initialize: function(params) 
 	{
 		this.setup_view = params.setup_view;
 	},
 	onHide: function() {},
-	onShow: function() {}
+	onShow: function() {},
+	onSubmit: function(data) {},
+	_onSubmit: function(e)
+	{
+		e.preventDefault();
+		var serializedData = $(e.currentTarget).serializeArray();
+		var data = {};
+		_.each(serializedData, function(item) {
+			data[item.name] = item.value;
+		});
+
+		this.onSubmit(data);
+	}
 });
+
+/**************
+* Welcome
+***************/
 
 var StepWelcome = StepView.extend({
 	el: "#step-welcome"
 });
 
+/**************
+* Name
+***************/
+
 var StepName = StepView.extend({
 	el: "#step-name",
+	default: 'astrobox',
 	constructor: function()
 	{
 		this.events["keyup input"] = "onNameChanged";
+		this.events["click .submit-action"] = "onSubmitClicked";
 		StepView.apply(this, arguments);
+	},
+	initialize: function()
+	{
+		this.$el.find('input#astrobox-name').val(this.default);
+		this.$el.find('.hotspot-name').text(this.default);
+		this.$el.find('.astrobox-url').text(this.default);		
 	},
 	onShow: function()
 	{
@@ -32,14 +62,63 @@ var StepName = StepView.extend({
 	},
 	onNameChanged: function(e) 
 	{
-		this.$el.find('.hotspot-name').text($(e.target).val());
-		this.$el.find('.astrobox-url').text($(e.target).val());
+		var name = $(e.target).val();
+
+		if (/^[A-Za-z0-9\-_]+$/.test(name)) {
+			this.$el.find('.hotspot-name').text(name);
+			this.$el.find('.astrobox-url').text(name);
+		} else if (name) {
+			$(e.target).val( $(e.target).val().slice(0, -1) );
+		} else {
+			this.$el.find('.hotspot-name').text('');
+			this.$el.find('.astrobox-url').text('');
+		}
+	},
+	onSubmit: function(data)
+	{
+		if (data.name != this.default) {
+			this.$el.find('.loading-button').addClass('loading');
+			$.ajax({
+				url: API_BASEURL + 'setup/name',
+				method: 'post',
+				data: data,
+				success: _.bind(function() {
+					location.href = this.$el.find('.submit-action').attr('href');
+				}, this),
+				error: function(xhr) {
+					if (xhr.status == 400) {
+						message = xhr.responseText;
+					} else {
+						message = "There was an error saving your name";
+					}
+					noty({text: message, timeout: 3000});
+				},
+				complete: _.bind(function() {
+					this.$el.find('.loading-button').removeClass('loading');
+				}, this)
+			});
+		} else {
+			location.href = this.$el.find('.submit-action').attr('href');
+		}
+	},
+	onSubmitClicked: function()
+	{
+		this.$el.find('form').submit();
+		return false;
 	}
 });
+
+/**************
+* Internet
+***************/
 
 var StepInternet = StepView.extend({
 	el: "#step-internet"
 });
+
+/**************
+* Astroprint
+***************/
 
 var StepAstroprint = StepView.extend({
 	el: "#step-astroprint",
@@ -49,9 +128,17 @@ var StepAstroprint = StepView.extend({
 	},
 });
 
+/**************
+* Printer
+***************/
+
 var StepPrinter = StepView.extend({
 	el: "#step-printer"
 });
+
+/**************
+* Share
+***************/
 
 var StepShare = StepView.extend({
 	el: "#step-share",
@@ -99,8 +186,6 @@ var SetupView = Backbone.View.extend({
 		};
 
 		this.router = new SetupRouter({'setup_view': this});
-
-		this.setStep(this.current_step);
 	},
 	setStep: function(step)
 	{
@@ -133,3 +218,15 @@ var SetupRouter = Backbone.Router.extend({
 var setup_view = new SetupView();
 
 Backbone.history.start();
+
+// work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
+// http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
+$.ajaxSetup({
+    type: 'POST',
+    headers: { "cache-control": "no-cache" }
+});
+
+// send the current UI API key with any request
+$.ajaxSetup({
+    headers: {"X-Api-Key": UI_API_KEY}
+});

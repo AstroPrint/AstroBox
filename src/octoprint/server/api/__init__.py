@@ -31,6 +31,7 @@ from . import timelapse as api_timelapse
 from . import users as api_users
 from . import cloud_slicer as api_cloud_slicer
 from . import log as api_logs
+from astroprint import setup as api_astroprint_setup
 
 VERSION = "1.0"
 
@@ -105,7 +106,7 @@ def afterApiRequests(resp):
 #~~ first run setup
 
 
-@api.route("/setup", methods=["POST"])
+"""@api.route("/setup", methods=["POST"])
 def firstRunSetup():
 	if not s().getBoolean(["server", "firstRun"]):
 		abort(403)
@@ -126,7 +127,7 @@ def firstRunSetup():
 		octoprint.server.principals.identity_loaders.appendleft(octoprint.users.dummy_identity_loader)
 
 	s().save()
-	return NO_CONTENT
+	return NO_CONTENT"""
 
 #~~ system state
 

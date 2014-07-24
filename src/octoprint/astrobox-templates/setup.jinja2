@@ -33,18 +33,21 @@
 				<form align="center">
 					<label for="astrobox-name">
 						<b>AstroBox Name:</b>
-						<input id="astrobox-name" class="radius" type="text" name="name" value="astrobox"/>
+						<input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
 					</label>
 				</form>
 				<p>
 					A few important things to remember:
 				</p>
 				<p class="preview">
-					<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold">astrobox</span><br/>
-					<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold">astrobox</span>.local
+					<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span><br/>
+					<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local
 				</p>
 				<div align="center">
-					<a class="button success radius" href="#internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></a>
+					<div class="loading-button">
+						<a class="button success radius submit-action" href="#internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></a>
+						<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Saving...</span>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -155,6 +158,7 @@
 	</script>
 	{% assets filters="closure_js", output="js/gen/setup.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
+		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js",
 		"js/setup/setup.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}

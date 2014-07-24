@@ -3,7 +3,7 @@
 		text-align: center;
 		color: white;
 		font-size: rem-calc(25);
-		padding: 5px 0;
+		padding: 10px 0;
 		@include side-radius('bottom');
 
 		&.noty_container_type_alert {

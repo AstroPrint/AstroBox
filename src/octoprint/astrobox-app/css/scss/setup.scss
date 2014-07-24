@@ -14,7 +14,7 @@
     "foundation/components/forms",
     "foundation/components/alert-boxes",
     "common-main";
-
+    
 #setup-view {
 	.step {
 		h1 {
@@ -120,3 +120,7 @@
 		margin-top: 35px;
 	}
 }
+
+@import
+    "noty",
+    "widgets";

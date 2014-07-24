@@ -2,7 +2,8 @@
 
 #App JS Files
 
-JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js lib/sockjs.js lib/fastclick.js lib/jquery.fileupload.js lib/jquery.noty.js lib/jquery.noty.top.js \
+JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js \ 
+				lib/sockjs.js lib/fastclick.js lib/jquery.fileupload.js lib/jquery.noty.js lib/jquery.noty.top.js \
 				app/models/socketdata.js app/models/printfiles.js \
 				app/utils.js \
 				app/views/home.js app/views/control.js app/views/settings.js app/views/connection.js app/views/turnoff.js app/views/printing.js \
@@ -25,6 +26,7 @@ JS_LOGIN_PACKED := src/octoprint/astrobox-app/js/gen/login.js
 #Setup JS Files
 
 JS_SETUP_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js lib/foundation/foundation.reveal.js \
+					lib/jquery.noty.js lib/jquery.noty.top.js \
 					setup/setup.js
 
 JS_SETUP_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
