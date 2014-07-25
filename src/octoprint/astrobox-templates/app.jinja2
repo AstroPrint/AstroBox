@@ -1,14 +1,14 @@
 {% extends 'base.jinja2' %}
 
 {% block css %}
-	{% assets filters="scss", output="css/gen/app.css", "css/scss/app.scss" %}
-		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
-	{% endassets %}
 	{% if not user_email %}
 		{% assets filters="scss", output="css/gen/login.css", "css/scss/login.scss" %}
 			<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 		{% endassets %}
 	{% endif %}
+	{% assets filters="scss", output="css/gen/app.css", "css/scss/app.scss" %}
+		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+	{% endassets %}
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,7 @@
 				<section class="middle tab-bar-section">
 					<h1 class="title"><img src="/img/astroprint-logo_tm.png"/></h1>
 					<div id="connection-view">
-						<i class="icon-print printer"></i>
+						<i class="icon-3d-printer printer"></i>
 						<i class="icon-exchange server"></i>
 					</div>
 				</section>

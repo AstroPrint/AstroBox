@@ -11,7 +11,7 @@
 		</div>
 	</div>
 	<div class="design-list small-12 columns">
-		<h3 class="bold">Printable Files <i class="icon-refresh" title="Refresh"></i></h3>
+		<h3 class="bold">Printable Files {%- if user_email %} <i class="icon-refresh" title="Refresh"></i> {%- endif %}</h3>
 		<div class="design-list-container"></div>
 	</div>
 </div>
@@ -39,7 +39,7 @@
 							<i class="icon-trash with-separator" title="Remove from AstroBox"></i>
 						</a>
 						<a class="print" href="#">
-							<i class="icon-print" title="Print"></i>
+							<i class="icon-3d-printer" title="Print"></i>
 						</a>
 					<% } else { %>
 						<a class="download" href="#">
@@ -98,7 +98,7 @@
 					<div class="print-file-options">
 						<% if (p.local_filename) { %>
 							<a onclick="home_print_print_file_clicked('<%= p.local_filename %>', arguments[0])">
-								<i class="icon-print" title="Print"></i>
+								<i class="icon-3d-printer" title="Print"></i>
 							</a>
 						<% } else { %>
 							<a href="#" onclick="home_download_print_file_clicked('<%= p.id %>', arguments[0])">

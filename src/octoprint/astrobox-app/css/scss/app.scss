@@ -27,8 +27,8 @@
 	}
 
 	h1.title {
-		display: inline-block;
-
+		float: left;
+		
 		img {
 			height: 30px;
 		}	
@@ -67,7 +67,6 @@
 }
 
 #connection-view {
-	display: inline-block;
 	float: right;
 
 	i {
