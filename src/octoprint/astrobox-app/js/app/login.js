@@ -4,17 +4,19 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-var LoginView = Backbone.View.extend({
-	el: '#login-view',
+var LoginModal = Backbone.View.extend({
+	el: '#login-modal',
 	button: null,
 	events: {
-		'valid form': 'onFormValidated'
+		'valid form': 'onFormValidated',
+        'opened.fndtn.reveal': 'onModalOpened'
 	},
-	initialize: function(){
-		this.$el.find("input[name='email']").focus();
+	initialize: function()
+    {
 		this.button = this.$el.find('.loading-button');
 	},
-	onFormValidated: function(e) {
+	onFormValidated: function(e) 
+    {
 		var errorContainer = this.$el.find('.alert-box');
 		errorContainer.hide();
 		this.button.addClass('loading');
@@ -36,19 +38,11 @@ var LoginView = Backbone.View.extend({
                 self.button.removeClass('loading');
             }
         });
-	}
+	},
+    onModalOpened: function()
+    {
+        this.$el.find("input[name='email']").focus();
+    }
 });
 
-// work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
-// http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
-$.ajaxSetup({
-    type: 'POST',
-    headers: { "cache-control": "no-cache" }
-});
-
-// send the current UI API key with any request
-$.ajaxSetup({
-    headers: {"X-Api-Key": UI_API_KEY}
-});
-
-var login = new LoginView();
+var loginModal = new LoginModal();

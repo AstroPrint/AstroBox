@@ -15,8 +15,7 @@ JS_APP_PACKED := src/octoprint/astrobox-app/js/gen/app.js
 
 #Login JS Files
 
-JS_LOGIN_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick.js lib/foundation/foundation.js lib/foundation/foundation.abide.js \
-					login/login.js
+JS_LOGIN_FILES := 	lib/foundation/foundation.abide.js app/login.js
 
 JS_LOGIN_LIST := 	$(foreach file, $(JS_LOGIN_FILES), \
 						$(addprefix src/octoprint/astrobox-app/js/, $(file)) \

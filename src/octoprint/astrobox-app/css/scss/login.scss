@@ -1,38 +1,27 @@
 @charset "UTF-8";
 
 @import
-    "fonts",
-    "normalize",
-    "fontello",
-    "animations",
-    "widgets",
     "foundation/settings",
-    "foundation/components/global",
-    "foundation/components/grid",
-    "foundation/components/buttons",
-    "foundation/components/forms",
-    "foundation/components/alert-boxes",
-    "common-main";
+    "foundation/components/visibility";
 
-#login-view {
-    label {
-        text-align: left;
-        font-size: rem-calc(25);
+#main-menu {
+    li {
+        a.login {
+            margin: 0;
+            color: white;
+        }
     }
+}
 
-    small.error {
-        text-align: left;
-    }
-
-    img {
+#login-modal {
+    img.logo {
         margin-bottom: 20px;
     }
+}
 
-    .login-container {
-        background-color: white;
-        padding: 20px;
-        margin: 50px 0;
-        @include radius(10px);
-        box-shadow: 0px 0px 20px #ccc;
+@media #{$medium-only} {
+    #login-modal {
+        width: 80%;
+        margin-left: -40%;
     }
 }

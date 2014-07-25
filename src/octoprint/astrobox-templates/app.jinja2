@@ -1,10 +1,14 @@
 {% extends 'base.jinja2' %}
 
 {% block css %}
-	{% assets filters="scss", output="css/gen/app.css", 
-		"css/scss/app.scss" %}
+	{% assets filters="scss", output="css/gen/app.css", "css/scss/app.scss" %}
 		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
+	{% if not user_email %}
+		{% assets filters="scss", output="css/gen/login.css", "css/scss/login.scss" %}
+			<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+		{% endassets %}
+	{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -24,12 +28,17 @@
 			</nav>
 			<aside class="left-off-canvas-menu">
 				<ul class="off-canvas-list" id="main-menu">
-					<li><label>AstroPrint&trade;</label></li>
+					<li class="header"><label>AstroPrint&trade;</label></li>
+					{% if not user_email %}
+						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
+					{% endif %}
 					<li class="view" data-view="home"><a href="#"><i class="icon-home"></i> Home</a></li>
 					<li class="view" data-view="control"><a href="#"><i class="icon-move"></i> Control</a></li>
 					<li class="view" data-view="settings"><a href="#"><i class="icon-cog"></i> Settings</a></li>
-					<li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
-					<li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-spin1 animate-spin hide"></i></a></li>
+					{% if user_email %}
+						<li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
+						<li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-spin1 animate-spin hide"></i></a></li>
+					{% endif %}
 				</ul>
 				<div class="turn-off-area" align="center">
 					<a href="#" class="button alert tiny radius" data-reveal-id="turnoff-modal"><i class="icon-off"></i> Turn AstroBox&trade; Off</a>
@@ -57,6 +66,9 @@
 			<a class="exit-off-canvas"></a>
 		</div>
 	</div>
+	{% if not user_email %}
+		{% include 'login.jinja2' %}
+	{% endif %}
 
 	{% include 'turnoff.jinja2' %}
 {% endblock %}
@@ -67,7 +79,7 @@
 		var BASEURL = "{{ url_for('index') }}";
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-		var SOCKJS_DEBUG = {%  if debug -%} true; {% else %} false; {%- endif %}
+		var SOCKJS_DEBUG = {% if debug -%} true {%- else -%} false {%- endif %};
 
 		var app = null;
 	</script>
@@ -78,6 +90,11 @@
 		"js/app/app.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}
+	{% if not user_email %}
+		{% assets filters="closure_js", output="js/gen/login.js", "js/lib/foundation/foundation.abide.js", "js/app/login.js" -%}
+			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+		{%- endassets %}
+	{% endif %}
 	<script type="text/javascript">
 		$(document).foundation();
 	</script>

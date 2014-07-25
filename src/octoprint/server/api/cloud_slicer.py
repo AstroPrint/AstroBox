@@ -22,9 +22,9 @@ from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 @restricted_access
 def cloud_slicer_logout():
 	s = settings()
-	s.set(["cloudSlicer", "privateKey"], '')
-	s.set(["cloudSlicer", "publicKey"], '')
-	s.set(["cloudSlicer", "email"], '')
+	s.set(["cloudSlicer", "privateKey"], None)
+	s.set(["cloudSlicer", "publicKey"], None)
+	s.set(["cloudSlicer", "email"], None)
 	s.save()
 	return jsonify(SUCCESS)	
 
@@ -70,9 +70,6 @@ def upload_data():
 @api.route("/cloud-slicer/print-files", methods=["GET"])
 @restricted_access
 def designs():
-	if not bool(settings().get(["cloudSlicer", "publicKey"])):
-		abort(401)
-
 	slicer = ProvenToPrintSlicer()
 	cloud_files = json.loads(slicer.print_files())
 
