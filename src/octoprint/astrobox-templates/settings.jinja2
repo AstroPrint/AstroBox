@@ -3,10 +3,13 @@
 		<div id="settings-side-bar">
 			<ul class="side-nav">
 				<li class="heading bold">Printer</li>
-				<li class="active"><a class="printer-connection" href="#">Connection</a></li>
+				<li class="active"><a class="page" data-page="printer-connection" href="#">Connection</a></li>
 				<li class="divider"></li>
 				<li class="heading bold">Internet</li>
-				<li><a class="internet-wifi" href="#">WiFi</a></li>
+				<li><a class="page" data-page="internet-wifi" href="#">WiFi</a></li>
+				<li class="heading bold">Software</li>
+				<li><a class="page" data-page="software-update" href="#">Update</a></li>
+				<li><a class="page" data-page="software-advanced" href="#">Advanced</a><li>
 			</ul>
 		</div>
 	</div>
@@ -36,6 +39,13 @@
 		</div>
 		<div id="internet-wifi" class="settings-page hide">
 		</div>
+		<h1 class="bold show-for-small" align="center">Software</h1>
+		<div id="software-update" class="settings-page hide" align="center">
+			<button class="success radius">Check for updates</button>
+		</div>
+		<div id="software-advanced" class="settings-page hide" align="center">
+			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
+		</div>
 	</div>
 </div>
 
@@ -59,6 +69,24 @@
 		<span class="loading button disabled radius">
 			<i class="icon-spin1 animate-spin"></i> Connecting...
 		</span>
+	</div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
+	<h2 class="bold">Are you sure?</h2>
+	<div class="modal-content">
+		<p>This will delete all your settings, users and files from your AstroBox.</p>
+		<p>
+			<label for="confirmation">
+				<b>Write "RESET" to confirm</b>
+				<input type="text"/>
+			</label>
+	</div>
+	<button class="secondary radius left">Cancel</button>
+	<div class="loading-button right">
+		<button class="alert radius">Reset</button>
+		<span class="button disabled alert radius loading"><i class="icon-spin1 animate-spin"></i> Resetting...</span>
 	</div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>

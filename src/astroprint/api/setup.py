@@ -137,5 +137,8 @@ def save_connection_settings():
 @api.route('/setup/done', methods=['POST'])
 @not_setup_only
 def set_setup_done():
-	settings().setBoolean(['server', 'firstRun'], False)
+	s = settings()
+	s.setBoolean(['server', 'firstRun'], False)
+	s.save()
+
 	return make_response("OK", 200)

@@ -4,99 +4,6 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-var WiFiNetworkPasswordDialog = Backbone.View.extend({
-	el: '#wifi-network-password-modal',
-	events: {
-		'click button.connect': 'connectClicked'
-	},
-	parent: null,
-	initialize: function(params) {
-		this.parent = params.parent;
-	},
-	open: function(id, name) {
-		this.$el.find('.network-id-field').val(id);
-		this.$el.find('.name').text(name);
-		this.$el.foundation('reveal', 'open');
-		this.$el.one('opened', _.bind(function() {
-			this.$el.find('.network-password-field').focus();
-		}, this));
-	},
-	connectClicked: function(e) {
-		e.preventDefault();
-
-		var form = this.$el.find('form');
-
-		this.connect($(e.target), form.find('.network-id-field').val(), form.find('.network-password-field').val());
-	},
-	connect: function(btn, id, password) {
-		var loadingBtn = btn.closest('.loading-button');
-		var self = this;
-		loadingBtn.addClass('loading');
-
-		$.ajax({
-			url: API_BASEURL + 'settings/wifi/active', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify({id: id, password: password})
-		})
-		.done(function(data) {
-			if (data.ssid) {
-				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
-				self.$el.foundation('reveal', 'close');
-				self.parent.settings.network = {name: data.ssid}
-				self.parent.render();
-			} else if (data.message) {
-				noty({text: data.message});
-			}
-		})
-		.fail(function(){
-			noty({text: "There was an error saving setting.", timeout: 3000});
-			self.$el.foundation('reveal', 'close');
-		})
-		.complete(function() {
-			loadingBtn.removeClass('loading');
-		});
-	}
-});
-
-var WiFiNetworksDialog = Backbone.View.extend({
-	el: '#wifi-network-list-modal',
-	networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
-	passwordDlg: null,
-	parent: null,
-	initialize: function(params) {
-		this.parent = params.parent;
-	},
-	open: function(networks) {
-		var content = this.$el.find('.modal-content');
-		content.empty();
-
-		content.html(this.networksTemplate({ 
-			networks: networks
-		}));
-
-		content.find('button').bind('click', _.bind(this.networkSelected, this));
-
-		this.$el.foundation('reveal', 'open');
-	},
-	networkSelected: function(e) {
-		e.preventDefault();
-
-		var button = $(e.target);
-	
-		if (!this.passwordDlg) {
-			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
-		}
-
-		if (button.data('secured') == '1') {
-			this.passwordDlg.open(button.data('id'), button.data('name'));
-		} else {
-			this.passwordDlg.connect(button, button.data('id'), null);
-		}
-	}
-});
-
 var SettingsPage = Backbone.View.extend({
 	parent: null,
 	initialize: function(params) {
@@ -107,6 +14,10 @@ var SettingsPage = Backbone.View.extend({
 		this.$el.removeClass('hide');
 	}
 });
+
+/***********************
+* Printer - Connection
+************************/
 
 var PrinterConnectionView = SettingsPage.extend({
 	el: '#printer-connection',
@@ -173,6 +84,10 @@ var PrinterConnectionView = SettingsPage.extend({
 		});
 	}
 });
+
+/********************
+* Internet - Wifi
+*********************/
 
 var InternetWifiView = SettingsPage.extend({
 	el: '#internet-wifi',
@@ -278,12 +193,165 @@ var InternetWifiView = SettingsPage.extend({
 	}
 });
 
+var WiFiNetworkPasswordDialog = Backbone.View.extend({
+	el: '#wifi-network-password-modal',
+	events: {
+		'click button.connect': 'connectClicked'
+	},
+	parent: null,
+	initialize: function(params) {
+		this.parent = params.parent;
+	},
+	open: function(id, name) {
+		this.$el.find('.network-id-field').val(id);
+		this.$el.find('.name').text(name);
+		this.$el.foundation('reveal', 'open');
+		this.$el.one('opened', _.bind(function() {
+			this.$el.find('.network-password-field').focus();
+		}, this));
+	},
+	connectClicked: function(e) {
+		e.preventDefault();
+
+		var form = this.$el.find('form');
+
+		this.connect($(e.target), form.find('.network-id-field').val(), form.find('.network-password-field').val());
+	},
+	connect: function(btn, id, password) {
+		var loadingBtn = btn.closest('.loading-button');
+		var self = this;
+		loadingBtn.addClass('loading');
+
+		$.ajax({
+			url: API_BASEURL + 'settings/wifi/active', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify({id: id, password: password})
+		})
+		.done(function(data) {
+			if (data.ssid) {
+				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+				self.$el.foundation('reveal', 'close');
+				self.parent.settings.network = {name: data.ssid}
+				self.parent.render();
+			} else if (data.message) {
+				noty({text: data.message});
+			}
+		})
+		.fail(function(){
+			noty({text: "There was an error saving setting.", timeout: 3000});
+			self.$el.foundation('reveal', 'close');
+		})
+		.complete(function() {
+			loadingBtn.removeClass('loading');
+		});
+	}
+});
+
+var WiFiNetworksDialog = Backbone.View.extend({
+	el: '#wifi-network-list-modal',
+	networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
+	passwordDlg: null,
+	parent: null,
+	initialize: function(params) {
+		this.parent = params.parent;
+	},
+	open: function(networks) {
+		var content = this.$el.find('.modal-content');
+		content.empty();
+
+		content.html(this.networksTemplate({ 
+			networks: networks
+		}));
+
+		content.find('button').bind('click', _.bind(this.networkSelected, this));
+
+		this.$el.foundation('reveal', 'open');
+	},
+	networkSelected: function(e) {
+		e.preventDefault();
+
+		var button = $(e.target);
+	
+		if (!this.passwordDlg) {
+			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
+		}
+
+		if (button.data('secured') == '1') {
+			this.passwordDlg.open(button.data('id'), button.data('name'));
+		} else {
+			this.passwordDlg.connect(button, button.data('id'), null);
+		}
+	}
+});
+
+/********************
+* Software - Update
+*********************/
+
+var SoftwareUpdateView = SettingsPage.extend({
+	el: '#software-update'
+});
+
+/************************
+* Software - Advanced
+*************************/
+
+var SoftwareAdvancedView = SettingsPage.extend({
+	el: '#software-advanced',
+	ResetConfirmDialog: null,
+	initialize: function(params)
+	{
+		SettingsPage.prototype.initialize.apply(this, arguments);
+		this.ResetConfirmDialog = new ResetConfirmDialog();		
+	}
+});
+
+var ResetConfirmDialog = Backbone.View.extend({
+	el: '#restore-confirm-modal',
+	events: {
+		'click button.secondary': 'doClose',
+		'click button.alert': 'doReset',
+		'open.fndtn.reveal': 'onOpen'
+	},
+	onOpen: function()
+	{
+		this.$el.find('input').val('');
+	},
+	doClose: function()
+	{
+		this.$el.foundation('reveal', 'close');
+	},
+	doReset: function()
+	{
+		if (this.$el.find('input').val() == 'RESET') {
+			this.$el.find('.loading-button').addClass('loading');
+			$.ajax({
+				url: API_BASEURL + 'settings/software/settings', 
+				type: 'DELETE',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify({}),
+				success: function() {
+					location.href = "";
+				},
+				complete: _.bind(function() {
+					this.$el.find('.loading-button').removeClass('loading');
+				}, this)
+			})
+		} 
+	}
+});
+
+
+/******************************************/
+
 var SettingsMenu = Backbone.View.extend({
 	el: '#settings-side-bar',
 	subviews: null,
 	events: {
-		'click a.printer-connection': 'showPrinterConnection',
-		'click a.internet-wifi': 'showInternetWifi'
+		'click a.page': '_changeActive'
 	},
 	initialize: function(params) {
 		if (params.subviews) {
@@ -292,16 +360,11 @@ var SettingsMenu = Backbone.View.extend({
 	},
 	_changeActive: function(e) {
 		e.preventDefault();
+
+		var target = $(e.currentTarget);
 		this.$el.find('li.active').removeClass('active');
-		$(e.target).closest('li').addClass('active');
-	},
-	showPrinterConnection: function(e) {
-		this._changeActive(e);
-		this.subviews.printerConnection.show();
-	},
-	showInternetWifi: function(e) {
-		this._changeActive(e);
-		this.subviews.internetWifi.show();
+		target.closest('li').addClass('active');
+		this.subviews[target.data('page')].show();
 	}
 });
 
@@ -311,16 +374,17 @@ var SettingsView = Backbone.View.extend({
 	events: {
 		'show': 'onShow'
 	},
-	subviews: {
-		printerConnection: null,
-		internetWifi: null
-	},
+	subviews: null,
 	initialize: function() {
-		this.subviews.printerConnection = new PrinterConnectionView({parent: this});
-		this.subviews.internetWifi = new InternetWifiView({parent: this});
+		this.subviews = {
+			'printer-connection': new PrinterConnectionView({parent: this}),
+			'internet-wifi': new InternetWifiView({parent: this}),
+			'software-update': new SoftwareUpdateView({parent: this}),
+			'software-advanced': new SoftwareAdvancedView({parent: this})
+		};
 		this.menu = new SettingsMenu({subviews: this.subviews});
 	},
 	onShow: function() {
-		this.subviews.printerConnection.show();
+		this.subviews['printer-connection'].show();
 	}
 });

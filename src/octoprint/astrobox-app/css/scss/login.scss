@@ -1,8 +1,8 @@
 @charset "UTF-8";
 
+$include-html-global-classes: false;
 @import
-    "foundation/settings",
-    "foundation/components/visibility";
+    "foundation/components/global";
 
 #main-menu {
     li {

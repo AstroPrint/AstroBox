@@ -26,12 +26,13 @@ from . import printer as api_printer
 from . import job as api_job
 from . import connection as api_connection
 from . import files as api_files
-from . import settings as api_settings
-from . import timelapse as api_timelapse
-from . import users as api_users
+#from . import settings as api_settings
+#from . import timelapse as api_timelapse
+#from . import users as api_users
 from . import cloud_slicer as api_cloud_slicer
-from . import log as api_logs
-from astroprint import setup as api_astroprint_setup
+#from . import log as api_logs
+from astroprint.api import settings as api_settings
+from astroprint.api import setup as api_astroprint_setup
 
 VERSION = "1.0"
 
