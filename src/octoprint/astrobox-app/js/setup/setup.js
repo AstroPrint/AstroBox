@@ -7,13 +7,13 @@
  // work around a stupid iOS6 bug where ajax requests get cached and only work once, as described at
 // http://stackoverflow.com/questions/12506897/is-safari-on-ios-6-caching-ajax-results
 $.ajaxSetup({
-    type: 'POST',
-    headers: { "cache-control": "no-cache" }
+	type: 'POST',
+	headers: { "cache-control": "no-cache" }
 });
 
 // send the current UI API key with any request
 $.ajaxSetup({
-    headers: {"X-Api-Key": UI_API_KEY}
+	headers: {"X-Api-Key": UI_API_KEY}
 });
 
 /******************/
@@ -128,23 +128,161 @@ var StepName = StepView.extend({
 
 var StepInternet = StepView.extend({
 	el: "#step-internet",
+	networkListTemplate: null,
+	networks: null,
+	passwordDialog: null,
+	initialize: function()
+	{
+		this.events['click .failed-state button'] = 'onShow';
+		this.events['click .settings-state button.connect'] = 'onConnectClicked';
+	},
 	onShow: function()
 	{
-		this.$el.removeClass('success settings');
+		this.$el.removeClass('success settings failed');
 		this.$el.addClass('checking');
 		$.ajax({
 			url: API_BASEURL + 'setup/internet',
 			method: 'GET',
-			success: _.bind(function() {
-				this.$el.addClass('success');
+			dataType: 'json',
+			success: _.bind(function(data) {
+				if (data && data.connected) {
+					this.$el.addClass('success');
+				} else {
+					if (!this.networkListTemplate) {
+						this.networkListTemplate = _.template( $("#wifi-network-list-template").html() )
+					}
+					var list = this.$el.find('.settings-state .wifi-network-list');
+					list.empty();
+
+					this.networks = _.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
+						el.active = self.settings && self.settings.network.id == el.id;
+						return -el.signal
+					});
+
+					list.html(this.networkListTemplate({ 
+						networks: this.networks
+					}));
+
+					//Bind events
+					list.find('table tr').bind('click', _.bind(this.networkSelected, this));
+
+					this.$el.addClass('settings');
+				}
 			}, this),
-			error: _.bind(function() {
-				this.$el.addClass('settings');
+			error: _.bind(function(xhr) {
+				this.$el.addClass('failed');
+				this.$el.find('.failed-state h3').text(xhr.responseText);
 			}, this),
 			complete: _.bind(function() {
 				this.$el.removeClass('checking');
 			}, this)
 		})
+	},
+	networkSelected: function(e)
+	{
+		var networkRow = $(e.currentTarget);
+
+		this.$el.find('.wifi-network-list tr.selected').removeClass('selected');
+		networkRow.addClass('selected');
+
+		var network = this.networks[networkRow.data('id')];
+		if (network) {
+			this.$el.find('.settings-state button.connect').removeClass('disabled');
+		}
+	},
+	onConnectClicked: function()
+	{
+		var networkRow = this.$el.find('.wifi-network-list tr.selected');
+
+		if (networkRow.length == 1) {
+			var network = this.networks[networkRow.data('id')];
+
+			if (network.secured) {
+				if (!this.passwordDialog) {
+					this.passwordDialog = new WiFiNetworkPasswordDialog({parent: this});
+				}
+
+				this.passwordDialog.open(network.id, network.name);
+			} else {
+				this.doConnect({id: network.id, password: null});
+			}
+		}
+	},
+	doConnect: function(data, callback)
+	{
+		var loadingBtn = this.$el.find(".settings-state .loading-button");
+		loadingBtn.addClass('loading');
+
+		$.ajax({
+			url: API_BASEURL + 'setup/internet', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify({id: data.id, password: data.password})
+		})
+		.done(_.bind(function(data) {
+			if (data.ssid) {
+				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+				if (callback) callback(false);
+				this.$el.removeClass('settings');
+				this.$el.addClass('success');
+			} else if (data.message) {
+				noty({text: data.message, timeout: 3000});
+				if (callback) callback(true);
+			}
+		}, this))
+		.fail(function(){
+			noty({text: "There was an error connecting.", timeout: 3000});
+			if (callback) callback(true);
+		})
+		.complete(function() {
+			loadingBtn.removeClass('loading');
+		});
+	}
+});
+
+var WiFiNetworkPasswordDialog = Backbone.View.extend({
+	el: '#wifi-network-password-modal',
+	events: {
+		'click button.connect': 'connectClicked',
+		'click button.cancel': 'cancelClicked'
+	},
+	parent: null,
+	initialize: function(params) 
+	{
+		this.parent = params.parent;
+	},
+	open: function(id, name) 
+	{
+		this.$el.find('.network-id-field').val(id);
+		this.$el.find('.name').text(name);
+		this.$el.foundation('reveal', 'open');
+		this.$el.one('opened', _.bind(function() {
+			this.$el.find('.network-password-field').focus();
+		}, this));
+	},
+	connectClicked: function(e) 
+	{
+		e.preventDefault();
+
+		var form = this.$el.find('form');
+		var loadingBtn = this.$el.find('.loading-button');
+
+		loadingBtn.addClass('loading');
+		this.parent.doConnect(
+			{id: form.find('.network-id-field').val(), password: form.find('.network-password-field').val()}, 
+			_.bind(function(error) { //callback
+				loadingBtn.removeClass('loading');
+				if (!error) {
+					this.$el.foundation('reveal', 'close');
+				}
+			}, this)
+		);
+	},
+	cancelClicked: function(e) 
+	{
+		e.preventDefault();
+		this.$el.foundation('reveal', 'close');
 	}
 });
 
@@ -279,21 +417,21 @@ var StepPrinter = StepView.extend({
 			data: data,
 			success: _.bind(function() {
 				//We monitor the connection here for status updates
-		        var socket = new SockJS(SOCKJS_URI);
-		        socket.onmessage = _.bind(function(e){ 
-		        	if (e.type == "message" && e.data.current) {
-		        		var flags = e.data.current.state.flags;
-		        		if (flags.operational) {
-		        			socket.close();
-		        			this._setConnecting(false);
-		        			location.href = this.$el.find('.submit-action').attr('href');
-		        		} else if (flags.error) {
+				var socket = new SockJS(SOCKJS_URI);
+				socket.onmessage = _.bind(function(e){ 
+					if (e.type == "message" && e.data.current) {
+						var flags = e.data.current.state.flags;
+						if (flags.operational) {
+							socket.close();
+							this._setConnecting(false);
+							location.href = this.$el.find('.submit-action').attr('href');
+						} else if (flags.error) {
 							noty({text: 'There was an error connecting to the printer.', timeout: 3000});
 							socket.close();
 							this._setConnecting(false);
-		        		}
-		        	}
-		        }, this);
+						}
+					}
+				}, this);
 			}, this),
 			error: _.bind(function(xhr) {
 				if (xhr.status == 400 || xhr.status == 401) {
@@ -326,11 +464,11 @@ var StepShare = StepView.extend({
 	el: "#step-share",
 	constructor: function() 
 	{
-	    this.events["click .share-button.facebook"] = "onFacebookClicked";
-	    this.events["click .share-button.twitter"] = "onTwitterClicked";
-	    this.events["click .setup-done"] = "onSetupDone";
-	    StepView.apply(this, arguments);
-  	},
+		this.events["click .share-button.facebook"] = "onFacebookClicked";
+		this.events["click .share-button.twitter"] = "onTwitterClicked";
+		this.events["click .setup-done"] = "onSetupDone";
+		StepView.apply(this, arguments);
+	},
 	onFacebookClicked: function(e)
 	{
 		e.preventDefault();

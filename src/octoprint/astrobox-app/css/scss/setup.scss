@@ -13,6 +13,7 @@
     "foundation/components/buttons",
     "foundation/components/forms",
     "foundation/components/alert-boxes",
+    "foundation/components/tables",
     "common-main";
 
 #setup-view {
@@ -60,7 +61,8 @@
 
 		.checking-state,
 		.success-state,
-		.settings-state {
+		.settings-state,
+		.failed-state {
 			display: none;
 		}
 
@@ -78,6 +80,12 @@
 
 		&.settings {
 			.settings-state {
+				display: block;
+			}
+		}
+
+		&.failed {
+			.failed-state {
 				display: block;
 			}
 		}
@@ -112,6 +120,31 @@
 		i.ok {
 			font-size: rem-calc(50);
 			color: $success-color;
+		}
+	}
+
+	.failed-state {
+		i.failed {
+			font-size: rem-calc(50);
+			color: $alert-color;
+		}
+	}
+
+	.settings-state {
+		table {
+			width: 100%;
+
+			tr {
+				cursor: pointer;
+
+				&:hover, &.selected {
+					background-color: $success-color;
+
+					td {
+						color: white;
+					}
+				}
+			}
 		}
 	}
 }

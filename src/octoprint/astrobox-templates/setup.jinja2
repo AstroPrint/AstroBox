@@ -64,15 +64,56 @@
 					<i class="icon-spin1 animate-spin"></i>
 					<h3 class="bold" align="center">Checking connection...</h3>
 				</div>
+				<div class="failed-state" align="center">
+					<i class="icon-cancel-circled failed"></i>
+					<h3 class="bold" align="center"></h3>
+					<button class="success radius">Retry</button>
+					<div align="right">
+						<a href="#printer">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
+					</div>
+				</div>
 				<div class="settings-state">
 					<h2 class="bold" align="center">Pick a WiFi network</h2>
-					<div class="wifi-network-list">
-					</div>
+					<div class="wifi-network-list"></div>
+					<center>
+						<div class="loading-button">
+							<button class="disabled success radius connect">Connect</button>
+							<span class="button disabled loading success radius"><i class="icon-spin1 animate-spin"></i> Connecting...</span>
+						</div>
+					</center>
 					<div align="right">
 						<a href="#printer">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 			</div>
+
+			<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
+				<h2 class="bold">WiFi Password</h2>
+				<p align="center">Enter the password for <span class="name bold"></span>.</p>
+				<form>
+					<input type="hidden" class="network-id-field" name="id"/>
+					<input type="text" class="network-password-field" name="password"/>
+				</form>
+				<button class="secondary radius cancel">Cancel</button>
+				<div class="loading-button">
+					<button class="radius success connect">Connect</button>
+					<span class="loading button success disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Connecting...
+					</span>
+				</div>
+				<a class="close-reveal-modal">&#215;</a>
+			</div>
+
+			<script type="text/template" id="wifi-network-list-template">
+				<table>
+				<% _.each(networks, function(n, idx) { %>
+					<tr data-id="<%= idx %>">
+						<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
+						<td class="network-name"><%= n.name %></td>
+					</tr>
+				<% }); %>
+				</table>
+			</script>
 		</div>
 
 		<div id="step-astroprint" class="step hide">

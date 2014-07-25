@@ -12,7 +12,7 @@ from sys import platform
 from flask import make_response, request, jsonify
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, printer, NO_CONTENT
+from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
 from octoprint.server.api import api
 from octoprint.printer import getConnectionOptions
 from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
@@ -47,7 +47,39 @@ def save_name():
 @api.route('/setup/internet', methods=['GET'])
 @not_setup_only
 def check_internet():
-	return make_response('OK', 200)
+	if platform == "darwin":
+		return jsonify(connected = True)
+
+	else:
+		import urllib2
+
+		try:
+			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
+			return jsonify(connected = True)
+
+		except urllib2.URLError as err: 
+			pass
+
+		networks = networkManager.getWifiNetworks()
+
+		if networks:
+			return jsonify(networks = networks, connected = False)
+		else:
+			return make_response("Unable to get WiFi networks", 500)
+
+@api.route('/setup/internet', methods=['POST'])
+@not_setup_only
+def connect_internet():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+		result = networkManager.setWifiNetwork(data['id'], data['password'])
+
+		if result:
+			return jsonify(result)
+		else:
+			return ("Network %s not found" % data['id'], 404)
+
+	return ("Invalid Request", 400)
 
 @api.route('/setup/astroprint', methods=['GET'])
 @not_setup_only
