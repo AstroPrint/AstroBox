@@ -135,8 +135,8 @@ def resetFactorySettings():
 		os.unlink(user_file)
 
 	#replace config.yaml with config.factory
-	config_file = os.path.join(settings_dir, "config.yaml")
-	factory_file = os.path.join(settings_dir, "config.factory")
+	config_file = s._configfile
+	factory_file = os.path.join(os.path.dirname(config_file), "config.factory")
 	if os.path.exists(factory_file):
 		shutil.copy(factory_file, config_file)
 	else:
