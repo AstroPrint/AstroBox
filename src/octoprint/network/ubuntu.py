@@ -71,14 +71,18 @@ class UbuntuNetworkManager(NetworkManagerBase):
 					if connection:
 						NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
 					else:
-						(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection({
+						options = {
 							'connection': {
 								'id': ssid
-							},
-							'802-11-wireless-security': {
+							}
+						}
+
+						if password:
+							options['802-11-wireless-security'] = {
 								'psk': password
 							}
-						}, wifiDevice, accessPoint)
+
+						(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
 
 				except DBusException as e:
 					if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
