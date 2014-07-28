@@ -61,6 +61,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 				'id': ap.HwAddress,
 				'signal': ord(ap.Strength),
 				'name': ap.Ssid,
+				'ip': wifiDevice.Ip4Address,
 				'secured': True if ap.WpaFlags or ap.RsnFlags else False}
 
 			return network
