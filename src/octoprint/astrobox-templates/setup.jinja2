@@ -30,24 +30,35 @@
 				<p>
 					If you only have one, feel free to leave the current name. 
 				</p>
-				<form align="center">
-					<label for="astrobox-name">
-						<b>AstroBox Name:</b>
-						<input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
-					</label>
-				</form>
-				<p>
-					A few important things to remember:
-				</p>
-				<p class="preview">
-					<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span><br/>
-					<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local
-				</p>
-				<div align="center">
-					<div class="loading-button">
-						<a class="button success radius submit-action" href="#internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></a>
-						<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Saving...</span>
+				<div class="settings-state">
+					<form align="center">
+						<label for="astrobox-name">
+							<b>AstroBox Name:</b>
+							<input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
+						</label>
+					</form>
+					<p>
+						A few important things to remember:
+					</p>
+					<p class="preview">
+						<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span><br/>
+						<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local
+					</p>
+					<div align="center">
+						<div class="loading-button">
+							<a class="button success radius submit-action" href="#internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></a>
+							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Saving...</span>
+						</div>
 					</div>
+				</div>
+				<div class="checking-state" align="center">
+					<i class="icon-spin1 animate-spin"></i>
+					<h3 class="bold" align="center">Checking name...</h3>
+				</div>
+				<div class="failed-state" align="center">
+					<i class="icon-cancel-circled failed"></i>
+					<h3 class="bold" align="center"></h3>
+					<button class="success radius">Retry</button>
 				</div>
 			</div>
 		</div>

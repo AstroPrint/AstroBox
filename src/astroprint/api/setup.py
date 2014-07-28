@@ -31,6 +31,14 @@ def not_setup_only(func):
 			return make_response("AstroBox is already setup", 403)
 	return decorated_view
 
+@api.route('/setup/name', methods=['GET'])
+@not_setup_only
+def get_name():
+	if platform == "linux" or platform == "linux2":
+		return jsonify(name = networkManager.getHostname())
+	else:
+		return jsonify(name = 'astrobox')
+
 @api.route('/setup/name', methods=['POST'])
 @not_setup_only
 def save_name():
@@ -40,7 +48,10 @@ def save_name():
 		return make_response('Invalid Name', 400)
 	else:
 		if platform == "linux" or platform == "linux2":
-			return make_response('Not suported', 400)
+			if networkManager.setHostname(name):
+				return jsonify()
+			else:
+				return (500, "There was an error saving the hostname")
 		else:
 			return NO_CONTENT
 

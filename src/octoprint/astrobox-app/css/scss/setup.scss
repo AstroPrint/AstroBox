@@ -113,6 +113,13 @@
 			color: $success-color;
 		}
 	}
+
+	.failed-state {
+		i.failed {
+			font-size: rem-calc(50);
+			color: $alert-color;
+		}
+	}
 }
 
 #step-internet {

@@ -23,7 +23,7 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 OK = ("", 200)
 
-debug = False
+debug = True
 
 #This is needed in case the device starts without network (not ntpd) or correct time.
 #a baseline needs to be stablished
@@ -215,7 +215,7 @@ class Server():
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
 
-		from octoprint.network import loader as networkManagerLoader
+		from astroprint.network import loader as networkManagerLoader
 		networkManager = networkManagerLoader()
 
 		if self._host is None:

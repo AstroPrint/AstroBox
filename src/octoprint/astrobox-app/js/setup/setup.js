@@ -63,39 +63,60 @@ var StepWelcome = StepView.extend({
 
 var StepName = StepView.extend({
 	el: "#step-name",
-	default: 'astrobox',
+	currentName: null,
 	constructor: function()
 	{
 		this.events["keyup input"] = "onNameChanged";
+		this.events['click .failed-state button'] = 'onShow';
 		StepView.apply(this, arguments);
-	},
-	initialize: function()
-	{
-		this.$el.find('input#astrobox-name').val(this.default);
-		this.$el.find('.hotspot-name').text(this.default);
-		this.$el.find('.astrobox-url').text(this.default);		
 	},
 	onShow: function()
 	{
-		this.$el.find('input').focus();
+		this.$el.removeClass('settings failed');
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/name',
+			method: 'GET',
+			dataType: 'json',
+			success: _.bind(function(data) {
+				this.currentName = data.name;
+				this.$el.find('input').val(data.name).focus();
+				this.render();
+				this.$el.addClass('settings');
+			}, this),
+			error: _.bind(function(xhr) {
+				this.$el.addClass('failed');
+				this.$el.find('.failed-state h3').text(xhr.responseText);
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		})
+	},
+	render: function(name)
+	{
+		if (name == undefined) {
+			name = this.$el.find('input').val();
+		}
+
+		this.$el.find('.hotspot-name').text(name);
+		this.$el.find('.astrobox-url').text(name);
 	},
 	onNameChanged: function(e) 
 	{
 		var name = $(e.target).val();
 
 		if (/^[A-Za-z0-9\-_]+$/.test(name)) {
-			this.$el.find('.hotspot-name').text(name);
-			this.$el.find('.astrobox-url').text(name);
+			this.render(name);
 		} else if (name) {
 			$(e.target).val( $(e.target).val().slice(0, -1) );
 		} else {
-			this.$el.find('.hotspot-name').text('');
-			this.$el.find('.astrobox-url').text('');
+			this.render('');
 		}
 	},
 	onSubmit: function(data)
 	{
-		if (data.name != this.default) {
+		if (data.name != this.currentName) {
 			this.$el.find('.loading-button').addClass('loading');
 			$.ajax({
 				url: API_BASEURL + 'setup/name',
