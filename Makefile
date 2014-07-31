@@ -10,18 +10,18 @@ JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/back
 				app/app.js
 
 JS_APP_LIST := 	$(foreach file, $(JS_APP_FILES), \
-					$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
+					$(addprefix src/astroprint/static/js/, $(file)) \
 				)
-JS_APP_PACKED := src/octoprint/astrobox-app/js/gen/app.js
+JS_APP_PACKED := src/astroprint/static/js/gen/app.js
 
 #Login JS Files
 
 JS_LOGIN_FILES := 	lib/foundation/foundation.abide.js app/login.js
 
 JS_LOGIN_LIST := 	$(foreach file, $(JS_LOGIN_FILES), \
-						$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
+						$(addprefix src/astroprint/static/js/, $(file)) \
 					)	
-JS_LOGIN_PACKED := src/octoprint/astrobox-app/js/gen/login.js 
+JS_LOGIN_PACKED := src/astroprint/static/js/gen/login.js 
 
 #Setup JS Files
 
@@ -30,20 +30,20 @@ JS_SETUP_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/fastclick
 					setup/setup.js
 
 JS_SETUP_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
-						$(addprefix src/octoprint/astrobox-app/js/, $(file)) \
+						$(addprefix src/astroprint/static/js/, $(file)) \
 					)	
-JS_SETUP_PACKED := src/octoprint/astrobox-app/js/gen/setup.js 
+JS_SETUP_PACKED := src/astroprint/static/js/gen/setup.js 
 
 #CSS Files
 
-CSS_APP_FILE := src/octoprint/astrobox-app/css/scss/app.scss
-CSS_APP_PACKED := src/octoprint/astrobox-app/css/gen/app.css
+CSS_APP_FILE := src/astroprint/static/css/scss/app.scss
+CSS_APP_PACKED := src/astroprint/static/css/gen/app.css
 
-CSS_LOGIN_FILE := src/octoprint/astrobox-app/css/scss/login.scss
-CSS_LOGIN_PACKED := src/octoprint/astrobox-app/css/gen/login.css
+CSS_LOGIN_FILE := src/astroprint/static/css/scss/login.scss
+CSS_LOGIN_PACKED := src/astroprint/static/css/gen/login.css
 
-CSS_SETUP_FILE := src/octoprint/astrobox-app/css/scss/setup.scss
-CSS_SETUP_PACKED := src/octoprint/astrobox-app/css/gen/setup.css
+CSS_SETUP_FILE := src/astroprint/static/css/scss/setup.scss
+CSS_SETUP_PACKED := src/astroprint/static/css/gen/setup.css
 
 #rules
 
@@ -68,10 +68,10 @@ release: clean-release clean-js clean-css js css python
 	find debian/AstroBox/src -name "*.pyc" -type f -delete
 	find debian/AstroBox/src -name ".DS_Store" -type f -delete
 	find debian/AstroBox/src -name "empty" -type f -delete
-	rm -rf debian/AstroBox/src/octoprint/astrobox-app/.webassets*
-	rm -rf debian/AstroBox/src/octoprint/astrobox-app/js/app
-	rm -rf debian/AstroBox/src/octoprint/astrobox-app/js/lib
-	rm -rf debian/AstroBox/src/octoprint/astrobox-app/css/scss
+	rm -rf debian/AstroBox/src/astroprint/static/.webassets*
+	rm -rf debian/AstroBox/src/astroprint/static/js/app
+	rm -rf debian/AstroBox/src/astroprint/static/js/lib
+	rm -rf debian/AstroBox/src/astroprint/static/css/scss
 	rm -rf debian/AstroBox/src/octoprint/templates
 	rm -rf debian/AstroBox/src/octoprint/static
 
@@ -119,15 +119,15 @@ $(JS_SETUP_PACKED): $(JS_SETUP_LIST)
 
 $(CSS_APP_PACKED): $(CSS_APP_FILE)
 	echo "Packing App CSS..."
-	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
+	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
 $(CSS_LOGIN_PACKED): $(CSS_LOGIN_FILE)
 	echo "Packing Login CSS..."
-	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
+	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
 $(CSS_SETUP_PACKED): $(CSS_SETUP_FILE)
 	echo "Packing Setup CSS..."
-	cat $^ | scss --stdin --style compressed --load-path src/octoprint/astrobox-app/css/scss $@ 
+	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
 clean-js:
 	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
@@ -137,6 +137,7 @@ clean-css:
 
 clean-python:
 	find src/octoprint -name "*.pyo" -type f -delete
+	find src/astroprint -name "*.pyo" -type f -delete
 
 clean-release:
 	rm -rf build

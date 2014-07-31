@@ -1,0 +1,96 @@
+@charset "UTF-8";
+
+@import
+	"fonts",
+    "normalize",
+    "fontello",
+    "sprites",
+    "animations",
+    "foundation/settings",
+    "foundation/components/visibility",
+    "foundation/components/top-bar",
+    "foundation/components/alert-boxes",
+    "foundation/components/button-groups",
+    "foundation/components/forms",
+    "foundation/components/offcanvas",
+    "foundation/components/reveal",
+    "foundation/components/progress-bars",
+    "foundation/components/tables",
+    "foundation/components/panels",
+    "foundation/components/side-nav",
+    "common-main";
+
+.tab-bar {
+	.tab-bar-section.middle {
+		right: 0;
+		text-align: left;
+	}
+
+	h1.title {
+		float: left;
+		
+		img {
+			height: 30px;
+		}	
+	}
+}
+
+.off-canvas-list {
+	label {
+		display: block;
+
+		&.account {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			font-size: rem-calc(10);
+		}
+	}
+}
+
+.left-off-canvas-menu {
+	.turn-off-area {
+		padding-top: 40px;
+	}
+
+	.copy {
+		width: 100%;
+		position: absolute;
+		font-size: rem-calc(10);
+		bottom: 10px;
+		color: white;
+	}
+}
+
+#main {
+	border-top: 1px solid #ccc;
+}
+
+#connection-view {
+	float: right;
+
+	i {
+		font-size: rem-calc(20);
+		padding: 0 5px;
+		display: inline-block;
+        color: #505050;
+
+		&.connected {
+			color: $success-color;
+		}	
+
+		&.failed {
+			color: $alert-color;
+			cursor: pointer;
+		}
+	}
+}
+
+@import
+    "noty",
+    "widgets", 
+    "control",
+    "home",
+    "settings",
+    "turnoff",
+    "printing";

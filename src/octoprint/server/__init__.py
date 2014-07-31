@@ -32,8 +32,8 @@ EPOCH = 1388534490 #Jan 1, 2014
 if (time.time() - EPOCH) < 0:
 	os.system('date -s @%s' % EPOCH)
 
-app = Flask("octoprint", template_folder="astrobox-templates", static_folder='astrobox-app')
-app.config.from_object('octoprint.server.settings')
+app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
+app.config.from_object('astroprint.settings')
 if platform == "linux2" and not debug:
 	app.config.from_pyfile('/etc/astrobox/application.cfg', silent=True)
 else:
@@ -47,6 +47,7 @@ userManager = None
 eventManager = None
 loginManager = None
 networkManager = None
+softwareManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -62,12 +63,13 @@ import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
 import octoprint.timelapse
-import octoprint._version
+#import octoprint._version
+from astroprint.software import SoftwareManager
 
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
-VERSION = octoprint._version.get_versions()['version']
-
+#VERSION = octoprint._version.get_versions()['version']
+VERSION = None
 
 @app.route("/")
 def index():
@@ -167,6 +169,8 @@ class Server():
 		global loginManager
 		global networkManager
 		global debug
+		global softwareManager
+		global VERSION
 
 		from tornado.wsgi import WSGIContainer
 		from tornado.httpserver import HTTPServer
@@ -181,6 +185,9 @@ class Server():
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
+
+		softwareManager = SoftwareManager()
+		VERSION = softwareManager.version()
 
 		logger.info("Starting OctoPrint (%s)" % VERSION)
 

@@ -78,7 +78,7 @@ default_settings = {
 		"timelapse_tmp": None,
 		"logs": None,
 		"virtualSd": None,
-		"watched": None
+		"watched": None,
 	},
 	"temperature": {
 		"profiles":
@@ -161,6 +161,9 @@ default_settings = {
 	"wifi": {
 		"internetInterface": "wlan0",
 		"hotspotInterface": "wlan1"
+	},
+	"software": {
+		"infoFile": None
 	}
 }
 

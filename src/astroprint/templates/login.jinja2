@@ -1,0 +1,33 @@
+<div id="login-modal" class="reveal-modal small radius" data-reveal>
+	<div class="modal-content row">
+		<div class="small-12 columns">
+			<div class="login-container">
+				<form data-abide="ajax">
+					<center>
+						<img class="logo" src="/img/astroprint-logo_tm.png"/>
+					</center>
+					<div data-alert class="alert-box alert radius" style="display:none"></div>
+					<div class="input-wrapper">
+						<label><i class="icon-user"></i> <b>Email</b> (<a href="#">no account?</a>)
+							<input type="email" name="email" class="radius" required pattern="email"/>
+						</label>
+						<small class="error">A valid email address is needed.</small>
+					</div>
+					<div class="input-wrapper">
+						<label><i class="icon-lock"></i> <b>Password</b> (<a href="#">forgot?</a>)
+							<input type="password" name="password" class="radius" required/>
+						</label>
+						<small class="error">Please provide a password.</small>
+					</div>
+					<center>
+						<div class="loading-button signin">
+							<button class="success radius">Sign in</button>
+							<span class="loading button disabled success radius"><i class="icon-spin1 animate-spin"></i> Signing in...</span>
+						</div>
+					</center>
+				</form>
+			</div>
+		</div>
+	</div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>

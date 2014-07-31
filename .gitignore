@@ -33,6 +33,6 @@ local/*
 
 .webassets-cache
 .sass-cache
-src/octoprint/astrobox-app/css/scss/*.css
-src/octoprint/astrobox-app/css/gen/*.css
-src/octoprint/astrobox-app/js/gen/*.js
+src/astroprint/static/css/scss/*.css
+src/astroprint/static/css/gen/*.css
+src/astroprint/static/js/gen/*.js
