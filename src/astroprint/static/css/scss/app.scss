@@ -20,6 +20,11 @@
     "foundation/components/side-nav",
     "common-main";
 
+body, html {
+	height: 100%;
+	overflow: visible;
+}
+
 .tab-bar {
 	.tab-bar-section.middle {
 		right: 0;
@@ -59,6 +64,15 @@
 		font-size: rem-calc(10);
 		bottom: 10px;
 		color: white;
+	}
+}
+
+#app {
+	height: 100%;
+	overflow: visible;
+
+	.inner-wrap {
+		min-height: 100%;
 	}
 }
 
