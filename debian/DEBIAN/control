@@ -4,4 +4,4 @@ Architecture: all
 Description: This is the host software to use your printer with AstroPrint(tm)
 Homepage: http://www.astroprint.com
 Maintainer: Daniel Arroyo <daniel@3dagogo.com>
-Depends: python-pip, python-dev, haproxy, isc-dhcp-server, hostapd, nscd, network-manager
+Depends: python-pip, python-dev, haproxy, isc-dhcp-server, hostapd, nscd, network-manager, upstart

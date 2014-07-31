@@ -7,6 +7,8 @@ install:
 	update-rc.d hostapd disable
 
 	echo "Configuring haproxy"
+	cp /etc/default/haproxy /etc/default/haproxy.bak
+	sed -i /etc/default/haproxy -e "/ENABLED=/c ENABLED=1"
 	mv /etc/haproxy/haproxy.cfg /etc/haproxy/haproxy.cfg.bak
 	cp /etc/haproxy/haproxy_astrobox.cfg /etc/haproxy/haproxy.cfg
 	service haproxy restart
