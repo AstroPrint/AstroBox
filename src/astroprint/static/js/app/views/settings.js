@@ -363,7 +363,15 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 				release_id: this.data.release.id
 			}),
 			success: _.bind(function(data) {
-				location.href = '/';
+				this.$el.find('.loading-button .loading span').text('Restarting...');
+				$.ajax({
+					url: API_BASEURL + 'settings/software/restart',
+					complete: function() {
+						setTimeout(function() {
+							location.href = '/';
+						}, 3000);
+					}
+				});
 			}, this),
 			error: function(xhr) {
 				if (xhr.status == 400) {
@@ -371,8 +379,6 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 				} else {
 					noty({text: "There was a problem updating to the new version.", timeout: 3000});
 				}
-			},
-			complete: function() {
 				loadingBtn.removeClass('loading');
 			}
 		});

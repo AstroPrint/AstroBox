@@ -6,6 +6,7 @@ import os
 import yaml
 import requests
 import json
+import subprocess
 
 from tempfile import mkstemp
 
@@ -106,7 +107,6 @@ class SoftwareManager(object):
 						#successCb(destFile, fileInfo)
 
 						if platform == "linux" or platform == "linux2":
-							import subprocess
 							if subprocess.call(['dpkg', '-i', releasePath]) == 0:
 								self.data["version"]["major"] = data['major']
 								self.data["version"]["minor"] = data['minor']
@@ -115,8 +115,6 @@ class SoftwareManager(object):
 								self._save()
 
 								os.remove(releasePath)
-								subprocess.call(['restart', 'astrobox'])
-
 								return True
 
 						else:
@@ -131,3 +129,8 @@ class SoftwareManager(object):
 			pass
 
 		return False
+
+	def restartServer(self):
+		if platform == "linux" or platform == "linux2":
+			subprocess.call(['restart', 'astrobox'])
+

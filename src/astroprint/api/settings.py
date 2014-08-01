@@ -163,3 +163,11 @@ def updateSoftwareVersion():
 		return jsonify();
 	else:
 		return ("There was an error updating to the new software.", 400)
+
+@api.route("/settings/software/restart", methods=['POST'])
+@restricted_access
+def restartServer():
+	if softwareManager.restartServer():
+		return jsonify();
+	else:
+		return ("There was an error trying to restart the server.", 400)

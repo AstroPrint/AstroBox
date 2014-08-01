@@ -23,7 +23,7 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 OK = ("", 200)
 
-debug = True
+debug = False
 
 #This is needed in case the device starts without network (not ntpd) or correct time.
 #a baseline needs to be stablished
