@@ -132,8 +132,8 @@ var InternetWifiView = SettingsPage.extend({
 			url: API_BASEURL + "settings/wifi/hotspot",
 			type: "POST",
 			success: _.bind(function(data, code, xhr) {
-				noty({text: 'Your AstroBox&trade; has now <b>created a hotspot</b>. Search and connect to it', type: 'success', timeout:3000});
-				this.settings.isHotspotActive = true;
+				noty({text: 'Your AstroBox has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
+				this.settings.hotspot.active = true;
 				this.render();
 			}, this),
 			error: function(xhr) {
@@ -154,7 +154,7 @@ var InternetWifiView = SettingsPage.extend({
 			type: "DELETE",
 			success: _.bind(function(data, code, xhr) {
 				noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
-				this.settings.isHotspotActive = false;
+				this.settings.hotspot.active = false;
 				this.render();
 			}, this),
 			error: function(xhr) {

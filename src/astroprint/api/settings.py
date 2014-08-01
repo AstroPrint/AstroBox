@@ -59,9 +59,17 @@ def getWifiNetworks():
 def getWifiSettings():
 	network = networkManager.getActiveWifiNetwork()
 	isHotspotActive = networkManager.isHotspotActive()
+	hotspotName = networkManager.getHostname()
 
 	if network != None and isHotspotActive != None:
-		return jsonify(network = network, isHotspotActive = isHotspotActive)
+		return jsonify({
+				'network': network,
+				'hotspot': {
+					'active': isHotspotActive,
+					'name': hotspotName
+				}
+		})
+
 	else:
 		return ("Failed to get WiFi settings", 500)
 

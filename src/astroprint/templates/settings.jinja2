@@ -86,11 +86,11 @@
 						</span>
 					</div>
 				<% } %>
-				<% if (settings.network || !settings.isHotspotActive) { %>
+				<% if (settings.network || !settings.hotspot.active) { %>
 					<hr/>
 					<div>
-					<% if (settings.isHotspotActive) { %>
-						<h4>Running a hotspot</h4>
+					<% if (settings.hotspot.active) { %>
+						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
 						<div class="loading-button stop-hotspot">
 							<button class="radius">Stop hotspot</button>
 							<span class="loading button disabled radius">
