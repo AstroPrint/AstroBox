@@ -10,7 +10,7 @@ from octoprint.settings import settings
 from octoprint.printer import getConnectionOptions
 from octoprint.slicers.cloud import CloudSlicer
 
-from octoprint.server import restricted_access, admin_permission, networkManager
+from octoprint.server import restricted_access, admin_permission, networkManager, softwareManager
 from octoprint.server.api import api
 
 @api.route("/settings", methods=["GET"])
@@ -145,3 +145,21 @@ def resetFactorySettings():
 	s.load(migrate=False)
 
 	return jsonify()
+
+@api.route("/settings/software/check", methods=['GET'])
+@restricted_access
+def checkSoftwareVersion():
+	softwareInfo = softwareManager.checkSoftwareVersion()
+
+	if softwareInfo:
+		return jsonify(softwareInfo);
+	else:
+		return ("There was an error checking for new software.", 400)
+
+@api.route("/settings/software/update", methods=['POST'])
+@restricted_access
+def updateSoftwareVersion():
+	if softwareManager.updateSoftwareVersion(request.get_json()):
+		return jsonify();
+	else:
+		return ("There was an error updating to the new software.", 400)

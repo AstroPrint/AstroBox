@@ -37,127 +37,159 @@
 				</div>
 			</form>
 		</div>
+
 		<div id="internet-wifi" class="settings-page hide">
 		</div>
-		<h1 class="bold show-for-small" align="center">Software</h1>
-		<div id="software-update" class="settings-page hide" align="center">
-			<button class="success radius">Check for updates</button>
+		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
+			<h2 class="bold">Select a WiFi Network</h2>
+			<div class="modal-content"></div>
+			<button class="secondary radius" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+			<a class="close-reveal-modal">&#215;</a>
 		</div>
-		<div id="software-advanced" class="settings-page hide" align="center">
-			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
-		</div>
-	</div>
-</div>
-
-<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
-	<h2 class="bold">Select a WiFi Network</h2>
-	<div class="modal-content"></div>
-	<button class="secondary radius" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
-
-<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
-	<h2 class="bold">WiFi Password</h2>
-	<p align="center">Enter the password for <span class="name bold"></span>.</p>
-	<form>
-		<input type="hidden" class="network-id-field" name="id"/>
-		<input type="text" class="network-password-field" name="password"/>
-	</form>
-	<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
-	<div class="loading-button">
-		<button class="radius success connect">Connect</button>
-		<span class="loading button success disabled radius">
-			<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
-		</span>
-	</div>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
-
-<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
-	<h2 class="bold">Are you sure?</h2>
-	<div class="modal-content">
-		<p>This will delete all your settings and files from this AstroBox.</p>
-		<p>
-			<label for="confirmation">
-				<b>Write "RESET" to confirm</b>
-				<input type="text"/>
-			</label>
-	</div>
-	<button class="secondary radius left">Cancel</button>
-	<div class="loading-button right">
-		<button class="alert radius">Reset</button>
-		<span class="button disabled alert radius loading"><i class="icon-spin1 animate-spin"></i> Resetting...</span>
-	</div>
-	<a class="close-reveal-modal">&#215;</a>
-</div>
-
-<script type="text/template" id="internet-wifi-settings-page-template">
-	<div class="show-for-small">
-		<hr/>
-		<h1 class="bold" align="center">Internet</h1>
-	</div>
-	<div align="center">
-		<% if (settings.network) { %>
-			<h4>Connected to <span class="network-name bold"><%= settings.network.name %></span></h4>
-			<div class="loading-button connect">
-				<button class="radius">Change</button>
-				<span class="loading button disabled radius">
-					<i class="icon-spin1 animate-spin"></i> Looking for Networks...
+		<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
+			<h2 class="bold">WiFi Password</h2>
+			<p align="center">Enter the password for <span class="name bold"></span>.</p>
+			<form>
+				<input type="hidden" class="network-id-field" name="id"/>
+				<input type="text" class="network-password-field" name="password"/>
+			</form>
+			<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
+			<div class="loading-button">
+				<button class="radius success connect">Connect</button>
+				<span class="loading button success disabled radius">
+					<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
 				</span>
 			</div>
-			<div>Use this IP address to reach your AstroBox: <b><%= settings.network.ip %></b></div>
-		<% } else { %>
-			<h2 class="bold">Not Connected</h2>
-			<div class="loading-button connect">
-				<button class="radius small">Scan WiFi networks</button>
-				<span class="loading button disabled radius small">
-					<i class="icon-spin1 animate-spin"></i> Looking for Networks...
-				</span>
+			<a class="close-reveal-modal">&#215;</a>
+		</div>
+		<script type="text/template" id="internet-wifi-settings-page-template">
+			<div class="show-for-small">
+				<hr/>
+				<h1 class="bold" align="center">Internet</h1>
 			</div>
-		<% } %>
-		<% if (settings.network || !settings.isHotspotActive) { %>
-			<hr/>
-			<div>
-			<% if (settings.isHotspotActive) { %>
-				<h4>Running a hotspot</h4>
-				<div class="loading-button stop-hotspot">
-					<button class="radius">Stop hotspot</button>
-					<span class="loading button disabled radius">
-						<i class="icon-spin1 animate-spin"></i> Stopping Hotspot...
-					</span>
-				</div>
-			<% } else { %>
-				<div class="loading-button start-hotspot">
-					<button class="radius">Start hotspot</button>
-					<span class="loading button disabled radius">
-						<i class="icon-spin1 animate-spin"></i> Starting Hotspot...
-					</span>
-				</div>
-			<% } %>
-			</div>
-		<% } %>
-	</div>
-</script>
-
-<script type="text/template" id="wifi-network-modal-row">
-	<table>
-	<% _.each(networks, function(n) { %>
-		<tr>
-			<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
-			<td class="network-name"><%= n.name %></td>
-			<td>
-				<% if (n.active) { %>
-					<div class="active-network"><i class="icon-exchange"></i></div>
+			<div align="center">
+				<% if (settings.network) { %>
+					<h4>Connected to <span class="network-name bold"><%= settings.network.name %></span></h4>
+					<div class="loading-button connect">
+						<button class="radius">Change</button>
+						<span class="loading button disabled radius">
+							<i class="icon-spin1 animate-spin"></i> Looking for Networks...
+						</span>
+					</div>
+					<div>Use this IP address to reach your AstroBox: <b><%= settings.network.ip %></b></div>
 				<% } else { %>
-					<div class="loading-button">
-						<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
-						<span class="loading button disabled success tiny radius">
-							<i class="icon-spin1 animate-spin"></i> Please be patient...
+					<h2 class="bold">Not Connected</h2>
+					<div class="loading-button connect">
+						<button class="radius small">Scan WiFi networks</button>
+						<span class="loading button disabled radius small">
+							<i class="icon-spin1 animate-spin"></i> Looking for Networks...
 						</span>
 					</div>
 				<% } %>
-			</td>
-		</tr>
-	<% }); %>
-	</table>
-</script>
+				<% if (settings.network || !settings.isHotspotActive) { %>
+					<hr/>
+					<div>
+					<% if (settings.isHotspotActive) { %>
+						<h4>Running a hotspot</h4>
+						<div class="loading-button stop-hotspot">
+							<button class="radius">Stop hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-spin1 animate-spin"></i> Stopping Hotspot...
+							</span>
+						</div>
+					<% } else { %>
+						<div class="loading-button start-hotspot">
+							<button class="radius">Start hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-spin1 animate-spin"></i> Starting Hotspot...
+							</span>
+						</div>
+					<% } %>
+					</div>
+				<% } %>
+			</div>
+		</script>
+		<script type="text/template" id="wifi-network-modal-row">
+			<table>
+			<% _.each(networks, function(n) { %>
+				<tr>
+					<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
+					<td class="network-name"><%= n.name %></td>
+					<td>
+						<% if (n.active) { %>
+							<div class="active-network"><i class="icon-exchange"></i></div>
+						<% } else { %>
+							<div class="loading-button">
+								<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
+								<span class="loading button disabled success tiny radius">
+									<i class="icon-spin1 animate-spin"></i> Please be patient...
+								</span>
+							</div>
+						<% } %>
+					</td>
+				</tr>
+			<% }); %>
+			</table>
+		</script>
+
+		<h1 class="bold show-for-small" align="center">Software</h1>
+		<div id="software-update" class="settings-page hide" align="center">
+			<h4 align="center"><b>{{version}}</b> Installed.</h4>
+			<div class="loading-button check">
+				<button class="success radius">Check for updates</button>
+				<span class="button success radius loading"><i class="icon-spin1 animate-spin"></i> Checking...</span>
+			</div>
+		</div>
+		<div id="software-update-modal" class="reveal-modal medium radius" data-reveal>
+			<div class="content"></div>
+			<a class="close-reveal-modal">&#215;</a>
+		</div>
+		<script type="text/template" id="software-update-modal-content">
+			<h2 class="bold">
+				<% if (data.update_available && !data.is_current) { %> Update <span><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></span> <% } else { %> No Updates <% } %> Available.
+			</h2>
+			<% if (data.update_available) { %>
+				<div class="modal-content">
+					<p>
+					<% if (data.is_current) { %>
+						Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
+					<% } else { %>
+						Published: <b><%= date_format(new Date(data.release.date)) %></b>
+					<% } %>
+					</p>
+					
+					<p>
+						<b>Release Notes:</b><br/>
+						<%= data.release.release_notes %>
+					</p>
+				</div>
+			<% } %>
+			<button class="secondary radius left cancel">Cancel</button>
+			<div class="loading-button right">
+				<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+				<span class="button disabled success radius loading"><i class="icon-spin1 animate-spin"></i> <% if (data.is_current) { %>Reinstalling<% } else { %>Updating<% } %>...</span>
+			</div>
+		</script>
+
+		<div id="software-advanced" class="settings-page hide" align="center">
+			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
+		</div>
+		<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
+			<h2 class="bold">Are you sure?</h2>
+			<div class="modal-content">
+				<p>This will delete all your settings and files from this AstroBox.</p>
+				<p>
+					<label for="confirmation">
+						<b>Write "RESET" to confirm</b>
+						<input type="text"/>
+					</label>
+			</div>
+			<button class="secondary radius left">Cancel</button>
+			<div class="loading-button right">
+				<button class="alert radius">Reset</button>
+				<span class="button disabled alert radius loading"><i class="icon-spin1 animate-spin"></i> Resetting...</span>
+			</div>
+			<a class="close-reveal-modal">&#215;</a>
+		</div>
+	</div>
+</div>

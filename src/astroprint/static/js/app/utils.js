@@ -1,6 +1,9 @@
 var Utils = function() {
+	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Oct', 'Dec'];
+
 	return {
-		timeFormat: function(seconds) {
+		timeFormat: function(seconds) 
+		{
 	    	var sec_num = parseInt(seconds, 10); // don't forget the second param
 	        var hours   = Math.floor(sec_num / 3600);
 	        var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
@@ -11,7 +14,12 @@ var Utils = function() {
 	        if (seconds < 10) {seconds = "0"+seconds;}
 	        return hours+':'+minutes+':'+seconds;
 	    },
-	    sizeFormat: function(fileSizeInBytes) {
+	    dateFormat: function(date)
+	    {
+	    	return months[date.getMonth()]+' '+date.getDate()+', '+date.getFullYear();
+	    },
+	    sizeFormat: function(fileSizeInBytes) 
+	    {
 		   	var i = -1;
 		    var byteUnits = [' kB', ' MB', ' GB', ' TB', 'PB', 'EB', 'ZB', 'YB'];
 		    do {

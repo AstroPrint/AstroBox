@@ -53,6 +53,12 @@
 	}
 }
 
+#software-update-modal {
+	h2 span {
+		color: $success-color;
+	} 
+}
+
 .settings-page {
 	padding: 20px;
 

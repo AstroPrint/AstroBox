@@ -291,7 +291,92 @@ var WiFiNetworksDialog = Backbone.View.extend({
 *********************/
 
 var SoftwareUpdateView = SettingsPage.extend({
-	el: '#software-update'
+	el: '#software-update',
+	events: {
+		'click .loading-button.check button': 'onCheckClicked'
+	},
+	updateDialog: null,
+	onCheckClicked: function(e)
+	{
+		var loadingBtn = this.$el.find('.loading-button.check');
+		loadingBtn.addClass('loading');
+		$.ajax({
+			url: API_BASEURL + 'settings/software/check', 
+			type: 'GET',
+			dataType: 'json',
+			success: _.bind(function(data) {
+				if (!this.updateDialog) {
+					this.updateDialog = new SoftwareUpdateDialog();
+				}
+
+				this.updateDialog.open(data);
+			}, this),
+			error: function(xhr) {
+				if (xhr.status == 400) {
+					noty({text: xhr.responseText, timeout: 3000});
+				} else {
+					noty({text: "There was a problem checking for new software.", timeout: 3000});
+				}
+			},
+			complete: function() {
+				loadingBtn.removeClass('loading');
+			}
+		});
+	}
+});
+
+var SoftwareUpdateDialog = Backbone.View.extend({
+	el: '#software-update-modal',
+	data: null,
+	contentTemplate: null,
+	open: function(data)
+	{
+		if (!this.contentTemplate) {
+			this.contentTemplate = _.template( $("#software-update-modal-content").html() )
+		}
+
+		this.data = data;
+
+		var content = this.$el.find('.content');
+		content.empty();
+		content.html(this.contentTemplate({data: data, date_format:app.utils.dateFormat}));
+
+		content.find('button.cancel').bind('click', _.bind(this.close, this));
+		content.find('button.go').bind('click', _.bind(this.doUpdate, this));
+
+		this.$el.foundation('reveal', 'open');
+	},
+	close: function()
+	{
+		this.$el.foundation('reveal', 'close');
+	},
+	doUpdate: function()
+	{
+		var loadingBtn = this.$el.find('.loading-button');
+		loadingBtn.addClass('loading');
+		$.ajax({
+			url: API_BASEURL + 'settings/software/update', 
+			type: 'POST',
+			dataType: 'json',
+			contentType: 'application/json',
+			data: JSON.stringify({
+				release_id: this.data.release.id
+			}),
+			success: _.bind(function(data) {
+				location.href = '/';
+			}, this),
+			error: function(xhr) {
+				if (xhr.status == 400) {
+					noty({text: xhr.responseText, timeout: 3000});
+				} else {
+					noty({text: "There was a problem updating to the new version.", timeout: 3000});
+				}
+			},
+			complete: function() {
+				loadingBtn.removeClass('loading');
+			}
+		});
+	}
 });
 
 /************************
