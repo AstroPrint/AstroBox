@@ -31,7 +31,7 @@ class SoftwareManager(object):
 		s = settings()
 		self._infoFile = s.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(s._configfile)
 		if not os.path.isfile(self._infoFile):
-			self._infoFile = None
+			open(self._infoFile, 'w').close()
 
 		if self._infoFile:
 			config = None
@@ -96,7 +96,7 @@ class SoftwareManager(object):
 					r = requests.get(data["download_url"], stream=True)
 
 					if r.status_code == 200:
-						(releaseHandle, releasePath) = mkstemp()
+						releaseHandle, releasePath = mkstemp()
 
 						with os.fdopen(releaseHandle, "wb") as fd:
 							for chunk in r.iter_content(250000):
@@ -107,18 +107,21 @@ class SoftwareManager(object):
 
 						if platform == "linux" or platform == "linux2":
 							import subprocess
-							subprocess.call(['dpkg', '-i', releasePath])
+							if subprocess.call(['dpkg', '-i', releasePath]) == 0:
+								self.data["version"]["major"] = data['major']
+								self.data["version"]["minor"] = data['minor']
+								self.data["version"]["build"] = data['build']
+								self.data["version"]["date"] = data['date']
+								self._save()
 
-							self.data["version"]["major"] = data['major']
-							self.data["version"]["minor"] = data['minor']
-							self.data["version"]["build"] = data['build']
-							self.data["version"]["date"] = data['date']
-							self._save()
+								os.remove(releasePath)
+								subprocess.call(['restart', 'astrobox'])
 
-							subprocess.call(['restart', 'astrobox'])
+								return True
 
-						os.remove(releasePath)
-						return True;
+						else:
+							os.remove(releasePath)
+							return True;
 
 					else:
 						r.close()
