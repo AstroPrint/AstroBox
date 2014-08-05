@@ -3,7 +3,6 @@
 PID_FILE=/var/run/network-monitor.pid
 CHECK_INTERVAL=10
 PING_HOST=8.8.8.8
-INTERNET_INTERFACE=wlan0
 
 check_internet() {
 	if ping -W 5 -c 1 ${PING_HOST} > /dev/null 2>&1; then
@@ -23,8 +22,6 @@ monitor_internet() {
 }
 
 try_connection() {
-	service wifi_access_point stop > /dev/null 2>&1
-	ifup ${INTERNET_INTERFACE} > /dev/null 2>&1
 	if ping -W 5 -c 1 ${PING_HOST} > /dev/null 2>&1; then
 		echo "Connected"
 	else
@@ -34,7 +31,6 @@ try_connection() {
 }
 
 create_hotspot() {
-	ifdown ${INTERNET_INTERFACE} > /dev/null 2>&1
 	service wifi_access_point start > /dev/null 2>&1
 }
 

@@ -1,4 +1,7 @@
 install:
+	echo "Installing needed packages"
+	apt-get install haproxy isc-dhcp-server nscd network-manager upstart avahi-daemon
+
 	echo "Installing Python dependencies..."
 	pip install -r /AstroBox/requirements.txt
 	
