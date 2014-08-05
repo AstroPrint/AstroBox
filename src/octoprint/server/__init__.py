@@ -27,10 +27,10 @@ debug = False
 
 #This is needed in case the device starts without network (not ntpd) or correct time.
 #a baseline needs to be stablished
-EPOCH = 1388534490 #Jan 1, 2014
+#EPOCH = 1388534490 #Jan 1, 2014
 
-if (time.time() - EPOCH) < 0:
-	os.system('date -s @%s' % EPOCH)
+#if (time.time() - EPOCH) < 0:
+#	os.system('date -s @%s' % EPOCH)
 
 app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
 app.config.from_object('astroprint.settings')
