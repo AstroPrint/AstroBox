@@ -1,11 +1,12 @@
 #!/bin/sh
 
-NTP_SERVER=ntp.ubuntu.com
 INITIAL_DATE=2014-08-04
 
-if ! /usr/bin/network-monitor check; then
-    /usr/bin/network-monitor hotspot
-    sudo date --set ${INITIAL_DATE}
-else
-	ntpdate ${NTP_SERVER}
+if ! ntp-wait -n 3 -n 3; then
+	sudo date --set ${INITIAL_DATE}
+	if ! /usr/bin/network-monitor check; then
+    		/usr/bin/network-monitor hotspot
+	fi
 fi
+
+start astrobox
