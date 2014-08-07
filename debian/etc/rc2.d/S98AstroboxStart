@@ -1,0 +1,21 @@
+#!/bin/sh
+
+MAX_NETWORK_RETRIES=10
+WAIT_BETWEEN_NETWORK_RETRIES=2
+PING_HOST=8.8.8.8
+
+NETWORK=0
+for i in `seq 1 $MAX_NETWORK_RETRIES`
+do
+        if ping -W 2 -c 1 $PING_HOST > /dev/null 2>&1 ; then
+                NETWORK=1
+                break
+        fi
+        sleep $WAIT_BETWEEN_NETWORK_RETRIES
+done
+
+if [ $NETWORK = 0 ]; then
+	network-monitor hotspot
+fi
+
+start astrobox

@@ -1,0 +1,17 @@
+#!/bin/sh
+
+LAST_TIME_FILE=/etc/astrobox/last_known_time
+LAST_KNOWN_TIME=<BUILD_TIME>
+
+if [ -f ${LAST_TIME_FILE} ]; then 
+	 LAST_KNOWN_TIME=`cat $LAST_TIME_FILE`
+fi
+
+if ping -W 3 -c 1 8.8.8.8; then
+	service ntp stop
+	ntpd -gq
+	service ntp start
+	exit 0
+fi
+
+date -s "$LAST_KNOWN_TIME"

@@ -1,5 +1,8 @@
 .SILENT:
 
+CURRENT_TIME := $(shell date -u +"%Y-%m-%d %H:%M:%S")
+DATE_APPEND := $(shell date -u +"%Y%m%d")
+
 #App JS Files
 
 JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/backbone.js lib/foundation/foundation.js lib/foundation/foundation.offcanvas.js lib/foundation/foundation.reveal.js \
@@ -53,34 +56,40 @@ clean: clean-js clean-css clean-python clean-release
 
 release: clean-release clean-js clean-css js css python
 	echo "Creating release..."
-	mkdir -p debian/AstroBox
-	cp -p run debian/AstroBox/run
-	cp -p requirements.txt debian/AstroBox/requirements.txt
-	cp -rfp src debian/AstroBox/src
+	mkdir -p build/debian
+	cp -r debian/* build/debian
+
+	mkdir -p build/debian/AstroBox
+	cp -p run build/debian/AstroBox/run
+	cp -p requirements.txt build/debian/AstroBox/requirements.txt
+	cp -rfp src build/debian/AstroBox/src
 
 	echo "Copying install scripts"
-	cp -p debian/Makefile debian/AstroBox/Makefile
-	#mkdir -p build/AstroBox/install
-	#cp -rp install/* build/AstroBox/install
+	cp -p debian/Makefile build/debian/AstroBox/Makefile
+	#mkdir -p build/build/AstroBox/install
+	#cp -rp install/* build/build/AstroBox/install
+
+	echo "Setting time stamps to $(CURRENT_TIME)"
+
+	sed -i "" -e 's/<BUILD_TIME>/"$(CURRENT_TIME)"/g' build/debian/usr/bin/astrobox-init
 
 	echo "Cleaning unnecessary files..."
-	find debian/AstroBox/src -name "*.py" -type f -delete
-	find debian/AstroBox/src -name "*.pyc" -type f -delete
-	find debian/AstroBox/src -name ".DS_Store" -type f -delete
-	find debian/AstroBox/src -name "empty" -type f -delete
-	rm -rf debian/AstroBox/src/astroprint/static/.webassets*
-	rm -rf debian/AstroBox/src/astroprint/static/js/app
-	rm -rf debian/AstroBox/src/astroprint/static/js/lib
-	rm -rf debian/AstroBox/src/astroprint/static/css/scss
-	rm -rf debian/AstroBox/src/octoprint/templates
-	rm -rf debian/AstroBox/src/octoprint/static
+	find build/debian/AstroBox/src -name "*.py" -type f -delete
+	find build/debian/AstroBox/src -name "*.pyc" -type f -delete
+	find build/debian/AstroBox/src -name ".DS_Store" -type f -delete
+	find build/debian/AstroBox/src -name "empty" -type f -delete
+	rm -rf build/debian/AstroBox/src/astroprint/static/.webassets*
+	rm -rf build/debian/AstroBox/src/astroprint/static/js/app
+	rm -rf build/debian/AstroBox/src/astroprint/static/js/lib
+	rm -rf build/debian/AstroBox/src/astroprint/static/css/scss
+	rm -rf build/debian/AstroBox/src/octoprint/templates
+	rm -rf build/debian/AstroBox/src/octoprint/static
 
 	echo "Creating debian package"
-	fakeroot -- dpkg-deb -b debian
-
-	mkdir build
-	mv debian.deb build/AstroBox.deb
-	echo "Release at " $(PWD)/build/AstroBox.deb
+	fakeroot -- dpkg-deb -b build/debian
+	
+	mv build/debian.deb build/AstroBox_$(DATE_APPEND).deb
+	echo "Release at " $(PWD)/build/AstroBox_$(DATE_APPEND).deb
 
 js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
 

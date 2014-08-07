@@ -7,6 +7,8 @@ install:
 	
 	echo "Disabling unnecessary services on startup..."
 	update-rc.d isc-dhcp-server disable
+    sed -i /etc/init/isc-dhcp-server.conf  -e "/start on=/c #start on"
+    sed -i /etc/init/isc-dhcp-server6.conf  -e "/start on=/c #start on"
 	update-rc.d hostapd disable
 
 	echo "Configuring haproxy"
@@ -35,6 +37,11 @@ install:
 
 	sed -i /etc/dhcp/dhcpd.conf \
     	-e '/subnet 10.10.0.0 netmask 255.255.255.0/,+4 d'
+
+    echo "Disable autostart for NTP"
+    update-rc.d ntp disable
+    chmod -x /etc/network/if-up.d/ntpdate
+
 
 #	cat <<EOF >> /etc/dhcp/dhcpd.conf
 #	subnet 10.10.0.0 netmask 255.255.255.0 {
