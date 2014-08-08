@@ -6,7 +6,6 @@
 
 var SocketData = Backbone.Model.extend({
 	connectionView: null,
-    homeView: null,
 	_socket: null,
 	_autoReconnecting: false,
 	_autoReconnectTrial: 0,
@@ -30,6 +29,11 @@ var SocketData = Backbone.Model.extend({
 			}
 		}
 	},
+    initialize: function()
+    {
+        this.set('printing', initial_states.printing);
+        this.set('paused', initial_states.paused);
+    },
 	connect: function()
 	{
 		this.connectionView.setServerConnection('blink-animation');
@@ -59,14 +63,6 @@ var SocketData = Backbone.Model.extend({
     	this.connectionView.setPrinterConnection('failed');
     	this._currentState = 0;
 
-        /*$("#offline_overlay_message").html(
-            "The server appears to be offline, at least I'm not getting any response from it. I'll try to reconnect " +
-                "automatically <strong>over the next couple of minutes</strong>, however you are welcome to try a manual reconnect " +
-                "anytime using the button below."
-        );
-        if (!$("#offline_overlay").is(":visible"))
-            $("#offline_overlay").show();*/
-
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
             console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
@@ -78,10 +74,6 @@ var SocketData = Backbone.Model.extend({
         }
     },
     _onReconnectFailed: function() {
-        /*$("#offline_overlay_message").html(
-            "The server appears to be offline, at least I'm not getting any response from it. I <strong>could not reconnect automatically</strong>, " +
-                "but you may try a manual reconnect using the button below."
-        );*/
 		console.error('recoonect failed');
     },
     _onMessage: function(e) {
@@ -98,33 +90,9 @@ var SocketData = Backbone.Model.extend({
 
                     this.connectionView.connect();
 
-                    /*if ($("#offline_overlay").is(":visible")) {
-                        $("#offline_overlay").hide();
-                        self.logViewModel.requestData();
-                        self.timelapseViewModel.requestData();
-                        $("#webcam_image").attr("src", CONFIG_WEBCAM_STREAM + "?" + new Date().getTime());
-                        self.loginStateViewModel.requestData();
-                        self.gcodeFilesViewModel.requestData();
-                        self.gcodeViewModel.reset();
-
-                        if ($('#tabs li[class="active"] a').attr("href") == "#control") {
-                            $("#webcam_image").attr("src", CONFIG_WEBCAM_STREAM + "?" + new Date().getTime());
-                        }
-                    }*/
-
                     break;
                 }
-                /*case "history": {
-                    self.connectionViewModel.fromHistoryData(data);
-                    self.printerStateViewModel.fromHistoryData(data);
-                    self.temperatureViewModel.fromHistoryData(data);
-                    self.controlViewModel.fromHistoryData(data);
-                    self.terminalViewModel.fromHistoryData(data);
-                    self.timelapseViewModel.fromHistoryData(data);
-                    self.gcodeViewModel.fromHistoryData(data);
-                    self.gcodeFilesViewModel.fromCurrentData(data);
-                    break;
-                }*/
+
                 case "current": {
                     //console.log(data);
 
@@ -169,19 +137,8 @@ var SocketData = Backbone.Model.extend({
                         var originalEstimatedTime = data.job.estimatedPrintTime;
                         var estimatedTimeLeft = originalEstimatedTime *  (1.0 - base1Progress );
                         var elaspedTimeVariance = progress.printTime - (originalEstimatedTime - estimatedTimeLeft);
-                        //var newEstimatedTimeLeft = estimatedTimeLeft + elaspedTimeVariance;
-
                         var adjustedEstimatedTime = originalEstimatedTime + elaspedTimeVariance;
                         var newEstimatedTimeLeft = adjustedEstimatedTime * (1.0 -  base1Progress);
-
-                        /*console.log({
-                            progress: progress.completion,
-                            printTime: progress.printTime,
-                            originalEstimatedTime: originalEstimatedTime,
-                            estimatedTimeLeft: estimatedTimeLeft,
-                            elaspedTimeVariance: elaspedTimeVariance,
-                            newEstimatedTimeLeft: newEstimatedTimeLeft
-                        });*/
 
                         this.set('printing_progress', {
                             filename: data.job.file.name,
@@ -194,72 +151,19 @@ var SocketData = Backbone.Model.extend({
                         });
                     }
 
-                    //self.connectionViewModel.fromCurrentData(data);
-                    //self.printerStateViewModel.fromCurrentData(data);
-                    //self.temperatureViewModel.fromCurrentData(data);
-                    //self.controlViewModel.fromCurrentData(data);
-                    //self.terminalViewModel.fromCurrentData(data);
-                    //self.timelapseViewModel.fromCurrentData(data);
-                    //self.gcodeViewModel.fromCurrentData(data);
-                    //self.gcodeFilesViewModel.fromCurrentData(data);
                     break;
                 }
+
                 case "event": {
                     var type = data["type"];
                     var payload = data["payload"];
 
                     if (type == "cloudDownloadEvent") {
-                        this.homeView.printFilesListView.downloadProgress(payload);
+                        app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
                     }
 
-                    /*var gcodeUploadProgress = $("#gcode_upload_progress");
-                    var gcodeUploadProgressBar = $(".bar", gcodeUploadProgress);
-
-                    if ((type == "UpdatedFiles" && payload.type == "gcode") || type == "MetadataAnalysisFinished") {
-                        gcodeFilesViewModel.requestData();
-                    } else if (type == "MovieRendering") {
-                        $.pnotify({title: "Rendering timelapse", text: "Now rendering timelapse " + payload.movie_basename});
-                    } else if (type == "MovieDone") {
-                        $.pnotify({title: "Timelapse ready", text: "New timelapse " + payload.movie_basename + " is done rendering."});
-                        timelapseViewModel.requestData();
-                    } else if (type == "MovieFailed") {
-                        $.pnotify({title: "Rendering failed", text: "Rendering of timelapse " + payload.movie_basename + " failed, return code " + payload.returncode, type: "error"});
-                    } else if (type == "SlicingStarted") {
-                        gcodeUploadProgress.addClass("progress-striped").addClass("active");
-                        gcodeUploadProgressBar.css("width", "100%");
-                        gcodeUploadProgressBar.text("Slicing ...");
-                    } else if (type == "SlicingDone") {
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
-                        $.pnotify({title: "Slicing done", text: "Sliced " + payload.stl + " to " + payload.gcode + ", took " + _.sprintf("%.2f", payload.time) + " seconds"});
-                        gcodeFilesViewModel.requestData(payload.gcode);
-                    } else if (type == "SlicingFailed") {
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
-                        $.pnotify({title: "Slicing failed", text: "Could not slice " + payload.stl + " to " + payload.gcode + ": " + payload.reason, type: "error"});
-                    } else if (type == "TransferStarted") {
-                        gcodeUploadProgress.addClass("progress-striped").addClass("active");
-                        gcodeUploadProgressBar.css("width", "100%");
-                        gcodeUploadProgressBar.text("Streaming ...");
-                    } else if (type == "TransferDone") {
-                        gcodeUploadProgress.removeClass("progress-striped").removeClass("active");
-                        gcodeUploadProgressBar.css("width", "0%");
-                        gcodeUploadProgressBar.text("");
-                        $.pnotify({title: "Streaming done", text: "Streamed " + payload.local + " to " + payload.remote + " on SD, took " + _.sprintf("%.2f", payload.time) + " seconds"});
-                        gcodeFilesViewModel.requestData(payload.remote, "sdcard");
-                    }*/
                     break;
                 }
-                /*case "feedbackCommandOutput": {
-                    self.controlViewModel.fromFeedbackCommandData(data);
-                    break;
-                }
-                case "timelapse": {
-                    self.printerStateViewModel.fromTimelapseData(data);
-                    break;
-                }*/
             }
         }
     }

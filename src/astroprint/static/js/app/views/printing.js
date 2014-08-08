@@ -172,11 +172,14 @@
     events: {
         'click button.stop-print': 'stopPrint',
         'click button.pause-print': 'togglePausePrint',
-        'click button.controls': 'showControlPage'
+        'click button.controls': 'showControlPage',
+        'show': 'show'
     },
     nozzleBar: null,
     bedBar: null,
-    initialize: function(params) {
+    printing_progress: null,
+    paused: null,
+    initialize: function() {
         this.nozzleBar = new tempBarHorizontalView({
             scale: [0, 280],
             el: this.$el.find('.temp-bar.nozzle'),
@@ -188,9 +191,51 @@
             type: 'bed' 
         });
 
-        this.listenTo(params.app.socketData, 'change:temps', this.onTempsChanged);
-        this.listenTo(params.app.socketData, 'change:paused', this.onPausedChanged);
-        this.listenTo(params.app.socketData, 'change:printing_progress', this.onProgressChanged);
+        this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
+        this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
+        this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
+    },
+    render: function() 
+    {
+        //Progress data
+        var filenameNode = this.$el.find('.progress .filename');
+
+        if (filenameNode.text() != this.printing_progress.filename) {
+            filenameNode.text(this.printing_progress.filename);
+        }
+
+        //progress bar
+        this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
+        this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
+
+        //time
+        var time = this._formatTime(this.printing_progress.time_left);
+        this.$el.find('.estimated-hours').text(time[0]);
+        this.$el.find('.estimated-minutes').text(time[1]);
+        this.$el.find('.estimated-seconds').text(time[2]);
+
+        //layers
+        this.$el.find('.current-layer').text(this.printing_progress.current_layer);
+        this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+
+        //heating up
+        if (this.printing_progress.heating_up) {
+            this.$el.addClass("heating-up");
+        } else {
+            this.$el.removeClass("heating-up");
+        }
+
+        //Paused state
+        var pauseBtn = this.$el.find('button.pause-print');
+        var controlBtn = this.$el.find('button.controls');
+
+        if (this.paused) {
+            pauseBtn.html('<i class="icon-play"></i> Resume Print');
+            controlBtn.show();
+        } else {
+            pauseBtn.html('<i class="icon-pause"></i> Pause Print');
+            controlBtn.hide();
+        }
     },
     onTempsChanged: function(s, value) {
         if (!this.$el.hasClass('hide')) {
@@ -199,32 +244,8 @@
         }
     },
     onProgressChanged: function(s, value) {
-        var filenameNode = this.$el.find('.progress .filename');
-
-        if (filenameNode.text() != value.filename) {
-            filenameNode.text(value.filename);
-        }
-
-        //progress bar
-        this.$el.find('.progress .meter').css('width', value.percent+'%');
-        this.$el.find('.progress .progress-label').text(Math.floor(value.percent)+'%');
-
-        //time
-        var time = this._formatTime(value.time_left);
-        this.$el.find('.estimated-hours').text(time[0]);
-        this.$el.find('.estimated-minutes').text(time[1]);
-        this.$el.find('.estimated-seconds').text(time[2]);
-
-        //layers
-        this.$el.find('.current-layer').text(value.current_layer);
-        this.$el.find('.layer-count').text(value.layer_count);
-
-        //heating up
-        if (value.heating_up) {
-            this.$el.addClass("heating-up");
-        } else {
-            this.$el.removeClass("heating-up");
-        }
+        this.printing_progress = value;
+        this.render();
     },
     _formatTime: function(seconds) {
         var sec_num = parseInt(seconds, 10); // don't forget the second param
@@ -238,52 +259,26 @@
         return [hours, minutes, seconds];
     },
     onPausedChanged: function(s, value) {
-        var pauseBtn = this.$el.find('button.pause-print');
-        var controlBtn = this.$el.find('button.controls');
-
-        if (value) {
-            pauseBtn.html('<i class="icon-play"></i> Resume Print');
-            controlBtn.show();
-        } else {
-            pauseBtn.html('<i class="icon-pause"></i> Pause Print');
-            controlBtn.hide();
-        }
+        this.paused = value;
+        this.render();
     },
     show: function() {
         this.nozzleBar.onResize();
         this.bedBar.onResize();
+        this.printing_progress = app.socketData.get('printing_progress');
+        this.paused = app.socketData.get('paused');
+        this.render();
     },
-	startPrint: function(filename, cb) {
-        var self = this;
-
-        $.ajax({
-            url: '/api/files/local/'+filename,
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify({command: "select", print: true})
-        }).
-        done(function() {
-            self.$el.find('.progress .filename').text(filename);
-            if (cb) {
-        	   cb(true);
-            }
-        }).
-        fail(function() {
-        	noty({text: "There was an error starting the print", timeout: 3000});
-            if (cb) {
-        	   cb(false);
-            }
-        });
-	},
     stopPrint: function() {
         this._jobCommand('cancel');
+        app.router.navigate('', {replace:true, trigger: true});
+        this.$el.find('.tab-bar .left-small').show();
     },
     togglePausePrint: function() {
         this._jobCommand('pause');
     },
     showControlPage: function() {
-        app.menuSelected('control');
+        app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
     },
     _jobCommand: function(command) {

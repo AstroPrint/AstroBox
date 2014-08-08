@@ -83,6 +83,8 @@ def index():
 			#firstRun=settings().getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
 			debug=debug,
 			version=VERSION,
+			printing=printer.isPrinting(),
+			paused=printer.isPaused(),
 			#stylesheet=settings().get(["devel", "stylesheet"]),
 			#gcodeMobileThreshold=settings().get(["gcodeViewer", "mobileSizeThreshold"]),
 			#gcodeThreshold=settings().get(["gcodeViewer", "sizeThreshold"]),

@@ -219,10 +219,6 @@ var MovementControlView = Backbone.View.extend({
         if (typeof distance === "undefined")
         	distance = 10;
 
-        //if (self.settings.getPrinterInvertAxis(axis)) {
-        //    multiplier *= -1;
-        //}
-
         var data = {
             "command": "jog"
         }
@@ -342,13 +338,14 @@ var ControlView = Backbone.View.extend({
 	xyControlView: null,
 	zControlView: null,
 	extrusionView: null,
-	initialize: function(params) {
+	initialize: function() {
 		this.tempView = new TempView();
 		this.distanceControl = new DistanceControl();
-		this.listenTo(params.app.socketData, 'change:temps', this.updateTemps);
 		this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
 		this.zControlView = new ZControlView({distanceControl: this.distanceControl});
 		this.extrusionView = new ExtrusionControlView();
+
+		this.listenTo(app.socketData, 'change:temps', this.updateTemps);
 	},
 	updateTemps: function(s, value) {
 		if (!this.$el.hasClass('hide')) {
@@ -364,7 +361,7 @@ var ControlView = Backbone.View.extend({
 		}
 	},
 	resumePrinting: function() {
-		app.printingView.togglePausePrint();
+		app.router.printingView.togglePausePrint();
 		app.showPrinting();
 		this.$el.addClass('hide');
 	}

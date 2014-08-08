@@ -442,21 +442,16 @@ var ResetConfirmDialog = Backbone.View.extend({
 var SettingsMenu = Backbone.View.extend({
 	el: '#settings-side-bar',
 	subviews: null,
-	events: {
-		'click a.page': '_changeActive'
-	},
 	initialize: function(params) {
 		if (params.subviews) {
 			this.subviews = params.subviews;
 		}
 	},
-	_changeActive: function(e) {
-		e.preventDefault();
-
-		var target = $(e.currentTarget);
+	changeActive: function(page) {
+		var target = this.$el.find('li.'+page);
 		this.$el.find('li.active').removeClass('active');
 		target.closest('li').addClass('active');
-		this.subviews[target.data('page')].show();
+		this.subviews[page].show();
 	}
 });
 

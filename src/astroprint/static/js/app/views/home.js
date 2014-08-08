@@ -14,31 +14,37 @@ var PrintFileInfoDialog = Backbone.View.extend({
 		'click .actions .print': 'onPrintClicked',
 		'click .actions .download': 'onDownloadClicked'
 	},
-	initialize: function(params) {
+	initialize: function(params) 
+	{
 		this.file_list = params.file_list;
 	},
-	render: function() {
+	render: function() 
+	{
 		this.$el.find('.dlg-content').html(this.template({ 
         	p: this.printer_file,
         	time_format: app.utils.timeFormat
         }));
 	},
-	open: function(printer_file) {
+	open: function(printer_file) 
+	{
 		this.printer_file = printer_file;
 		this.render();
 		this.$el.foundation('reveal', 'open');
 	},
-	onDeleteClicked: function(e) {
+	onDeleteClicked: function(e) 
+	{
 		e.preventDefault();
 		this.file_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
 		this.$el.foundation('reveal', 'close');
 	},
-	onPrintClicked: function(e) {
+	onPrintClicked: function(e) 
+	{
 		e.preventDefault();
-		app.printingView.startPrint(this.printer_file.local_filename /*,completion callback*/);
+		this.file_list.startPrint(this.printer_file.local_filename);
 		this.$el.foundation('reveal', 'close');
 	},
-	onDownloadClicked: function(e) {
+	onDownloadClicked: function(e) 
+	{
 		e.preventDefault();
 		this.file_list.doDownload(this.printer_file.id);
 		this.$el.foundation('reveal', 'close');
@@ -57,12 +63,14 @@ var FileUploadView = Backbone.View.extend({
 	progressBar: null,
 	button: null,
 	uploadWgt: null,
-	initialize: function() {
+	initialize: function() 
+	{
 		this.progressBar = this.$el.find('.file-upload-progress');
 		this.button = this.$el.find('.file-upload-button');
        	this.uploadWgt = this.$el.find('.file-upload').fileupload();
 	},
-	onFileAdded: function(e, data) {
+	onFileAdded: function(e, data) 
+	{
         var uploadErrors = [];
         var acceptFileTypes = /(\.|\/)(stl|obj|amf)$/i;
         if(data.originalFiles[0]['name'].length && !acceptFileTypes.test(data.originalFiles[0]['name'])) {
@@ -75,7 +83,8 @@ var FileUploadView = Backbone.View.extend({
         	return true;
         }
 	},
-	onFileSubmit: function(e, data) {
+	onFileSubmit: function(e, data) 
+	{
 	    if (data.files.length) {
 	    	var self = this;
 
@@ -103,14 +112,17 @@ var FileUploadView = Backbone.View.extend({
 	    }
 	    return false;
 	},
-	onUploadProgress: function(e, data) {
+	onUploadProgress: function(e, data) 
+	{
         var progress = Math.max(parseInt(data.loaded / data.total * 100, 10), 2);
         this.progressBar.children('.meter').css('width', progress + '%');
 	},
-	onUploadFail: function(e, data) {
+	onUploadFail: function(e, data) 
+	{
 		noty({text: "There was an error uploading your file: "+ data.errorThrown, timeout: 3000});
 	},
-	onUploadAlways: function(e, data) {
+	onUploadAlways: function(e, data) 
+	{
 		var self = this;
 
         setTimeout(function() {
@@ -119,7 +131,8 @@ var FileUploadView = Backbone.View.extend({
             self.progressBar.children(".meter").css("width", "0%");
         }, 2000);
 	},
-	onUploadDone: function(e, data) {
+	onUploadDone: function(e, data) 
+	{
         if (data.redirect) {
             window.location.href = data.redirect;
         }
@@ -135,16 +148,19 @@ var PrintFilesListView = Backbone.View.extend({
 		this.file_list = new PrintFileCollection();
 		this.info_dialog = new PrintFileInfoDialog({file_list: this});
 		this.loader = this.$el.find('h3 .icon-refresh');
+		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
 		this.refresh();
 	},
-	render: function() { 
+	render: function() 
+	{ 
         this.$el.find('.design-list-container').html(this.template({ 
         	print_files: this.file_list.toJSON(),
         	time_format: app.utils.timeFormat,
         	size_format: app.utils.sizeFormat
         }));
     },
-	refresh: function() {
+	refresh: function() 
+	{
 		if (!this.loader.hasClass('animate-spin')) {
 			this.loader.addClass('animate-spin');
 			var self = this;
@@ -161,7 +177,8 @@ var PrintFilesListView = Backbone.View.extend({
 			});
 		}	
 	},
-	onInfoClicked: function(el) {
+	onInfoClicked: function(el) 
+	{
 		var row = $(el).closest('.row');
 		var printfile_id = row.data('printfile-id');
 		var print_file = this.file_list.get(printfile_id);
@@ -172,7 +189,30 @@ var PrintFilesListView = Backbone.View.extend({
 			console.error('Invalid printfile_id: '+printfile_id);
 		}
 	},
-	doDownload: function(id) {
+	startPrint: function(filename, cb) 
+	{
+        $.ajax({
+            url: '/api/files/local/'+filename,
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify({command: "select", print: true})
+        }).
+        done(_.bind(function() {
+            this.$el.find('.progress .filename').text(filename);
+            if (cb) {
+        	   cb(true);
+            }
+        }, this)).
+        fail(function() {
+        	noty({text: "There was an error starting the print", timeout: 3000});
+            if (cb) {
+        	   cb(false);
+            }
+        });
+	},
+	doDownload: function(id) 
+	{
 		var self = this;
 		var container = this.$el.find('#print-file-'+id);
 		var options = container.find('.print-file-options');
@@ -191,7 +231,8 @@ var PrintFilesListView = Backbone.View.extend({
 				progress.hide();
 	        });
 	},
-	doDelete: function(id, filename) {
+	doDelete: function(id, filename) 
+	{
 		var self = this;
 
         $.ajax({
@@ -217,7 +258,8 @@ var PrintFilesListView = Backbone.View.extend({
             }
         });
 	},
-	downloadProgress: function(data) {
+	downloadProgress: function(data) 
+	{
 		var container = this.$el.find('#print-file-'+data.id);
 		var progress = container.find('.progress .meter');
 
@@ -245,11 +287,13 @@ var HomeView = Backbone.View.extend({
 	events: {
 		'click h3 .icon-refresh': 'refreshPrintFiles' 
 	},
-	initialize: function() {
+	initialize: function() 
+	{
 		this.uploadView = new FileUploadView({el: this.$el.find('.design-file-upload')});
 		this.printFilesListView = new PrintFilesListView({el: this.$el.find('.design-list')});
 	},
-	refreshPrintFiles: function() {
+	refreshPrintFiles: function() 
+	{
 		this.printFilesListView.refresh();
 	}
 });
@@ -257,17 +301,17 @@ var HomeView = Backbone.View.extend({
 function home_info_print_file_clicked(el, evt) 
 {
 	evt.preventDefault();
-	app.homeView.printFilesListView.onInfoClicked.call(app.homeView.printFilesListView, $(el));
+	app.router.homeView.printFilesListView.onInfoClicked.call(app.router.homeView.printFilesListView, $(el));
 }
 
 function home_download_print_file_clicked(id, evt)
 {
 	evt.preventDefault();
-	app.homeView.printFilesListView.doDownload.call(app.homeView.printFilesListView, id);
+	app.router.homeView.printFilesListView.doDownload.call(app.router.homeView.printFilesListView, id);
 }
 
 function home_print_print_file_clicked(filename, evt)
 {
 	evt.preventDefault();
-	app.printingView.startPrint(filename);
+	app.router.homeView.printFilesListView.startPrint(filename);
 }

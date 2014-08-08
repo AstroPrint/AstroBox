@@ -16,7 +16,6 @@ var TurnoffConfirmationModal = Backbone.View.extend({
 	}
 });
 
-
 var TurnoffView = Backbone.View.extend({
 	el: '#turnoff-view',
 	turnOffModal: null,
@@ -25,28 +24,21 @@ var TurnoffView = Backbone.View.extend({
 		this.turnOffModal.parent = this;
 	},
 	doTurnoff: function() {
-		this.$el.removeClass('hide');
-		$('#app').addClass('hide');
-
-		var self = this;
-
-		var data = {
-            "action": "shutdown"
-        }
+		app.router.navigate('turning-off', {trigger: true, replace: true});
 
         $.ajax({
             url: API_BASEURL + "system",
             type: "POST",
-            data: data,
-            success: function() {
-				setTimeout(function() {
-					self.$el.addClass('done');
-					self.$el.find('.icon-off').removeClass('blink-animation');
-				}, 5000);
-            },
-            error: function() {
+            data: {"action": "shutdown"},
+            success: _.bind(function() {
+				setTimeout(_.bind(function() {
+					this.$el.addClass('done');
+					this.$el.find('.icon-off').removeClass('blink-animation');
+				}, this), 5000);
+            }, this),
+            error: _.bind(function() {
             	self.$el.find('.icon-off').removeClass('blink-animation');
-            }
+            }, this)
         });
 	}
 });

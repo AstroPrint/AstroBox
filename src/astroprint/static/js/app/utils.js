@@ -1,3 +1,9 @@
+/*
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
 var Utils = function() {
 	var months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Oct', 'Dec'];
 
