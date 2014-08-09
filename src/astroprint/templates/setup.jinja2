@@ -79,25 +79,33 @@
 				<div class="failed-state" align="center">
 					<i class="icon-cancel-circled failed"></i>
 					<h3 class="bold" align="center"></h3>
-					<button class="success radius">Retry</button>
+					<button class="success radius expand">Retry</button>
 					<div align="right">
-						<a href="#printer">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
+						<a href="#connect-printer" class="skip-step">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 				<div class="settings-state">
-					<h2 class="bold" align="center">Pick a WiFi network</h2>
+					<h2 class="bold" align="center">Choose your WiFi Network</h2>
 					<div class="wifi-network-list"></div>
-					<center>
+					<div class="row">
 						<div class="loading-button expand">
-							<button class="disabled success radius connect expand">Connect</button>
-							<span class="button disabled loading success radius expand">
-								<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
-							</span>
+							<div class="small-12 medium-6 medium-push-6 columns">
+								<button class="disabled success radius connect expand bold">Connect</button>
+							</div>
+							<div class="small-12 medium-6 medium-pull-6 columns">
+								<a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+							</div>
+							<div class="small-12 columns">
+								<span class="button disabled loading success radius expand">
+									<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
+								</span>
+							</div>
 						</div>
-					</center>
-					<div align="right">
-						<a href="#printer" class="skip-step">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
 					</div>
+					<p class="small">
+						<sup>*</sup> Without being connected to the internet, you can only 
+						use the AstroBox when you are near it. 
+					</p>
 				</div>
 			</div>
 
@@ -107,26 +115,31 @@
 				<form>
 					<input type="hidden" class="network-id-field" name="id"/>
 					<input type="text" class="network-password-field" name="password"/>
+					<div class="loading-button">
+						<a class="button secondary radius cancel" href="#internet">Cancel</a>
+						<input type="submit" class="button radius success connect" value="Connect"/>
+						<span class="loading button success disabled radius">
+							<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
+						</span>
+					</div>
 				</form>
-				<button class="secondary radius cancel">Cancel</button>
-				<div class="loading-button">
-					<button class="radius success connect">Connect</button>
-					<span class="loading button success disabled radius">
-						<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
-					</span>
-				</div>
 				<a class="close-reveal-modal">&#215;</a>
 			</div>
 
 			<script type="text/template" id="wifi-network-list-template">
-				<table>
+				<ul>
 				<% _.each(networks, function(n, idx) { %>
-					<tr data-id="<%= idx %>">
-						<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
-						<td class="network-name"><%= n.name %></td>
-					</tr>
+					<li data-id="<%= idx %>">
+						<span class="name left"><%= n.name %></span>
+						<span class="indicators right">
+							<% if (n.secured) { %><i class="icon-lock"></i><% } %>
+							<i class="icon-signal-1"></i>
+							<span class="signal"><%=n.signal%>%</span>
+						</span>
+						<div class="clearfix"></div>
+					</li>
 				<% }); %>
-				</table>
+				</ul>
 			</script>
 		</div>
 

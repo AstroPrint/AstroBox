@@ -148,6 +148,8 @@ $setup-heading-nub-size: 15px;
 
 		.checking-state {
 			i.animate-spin {
+				margin-top: 20px;
+				display: block;
 				font-size: rem-calc(50);
 			}
 		}
@@ -204,18 +206,58 @@ $setup-heading-nub-size: 15px;
 	}
 
 	.settings-state {
-		table {
+		.button, button {
+			margin-bottom: 10px;
+
+			&.loading {
+				font-size: rem-calc(18);
+				padding: 16px 0;
+			}
+		}
+
+		p.small {
+			font-size: rem-calc(14);
+		}
+
+		ul {
+			padding: 0;
 			width: 100%;
 
-			tr {
+			li {
+				text-align: left;
+				list-style: none;
 				cursor: pointer;
+				padding: 20px 5px;
+				border-top: 1px solid #ccc;
+
+				.name {
+					font-size: rem-calc(22);
+					color: #ccc;
+					overflow: hidden;
+					white-space: nowrap;
+					text-overflow: ellipsis;
+					width: 70%;
+					line-height: 1.2em;
+				}
 
 				&:hover, &.selected {
 					background-color: $success-color;
+					color: white;
 
-					td {
+					.name {
 						color: white;
 					}
+				}
+
+				.indicators {
+					i {
+						font-size: rem-calc(22);
+					}
+				}
+
+				.signal {
+					font-size: rem-calc(10);
+					vertical-align: middle;
 				}
 			}
 		}
@@ -232,19 +274,6 @@ $setup-heading-nub-size: 15px;
 			font-size: rem-calc(30) !important;
 			color: $success-color;
 			vertical-align: middle;
-		}
-	}
-}
-
-#step-astroprint {
-	form {
-		margin-top: 35px;
-	}
-
-	.success-state {
-		i.ok {
-			font-size: rem-calc(50);
-			color: $success-color;
 		}
 	}
 }

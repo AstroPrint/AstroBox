@@ -181,7 +181,7 @@ var StepInternet = StepView.extend({
 					}));
 
 					//Bind events
-					list.find('table tr').bind('click', _.bind(this.networkSelected, this));
+					list.find('ul li').bind('click', _.bind(this.networkSelected, this));
 
 					this.$el.addClass('settings');
 				}
@@ -199,7 +199,7 @@ var StepInternet = StepView.extend({
 	{
 		var networkRow = $(e.currentTarget);
 
-		this.$el.find('.wifi-network-list tr.selected').removeClass('selected');
+		this.$el.find('.wifi-network-list li.selected').removeClass('selected');
 		networkRow.addClass('selected');
 
 		var network = this.networks[networkRow.data('id')];
@@ -209,7 +209,7 @@ var StepInternet = StepView.extend({
 	},
 	onConnectClicked: function()
 	{
-		var networkRow = this.$el.find('.wifi-network-list tr.selected');
+		var networkRow = this.$el.find('.wifi-network-list li.selected');
 
 		if (networkRow.length == 1) {
 			var network = this.networks[networkRow.data('id')];
@@ -263,7 +263,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	events: {
 		'click button.connect': 'connectClicked',
 		'submit form': 'connectClicked',
-		'click button.cancel': 'cancelClicked'
+		'click a.cancel': 'cancelClicked'
 	},
 	parent: null,
 	initialize: function(params) 
@@ -285,17 +285,20 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 
 		var form = this.$el.find('form');
 		var loadingBtn = this.$el.find('.loading-button');
+		var password = form.find('.network-password-field').val();
 
-		loadingBtn.addClass('loading');
-		this.parent.doConnect(
-			{id: form.find('.network-id-field').val(), password: form.find('.network-password-field').val()}, 
-			_.bind(function(error) { //callback
-				loadingBtn.removeClass('loading');
-				if (!error) {
-					this.$el.foundation('reveal', 'close');
-				}
-			}, this)
-		);
+		if (password) {
+			loadingBtn.addClass('loading');
+			this.parent.doConnect(
+				{id: form.find('.network-id-field').val(), password: password}, 
+				_.bind(function(error) { //callback
+					loadingBtn.removeClass('loading');
+					if (!error) {
+						this.$el.foundation('reveal', 'close');
+					}
+				}, this)
+			);
+		}
 	},
 	cancelClicked: function(e) 
 	{
