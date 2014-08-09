@@ -26,7 +26,8 @@ class SoftwareManager(object):
 			"variant": {
 				"id": None,
 				"name": 'AstroBox'
-			}
+			},
+			"use_unreleased": 0
 		}
 
 		s = settings()
@@ -69,7 +70,8 @@ class SoftwareManager(object):
 						self.data['version']['build']
 					],
 					'variant': self.data['variant']['id']
-				})
+				}),
+				auth = self._checkAuth()
 			)
 
 			if r.status_code != 200:
@@ -88,7 +90,7 @@ class SoftwareManager(object):
 
 	def updateSoftwareVersion(self, data):
 		try:
-			r = requests.get('%s/astrobox/software/release/%s' % (settings().get(['cloudSlicer','apiHost']), data['release_id']))
+			r = requests.get('%s/astrobox/software/release/%s' % (settings().get(['cloudSlicer','apiHost']), data['release_id']), auth = self._checkAuth())
 
 			if r.status_code == 200:
 				data = r.json()
@@ -133,4 +135,16 @@ class SoftwareManager(object):
 	def restartServer(self):
 		if platform == "linux" or platform == "linux2":
 			subprocess.call(['restart', 'astrobox'])
+
+	def _checkAuth(self):
+		s = settings()
+		privateKey = s.get(['cloudSlicer', 'privateKey'])
+		publicKey = s.get(['cloudSlicer', 'publicKey'])
+		if self.data['use_unreleased'] and privateKey and publicKey:
+			from octoprint.slicers.cloud.proven_to_print import HMACAuth
+
+			return HMACAuth(publicKey, privateKey)
+
+		else:
+			return None
 

@@ -154,7 +154,7 @@
 					<% if (data.is_current) { %>
 						Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
 					<% } else { %>
-						Published: <b><%= date_format(new Date(data.release.date)) %></b>
+						Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
 					<% } %>
 					</p>
 					
