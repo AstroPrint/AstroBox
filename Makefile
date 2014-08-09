@@ -9,7 +9,7 @@ JS_APP_FILES := lib/jquery.js lib/jquery.ui.widget.js lib/underscore.js lib/back
 				lib/sockjs.js lib/fastclick.js lib/jquery.fileupload.js lib/jquery.noty.js lib/jquery.noty.top.js \
 				app/models/socketdata.js app/models/printfiles.js \
 				app/utils.js \
-				app/views/home.js app/views/control.js app/views/settings.js app/views/connection.js app/views/turnoff.js app/views/printing.js \
+				app/views/home.js app/views/control.js app/views/settings.js app/views/connection.js app/views/turnoff.js app/views/printing.js app/router.js \
 				app/app.js
 
 JS_APP_LIST := 	$(foreach file, $(JS_APP_FILES), \
