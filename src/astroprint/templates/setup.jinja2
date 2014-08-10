@@ -9,26 +9,26 @@
 
 {% block content %}
 <div id="setup-view" class="row">
-	<div class="small-12 medium-10 large-6 medium-centered large-centered columns">
+	<div class="small-12 large-8 large-centered columns" align="center">
 		<div id="step-welcome" class="step hide">
-			<h1 class="bold">Welcome to AstroPrint&trade;</h1>
+			<h1 class="bold">Welcome to Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
 			<div class="content" align="center">
-				<h2 class="bold">Your AstroBox&trade; Setup</h2>
-				<p>Congratulations on receiving your AstroBox</p>
-				<p>We're going to help you get it all setup</p>
-				<a class="button success radius" href="#name">Begin Setup <i class="icon-right-open"></i></a>
+				<img src="/img/setup/step_1_rocket.png" height="104"/>
+				<h2 class="bold">Thanks for backing us on <img src="/img/kickstarter_logo.png"/></h2>
+				<p>
+					Your support has made AstroPrint™ a reality! In other words, 
+					you are amazing and you are changing the world for the better!
+				</p>
+				<a class="button success radius expand bold" href="#name">Begin Setup</i></a>
 			</div>
 		</div>
 
 		<div id="step-name" class="step hide">
-			<h1 class="bold">Name your AstroBox</h1>
+			<h1 class="bold">Name Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
 			<div class="content">
+				<img src="/img/setup/step_2_rocket.png" height="104"/>
 				<p>
-					If you have more than one box in the same network, they must have different names 
-					so that you can reach them separately.
-				</p>
-				<p>
-					If you only have one, feel free to leave the current name. 
+					If you have more than one AstroBox, make sure and give them different names!
 				</p>
 				<div class="settings-state">
 					<form align="center">
@@ -36,20 +36,18 @@
 							<b>AstroBox Name:</b>
 							<input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
 						</label>
-					</form>
-					<p>
-						A few important things to remember:
-					</p>
-					<p class="preview">
-						<i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span><br/>
-						<i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local
-					</p>
-					<div align="center">
-						<div class="loading-button">
-							<a class="button success radius submit-action" href="#internet">Next: <b>Internet Setup</b> <i class="icon-right-open"></i></a>
-							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Saving...</span>
+						<p>
+							A few important things to remember:
+						</p>
+						<ul class="preview">
+							<li><i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span></li>
+							<li><i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local</li>
+						</ul>
+						<div class="loading-button expand">
+							<a class="button success radius submit-action expand" href="#internet"><small>Next:</small> <b>Internet Setup</b> <i class="icon-right-open"></i></a>
+							<span class="button success disabled radius loading expand"><i class="icon-spin1 animate-spin"></i> Saving...</span>
 						</div>
-					</div>
+					</form>
 				</div>
 				<div class="checking-state" align="center">
 					<i class="icon-spin1 animate-spin"></i>
@@ -64,12 +62,15 @@
 		</div>
 
 		<div id="step-internet" class="step hide">
-			<h1 class="bold">Internet Setup</h1>
+			<h1 class="bold">Internet Setup<div class="nub"></div></h1>
 			<div class="content">
 				<div class="success-state" align="center">
-					<i class="icon-ok-circled ok"></i>
-					<h3 class="bold" align="center">Your AstroBox is connected to the internet.</h3>
-					<a class="button success radius" href="#astroprint">Next: <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
+					<img src="/img/setup/step_4_wifi-box.png" height="107"/>
+					<h3 class="bold" align="center">Success!</h3>
+					<p>
+						Your AstroBox is now connected to the internet.
+					</p>
+					<a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
 				</div>
 				<div class="checking-state" align="center">
 					<i class="icon-spin1 animate-spin"></i>
@@ -87,15 +88,15 @@
 					<h2 class="bold" align="center">Pick a WiFi network</h2>
 					<div class="wifi-network-list"></div>
 					<center>
-						<div class="loading-button">
-							<button class="disabled success radius connect">Connect</button>
-							<span class="button disabled loading success radius">
+						<div class="loading-button expand">
+							<button class="disabled success radius connect expand">Connect</button>
+							<span class="button disabled loading success radius expand">
 								<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
 							</span>
 						</div>
 					</center>
 					<div align="right">
-						<a href="#printer">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
+						<a href="#printer" class="skip-step">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 			</div>
@@ -130,23 +131,25 @@
 		</div>
 
 		<div id="step-astroprint" class="step hide">
-			<h1 class="bold">AstroPrint Account</h1>
+			<h1 class="bold">AstroPrint.com Account<div class="nub"></div></h1>
 			<div class="content">
 				<div class="checking-state" align="center">
 					<i class="icon-spin1 animate-spin"></i>
-					<h3 class="bold" align="center">Checking AstroPrint...</h3>
+					<h3 class="bold" align="center">Checking AstroPrint.com...</h3>
 				</div>
 				<div class="success-state" align="center">
-					<i class="icon-user ok"></i>
-					<h4 class="bold" align="center"><span class="email"></span> (<a class="logout" href="#">Logout</a>)</h4>
-					<a class="button success radius" href="#printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></a>
+					<img src="/img/setup/step_5_rocket-launch.png" height="93"/>
+					<h4 class="bold" align="center">
+						<i class="icon-user ok"></i>
+						<span class="email"></span>
+						(<a class="logout" href="#">Logout</a>)
+					</h4>
+					<a class="button success radius expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></a>
 				</div>
 				<div class="settings-state">
+					<img src="/img/setup/step_5_rocket-launch.png" height="93"/>
 					<p>
-						Please sign into your AstroPrint account below.
-					</p>
-					<p>
-						If you don't have an account, you can <a target="_astroprint" href="http://www.astroprint.com/account/signup">create one</a> now.
+						This allows you to slice, store, and print through our cloud servers. Sign in below or <a target="_astroprint" href="http://www.astroprint.com/account/signup">create a new account</a>.
 					</p>
 					<form>
 						<label for="email">
@@ -157,31 +160,45 @@
 							<i class="icon-lock"></i> <b>Password</b> (<a target="_astroprint" href="http://www.astroprint.com/account/forgot">forgot?</a>)
 							<input type="password" id="password" class="radius" name="password"/>
 						</label>
-					</form>
-					<div align="center">
-						<div class="loading-button">
-							<a class="button success radius submit-action" href="#printer">Next: <b>Printer Connection</b> <i class="icon-right-open"></i></a>
-							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Logging in...</span>
+						<div align="center">
+							<div class="loading-button expand">
+								<button class="success radius submit-action expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></button>
+								<span class="button success disabled radius loading expand"><i class="icon-spin1 animate-spin"></i> Logging in...</span>
+							</div>
 						</div>
-					</div>
+					</form>
 					<div align="right">
-						<a href="#printer">Skip AstroPrint Account <i class="icon-right-open"></i></a>
+						<a href="#connect-printer" class="skip-step">Skip AstroPrint Account <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<div id="step-printer" class="step hide">
-			<h1 class="bold">Printer Connection</h1>
+		<div id="step-connect-printer" class="step hide">
+			<h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
 			<div class="content">
+				<img src="/img/setup/step_6_connect-box.png" height="90"/>
+				<p align="center">
+					Plug your printer's USB in the AstroBox and click continue when done.
+				</p>
+				<a href="#printer" class="button success radius share-button bold expand">Continue</a>
+				<div align="right">
+					<a class="skip-step" href="#share">Skip and Configure Later <i class="icon-right-open"></i></a>
+				</div>
+			</div>
+		</div>
+
+		<div id="step-printer" class="step hide">
+			<h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
+			<div class="content">
+				<img src="/img/setup/step_6.2_connected-box.png" height="76"/>
 				<div class="checking-state" align="center">
 					<i class="icon-spin1 animate-spin"></i>
 					<h3 class="bold" align="center">Checking Printer Settings...</h3>
 				</div>
 				<div class="settings-state">
 					<p>
-						Connect to your printer to the USB port on the AstroBox, select your
-						printer's connection settings and hit Connect. 
+						Select your settings from the dropdown lists.
 					</p>
 					<form>
 						<label for="port">
@@ -194,13 +211,13 @@
 							<select id="baud-rate" name="baudrate">
 							</select>
 						</label>
-					</form>
-					<div align="center">
-						<div class="loading-button">
-							<a class="button success radius submit-action" href="#share">Connect</a>
-							<span class="button success disabled radius loading"><i class="icon-spin1 animate-spin"></i> Connecting...</span>
+						<div align="center">
+							<div class="loading-button expand">
+								<button class="button success radius submit-action expand bold" href="#share">Connect</button>
+								<span class="button success disabled radius loading expand"><i class="icon-spin1 animate-spin"></i> Connecting...</span>
+							</div>
 						</div>
-					</div>
+					</form>
 					<div align="right">
 						<a href="#share" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
 					</div>
@@ -209,16 +226,18 @@
 		</div>
 
 		<div id="step-share" class="step hide">
-			<h1 class="bold">You're done!</h1>
+			<h1 class="bold">You're done!<div class="nub"></div></h1>
 			<div class="content">
-				<h2 class="bold">Care to share the love?</h2>
-				<p align="center">
-					<button class="radius share-button facebook bold"><i class="icon-facebook-squared"></i> Share</button>
-					<button class="radius share-button twitter bold"><i class="icon-twitter"></i> Tweet</button>
-					<a class="button radius success bold setup-done" style="display:none" href="#">Start Printing  <i class="icon-right-open"></i></a>
+				<img src="/img/setup/final_step_astroprint_logo.png" height=""/>
+				<p>
+					<b>Congratulations!</b> Your AstroBox is all set up. Now go print 
+					something awesome or if you are feeling generous share the love!
 				</p>
+				<button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i> Share</button>
+				<button class="radius share-button twitter bold expand"><i class="icon-twitter"></i> Tweet</button>
+				<a class="button radius success bold setup-done expand" style="display:none" href="#">Start Printing!</a>
 				<div align="right">
-					<a class="setup-done" href="#">Skip sharing <i class="icon-right-open"></i></a>
+					<a class="setup-done skip-step" href="#">Skip Sharing and Start Printing! <i class="icon-right-open"></i></a>
 				</div>
 			</div>
 		</div>

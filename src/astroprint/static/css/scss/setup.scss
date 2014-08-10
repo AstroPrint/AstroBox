@@ -2,29 +2,60 @@
 
 @import
 	"fonts",
-    "normalize",
-    "fontello",
-    "animations",
-    "widgets",
-    "foundation/settings",
-    "foundation/components/global",
-    "foundation/components/reveal",
-    "foundation/components/grid",
-    "foundation/components/buttons",
-    "foundation/components/forms",
-    "foundation/components/alert-boxes",
-    "foundation/components/tables",
-    "common-main";
+	"normalize",
+	"fontello",
+	"animations",
+	"widgets",
+	"foundation/settings",
+	"foundation/components/global",
+	"foundation/components/reveal",
+	"foundation/components/grid",
+	"foundation/components/buttons",
+	"foundation/components/forms",
+	"foundation/components/alert-boxes",
+	"foundation/components/tables",
+	"common-main";
+
+$setup-heading-nub-size: 15px;
 
 #setup-view {
 	.step {
+		background-color: white;
+		margin: 50px 0;
+		@include radius($global-radius);
+		overflow: hidden;
+		max-width: 460px;
+
 		h1 {
+			position: relative;
 			background-color: $alert-color;
 			color: white;
 			margin: 0;
 			padding: 20px 10px;
-			font-size: rem-calc(25);
+			font-size: rem-calc(30);
 			text-align: center;
+			line-height: 1.2em;
+
+			.light {
+				font-family: $body-font-family;
+			}
+
+			.nub {
+				display: block;
+				position: absolute;
+				width: 0;
+				height: 0;
+				border: $setup-heading-nub-size solid $alert-color;
+
+				border-bottom-style: solid;
+				border-color: $alert-color !important;
+				border-bottom-color: transparent !important;
+				border-left-color: transparent !important;
+				border-right-color: transparent !important;
+				bottom: -($setup-heading-nub-size*2);
+				left: 50%;
+				margin-left: -$setup-heading-nub-size;
+			}
 		}
 
 		h3 {
@@ -33,11 +64,24 @@
 		}
 
 		.content {
-			padding: 20px;
+			padding: 40px 20px 20px 20px;
+			border: 1px solid #ccc;
+			border-top: none;
+			@include side-radius(bottom, $global-radius);
 
 			h2 {
 				font-size: rem-calc(20);
 				text-align: center;
+
+				img {
+					vertical-align: middle;
+				}
+			}
+
+			p {
+				text-align: left;
+				font-size: rem-calc(16);
+				line-height: 1.3em;
 			}
 
 			a {
@@ -45,19 +89,31 @@
 
 				&.button {
 					color: white;
+
+					small {
+						font-size: rem-calc(22);
+						font-family: $body-font-family;
+					}
 				}
 
 				i.icon-right-open {
-					font-size: rem-calc(13);
+					font-size: rem-calc(22);
+					vertical-align: middle;
+				}
+			}
+
+			button, .button {
+				font-size: rem-calc(28);
+				padding: 10px 0;
+
+			}
+
+			.skip-step {
+				i.icon-right-open {
+					font-size: rem-calc(15);
 				}
 			}
 		}
-
-	    background-color: white;
-	    margin: 50px 0;
-	    @include radius(10px);
-	    box-shadow: 0px 0px 20px #ccc;
-	    overflow: hidden;
 
 		.checking-state,
 		.success-state,
@@ -97,19 +153,25 @@
 		}
 	}
 
-    label {
-    	text-align: left;
-        font-size: rem-calc(15);
-    }
+	label {
+		text-align: left;
+		font-size: rem-calc(22);
+	}
 }
 
 #step-name {
 	.preview {
 		color: #ccc;
 		font-size: rem-calc(18);
-		line-height: 2em;
+		text-align: left;
+		padding-left: 10px;
 
-		span.bold {
+		li {
+			margin-bottom: 20px;
+			list-style: none;
+		}
+
+		span.bold, i {
 			color: $success-color;
 		}
 	}
@@ -124,9 +186,13 @@
 
 #step-internet {
 	.success-state {
-		i.ok {
-			font-size: rem-calc(50);
-			color: $success-color;
+		h3 {
+			margin: 10px auto;
+		}
+
+		p {
+			text-align: center !important;
+			font-size: rem-calc(22) !important;
 		}
 	}
 
@@ -163,8 +229,9 @@
 
 	.success-state {
 		i.ok {
-			font-size: rem-calc(50);
+			font-size: rem-calc(30) !important;
 			color: $success-color;
+			vertical-align: middle;
 		}
 	}
 }
@@ -184,8 +251,8 @@
 
 #step-share {
 	.share-button {
-		width: 70%;
-		font-size: rem-calc(30);
+		font-size: rem-calc(40) !important;
+		padding: 20px 0 !important;
 
 		&.facebook {
 			background-color: #45619d;
@@ -202,5 +269,5 @@
 }
 
 @import
-    "noty",
-    "widgets";
+	"noty",
+	"widgets";

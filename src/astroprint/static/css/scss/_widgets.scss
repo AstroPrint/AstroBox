@@ -1,6 +1,11 @@
 .loading-button {
 	display: inline-block;
 
+	&.expand {
+		width: 100%;
+		display: block;
+	}
+
 	span.loading {
 		display: none;
 	}

@@ -379,6 +379,21 @@ var StepAstroprint = StepView.extend({
 	}
 });
 
+/*******************
+* Connect Printer
+********************/
+
+var StepConnectPrinter = StepView.extend({
+	el: "#step-connect-printer",
+	constructor: function() 
+	{
+		/*this.events["click .share-button.facebook"] = "onFacebookClicked";
+		this.events["click .share-button.twitter"] = "onTwitterClicked";
+		this.events["click .setup-done"] = "onSetupDone";*/
+		StepView.apply(this, arguments);
+	}
+});
+
 /**************
 * Printer
 ***************/
@@ -528,6 +543,7 @@ var SetupView = Backbone.View.extend({
 			'name': new StepName({'setup_view': this}),
 			'internet': new StepInternet({'setup_view': this}),
 			'astroprint': new StepAstroprint({'setup_view': this}),
+			'connect-printer': new StepConnectPrinter({'setup_view': this}),
 			'printer': new StepPrinter({'setup_view': this}),
 			'share': new StepShare({'setup_view': this})
 		};
