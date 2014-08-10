@@ -6,23 +6,25 @@
 
 var TurnoffConfirmationModal = Backbone.View.extend({
 	el: '#turnoff-modal',
-	parent: null,
 	events: {
-		'click button.alert': 'onConfirm'
+		'click button.alert': 'onConfirm',
+		'click button.secondary': 'close'
 	},
-	onConfirm: function() {
+	onConfirm: function() 
+	{
 		this.$el.foundation('reveal', 'close');
-		this.parent.doTurnoff();
+		app.router.navigate("turning-off", {replace: true, trigger: true});
+	},
+	open: function() {
+		this.$el.foundation('reveal', 'open');
+	},
+	close: function() {
+		this.$el.foundation('reveal', 'close');
 	}
 });
 
 var TurnoffView = Backbone.View.extend({
 	el: '#turnoff-view',
-	turnOffModal: null,
-	initialize: function() {
-		this.turnOffModal =  new TurnoffConfirmationModal();
-		this.turnOffModal.parent = this;
-	},
 	doTurnoff: function() {
 		app.router.navigate('turning-off', {trigger: true, replace: true});
 
@@ -37,7 +39,7 @@ var TurnoffView = Backbone.View.extend({
 				}, this), 5000);
             }, this),
             error: _.bind(function() {
-            	self.$el.find('.icon-off').removeClass('blink-animation');
+            	this.$el.find('.icon-off').removeClass('blink-animation');
             }, this)
         });
 	}

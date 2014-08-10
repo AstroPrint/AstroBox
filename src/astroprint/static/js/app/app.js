@@ -14,6 +14,7 @@ $.ajaxSetup({
 
 var AppMenu = Backbone.View.extend({
 	el: '#main-menu',
+	turnOffModal: null,
 	events: {
 		'click li.logout': 'logoutClicked'
 	},
@@ -44,12 +45,16 @@ var AstroBoxApp = Backbone.View.extend({
 	utils: null,
 	router: null,
 	connectionView: null,
+	events: {
+		'click button.turn-off': 'turnOffClicked'
+	},
 	initialize: function() {
 		this.socketData = new SocketData();
 		this.appMenu = new AppMenu();
 		this.utils = new Utils();
 		this.router = new AppRouter();
 		this.connectionView = new ConnectionView();
+		this.turnOffModal = new TurnoffConfirmationModal();
 
 		this.eventManager = Backbone.Events;
 
@@ -57,6 +62,10 @@ var AstroBoxApp = Backbone.View.extend({
 		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
+	},
+	turnOffClicked: function()
+	{
+		this.turnOffModal.open();
 	},
 	reportPrintingChange: function(s, value) {
 		if (value) {

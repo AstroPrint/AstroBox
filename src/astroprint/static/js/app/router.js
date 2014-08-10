@@ -76,6 +76,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.turnoffView);
+		this.turnoffView.doTurnoff();
 	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
