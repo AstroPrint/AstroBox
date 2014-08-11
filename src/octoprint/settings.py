@@ -8,6 +8,7 @@ import yaml
 import logging
 import re
 import uuid
+import shutil
 
 APPNAME="OctoPrint"
 
@@ -186,6 +187,12 @@ class Settings(object):
 			self._configfile = configfile
 		else:
 			self._configfile = os.path.join(self.settings_dir, "config.yaml")
+
+		self._factoryConfigFile = os.path.join(os.path.dirname(self._configfile), "config.factory")
+
+		if os.path.exists(self._factoryConfigFile) and not os.path.exists(self._configfile):
+			shutil.copy(self._factoryConfigFile, self._configfile)
+
 		self.load(migrate=True)
 
 	def _init_settings_dir(self, basedir):
@@ -206,6 +213,7 @@ class Settings(object):
 		if os.path.exists(self._configfile) and os.path.isfile(self._configfile):
 			with open(self._configfile, "r") as f:
 				self._config = yaml.safe_load(f)
+
 		# chamged from else to handle cases where the file exists, but is empty / 0 bytes
 		if not self._config:
 			self._config = {}
