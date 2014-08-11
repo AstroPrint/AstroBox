@@ -111,7 +111,6 @@ def stopWifiHotspot():
 @restricted_access
 def resetFactorySettings():
 	import os
-	import shutil
 
 	logger = logging.getLogger(__name__)
 	logger.warning("Executing a Restore Factory Settings operation")
@@ -143,11 +142,7 @@ def resetFactorySettings():
 
 	#replace config.yaml with config.factory
 	config_file = s._configfile
-	factory_file = os.path.join(os.path.dirname(config_file), "config.factory")
-	if os.path.exists(factory_file):
-		shutil.copy(factory_file, config_file)
-	else:
-		os.unlink(config_file)
+	os.unlink(config_file)
 
 	s._config = {}
 	s.load(migrate=False)

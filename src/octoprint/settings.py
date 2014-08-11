@@ -190,9 +190,6 @@ class Settings(object):
 
 		self._factoryConfigFile = os.path.join(os.path.dirname(self._configfile), "config.factory")
 
-		if os.path.exists(self._factoryConfigFile) and not os.path.exists(self._configfile):
-			shutil.copy(self._factoryConfigFile, self._configfile)
-
 		self.load(migrate=True)
 
 	def _init_settings_dir(self, basedir):
@@ -210,6 +207,9 @@ class Settings(object):
 	#~~ load and save
 
 	def load(self, migrate=False):
+		if os.path.exists(self._factoryConfigFile) and not os.path.exists(self._configfile):
+			shutil.copy(self._factoryConfigFile, self._configfile)
+		
 		if os.path.exists(self._configfile) and os.path.isfile(self._configfile):
 			with open(self._configfile, "r") as f:
 				self._config = yaml.safe_load(f)
