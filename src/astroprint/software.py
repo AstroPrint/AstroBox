@@ -26,8 +26,7 @@ class SoftwareManager(object):
 			"variant": {
 				"id": None,
 				"name": 'AstroBox'
-			},
-			"use_unreleased": 0
+			}
 		}
 
 		s = settings()
@@ -140,7 +139,7 @@ class SoftwareManager(object):
 		s = settings()
 		privateKey = s.get(['cloudSlicer', 'privateKey'])
 		publicKey = s.get(['cloudSlicer', 'publicKey'])
-		if self.data['use_unreleased'] and privateKey and publicKey:
+		if s.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
 			from octoprint.slicers.cloud.proven_to_print import HMACAuth
 
 			return HMACAuth(publicKey, privateKey)

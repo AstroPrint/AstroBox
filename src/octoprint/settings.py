@@ -163,7 +163,8 @@ default_settings = {
 		"hotspotInterface": "wlan1"
 	},
 	"software": {
-		"infoFile": None
+		"infoFile": None,
+		"useUnreleased": False
 	}
 }
 
