@@ -31,7 +31,7 @@ class NetworkManager(object):
 		return "Stopping a hotspot is not supported"
 
 	def getHostname(self):
-		return None
+		return "astrobox"
 
 	def setHostname(self, name):
 		return None

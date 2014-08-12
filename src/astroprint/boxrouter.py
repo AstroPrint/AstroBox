@@ -7,6 +7,7 @@ import socket
 import asynchat
 import asyncore
 import threading
+import logging
 
 from octoprint.settings import settings
 
@@ -16,6 +17,8 @@ class AstroprintBoxRouter(asynchat.async_chat):
 		self._ibuffer = []
 		self.set_terminator("\n")
 		self._settings = settings()
+		self._logger = logging.getLogger(__name__)
+		self.connected = False
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
 
@@ -36,15 +39,9 @@ class AstroprintBoxRouter(asynchat.async_chat):
 	def boxrouter_connect(self):
 		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.connect( (self._address, self._port) )
-		self.connected = True
 
-		self.push(json.dumps({
-			'msg': 'auth',
-			'data': {
-				'email': self._settings .get(['cloudSlicer', 'email']),
-				'privateKey': self._settings .get(['cloudSlicer', 'privateKey'])
-			}
-		}))
+	#def handle_error(self):
+	#	self._logger.error('Unable to connect to the astroprint service')
 
 	def handle_connect(self):
 		pass
@@ -63,4 +60,31 @@ class AstroprintBoxRouter(asynchat.async_chat):
 
 	def onMessage(self):
 		for msg in self._ibuffer:
-			print msg
+			msg = json.loads(msg)
+
+			self._logger.info("Received message: %s" % msg)
+
+			if msg['type'] == 'auth':
+				self.processAuthenticate(msg['data'] if 'data' in msg else None)
+
+	def processAuthenticate(self, data):
+		if data:
+			if 'error' in data:
+				self._logger.warn(data['message'] if 'message' in data else 'Unkonwn authentication error')
+			elif 'success' in data:
+				self._logger.info("Connected to astroprint service")
+				self.connected = True;
+
+		else:
+			from octoprint.server import VERSION, networkManager
+
+			self.push(json.dumps({
+				'type': 'auth',
+				'data': {
+					'boxId': '12345',
+					'boxName': networkManager.getHostname(),
+					'swVersion': VERSION,
+					'publicKey': self._settings.get(['cloudSlicer', 'publicKey']),
+					'privateKey': self._settings .get(['cloudSlicer', 'privateKey'])
+				}
+			}))
