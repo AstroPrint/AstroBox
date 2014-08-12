@@ -41,6 +41,7 @@ eventManager = None
 loginManager = None
 networkManager = None
 softwareManager = None
+boxrouterManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -58,7 +59,7 @@ import octoprint.events as events
 import octoprint.timelapse
 #import octoprint._version
 from astroprint.software import SoftwareManager
-
+from astroprint.boxrouter import AstroprintBoxRouter 
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 #VERSION = octoprint._version.get_versions()['version']
@@ -176,6 +177,7 @@ class Server():
 
 		# first initialize the settings singleton and make sure it uses given configfile and basedir if available
 		self._initSettings(self._configfile, self._basedir)
+		s = settings()
 
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
@@ -198,7 +200,7 @@ class Server():
 		if self._debug:
 			events.DebugEventListener()
 
-		if settings().getBoolean(["accessControl", "enabled"]):
+		if s.getBoolean(["accessControl", "enabled"]):
 			userManagerName = settings().get(["accessControl", "userManager"])
 			try:
 				clazz = util.getClass(userManagerName)
@@ -221,9 +223,9 @@ class Server():
 		networkManager = networkManagerLoader()
 
 		if self._host is None:
-			self._host = settings().get(["server", "host"])
+			self._host = s.get(["server", "host"])
 		if self._port is None:
-			self._port = settings().getInt(["server", "port"])
+			self._port = s.getInt(["server", "port"])
 
 		logger.info("Listening on http://%s:%d" % (self._host, self._port))
 		app.debug = self._debug
@@ -232,6 +234,7 @@ class Server():
 
 		app.register_blueprint(api, url_prefix="/api")
 
+		self._boxrouter = AstroprintBoxRouter()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
 		def access_validation_factory(validator):
@@ -256,26 +259,26 @@ class Server():
 			return f
 
 		self._tornado_app = Application(self._router.urls + [
-			(r"/downloads/timelapse/([^/]*\.mpg)", LargeResponseHandler, {"path": settings().getBaseFolder("timelapse"), "as_attachment": True}),
-			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": settings().getBaseFolder("uploads"), "as_attachment": True}),
-			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": settings().getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
-			(r"/downloads/camera/current", UrlForwardHandler, {"url": settings().get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
+			(r"/downloads/timelapse/([^/]*\.mpg)", LargeResponseHandler, {"path": s.getBaseFolder("timelapse"), "as_attachment": True}),
+			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": s.getBaseFolder("uploads"), "as_attachment": True}),
+			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": s.getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
+			(r"/downloads/camera/current", UrlForwardHandler, {"url": s.get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
 		self._server = HTTPServer(self._tornado_app)
 		self._server.listen(self._port, address=self._host)
 
 		eventManager.fire(events.Events.STARTUP)
-		if settings().getBoolean(["serial", "autoconnect"]):
-			(port, baudrate) = settings().get(["serial", "port"]), settings().getInt(["serial", "baudrate"])
+		if s.getBoolean(["serial", "autoconnect"]):
+			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
 			connectionOptions = getConnectionOptions()
 			if port in connectionOptions["ports"]:
 				printer.connect(port, baudrate)
 
 		# start up watchdogs
 		observer = Observer()
-		observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), settings().getBaseFolder("watched"))
-		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), settings().getBaseFolder("uploads"))
+		observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), s.getBaseFolder("watched"))
+		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), s.getBaseFolder("uploads"))
 		observer.start()
 
 		try:
