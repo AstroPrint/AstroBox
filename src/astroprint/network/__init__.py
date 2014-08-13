@@ -31,7 +31,7 @@ class NetworkManager(object):
 		return "Stopping a hotspot is not supported"
 
 	def getHostname(self):
-		return "astrobox"
+		return None
 
 	def setHostname(self, name):
 		return None
@@ -43,5 +43,8 @@ def loader():
 	if platform == "linux" or platform == "linux2":
 		from astroprint.network.ubuntu import UbuntuNetworkManager
 		return UbuntuNetworkManager()
+	elif platform == "darwin":
+		from astroprint.network.mac_dev import MacDevNetworkManager
+		return MacDevNetworkManager()
 	else:
 		return NetworkManager()
