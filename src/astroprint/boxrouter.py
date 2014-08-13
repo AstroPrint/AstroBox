@@ -22,19 +22,23 @@ class AstroprintBoxRouter(asynchat.async_chat):
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
 
-		if ":" in addr:
-			addr = addr.split(':')
-			self._address = addr[0]
-			self._port = int(addr[1])
+		if addr:
+			if ":" in addr:
+				addr = addr.split(':')
+				self._address = addr[0]
+				self._port = int(addr[1])
+			else:
+				self._address = addr
+				self._port = 80
+
+			self.boxrouter_connect()
+
+			self._listener = threading.Thread(target=asyncore.loop)
+			self._listener.daemon = True
+			self._listener.start()
+
 		else:
-			self._address = addr
-			self._port = 80
-
-		self.boxrouter_connect()
-
-		self._listener = threading.Thread(target=asyncore.loop)
-		self._listener.daemon = True
-		self._listener.start()
+			self._logger.error('boxrouter address not specified in config')
 
 	def boxrouter_connect(self):
 		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -81,7 +85,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 			self.push(json.dumps({
 				'type': 'auth',
 				'data': {
-					'boxId': '12345',
+					'boxId': networkManager.getMacAddress(),
 					'boxName': networkManager.getHostname(),
 					'swVersion': VERSION,
 					'publicKey': self._settings.get(['cloudSlicer', 'publicKey']),
