@@ -32,5 +32,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return None
 
 	def getMacAddress(self, interface = None):
+		import md5
 		from uuid import getnode as get_mac
-		return get_mac()
+
+		return md5.new(str(get_mac())).hexdigest()
