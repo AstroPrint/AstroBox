@@ -198,11 +198,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 			return False
 
 	def getMacAddress(self, interface = None):
-		devices = NetworkManager.NetworkManager.GetDevices()
+		import md5
+		from uuid import getnode as get_mac
 
-		for dev in devices:
-			if dev.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
-				import md5
-				return md5.new(dev.SpecificDevice().PermHwAddress).hexdigest()
-
-		return None
+		return md5.new(str(get_mac())).hexdigest()
