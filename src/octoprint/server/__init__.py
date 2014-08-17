@@ -57,12 +57,10 @@ import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
 import octoprint.timelapse
-#import octoprint._version
 from astroprint.software import SoftwareManager
-from astroprint.boxrouter import AstroprintBoxRouter 
+from astroprint.boxrouter import boxrouterManager 
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
-#VERSION = octoprint._version.get_versions()['version']
 VERSION = None
 
 @app.route("/")
@@ -233,8 +231,8 @@ class Server():
 
 		app.register_blueprint(api, url_prefix="/api")
 
+		self._boxrouter = boxrouterManager()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
-		self._boxrouter = AstroprintBoxRouter()
 
 		def access_validation_factory(validator):
 			"""

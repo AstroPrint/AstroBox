@@ -167,10 +167,24 @@ var SocketData = Backbone.Model.extend({
                             break;
 
                         case 'AstroPrintStatus':
-                            console.log('astroprintStatus event: '+payload);
-                            this.set('astroprint', {
-                                status: payload
-                            });
+                            switch(payload) {
+                                case 'connecting':
+                                    this.connectionView.setAstroprintConnection('blink-animation');
+                                    break;
+
+                                case 'connected':
+                                    this.connectionView.setAstroprintConnection('connected');
+                                    break;
+
+                                case 'disconnected':
+                                case 'error':
+                                    this.connectionView.setAstroprintConnection('failed');
+                                    break;
+
+                                default:
+                                console.log('astroprintStatus unkonwn event: '+payload);
+                            }
+                            this.set('astroprint', { status: payload });
                             break;
 
                         default:

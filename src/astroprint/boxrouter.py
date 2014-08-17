@@ -14,7 +14,21 @@ from octoprint.events import eventManager, Events
 
 from octoprint.settings import settings
 
+# singleton
+_instance = None
+
+def boxrouterManager():
+	global _instance
+	if _instance is None:
+		_instance = AstroprintBoxRouter()
+	return _instance
+
 class AstroprintBoxRouter(asynchat.async_chat):
+	STATUS_DISCONNECTED = 'disconnected'
+	STATUS_CONNECTING = 'connecting'
+	STATUS_CONNECTED = 'connected'
+	STATUS_ERROR = 'error'
+
 	def __init__(self):
 		asynchat.async_chat.__init__(self)
 		self.MAX_RETRIES = 5
@@ -25,6 +39,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
 		self._retries = 0
+		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
@@ -49,15 +64,17 @@ class AstroprintBoxRouter(asynchat.async_chat):
 
 	def boxrouter_connect(self):
 		try:
+			self.status = self.STATUS_CONNECTING
+			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 			self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.connect( (self._address, self._port) )
-			self._eventManager.fire(Events.ASTROPRINT_STATUS,'connecting');
 		except Exception as e:
 			self._logger.error(e)
 
 
 	def handle_error(self):
-		self._eventManager.fire(Events.ASTROPRINT_STATUS,'error');
+		self.status = self.STATUS_ERROR
+		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 		self._logger.error('Unkonwn error connecting to the AstroPrint service')
 		self.close()
 		self._doRetry()
@@ -68,7 +85,8 @@ class AstroprintBoxRouter(asynchat.async_chat):
 	def handle_close(self):
 		self.close()
 		self.connected = False
-		self._eventManager.fire(Events.ASTROPRINT_STATUS,'disconnected');
+		self.status = self.STATUS_DISCONNECTED
+		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 		self._doRetry()
 
 	def collect_incoming_data(self, data):
@@ -100,11 +118,15 @@ class AstroprintBoxRouter(asynchat.async_chat):
 		if data:
 			if 'error' in data:
 				self._logger.warn(data['message'] if 'message' in data else 'Unkonwn authentication error')
+				self.status = self.STATUS_ERROR
+				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.connected = True;
 				self._retries = 0;
-				self._eventManager.fire(Events.ASTROPRINT_STATUS,'connected');
+				self.status = self.STATUS_CONNECTED
+				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
 		else:
 			from octoprint.server import VERSION, networkManager

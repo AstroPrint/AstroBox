@@ -29,6 +29,7 @@ import octoprint.server
 from octoprint.users import ApiUser
 from octoprint.events import Events
 from octoprint import gcodefiles
+from astroprint.boxrouter import boxrouterManager
 import octoprint.util as util
 
 def restricted_access(func, apiEnabled=True):
@@ -158,6 +159,7 @@ class PrinterStateConnection(SockJSConnection):
 
 		# connected => update the API key, might be necessary if the client was left open while the server restarted
 		self._emit("connected", {"apikey": octoprint.server.UI_API_KEY, "version": octoprint.server.VERSION})
+		self.sendEvent(Events.ASTROPRINT_STATUS, boxrouterManager().status)
 
 		self._printer.registerCallback(self)
 		self._gcodeManager.registerCallback(self)

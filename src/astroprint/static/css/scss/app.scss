@@ -41,6 +41,12 @@ body, html {
 }
 
 .off-canvas-list {
+	.header {
+		label {
+			text-transform: none;
+		}
+	}
+
 	label {
 		display: block;
 

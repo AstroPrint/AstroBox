@@ -8,7 +8,8 @@ var ConnectionView = Backbone.View.extend({
 	el: '#connection-view',
 	events: {
 		'click i.printer': 'printerTapped',
-		'click i.server': 'serverTapped'
+		'click i.server': 'serverTapped',
+		'click i.astroprint': 'astroprintTapped'
 	},
 	socketData: null,
 	connect: function() {
@@ -65,6 +66,9 @@ var ConnectionView = Backbone.View.extend({
 	setPrinterConnection: function(className) {
 		this.$el.find('i.printer').removeClass('blink-animation connected failed').addClass(className);
 	},
+	setAstroprintConnection: function(className) {
+		this.$el.find('i.astroprint').removeClass('blink-animation connected failed').addClass(className);
+	},
 	printerTapped: function(e) {
 		if ($(e.target).hasClass('failed')) {
 			this.connect();
@@ -74,6 +78,11 @@ var ConnectionView = Backbone.View.extend({
 		if ($(e.target).hasClass('failed')) {
 			this.socketData.reconnect();
 			this.connect();
+		}
+	},
+	asrtoprintTapped: function(e) {
+		if ($(e.target).hasClass('failed')) {
+			console.log('connect to astroprint initiated');
 		}
 	}
 });
