@@ -27,7 +27,10 @@ var SocketData = Backbone.Model.extend({
 				actual: 0,
 				target: 0
 			}
-		}
+		},
+        astroprint: {
+            status: null
+        }
 	},
     initialize: function()
     {
@@ -158,8 +161,20 @@ var SocketData = Backbone.Model.extend({
                     var type = data["type"];
                     var payload = data["payload"];
 
-                    if (type == "cloudDownloadEvent") {
-                        app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
+                    switch(type) {
+                        case 'CloudDownloadEvent':
+                            app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
+                            break;
+
+                        case 'AstroPrintStatus':
+                            console.log('astroprintStatus event: '+payload);
+                            this.set('astroprint', {
+                                status: payload
+                            });
+                            break;
+
+                        default:
+                            console.warn('Unkonwn event received: '+type);
                     }
 
                     break;

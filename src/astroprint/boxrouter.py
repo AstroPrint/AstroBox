@@ -9,6 +9,8 @@ import asyncore
 import threading
 import logging
 
+from octoprint.events import eventManager, Events
+
 from octoprint.settings import settings
 
 class AstroprintBoxRouter(asynchat.async_chat):
@@ -18,6 +20,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 		self.set_terminator("\n")
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
+		self._eventManager = eventManager()
 		self.connected = False
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
@@ -41,19 +44,25 @@ class AstroprintBoxRouter(asynchat.async_chat):
 			self._logger.error('boxrouter address not specified in config')
 
 	def boxrouter_connect(self):
-		self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.connect( (self._address, self._port) )
+		try:
+			self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+			self.connect( (self._address, self._port) )
+			self._eventManager.fire(Events.ASTROPRINT_STATUS,'connecting');
+		except Exception as e:
+			self._logger.error(e)
 
-	#def handle_error(self):
-	#	self._logger.error('Unable to connect to the astroprint service')
 
-	def handle_connect(self):
-		pass
+	def handle_error(self):
+		self._eventManager.fire(Events.ASTROPRINT_STATUS,'error');
+		self._logger.error('Unkonwn error connecting to the AstroPrint service')
+
+	#def handle_connect(self):
+	#	pass
 
 	def handle_close(self):
-		print 'remote closed'
 		self.close()
 		self.connected = False
+		self._eventManager.fire(Events.ASTROPRINT_STATUS,'disconnected');
 
 	def collect_incoming_data(self, data):
 		self._ibuffer.append(data)
@@ -78,6 +87,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.connected = True;
+				self._eventManager.fire(Events.ASTROPRINT_STATUS,'connected');
 
 		else:
 			from octoprint.server import VERSION, networkManager

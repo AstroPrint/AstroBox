@@ -73,6 +73,10 @@ class Events(object):
 	SLICING_DONE = "SlicingDone"
 	SLICING_FAILED = "SlicingFailed"
 
+	#AstroPrint Events
+	CLOUD_DOWNLOAD = "CloudDownloadEvent"
+	ASTROPRINT_STATUS = "AstroPrintStatus"
+
 
 def eventManager():
 	global _instance

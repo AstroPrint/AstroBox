@@ -11,7 +11,7 @@ from flask import request, jsonify, abort
 from octoprint.settings import settings
 from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
 from octoprint.server.api import api
-from octoprint.events import eventManager
+from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
 
 from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
@@ -106,7 +106,7 @@ def design_download(print_file_id):
 
 	def progressCb(progress):
 		em.fire(
-			"CloudDownloadEvent", {
+			Events.CLOUD_DOWNLOAD, {
 				"type": "progress",
 				"id": print_file_id,
 				"progress": progress
@@ -116,7 +116,7 @@ def design_download(print_file_id):
 	def successCb(destFile, fileInfo):
 		if gcodeManager.saveCloudGcode(destFile, fileInfo, FileDestinations.LOCAL):
 			em.fire(
-				"CloudDownloadEvent", {
+				Events.CLOUD_DOWNLOAD, {
 					"type": "success",
 					"id": print_file_id,
 					"filename": gcodeManager._getBasicFilename(destFile),
@@ -129,7 +129,7 @@ def design_download(print_file_id):
 
 	def errorCb(destFile, error):
 		em.fire(
-			"CloudDownloadEvent", 
+			Events.CLOUD_DOWNLOAD, 
 			{
 				"type": "error",
 				"id": print_file_id,

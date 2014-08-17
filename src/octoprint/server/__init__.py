@@ -94,7 +94,6 @@ def index():
 	else:
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
-			#"login.jinja2",
 			"setup.jinja2",
 			debug=debug,
 			uiApiKey=UI_API_KEY,
@@ -234,8 +233,8 @@ class Server():
 
 		app.register_blueprint(api, url_prefix="/api")
 
-		self._boxrouter = AstroprintBoxRouter()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
+		self._boxrouter = AstroprintBoxRouter()
 
 		def access_validation_factory(validator):
 			"""
