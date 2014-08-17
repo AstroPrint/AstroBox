@@ -9,6 +9,7 @@ import asyncore
 import threading
 import logging
 
+from time import sleep
 from octoprint.events import eventManager, Events
 
 from octoprint.settings import settings
@@ -16,11 +17,14 @@ from octoprint.settings import settings
 class AstroprintBoxRouter(asynchat.async_chat):
 	def __init__(self):
 		asynchat.async_chat.__init__(self)
+		self.MAX_RETRIES = 5
+		self.WAIT_BETWEEN_RETRIES = 3 #seconds
 		self._ibuffer = []
 		self.set_terminator("\n")
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
+		self._retries = 0
 		self.connected = False
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
@@ -55,6 +59,8 @@ class AstroprintBoxRouter(asynchat.async_chat):
 	def handle_error(self):
 		self._eventManager.fire(Events.ASTROPRINT_STATUS,'error');
 		self._logger.error('Unkonwn error connecting to the AstroPrint service')
+		self.close()
+		self._doRetry()
 
 	#def handle_connect(self):
 	#	pass
@@ -63,6 +69,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 		self.close()
 		self.connected = False
 		self._eventManager.fire(Events.ASTROPRINT_STATUS,'disconnected');
+		self._doRetry()
 
 	def collect_incoming_data(self, data):
 		self._ibuffer.append(data)
@@ -70,6 +77,15 @@ class AstroprintBoxRouter(asynchat.async_chat):
 	def found_terminator(self):
 		self.onMessage()
 		self._ibuffer = []
+
+	def _doRetry(self):
+		if self._retries < self.MAX_RETRIES:
+			self._retries += 1
+			self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
+			sleep(self.WAIT_BETWEEN_RETRIES)
+			self.boxrouter_connect()
+		else:
+			self._logger.info('No more retries. Giving up...')
 
 	def onMessage(self):
 		for msg in self._ibuffer:
@@ -87,6 +103,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.connected = True;
+				self._retries = 0;
 				self._eventManager.fire(Events.ASTROPRINT_STATUS,'connected');
 
 		else:
