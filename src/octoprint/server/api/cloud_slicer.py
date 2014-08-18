@@ -13,6 +13,7 @@ from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
+from astroprint.boxrouter import boxrouterManager
 
 from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
@@ -26,10 +27,11 @@ def cloud_slicer_logout():
 	s.set(["cloudSlicer", "publicKey"], None)
 	s.set(["cloudSlicer", "email"], None)
 	s.save()
+	boxrouterManager().boxrouter_disconnect()
 	return jsonify(SUCCESS)	
 
 @api.route('/cloud-slicer/private-key', methods=['POST'])
-def get_private_key():
+def set_private_key():
 	email = request.values.get('email', None)
 	password = request.values.get('password', None)
 
@@ -47,6 +49,7 @@ def get_private_key():
 				s.set(["cloudSlicer", "publicKey"], public_key)
 				s.set(["cloudSlicer", "email"], email)
 				s.save()
+				boxrouterManager().boxrouter_connect()
 				return jsonify(SUCCESS)
 
 	else:

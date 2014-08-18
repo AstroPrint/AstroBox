@@ -24,6 +24,9 @@ def boxrouterManager():
 	return _instance
 
 class AstroprintBoxRouter(asynchat.async_chat):
+	MAX_RETRIES = 5
+	WAIT_BETWEEN_RETRIES = 5 #seconds
+
 	STATUS_DISCONNECTED = 'disconnected'
 	STATUS_CONNECTING = 'connecting'
 	STATUS_CONNECTED = 'connected'
@@ -31,8 +34,6 @@ class AstroprintBoxRouter(asynchat.async_chat):
 
 	def __init__(self):
 		asynchat.async_chat.__init__(self)
-		self.MAX_RETRIES = 5
-		self.WAIT_BETWEEN_RETRIES = 3 #seconds
 		self._ibuffer = []
 		self.set_terminator("\n")
 		self._settings = settings()
@@ -55,38 +56,49 @@ class AstroprintBoxRouter(asynchat.async_chat):
 
 			self.boxrouter_connect()
 
-			self._listener = threading.Thread(target=asyncore.loop)
-			self._listener.daemon = True
-			self._listener.start()
-
 		else:
 			self._logger.error('boxrouter address not specified in config')
 
-	def boxrouter_connect(self):
-		try:
-			self.status = self.STATUS_CONNECTING
-			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
-			self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.connect( (self._address, self._port) )
-		except Exception as e:
-			self._logger.error(e)
+	def boxrouter_disconnect(self):
+		self.close()
 
+	def close(self):
+		self.connected = False
+		self._publicKey = None
+		self._privateKey = None
+		self.status = self.STATUS_DISCONNECTED
+		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+		asynchat.async_chat.close(self)
+		self._listener.join()
+		self._listener = None
+
+	def boxrouter_connect(self):
+		self._publicKey	= self._settings.get(['cloudSlicer', 'publicKey'])
+		self._privateKey = self._settings.get(['cloudSlicer', 'privateKey'])
+
+		if self._publicKey and self._privateKey:
+			try:
+				self.status = self.STATUS_CONNECTING
+				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+				self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+				self.connect( (self._address, self._port) )
+
+			except Exception as e:
+				self._logger.error(e)
+
+			self._listener = threading.Thread(target=asyncore.loop)
+			self._listener.start()
 
 	def handle_error(self):
 		self.status = self.STATUS_ERROR
 		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 		self._logger.error('Unkonwn error connecting to the AstroPrint service')
+		self.connected = False
 		self.close()
 		self._doRetry()
 
-	#def handle_connect(self):
-	#	pass
-
 	def handle_close(self):
 		self.close()
-		self.connected = False
-		self.status = self.STATUS_DISCONNECTED
-		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 		self._doRetry()
 
 	def collect_incoming_data(self, data):
@@ -137,7 +149,7 @@ class AstroprintBoxRouter(asynchat.async_chat):
 					'boxId': networkManager.getMacAddress(),
 					'boxName': networkManager.getHostname(),
 					'swVersion': VERSION,
-					'publicKey': self._settings.get(['cloudSlicer', 'publicKey']),
-					'privateKey': self._settings .get(['cloudSlicer', 'privateKey'])
+					'publicKey': self._publicKey,
+					'privateKey': self._privateKey
 				}
 			}))
