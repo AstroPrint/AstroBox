@@ -17,3 +17,4 @@ scss>=0.8.72
 closure==20121212
 python-networkmanager
 netifaces
+ws4py>=0.3.4
