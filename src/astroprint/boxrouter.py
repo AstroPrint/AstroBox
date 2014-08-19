@@ -82,6 +82,7 @@ class AstroprintBoxRouter(object):
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
 				self._listener = threading.Thread(target=self.run_threaded)
+				self._listener.daemon = True
 				self._listener.start()
 
 	def run_threaded(self):
@@ -97,9 +98,6 @@ class AstroprintBoxRouter(object):
 			try:
 				self._ws.run_forever()
 
-			except KeyboardInterrupt:
-				self._ws.close()
-
 			except:
 				self._error()
 
@@ -113,6 +111,7 @@ class AstroprintBoxRouter(object):
 		self.status = self.STATUS_DISCONNECTED
 		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 		self._ws.close()
+		self._ws = None
 		self._listener = None
 
 	def _error(self):
@@ -126,13 +125,7 @@ class AstroprintBoxRouter(object):
 		if self._retries < self.MAX_RETRIES:
 			self._retries += 1
 			self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
-			try:
-				sleep(self.WAIT_BETWEEN_RETRIES)
-
-			except KeyboardInterrupt:
-				import sys
-				sys.exit()
-
+			sleep(self.WAIT_BETWEEN_RETRIES)
 			self.boxrouter_connect()
 
 		else:
