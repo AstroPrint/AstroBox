@@ -46,7 +46,7 @@ var ConnectionView = Backbone.View.extend({
 		        	}
 		        }
             }
-        })
+        });
 	},
 	disconnect: function() {
 	    $.ajax({
@@ -80,9 +80,18 @@ var ConnectionView = Backbone.View.extend({
 			this.connect();
 		}
 	},
-	asrtoprintTapped: function(e) {
-		if ($(e.target).hasClass('failed')) {
-			console.log('connect to astroprint initiated');
+	astroprintTapped: function(e) {
+		var icon = $(e.target);
+		if (icon.hasClass('failed')) {
+			icon.addClass('blink-animation');
+	        $.ajax({
+	            url: API_BASEURL + "boxrouter",
+	            method: "POST",
+	            dataType: "json",
+	            complete: function(response) {
+	            	icon.removeClass('blink-animation');
+	            }
+	        });
 		}
 	}
 });
