@@ -133,8 +133,13 @@
 						<span class="name left"><%= n.name %></span>
 						<span class="indicators right">
 							<% if (n.secured) { %><i class="icon-lock"></i><% } %>
-							<i class="icon-signal-1"></i>
-							<span class="signal"><%=n.signal%>%</span>
+							<% if (n.signal < 33) { %>
+								<i class="icon-wifi-signal-low"></i>
+							<% } else if (n.signal > 33 && n.signal < 66) { %>
+								<i class="icon-wifi-signal-med"></i>
+							<% } else { %>
+								<i class="icon-wifi-signal-high"></i>
+							<% } %>
 						</span>
 						<div class="clearfix"></div>
 					</li>

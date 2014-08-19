@@ -113,7 +113,16 @@
 			<table>
 			<% _.each(networks, function(n) { %>
 				<tr>
-					<td><% if (n.secured) { %><i class="icon-lock"></i><% } %></td>
+					<td>
+						<% if (n.signal < 33) { %>
+							<i class="icon-wifi-signal-low"></i>
+						<% } else if (n.signal > 33 && n.signal < 66) { %>
+							<i class="icon-wifi-signal-med"></i>
+						<% } else { %>
+							<i class="icon-wifi-signal-high"></i>
+						<% } %>
+						<% if (n.secured) { %><i class="icon-lock"></i><% } %>
+					</td>
 					<td class="network-name"><%= n.name %></td>
 					<td>
 						<% if (n.active) { %>
