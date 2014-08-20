@@ -83,7 +83,7 @@
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 		var SOCKJS_DEBUG = {% if debug -%} true {%- else -%} false {%- endif %};
-
+		var LOGGED_IN = {% if user_email -%} true {%- else -%} false {%- endif %};
 		var app = null;
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
@@ -105,6 +105,6 @@
 	<script type="text/javascript">
 		$(document).foundation({
 			offcanvas: { close_on_click: true }
-		  });
+		});
 	</script>
 {% endblock %}

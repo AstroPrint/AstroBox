@@ -83,15 +83,19 @@ var ConnectionView = Backbone.View.extend({
 	astroprintTapped: function(e) {
 		var icon = $(e.target);
 		if (icon.hasClass('failed')) {
-			icon.addClass('blink-animation');
-	        $.ajax({
-	            url: API_BASEURL + "boxrouter",
-	            method: "POST",
-	            dataType: "json",
-	            complete: function(response) {
-	            	icon.removeClass('blink-animation');
-	            }
-	        });
+			if (LOGGED_IN) {
+				icon.addClass('blink-animation');
+		        $.ajax({
+		            url: API_BASEURL + "boxrouter",
+		            method: "POST",
+		            dataType: "json",
+		            complete: function(response) {
+		            	icon.removeClass('blink-animation');
+		            }
+		        });
+		    } else {
+		    	$('#login-modal').foundation('reveal', 'open');
+		    }
 		}
 	}
 });
