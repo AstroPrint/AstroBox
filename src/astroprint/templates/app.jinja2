@@ -44,12 +44,12 @@
 				<div class="turn-off-area" align="center">
 					<button class="alert tiny radius turn-off"><i class="icon-off"></i> Turn AstroBox&trade; Off</button>
 				</div>
-				<div class="copy" align="center">&copy; 3DaGoGo, Inc. AstroPrint&trade;<br/><br/>{{version}}</div>
+				<div class="copy" align="center">&copy; 3DaGoGo, Inc. AstroPrint&trade;<br/>{{version}}</div>
 			</aside>
 			<div id="main">
 				<div class="row">
 					<div id="view-container" class="small-12 columns">
-						<div id="home-view" class="app-view active">
+						<div id="home-view" class="app-view hide">
 							{% include 'home.jinja2' %}
 						</div>
 						<div id="control-view" class="app-view hide">
@@ -103,6 +103,8 @@
 		{%- endassets %}
 	{% endif %}
 	<script type="text/javascript">
-		$(document).foundation();
+		$(document).foundation({
+			offcanvas: { close_on_click: true }
+		  });
 	</script>
 {% endblock %}
