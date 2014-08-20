@@ -19,16 +19,17 @@
 					<a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
 				</section>
 				<section class="middle tab-bar-section">
-					<h1 class="title"><img src="/img/astroprint-logo_tm.png"/></h1>
+					<h1 class="title"><img src="/img/astrobox_logo_medium.png"/></h1>
 					<div id="connection-view">
-						<i class="icon-3d-printer printer"></i>
-						<i class="icon-exchange server"></i>
+						<i class="icon-rocket astroprint" title="Astroprint Cloud Connection"></i>
+						<i class="icon-3d-printer printer" title="Printer Connection"></i>
+						<i class="icon-exchange server" title="AstroBox Connection"></i>
 					</div>
 				</section>
 			</nav>
 			<aside class="left-off-canvas-menu">
 				<ul class="off-canvas-list" id="main-menu">
-					<li class="header"><label>AstroPrint&trade;</label></li>
+					<li class="header"><label>Astro<b>Box</b>&trade;</label></li>
 					{% if not user_email %}
 						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
 					{% endif %}
@@ -43,12 +44,12 @@
 				<div class="turn-off-area" align="center">
 					<button class="alert tiny radius turn-off"><i class="icon-off"></i> Turn AstroBox&trade; Off</button>
 				</div>
-				<div class="copy" align="center">&copy; 3DaGoGo, Inc. AstroPrint&trade;<br/><br/>v{{version}}</div>
+				<div class="copy" align="center">&copy; 3DaGoGo, Inc. AstroPrint&trade;<br/>{{version}}</div>
 			</aside>
 			<div id="main">
 				<div class="row">
 					<div id="view-container" class="small-12 columns">
-						<div id="home-view" class="app-view active">
+						<div id="home-view" class="app-view hide">
 							{% include 'home.jinja2' %}
 						</div>
 						<div id="control-view" class="app-view hide">
@@ -82,7 +83,7 @@
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 		var SOCKJS_DEBUG = {% if debug -%} true {%- else -%} false {%- endif %};
-
+		var LOGGED_IN = {% if user_email -%} true {%- else -%} false {%- endif %};
 		var app = null;
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
@@ -102,6 +103,8 @@
 		{%- endassets %}
 	{% endif %}
 	<script type="text/javascript">
-		$(document).foundation();
+		$(document).foundation({
+			offcanvas: { close_on_click: true }
+		});
 	</script>
 {% endblock %}

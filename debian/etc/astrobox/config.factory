@@ -2,6 +2,7 @@ server:
   host: 127.0.0.1
 cloudSlicer:
   apiHost: http://api.proventoprint.com
+  boxrouter: boxrouter.astroprint.com
 folder:
   uploads: /AstroBox/local/uploads
   timelapse: /AstroBox/local/timelapse

@@ -29,6 +29,7 @@ import octoprint.server
 from octoprint.users import ApiUser
 from octoprint.events import Events
 from octoprint import gcodefiles
+from astroprint.boxrouter import boxrouterManager
 import octoprint.util as util
 
 def restricted_access(func, apiEnabled=True):
@@ -127,7 +128,7 @@ def getApiKey(request):
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.MOVIE_RENDERING, Events.MOVIE_DONE,
 			  Events.MOVIE_FAILED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
-			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE]
+			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS]
 
 	def __init__(self, printer, gcodeManager, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
@@ -158,6 +159,7 @@ class PrinterStateConnection(SockJSConnection):
 
 		# connected => update the API key, might be necessary if the client was left open while the server restarted
 		self._emit("connected", {"apikey": octoprint.server.UI_API_KEY, "version": octoprint.server.VERSION})
+		self.sendEvent(Events.ASTROPRINT_STATUS, boxrouterManager().status)
 
 		self._printer.registerCallback(self)
 		self._gcodeManager.registerCallback(self)
@@ -166,7 +168,6 @@ class PrinterStateConnection(SockJSConnection):
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
-		self._eventManager.subscribe("CloudDownloadEvent", self._onCloudDownloadEvent)
 
 		octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
 
@@ -179,8 +180,6 @@ class PrinterStateConnection(SockJSConnection):
 		self._eventManager.fire(Events.CLIENT_CLOSED)
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.unsubscribe(event, self._onEvent)
-
-		self._eventManager.unsubscribe("CloudDownloadEvent", self._onCloudDownloadEvent)
 
 	def on_message(self, message):
 		pass
@@ -232,9 +231,6 @@ class PrinterStateConnection(SockJSConnection):
 
 	def _onEvent(self, event, payload):
 		self.sendEvent(event, payload)
-
-	def _onCloudDownloadEvent(self, event, payload):
-		self.sendEvent("cloudDownloadEvent", payload)
 
 	def _emit(self, type, payload):
 		self.send({type: payload})

@@ -1,14 +1,14 @@
 install:
 	echo "Installing needed packages"
-	apt-get install haproxy isc-dhcp-server nscd network-manager upstart avahi-daemon
+	apt-get install haproxy isc-dhcp-server nscd network-manager upstart avahi-daemon ntp
 
 	echo "Installing Python dependencies..."
 	pip install -r /AstroBox/requirements.txt
 	
 	echo "Disabling unnecessary services on startup..."
 	update-rc.d isc-dhcp-server disable
-    sed -i /etc/init/isc-dhcp-server.conf  -e "/start on=/c #start on"
-    sed -i /etc/init/isc-dhcp-server6.conf  -e "/start on=/c #start on"
+	sed -i /etc/init/isc-dhcp-server.conf  -e "/start on=/c #start on"
+	sed -i /etc/init/isc-dhcp-server6.conf  -e "/start on=/c #start on"
 	update-rc.d hostapd disable
 
 	echo "Configuring haproxy"
@@ -30,23 +30,22 @@ install:
 
 	cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcp.conf.bak
 		sed -i /etc/dhcp/dhcpd.conf \
-    		-e 's/^option domain-name/#option domain-name/' \
-    		-e 's/^option domain-name-servers/#option domain-name-servers/' \
-    		-e 's/^default-lease-time/#default-lease-time/' \
-    		-e 's/^max-lease-time/#max-lease-time/'
+			-e 's/^option domain-name/#option domain-name/' \
+			-e 's/^option domain-name-servers/#option domain-name-servers/' \
+			-e 's/^default-lease-time/#default-lease-time/' \
+			-e 's/^max-lease-time/#max-lease-time/'
 
 	sed -i /etc/dhcp/dhcpd.conf \
-    	-e '/subnet 10.10.0.0 netmask 255.255.255.0/,+4 d'
+		-e '/subnet 10.10.0.0 netmask 255.255.255.0/,+4 d'
 
-    echo "Disable autostart for NTP"
-    update-rc.d ntp disable
-    chmod -x /etc/network/if-up.d/ntpdate
+	echo "Disable autostart for NTP"
+	update-rc.d ntp disable
+	chmod -x /etc/network/if-up.d/ntpdate
 
-
-#	cat <<EOF >> /etc/dhcp/dhcpd.conf
-#	subnet 10.10.0.0 netmask 255.255.255.0 {
-#        range 10.10.0.2 10.10.0.16;
-#        option domain-name-servers 8.8.4.4, 208.67.222.222;
-#        option routers 10.10.0.1;
-#	}
-#	EOF
+	cat <<EOF >> /etc/dhcp/dhcpd.conf
+	subnet 10.10.0.0 netmask 255.255.255.0 {
+        range 10.10.0.2 10.10.0.16;
+        option domain-name-servers 8.8.4.4, 208.67.222.222;
+        option routers 10.10.0.1;
+	}
+	EOF

@@ -1,7 +1,5 @@
 #!/bin/sh
 
-#ext_interface=$(ip route | grep default | cut -d' ' -f5)
-
 stop_wifi_ap() {
     ### stop services dhcpd and hostapd
     service isc-dhcp-server stop
@@ -10,36 +8,15 @@ stop_wifi_ap() {
     ### disable IP forwarding
     #echo 0 > /proc/sys/net/ipv4/ip_forward
     #iptables -t nat -D POSTROUTING -s 10.10.0.0/16 -o $ext_interface -j MASQUERADE 2>/dev/null
-    
-    ### remove the static IP from the wifi interface
-    #if grep -q 'auto wlan1' /etc/network/interfaces
-    #if grep -q '# AstroBox Hotspot #' /etc/network/interfaces
-    #then
-    #    sed -i /etc/network/interfaces -e '/# AstroBox Hotspot #/,$ d'
-    #    sed -i /etc/network/interfaces -e '$ d'
-    #fi
 
     ip link set dev wlan1 down
     ip address del 10.10.0.1/24 dev wlan1
-
-    ### restart network manager to takeover wifi management
-    #service network-manager restart
 }
 
 start_wifi_ap() {
-    #stop_wifi_ap
-
     ### give a static IP to the wifi interface
     ip link set dev wlan1 up
     ip address add 10.10.0.1/24 dev wlan1
-
-    ### protect the static IP from network-manger restart
-    #echo >> /etc/network/interfaces
-    #echo 'auto wlan1' >> /etc/network/interfaces
-    #echo 'iface wlan1' inet static >> /etc/network/interfaces
-    #echo '# AstroBox Hotspot #' >> /etc/network/interfaces
-    #echo 'address 10.10.0.1' >> /etc/network/interfaces
-    #echo 'netmask 255.255.255.0' >> /etc/network/interfaces
 
     ### enable IP forwarding
     #echo 1 > /proc/sys/net/ipv4/ip_forward

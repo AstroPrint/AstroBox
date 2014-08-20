@@ -54,11 +54,11 @@ class SoftwareManager(object):
 			yaml.safe_dump(self.data, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
 
 	def version(self):
-		return '%d.%d (%s) %s' % (
+		return '%s - v%d.%d(%s)' % (
+			self.data['variant']['name'],
 			self.data['version']['major'], 
 			self.data['version']['minor'], 
-			self.data['version']['build'], 
-			self.data['variant']['name'])
+			self.data['version']['build'])
 
 	def checkSoftwareVersion(self):
 		try:

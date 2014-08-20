@@ -127,10 +127,11 @@ default_settings = {
 		"config": "/default/path/to/your/cura/config.ini"
 	},
 	"cloudSlicer": {
-		"apiHost": "http://api.proventoprint.com",
+		"apiHost": None,
 		"email": None,
 		"privateKey": None,
-		"publicKey": None
+		"publicKey": None,
+		"boxrouter": None
 	},
 	"events": {
 		"enabled": False,

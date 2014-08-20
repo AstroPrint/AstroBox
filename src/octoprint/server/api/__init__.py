@@ -33,6 +33,7 @@ from . import cloud_slicer as api_cloud_slicer
 #from . import log as api_logs
 from astroprint.api import settings as api_settings
 from astroprint.api import setup as api_astroprint_setup
+from astroprint.api import boxrouter as api_astroprint_boxrouter
 
 VERSION = "1.0"
 
