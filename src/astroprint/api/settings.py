@@ -111,8 +111,13 @@ def stopWifiHotspot():
 def resetFactorySettings():
 	import os
 
+	from astroprint.cloud import AstroPrintCloud
+
 	logger = logging.getLogger(__name__)
 	logger.warning("Executing a Restore Factory Settings operation")
+
+	#We log out first
+	AstroPrintCloud().signout()
 
 	s = settings()
 

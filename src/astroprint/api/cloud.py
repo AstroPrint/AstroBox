@@ -13,7 +13,6 @@ from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
-from astroprint.boxrouter import boxrouterManager
 from astroprint.cloud import AstroPrintCloud
 
 #~~ Cloud Slicer control
@@ -21,12 +20,8 @@ from astroprint.cloud import AstroPrintCloud
 @api.route('/astroprint', methods=['DELETE'])
 @restricted_access
 def cloud_slicer_logout():
-	s = settings()
-	s.set(["cloudSlicer", "privateKey"], None)
-	s.set(["cloudSlicer", "publicKey"], None)
-	s.set(["cloudSlicer", "email"], None)
-	s.save()
-	boxrouterManager().boxrouter_disconnect()
+	ap = AstroPrintCloud()
+	ap.signout()
 	return jsonify(SUCCESS)	
 
 @api.route('/astroprint/private-key', methods=['POST'])
@@ -35,21 +30,9 @@ def set_private_key():
 	password = request.values.get('password', None)
 
 	if email and password:
-		slicer = AstroPrintCloud()
-
-		private_key = slicer.get_private_key(email, password)
-
-		if private_key:
-			public_key = slicer.get_public_key(email, private_key)
-
-			if public_key:
-				s = settings()
-				s.set(["cloudSlicer", "privateKey"], private_key)
-				s.set(["cloudSlicer", "publicKey"], public_key)
-				s.set(["cloudSlicer", "email"], email)
-				s.save()
-				boxrouterManager().boxrouter_connect()
-				return jsonify(SUCCESS)
+		ap = AstroPrintCloud()
+		if ap.signin(email, password):
+			return jsonify(SUCCESS)	
 
 	else:
 		abort(400)

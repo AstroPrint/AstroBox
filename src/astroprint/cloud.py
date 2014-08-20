@@ -18,6 +18,8 @@ from requests_toolbelt import MultipartEncoder
 
 from octoprint.settings import settings
 
+from astroprint.boxrouter import boxrouterManager
+
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
 		self.publicKey = publicKey
@@ -46,6 +48,29 @@ class AstroPrintCloud(object):
 	def cloud_enabled():
 		s = settings()
 		return s.get(['cloudSlicer', 'publicKey']) and s.get(['cloudSlicer', 'privateKey']) and s.get(['cloudSlicer', 'apiHost'])
+
+	def signin(self, email, password):
+		private_key = self.get_private_key(email, password)
+
+		if private_key:
+			public_key = self.get_public_key(email, private_key)
+
+			if public_key:
+				self.settings.set(["cloudSlicer", "privateKey"], private_key)
+				self.settings.set(["cloudSlicer", "publicKey"], public_key)
+				self.settings.set(["cloudSlicer", "email"], email)
+				self.settings.save()
+				boxrouterManager().boxrouter_connect()
+				return True
+
+		return False
+
+	def signout(self):
+		self.settings.set(["cloudSlicer", "privateKey"], None)
+		self.settings.set(["cloudSlicer", "publicKey"], None)
+		self.settings.set(["cloudSlicer", "email"], None)
+		self.settings.save()
+		boxrouterManager().boxrouter_disconnect()
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)

@@ -94,13 +94,7 @@ def get_astroprint_info():
 @api.route('/setup/astroprint', methods=['DELETE'])
 @not_setup_only
 def logout_astroprint():
-	s = settings()
-
-	s.set(['cloudSlicer', "privateKey"], None)
-	s.set(['cloudSlicer', "email"], None)
-	s.set(['cloudSlicer', "publicKey"], None)
-	s.save()
-
+	AstroPrintCloud().signout()
 	return make_response("OK", 200)
 
 
@@ -111,21 +105,10 @@ def login_astroprint():
 	password = request.values.get('password', None)
 
 	if email and password:
-		slicer = AstroPrintCloud()
+		ap = AstroPrintCloud()
 
-		private_key = slicer.get_private_key(email, password)
-
-		if private_key:
-			public_key = slicer.get_public_key(email, private_key)
-
-			if public_key:
-				s = settings()
-				s.set(["cloudSlicer", "privateKey"], private_key)
-				s.set(["cloudSlicer", "publicKey"], public_key)
-				s.set(["cloudSlicer", "email"], email)
-				#s.setBoolean(["server", "firstRun"], False)
-				s.save()
-				return make_response("OK", 200)
+		if ap.signin(email, password):
+			return make_response("OK", 200)
 
 	return make_response('Invalid Credentials', 400)
 

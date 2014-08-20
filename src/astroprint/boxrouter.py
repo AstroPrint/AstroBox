@@ -30,8 +30,13 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		WebSocketClient.__init__(self, hostname)
 
 	def closed(self, code, reason=None):
+		#only retry if the connection was terminated by the remote
+		retry = self._router.connected
+
 		self._router.close()
-		self._router._doRetry()
+
+		if retry:
+			self._router._doRetry()
 
 	def received_message(self, m):
 		msg = json.loads(str(m))
