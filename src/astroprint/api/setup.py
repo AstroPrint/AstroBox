@@ -15,7 +15,7 @@ from octoprint.settings import settings
 from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
 from octoprint.server.api import api
 from octoprint.printer import getConnectionOptions
-from astroprint.cloud import AstroPrintCloud
+from astroprint.cloud import astroprintCloud
 
 def not_setup_only(func):
 	"""
@@ -94,7 +94,7 @@ def get_astroprint_info():
 @api.route('/setup/astroprint', methods=['DELETE'])
 @not_setup_only
 def logout_astroprint():
-	AstroPrintCloud().signout()
+	astroprintCloud().signout()
 	return make_response("OK", 200)
 
 
@@ -105,7 +105,7 @@ def login_astroprint():
 	password = request.values.get('password', None)
 
 	if email and password:
-		ap = AstroPrintCloud()
+		ap = astroprintCloud()
 
 		if ap.signin(email, password):
 			return make_response("OK", 200)

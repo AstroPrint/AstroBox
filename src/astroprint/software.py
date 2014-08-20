@@ -14,7 +14,7 @@ from sys import platform
 
 from octoprint.settings import settings
 
-class SoftwareManager(object):
+class SoftwareManager(object):	
 	def __init__(self):
 		self.data = {
 			"version": {
@@ -49,16 +49,29 @@ class SoftwareManager(object):
 			if config:
 				merge_dict(self.data, config)
 
-	def _save(self, force=False):
-		with open(self._infoFile, "wb") as infoFile:
-			yaml.safe_dump(self.data, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
+		self._requestHeaders = {
+			'User-Agent': self.userAgent
+		}
 
-	def version(self):
+	@property
+	def versionString(self):
 		return '%s - v%d.%d(%s)' % (
 			self.data['variant']['name'],
 			self.data['version']['major'], 
 			self.data['version']['minor'], 
 			self.data['version']['build'])
+
+	@property
+	def userAgent(self):
+		return "Astrobox; version:%d.%d(%s); variant: %s; platform: [%s]" % (
+			self.data['version']['major'], self.data['version']['minor'], self.data['version']['build'],
+			self.data['variant']['name'],
+			subprocess.check_output('uname -v', shell=True)[:-1]
+		)
+
+	def _save(self, force=False):
+		with open(self._infoFile, "wb") as infoFile:
+			yaml.safe_dump(self.data, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
 
 	def checkSoftwareVersion(self):
 		try:
@@ -70,7 +83,8 @@ class SoftwareManager(object):
 					],
 					'variant': self.data['variant']['id']
 				}),
-				auth = self._checkAuth()
+				auth = self._checkAuth(),
+				headers = self._requestHeaders
 			)
 
 			if r.status_code != 200:
@@ -89,13 +103,17 @@ class SoftwareManager(object):
 
 	def updateSoftwareVersion(self, data):
 		try:
-			r = requests.get('%s/astrobox/software/release/%s' % (settings().get(['cloudSlicer','apiHost']), data['release_id']), auth = self._checkAuth())
+			r = requests.get(
+				'%s/astrobox/software/release/%s' % (settings().get(['cloudSlicer','apiHost']), data['release_id']),
+				auth = self._checkAuth(),
+				headers = self._requestHeaders
+			)
 
 			if r.status_code == 200:
 				data = r.json()
 
 				if data and 'download_url' in data:
-					r = requests.get(data["download_url"], stream=True)
+					r = requests.get(data["download_url"], stream=True, headers = self._requestHeaders)
 
 					if r.status_code == 200:
 						releaseHandle, releasePath = mkstemp()

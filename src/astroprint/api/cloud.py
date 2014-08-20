@@ -13,14 +13,14 @@ from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
-from astroprint.cloud import AstroPrintCloud
+from astroprint.cloud import astroprintCloud
 
 #~~ Cloud Slicer control
 
 @api.route('/astroprint', methods=['DELETE'])
 @restricted_access
 def cloud_slicer_logout():
-	ap = AstroPrintCloud()
+	ap = astroprintCloud()
 	ap.signout()
 	return jsonify(SUCCESS)	
 
@@ -30,7 +30,7 @@ def set_private_key():
 	password = request.values.get('password', None)
 
 	if email and password:
-		ap = AstroPrintCloud()
+		ap = astroprintCloud()
 		if ap.signin(email, password):
 			return jsonify(SUCCESS)	
 
@@ -45,7 +45,7 @@ def upload_data():
 	filePath = request.args.get('file', None)
 
 	if filePath:
-		slicer = AstroPrintCloud()
+		slicer = astroprintCloud()
 
 		url, params, redirect_url = slicer.get_upload_info(filePath)
 		return jsonify(url=url, params=params, redirect=redirect_url)
@@ -55,7 +55,7 @@ def upload_data():
 @api.route("/astroprint/print-files", methods=["GET"])
 @restricted_access
 def designs():
-	slicer = AstroPrintCloud()
+	slicer = astroprintCloud()
 	cloud_files = json.loads(slicer.print_files())
 
 	local_files = list(gcodeManager.getAllFileData())
@@ -86,7 +86,7 @@ def design_download(print_file_id):
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
 		abort(401)
 
-	slicer = AstroPrintCloud()
+	slicer = astroprintCloud()
 	em = eventManager()
 
 	def progressCb(progress):

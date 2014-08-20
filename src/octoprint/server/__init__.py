@@ -181,7 +181,7 @@ class Server():
 		logger = logging.getLogger(__name__)
 
 		softwareManager = SoftwareManager()
-		VERSION = softwareManager.version()
+		VERSION = softwareManager.versionString
 
 		logger.info("Starting OctoPrint (%s)" % VERSION)
 
