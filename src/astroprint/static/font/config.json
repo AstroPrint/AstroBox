@@ -49,6 +49,48 @@
       ]
     },
     {
+      "uid": "de5e6ba96636933a2d794eb8c00d1fd2",
+      "css": "wifi-signal-low",
+      "code": 59422,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M320 615.8H183.4V885.5H320V615.8ZM320 615.8H183.4V885.5H320V615.8Z",
+        "width": 1000
+      },
+      "search": [
+        "signal wifi low"
+      ]
+    },
+    {
+      "uid": "3256e9235524d3e8fb04fd1d45261b03",
+      "css": "wifi-signal-med",
+      "code": 59423,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M320 615.8H183.4V885.5H320V615.8ZM578.7 344.9H437.5V885.4H578.7V344.9ZM320 615.8H183.4V885.5H320V615.8ZM578.7 344.9H437.5V885.4H578.7V344.9Z",
+        "width": 1000
+      },
+      "search": [
+        "signal wifi medium"
+      ]
+    },
+    {
+      "uid": "f430b86bbc3fd1e85f90d33395579b14",
+      "css": "wifi-signal-high",
+      "code": 59424,
+      "src": "custom_icons",
+      "selected": true,
+      "svg": {
+        "path": "M840.3 886.6H699.1V75.3H840.3V886.6ZM320 615.8H183.4V885.5H320V615.8ZM578.7 344.9H437.5V885.4H578.7V344.9ZM840.3 886.6H699.1V75.3H840.3V886.6ZM320 615.8H183.4V885.5H320V615.8ZM578.7 344.9H437.5V885.4H578.7V344.9Z",
+        "width": 1000
+      },
+      "search": [
+        "signal wifi high"
+      ]
+    },
+    {
       "uid": "72109d2fb3088d0e66ea6a9204297651",
       "css": "spin1",
       "code": 59394,
