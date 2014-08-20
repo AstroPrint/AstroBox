@@ -92,7 +92,7 @@ var FileUploadView = Backbone.View.extend({
 	        this.progressBar.show();
 	        this.progressBar.children('.meter').css('width', '2%');
 
-	        $.getJSON('/api/cloud-slicer/upload-data?file='+encodeURIComponent(data.files[0].name), function(response) {
+	        $.getJSON('/api/astroprint/upload-data?file='+encodeURIComponent(data.files[0].name), function(response) {
 	            if (response.url && response.params) {
 	                data.formData = response.params;
 	                data.url = response.url;
@@ -221,7 +221,7 @@ var PrintFilesListView = Backbone.View.extend({
 		options.hide();
 		progress.show();
 
-        $.getJSON('/api/cloud-slicer/print-files/'+id+'/download', 
+        $.getJSON('/api/astroprint/print-files/'+id+'/download', 
         	function(response) {
         		self.render();
 	        }).fail(function(){

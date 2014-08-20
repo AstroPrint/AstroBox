@@ -13,5 +13,5 @@ var PrintFile = Backbone.Model.extend({
 
 var PrintFileCollection = Backbone.Collection.extend({
 	model: PrintFile,
-	url: API_BASEURL + "cloud-slicer/print-files"
+	url: API_BASEURL + "astroprint/print-files"
 });

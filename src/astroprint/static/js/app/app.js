@@ -25,7 +25,7 @@ var AppMenu = Backbone.View.extend({
 
 		spinIcon.removeClass('hide');
         $.ajax({
-            url: API_BASEURL + "cloud-slicer",
+            url: API_BASEURL + "astroprint",
             type: "DELETE",
             success: function() { 
             	location.reload();

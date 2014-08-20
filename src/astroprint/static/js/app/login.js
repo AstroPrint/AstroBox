@@ -24,7 +24,7 @@ var LoginModal = Backbone.View.extend({
 		var self = this;
 
         $.ajax({
-            url: API_BASEURL + "cloud-slicer/private-key",
+            url: API_BASEURL + "astroprint/private-key",
             type: "POST",
             data: {
             	email: this.$el.find('input[name=email]').val(),

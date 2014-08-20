@@ -18,7 +18,7 @@ from astroprint.cloud import AstroPrintCloud
 
 #~~ Cloud Slicer control
 
-@api.route('/cloud-slicer', methods=['DELETE'])
+@api.route('/astroprint', methods=['DELETE'])
 @restricted_access
 def cloud_slicer_logout():
 	s = settings()
@@ -29,7 +29,7 @@ def cloud_slicer_logout():
 	boxrouterManager().boxrouter_disconnect()
 	return jsonify(SUCCESS)	
 
-@api.route('/cloud-slicer/private-key', methods=['POST'])
+@api.route('/astroprint/private-key', methods=['POST'])
 def set_private_key():
 	email = request.values.get('email', None)
 	password = request.values.get('password', None)
@@ -56,7 +56,7 @@ def set_private_key():
 
 	abort(401)
 
-@api.route('/cloud-slicer/upload-data', methods=['GET'])
+@api.route('/astroprint/upload-data', methods=['GET'])
 @restricted_access
 def upload_data():
 	filePath = request.args.get('file', None)
@@ -69,7 +69,7 @@ def upload_data():
 
 	abort(400)
 
-@api.route("/cloud-slicer/print-files", methods=["GET"])
+@api.route("/astroprint/print-files", methods=["GET"])
 @restricted_access
 def designs():
 	slicer = AstroPrintCloud()
@@ -97,7 +97,7 @@ def designs():
 
 	return json.dumps(local_files + cloud_files)
 
-@api.route("/cloud-slicer/print-files/<string:print_file_id>/download", methods=["GET"])
+@api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
 def design_download(print_file_id):
 	if not bool(settings().get(["cloudSlicer", "publicKey"])):
