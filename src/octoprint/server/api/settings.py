@@ -8,7 +8,6 @@ from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
 from octoprint.printer import getConnectionOptions
-from octoprint.slicers.cloud import CloudSlicer
 
 from octoprint.server import restricted_access, admin_permission, networkManager
 from octoprint.server.api import api

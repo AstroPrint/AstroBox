@@ -15,7 +15,7 @@ from octoprint.settings import settings
 from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
 from octoprint.server.api import api
 from octoprint.printer import getConnectionOptions
-from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
+from astroprint.cloud import AstroPrintCloud
 
 def not_setup_only(func):
 	"""
@@ -121,7 +121,7 @@ def login_astroprint():
 	password = request.values.get('password', None)
 
 	if email and password:
-		slicer = ProvenToPrintSlicer()
+		slicer = AstroPrintCloud()
 
 		private_key = slicer.get_private_key(email, password)
 

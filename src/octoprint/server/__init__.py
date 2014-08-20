@@ -58,7 +58,7 @@ import octoprint.users as users
 import octoprint.events as events
 import octoprint.timelapse
 from astroprint.software import SoftwareManager
-from astroprint.boxrouter import boxrouterManager 
+from astroprint.boxrouter import boxrouterManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None

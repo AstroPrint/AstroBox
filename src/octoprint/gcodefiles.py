@@ -16,7 +16,6 @@ import octoprint.util.gcodeInterpreter as gcodeInterpreter
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
-from octoprint.slicers.cloud.proven_to_print import ProvenToPrintSlicer
 
 from werkzeug.utils import secure_filename
 
@@ -249,7 +248,7 @@ class GcodeManager:
 		if not file or not destination:
 			return None, True
 
-		slicerEnabled = self._settings.getBoolean(["cura", "enabled"]) or ProvenToPrintSlicer.cloud_slicer_enabled()
+		slicerEnabled = self._settings.getBoolean(["cura", "enabled"])
 		filename = file.filename
 
 		absolutePath = self.getAbsolutePath(filename, mustExist=False)

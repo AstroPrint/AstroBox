@@ -16,7 +16,6 @@ from time import sleep
 
 from requests_toolbelt import MultipartEncoder
 
-from octoprint.slicers.cloud import CloudSlicer
 from octoprint.settings import settings
 
 class HMACAuth(requests.auth.AuthBase):
@@ -33,7 +32,7 @@ class HMACAuth(requests.auth.AuthBase):
 
 		return r
 
-class ProvenToPrintSlicer(CloudSlicer):
+class AstroPrintCloud(object):
 	def __init__(self):
 		self.settings = settings()
 
@@ -44,7 +43,7 @@ class ProvenToPrintSlicer(CloudSlicer):
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 
 	@staticmethod
-	def cloud_slicer_enabled():
+	def cloud_enabled():
 		s = settings()
 		return s.get(['cloudSlicer', 'publicKey']) and s.get(['cloudSlicer', 'privateKey']) and s.get(['cloudSlicer', 'apiHost'])
 
