@@ -102,7 +102,8 @@ class AstroprintBoxRouter(object):
 				self._error()
 
 	def boxrouter_disconnect(self):
-		self._ws.close()
+		if self.connected:
+			self.close()
 
 	def close(self):
 		self.connected = False
@@ -110,7 +111,10 @@ class AstroprintBoxRouter(object):
 		self._privateKey = None
 		self.status = self.STATUS_DISCONNECTED
 		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
-		self._ws.close()
+
+		if self._ws:
+			self._ws.close()
+
 		self._ws = None
 		self._listener = None
 
