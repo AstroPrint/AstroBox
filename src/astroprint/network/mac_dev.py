@@ -15,7 +15,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return None
 
 	def isHotspotActive(self):
-		return None
+		return False
 
 	def startHotspot(self):
 		#return True when succesful
@@ -30,9 +30,3 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 	def setHostname(self, name):
 		return None
-
-	def getMacAddress(self, interface = None):
-		import md5
-		from uuid import getnode as get_mac
-
-		return md5.new(str(get_mac())).hexdigest()

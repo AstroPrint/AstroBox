@@ -2,13 +2,53 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import socket, urllib2, subprocess
+
 from octoprint.settings import settings
 
 from sys import platform
 
+# singleton
+_instance = None
+
+def networkManager():
+	global _instance
+	if _instance is None:
+		if platform == "linux" or platform == "linux2":
+			from astroprint.network.ubuntu import UbuntuNetworkManager
+			_instance = UbuntuNetworkManager()
+		elif platform == "darwin":
+			from astroprint.network.mac_dev import MacDevNetworkManager
+			_instance = MacDevNetworkManager()
+		else:
+			_instance = NetworkManager()
+
+	return _instance
+
 class NetworkManager(object):
 	def __init__(self):
 		self.settings = settings()
+
+	def isAstroprintReachable(self):
+		try:
+			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
+			return True
+
+		except urllib2.URLError as err: 
+			return False
+
+	def isOnline(self):
+		timeout= 1
+		addresses= ['8.8.8.8', '8.8.4.4', '208.67.222.222', '208.67.220.220'] #Google DNS(2), OpenDNS(2)
+
+		for addr in addresses:
+			status = subprocess.call("ping -W %d -c 1 %s > /dev/null 2>&1" % (timeout, addr), shell=True)
+			if status == 0:
+				return True
+			else:
+				continue
+
+		return False
 
 	def getWifiNetworks(self):
 		return None
@@ -37,14 +77,7 @@ class NetworkManager(object):
 		return None
 
 	def getMacAddress(self, interface = None):
-		return None
+		import md5
+		from uuid import getnode as get_mac
 
-def loader():
-	if platform == "linux" or platform == "linux2":
-		from astroprint.network.ubuntu import UbuntuNetworkManager
-		return UbuntuNetworkManager()
-	elif platform == "darwin":
-		from astroprint.network.mac_dev import MacDevNetworkManager
-		return MacDevNetworkManager()
-	else:
-		return NetworkManager()
+		return md5.new(str(get_mac())).hexdigest()

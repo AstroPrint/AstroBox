@@ -216,7 +216,7 @@ class Server():
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
 
-		from astroprint.network import loader as networkManagerLoader
+		from astroprint.network import networkManager as networkManagerLoader
 		networkManager = networkManagerLoader()
 
 		if self._host is None:

@@ -7,9 +7,11 @@ import threading
 import logging
 
 from time import sleep
-from octoprint.events import eventManager, Events
 
+from octoprint.events import eventManager, Events
 from octoprint.settings import settings
+
+from astroprint.network import networkManager
 
 from ws4py.client.threadedclient import WebSocketClient
 
@@ -136,6 +138,18 @@ class AstroprintBoxRouter(object):
 			self._logger.info('No more retries. Giving up...')
 			self.status = self.STATUS_DISCONNECTED
 			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+			self._retries = 0
+
+			#Are we offline?
+			nm = networkManager()
+			if not nm.isOnline() and not nm.isHotspotActive():
+				#get the box hotspot up
+				self._logger.info('AstroBox is offline. Starting hotspot...')
+				result = nm.startHotspot() 
+				if result is True:
+					self._logger.info('Hostspot started.')
+				else:
+					self._logger.error('Failed to start hostspot: %s' % result)
 
 	def processAuthenticate(self, data):
 		if data:
@@ -153,13 +167,15 @@ class AstroprintBoxRouter(object):
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
 		else:
-			from octoprint.server import VERSION, networkManager
+			from octoprint.server import VERSION
+
+			nm = networkManager()
 
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
-					'boxId': networkManager.getMacAddress(),
-					'boxName': networkManager.getHostname(),
+					'boxId': nm.getMacAddress(),
+					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
 					'publicKey': self._publicKey,
 					'privateKey': self._privateKey

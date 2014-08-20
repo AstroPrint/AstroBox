@@ -55,19 +55,9 @@ def save_name():
 @api.route('/setup/internet', methods=['GET'])
 @not_setup_only
 def check_internet():
-	if platform == "darwin":
+	if networkManager.isAstroprintReachable():
 		return jsonify(connected = True)
-
 	else:
-		import urllib2
-
-		try:
-			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
-			return jsonify(connected = True)
-
-		except urllib2.URLError as err: 
-			pass
-
 		networks = networkManager.getWifiNetworks()
 
 		if networks:
