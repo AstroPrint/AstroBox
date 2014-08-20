@@ -1,6 +1,6 @@
 interface=wlan1
 driver=rtl871xdrv
-ssid=astrobox
+ssid=${NETWORK_NAME}
 ieee80211n=1
 hw_mode=g
 channel=1

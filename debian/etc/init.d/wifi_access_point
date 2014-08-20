@@ -5,6 +5,9 @@ stop_wifi_ap() {
     service isc-dhcp-server stop
     service hostapd stop
 
+    ### Removing hostapd config file
+    rm /etc/hostapd/hostapd.conf
+
     ### disable IP forwarding
     #echo 0 > /proc/sys/net/ipv4/ip_forward
     #iptables -t nat -D POSTROUTING -s 10.10.0.0/16 -o $ext_interface -j MASQUERADE 2>/dev/null
@@ -21,6 +24,11 @@ start_wifi_ap() {
     ### enable IP forwarding
     #echo 1 > /proc/sys/net/ipv4/ip_forward
     #iptables -t nat -A POSTROUTING -s 10.10.0.0/16 -o $ext_interface -j MASQUERADE
+
+    ##Creating hostapd conf file
+    local HOSTNAME=`hostname`
+    contents=$(sed -e "s|\${NETWORK_NAME}|${HOSTNAME}|g" < /etc/hostapd/hostapd.conf.template)
+    echo "$contents" > /etc/hostapd/hostapd.conf
 
     ### start services dhcpd and hostapd
     service hostapd start
