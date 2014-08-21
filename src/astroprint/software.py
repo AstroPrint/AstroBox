@@ -158,7 +158,7 @@ class SoftwareManager(object):
 		privateKey = s.get(['cloudSlicer', 'privateKey'])
 		publicKey = s.get(['cloudSlicer', 'publicKey'])
 		if s.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
-			from octoprint.slicers.cloud.proven_to_print import HMACAuth
+			from astroprint.cloud import HMACAuth
 
 			return HMACAuth(publicKey, privateKey)
 
