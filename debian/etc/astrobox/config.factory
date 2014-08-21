@@ -1,7 +1,7 @@
 server:
   host: 127.0.0.1
 cloudSlicer:
-  apiHost: http://api.proventoprint.com
+  apiHost: http://api.astroprint.com
   boxrouter: boxrouter.astroprint.com
 folder:
   uploads: /sdcard/AstroBox/uploads
