@@ -165,8 +165,11 @@
 					<% } else { %>
 						Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
 					<% } %>
+					<% if (data.release.force_setup) { %>
+						<br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
+					<% } %>
 					</p>
-					
+
 					<p>
 						<b>Release Notes:</b><br/>
 						<%= data.release.release_notes %>

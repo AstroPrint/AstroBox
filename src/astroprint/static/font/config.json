@@ -139,6 +139,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "c76b7947c957c9b78b11741173c8349b",
+      "css": "attention",
+      "code": 59392,
+      "src": "fontawesome"
+    },
+    {
       "uid": "f48ae54adfb27d8ada53d0fd9e34ee10",
       "css": "trash",
       "code": 59396,
@@ -202,12 +208,6 @@
       "uid": "bbd66ef66bb8fa9edde54d9a90b89150",
       "css": "user",
       "code": 59413,
-      "src": "entypo"
-    },
-    {
-      "uid": "84a7262985600b683bbab0da9298776d",
-      "css": "signal-1",
-      "code": 59392,
       "src": "entypo"
     },
     {

@@ -16,6 +16,7 @@ from octoprint.settings import settings
 
 class SoftwareManager(object):	
 	def __init__(self):
+		self._settings = settings()
 		self.data = {
 			"version": {
 				"major": 0,
@@ -29,8 +30,7 @@ class SoftwareManager(object):
 			}
 		}
 
-		s = settings()
-		self._infoFile = s.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(s._configfile)
+		self._infoFile = self._settings.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(self._settings._configfile)
 		if not os.path.isfile(self._infoFile):
 			open(self._infoFile, 'w').close()
 
@@ -75,7 +75,7 @@ class SoftwareManager(object):
 
 	def checkSoftwareVersion(self):
 		try:
-			r = requests.post('%s/astrobox/software/check' % settings().get(['cloudSlicer','apiHost']), data=json.dumps({
+			r = requests.post('%s/astrobox/software/check' % self._settings.get(['cloudSlicer','apiHost']), data=json.dumps({
 					'current': [
 						self.data['version']['major'], 
 						self.data['version']['minor'],
@@ -104,7 +104,7 @@ class SoftwareManager(object):
 	def updateSoftwareVersion(self, data):
 		try:
 			r = requests.get(
-				'%s/astrobox/software/release/%s' % (settings().get(['cloudSlicer','apiHost']), data['release_id']),
+				'%s/astrobox/software/release/%s' % (self._settings.get(['cloudSlicer','apiHost']), data['release_id']),
 				auth = self._checkAuth(),
 				headers = self._requestHeaders
 			)
@@ -134,10 +134,20 @@ class SoftwareManager(object):
 								self._save()
 
 								os.remove(releasePath)
+
+								if data['force_setup']:
+									#remove the config file
+									os.remove(self._settings._configfile)
+
 								return True
 
 						else:
 							os.remove(releasePath)
+
+							if data['force_setup']:
+								#remove the config file
+								os.remove(self._settings._configfile)
+
 							return True;
 
 					else:
@@ -154,10 +164,9 @@ class SoftwareManager(object):
 			subprocess.call(['restart', 'astrobox'])
 
 	def _checkAuth(self):
-		s = settings()
-		privateKey = s.get(['cloudSlicer', 'privateKey'])
-		publicKey = s.get(['cloudSlicer', 'publicKey'])
-		if s.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
+		privateKey = self._settings.get(['cloudSlicer', 'privateKey'])
+		publicKey = self._settings.get(['cloudSlicer', 'publicKey'])
+		if self._settings.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
 			from astroprint.cloud import HMACAuth
 
 			return HMACAuth(publicKey, privateKey)

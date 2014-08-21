@@ -4,11 +4,11 @@ cloudSlicer:
   apiHost: http://api.proventoprint.com
   boxrouter: boxrouter.astroprint.com
 folder:
-  uploads: /AstroBox/local/uploads
-  timelapse: /AstroBox/local/timelapse
-  timelapse_tmp: /AstroBox/local/timelapse/tmp
+  uploads: /sdcard/AstroBox/uploads
+  timelapse: /sdcard/AstroBox/timelapse
+  timelapse_tmp: /sdcard/AstroBox/timelapse/tmp
+  watched: /sdcard/AstroBox/watched
   logs: /var/log/astrobox
-  watched: /AstroBox/local/watched
 system:
   actions:
   - action: shutdown
