@@ -72,6 +72,11 @@ class AstroPrintCloud(object):
 				self.settings.set(["cloudSlicer", "email"], email)
 				self.settings.save()
 				boxrouterManager().boxrouter_connect()
+
+				#let the singleton be recreated again, so new credentials are taken into use
+				global _instance
+				_instance = None
+
 				return True
 
 		return False
@@ -82,6 +87,10 @@ class AstroPrintCloud(object):
 		self.settings.set(["cloudSlicer", "email"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
+
+		#let the singleton be recreated again, so credentials are forgotten
+		global _instance
+		_instance = None
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)
