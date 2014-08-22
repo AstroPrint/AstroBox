@@ -25,9 +25,11 @@ def boxrouterManager():
 	return _instance
 
 class AstroprintBoxRouterClient(WebSocketClient):
+	HEARTBEAT_FREQUENCY = 30.0 #seconds
+
 	def __init__(self, hostname, router):
 		self._router = router
-		WebSocketClient.__init__(self, hostname)
+		WebSocketClient.__init__(self, hostname, heartbeat_freq=self.HEARTBEAT_FREQUENCY)
 
 	def closed(self, code, reason=None):
 		#only retry if the connection was terminated by the remote
