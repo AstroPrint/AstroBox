@@ -37,7 +37,7 @@ class NetworkManager(object):
 		except urllib2.URLError as err: 
 			return False
 
-	def isOnline(self):
+	def checkOnline(self):
 		timeout= 1
 		addresses= ['8.8.8.8', '8.8.4.4', '208.67.222.222', '208.67.220.220'] #Google DNS(2), OpenDNS(2)
 

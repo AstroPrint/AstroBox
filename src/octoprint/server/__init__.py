@@ -274,7 +274,7 @@ class Server():
 
 		# start up watchdogs
 		observer = Observer()
-		observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), s.getBaseFolder("watched"))
+		#observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), s.getBaseFolder("watched"))
 		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), s.getBaseFolder("uploads"))
 		observer.start()
 

@@ -6,10 +6,10 @@ import logging
 import netifaces
 import sarge
 import os
+import threading
+import gobject
 
-#This needs to happen before importing NetworkManager
-from dbus.mainloop.glib import DBusGMainLoop; DBusGMainLoop(set_as_default=True)
-import NetworkManager
+gobject.threads_init()
 
 from dbus.exceptions import DBusException
 
@@ -21,10 +21,44 @@ from tempfile import mkstemp
 from shutil import move
 from os import remove, close
 
+class NetworkManagerEvents(threading.Thread):
+	def __init__(self, NetworkManager):
+		super(NetworkManagerEvents, self).__init__()
+		self.daemon = True
+		self._nm = NetworkManager
+
+		NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
+
+	def run(self):
+		gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
+		gobject.MainLoop().run()
+
+	def propertiesChanged(self, properties):
+		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
+			gobject.idle_add(logger.warn, "No active connections")
+		
+		if "State" in properties:
+			gobject.idle_add(logger.info, "Network State Changed to (%s)" % self._nm.const('state', properties['State']))
+
 class UbuntuNetworkManager(NetworkManagerBase):
+	def __init__(self):
+		super(UbuntuNetworkManager, self).__init__()
+
+		#This needs to happen before importing NetworkManager
+		from dbus.mainloop.glib import DBusGMainLoop, threads_init
+
+		DBusGMainLoop(set_as_default=True)
+
+		import NetworkManager
+
+		threads_init()
+		self._nm = NetworkManager
+		self._eventListener = NetworkManagerEvents(self._nm)
+		self._eventListener.start()
+
 	def getWifiNetworks(self):
 		interface = self.settings.get(['wifi', 'internetInterface'])
-		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
+		wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
 
 		networks = [{
 			'id': ap.HwAddress,
@@ -36,7 +70,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 	def getActiveWifiNetwork(self):
 		interface = self.settings.get(['wifi', 'internetInterface'])
-		wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
+		wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
 		connection = wifiDevice.ActiveConnection
 
 		if connection != '/':
@@ -56,7 +90,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 	def setWifiNetwork(self, bssid, password = None):
 		if bssid:
 			interface = self.settings.get(['wifi','internetInterface'])
-			wifiDevice = NetworkManager.NetworkManager.GetDeviceByIpIface(interface)
+			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
 
 			accessPoint = None
 
@@ -68,14 +102,14 @@ class UbuntuNetworkManager(NetworkManagerBase):
 			if accessPoint:
 				ssid = accessPoint.Ssid
 				connection = None
-				for c in NetworkManager.Settings.ListConnections():
+				for c in self._nm.Settings.ListConnections():
 					if c.GetSettings()['connection']['id'] == ssid:
 						connection = c
 						break
 
 				try:
 					if connection:
-						NetworkManager.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
+						self._nm.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
 					else:
 						options = {
 							'connection': {
@@ -88,7 +122,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 								'psk': password
 							}
 
-						(connection, activeConnection) = NetworkManager.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
+						(connection, activeConnection) = self._nm.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
 
 				except DBusException as e:
 					if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
@@ -103,10 +137,10 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 				def connectionStateChange(new_state, old_state, reason):
 					r = result
-					if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
+					if new_state == self._nm.NM_DEVICE_STATE_ACTIVATED:
 						result['ssid'] = ssid
 						loop.quit()
-					elif new_state == NetworkManager.NM_DEVICE_STATE_FAILED:
+					elif new_state == self._nm.NM_DEVICE_STATE_FAILED:
 						connection.Delete()
 						result['message'] = "The connection could not be created"
 						loop.quit()
@@ -157,10 +191,10 @@ class UbuntuNetworkManager(NetworkManagerBase):
 			return "Stop hotspot failed with return code: %s" % e
 
 	def getHostname(self):
-		return NetworkManager.Settings.Hostname
+		return self._nm.Settings.Hostname
 
 	def setHostname(self, name):
-		settings = NetworkManager.Settings
+		settings = self._nm.Settings
 
 		old_name = settings.Hostname
 
@@ -201,11 +235,11 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 		device = None
 		if interface:
-			device = NetworkManager.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
+			device = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
 		else:
 			#look at the first wired interface
-			for dev in NetworkManager.NetworkManager.GetDevices():
-				if dev.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
+			for dev in self._nm.NetworkManager.GetDevices():
+				if dev.DeviceType == self._nm.NM_DEVICE_TYPE_ETHERNET:
 					device = dev.SpecificDevice()
 					break
 
