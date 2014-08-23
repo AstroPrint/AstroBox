@@ -56,6 +56,9 @@ class UbuntuNetworkManager(NetworkManagerBase):
 		self._eventListener = NetworkManagerEvents(self._nm)
 		self._eventListener.start()
 
+	def conectionStatus(self):
+		return self._nm.const('state', self._nm.NetworkManager.status())
+
 	def getWifiNetworks(self):
 		interface = self.settings.get(['wifi', 'internetInterface'])
 		wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
@@ -68,24 +71,36 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 		return networks
 
-	def getActiveWifiNetwork(self):
-		interface = self.settings.get(['wifi', 'internetInterface'])
-		wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
-		connection = wifiDevice.ActiveConnection
+	def getActiveNetwork(self):
+		if self._nm.NetworkManager.State == self._nm.NM_STATE_CONNECTED_GLOBAL:
+			#first we check if the wifi assigned to internetInterface is connected
+			interface = self.settings.get(['wifi', 'internetInterface'])
+			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
+			connection = wifiDevice.ActiveConnection
 
-		if connection != '/':
-			ap = connection.SpecificObject
-			network = {
-				'id': ap.HwAddress,
-				'signal': ord(ap.Strength),
-				'name': ap.Ssid,
-				'ip': wifiDevice.Ip4Address,
-				'secured': True if ap.WpaFlags or ap.RsnFlags else False}
+			if connection != '/':
+				ap = connection.SpecificObject
+				return {
+					'id': ap.HwAddress,
+					'signal': ord(ap.Strength),
+					'name': ap.Ssid,
+					'ip': wifiDevice.Ip4Address,
+					'secured': True if ap.WpaFlags or ap.RsnFlags else False}
 
-			return network
+			else:
+				#if not, we check where's the connection
+				connections = self._nm.NetworkManager.ActiveConnections
+				for c in connections:
+					if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+						d = c.Devices[0]
+						return {
+							'id': d.SpecificDevice().HwAddress,
+							'signal': None,
+							'name': self._nm.const('device_type', d.DeviceType).capitalize(),
+							'ip': d.Ip4Address,
+							'secured': True}
 
-		else:
-			return False
+		return False
 
 	def setWifiNetwork(self, bssid, password = None):
 		if bssid:

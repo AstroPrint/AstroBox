@@ -56,7 +56,7 @@ def getWifiNetworks():
 @api.route("/settings/wifi", methods=["GET"])
 @restricted_access
 def getWifiSettings():
-	network = networkManager.getActiveWifiNetwork()
+	network = networkManager.getActiveNetwork()
 	isHotspotActive = networkManager.isHotspotActive()
 	hotspotName = networkManager.getHostname()
 

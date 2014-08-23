@@ -8,7 +8,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 	def getWifiNetworks(self):
 		return None
 
-	def getActiveWifiNetwork(self):
+	def getActiveNetwork(self):
 		return None
 
 	def setWifiNetwork(self, bssid, password):

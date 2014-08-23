@@ -50,10 +50,13 @@ class NetworkManager(object):
 
 		return False
 
+	def conectionStatus(self):
+		return 'connected'
+
 	def getWifiNetworks(self):
 		return None
 
-	def getActiveWifiNetwork(self):
+	def getActiveNetwork(self):
 		return None
 
 	def setWifiNetwork(self, bssid, password):
