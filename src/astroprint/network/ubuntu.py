@@ -56,7 +56,7 @@ class NetworkManagerEvents(threading.Thread):
 				if result is True:
 					gobject.idle_add(logger.info, 'Hostspot started.')
 				else:
-					gobject.idle_add(logger.info, 'Failed to start hostspot: %s' % result)
+					gobject.idle_add(logger.error, 'Failed to start hostspot: %s' % result)
 
 		elif "State" in properties and not self._online:
 			if properties['State'] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
