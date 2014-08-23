@@ -25,11 +25,9 @@ def boxrouterManager():
 	return _instance
 
 class AstroprintBoxRouterClient(WebSocketClient):
-	HEARTBEAT_FREQUENCY = 30.0 #seconds
-
 	def __init__(self, hostname, router):
 		self._router = router
-		WebSocketClient.__init__(self, hostname, heartbeat_freq=self.HEARTBEAT_FREQUENCY)
+		WebSocketClient.__init__(self, hostname)
 
 	def closed(self, code, reason=None):
 		#only retry if the connection was terminated by the remote
@@ -64,6 +62,8 @@ class AstroprintBoxRouter(object):
 		self._ws = None
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
+
+		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
 		addr = self._settings .get(['cloudSlicer','boxrouter'])
 
@@ -126,6 +126,19 @@ class AstroprintBoxRouter(object):
 
 		self._ws = None
 		self._listener = None
+
+	def _onNetworkStateChanged(self, event, state):
+		if state == 'offline':
+			if self.connected:
+				self._logger.info('Device is offline. Closing box router socket.')
+				self.boxrouter_disconnect()
+
+		elif state == 'online':
+			if not self.connected:
+				self.boxrouter_connect()
+
+		else:
+			self._logger.warn('Invalid network state (%s)' % state)
 
 	def _error(self):
 		self.status = self.STATUS_ERROR

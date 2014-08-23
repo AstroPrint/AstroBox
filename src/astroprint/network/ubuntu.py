@@ -21,11 +21,15 @@ from tempfile import mkstemp
 from shutil import move
 from os import remove, close
 
+from octoprint.server import eventManager
+from octoprint.events import Events
+
 class NetworkManagerEvents(threading.Thread):
 	def __init__(self, NetworkManager):
 		super(NetworkManagerEvents, self).__init__()
 		self.daemon = True
 		self._nm = NetworkManager
+		self._online = True
 
 		NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
 
@@ -34,11 +38,14 @@ class NetworkManagerEvents(threading.Thread):
 		gobject.MainLoop().run()
 
 	def propertiesChanged(self, properties):
-		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
-			gobject.idle_add(logger.warn, "No active connections")
+		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0 and self._online:
+			self._online = False
+			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
 		
-		if "State" in properties:
-			gobject.idle_add(logger.info, "Network State Changed to (%s)" % self._nm.const('state', properties['State']))
+		elif "State" in properties and not self._online:
+			if properties['State'] == self._nm.NM_STATE_CONNECTED_GLOBAL:
+				self._online = True
+				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
 
 class UbuntuNetworkManager(NetworkManagerBase):
 	def __init__(self):
