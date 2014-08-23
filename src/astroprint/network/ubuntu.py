@@ -11,6 +11,15 @@ import gobject
 
 gobject.threads_init()
 
+#This needs to happen before importing NetworkManager
+from dbus.mainloop.glib import DBusGMainLoop, threads_init
+
+DBusGMainLoop(set_as_default=True)
+
+import NetworkManager
+
+threads_init()
+
 from dbus.exceptions import DBusException
 
 from astroprint.network import NetworkManager as NetworkManagerBase
@@ -28,7 +37,6 @@ class NetworkManagerEvents(threading.Thread):
 	def __init__(self, manager):
 		super(NetworkManagerEvents, self).__init__()
 		self.daemon = True
-		self._nm = NetworkManager
 		self._manager = manager
 		self._online = True
 
@@ -51,22 +59,13 @@ class NetworkManagerEvents(threading.Thread):
 					gobject.idle_add(logger.info, 'Failed to start hostspot: %s' % result)
 
 		elif "State" in properties and not self._online:
-			if properties['State'] == self._nm.NM_STATE_CONNECTED_GLOBAL:
+			if properties['State'] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 				self._online = True
 				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
 
 class UbuntuNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(UbuntuNetworkManager, self).__init__()
-
-		#This needs to happen before importing NetworkManager
-		from dbus.mainloop.glib import DBusGMainLoop, threads_init
-
-		DBusGMainLoop(set_as_default=True)
-
-		import NetworkManager
-
-		threads_init()
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._eventListener.start()
