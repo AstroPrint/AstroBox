@@ -179,7 +179,9 @@
 			<button class="secondary radius left cancel">Cancel</button>
 			<div class="loading-button right">
 				<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
-				<span class="button disabled success radius loading"><i class="icon-spin1 animate-spin"></i> <span><% if (data.is_current) { %>Reinstalling<% } else { %>Updating<% } %>...</span></span>
+				<span class="button disabled success radius loading">
+					<i class="icon-spin1 animate-spin"></i> Initiating...<span>
+				</span>
 			</div>
 		</script>
 

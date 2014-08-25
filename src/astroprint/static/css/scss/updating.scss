@@ -1,0 +1,80 @@
+@charset "UTF-8";
+
+@import
+	"fonts",
+	"normalize",
+	"fontello",
+	"foundation/settings",
+	"foundation/components/grid",
+	"foundation/components/buttons",
+	"common-main";
+
+body {
+	background: url('/img/upload-bg.jpg') no-repeat;
+	background-size: cover;
+	height: 100%;
+	width: 100%;
+}
+
+h1, h3 {
+	color: white;
+	line-height: 1.3em;
+}
+
+h1 {
+	margin-top: 60px;
+}
+
+.progress {
+	padding: 0 20px;
+}
+
+.error {
+	margin-top: 60px;
+	padding: 20px;
+	background: #dbd7d5;
+	@include radius($global-radius);
+
+	h1 {
+		font-size: rem-calc(36);
+		color: $body-font-color;
+		margin: 0;
+	}
+
+	p {
+		font-size: rem-calc(22);
+		line-height: 1.5em;
+
+		i.icon-attention {
+			color: $alert-color;
+		}
+	}
+
+	button {
+		font-size: rem-calc(25);
+	}
+}
+
+.progress-animation {
+	width: 100%;
+	max-width: 600px;
+	position: relative;
+
+	.left-img {
+		position: absolute;
+		bottom: -50px;
+		left: 0;
+		width: 30%;
+	}
+
+	.right-img {
+		position: absolute;
+		bottom: -50px;
+		right: 0;
+		width: 30%;
+	}
+
+	.progress-img {
+		width: 75%;
+	}
+}

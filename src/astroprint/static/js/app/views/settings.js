@@ -363,17 +363,10 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 			data: JSON.stringify({
 				release_id: this.data.release.id
 			}),
-			success: _.bind(function(data) {
-				this.$el.find('.loading-button .loading span').text('Restarting...');
-				$.ajax({
-					url: API_BASEURL + 'settings/software/restart',
-					complete: function() {
-						setTimeout(function() {
-							location.href = '/';
-						}, 3000);
-					}
-				});
-			}, this),
+			success: function() {
+				//reset the page to show updating progress
+				location.href = '/';
+			},
 			error: function(xhr) {
 				if (xhr.status == 400) {
 					noty({text: xhr.responseText, timeout: 3000});

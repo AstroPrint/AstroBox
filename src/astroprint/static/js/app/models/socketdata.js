@@ -46,11 +46,10 @@ var SocketData = Backbone.Model.extend({
             options["debug"] = true;
         }
 
-        var self = this;
         this._socket = new SockJS(SOCKJS_URI, undefined, options);
-        this._socket.onopen = function(){ self._onConnect() };
-        this._socket.onclose = function(){ self._onClose() };
-        this._socket.onmessage = function(e){ self._onMessage(e) };
+        this._socket.onopen = _.bind(this._onConnect, this);
+        this._socket.onclose = _.bind(this._onClose, this);
+        this._socket.onmessage = _.bind(this._onMessage, this);
 	},
    	reconnect: function() {
         delete this._socket;
@@ -69,15 +68,14 @@ var SocketData = Backbone.Model.extend({
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
             console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
-            var self = this;
-            setTimeout(function(){self.reconnect()}, timeout * 1000);
+            setTimeout(_.bind(this.reconnect, this), timeout * 1000);
             this._autoReconnectTrial++;
         } else {
             this._onReconnectFailed();
         }
     },
     _onReconnectFailed: function() {
-		console.error('recoonect failed');
+		console.error('reconnect failed');
     },
     _onMessage: function(e) {
         for (var prop in e.data) {

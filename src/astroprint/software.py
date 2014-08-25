@@ -7,16 +7,83 @@ import yaml
 import requests
 import json
 import subprocess
+import threading
 
 from tempfile import mkstemp
-
 from sys import platform
 
 from octoprint.settings import settings
+from octoprint.events import eventManager, Events
+
+class SoftwareUpdater(threading.Thread):
+	def __init__(self, manager, versionData, progressCb, completionCb):
+		super(SoftwareUpdater, self).__init__()
+		self._vData = versionData
+		self._manager = manager
+		self._progressCb = progressCb
+		self._completionCb = completionCb
+
+	def run(self):
+		self._progressCb(0.2, "Downloading release...")
+		r = requests.get(self._vData["download_url"], stream=True, headers = self._manager._requestHeaders)
+
+		if r.status_code == 200:
+			releaseHandle, releasePath = mkstemp()
+
+			content_length = float(r.headers['Content-Length']);
+			downloaded_size = 0.0
+
+			with os.fdopen(releaseHandle, "wb") as fd:
+				for chunk in r.iter_content(250000):
+					downloaded_size += len(chunk)
+					fd.write(chunk)
+					percent = 0.2 + round((downloaded_size / content_length) * 0.48, 2)
+					self._progressCb(percent, "Downloading release (%d%%)" % (percent * 100) )
+
+			if platform == "linux" or platform == "linux2":
+				if subprocess.call(['dpkg', '-i', releasePath]) == 0:
+					self._manager.data["version"]["major"] = self._vData['major']
+					self._manager.data["version"]["minor"] = self._vData['minor']
+					self._manager.data["version"]["build"] = self._vData['build']
+					self._manager.data["version"]["date"] = self._vData['date']
+					self._manager._save()
+
+					os.remove(releasePath)
+
+					if self._vData['force_setup']:
+						#remove the config file
+						os.remove(self._manager._settings._configfile)
+
+					return self._completionCb(True)
+
+			else:
+
+				from time import sleep
+
+				i=0.0
+				while i<10:
+					percent = i/10.0 * 0.5 + 0.5
+					self._progressCb(percent, "Progress Simulation (%d%%)" % (percent * 100) )
+					sleep(1)
+					i+=1
+
+				os.remove(releasePath)
+
+				if self._vData['force_setup']:
+					#remove the config file
+					os.remove(self._manager._settings._configfile)
+
+				return self._completionCb(True)
+		else:
+			r.close()
+
+		self._completionCb(False)
+
 
 class SoftwareManager(object):	
 	def __init__(self):
 		self._settings = settings()
+		self._updater = None
 		self.data = {
 			"version": {
 				"major": 0,
@@ -69,6 +136,10 @@ class SoftwareManager(object):
 			subprocess.check_output('uname -v', shell=True)[:-1]
 		)
 
+	@property
+	def updating(self):
+		return self._updater != None and self._updater.isAlive() 
+
 	def _save(self, force=False):
 		with open(self._infoFile, "wb") as infoFile:
 			yaml.safe_dump(self.data, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
@@ -113,46 +184,23 @@ class SoftwareManager(object):
 				data = r.json()
 
 				if data and 'download_url' in data:
-					r = requests.get(data["download_url"], stream=True, headers = self._requestHeaders)
+					def progressCb(progress, message=None):
+						eventManager().fire(Events.SOFTWARE_UPDATE, {
+							'completed': False,
+							'progress': progress,
+							'message': message
+						})
 
-					if r.status_code == 200:
-						releaseHandle, releasePath = mkstemp()
+					def completionCb(success):
+						self._updater = None
+						eventManager().fire(Events.SOFTWARE_UPDATE, {
+							'completed': True,
+							'success': success
+						})
 
-						with os.fdopen(releaseHandle, "wb") as fd:
-							for chunk in r.iter_content(250000):
-								fd.write(chunk)
-								#progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
-
-						#successCb(destFile, fileInfo)
-
-						if platform == "linux" or platform == "linux2":
-							if subprocess.call(['dpkg', '-i', releasePath]) == 0:
-								self.data["version"]["major"] = data['major']
-								self.data["version"]["minor"] = data['minor']
-								self.data["version"]["build"] = data['build']
-								self.data["version"]["date"] = data['date']
-								self._save()
-
-								os.remove(releasePath)
-
-								if data['force_setup']:
-									#remove the config file
-									os.remove(self._settings._configfile)
-
-								return True
-
-						else:
-							os.remove(releasePath)
-
-							if data['force_setup']:
-								#remove the config file
-								os.remove(self._settings._configfile)
-
-							return True;
-
-					else:
-						r.close()
-						#errorCb(destFile, 'Unable to download file')
+					self._updater = SoftwareUpdater(self, data, progressCb, completionCb)
+					self._updater.start()
+					return True
 
 		except Exception as e:
 			pass
@@ -162,6 +210,8 @@ class SoftwareManager(object):
 	def restartServer(self):
 		if platform == "linux" or platform == "linux2":
 			subprocess.call(['restart', 'astrobox'])
+
+		return True
 
 	def _checkAuth(self):
 		privateKey = self._settings.get(['cloudSlicer', 'privateKey'])

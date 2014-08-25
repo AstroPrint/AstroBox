@@ -77,6 +77,7 @@ class Events(object):
 	CLOUD_DOWNLOAD = "CloudDownloadEvent"
 	ASTROPRINT_STATUS = "AstroPrintStatus"
 	NETWORK_STATUS = "NetworkStatus"
+	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 
 def eventManager():
 	global _instance

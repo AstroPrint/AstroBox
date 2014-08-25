@@ -37,6 +37,15 @@ JS_SETUP_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
 					)	
 JS_SETUP_PACKED := src/astroprint/static/js/gen/setup.js 
 
+#Updating JS Files
+
+JS_UPDATING_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/sockjs.js lib/fastclick.js updating/updating.js
+
+JS_UPDATING_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
+							$(addprefix src/astroprint/static/js/, $(file)) \
+						)	
+JS_UPDATING_PACKED := src/astroprint/static/js/gen/updating.js 
+
 #CSS Files
 
 CSS_APP_FILE := src/astroprint/static/css/scss/app.scss
@@ -47,6 +56,9 @@ CSS_LOGIN_PACKED := src/astroprint/static/css/gen/login.css
 
 CSS_SETUP_FILE := src/astroprint/static/css/scss/setup.scss
 CSS_SETUP_PACKED := src/astroprint/static/css/gen/setup.css
+
+CSS_UPDATING_FILE := src/astroprint/static/css/scss/updating.scss
+CSS_UPDATING_PACKED := src/astroprint/static/css/gen/updating.css
 
 #rules
 
@@ -66,8 +78,6 @@ release: clean-release clean-js clean-css js css python
 
 	echo "Copying install scripts"
 	cp -p debian/Makefile build/debian/AstroBox/Makefile
-	#mkdir -p build/build/AstroBox/install
-	#cp -rp install/* build/build/AstroBox/install
 
 	echo "Setting time stamps to $(CURRENT_TIME)"
 
@@ -91,9 +101,9 @@ release: clean-release clean-js clean-css js css python
 	mv build/debian.deb build/AstroBox_$(DATE_APPEND).deb
 	echo "Release at " $(PWD)/build/AstroBox_$(DATE_APPEND).deb
 
-js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
+js: $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED) $(JS_UPDATING_PACKED)
 
-css: $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED)
+css: $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED) $(CSS_UPDATING_PACKED)
 
 python: 
 	echo "Generating .pyo files..."
@@ -126,6 +136,15 @@ $(JS_SETUP_PACKED): $(JS_SETUP_LIST)
 		--js $^ \
 		--js_output_file $@
 
+$(JS_UPDATING_PACKED): $(JS_UPDATING_LIST)
+	echo "Packing updating javascript..."
+	closure \
+		--warning_level QUIET \
+		--language_in ECMASCRIPT5 \
+		--compilation_level SIMPLE_OPTIMIZATIONS \
+		--js $^ \
+		--js_output_file $@
+
 $(CSS_APP_PACKED): $(CSS_APP_FILE)
 	echo "Packing App CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
@@ -138,11 +157,15 @@ $(CSS_SETUP_PACKED): $(CSS_SETUP_FILE)
 	echo "Packing Setup CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
+$(CSS_UPDATING_PACKED): $(CSS_SETUP_FILE)
+	echo "Packing Updating CSS..."
+	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
+
 clean-js:
-	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED)
+	rm -f $(JS_APP_PACKED) $(JS_LOGIN_PACKED) $(JS_SETUP_PACKED) $(JS_UPDATING_PACKED)
 
 clean-css:
-	rm -f $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED)
+	rm -f $(CSS_APP_PACKED) $(CSS_LOGIN_PACKED) $(CSS_SETUP_PACKED) $(CSS_UPDATING_PACKED)
 
 clean-python:
 	find src/octoprint -name "*.pyo" -type f -delete

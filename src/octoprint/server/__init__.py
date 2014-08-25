@@ -67,28 +67,22 @@ VERSION = None
 def index():
 	s = settings()
 
-	#if (s.get(["cloudSlicer", "publicKey"])):
 	if (not s.get(["server", "firstRun"])):
-		return render_template(
-			"app.jinja2",
-			user_email=s.get(["cloudSlicer", "email"]),
-			#webcamStream=settings().get(["webcam", "stream"]),
-			#enableTimelapse=(settings().get(["webcam", "snapshot"]) is not None and settings().get(["webcam", "ffmpeg"]) is not None),
-			#enableGCodeVisualizer=settings().get(["gcodeViewer", "enabled"]),
-			#enableTemperatureGraph=settings().get(["feature", "temperatureGraph"]),
-			#enableSystemMenu=settings().get(["system"]) is not None and settings().get(["system", "actions"]) is not None and len(settings().get(["system", "actions"])) > 0,
-			#enableAccessControl=userManager is not None,
-			#enableSdSupport=settings().get(["feature", "sdSupport"]),
-			#firstRun=settings().getBoolean(["server", "firstRun"]) and (userManager is None or not userManager.hasBeenCustomized()),
-			debug=debug,
-			version=VERSION,
-			printing=printer.isPrinting(),
-			paused=printer.isPaused(),
-			#stylesheet=settings().get(["devel", "stylesheet"]),
-			#gcodeMobileThreshold=settings().get(["gcodeViewer", "mobileSizeThreshold"]),
-			#gcodeThreshold=settings().get(["gcodeViewer", "sizeThreshold"]),
-			uiApiKey=UI_API_KEY
-		)
+		if not softwareManager.updating:
+			return render_template(
+				"app.jinja2",
+				user_email=s.get(["cloudSlicer", "email"]),
+				version=VERSION,
+				printing=printer.isPrinting(),
+				paused=printer.isPaused(),
+				uiApiKey=UI_API_KEY
+			)
+		else:
+			return render_template(
+				"updating.jinja2",
+				uiApiKey=UI_API_KEY
+			)
+
 	else:
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(

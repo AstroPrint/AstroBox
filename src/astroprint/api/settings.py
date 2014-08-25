@@ -169,7 +169,7 @@ def updateSoftwareVersion():
 	if softwareManager.updateSoftwareVersion(request.get_json()):
 		return jsonify();
 	else:
-		return ("There was an error updating to the new software.", 400)
+		return ("There was an error initiating update.", 400)
 
 @api.route("/settings/software/restart", methods=['POST'])
 @restricted_access
