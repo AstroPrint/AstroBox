@@ -157,7 +157,7 @@ $(CSS_SETUP_PACKED): $(CSS_SETUP_FILE)
 	echo "Packing Setup CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
-$(CSS_UPDATING_PACKED): $(CSS_SETUP_FILE)
+$(CSS_UPDATING_PACKED): $(CSS_UPDATING_FILE)
 	echo "Packing Updating CSS..."
 	cat $^ | scss --stdin --style compressed --load-path src/astroprint/static/css/scss $@ 
 
