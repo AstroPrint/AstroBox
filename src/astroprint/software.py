@@ -37,10 +37,11 @@ class SoftwareUpdater(threading.Thread):
 				for chunk in r.iter_content(250000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					percent = 0.2 + round((downloaded_size / content_length) * 0.48, 2)
+					percent = round((downloaded_size / content_length), 2)
 					self._progressCb(percent, "Downloading release (%d%%)" % (percent * 100) )
 
 			if platform == "linux" or platform == "linux2":
+				self._progressCb(percent, "Installing release. Please be patient..." )
 				if subprocess.call(['dpkg', '-i', releasePath]) == 0:
 					self._manager.data["version"]["major"] = self._vData['major']
 					self._manager.data["version"]["minor"] = self._vData['minor']
@@ -62,8 +63,8 @@ class SoftwareUpdater(threading.Thread):
 
 				i=0.0
 				while i<10:
-					percent = i/10.0 * 0.5 + 0.5
-					self._progressCb(percent, "Progress Simulation (%d%%)" % (percent * 100) )
+					percent = i/10.0
+					self._progressCb(percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
 					sleep(1)
 					i+=1
 

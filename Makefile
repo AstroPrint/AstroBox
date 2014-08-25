@@ -41,7 +41,7 @@ JS_SETUP_PACKED := src/astroprint/static/js/gen/setup.js
 
 JS_UPDATING_FILES := 	lib/jquery.js lib/underscore.js lib/backbone.js lib/sockjs.js lib/fastclick.js updating/updating.js
 
-JS_UPDATING_LIST := 	$(foreach file, $(JS_SETUP_FILES), \
+JS_UPDATING_LIST := 	$(foreach file, $(JS_UPDATING_FILES), \
 							$(addprefix src/astroprint/static/js/, $(file)) \
 						)	
 JS_UPDATING_PACKED := src/astroprint/static/js/gen/updating.js 
