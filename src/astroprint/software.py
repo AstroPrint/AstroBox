@@ -160,7 +160,7 @@ class SoftwareManager(object):
 
 	def checkForcedUpdate(self):
 		latestInfo = self.checkSoftwareVersion()
-		if latestInfo and latestInfo['release']['forced'] and not latestInfo['is_current']:
+		if latestInfo and latestInfo['update_available'] and latestInfo['release']['forced'] and not latestInfo['is_current']:
 			import datetime
 			self._logger.warn('New version %d.%d(%s) is forced and available for this box.' % (
 				latestInfo['release']['major'],
@@ -199,7 +199,7 @@ class SoftwareManager(object):
 			self._logger.error('Error getting software release info: %s' % e)
 			data = None
 
-		if data:
+		if data and data['update_available']:
 			#check if it's the same one we have installed
 			data['is_current'] = data['release']['major'] == int(self.data['version']['major']) and data['release']['minor'] == int(self.data['version']['minor']) and data['release']['build'] == self.data['version']['build']
 
