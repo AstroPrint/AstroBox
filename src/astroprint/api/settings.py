@@ -56,21 +56,20 @@ def getWifiNetworks():
 @api.route("/settings/wifi", methods=["GET"])
 @restricted_access
 def getWifiSettings():
+	s = settings()
 	network = networkManager.getActiveNetwork()
 	isHotspotActive = networkManager.isHotspotActive()
 	hotspotName = networkManager.getHostname()
 
-	if network != None and isHotspotActive != None:
-		return jsonify({
-				'network': network,
-				'hotspot': {
-					'active': isHotspotActive,
-					'name': hotspotName
-				}
-		})
-
-	else:
-		return ("Failed to get WiFi settings", 500)
+	return jsonify({
+			'canWifi': s.get(['wifi', 'internetInterface']) != None,
+			'canHotspot': s.get(['wifi', 'hotspotInterface']) != None,
+			'network': network,
+			'hotspot': {
+				'active': isHotspotActive,
+				'name': hotspotName
+			}
+	})
 
 @api.route("/settings/wifi/active", methods=["POST"])
 @restricted_access

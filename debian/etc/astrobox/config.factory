@@ -9,6 +9,9 @@ folder:
   timelapse_tmp: /sdcard/AstroBox/timelapse/tmp
   watched: /sdcard/AstroBox/watched
   logs: /var/log/astrobox
+wifi:
+   internetInterface: wlan0
+   hotspotInterface: wlan1
 system:
   actions:
   - action: shutdown

@@ -50,7 +50,7 @@ class NetworkManagerEvents(threading.Thread):
 		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0 and self._online:
 			self._online = False
 			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
-			if not self._manager.isHotspotActive():
+			if self._manager.isHotspotActive() is False:
 				gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
 				result = self._manager.startHotspot() 
 				if result is True:
@@ -75,50 +75,55 @@ class UbuntuNetworkManager(NetworkManagerBase):
 
 	def getWifiNetworks(self):
 		interface = self.settings.get(['wifi', 'internetInterface'])
-		wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
+		if interface:
+			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
 
-		networks = [{
-			'id': ap.HwAddress,
-			'signal': ord(ap.Strength),
-			'name': ap.Ssid,
-			'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.GetAccessPoints()]
+			networks = [{
+				'id': ap.HwAddress,
+				'signal': ord(ap.Strength),
+				'name': ap.Ssid,
+				'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.GetAccessPoints()]
 
-		return networks
+			return networks
+
+		return None
 
 	def getActiveNetwork(self):
 		if self._nm.NetworkManager.State == self._nm.NM_STATE_CONNECTED_GLOBAL:
 			#first we check if the wifi assigned to internetInterface is connected
 			interface = self.settings.get(['wifi', 'internetInterface'])
-			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
-			connection = wifiDevice.ActiveConnection
+			if interface:
+				wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
+				connection = wifiDevice.ActiveConnection
 
-			if connection != '/':
-				ap = connection.SpecificObject
-				return {
-					'id': ap.HwAddress,
-					'signal': ord(ap.Strength),
-					'name': ap.Ssid,
-					'ip': wifiDevice.Ip4Address,
-					'secured': True if ap.WpaFlags or ap.RsnFlags else False}
+				if connection != '/':
+					ap = connection.SpecificObject
+					return {
+						'id': ap.HwAddress,
+						'signal': ord(ap.Strength),
+						'name': ap.Ssid,
+						'ip': wifiDevice.Ip4Address,
+						'secured': True if ap.WpaFlags or ap.RsnFlags else False}
 
-			else:
-				#if not, we check where's the connection
-				connections = self._nm.NetworkManager.ActiveConnections
-				for c in connections:
-					if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
-						d = c.Devices[0]
-						return {
-							'id': d.SpecificDevice().HwAddress,
-							'signal': None,
-							'name': self._nm.const('device_type', d.DeviceType).capitalize(),
-							'ip': d.Ip4Address,
-							'secured': True}
+				else:
+					#if not, we check where's the connection
+					connections = self._nm.NetworkManager.ActiveConnections
+					for c in connections:
+						if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+							d = c.Devices[0]
+							return {
+								'id': d.SpecificDevice().HwAddress,
+								'signal': None,
+								'name': self._nm.const('device_type', d.DeviceType).capitalize(),
+								'ip': d.Ip4Address,
+								'secured': True}
 
 		return False
 
 	def setWifiNetwork(self, bssid, password = None):
-		if bssid:
-			interface = self.settings.get(['wifi','internetInterface'])
+		interface = self.settings.get(['wifi','internetInterface'])
+
+		if bssid and interface:
 			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
 
 			accessPoint = None
@@ -185,9 +190,11 @@ class UbuntuNetworkManager(NetworkManagerBase):
 	def isHotspotActive(self):
 		interface = self.settings.get(['wifi', 'hotspotInterface'])
 
-		info = netifaces.ifaddresses(interface)
+		if interface:
+			info = netifaces.ifaddresses(interface)
+			return netifaces.AF_INET in info
 
-		return netifaces.AF_INET in info
+		return None
 
 	def startHotspot(self):
 		try:

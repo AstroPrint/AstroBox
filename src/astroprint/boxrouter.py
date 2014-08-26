@@ -162,7 +162,7 @@ class AstroprintBoxRouter(object):
 
 			#Are we offline?
 			nm = networkManager()
-			if not nm.checkOnline() and not nm.isHotspotActive():
+			if not nm.checkOnline() and nm.isHotspotActive() == False:
 				#get the box hotspot up
 				self._logger.info('AstroBox is offline. Starting hotspot...')
 				result = nm.startHotspot() 

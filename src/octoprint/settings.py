@@ -161,8 +161,8 @@ default_settings = {
 		}
 	},
 	"wifi": {
-		"internetInterface": "wlan0",
-		"hotspotInterface": "wlan1"
+		"internetInterface": None,
+		"hotspotInterface": None
 	},
 	"software": {
 		"infoFile": None,

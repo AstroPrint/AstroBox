@@ -70,15 +70,11 @@
 			<div align="center">
 				<% if (settings.network) { %>
 					<h4>Connected using <span class="network-name bold"><%= settings.network.name %></span></h4>
-					<div class="loading-button connect">
-						<button class="radius">Change</button>
-						<span class="loading button disabled radius">
-							<i class="icon-spin1 animate-spin"></i> Looking for Networks...
-						</span>
-					</div>
 					<div>Use this IP address to reach your AstroBox: <b><%= settings.network.ip %></b></div>
 				<% } else { %>
 					<h2 class="bold">Not Connected</h2>
+				<% } %>
+				<% if (settings.canWifi) { %>
 					<div class="loading-button connect">
 						<button class="radius small">Scan WiFi networks</button>
 						<span class="loading button disabled radius small">
@@ -86,7 +82,7 @@
 						</span>
 					</div>
 				<% } %>
-				<% if (settings.network || !settings.hotspot.active) { %>
+				<% if (settings.canHotspot && (settings.network || !settings.hotspot.active)) { %>
 					<hr/>
 					<div>
 					<% if (settings.hotspot.active) { %>
