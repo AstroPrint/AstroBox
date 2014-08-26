@@ -110,7 +110,7 @@ $menu-slide: "transform 500ms ease" !default;
   background: $off-canvas-bg;
   z-index: 1001;
   box-sizing: content-box;
-  transition: transform 500ms ease 0s;
+  //transition: transform 500ms ease 0s;
   -webkit-overflow-scrolling: touch;
   @if $position == left {
     @include translate3d(-100.5%,0,0);
