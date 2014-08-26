@@ -1,0 +1,5 @@
+echo "Setting up haproxy..."
+mv /etc/haproxy/haproxy_astrobox.cfg /etc/haproxy/haproxy.cfg
+service haproxy restart
+echo "Installing python packages..."
+pip install -r /AstroBox/requirements.txt
