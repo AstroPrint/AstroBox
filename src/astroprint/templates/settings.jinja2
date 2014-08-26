@@ -165,20 +165,21 @@
 						<br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
 					<% } %>
 					</p>
-
 					<p>
 						<b>Release Notes:</b><br/>
 						<%= data.release.release_notes %>
 					</p>
 				</div>
 			<% } %>
-			<button class="secondary radius left cancel">Cancel</button>
-			<div class="loading-button right">
-				<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
-				<span class="button disabled success radius loading">
-					<i class="icon-spin1 animate-spin"></i> Initiating...<span>
-				</span>
-			</div>
+			<button class="secondary radius<% if (data.update_available) { %> left<% } %> cancel">Cancel</button>
+			<% if (data.update_available) { %>
+				<div class="loading-button right">
+					<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+					<span class="button disabled success radius loading">
+						<i class="icon-spin1 animate-spin"></i> Initiating...<span>
+					</span>
+				</div>
+			<% } %>
 		</script>
 
 		<div id="software-advanced" class="settings-page hide" align="center">
