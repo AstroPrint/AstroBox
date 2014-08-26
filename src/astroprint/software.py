@@ -8,6 +8,7 @@ import requests
 import json
 import subprocess
 import threading
+import logging
 
 from tempfile import mkstemp
 from sys import platform
@@ -18,14 +19,14 @@ from octoprint.events import eventManager, Events
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
 		super(SoftwareUpdater, self).__init__()
-		self._vData = versionData
+		self.vData = versionData
 		self._manager = manager
 		self._progressCb = progressCb
 		self._completionCb = completionCb
 
 	def run(self):
 		self._progressCb(0.2, "Downloading release...")
-		r = requests.get(self._vData["download_url"], stream=True, headers = self._manager._requestHeaders)
+		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
 
 		if r.status_code == 200:
 			releaseHandle, releasePath = mkstemp()
@@ -43,15 +44,15 @@ class SoftwareUpdater(threading.Thread):
 			if platform == "linux" or platform == "linux2":
 				self._progressCb(percent, "Installing release. Please be patient..." )
 				if subprocess.call(['dpkg', '-i', releasePath]) == 0:
-					self._manager.data["version"]["major"] = self._vData['major']
-					self._manager.data["version"]["minor"] = self._vData['minor']
-					self._manager.data["version"]["build"] = self._vData['build']
-					self._manager.data["version"]["date"] = self._vData['date']
+					self._manager.data["version"]["major"] = self.vData['major']
+					self._manager.data["version"]["minor"] = self.vData['minor']
+					self._manager.data["version"]["build"] = self.vData['build']
+					self._manager.data["version"]["date"] = self.vData['date']
 					self._manager._save()
 
 					os.remove(releasePath)
 
-					if self._vData['force_setup']:
+					if self.vData['force_setup']:
 						#remove the config file
 						os.remove(self._manager._settings._configfile)
 
@@ -70,12 +71,13 @@ class SoftwareUpdater(threading.Thread):
 
 				os.remove(releasePath)
 
-				if self._vData['force_setup']:
+				if self.vData['force_setup']:
 					#remove the config file
 					os.remove(self._manager._settings._configfile)
 
 				return self._completionCb(True)
 		else:
+			self._manager._logger.error('Error performing software update info: %d' % r.status_code)
 			r.close()
 
 		self._completionCb(False)
@@ -85,6 +87,10 @@ class SoftwareManager(object):
 	def __init__(self):
 		self._settings = settings()
 		self._updater = None
+		self._infoFile = self._settings.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(self._settings._configfile)
+		self._logger = logging.getLogger(__name__)
+
+		self.forceUpdateInfo = None
 		self.data = {
 			"version": {
 				"major": 0,
@@ -98,7 +104,6 @@ class SoftwareManager(object):
 			}
 		}
 
-		self._infoFile = self._settings.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(self._settings._configfile)
 		if not os.path.isfile(self._infoFile):
 			open(self._infoFile, 'w').close()
 
@@ -121,6 +126,8 @@ class SoftwareManager(object):
 			'User-Agent': self.userAgent
 		}
 
+		self._checkForced()
+
 	@property
 	def versionString(self):
 		return '%s - v%d.%d(%s)' % (
@@ -138,8 +145,19 @@ class SoftwareManager(object):
 		)
 
 	@property
-	def updating(self):
-		return self._updater != None and self._updater.isAlive() 
+	def updatingRelease(self):
+		if self._updater and self._updater.isAlive():
+			return self._updater.vData
+		else:
+			return False
+
+	def _checkForced(self):
+		latestInfo = self.checkSoftwareVersion()
+		if latestInfo and latestInfo['release']['forced'] and not latestInfo['is_current']:
+			import datetime
+			self._logger.warn('A new forced version is available for this box.')
+			latestInfo['release']['date'] = datetime.datetime.strptime(latestInfo['release']['date'], "%Y-%m-%d %H:%M:%S").date()
+			self.forceUpdateInfo = latestInfo['release']
 
 	def _save(self, force=False):
 		with open(self._infoFile, "wb") as infoFile:
@@ -160,11 +178,13 @@ class SoftwareManager(object):
 			)
 
 			if r.status_code != 200:
+				self._logger.error('Error getting software release info: %d.' % r.status_code)
 				data = None
 			else:
 				data = r.json()
 
 		except Exception as e:
+			self._logger.error('Error getting software release info: %s' % e)
 			data = None
 
 		if data:
@@ -198,12 +218,19 @@ class SoftwareManager(object):
 							'completed': True,
 							'success': success
 						})
+						if success:
+							self.forceUpdateInfo = None
 
 					self._updater = SoftwareUpdater(self, data, progressCb, completionCb)
 					self._updater.start()
 					return True
 
+				else:
+					self._logger.error('Error updating software release info: %d' % r.status_code)
+
+
 		except Exception as e:
+			self._logger.error('Error updating software release info: %s' % e)
 			pass
 
 		return False

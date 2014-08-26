@@ -4,6 +4,7 @@
 	"fonts",
 	"normalize",
 	"fontello",
+	"widgets",
 	"foundation/settings",
 	"foundation/components/grid",
 	"foundation/components/buttons",
@@ -16,17 +17,36 @@ body {
 	width: 100%;
 }
 
-h1, h3 {
-	color: white;
-	line-height: 1.3em;
-}
-
-h1 {
+.info {
+	background: #dbd7d5;
 	margin-top: 60px;
+	padding: 20px 40px;
+	@include radius($global-radius);
+
+	p {
+		font-size: rem-calc(18);
+
+		i.icon-attention {
+			color: $alert-color;
+		}
+	}
+
+	.release-notes {
+		font-size: rem-calc(14);
+	}
+
+	button {
+		font-size: rem-calc(26);
+	}
 }
 
 .progress {
 	padding: 0 20px;
+
+	h1, h3 {
+		color: white;
+		line-height: 1.3em;
+	}
 }
 
 .error {

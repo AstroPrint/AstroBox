@@ -18,7 +18,9 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 	_autoReconnectTrial: 0,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	events: {
-		'click .error button': 'closeClicked',
+		'click .error button.close': 'closeClicked',
+        'click .error button.retry': 'installClicked',
+        'click .info button': 'installClicked'
 	},
 	initialize: function()
 	{
@@ -79,6 +81,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 							//error case here
 							this.$el.find('.progress').addClass('hide');
 							this.$el.find('.error').removeClass('hide');
+                            this.$el.find('.info').addClass('hide');
 						}
                 	} else if (payload.message) {
                 		this.$el.find('h3.message').text(payload.message);
@@ -91,6 +94,34 @@ var SoftwareUpdateProgress = Backbone.View.extend({
     	e.preventDefault();
     	location.href="/#settings/software-update";
     	location.reload();
+    },
+    installClicked: function(e)
+    {
+        e.preventDefault();
+        var loadingBtn = $(e).closest('.loading-button');
+        loadingBtn.addClass('loading');
+        $.ajax({
+            url: API_BASEURL + 'settings/software/update', 
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                release_id: RELEASE_ID
+            }),
+            success: _.bind(function() {
+                this.$el.find('.progress').removeClass('hide');
+                this.$el.find('.error').addClass('hide');
+                this.$el.find('.info').addClass('hide');
+            }, this),
+            error: _.bind(function(xhr) {
+                this.$el.find('.progress').addClass('hide');
+                this.$el.find('.error').removeClass('hide');
+                this.$el.find('.info').addClass('hide');
+            }, this),
+            complete: function() {
+                loadingBtn.removeClass('loading');
+            }
+        });
     }
 });
 

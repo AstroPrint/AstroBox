@@ -67,29 +67,31 @@ VERSION = None
 def index():
 	s = settings()
 
-	if (not s.get(["server", "firstRun"])):
-		if not softwareManager.updating:
-			return render_template(
-				"app.jinja2",
-				user_email=s.get(["cloudSlicer", "email"]),
-				version=VERSION,
-				printing=printer.isPrinting(),
-				paused=printer.isPaused(),
-				uiApiKey=UI_API_KEY
-			)
-		else:
-			return render_template(
-				"updating.jinja2",
-				uiApiKey=UI_API_KEY
-			)
-
-	else:
+	if (s.getBoolean(["server", "firstRun"])):
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
 			"setup.jinja2",
-			debug=debug,
-			uiApiKey=UI_API_KEY,
-			version=VERSION
+			debug= debug,
+			uiApiKey= UI_API_KEY,
+			version= VERSION
+		)
+
+	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
+		return render_template(
+			"updating.jinja2",
+			uiApiKey= UI_API_KEY,
+			showForceUpdate=  softwareManager.forceUpdateInfo != None,
+			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo
+		)
+
+	else:
+		return render_template(
+			"app.jinja2",
+			user_email= s.get(["cloudSlicer", "email"]),
+			version= VERSION,
+			printing= printer.isPrinting(),
+			paused= printer.isPaused(),
+			uiApiKey= UI_API_KEY
 		)
 
 @app.route("/robots.txt")

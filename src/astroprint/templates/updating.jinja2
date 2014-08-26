@@ -9,7 +9,33 @@
 
 {% block content %}
 <div id="updating-view" class="row">
-	<div class="small-12 columns progress">
+	{% if showForceUpdate %}
+	{{releaseInfo}}
+		<div class="small-12 medium-11 large-8 medium-centered large-centered columns info">
+			<h1 class="bold" align="center">System Update</h1>
+			<p>
+				<i class="icon-attention"></i> Your software is currently out of date and needs to be 
+				updated in order to continue using your AstroBox.
+			</p>
+			<p><b>Version</b>: {{ releaseInfo['major'] }}.{{ releaseInfo['minor'] }}({{ releaseInfo['build'] }})</p>
+			<p><b>Release Date</b>: {{ releaseInfo['date'].strftime('%b %d, %Y') }}</p>
+			<p>
+				<b>Release Notes:</b>
+				<div class="release-notes">
+					{{ releaseInfo['release_notes'] }}
+				</div>
+			</p>
+			<center>
+				<div class="loading-button">
+					<button class="success radius bold">Install Now</button>
+					<span class="loading button success disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Initiating...
+					</span>
+				</div>
+			</center>
+		</div>
+	{% endif %}
+	<div class="small-12 columns progress {%- if showForceUpdate %} hide {%- endif %}">
 		<h1 class="bold" align="center">Software Update in Progress</h1>
 		<h3 align="center" class="message">Downloading release...</h3>
 		<center>
@@ -26,7 +52,19 @@
 			<i class="icon-attention"></i> An error occured and your Astrobox was unable to 
 			complete the update.
 		</p>
-		<button class="expand radius success bold">Close</button>
+		<div class="row">
+			<div class="small-12 medium-6 columns">
+				<button class="expand radius secondary bold close">Close</button>
+			</div>
+			<div class="small-12 medium-6 columns">
+				<div class="loading-button expand">
+					<button class="expand radius success bold retry">Retry</button>
+					<span class="loading button success expand disabled radius">
+						<i class="icon-spin1 animate-spin"></i> Initiating...
+					</span>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 {% endblock %}
@@ -37,6 +75,7 @@
 		var BASEURL = "{{ url_for('index') }}";
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
+		var RELEASE_ID = "{{ releaseInfo['id'] }}";
 	</script>
 	{% assets filters="closure_js", output="js/gen/updating.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/updating/updating.js" -%}
