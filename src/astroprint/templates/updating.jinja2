@@ -10,7 +10,6 @@
 {% block content %}
 <div id="updating-view" class="row">
 	{% if showForceUpdate %}
-	{{releaseInfo}}
 		<div class="small-12 medium-11 large-8 medium-centered large-centered columns info">
 			<h1 class="bold" align="center">System Update</h1>
 			<p>
@@ -18,7 +17,7 @@
 				updated in order to continue using your AstroBox.
 			</p>
 			<p><b>Version</b>: {{ releaseInfo['major'] }}.{{ releaseInfo['minor'] }}({{ releaseInfo['build'] }})</p>
-			<p><b>Release Date</b>: {{ releaseInfo['date'].strftime('%b %d, %Y') }}</p>
+			<p><b>Release Date</b>: {% if releaseInfo['date'] -%} {{ releaseInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
 			<p>
 				<b>Release Notes:</b>
 				<div class="release-notes">

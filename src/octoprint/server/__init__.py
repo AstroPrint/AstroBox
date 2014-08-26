@@ -41,7 +41,6 @@ eventManager = None
 loginManager = None
 networkManager = None
 softwareManager = None
-boxrouterManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -57,7 +56,7 @@ import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
 import octoprint.timelapse
-from astroprint.software import SoftwareManager
+from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
@@ -176,10 +175,12 @@ class Server():
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
 
-		softwareManager = SoftwareManager()
+		softwareManager = swManager()
 		VERSION = softwareManager.versionString
 
 		logger.info("Starting OctoPrint (%s)" % VERSION)
+
+		softwareManager.checkForcedUpdate()
 
 		eventManager = events.eventManager()
 		gcodeManager = gcodefiles.GcodeManager()

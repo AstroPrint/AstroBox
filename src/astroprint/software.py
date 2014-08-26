@@ -16,6 +16,15 @@ from sys import platform
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
+# singleton
+_instance = None
+
+def softwareManager():
+	global _instance
+	if _instance is None:
+		_instance = SoftwareManager()
+	return _instance
+
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
 		super(SoftwareUpdater, self).__init__()
@@ -126,8 +135,6 @@ class SoftwareManager(object):
 			'User-Agent': self.userAgent
 		}
 
-		self._checkForced()
-
 	@property
 	def versionString(self):
 		return '%s - v%d.%d(%s)' % (
@@ -151,12 +158,17 @@ class SoftwareManager(object):
 		else:
 			return False
 
-	def _checkForced(self):
+	def checkForcedUpdate(self):
 		latestInfo = self.checkSoftwareVersion()
 		if latestInfo and latestInfo['release']['forced'] and not latestInfo['is_current']:
 			import datetime
-			self._logger.warn('A new forced version is available for this box.')
-			latestInfo['release']['date'] = datetime.datetime.strptime(latestInfo['release']['date'], "%Y-%m-%d %H:%M:%S").date()
+			self._logger.warn('New version %d.%d(%s) is forced and available for this box.' % (
+				latestInfo['release']['major'],
+				latestInfo['release']['minor'],
+				latestInfo['release']['build']
+			))
+			if latestInfo['release']['date']:
+				latestInfo['release']['date'] = datetime.datetime.strptime(latestInfo['release']['date'], "%Y-%m-%d %H:%M:%S").date()
 			self.forceUpdateInfo = latestInfo['release']
 
 	def _save(self, force=False):

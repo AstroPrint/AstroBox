@@ -17,7 +17,7 @@ from time import sleep
 from requests_toolbelt import MultipartEncoder
 
 from octoprint.settings import settings
-from octoprint.server import softwareManager
+from astroprint.software import softwareManager
 
 from astroprint.boxrouter import boxrouterManager
 
@@ -36,7 +36,7 @@ class HMACAuth(requests.auth.AuthBase):
 		self.privateKey = privateKey
 
 	def __call__(self, r):
-		r.headers['User-Agent'] = softwareManager.userAgent
+		r.headers['User-Agent'] = softwareManager().userAgent
 		sig_base = '&'.join((r.method, r.headers['User-Agent']))
 		hashed = hmac.new(self.privateKey, sig_base, sha256)
 
@@ -54,6 +54,7 @@ class AstroPrintCloud(object):
 
 		self.hmacAuth = HMACAuth(publicKey, privateKey,)
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
+		self._sm = softwareManager()
 
 	@staticmethod
 	def cloud_enabled():
@@ -135,7 +136,7 @@ class AstroPrintCloud(object):
 							"email": email,
 							"password": password
 						   },
-						   headers={'User-Agent': softwareManager.userAgent})
+						   headers={'User-Agent': self._sm.userAgent})
 
 		try:
 			data = r.json()
@@ -153,7 +154,7 @@ class AstroPrintCloud(object):
 							"email": email,
 							"private_key": private_key
 						   },
-						   headers={'User-Agent': softwareManager.userAgent})
+						   headers={'User-Agent': self._sm.userAgent})
 
 		try:
 			data = r.json()
