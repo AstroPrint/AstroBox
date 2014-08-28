@@ -81,7 +81,7 @@ class Printer():
 		self._lastProgressReport = None
 
 		self._stateMonitor = StateMonitor(
-			ratelimit=0.5,
+			ratelimit=1.0,
 			updateCallback=self._sendCurrentDataCallbacks,
 			addTemperatureCallback=self._sendAddTemperatureCallbacks,
 			addLogCallback=self._sendAddLogCallbacks,

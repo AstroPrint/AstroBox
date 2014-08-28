@@ -96,5 +96,5 @@ var AppRouter = Backbone.Router.extend({
 		if (view.$el.attr('id') == 'control-view') {
 			this.controlView.tempView.resetBars();
 		}
-	},
+	}
 });

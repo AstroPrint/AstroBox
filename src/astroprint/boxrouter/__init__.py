@@ -12,6 +12,7 @@ from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 from astroprint.network import networkManager
+from astroprint.boxrouter.printerlistener import PrinterListener
 
 from ws4py.client.threadedclient import WebSocketClient
 
@@ -26,7 +27,11 @@ def boxrouterManager():
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
+		#it needs to be imported here because on the main body 'printer' is None
+		from octoprint.server import printer
+
 		self._router = router
+		self._printer = printer
 		WebSocketClient.__init__(self, hostname)
 
 	def closed(self, code, reason=None):
@@ -43,6 +48,20 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 		if msg['type'] == 'auth':
 			self._router.processAuthenticate(msg['data'] if 'data' in msg else None)
+
+		elif msg['type'] == 'set_temp':
+			if self._printer.isOperational():
+				payload = msg['payload']
+				self._printer.setTemperature(payload['target'] or 0.0, payload['value'] or 0.0)
+
+	def registerEvents(self):
+		self._printerListener = PrinterListener(self)
+		self._printer.registerCallback(self._printerListener)
+
+	def unregisterEvents(self):
+		self._printer.unregisterCallback(self._printerListener)
+		self._printerListener = None
+
 
 class AstroprintBoxRouter(object):
 	MAX_RETRIES = 5
@@ -107,8 +126,8 @@ class AstroprintBoxRouter(object):
 			try:
 				self._ws.run_forever()
 
-			except:
-				self._error()
+			except Exception as e:
+				self._error(e)
 
 	def boxrouter_disconnect(self):
 		if self.connected:
@@ -123,6 +142,7 @@ class AstroprintBoxRouter(object):
 
 		if self._ws:
 			self._ws.close()
+			self._ws.unregisterEvents()
 
 		self._ws = None
 		self._listener = None
@@ -140,10 +160,10 @@ class AstroprintBoxRouter(object):
 		else:
 			self._logger.warn('Invalid network state (%s)' % state)
 
-	def _error(self):
+	def _error(self, err):
+		self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
 		self.status = self.STATUS_ERROR
 		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
-		self._logger.error('Unkonwn error connecting to the AstroPrint service')
 		self.close()
 		self._doRetry()
 
@@ -185,6 +205,10 @@ class AstroprintBoxRouter(object):
 				self._retries = 0;
 				self.status = self.STATUS_CONNECTED
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+
+				#register for events
+				#TODO: do this only when the boxrouter indicates that an event needs to be emitted
+				self._ws.registerEvents()
 
 		else:
 			from octoprint.server import VERSION

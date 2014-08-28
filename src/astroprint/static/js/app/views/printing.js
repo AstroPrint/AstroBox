@@ -9,6 +9,7 @@
     scale: null,
     type: null,
     dragging: false,
+    lastSent: null,
     events: {
         'touchstart .temp-target': 'onTouchStart',
         'mousedown .temp-target': 'onTouchStart',
@@ -16,7 +17,7 @@
         'mousemove .temp-target': 'onTouchMove',
         'touchend .temp-target': 'onTouchEnd',
         'mouseup .temp-target': 'onTouchEnd',
-        'mouseout': 'onTouchEnd',
+        'mouseout .temp-target': 'onTouchEnd',
         'click': 'onClicked'
     },
     initialize: function(params) {
@@ -124,7 +125,9 @@
     _px2temp: function(px) {
         return Math.round( ( (px - this.containerDimensions.minLeft) / this.containerDimensions.px4degree ) );
     },
-    _sendToolCommand: function(command, type, temp, successCb, errorCb) {
+    _sendToolCommand: function(command, type, temp) {
+        if (temp == this.lastSent) return;
+
         var data = {
             command: command
         };
@@ -160,10 +163,10 @@
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify(data),
-            success: function() { if (successCb !== undefined) successCb(); },
-            error: function() { if (errorCb !== undefined) errorCb(); }
+            data: JSON.stringify(data)
         });
+
+        this.lastSent = temp;
     }
 });
 
