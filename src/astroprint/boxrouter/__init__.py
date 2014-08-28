@@ -32,6 +32,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 		self._router = router
 		self._printer = printer
+		self._printerListener = None
+		self._subscribers = 0
 		WebSocketClient.__init__(self, hostname)
 
 	def closed(self, code, reason=None):
@@ -54,13 +56,24 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				payload = msg['payload']
 				self._printer.setTemperature(payload['target'] or 0.0, payload['value'] or 0.0)
 
+		elif msg['type'] == 'update_subscribers':
+			self._subscribers += int(msg['data'])
+
+			if not self._printerListener and self._subscribers > 0:
+				self.registerEvents()
+			elif self._printerListener and self._subscribers <= 0:
+				self._subscribers = 0
+				self.unregisterEvents()
+
 	def registerEvents(self):
-		self._printerListener = PrinterListener(self)
-		self._printer.registerCallback(self._printerListener)
+		if not self._printerListener:
+			self._printerListener = PrinterListener(self)
+			self._printer.registerCallback(self._printerListener)
 
 	def unregisterEvents(self):
-		self._printer.unregisterCallback(self._printerListener)
-		self._printerListener = None
+		if self._printerListener:
+			self._printer.unregisterCallback(self._printerListener)
+			self._printerListener = None
 
 
 class AstroprintBoxRouter(object):
@@ -205,10 +218,6 @@ class AstroprintBoxRouter(object):
 				self._retries = 0;
 				self.status = self.STATUS_CONNECTED
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
-
-				#register for events
-				#TODO: do this only when the boxrouter indicates that an event needs to be emitted
-				self._ws.registerEvents()
 
 		else:
 			from octoprint.server import VERSION
