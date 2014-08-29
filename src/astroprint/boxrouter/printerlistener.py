@@ -10,29 +10,20 @@ class PrinterListener(object):
 		self._logger = logging.getLogger(__name__)
 		self._socket = socket
 		self._lastSent = {
-			'temp_update': None
+			'temp_update': None,
+			'status_update': None
 		}
 
 	def sendHistoryData(self, data):
 		pass
 
-	def addTemperature(self, data):
+	def addTemperature(self, data):		
 		payload = {
 			'bed': { 'actual': data['bed']['actual'], 'target': data['bed']['target'] },
 			'tool0': { 'actual': data['tool0']['actual'], 'target': data['tool0']['target'] }
 		}
 
-		if self._lastSent['temp_update'] != payload:
-			try:
-				self._socket.send(json.dumps({
-					'type': 'temp_update',
-					'data': payload
-				}))
-
-				self._lastSent['temp_update'] = payload
-
-			except Exception as e:
-				self._logger.error('Error sending [temp_update] event: %s' % e)
+		self._sendUpdate('temp_update', payload)
 
 	def addLog(self, data):
 		pass
@@ -41,10 +32,32 @@ class PrinterListener(object):
 		pass
 
 	def sendCurrentData(self, data):
-		pass
+		payload = {
+			'operational': data['state']['flags']['operational'],
+			'printing': data['state']['flags']['printing'],
+			'progress': data['progress']
+		}
+
+		self._sendUpdate('status_update', payload)
 
 	def sendEvent(self, type):
 		pass
 
 	def sendFeedbackCommandOutput(self, name, output):
 		pass
+
+	def _sendUpdate(self, event, data):
+		if self._lastSent[event] != data:
+			try:
+				self._socket.send(json.dumps({
+					'type': 'send_event',
+					'data': {
+						'eventType': event,
+						'eventData': data
+					}
+				}))
+
+				self._lastSent[event] = data
+
+			except Exception as e:
+				self._logger.error( 'Error sending [%s] event: %s' % (event, e) )		
