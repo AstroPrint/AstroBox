@@ -65,6 +65,33 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				self._subscribers = 0
 				self.unregisterEvents()
 
+		elif msg['type'] == 'request':
+			reqId = msg['reqId']
+			request = msg['data']['type']
+			data = msg['data']['payload']
+
+			if request == 'initial_state':
+				response = {
+					'printing': self._printer.isPrinting(),
+					'operational': self._printer.isOperational()
+				}
+
+			else:
+				response = {
+					'error': True,
+					'message': 'This Box does not recognize the request type [%s]' % request
+				}
+
+			try:
+				self.send(json.dumps({
+					'type': 'req_response',
+					'reqId': reqId,
+					'data': response
+				}))
+
+			except Exception as e:
+				self._logger.error( 'Error sending [%s] response: %s' % (request, e) )	
+
 	def registerEvents(self):
 		if not self._printerListener:
 			self._printerListener = PrinterListener(self)
