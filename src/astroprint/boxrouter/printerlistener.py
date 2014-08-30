@@ -11,7 +11,8 @@ class PrinterListener(object):
 		self._socket = socket
 		self._lastSent = {
 			'temp_update': None,
-			'status_update': None
+			'status_update': None,
+			'printing_progress': None
 		}
 
 	def sendHistoryData(self, data):
@@ -32,13 +33,21 @@ class PrinterListener(object):
 		pass
 
 	def sendCurrentData(self, data):
+		flags = data['state']['flags']
+
 		payload = {
-			'operational': data['state']['flags']['operational'],
-			'printing': data['state']['flags']['printing'],
-			'progress': data['progress']
+			'operational': flags['operational'],
+			'printing': flags['printing'] or flags['paused'],
+			'paused': flags['paused'],
 		}
 
 		self._sendUpdate('status_update', payload)
+
+		if payload['printing']:
+			self._sendUpdate('printing_progress', data['progress'])
+
+		elif self._lastSent['printing_progress']:
+			self._sendUpdate('printing_progress', None)
 
 	def sendEvent(self, type):
 		pass

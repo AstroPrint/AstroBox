@@ -457,6 +457,15 @@ class GcodeManager:
 
 		return fileData
 
+	def getFileCloudId(self, filename):
+		if filename:
+			filename = self._getBasicFilename(filename)
+		
+			if filename in self._metadata.keys() and 'cloud_id' in self._metadata[filename].keys():
+				return self._metadata[filename]['cloud_id']
+
+		return None
+
 	def getFileMetadata(self, filename):
 		filename = self._getBasicFilename(filename)
 		if filename in self._metadata.keys():

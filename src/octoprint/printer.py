@@ -401,6 +401,9 @@ class Printer():
 		estimatedPrintTime = None
 		date = None
 		filament = None
+		layerCount = None
+		cloudId = None
+
 		if filename:
 			# Use a string for mtime because it could be float and the
 			# javascript needs to exact match
@@ -409,11 +412,12 @@ class Printer():
 
 			fileData = self._gcodeManager.getFileData(filename)
 			if fileData is not None and "gcodeAnalysis" in fileData.keys():
-				if "print_time" in fileData["gcodeAnalysis"].keys():
+				fileDataProps = fileData["gcodeAnalysis"].keys()
+				if "print_time" in fileDataProps:
 					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
-				if "filament_lenght" in fileData["gcodeAnalysis"].keys():
+				if "filament_lenght" in fileDataProps:
 					filament = fileData["gcodeAnalysis"]["filament_length"]
-				if "layer_count" in fileData["gcodeAnalysis"].keys():
+				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
 		self._stateMonitor.setJobData({
@@ -421,7 +425,8 @@ class Printer():
 				"name": os.path.basename(filename) if filename is not None else None,
 				"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
 				"size": filesize,
-				"date": date
+				"date": date,
+				"cloudId": self._gcodeManager.getFileCloudId(filename)
 			},
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,

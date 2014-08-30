@@ -75,6 +75,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 					'printing': self._printer.isPrinting(),
 					'operational': self._printer.isOperational()
 				}
+			elif request == 'job_info':
+				response = self._printer._stateMonitor._jobData
 
 			else:
 				response = {
