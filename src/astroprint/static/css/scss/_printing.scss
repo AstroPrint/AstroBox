@@ -126,6 +126,8 @@
 					top: -13px;
 					left: -5px;
 					-webkit-transform: rotate(90deg); 
+					-moz-transform: rotate(90deg); 
+					transform: rotate(90deg);
 				}
 
 				.triangle_right {
@@ -133,6 +135,8 @@
 					bottom: -13px;
 					left: -5px;
 					-webkit-transform: rotate(90deg);
+					-moz-transform: rotate(90deg); 
+					transform: rotate(90deg);
 				}
 			}
 		}
