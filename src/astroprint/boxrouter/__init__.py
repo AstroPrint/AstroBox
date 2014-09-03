@@ -253,12 +253,20 @@ class AstroprintBoxRouter(object):
 
 			nm = networkManager()
 
+			activeNetwork = nm.getActiveNetwork()
+
+			if activeNetwork and "ip" in activeNetwork:
+				localIpAddress = activeNetwork['ip']
+			else:
+				localIpAddress = None
+
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
 					'boxId': nm.getMacAddress(),
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
+					'localIpAddress': localIpAddress,
 					'publicKey': self._publicKey,
 					'privateKey': self._privateKey
 				}

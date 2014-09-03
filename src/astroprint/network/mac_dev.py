@@ -9,7 +9,12 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return None
 
 	def getActiveNetwork(self):
-		return None
+		return {
+			'id': '12345',
+			'signal': None,
+			'name': 'Localhost',
+			'ip': '127.0.0.1:5000',
+			'secured': True}
 
 	def setWifiNetwork(self, bssid, password):
 		return None
