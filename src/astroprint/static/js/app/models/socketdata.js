@@ -134,19 +134,22 @@ var SocketData = Backbone.Model.extend({
                         var progress = data.progress;
 
                         //calculate new estimate time
-                        var base1Progress = progress.completion / 100.0;
-                        var originalEstimatedTime = data.job.estimatedPrintTime;
-                        var estimatedTimeLeft = originalEstimatedTime *  (1.0 - base1Progress );
-                        var elaspedTimeVariance = progress.printTime - (originalEstimatedTime - estimatedTimeLeft);
-                        var adjustedEstimatedTime = originalEstimatedTime + elaspedTimeVariance;
-                        var newEstimatedTimeLeft = adjustedEstimatedTime * (1.0 -  base1Progress);
+                        //var base1Progress = progress.completion / 100.0;
+                        //var originalEstimatedTime = data.job.estimatedPrintTime;
+                        //var estimatedTimeLeft = originalEstimatedTime *  (1.0 - base1Progress );
+                        //var elaspedTimeVariance = progress.printTime - (originalEstimatedTime - estimatedTimeLeft);
+                        //var adjustedEstimatedTime = originalEstimatedTime + elaspedTimeVariance;
+                        //var newEstimatedTimeLeft = adjustedEstimatedTime * (1.0 -  base1Progress);
+
+                        console.log(data.progress);
 
                         this.set('printing_progress', {
                             filename: data.job.file.name,
                             layer_count: data.job.layerCount,
                             current_layer: progress.currentLayer,
                             percent: progress.completion ? progress.completion.toFixed(1) : 0,
-                            time_left: progress.completion >= 100.0 ? 0.0 : newEstimatedTimeLeft,
+                            //time_left: progress.completion >= 100.0 ? 0.0 : newEstimatedTimeLeft,
+                            time_left: data.progress.printTimeLeft,
                             time_elapsed: progress.printTime ? progress.printTime : 0,
                             heating_up: flags.heatingUp
                         });

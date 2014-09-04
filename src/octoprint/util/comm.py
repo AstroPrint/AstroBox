@@ -327,8 +327,8 @@ class MachineCom(object):
 		printTime /= 60
 		progress = self._currentFile.getProgress()
 		if progress:
-			printTimeTotal = printTime / progress
 			return printTimeTotal - printTime
+	
 		else:
 			return None
 

@@ -62,6 +62,7 @@ class Printer():
 		self._printTimeLeft = None
 		self._currentLayer = None
 		self._layerCount = None
+		self._estimatedPrintTime = None
 
 		self._printAfterSelect = False
 
@@ -434,6 +435,7 @@ class Printer():
 		})
 
 		self._layerCount = layerCount
+		self._estimatedPrintTime = estimatedPrintTime
 
 	def _sendInitialStateUpdate(self, callback):
 		try:
@@ -507,7 +509,24 @@ class Printer():
 		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
 		"""
 
-		self._setProgressData(self._comm.getPrintProgress(), self._comm.getPrintFilepos(), self._comm.getPrintTime(), self._comm.getPrintTimeRemainingEstimate(), self._currentLayer)
+		#Calculate estimated print time left
+		printTime = self._comm.getPrintTime()
+		progress = self._comm.getPrintProgress()
+
+		if printTime and progress:
+			if progress < 1.0:
+				estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
+				elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
+				adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
+				estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+
+			else:
+				estimatedTimeLeft = 0
+
+		else:
+			estimatedTimeLeft = self._estimatedPrintTime / 60
+
+		self._setProgressData(progress, self._comm.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
 
 	def mcZChange(self, newZ):
 		"""
