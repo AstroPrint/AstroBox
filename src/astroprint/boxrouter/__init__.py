@@ -73,10 +73,28 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			if request == 'initial_state':
 				response = {
 					'printing': self._printer.isPrinting(),
-					'operational': self._printer.isOperational()
+					'operational': self._printer.isOperational(),
+					'paused': self._printer.isPaused()
 				}
 			elif request == 'job_info':
 				response = self._printer._stateMonitor._jobData
+
+			elif request == 'printerCommand':
+				command = data['command']
+				options = data['options']
+
+				response = {'success': True}
+				if command == 'pause' or command == 'resume':
+					self._printer.togglePausePrint();
+
+				elif command == 'cancel':
+					self._printer.cancelPrint();
+
+				else:
+					response = {
+						'error': True,
+						'message': 'Printer command [%s] is not supported' % command
+					}
 
 			else:
 				response = {
