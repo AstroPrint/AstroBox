@@ -1,8 +1,8 @@
 server:
   host: 127.0.0.1
 cloudSlicer:
-  apiHost: http://api.astroprint.com
-  boxrouter: boxrouter.astroprint.com
+  apiHost: https://api.astroprint.com
+  boxrouter: wss://boxrouter.astroprint.com
 folder:
   uploads: /sdcard/AstroBox/uploads
   timelapse: /sdcard/AstroBox/timelapse

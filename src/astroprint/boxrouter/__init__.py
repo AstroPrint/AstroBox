@@ -144,17 +144,9 @@ class AstroprintBoxRouter(object):
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
-		addr = self._settings .get(['cloudSlicer','boxrouter'])
+		self._address = self._settings .get(['cloudSlicer','boxrouter'])
 
-		if addr:
-			if ":" in addr:
-				addr = addr.split(':')
-				self._address = addr[0]
-				self._port = int(addr[1])
-			else:
-				self._address = addr
-				self._port = 80
-
+		if self._address:
 			self.boxrouter_connect()
 
 		else:
@@ -175,7 +167,7 @@ class AstroprintBoxRouter(object):
 
 	def run_threaded(self):
 		try:
-			self._ws = AstroprintBoxRouterClient('ws://%s:%d/' % (self._address, self._port), self)
+			self._ws = AstroprintBoxRouterClient(self._address, self)
 			self._ws.connect()
 
 		except Exception as e:
