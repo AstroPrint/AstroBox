@@ -19,9 +19,8 @@ $include-html-global-classes: false;
     }
 }
 
-@media #{$medium-only} {
+@media #{$medium-up} {
     #login-modal {
-        width: 80%;
-        margin-left: -40%;
+        max-width: 500px;
     }
 }
