@@ -15,8 +15,6 @@ var ConnectionView = Backbone.View.extend({
 	connect: function() {
 		var self = this;
 
-		this.setPrinterConnection('blink-animation');
-
         $.ajax({
             url: API_BASEURL + "connection",
             method: "GET",
@@ -44,6 +42,10 @@ var ConnectionView = Backbone.View.extend({
 			    	if (response.current.state == 'Printing' || response.current.state == 'Paused') {
 		        		app.showPrinting();
 		        	}
+
+		        	self.setPrinterConnection('connected');
+		        } else {
+					self.setPrinterConnection('blink-animation');
 		        }
             }
         });

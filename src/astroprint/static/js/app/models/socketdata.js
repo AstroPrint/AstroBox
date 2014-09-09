@@ -7,8 +7,8 @@
 var SocketData = Backbone.Model.extend({
 	connectionView: null,
 	_socket: null,
-	_autoReconnecting: false,
 	_autoReconnectTrial: 0,
+    _nextReconnectAttempt: null,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	currentState: 0,
 	defaults: {
@@ -56,19 +56,25 @@ var SocketData = Backbone.Model.extend({
         this.connect();
     },
    	_onConnect: function() {
-        self._autoReconnecting = false;
-        self._autoReconnectTrial = 0;
+        if (this._nextReconnectAttempt) {
+            clearTimeout(this._nextReconnectAttempt);
+            this._nextReconnectAttempt = null;
+        }
+        this._autoReconnectTrial = 0;
         this.connectionView.setServerConnection('connected');
     },
     _onClose: function() {
     	this.connectionView.setServerConnection('failed');
     	this.connectionView.setPrinterConnection('failed');
+        this.connectionView.setAstroprintConnection('failed');
     	this._currentState = 0;
 
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
+
             console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
-            setTimeout(_.bind(this.reconnect, this), timeout * 1000);
+
+            this._nextReconnectAttempt = setTimeout(_.bind(this.reconnect, this), timeout * 1000);
             this._autoReconnectTrial++;
         } else {
             this._onReconnectFailed();
