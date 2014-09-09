@@ -217,9 +217,8 @@
 	}
 }
 
-@media #{$medium-only} {
+@media #{$large-up} {
 	#printer-file-info {
-		width: 95%;
-		margin-left: -47.5%;
+		max-width: 900px;
 	}
 }
