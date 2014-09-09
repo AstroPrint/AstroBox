@@ -310,11 +310,18 @@ class Printer():
 		#	commands.extend(["M140 S0", "M106 S0"])
 		#	self.commands(commands)
 
-		self.home(['x','y'])
-		self.setTemperature('bed', 5.0)
-		self.setTemperature('tool', 5.0)
+		#flush the Queue
+		commandQueue = self._comm._commandQueue
+		while not commandQueue.empty():
+			commandQueue.get_nowait()
 
-		self.commands(["M106 S0", "M1"]); #Fan off, Sleep
+		self._comm._sendCommand("M112");
+
+		self.home(['x','y'])
+		self.setTemperature('bed', 0)
+		self.setTemperature('tool', 0)
+
+		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
