@@ -125,7 +125,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 class AstroprintBoxRouter(object):
 	MAX_RETRIES = 5
-	WAIT_BETWEEN_RETRIES = 5 #seconds
+	START_WAIT_BETWEEN_RETRIES = 5 #seconds
+	WAIT_MULTIPLIER_BETWEEN_RETRIES = 2
 
 	STATUS_DISCONNECTED = 'disconnected'
 	STATUS_CONNECTING = 'connecting'
@@ -222,8 +223,8 @@ class AstroprintBoxRouter(object):
 	def _doRetry(self):
 		if self._retries < self.MAX_RETRIES:
 			self._retries += 1
+			sleep(self.START_WAIT_BETWEEN_RETRIES * self.WAIT_MULTIPLIER_BETWEEN_RETRIES * (self._retries - 1) )
 			self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
-			sleep(self.WAIT_BETWEEN_RETRIES)
 			self.boxrouter_connect()
 
 		else:
