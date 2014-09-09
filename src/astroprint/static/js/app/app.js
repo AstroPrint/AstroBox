@@ -21,7 +21,7 @@ var AppMenu = Backbone.View.extend({
 	logoutClicked: function(e) {
 		e.preventDefault();
 		var el = $(e.currentTarget);
-		var spinIcon = el.find('.icon-spin1');
+		var spinIcon = el.find('.icon-rocket-spinner');
 
 		spinIcon.removeClass('hide');
         $.ajax({

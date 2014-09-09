@@ -57,7 +57,7 @@
 			<div class="loading-button">
 				<button class="radius success connect">Connect</button>
 				<span class="loading button success disabled radius">
-					<i class="icon-spin1 animate-spin"></i> Might be while. Please be patient...
+					<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
 				</span>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
@@ -78,7 +78,7 @@
 					<div class="loading-button connect">
 						<button class="radius small">Scan WiFi networks</button>
 						<span class="loading button disabled radius small">
-							<i class="icon-spin1 animate-spin"></i> Looking for Networks...
+							<i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
 						</span>
 					</div>
 				<% } %>
@@ -90,14 +90,14 @@
 						<div class="loading-button stop-hotspot">
 							<button class="radius">Stop hotspot</button>
 							<span class="loading button disabled radius">
-								<i class="icon-spin1 animate-spin"></i> Stopping Hotspot...
+								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
 							</span>
 						</div>
 					<% } else { %>
 						<div class="loading-button start-hotspot">
 							<button class="radius">Start hotspot</button>
 							<span class="loading button disabled radius">
-								<i class="icon-spin1 animate-spin"></i> Starting Hotspot...
+								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
 							</span>
 						</div>
 					<% } %>
@@ -127,7 +127,7 @@
 							<div class="loading-button">
 								<button class="radius success tiny" data-id="<%= n.id %>" data-secured="<%= n.secured ? 1 : 0 %>" data-name="<%= n.name %>">Connect</button>
 								<span class="loading button disabled success tiny radius">
-									<i class="icon-spin1 animate-spin"></i> Please be patient...
+									<i class="icon-rocket-spinner animate-spin"></i> Please be patient...
 								</span>
 							</div>
 						<% } %>
@@ -142,7 +142,7 @@
 			<h4 align="center"><b>{{version}}</b> Installed.</h4>
 			<div class="loading-button check">
 				<button class="success radius">Check for updates</button>
-				<span class="button success radius loading"><i class="icon-spin1 animate-spin"></i> Checking...</span>
+				<span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>
 			</div>
 		</div>
 		<div id="software-update-modal" class="reveal-modal medium radius" data-reveal>
@@ -176,7 +176,7 @@
 				<div class="loading-button right">
 					<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
 					<span class="button disabled success radius loading">
-						<i class="icon-spin1 animate-spin"></i> Initiating...<span>
+						<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
 					</span>
 				</div>
 			<% } %>
@@ -198,7 +198,7 @@
 			<button class="secondary radius left">Cancel</button>
 			<div class="loading-button right">
 				<button class="alert radius">Reset</button>
-				<span class="button disabled alert radius loading"><i class="icon-spin1 animate-spin"></i> Resetting...</span>
+				<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
