@@ -78,7 +78,7 @@ def designs():
 			p['info'] = p['gcodeAnalysis']
 			del p['gcodeAnalysis']
 
-	return json.dumps(local_files + cloud_files)
+	return json.dumps(local_files + sorted(cloud_files, key=lambda e: e['local_filename'] is None))
 
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
