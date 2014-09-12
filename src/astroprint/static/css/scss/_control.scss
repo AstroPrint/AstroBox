@@ -40,20 +40,38 @@
 }
 
 #xy-controls {
-	button {
+	.control_bg_xy {
 		position: relative;
-		&.home_z {
-			top: -60px;
-			margin: 0 20px;
-		}
 
-		&.control_btn_x_plus,
-		&.control_btn_x_minus {
-			top: -22px;
-		}
+		button {
+			position: absolute;
+			&.home_z {
+				top: 70px;
+				left: 50%;
+				margin-left: -34px;
+			}
 
-		&.control_btn_y_minus {
-			top: -43px;
+			&.control_btn_x_plus {
+				top: 40px;
+				right: 30px;
+			}
+
+			&.control_btn_x_minus {
+				top: 40px;
+				left: 30px;
+			}
+
+			&.control_btn_y_minus {
+				bottom: 0px;
+				left: 50%;
+				margin-left: -66px;
+			}
+
+			&.control_btn_y_plus {
+				top: 5px;
+				left: 50%;
+				margin-left: -52px;
+			}
 		}
 	}
 }
