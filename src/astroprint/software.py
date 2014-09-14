@@ -249,6 +249,15 @@ class SoftwareManager(object):
 
 	def restartServer(self):
 		if platform == "linux" or platform == "linux2":
+			from astroprint.boxrouter import boxrouterManager
+			from octoprint.server import printer
+
+			#let's be nice about shutthing things down
+			br = boxrouterManager()
+
+			br.boxrouter_disconnect()
+			printer.disconnect()
+
 			subprocess.call(['restart', 'astrobox'])
 
 		return True
