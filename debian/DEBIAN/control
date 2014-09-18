@@ -1,5 +1,5 @@
 Package: com.astroprint.astrobox
-Version: 0.2.0-1
+Version: 0.2.1-1
 Architecture: all
 Description: This is the host software to use your printer with AstroPrint(tm)
 Homepage: http://www.astroprint.com
