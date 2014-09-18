@@ -264,10 +264,11 @@ class AstroprintBoxRouter(object):
 
 			nm = networkManager()
 
-			activeNetwork = nm.getActiveNetwork()
+			activeConnections = nm.getActiveConnections()
 
-			if activeNetwork and "ip" in activeNetwork:
-				localIpAddress = activeNetwork['ip']
+			if activeConnections and ( activeConnections['wired'] or activeConnections['wireless']):
+				preferredConn = activeConnections['wired'] or activeConnections['wireless']
+				localIpAddress = preferredConn['ip']
 			else:
 				localIpAddress = None
 

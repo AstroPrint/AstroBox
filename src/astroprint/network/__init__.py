@@ -15,8 +15,8 @@ def networkManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			from astroprint.network.ubuntu import UbuntuNetworkManager
-			_instance = UbuntuNetworkManager()
+			from astroprint.network.debian import DebianNetworkManager
+			_instance = DebianNetworkManager()
 		elif platform == "darwin":
 			from astroprint.network.mac_dev import MacDevNetworkManager
 			_instance = MacDevNetworkManager()
@@ -56,7 +56,13 @@ class NetworkManager(object):
 	def getWifiNetworks(self):
 		return None
 
-	def getActiveNetwork(self):
+	def hasWifiDevice(self):
+		return None
+
+	def isHotspotAble(self):
+		return None
+
+	def getActiveConnections(self):
 		return None
 
 	def setWifiNetwork(self, bssid, password):

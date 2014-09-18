@@ -31,7 +31,7 @@ var PrinterConnectionView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings', null, _.bind(function(data) {
+			$.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
 				this.settings = data;
 				if (data.serial) {
 					if (data.serial.baudrateOptions) {
@@ -61,7 +61,7 @@ var PrinterConnectionView = SettingsPage.extend({
 	},
 	baudrateChanged: function(e) {
 		$.ajax({
-			url: API_BASEURL + 'settings', 
+			url: API_BASEURL + 'settings/printer', 
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -73,7 +73,7 @@ var PrinterConnectionView = SettingsPage.extend({
 	},
 	portChanged: function(e) {
 		$.ajax({
-			url: API_BASEURL + 'settings', 
+			url: API_BASEURL + 'settings/printer', 
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -85,19 +85,19 @@ var PrinterConnectionView = SettingsPage.extend({
 	}
 });
 
-/********************
-* Internet - Wifi
-*********************/
+/*************************
+* Internet - Connection
+**************************/
 
-var InternetWifiView = SettingsPage.extend({
-	el: '#internet-wifi',
-	template: _.template( $("#internet-wifi-settings-page-template").html() ),
+var InternetConnectionView = SettingsPage.extend({
+	el: '#internet-connection',
+	template: _.template( $("#internet-connection-settings-page-template").html() ),
 	networksDlg: null,
 	settings: null,
 	events: {
 		'click .loading-button.start-hotspot button': 'startHotspotClicked',
 		'click .loading-button.stop-hotspot button': 'stopHotspotClicked',
-		'click .loading-button.connect button': 'connectClicked'
+		'click .loading-button.list-networks button': 'listNetworksClicked'
 	},
 	initialize: function(params) {
 		SettingsPage.prototype.initialize.apply(this, arguments);
@@ -109,7 +109,7 @@ var InternetWifiView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/wifi', null, _.bind(function(data) {
+			$.getJSON(API_BASEURL + 'settings/internet', null, _.bind(function(data) {
 				this.settings = data;
 				this.render();
 			}, this))
@@ -129,7 +129,7 @@ var InternetWifiView = SettingsPage.extend({
 		el.addClass('loading');
 
 		$.ajax({
-			url: API_BASEURL + "settings/wifi/hotspot",
+			url: API_BASEURL + "settings/internet/hotspot",
 			type: "POST",
 			success: _.bind(function(data, code, xhr) {
 				noty({text: 'Your AstroBox has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
@@ -150,7 +150,7 @@ var InternetWifiView = SettingsPage.extend({
 		el.addClass('loading');
 
 		$.ajax({
-			url: API_BASEURL + "settings/wifi/hotspot",
+			url: API_BASEURL + "settings/internet/hotspot",
 			type: "DELETE",
 			success: _.bind(function(data, code, xhr) {
 				noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
@@ -165,20 +165,20 @@ var InternetWifiView = SettingsPage.extend({
 			}
 		});
 	},
-	connectClicked: function(e) {
+	listNetworksClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');
 
 		el.addClass('loading');
 
 		$.getJSON(
-			API_BASEURL + "settings/wifi/networks",
+			API_BASEURL + "settings/internet/wifi-networks",
 			_.bind(function(data) {
 				if (data.message) {
 					noty({text: data.message});
 				} else if (data.networks) {
 					var self = this;
 					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
-						el.active = self.settings && self.settings.network.id == el.id;
+						el.active = self.settings.networks.wireless && self.settings.networks.wireless.id == el.id;
 						return -el.signal
 					}));
 				}
@@ -224,7 +224,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		loadingBtn.addClass('loading');
 
 		$.ajax({
-			url: API_BASEURL + 'settings/wifi/active', 
+			url: API_BASEURL + 'settings/internet/active', 
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -458,7 +458,7 @@ var SettingsView = Backbone.View.extend({
 	initialize: function() {
 		this.subviews = {
 			'printer-connection': new PrinterConnectionView({parent: this}),
-			'internet-wifi': new InternetWifiView({parent: this}),
+			'internet-connection': new InternetConnectionView({parent: this}),
 			'software-update': new SoftwareUpdateView({parent: this}),
 			'software-advanced': new SoftwareAdvancedView({parent: this})
 		};

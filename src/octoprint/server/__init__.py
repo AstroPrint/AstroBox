@@ -23,7 +23,7 @@ SUCCESS = {}
 NO_CONTENT = ("", 204)
 OK = ("", 200)
 
-debug = False
+debug = True
 
 app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
 app.config.from_object('astroprint.settings')

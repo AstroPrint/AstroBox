@@ -63,9 +63,9 @@ class NetworkManagerEvents(threading.Thread):
 				self._online = True
 				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
 
-class UbuntuNetworkManager(NetworkManagerBase):
+class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
-		super(UbuntuNetworkManager, self).__init__()
+		super(DebianNetworkManager, self).__init__()
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._eventListener.start()
@@ -74,58 +74,63 @@ class UbuntuNetworkManager(NetworkManagerBase):
 		return self._nm.const('state', self._nm.NetworkManager.status())
 
 	def getWifiNetworks(self):
-		interface = self.settings.get(['wifi', 'internetInterface'])
-		if interface:
-			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface).SpecificDevice()
+		wifiDevice = self.getWifiDevice()
 
+		if wifiDevice:
 			networks = [{
 				'id': ap.HwAddress,
 				'signal': ord(ap.Strength),
 				'name': ap.Ssid,
-				'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.GetAccessPoints()]
+				'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.SpecificDevice().GetAccessPoints()]
 
 			return networks
 
 		return None
 
-	def getActiveNetwork(self):
+	def getActiveConnections(self):
+		activeConnections = { 'wired': None, 'wireless': None}
+
 		if self._nm.NetworkManager.State == self._nm.NM_STATE_CONNECTED_GLOBAL:
-			#first we check if the wifi assigned to internetInterface is connected
-			interface = self.settings.get(['wifi', 'internetInterface'])
-			if interface:
-				wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
-				connection = wifiDevice.ActiveConnection
+			connections = self._nm.NetworkManager.ActiveConnections
+			for c in connections:
+				if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+					d = c.Devices[0]
 
-				if connection != '/':
-					ap = connection.SpecificObject
-					return {
-						'id': ap.HwAddress,
-						'signal': ord(ap.Strength),
-						'name': ap.Ssid,
-						'ip': wifiDevice.Ip4Address,
-						'secured': True if ap.WpaFlags or ap.RsnFlags else False}
-
-				else:
-					#if not, we check where's the connection
-					connections = self._nm.NetworkManager.ActiveConnections
-					for c in connections:
-						if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
-							d = c.Devices[0]
-							return {
+					if d.DeviceType == self._nm.NM_DEVICE_TYPE_ETHERNET:
+						if not activeConnections['wired']:
+							activeConnections['wired'] = {
 								'id': d.SpecificDevice().HwAddress,
-								'signal': None,
-								'name': self._nm.const('device_type', d.DeviceType).capitalize(),
+								'ip': d.Ip4Address
+							}
+
+					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+						if not activeConnections['wireless']:
+							ap = c.SpecificObject
+							activeConnections['wireless'] = {
+								'id': ap.HwAddress,
+								'signal': ord(ap.Strength),
+								'name': ap.Ssid,
 								'ip': d.Ip4Address,
-								'secured': True}
+								'secured': True if ap.WpaFlags or ap.RsnFlags else False
+							}
+
+		return activeConnections
+
+	def getWifiDevice(self):
+		devices = self._nm.NetworkManager.GetDevices()
+		for d in devices:
+			if d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+				return d
 
 		return False
 
+	def isHotspotAble(self):
+		return bool(self.settings.get(['wifi', 'hotspotDevice']))
+
 	def setWifiNetwork(self, bssid, password = None):
-		interface = self.settings.get(['wifi','internetInterface'])
+		wifiDevice = self.getWifiDevice()
 
-		if bssid and interface:
-			wifiDevice = self._nm.NetworkManager.GetDeviceByIpIface(interface)
-
+		if bssid and wifiDevice:
 			accessPoint = None
 
 			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
@@ -188,7 +193,7 @@ class UbuntuNetworkManager(NetworkManagerBase):
 		return None
 
 	def isHotspotActive(self):
-		interface = self.settings.get(['wifi', 'hotspotInterface'])
+		interface = self.settings.get(['wifi', 'hotspotDevice'])
 
 		if interface:
 			info = netifaces.ifaddresses(interface)

@@ -53,6 +53,25 @@
 	}
 }
 
+#internet-connection {
+	i {
+		color: $success-color;
+	}
+
+	.connection {
+		padding: 10px 0;
+
+		.ip-address {
+			font-size: rem-calc(16);
+			color: #a5a5a5;
+		}
+
+		.loading-button {
+			margin-top: 10px; 
+		}
+	}
+}
+
 #software-update-modal {
 	h2 span {
 		color: $success-color;

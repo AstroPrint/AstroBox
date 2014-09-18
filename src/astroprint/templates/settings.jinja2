@@ -6,7 +6,7 @@
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
 				<li class="divider"></li>
 				<li class="heading bold">Internet</li>
-				<li class="internet-wifi"><a href="#settings/internet-wifi">WiFi</a></li>
+				<li class="internet-connection"><a href="#settings/internet-connection">Connection</a></li>
 				<li class="heading bold">Software</li>
 				<li class="software-update"><a href="#settings/software-update">Update</a></li>
 				<li class="software-advanced"><a href="#settings/software-advanced">Advanced</a><li>
@@ -38,7 +38,11 @@
 			</form>
 		</div>
 
-		<div id="internet-wifi" class="settings-page hide">
+		<div class="show-for-small">
+			<hr/>
+			<h1 class="bold" align="center">Internet Connection</h1>
+		</div>
+		<div id="internet-connection" class="settings-page hide">
 		</div>
 		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">Select a WiFi Network</h2>
@@ -49,8 +53,7 @@
 		<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">WiFi Password</h2>
 			<p align="center">Enter the password for <span class="name bold"></span>.</p>
-			<form>
-				<input type="hidden" class="network-id-field" name="id"/>
+			<formkjlk				<input type="hidden" class="network-id-field" name="id"/>
 				<input type="text" class="network-password-field" name="password"/>
 			</form>
 			<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
@@ -62,48 +65,62 @@
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
-		<script type="text/template" id="internet-wifi-settings-page-template">
-			<div class="show-for-small">
-				<hr/>
-				<h1 class="bold" align="center">Internet</h1>
-			</div>
-			<div align="center">
-				<% if (settings.network) { %>
-					<h4>Connected using <span class="network-name bold"><%= settings.network.name %></span></h4>
-					<div>Use this IP address to reach your AstroBox: <b><%= settings.network.ip %></b></div>
+		<script type="text/template" id="internet-connection-settings-page-template">
+			<div class="connection">
+				<h3 class="bold">Wired Connection</h3>
+				<% if (settings.networks.wired) { %>	
+					<i class="icon-exchange"></i> Connected.
+					<div class="ip-address">IP Address: <b><%= settings.networks.wired.ip %></b></div>
 				<% } else { %>
-					<h2 class="bold">Not Connected</h2>
+					Not Connected.
 				<% } %>
-				<% if (settings.canWifi) { %>
-					<div class="loading-button connect">
+			</div>
+			<% if (settings.hasWifi) { %>
+				<div class="connection">
+					<h3 class="bold">Wireless Connection</h3>
+					<% if (settings.networks.wireless) { %>
+						<% if (settings.networks.wireless.signal < 33) { %>
+							<i class="icon-wifi-signal-low"></i>
+						<% } else if (settings.networks.wireless.signal > 33 && settings.networks.wireless.signal < 66) { %>
+							<i class="icon-wifi-signal-med"></i>
+						<% } else { %>
+							<i class="icon-wifi-signal-high"></i>
+						<% } %>
+						Connected to <b><%= settings.networks.wireless.name %></b>.
+						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip %></b></div>
+					<% } else { %>
+						Not Connected.
+					<% } %>
+					<div class="loading-button list-networks">
 						<button class="radius small">Scan WiFi networks</button>
 						<span class="loading button disabled radius small">
 							<i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
 						</span>
 					</div>
-				<% } %>
-				<% if (settings.canHotspot && (settings.network || !settings.hotspot.active)) { %>
-					<hr/>
-					<div>
-					<% if (settings.hotspot.active) { %>
-						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
-						<div class="loading-button stop-hotspot">
-							<button class="radius">Stop hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
-							</span>
-						</div>
-					<% } else { %>
-						<div class="loading-button start-hotspot">
-							<button class="radius">Start hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
-							</span>
-						</div>
-					<% } %>
+				</div>
+			<% } %>
+
+			<% if (settings.hotspot && (settings.networks || !settings.hotspot.active)) { %>
+				<hr/>
+				<div>
+				<% if (settings.hotspot.active) { %>
+					<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
+					<div class="loading-button stop-hotspot">
+						<button class="radius">Stop hotspot</button>
+						<span class="loading button disabled radius">
+							<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
+						</span>
+					</div>
+				<% } else { %>
+					<div class="loading-button start-hotspot">
+						<button class="radius">Start hotspot</button>
+						<span class="loading button disabled radius">
+							<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
+						</span>
 					</div>
 				<% } %>
-			</div>
+				</div>
+			<% } %>
 		</script>
 		<script type="text/template" id="wifi-network-modal-row">
 			<table>
@@ -137,7 +154,10 @@
 			</table>
 		</script>
 
-		<h1 class="bold show-for-small" align="center">Software</h1>
+		<div class="show-for-small">
+			<hr/>
+			<h1 class="bold" align="center">Software</h1>
+		</div>
 		<div id="software-update" class="settings-page hide" align="center">
 			<h4 align="center"><b>{{version}}</b> Installed.</h4>
 			<div class="loading-button check">

@@ -12,7 +12,7 @@ from octoprint.printer import getConnectionOptions
 from octoprint.server import restricted_access, admin_permission, networkManager, softwareManager
 from octoprint.server.api import api
 
-@api.route("/settings", methods=["GET"])
+@api.route("/settings/printer", methods=["GET"])
 def getSettings():
 	s = settings()
 
@@ -28,7 +28,7 @@ def getSettings():
 	})
 
 
-@api.route("/settings", methods=["POST"])
+@api.route("/settings/printer", methods=["POST"])
 @restricted_access
 def setSettings():
 	if "application/json" in request.headers["Content-Type"]:
@@ -43,7 +43,7 @@ def setSettings():
 
 	return getSettings()
 
-@api.route("/settings/wifi/networks", methods=["GET"])
+@api.route("/settings/internet/wifi-networks", methods=["GET"])
 @restricted_access
 def getWifiNetworks():
 	networks = networkManager.getWifiNetworks()
@@ -53,25 +53,21 @@ def getWifiNetworks():
 	else:
 		return jsonify({'message': "Unable to get WiFi networks"})
 
-@api.route("/settings/wifi", methods=["GET"])
+@api.route("/settings/internet", methods=["GET"])
 @restricted_access
-def getWifiSettings():
-	s = settings()
-	network = networkManager.getActiveNetwork()
-	isHotspotActive = networkManager.isHotspotActive()
-	hotspotName = networkManager.getHostname()
+def getInternetSettings():
+	isHotspotAble = networkManager.isHotspotAble()
 
 	return jsonify({
-			'canWifi': s.get(['wifi', 'internetInterface']) != None,
-			'canHotspot': s.get(['wifi', 'hotspotInterface']) != None,
-			'network': network,
-			'hotspot': {
-				'active': isHotspotActive,
-				'name': hotspotName
-			}
+		'networks': networkManager.getActiveConnections(),
+		'hasWifi': bool(networkManager.getWifiDevice()),
+		'hotspot': {
+			'active': networkManager.isHotspotActive(),
+			'name': networkManager.getHostname()		
+		} if isHotspotAble else False
 	})
 
-@api.route("/settings/wifi/active", methods=["POST"])
+@api.route("/settings/internet/active", methods=["POST"])
 @restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
@@ -85,7 +81,7 @@ def setWifiNetwork():
 
 	return ("Invalid Request", 400)
 
-@api.route("/settings/wifi/hotspot", methods=["POST"])
+@api.route("/settings/internet/hotspot", methods=["POST"])
 @restricted_access
 def startWifiHotspot():
 	result = networkManager.startHotspot()
@@ -95,7 +91,7 @@ def startWifiHotspot():
 	else:
 		return (result, 500)
 
-@api.route("/settings/wifi/hotspot", methods=["DELETE"])
+@api.route("/settings/internet/hotspot", methods=["DELETE"])
 @restricted_access
 def stopWifiHotspot():
 	result = networkManager.stopHotspot()
