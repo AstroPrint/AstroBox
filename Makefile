@@ -78,6 +78,7 @@ release: clean-release clean-js clean-css js css python
 
 	echo "Copying install scripts"
 	cp -p debian/Makefile build/debian/AstroBox/Makefile
+	rm build/debian/Makefile
 
 	echo "Setting time stamps to $(CURRENT_TIME)"
 

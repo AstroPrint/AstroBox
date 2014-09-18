@@ -1,6 +1,0 @@
-admin:
-  active: true
-  password: f2ab5223e1ea609c831872c419ce3b04d069bd5b30cbbd0eb13889fe2a24f9aa4d14acbe62c3f2b09ff752228b0d5c26028258fa5630701587c7640a1ac2cc39
-  roles:
-  - user
-  - admin

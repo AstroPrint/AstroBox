@@ -42,10 +42,10 @@ install:
 	update-rc.d ntp disable
 	chmod -x /etc/network/if-up.d/ntpdate
 
-	cat <<EOF >> /etc/dhcp/dhcpd.conf
-	subnet 10.10.0.0 netmask 255.255.255.0 {
-        range 10.10.0.2 10.10.0.16;
-        option domain-name-servers 8.8.4.4, 208.67.222.222;
+	cat <<EOF >> /etc/dhcp/dhcpd.conf \
+	subnet 10.10.0.0 netmask 255.255.255.0 { \
+        range 10.10.0.2 10.10.0.16; \
+        option domain-name-servers 8.8.4.4, 208.67.222.222; \
         option routers 10.10.0.1;
 	}
 	EOF
