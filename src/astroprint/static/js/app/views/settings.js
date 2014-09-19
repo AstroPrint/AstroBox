@@ -231,10 +231,10 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 			data: JSON.stringify({id: id, password: password})
 		})
 		.done(function(data) {
-			if (data.ssid) {
-				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+			if (data.name && data.signal && data.ip) {
+				noty({text: "AstroBox is now connected to "+data.name+".", type: "success", timeout: 3000});
 				self.$el.foundation('reveal', 'close');
-				self.parent.settings.network = {name: data.ssid}
+				self.parent.settings.networks['wireless'] = data
 				self.parent.render();
 			} else if (data.message) {
 				noty({text: data.message});

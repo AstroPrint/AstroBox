@@ -175,9 +175,12 @@ class DebianNetworkManager(NetworkManagerBase):
 				result = {}
 
 				def connectionStateChange(new_state, old_state, reason):
-					r = result
 					if new_state == self._nm.NM_DEVICE_STATE_ACTIVATED:
-						result['ssid'] = ssid
+						result['id'] = accessPoint.HwAddress
+						result['signal'] = ord(accessPoint.Strength)
+						result['name'] = accessPoint.Ssid
+						result['ip'] = wifiDevice.Ip4Address
+						result['secured'] = True if accessPoint.WpaFlags or accessPoint.RsnFlags else False
 						loop.quit()
 					elif new_state == self._nm.NM_DEVICE_STATE_FAILED:
 						connection.Delete()
