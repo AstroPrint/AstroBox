@@ -1,7 +1,0 @@
-Package: com.astroprint.astrobox
-Version: 0.2.1-1
-Architecture: all
-Description: This is the host software to use your printer with AstroPrint(tm)
-Homepage: http://www.astroprint.com
-Maintainer: Daniel Arroyo <daniel@3dagogo.com>
-Depends: python-pip, python-dev
