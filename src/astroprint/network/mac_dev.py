@@ -11,7 +11,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 	def getActiveConnections(self):
 		return {
 			'wired': {
-				'id': self.getMacAddress(),
+				'id': 'localhost',
 				'signal': None,
 				'name': 'Localhost',
 				'ip': '127.0.0.1:5000',

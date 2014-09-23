@@ -139,9 +139,11 @@ class AstroprintBoxRouter(object):
 		self._eventManager = eventManager()
 		self._retries = 0
 		self._listener = None
+		self._boxId = None
 		self._ws = None
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
+
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
@@ -272,10 +274,27 @@ class AstroprintBoxRouter(object):
 			else:
 				localIpAddress = None
 
+			if not self._boxId:
+				import os
+
+				boxIdFile = "%s/box-id" % self._settings.settings_dir
+
+				if os.path.exists(boxIdFile):
+					with open(boxIdFile, 'r') as f:
+						self._boxId = f.read()
+
+				else:
+					import uuid
+
+					self._boxId = uuid.uuid4().hex
+
+					with open(boxIdFile, 'w') as f:
+						f.write(self._boxId)
+
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
-					'boxId': nm.getMacAddress(),
+					'boxId': self._boxId,
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
 					'localIpAddress': localIpAddress,

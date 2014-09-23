@@ -82,7 +82,7 @@ class SoftwareUpdater(threading.Thread):
 
 				if self.vData['force_setup']:
 					#remove the config file
-					os.remove(self._manager._settings._configfile)
+					os.remove(self._manager._settings.settings_dir)
 
 				return self._completionCb(True)
 		else:
