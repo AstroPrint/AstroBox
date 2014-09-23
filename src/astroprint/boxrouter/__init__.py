@@ -277,7 +277,7 @@ class AstroprintBoxRouter(object):
 			if not self._boxId:
 				import os
 
-				boxIdFile = "%s/box-id" % self._settings.settings_dir
+				boxIdFile = "%s/box-id" % os.path.dirname(self._settings._configfile)
 
 				if os.path.exists(boxIdFile):
 					with open(boxIdFile, 'r') as f:
