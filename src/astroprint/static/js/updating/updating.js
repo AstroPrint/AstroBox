@@ -67,16 +67,14 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 
                 	if (payload.completed) {
                 		if (payload.success) {
+                            this.$el.find('h3.message').text('Restarting. Please wait..');
 							$.ajax({
 								type: 'POST',
-								url: API_BASEURL + 'settings/software/restart',
-								complete: _.bind(function() {
-									this.$el.find('h3.message').text('Restarting. Please wait..');
-									setTimeout(function() {
-										location.href = '/';
-									}, 6000);
-								}, this)
+								url: API_BASEURL + 'settings/software/restart'
 							});
+                            setTimeout(function() {
+                                location.href = '/';
+                            }, 6000);
 						} else {
 							//error case here
 							this.$el.find('.progress').addClass('hide');
