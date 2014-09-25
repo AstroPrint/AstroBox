@@ -45,6 +45,7 @@ var AstroBoxApp = Backbone.View.extend({
 	utils: null,
 	router: null,
 	connectionView: null,
+	turnOffModal: null,
 	events: {
 		'click button.turn-off': 'turnOffClicked'
 	},

@@ -260,6 +260,12 @@ class SoftwareManager(object):
 			br.boxrouter_disconnect()
 			printer.disconnect()
 
+			actions = self._settings.get(["system", "actions"])
+			for a in actions:
+				if a['action'] == 'astrobox-restart':
+					subprocess.call(a['command'])
+					return True
+
 			subprocess.call(['restart', 'astrobox'])
 
 		return True
