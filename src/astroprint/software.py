@@ -263,7 +263,7 @@ class SoftwareManager(object):
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
 				if a['action'] == 'astrobox-restart':
-					subprocess.call(a['command'])
+					subprocess.call(a['command'].split(' '))
 					return True
 
 			subprocess.call(['restart', 'astrobox'])
