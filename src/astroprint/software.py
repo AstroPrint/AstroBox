@@ -110,7 +110,8 @@ class SoftwareManager(object):
 			"variant": {
 				"id": None,
 				"name": 'AstroBox'
-			}
+			},
+			"platform": None
 		}
 
 		if not os.path.isfile(self._infoFile):
@@ -183,7 +184,8 @@ class SoftwareManager(object):
 						self.data['version']['minor'],
 						self.data['version']['build']
 					],
-					'variant': self.data['variant']['id']
+					'variant': self.data['variant']['id'],
+					'platform': self.data['platform']
 				}),
 				auth = self._checkAuth(),
 				headers = self._requestHeaders
@@ -216,7 +218,7 @@ class SoftwareManager(object):
 			if r.status_code == 200:
 				data = r.json()
 
-				if data and 'download_url' in data:
+				if data and 'download_url' in data and data['platform'] == self.data['platform']:
 					def progressCb(progress, message=None):
 						eventManager().fire(Events.SOFTWARE_UPDATE, {
 							'completed': False,
