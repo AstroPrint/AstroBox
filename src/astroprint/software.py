@@ -57,6 +57,7 @@ class SoftwareUpdater(threading.Thread):
 					self._manager.data["version"]["minor"] = self.vData['minor']
 					self._manager.data["version"]["build"] = self.vData['build']
 					self._manager.data["version"]["date"] = self.vData['date']
+					self._manager.data["platform"] = self.vData['platform']
 					self._manager._save()
 
 					os.remove(releasePath)
