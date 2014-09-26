@@ -53,13 +53,6 @@ class SoftwareUpdater(threading.Thread):
 			if platform == "linux" or platform == "linux2":
 				self._progressCb(percent, "Installing release. Please be patient..." )
 				if subprocess.call(['dpkg', '-i', releasePath]) == 0:
-					self._manager.data["version"]["major"] = self.vData['major']
-					self._manager.data["version"]["minor"] = self.vData['minor']
-					self._manager.data["version"]["build"] = self.vData['build']
-					self._manager.data["version"]["date"] = self.vData['date']
-					self._manager.data["platform"] = self.vData['platform']
-					self._manager._save()
-
 					os.remove(releasePath)
 
 					if self.vData['force_setup']:
@@ -112,7 +105,7 @@ class SoftwareManager(object):
 				"id": None,
 				"name": 'AstroBox'
 			},
-			"platform": None
+			"platform": 'pcduino'
 		}
 
 		if not os.path.isfile(self._infoFile):
