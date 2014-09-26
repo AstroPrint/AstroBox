@@ -16,7 +16,8 @@ var AppRouter = Backbone.Router.extend({
 		"printing": "printing",
 		"settings": "settings",
 		"settings/:page": "settings",
-		"turning-off": "turningOff"
+		"turning-off": "turningOff",
+		"*notFound": "notFound"
 	},
   	execute: function(callback, args) {
   		if (callback) {
@@ -96,5 +97,9 @@ var AppRouter = Backbone.Router.extend({
 		if (view.$el.attr('id') == 'control-view') {
 			this.controlView.tempView.resetBars();
 		}
+	},
+	notFound: function()
+	{
+		this.navigate("", {trigger: true, replace: true});
 	}
 });

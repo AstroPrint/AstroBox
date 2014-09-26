@@ -561,6 +561,8 @@ var SetupView = Backbone.View.extend({
 			this.steps[step].$el.removeClass('hide');
 			this.steps[step].onShow();
 			this.current_step = step;
+		} else {
+			this.router.navigate("", {trigger: true, replace: true});
 		}
 	}
 });
@@ -569,7 +571,8 @@ var SetupRouter = Backbone.Router.extend({
 	setup_view: null,
 	routes: {
 		"": "setStep",
-		":step": "setStep"
+		":step": "setStep",
+		"*notFound": "notFound"
 	},
 	initialize: function(params)
 	{
@@ -578,6 +581,10 @@ var SetupRouter = Backbone.Router.extend({
 	setStep: function(step) 
 	{
 		this.setup_view.setStep(step || 'welcome');
+	},
+	notFound: function()
+	{
+		this.navigate("", {trigger: true, replace: true});
 	}
 });
 
