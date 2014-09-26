@@ -238,8 +238,8 @@ var StepInternet = StepView.extend({
 			data: JSON.stringify({id: data.id, password: data.password})
 		})
 		.done(_.bind(function(data) {
-			if (data.ssid) {
-				noty({text: "AstroBox is now connected to "+data.ssid+".", type: "success", timeout: 3000});
+			if (data.name) {
+				noty({text: "Your AstroBox is now connected to "+data.name+".", type: "success", timeout: 3000});
 				if (callback) callback(false);
 				this.$el.removeClass('settings');
 				this.$el.addClass('success');
