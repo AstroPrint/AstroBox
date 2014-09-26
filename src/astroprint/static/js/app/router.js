@@ -8,7 +8,6 @@ var AppRouter = Backbone.Router.extend({
 	homeView: null,
 	controlView: null,
 	settingsView: null,
-	turnoffView: null,
 	printingView: null,
 	routes: {
 		"": "home",
@@ -16,9 +15,9 @@ var AppRouter = Backbone.Router.extend({
 		"printing": "printing",
 		"settings": "settings",
 		"settings/:page": "settings",
-		"turning-off": "turningOff",
 		"*notFound": "notFound"
 	},
+	turningOff: false,
   	execute: function(callback, args) {
   		if (callback) {
   			is_paused = app.socketData.get('paused');
@@ -69,15 +68,6 @@ var AppRouter = Backbone.Router.extend({
 
 		this.selectView(this.settingsView);
 		this.settingsView.menu.changeActive(page || 'printer-connection');
-	},	
-	turningOff: function()
-	{
-		if (!this.turnoffView) {
-			this.turnoffView = new TurnoffView();
-		}
-
-		this.selectView(this.turnoffView);
-		this.turnoffView.doTurnoff();
 	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
