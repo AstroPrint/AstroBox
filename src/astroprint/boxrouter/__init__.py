@@ -153,7 +153,7 @@ class AstroprintBoxRouter(object):
 			self.boxrouter_connect()
 
 		else:
-			self._logger.error('boxrouter address not specified in config')
+			self._logger.error('cloudSlicer.boxrouter not present in config file')
 
 	def boxrouter_connect(self):
 		if not self.connected:

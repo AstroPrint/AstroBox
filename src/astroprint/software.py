@@ -171,8 +171,13 @@ class SoftwareManager(object):
 			yaml.safe_dump(self.data, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
 
 	def checkSoftwareVersion(self):
+		apiHost = self._settings.get(['cloudSlicer','apiHost'])
+		if not apiHost:
+			self._logger.error('cloudSlicer.apiHost not present in config file.')
+			return None
+
 		try:
-			r = requests.post('%s/astrobox/software/check' % self._settings.get(['cloudSlicer','apiHost']), data=json.dumps({
+			r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
 					'current': [
 						self.data['version']['major'], 
 						self.data['version']['minor'],
