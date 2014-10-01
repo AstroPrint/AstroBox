@@ -58,6 +58,7 @@ import octoprint.events as events
 import octoprint.timelapse
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.camera import cameraManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -230,6 +231,7 @@ class Server():
 
 		self._boxrouter = boxrouterManager()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
+		self._cameraMgr = cameraManager()
 
 		def access_validation_factory(validator):
 			"""
