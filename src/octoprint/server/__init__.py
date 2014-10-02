@@ -27,10 +27,13 @@ debug = False
 
 app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
 app.config.from_object('astroprint.settings')
-if platform == "linux2" and not debug:
+
+app_config_file = "%s/application.cfg" % os.path.realpath(os.path.dirname(__file__)+'/../../../local')
+if os.path.isfile(app_config_file):
+	app.config.from_pyfile(app_config_file, silent=True)
+elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
 	app.config.from_pyfile('/etc/astrobox/application.cfg', silent=True)
-else:
-	app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
+
 assets = Environment(app)
 Compress(app)
 
