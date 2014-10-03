@@ -120,11 +120,9 @@ def static_proxy_fonts(path):
 @app.route('/camera/snapshot')
 def camera_snapshot():
 	cameraMgr = cameraManager()
-	pic_buf = cameraMgr.get_pic()
+	pic_buf = cameraMgr.get_pic(text="55% - Layer 1/45")
 	if pic_buf:
-		def image_stream():
-			yield pic_buf.tostring()
-		return Response(image_stream(), mimetype='image/jpeg')
+		return Response(pic_buf.tostring(), mimetype='image/jpeg')
 	else:
 		return 'Camera not ready', 500
 
