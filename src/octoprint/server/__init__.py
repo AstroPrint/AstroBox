@@ -6,7 +6,7 @@ import uuid
 import flask
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
-from flask import Flask, render_template, send_from_directory, make_response
+from flask import Flask, render_template, send_from_directory, make_response, Response
 from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
@@ -28,7 +28,7 @@ debug = False
 app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
 app.config.from_object('astroprint.settings')
 
-app_config_file = "%s/application.cfg" % os.path.realpath(os.path.dirname(__file__)+'/../../../local')
+app_config_file = os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'), "application.cfg")
 if os.path.isfile(app_config_file):
 	app.config.from_pyfile(app_config_file, silent=True)
 elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
@@ -116,6 +116,17 @@ def static_proxy_images(path):
 @app.route('/font/<path:path>')
 def static_proxy_fonts(path):
     return app.send_static_file(os.path.join('font', path))
+
+@app.route('/camera/snapshot')
+def camera_snapshot():
+	cameraMgr = cameraManager()
+	pic_buf = cameraMgr.get_pic()
+	if pic_buf:
+		def image_stream():
+			yield pic_buf.tostring()
+		return Response(image_stream(), mimetype='image/jpeg')
+	else:
+		return 'Camera not ready', 500
 
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
@@ -234,7 +245,6 @@ class Server():
 
 		self._boxrouter = boxrouterManager()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
-		self._cameraMgr = cameraManager()
 
 		def access_validation_factory(validator):
 			"""
