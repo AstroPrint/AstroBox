@@ -51,30 +51,50 @@ var PrintFileInfoDialog = Backbone.View.extend({
 	}
 });
 
-var FileUploadView = Backbone.View.extend({
+var UploadView = Backbone.View.extend({
+	designUpload: null,
+	printUpload: null,
+	initialize: function()
+	{
+		var progressBar = this.$el.find('.upload-progress');
+		var buttonContainer = this.$el.find('.upload-buttons');
+
+		this.designUpload = new FileUploadDesign({
+			progressBar: progressBar,
+			buttonContainer: buttonContainer
+		});
+
+		this.printUpload = new FileUploadPrint({
+			progressBar: progressBar,
+			buttonContainer: buttonContainer
+		});
+	}
+});
+
+var FileUploadBase = Backbone.View.extend({
 	events: {
-		'fileuploadadd .file-upload': 'onFileAdded',
-		'fileuploadsubmit .file-upload': 'onFileSubmit',
-		'fileuploadprogress .file-upload': 'onUploadProgress',
-		'fileuploadfail .file-upload': 'onUploadFail',
-		'fileuploadalways .file-upload': 'onUploadAlways',
-		'fileuploaddone .file-upload': 'onUploadDone'	
+		'fileuploadadd': 'onFileAdded',
+		'fileuploadsubmit': 'onFileSubmit',
+		'fileuploadprogress': 'onUploadProgress',
+		'fileuploadfail': 'onUploadFail',
+		'fileuploadalways': 'onUploadAlways',
+		'fileuploaddone': 'onUploadDone'	
 	},
 	progressBar: null,
-	button: null,
-	uploadWgt: null,
-	initialize: function() 
+	acceptFileTypes: null,
+	buttonContainer: null,
+	initialize: function(options) 
 	{
-		this.progressBar = this.$el.find('.file-upload-progress');
-		this.button = this.$el.find('.file-upload-button');
-       	this.uploadWgt = this.$el.find('.file-upload').fileupload();
+		this.progressBar = options.progressBar;
+		this.buttonContainer = options.buttonContainer;
+		this.$el.fileupload();
 	},
 	onFileAdded: function(e, data) 
 	{
         var uploadErrors = [];
-        var acceptFileTypes = /(\.|\/)(stl|obj|amf)$/i;
+        var acceptFileTypes = this.acceptFileTypes;
         if(data.originalFiles[0]['name'].length && !acceptFileTypes.test(data.originalFiles[0]['name'])) {
-            uploadErrors.push('Not a valid design file');
+            uploadErrors.push('Not a valid file');
         }
         if(uploadErrors.length > 0) {
         	noty({text: "There was an error uploading: " + uploadErrors.join("<br/>")});
@@ -86,56 +106,97 @@ var FileUploadView = Backbone.View.extend({
 	onFileSubmit: function(e, data) 
 	{
 	    if (data.files.length) {
-	    	var self = this;
-
-	    	this.button.hide();
+	    	this.buttonContainer.hide();
 	        this.progressBar.show();
-	        this.progressBar.children('.meter').css('width', '2%');
+	        this._updateProgress(5);
 
-	        $.getJSON('/api/astroprint/upload-data?file='+encodeURIComponent(data.files[0].name), function(response) {
-	            if (response.url && response.params) {
-	                data.formData = response.params;
-	                data.url = response.url;
-	                data.redirect = response.redirect;
-	                $(e.currentTarget).fileupload('send', data);
-	            } else {
-	                self.progressBar.hide();
-					this.button.show();
-
-	                noty({text: 'There was an error getting upload parameters.', timeout: 3000});
-	            }
-	        }).fail(function(xhr){
-	            self.progressBar.hide();
-	            this.button.show();
-	            noty({text: 'There was an error getting upload parameters.', timeout: 3000});
-	        });
+	        if (this.beforeSubmit(e, data)) {
+	        	$(e.currentTarget).fileupload('send', data);
+	        }
 	    }
 	    return false;
 	},
 	onUploadProgress: function(e, data) 
 	{
-        var progress = Math.max(parseInt(data.loaded / data.total * 100, 10), 2);
-        this.progressBar.children('.meter').css('width', progress + '%');
+        this._updateProgress(Math.max((data.loaded / data.total * 100) * 0.90, 5));
 	},
 	onUploadFail: function(e, data) 
 	{
 		noty({text: "There was an error uploading your file: "+ data.errorThrown, timeout: 3000});
 	},
+	onUploadAlways: function(e, data) {},
+	onUploadDone: function(e, data) {},
+	beforeSubmit: function(e, data) { return true; },
+	_updateProgress: function(percent, message)
+	{
+		var intPercent = Math.round(percent);
+
+		this.progressBar.find('.meter').css('width', intPercent+'%');
+		if (!message) {
+			message = "Uploading ("+intPercent+"%)";
+		}
+		this.progressBar.find('.progress-message span').text(message);
+	}
+});
+
+var FileUploadDesign = FileUploadBase.extend({
+	el: '.file-upload-button.design .file-upload',
+	acceptFileTypes: /(\.|\/)(stl|obj|amf)$/i,
+	beforeSubmit: function(e, data) 
+	{
+	    $.getJSON('/api/astroprint/upload-data?file='+encodeURIComponent(data.files[0].name), _.bind(function(response) {
+	        if (response.url && response.params) {
+	            data.formData = response.params;
+	            data.url = response.url;
+	            data.redirect = response.redirect;
+	        	$(e.currentTarget).fileupload('send', data);
+	        } else {
+	            this.progressBar.hide();
+				this.buttonContainer.show();
+
+	            noty({text: 'There was an error getting upload parameters.', timeout: 3000});
+	        }
+	    }, this)).fail(_.bind(function(xhr){
+	        this.progressBar.hide();
+	        this.buttonContainer.show();
+	        noty({text: 'There was an error getting upload parameters.', timeout: 3000});
+	    }, this));
+
+	    return false;
+	},
 	onUploadAlways: function(e, data) 
 	{
-		var self = this;
-
-        setTimeout(function() {
-            self.progressBar.hide();
-            this.button.show();
-            self.progressBar.children(".meter").css("width", "0%");
-        }, 2000);
+        setTimeout(_.bind(function() {
+            this.progressBar.hide();
+           	this.buttonContainer.show();
+           	this._updateProgress(0);
+        }, this), 2000);
 	},
 	onUploadDone: function(e, data) 
 	{
+		this._updateProgress(95, 'Preparing to slice');
         if (data.redirect) {
             window.location.href = data.redirect;
         }
+	}
+});
+
+var FileUploadPrint = FileUploadBase.extend({
+	el: '.file-upload-button.print .file-upload',
+	acceptFileTypes: /(\.|\/)(gcode)$/i,
+	onUploadDone: function(e, data) 
+	{
+		var filename = data.files[0].name;
+    	this._updateProgress(95, 'Analyzing G-Code');
+    	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(function(gcodeData){
+    		if (gcodeData.file == filename) {
+	    		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
+	    		app.router.homeView.refreshPrintFiles();
+		        this.progressBar.hide();
+		        this.buttonContainer.show();
+		        this._updateProgress(0);
+		    }
+    	}, this));
 	}
 });
 
@@ -289,7 +350,7 @@ var HomeView = Backbone.View.extend({
 	},
 	initialize: function() 
 	{
-		this.uploadView = new FileUploadView({el: this.$el.find('.design-file-upload')});
+		this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
 		this.printFilesListView = new PrintFilesListView({el: this.$el.find('.design-list')});
 	},
 	refreshPrintFiles: function() 

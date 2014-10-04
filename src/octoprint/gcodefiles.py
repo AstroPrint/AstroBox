@@ -106,19 +106,26 @@ class GcodeManager:
 		if absolutePath is None:
 			return
 
-		analysisResult = {"layerCount": 0}
+		analysisResult = {}
 		dirty = False
 		if gcode.totalMoveTimeMinute:
-			analysisResult["estimatedPrintTime"] = gcode.totalMoveTimeMinute * 60
+			analysisResult["print_time"] = gcode.totalMoveTimeMinute * 60
 			dirty = True
 		if gcode.extrusionAmount:
 			analysisResult["filament"] = {}
+			totalVolume = 0
+			totalLength = 0
 			for i in range(len(gcode.extrusionAmount)):
 				analysisResult["filament"]["tool%d" % i] = {
 					"length": gcode.extrusionAmount[i],
 					"volume": gcode.extrusionVolume[i]
 				}
+				totalVolume += gcode.extrusionVolume[i]
+				totalLength += gcode.extrusionAmount[i]
 			dirty = True
+
+			analysisResult['filament_volume'] = totalVolume
+			analysisResult['filament_length'] = totalLength
 
 		if dirty:
 			metadata = self.getFileMetadata(basename)

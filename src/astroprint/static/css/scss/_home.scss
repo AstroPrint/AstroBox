@@ -15,7 +15,7 @@
 		}
 	}
 
-	.design-file-upload {
+	.file-upload-view {
 		margin-top: 20px;
 		position: relative;
 
@@ -30,8 +30,15 @@
 		}
 	}
 
-	.file-upload-progress {
-		text-align: left;
+	.upload-progress {
+		.progress-message {
+			font-size: rem-calc(18);
+			color: $success-color;
+		}
+
+		.meter {
+			transition: width 1s;
+		}
 	}
 
 	.design-list-container {

@@ -1,15 +1,31 @@
-<div class="row">
-	<div class="small-12 columns" align="center">
-		<div class="design-file-upload">
-			<span class="file-upload-button button success radius" style="margin-bottom: 10px">
-				<i class="icon-upload-cloud-1"></i> Upload Design File
-				<input class="file-upload" type="file" name="file" data-url="/api/astroprint/upload">
+<div class="file-upload-view">
+	<div class="row upload-buttons">
+		<div class="small-12 medium-6 large-4 large-offset-2 columns">
+			<span class="file-upload-button button success radius expand design" style="margin-bottom: 10px">
+				<i class="icon-upload-cloud-1"></i> Upload Design File (.stl)
+				<input class="file-upload" type="file" name="file" data-url="/api/astroprint/upload" accept=".stl">
 			</span>
-			<div class="progress file-upload-progress radius" style="display:none">
+		</div>
+		<div class="small-12 medium-6 large-4 columns left">
+			<span class="file-upload-button button success radius expand print" style="margin-bottom: 10px">
+				<i class="icon-upload-cloud-1"></i> Upload Print File (.gcode)
+				<input class="file-upload" type="file" name="file" data-url="/api/files/local" accept=".gcode">
+			</span>
+		</div>
+	</div>
+	<div class="row upload-progress" style="display:none">
+		<div class="small-12 large-10 large-centered columns">
+			<div class="progress radius">
 				<div class="meter" style="width: 0%"></div>
+			</div>
+			<div class="progress-message" align="center">
+				<i class="icon-rocket-spinner animate-spin"></i> <span></span>
 			</div>
 		</div>
 	</div>
+</div>
+
+<div class="row">
 	<div class="design-list small-12 columns">
 		<h3 class="bold">Printable Files {%- if user_email %} <i class="icon-refresh" title="Refresh"></i> {%- endif %}</h3>
 		<div class="design-list-container"></div>
@@ -63,10 +79,14 @@
 					} %>
 				</div>
 				<div class="print-info">
-					<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
+					<% if (p.info.size) { %>
+						<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
+					<% } %>
 					<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
-					<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
-					<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
+					<% if (p.info.layer_count) { %>
+						<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
+						<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
+					<% } %>
 					<b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume.toFixed(2) %></span> mm<sup>3</sup>
 				</div>
 			</div>

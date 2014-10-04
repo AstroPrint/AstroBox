@@ -156,6 +156,10 @@ var SocketData = Backbone.Model.extend({
                     var payload = data["payload"];
 
                     switch(type) {
+                        case 'MetadataAnalysisFinished':
+                            app.eventManager.trigger('astrobox:MetadataAnalysisFinished', payload);
+                            break;
+
                         case 'CloudDownloadEvent':
                             app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
                             break;
