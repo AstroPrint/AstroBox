@@ -25,8 +25,8 @@ class CameraManager(object):
 	def list_cameras(self):
 		pass
 
-	def get_pic(self):
+	def get_pic(self, text=None):
 		pass
 		
-	def save_pic(self):
+	def save_pic(self, filename, text=None):
 		pass
