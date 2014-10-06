@@ -119,6 +119,12 @@
       ]
     },
     {
+      "uid": "dc3f1d5b1d006f7f7b3b6295eccab9da",
+      "css": "camera",
+      "code": 59403,
+      "src": "fontawesome"
+    },
+    {
       "uid": "43ab845088317bd348dee1d975700c48",
       "css": "ok-circled",
       "code": 59421,
@@ -224,6 +230,12 @@
       "uid": "bbd66ef66bb8fa9edde54d9a90b89150",
       "css": "user",
       "code": 59413,
+      "src": "entypo"
+    },
+    {
+      "uid": "3a230e539a4f3b904debd04c6c155034",
+      "css": "help",
+      "code": 59426,
       "src": "entypo"
     },
     {
