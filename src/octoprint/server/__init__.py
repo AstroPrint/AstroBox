@@ -90,7 +90,8 @@ def index():
 			version= VERSION,
 			printing= printer.isPrinting(),
 			paused= printer.isPaused(),
-			uiApiKey= UI_API_KEY
+			uiApiKey= UI_API_KEY,
+			astroboxName= networkManager.getHostname()
 		)
 
 @app.route("/robots.txt")

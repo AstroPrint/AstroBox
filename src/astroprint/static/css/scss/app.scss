@@ -45,6 +45,12 @@ body, html {
 		label {
 			text-transform: none;
 		}
+
+		&.bold {
+			label {
+				color: white;
+			}
+		}
 	}
 
 	label {

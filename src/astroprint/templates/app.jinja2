@@ -21,15 +21,15 @@
 				<section class="middle tab-bar-section">
 					<h1 class="title"><img src="/img/astrobox_logo_medium.png"/></h1>
 					<div id="connection-view">
-						<i class="icon-rocket astroprint" title="Astroprint Cloud Connection"></i>
-						<i class="icon-3d-printer printer" title="Printer Connection"></i>
-						<i class="icon-exchange server" title="AstroBox Connection"></i>
+						<i class="icon-rocket astroprint"></i>
+						<i class="icon-3d-printer printer"></i>
+						<i class="icon-exchange server"></i>
 					</div>
 				</section>
 			</nav>
 			<aside class="left-off-canvas-menu">
 				<ul class="off-canvas-list" id="main-menu">
-					<li class="header"><label>Astro<b>Box</b>&trade;</label></li>
+					<li class="header bold"><label>{{astroboxName}}</label></li>
 					{% if not user_email %}
 						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
 					{% endif %}
@@ -86,6 +86,7 @@
 		var SOCKJS_DEBUG = {% if debug -%} true {%- else -%} false {%- endif %};
 		var LOGGED_IN = {% if user_email -%} true {%- else -%} false {%- endif %};
 		var app = null;
+		var ASTROBOX_NAME = "{{astroboxName}}";
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
 			paused: {% if paused -%} true {%- else -%} false {%- endif %}
