@@ -65,14 +65,11 @@ class CameraV4LManager(CameraManager):
 
 	def _apply_watermark(self, img, text):
 		if text and img != None:
-			cv2.rectangle(img, (0,0), (200, 25), (255,255,255), cv2.cv.CV_FILLED)
+			imgPortion = img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5]
+			img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5] = (self._watermarkInverted * imgPortion) + self._watermakMaskWeighted
+
+			img[:self._infoAreaShape[0], :self._infoAreaShape[1]] = self._infoArea
 			cv2.putText(img, text, (30,17), cv2.FONT_HERSHEY_PLAIN, 1.0, (81,82,241), thickness=1)
-
-			imgPortion = img[2:self._logoShape[0]+2, 2:self._logoShape[1]+2]
-			overlay = np.zeros_like(imgPortion, "uint16")
-			overlay = self._logo
-
-			img[2:self._logoShape[0]+2, 2:self._logoShape[1]+2] = np.array(np.clip(imgPortion + overlay, 0, 255), "uint8")
 
 			return True
 
@@ -81,15 +78,29 @@ class CameraV4LManager(CameraManager):
 	def _close_camera(self):
 		self._camera.release()
 		del(self._camera)
-		del(self._logo)
+		del(self._watermakMaskWeighted)
+		del(self._watermarkInverted)
+		del(self._infoArea)
 		self._camera = None
 		self._feed.join()
 		self._feed = None
-		self._logo = None
+		self._watermakMaskWeighted = None
+		self._watermarkInverted = None
+		self._infoArea = None
 
 	def _open_camera(self):
 		self._camera = cv2.VideoCapture()
 		self._camera.open(0)
-		logo = cv2.imread(os.path.join(app.static_folder, 'favicon.ico'), cv2.cv.CV_LOAD_IMAGE_COLOR)
-		self._logo = cv2.resize(logo, (20,20))
-		self._logoShape = self._logo.shape
+		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
+		self._infoAreaShape = self._infoArea.shape
+
+		#precalculated stuff
+		watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
+		watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
+		
+		self._watermarkShape = watermark.shape
+		
+		watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
+		watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
+		self._watermakMaskWeighted = watermarkMask * watermark
+		self._watermarkInverted = 1.0 - watermarkMask
