@@ -5,9 +5,6 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 from astroprint.network import NetworkManager as NetworkManagerBase
 
 class MacDevNetworkManager(NetworkManagerBase):
-	def getWifiNetworks(self):
-		return None
-
 	def getActiveConnections(self):
 		return {
 			'wired': {
@@ -19,9 +16,6 @@ class MacDevNetworkManager(NetworkManagerBase):
 			},
 			'wireless': None
 		}
-
-	def setWifiNetwork(self, bssid, password):
-		return None
 
 	def isHotspotActive(self):
 		return False
@@ -36,6 +30,3 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 	def getHostname(self):
 		return "astrobox-dev"
-
-	def setHostname(self, name):
-		return None

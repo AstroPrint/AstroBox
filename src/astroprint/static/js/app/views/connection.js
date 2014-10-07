@@ -63,13 +63,70 @@ var ConnectionView = Backbone.View.extend({
 	    });	
 	},
 	setServerConnection: function(className) {
-		this.$el.find('i.server').removeClass('blink-animation connected failed').addClass(className);
+		var element = this.$el.find('i.server');
+		var titleText = '';
+
+		element.removeClass('blink-animation connected failed').addClass(className);
+
+		switch(className) {
+			case 'blink-animation':
+				titleText = 'Connecting to '+ASTROBOX_NAME+'...';
+				break;
+
+			case 'connected':
+				titleText = 'Connected to '+ASTROBOX_NAME;
+				break;
+
+			case 'failed':
+				titleText = ASTROBOX_NAME+' is unreachable';
+				break;
+		}
+
+		element.attr('title', titleText);
 	},
 	setPrinterConnection: function(className) {
-		this.$el.find('i.printer').removeClass('blink-animation connected failed').addClass(className);
+		var element = this.$el.find('i.printer');
+		var titleText = '';
+
+		element.removeClass('blink-animation connected failed').addClass(className);
+
+		switch(className) {
+			case 'blink-animation':
+				titleText = 'Connecting to printer...';
+				break;
+
+			case 'connected':
+				titleText = 'Connected to printer';
+				break;
+
+			case 'failed':
+				titleText = 'The Printer is not connected';
+				break;
+		}
+
+		element.attr('title', titleText);
 	},
 	setAstroprintConnection: function(className) {
-		this.$el.find('i.astroprint').removeClass('blink-animation connected failed').addClass(className);
+		var element = this.$el.find('i.astroprint')
+		var titleText = '';
+
+		element.removeClass('blink-animation connected failed').addClass(className);
+
+		switch(className) {
+			case 'blink-animation':
+				titleText = 'Connecting to the astroprint.com...';
+				break;
+
+			case 'connected':
+				titleText = 'Connected to astroprint.com';
+				break;
+
+			case 'failed':
+				titleText = 'Not connected to astroprint.com';
+				break;
+		}
+
+		element.attr('title', titleText);
 	},
 	printerTapped: function(e) {
 		if ($(e.target).hasClass('failed')) {

@@ -56,6 +56,9 @@ class NetworkManager(object):
 	def getWifiNetworks(self):
 		return None
 
+	def getWifiDevice(self):
+		return None
+
 	def hasWifiDevice(self):
 		return None
 

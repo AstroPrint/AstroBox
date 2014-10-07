@@ -317,9 +317,12 @@ class Printer():
 
 		self._comm._sendCommand("M112");
 
-		self.home(['x','y'])
-		self.setTemperature('bed', 0)
-		self.setTemperature('tool', 0)
+		#don't send home command, some printers don't have stoppers.
+		#self.home(['x','y'])
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
+
+		self.setTemperature('bed', 5)
+		self.setTemperature('tool', 5)
 
 		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
 
@@ -570,9 +573,14 @@ class Printer():
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
 		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
-		self.home(['x','y'])
+		#don't send home command, some printers don't have stoppers.
+		#self.home(['x','y'])
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
+
 		self.setTemperature('bed', 5.0)
 		self.setTemperature('tool', 5.0)
+
+		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True

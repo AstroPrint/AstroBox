@@ -219,7 +219,9 @@
 
         //layers
         this.$el.find('.current-layer').text(this.printing_progress.current_layer);
-        this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+        if (this.printing_progress.layer_count) {
+            this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+        }
 
         //heating up
         if (this.printing_progress.heating_up) {
