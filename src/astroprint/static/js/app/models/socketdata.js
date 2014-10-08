@@ -137,6 +137,8 @@ var SocketData = Backbone.Model.extend({
                     if (flags.printing) {
                         var progress = data.progress;
 
+                        console.log(data.job);
+
                         this.set('printing_progress', {
                             filename: data.job.file.name,
                             layer_count: data.job.layerCount,

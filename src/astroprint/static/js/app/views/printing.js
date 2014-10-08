@@ -176,12 +176,14 @@
         'click button.stop-print': 'stopPrint',
         'click button.pause-print': 'togglePausePrint',
         'click button.controls': 'showControlPage',
-        'show': 'show'
+        'show': 'show',
+        'click button.take-pic': 'refreshPhoto'
     },
     nozzleBar: null,
     bedBar: null,
     printing_progress: null,
     paused: null,
+    photoSeq: 0,
     initialize: function() {
         this.nozzleBar = new tempBarHorizontalView({
             scale: [0, 280],
@@ -249,6 +251,7 @@
         }
     },
     onProgressChanged: function(s, value) {
+        console.log(value);
         this.printing_progress = value;
         this.render();
     },
@@ -285,6 +288,10 @@
     showControlPage: function() {
         app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
+    },
+    refreshPhoto: function() {
+        var text = Math.floor(this.printing_progress.percent)+'% - Layer '+(this.printing_progress.current_layer ? this.printing_progress.current_layer : '1')+( this.printing_progress.layer_count ? '/'+this.printing_progress.layer_count : '');
+        this.$('.print-info .camera-image').attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
     },
     _jobCommand: function(command) {
         $.ajax({

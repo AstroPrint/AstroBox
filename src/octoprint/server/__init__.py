@@ -6,7 +6,7 @@ import uuid
 import flask
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
-from flask import Flask, render_template, send_from_directory, make_response, Response
+from flask import Flask, render_template, send_from_directory, make_response, Response, request
 from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
@@ -118,10 +118,10 @@ def static_proxy_images(path):
 def static_proxy_fonts(path):
     return app.send_static_file(os.path.join('font', path))
 
-@app.route('/camera/snapshot')
+@app.route('/camera/snapshot', methods=["GET"])
 def camera_snapshot():
 	cameraMgr = cameraManager()
-	pic_buf = cameraMgr.get_pic(text="55% - Layer 1/45")
+	pic_buf = cameraMgr.get_pic(text=request.args.get('text'))
 	if pic_buf:
 		return Response(pic_buf.tostring(), mimetype='image/jpeg')
 	else:

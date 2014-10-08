@@ -191,7 +191,7 @@ var FileUploadPrint = FileUploadBase.extend({
     	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(function(gcodeData){
     		if (gcodeData.file == filename) {
 	    		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
-	    		app.router.homeView.refreshPrintFiles();
+	    		app.router.homeView.refreshPrintFiles(true);
 		        this.progressBar.hide();
 		        this.buttonContainer.show();
 		        this._updateProgress(0);
@@ -210,7 +210,7 @@ var PrintFilesListView = Backbone.View.extend({
 		this.info_dialog = new PrintFileInfoDialog({file_list: this});
 		this.loader = this.$el.find('h3 .icon-refresh');
 		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
-		this.refresh();
+		this.refresh(false);
 	},
 	render: function() 
 	{ 
@@ -220,22 +220,26 @@ var PrintFilesListView = Backbone.View.extend({
         	size_format: app.utils.sizeFormat
         }));
     },
-	refresh: function() 
+	refresh: function(syncCloud) 
 	{
 		if (!this.loader.hasClass('animate-spin')) {
 			this.loader.addClass('animate-spin');
-			var self = this;
 
-			this.file_list.fetch({
-				success: function() {
-					self.loader.removeClass('animate-spin');
-					self.render();
-				},
-				error: function() {
-					noty({text: "There was an error retrieving design list", timeout: 3000});
-					self.loader.removeClass('animate-spin');
-				}
-			});
+			var success = _.bind(function() {
+				this.loader.removeClass('animate-spin');
+				this.render();
+			}, this);
+
+			var error = _.bind(function() {
+				noty({text: "There was an error retrieving design list", timeout: 3000});
+				this.loader.removeClass('animate-spin');
+			}, this);
+
+			if (syncCloud) {
+				this.file_list.syncCloud({success: success, error: error});
+			} else {
+				this.file_list.fetch({success: success, error: error});
+			}
 		}	
 	},
 	onInfoClicked: function(el) 
@@ -355,7 +359,7 @@ var HomeView = Backbone.View.extend({
 	},
 	refreshPrintFiles: function() 
 	{
-		this.printFilesListView.refresh();
+		this.printFilesListView.refresh(true);
 	}
 });
 

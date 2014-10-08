@@ -1,19 +1,21 @@
-<div class="row">
-	<div class="small-12 columns" align="center">
-		<h2 class="bold"> Printing </h2>
-		<div class="progress success radius">
-			<span class="meter" style="width: 0%"></span>
-			<span class="filename"></span>
-			<span class="progress-label"></span> 
+<div class="row print-info">
+	<h2 class="bold" align="center">Printing</h2>
+	<div class="small-12 large-4 columns" align="center">
+		<div class="camera-container">
+			<i class="icon-3d-object"></i>
+			<img class="camera-image" width="100%"/>
+		</div>
+		<div class="camera-controls">
+			<button class="success round take-pic"><i class="icon-camera"></i></button>
 		</div>
 	</div>
-</div>
-
-<div class="row print-info">
 	<div class="info">
-		<div class="small-12 large-4 columns" align="center">
-			<img src='/camera/snapshot' width="100%"/>
-			<button class="take-pic"><i class="icon-image"></i></button>
+		<div class="small-12 large-8 columns">
+			<div class="progress success radius">
+				<span class="meter" style="width: 0%"></span>
+				<span class="filename"></span>
+				<span class="progress-label"></span> 
+			</div>
 		</div>
 		<div class="small-12 medium-6 large-4 columns" align="center">
 			<h2 class="bold">Time Remaining</h2>
@@ -29,7 +31,7 @@
 		</div>
 	</div>
 	<div class="heating">
-		<div class="small-12 columns" align="center">
+		<div class="small-12 large-8 columns" align="center">
 			<i class="icon-temperatire blink-animation"></i>
 			<b>Heating up...</b>
 		</div>
@@ -62,12 +64,12 @@
 </div>
 <div class="row">
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+		<button class="success radius pause-print expand"><i class="icon-pause"></i> Pause Print</button>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="radius controls" style="display:none"><i class="icon-move"></i> Printer Controls</button>
+		<button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
+		<button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel Print</button>
 	</div>
 </div>

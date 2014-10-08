@@ -50,6 +50,49 @@
 		.heating {
 			display: none;
 		}
+
+		.camera-container {
+			padding-top: 75%;
+			position: relative;
+			background: #efefef;
+
+			i {
+				display: block;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				margin-left: -42px;
+				margin-top: -30px;
+				font-size: 60px;
+				color: #ccc;
+			}
+
+			img {
+				position:absolute;
+				width: 100%;
+				top: 0;
+				left: 0;
+			}
+		}
+
+		.camera-controls {
+			height: 60px;
+			background: #dfdfdf;
+
+			button.take-pic {
+				padding: 0;
+				margin-top: -20px;
+				height: 70px;
+				width: 70px;
+
+				i {
+					margin-left: -2px;
+					margin-top: 1px;
+					display: block;
+					font-size: 30px
+				}
+			}
+		}
 	}
 
 	.temperatures {
@@ -149,13 +192,16 @@
 				display: block;
 				font-size: rem-calc(50);
 
+				> div {
+					padding: 40px 0;
+				}
+
 				i {
 					display: block;
 					margin-bottom: 20px;
 					font-size: rem-calc(70);
 					color: $alert-color;
 				}
-
 			}
 
 			.info {
