@@ -137,16 +137,16 @@ var SocketData = Backbone.Model.extend({
                     if (flags.printing) {
                         var progress = data.progress;
 
-                        console.log(data.job);
-
                         this.set('printing_progress', {
                             filename: data.job.file.name,
+                            rendered_image: data.job.file.rendered_image,
                             layer_count: data.job.layerCount,
                             current_layer: progress.currentLayer,
                             percent: progress.completion ? progress.completion.toFixed(1) : 0,
                             time_left: data.progress.printTimeLeft,
                             time_elapsed: progress.printTime ? progress.printTime : 0,
-                            heating_up: flags.heatingUp
+                            heating_up: flags.heatingUp,
+                            camera_connected: flags.camera
                         });
                     }
 

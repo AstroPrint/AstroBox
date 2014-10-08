@@ -14,6 +14,8 @@ import octoprint.util as util
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+from astroprint.cloud import astroprintCloud
+from astroprint.camera import cameraManager
 
 from octoprint.filemanager.destinations import FileDestinations
 
@@ -35,6 +37,8 @@ class Printer():
 
 		self._gcodeManager = gcodeManager
 		self._gcodeManager.registerCallback(self)
+		self._astroprintCloud = astroprintCloud()
+		self._cameraManager = cameraManager()
 
 		# state
 		# TODO do we really need to hold the temperature here?
@@ -286,6 +290,7 @@ class Printer():
 
 		self._setCurrentZ(None)
 		self._comm.startPrint()
+		self._cameraManager.open_camera()
 
 	def togglePausePrint(self):
 		"""
@@ -431,13 +436,21 @@ class Printer():
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
+		cloudId = self._gcodeManager.getFileCloudId(filename)
+		renderedIimage = None
+		if cloudId:
+			printFile = self._astroprintCloud.getPrintFile(cloudId)
+			if printFile:
+				renderedIimage = printFile['images']['square']
+
 		self._stateMonitor.setJobData({
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
 				"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
 				"size": filesize,
 				"date": date,
-				"cloudId": self._gcodeManager.getFileCloudId(filename)
+				"cloudId": cloudId,
+				"rendered_image": renderedIimage
 			},
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
@@ -470,7 +483,8 @@ class Printer():
 			"paused": self.isPaused(),
 			"ready": self.isReady(),
 			"sdReady": self.isSdReady(),
-			"heatingUp": self.isHeatingUp()
+			"heatingUp": self.isHeatingUp(),
+			"camera": self.isCameraConnected()
 		}
 
 	#~~ callbacks triggered from self._comm
@@ -735,6 +749,9 @@ class Printer():
 			return False
 		else:
 			return self._comm.isSdReady()
+
+	def isCameraConnected(self):
+		return self._cameraManager.isCameraAvailable()
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

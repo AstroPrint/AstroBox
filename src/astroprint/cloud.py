@@ -54,7 +54,7 @@ class AstroPrintCloud(object):
 
 		self.hmacAuth = HMACAuth(publicKey, privateKey,)
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
-		self.print_file_store = None
+		self._print_file_store = None
 		self._sm = softwareManager()
 
 	@staticmethod
@@ -88,10 +88,9 @@ class AstroPrintCloud(object):
 		self.settings.set(["cloudSlicer", "publicKey"], None)
 		self.settings.set(["cloudSlicer", "email"], None)
 		self.settings.save()
-		self.print_file_store = None
 		boxrouterManager().boxrouter_disconnect()
 
-		#let the singleton be recreated again, so credentials are forgotten
+		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance
 		_instance = None
 
@@ -269,14 +268,10 @@ class AstroPrintCloud(object):
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
 	def print_files(self, forceCloudSync = False):
-		if not self.print_file_store or forceCloudSync:
-			try:
-				r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
-				self.print_file_store = r.json()
-			except:
-				pass
+		if self.cloud_enabled and (not self._print_file_store or forceCloudSync):
+			self._sync_print_file_store()
 
-		return json.dumps(self.print_file_store)	
+		return json.dumps(self._print_file_store)	
 
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
 		progressCb(2)
@@ -321,3 +316,24 @@ class AstroPrintCloud(object):
 
 		errorCb(destFile, 'Unable to download file')
 		return False
+
+	def getPrintFile(self, cloudId):
+		if not self._print_file_store:
+			self._sync_print_file_store()
+
+		if self._print_file_store:
+			for x in self._print_file_store:
+				if x['id'] == cloudId:
+					return x
+			else:
+				return None
+		else:
+			return None
+
+	def _sync_print_file_store(self):
+		if self.cloud_enabled():
+			try:
+				r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
+				self._print_file_store = r.json()
+			except:
+				pass		

@@ -55,6 +55,7 @@
 			padding-top: 75%;
 			position: relative;
 			background: #efefef;
+			overflow: hidden;
 
 			i {
 				display: block;
@@ -79,17 +80,33 @@
 			height: 60px;
 			background: #dfdfdf;
 
-			button.take-pic {
-				padding: 0;
-				margin-top: -20px;
+			.loading-button {
+				display: inline-block;
 				height: 70px;
 				width: 70px;
+			}
 
+			button, .button.loading {
+				padding: 0;
+				margin-top: -20px;
+				width: 100%;
+				height: 100%;
+			}
+
+			button.take-pic {
 				i {
 					margin-left: -2px;
 					margin-top: 1px;
 					display: block;
-					font-size: 30px
+					font-size: 30px					
+				}
+			}
+
+			.button.loading {				
+				i {
+					display: inline-block;
+					font-size: 30px;
+					margin-top: 16px;
 				}
 			}
 		}

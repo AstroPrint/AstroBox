@@ -14,12 +14,50 @@ from astroprint.camera import CameraManager
 class CameraV4LManager(CameraManager):
 	def __init__(self,):
 		self._camera = None
-		self._feed = None
-		self._logo = None
+		self._camera = None
+		self._watermakMaskWeighted = None
+		self._watermarkInverted = None
+		self._infoArea = None		
 		self._logger = logging.getLogger(__name__)
 
+	def open_camera(self):
+		cameras = self.list_devices()
 
-	def list_cameras(self):
+		if cameras:
+			self._camera = cv2.VideoCapture()
+			if self._camera.open(int(cameras[0].replace('video',''))):
+				self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
+				self._infoAreaShape = self._infoArea.shape
+
+				#precalculated stuff
+				watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
+				watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
+				
+				self._watermarkShape = watermark.shape
+				
+				watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
+				watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
+				self._watermakMaskWeighted = watermarkMask * watermark
+				self._watermarkInverted = 1.0 - watermarkMask
+				return True
+
+			else:
+				self.close_camera()
+			
+		return False
+
+	def close_camera(self):
+		self._camera.release()
+		del(self._camera)
+		del(self._watermakMaskWeighted)
+		del(self._watermarkInverted)
+		del(self._infoArea)
+		self._camera = None
+		self._watermakMaskWeighted = None
+		self._watermarkInverted = None
+		self._infoArea = None
+
+	def list_camera_info(self):
 		cameras = os.listdir('/sys/class/video4linux')
 		result = []
 		for c in cameras:
@@ -31,6 +69,9 @@ class CameraV4LManager(CameraManager):
 
 		return result
 
+	def list_devices(self):
+		return os.listdir('/sys/class/video4linux')
+
 	def get_pic(self, text=None):
 		img = self._snapshot_from_camera()
 
@@ -39,6 +80,8 @@ class CameraV4LManager(CameraManager):
 				self._apply_watermark(img, text)
 
 			return cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(img), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 75])
+		else:
+			return None
 
 	def save_pic(self, filename, text=None):
 		img = self._snapshot_from_camera()
@@ -48,9 +91,14 @@ class CameraV4LManager(CameraManager):
 
 			return cv2.imwrite(filename, img)
 
+	def isCameraAvailable(self):
+		return self._camera != None
+
 	def _snapshot_from_camera(self):
 		if not self._camera:
-			self._open_camera()
+			if not self.open_camera():
+				self._logger.error('Not able to open camera')
+				return None
 
 		#discard some frames buffered by the camera
 		for i in range(5):
@@ -74,33 +122,3 @@ class CameraV4LManager(CameraManager):
 			return True
 
 		return False
-
-	def _close_camera(self):
-		self._camera.release()
-		del(self._camera)
-		del(self._watermakMaskWeighted)
-		del(self._watermarkInverted)
-		del(self._infoArea)
-		self._camera = None
-		self._feed.join()
-		self._feed = None
-		self._watermakMaskWeighted = None
-		self._watermarkInverted = None
-		self._infoArea = None
-
-	def _open_camera(self):
-		self._camera = cv2.VideoCapture()
-		self._camera.open(0)
-		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
-		self._infoAreaShape = self._infoArea.shape
-
-		#precalculated stuff
-		watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
-		watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
-		
-		self._watermarkShape = watermark.shape
-		
-		watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
-		watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
-		self._watermakMaskWeighted = watermarkMask * watermark
-		self._watermarkInverted = 1.0 - watermarkMask

@@ -22,7 +22,16 @@ class CameraManager(object):
 	def __init__(self):
 		pass
 
-	def list_cameras(self):
+	def open_camera(self):
+		return False
+
+	def close_camera(self):
+		pass
+
+	def list_camera_info(self):
+		pass
+
+	def list_devices(self):
 		pass
 
 	def get_pic(self, text=None):
@@ -30,3 +39,6 @@ class CameraManager(object):
 		
 	def save_pic(self, filename, text=None):
 		pass
+
+	def isCameraAvailable(self):
+		return False

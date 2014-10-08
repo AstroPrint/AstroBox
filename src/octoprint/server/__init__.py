@@ -125,7 +125,7 @@ def camera_snapshot():
 	if pic_buf:
 		return Response(pic_buf.tostring(), mimetype='image/jpeg')
 	else:
-		return 'Camera not ready', 500
+		return 'Camera not ready', 404
 
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):

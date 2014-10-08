@@ -203,10 +203,24 @@
     render: function() 
     {
         //Progress data
-        var filenameNode = this.$el.find('.progress .filename');
+        var filenameNode = this.$('.progress .filename');
+        var cameraControls = this.$('.print-info .camera-controls');
+        var imageNode = this.$('.print-info .camera-image');
 
         if (filenameNode.text() != this.printing_progress.filename) {
             filenameNode.text(this.printing_progress.filename);
+        }
+
+        if (this.printing_progress.camera_connected) {
+            if (!cameraControls.is(":visible")) {
+                cameraControls.show();
+            }
+        } else if (cameraControls.is(":visible") ) {
+            cameraControls.hide();
+        }
+
+        if (imageNode.attr('src') != this.printing_progress.rendered_image) {
+            imageNode.attr('src', this.printing_progress.rendered_image);
         }
 
         //progress bar
@@ -251,7 +265,6 @@
         }
     },
     onProgressChanged: function(s, value) {
-        console.log(value);
         this.printing_progress = value;
         this.render();
     },
@@ -289,9 +302,22 @@
         app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
     },
-    refreshPhoto: function() {
+    refreshPhoto: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+
+        loadingBtn.addClass('loading');
+
         var text = Math.floor(this.printing_progress.percent)+'% - Layer '+(this.printing_progress.current_layer ? this.printing_progress.current_layer : '1')+( this.printing_progress.layer_count ? '/'+this.printing_progress.layer_count : '');
-        this.$('.print-info .camera-image').attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+        var img = this.$('.print-info .camera-image');
+
+        img.one('load', function() {
+            loadingBtn.removeClass('loading');
+        });
+        img.one('error', function() {
+            loadingBtn.removeClass('loading');
+            $(this).attr('src', null);
+        });
+        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
     },
     _jobCommand: function(command) {
         $.ajax({
