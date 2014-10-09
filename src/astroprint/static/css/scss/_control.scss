@@ -108,7 +108,7 @@
 	}
 
 	.temp-bar {
-		height: 386px;
+		height: 379px;
 		background: url(/img/temp_gradient.png) repeat-x;
 		position: relative;
 		margin-bottom: 19px;
@@ -176,7 +176,7 @@
 	.fan-control-push {
 		font-size: rem-calc(17);
 		padding-top: 17px;
-		height: 390px;
+		height: 318px;
 	}
 
 	.fan-control {
@@ -187,6 +187,7 @@
 		.fan_icon {
 			display: inline-block;
 			vertical-align: middle;
+			margin-left: 5px;
 		}
 	}
 }
