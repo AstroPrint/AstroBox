@@ -79,7 +79,7 @@ class CameraV4LManager(CameraManager):
 			if text:
 				self._apply_watermark(img, text)
 
-			return cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(img), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 75])
+			return cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(img), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 75]).tostring()
 		else:
 			return None
 

@@ -13,8 +13,9 @@ def cameraManager():
 		if platform == "linux" or platform == "linux2":
 			from astroprint.camera.video4linux import CameraV4LManager
 			_instance = CameraV4LManager()
-		else:
-			_instance = CameraManager()
+		elif platform == "darwin":
+			from astroprint.camera.mac import CameraMacManager
+			_instance = CameraMacManager()
 
 	return _instance
 
