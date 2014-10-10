@@ -35,18 +35,19 @@ var PrinterConnectionView = SettingsPage.extend({
 				this.settings = data;
 				if (data.serial) {
 					if (data.serial.baudrateOptions) {
-						var baudList = this.$el.find('#settings-baudrate');
+						var baudList = this.$el.find('#settings-baudrate').empty();
 						_.each(data.serial.baudrateOptions, function(element){
-							baudList.append('<option val="'+element+'">'+element+'</option>');
+							baudList.append('<option value="'+element+'">'+element+'</option>');
 						});
 						baudList.val(data.serial.baudrate);
 					}
 
 					if (data.serial.portOptions) {
-						var portList = this.$el.find('#settings-serial-port');
+						var portList = this.$el.find('#settings-serial-port').empty();
+						portList.append('<option value="">Pick a port</option>');
 						_.each(data.serial.portOptions, function(element){
-							var option = $('<option val="'+element+'">'+element+'</option>');
-							if (data.serial.port == element) {
+							var option = $('<option value="'+element[0]+'">'+element[1]+'</option>');
+							if (data.serial.port == element[0]) {
 								option.attr('selected', 1);
 							}
 							portList.append(option);
@@ -451,9 +452,6 @@ var SettingsMenu = Backbone.View.extend({
 var SettingsView = Backbone.View.extend({
 	el: '#settings-view',
 	menu: null,
-	events: {
-		'show': 'onShow'
-	},
 	subviews: null,
 	initialize: function() {
 		this.subviews = {

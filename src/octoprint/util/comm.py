@@ -13,6 +13,9 @@ import threading
 import Queue as queue
 import logging
 import serial
+import serial.tools.list_ports
+
+from sys import platform
 
 from collections import deque
 
@@ -26,41 +29,26 @@ from octoprint.gcodefiles import isGcodeFileName
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
 
+from usbid.device import device_list
+
 try:
 	import _winreg
 except:
 	pass
 
 def serialList():
-	baselist=[]
-	if os.name=="nt":
-		try:
-			key=_winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE,"HARDWARE\\DEVICEMAP\\SERIALCOMM")
-			i=0
-			while(1):
-				baselist+=[_winreg.EnumValue(key,i)[1]]
-				i+=1
-		except:
-			pass
-	baselist = baselist \
-			   + glob.glob("/dev/ttyUSB*") \
-			   + glob.glob("/dev/ttyACM*") \
-			   + glob.glob("/dev/ttyAMA*") \
-			   + glob.glob("/dev/tty.usb*") \
-			   + glob.glob("/dev/cu.*") \
-			   + glob.glob("/dev/rfcomm*")
+	ports = {}
+	if platform.startswith('linux'):
+		for p in device_list():
+			if p.tty:
+				ports['/dev/%s' % p.tty] = p.nameProduct
 
-	additionalPorts = settings().get(["serial", "additionalPorts"])
-	for additional in additionalPorts:
-		baselist += glob.glob(additional)
+	else:
+		for p in serial.tools.list_ports.comports():
+			if p[1] != 'n/a':
+				ports[p[0]] = p[1]
 
-	prev = settings().get(["serial", "port"])
-	if prev in baselist:
-		baselist.remove(prev)
-		baselist.insert(0, prev)
-	if settings().getBoolean(["devel", "virtualPrinter", "enabled"]):
-		baselist.append("VIRTUAL")
-	return baselist
+	return ports
 
 def baudrateList():
 	ret = [250000, 230400, 115200, 57600, 38400, 19200, 9600]

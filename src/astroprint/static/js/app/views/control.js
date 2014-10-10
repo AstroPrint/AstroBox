@@ -176,12 +176,12 @@ var TempView = Backbone.View.extend({
 	bedTempBar: null,
 	initialize: function() {
 		this.nozzleTempBar = new tempBarView({
-			scale: [0, 280],
+			scale: [0, 315],
 			el: this.$el.find('.temp-control-cont.nozzle'),
 			type: 'tool0'
 		});
 		this.bedTempBar = new tempBarView({
-			scale: [0, 120],
+			scale: [0, 140],
 			el: this.$el.find('.temp-control-cont.bed'),
 			type: 'bed'
 		});
@@ -327,6 +327,38 @@ var ExtrusionControlView = Backbone.View.extend({
 	}
 });
 
+var FanControlView = Backbone.View.extend({
+	el: '#temp-control .fan-control',
+	events: {
+		'click button.fan-on': "fanOn",
+		'click button.fan-off': "fanOff"
+	},
+	fanOn: function()
+	{
+		this._setFanSpeed(255);
+		this.$('.fan_icon').addClass('animate-spin');
+	},
+	fanOff: function()
+	{
+		this._setFanSpeed(0);
+		this.$('.fan_icon').removeClass('animate-spin');
+	},
+	_setFanSpeed: function(speed)
+	{
+        var data = {
+            command: "M106 S"+speed,
+        }
+
+        $.ajax({
+            url: API_BASEURL + "printer/command",
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data)
+        });			
+	}
+});
+
 var ControlView = Backbone.View.extend({
 	el: '#control-view',
 	events: {
@@ -338,12 +370,14 @@ var ControlView = Backbone.View.extend({
 	xyControlView: null,
 	zControlView: null,
 	extrusionView: null,
+	fanView: null,
 	initialize: function() {
 		this.tempView = new TempView();
 		this.distanceControl = new DistanceControl();
 		this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
 		this.zControlView = new ZControlView({distanceControl: this.distanceControl});
 		this.extrusionView = new ExtrusionControlView();
+		this.fanView = new FanControlView();
 
 		this.listenTo(app.socketData, 'change:temps', this.updateTemps);
 	},
