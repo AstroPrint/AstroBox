@@ -121,7 +121,7 @@ def connection_settings():
 		response = {
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
-			"portOptions": connectionOptions["ports"],
+			"portOptions": connectionOptions["ports"].items(),
 			"baudrateOptions": connectionOptions["baudrates"]
 		}
 

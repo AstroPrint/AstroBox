@@ -390,9 +390,6 @@ var StepConnectPrinter = StepView.extend({
 	el: "#step-connect-printer",
 	constructor: function() 
 	{
-		/*this.events["click .share-button.facebook"] = "onFacebookClicked";
-		this.events["click .share-button.twitter"] = "onTwitterClicked";
-		this.events["click .setup-done"] = "onSetupDone";*/
 		StepView.apply(this, arguments);
 	}
 });
@@ -415,8 +412,9 @@ var StepPrinter = StepView.extend({
 				if (data.portOptions && data.baudrateOptions) {
 					var portSelect = this.$el.find('select#port');
 					portSelect.empty();
+					portSelect.append('<option value="">Pick a port</option>');
 					_.each(data.portOptions, function(p) {
-						portSelect.append('<option value="'+p+'">'+p+'</option>');
+						portSelect.append('<option value="'+p[0]+'">'+p[1]+'</option>');
 					});
 					portSelect.val(data.port);
 
