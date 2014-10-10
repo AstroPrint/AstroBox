@@ -15,6 +15,8 @@ import logging
 import serial
 import serial.tools.list_ports
 
+from sys import platform
+
 from collections import deque
 
 from octoprint.util.avr_isp import stk500v2
@@ -27,6 +29,8 @@ from octoprint.gcodefiles import isGcodeFileName
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
 
+from usbid.device import device_list
+
 try:
 	import _winreg
 except:
@@ -34,9 +38,15 @@ except:
 
 def serialList():
 	ports = {}
-	for p in serial.tools.list_ports.comports():
-		if p[1] != 'n/a':
-			ports[p[0]] = p[1]
+	if platform.startswith('linux'):
+		for p in device_list():
+			if p.tty:
+				ports['/dev/%s' % p.tty] = p.nameProduct
+
+	else:
+		for p in serial.tools.list_ports.comports():
+			if p[1] != 'n/a':
+				ports[p[0]] = p[1]
 
 	return ports
 
