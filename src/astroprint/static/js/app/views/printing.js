@@ -177,7 +177,8 @@
         'click button.pause-print': 'togglePausePrint',
         'click button.controls': 'showControlPage',
         'show': 'show',
-        'click button.take-pic': 'refreshPhoto'
+        'click button.take-pic': 'refreshPhoto',
+        'click button.timelapse': 'timelapseClicked'
     },
     nozzleBar: null,
     bedBar: null,
@@ -318,6 +319,16 @@
             $(this).attr('src', null);
         });
         img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+    },
+    timelapseClicked: function(e) {
+        $.ajax({
+            url: API_BASEURL + "camera/timelapse",
+            type: "POST",
+            dataType: "json",
+            data: {
+                freq: 15
+            }
+        });        
     },
     _jobCommand: function(command) {
         $.ajax({

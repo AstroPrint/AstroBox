@@ -9,7 +9,7 @@ import uuid
 from flask import request, jsonify, abort
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
+from octoprint.server import restricted_access, SUCCESS, gcodeManager
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations

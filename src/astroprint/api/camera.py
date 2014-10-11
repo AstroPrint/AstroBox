@@ -1,0 +1,27 @@
+# coding=utf-8
+__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+
+from flask import jsonify, request, abort
+
+from octoprint.server import SUCCESS
+from octoprint.server.api import api
+from astroprint.camera import cameraManager
+
+@api.route("/camera/timelapse", methods=["POST"])
+def update_timelapse():
+	freq = request.values.get('freq')
+
+	if freq:
+		cm = cameraManager()
+		if cm.activeTimelapse:
+			if cm.update_timelapse(freq):
+				return jsonify(SUCCESS)
+				
+		else:
+			if cm.start_timelapse(freq):
+				return jsonify(SUCCESS)
+			else:
+				abort(500)
+
+	abort(400)

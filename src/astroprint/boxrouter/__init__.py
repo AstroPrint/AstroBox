@@ -2,6 +2,16 @@
 __author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+# singleton
+_instance = None
+
+def boxrouterManager():
+	global _instance
+	if _instance is None:
+		_instance = AstroprintBoxRouter()
+	return _instance
+
+
 import json
 import threading
 import logging
@@ -17,15 +27,6 @@ from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 
 from ws4py.client.threadedclient import WebSocketClient
-
-# singleton
-_instance = None
-
-def boxrouterManager():
-	global _instance
-	if _instance is None:
-		_instance = AstroprintBoxRouter()
-	return _instance
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):

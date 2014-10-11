@@ -13,6 +13,8 @@ from astroprint.camera import CameraManager
 
 class CameraV4LManager(CameraManager):
 	def __init__(self,):
+		super(CameraV4LManager, self).__init__()
+
 		self._camera = None
 		self._camera = None
 		self._watermakMaskWeighted = None

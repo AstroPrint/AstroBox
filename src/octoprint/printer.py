@@ -68,6 +68,8 @@ class Printer():
 		self._layerCount = None
 		self._estimatedPrintTime = None
 
+		self._printId = None
+
 		self._printAfterSelect = False
 
 		# sd handling
@@ -314,6 +316,9 @@ class Printer():
 		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
 		#	commands.extend(["M140 S0", "M106 S0"])
 		#	self.commands(commands)
+
+		#cancel timelaps
+		self._cameraManager.stop_timelapse()
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue

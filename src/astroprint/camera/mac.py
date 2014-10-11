@@ -4,7 +4,9 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import os.path
 
-class CameraMacManager(object):
+from astroprint.camera import CameraManager
+
+class CameraMacManager(CameraManager):
 	def open_camera(self):
 		return True
 

@@ -1,12 +1,22 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 
+# singleton
+_instance = None
+
+def astroprintCloud():
+	global _instance
+	if _instance is None:
+		_instance = AstroPrintCloud()
+	return _instance
+
 import requests
 import hmac
 import binascii
 import uuid
 import os
 import json
+#import base64
 
 from urllib import quote_plus
 from os.path import splitext, split
@@ -18,17 +28,7 @@ from requests_toolbelt import MultipartEncoder
 
 from octoprint.settings import settings
 from astroprint.software import softwareManager
-
 from astroprint.boxrouter import boxrouterManager
-
-# singleton
-_instance = None
-
-def astroprintCloud():
-	global _instance
-	if _instance is None:
-		_instance = AstroPrintCloud()
-	return _instance
 
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
@@ -328,6 +328,53 @@ class AstroPrintCloud(object):
 			else:
 				return None
 		else:
+			return None
+
+	def startTimelapse(self, name, print_file_id = None):
+		data = {'name': name}
+
+		if print_file_id:
+			data['print_file_id'] = print_file_id
+
+		try:
+			r = requests.post( 
+				"%s/prints" % self.apiHost, 
+				data= data,
+				auth= self.hmacAuth
+			)
+			status_code = r.status_code
+		except:
+			status_code = 500
+
+		if status_code == 201:
+			data = r.json()
+			return data['print_id']
+
+		else:
+			return None
+
+
+	def uploadImageFile(self, print_id, imageBuf):
+		try:
+			#m = MultipartEncoder(fields=[('file',(image, open(image, 'rb')))])
+			m = MultipartEncoder(fields=[('file',('snapshot.jpg', imageBuf))])
+			r = requests.post( 
+				"%s/prints/%s/image" % (self.apiHost, print_id),
+				#data={'image_data' = base64.b64encode(imageBuf)}
+				data= m, 
+				headers= {'Content-Type': m.content_type},
+				auth= self.hmacAuth
+			)
+			m = None #Free the memory?
+			status_code = r.status_code
+		except: 
+			status_code = 500
+
+		if status_code == 201:
+			data = r.json()
+			return data['print_image_id']
+
+		else: 
 			return None
 
 	def _sync_print_file_store(self):
