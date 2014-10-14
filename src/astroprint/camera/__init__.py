@@ -61,6 +61,9 @@ class TimelapseWorker(threading.Thread):
 
 	def stop(self):
 		self._stopExecution = True
+		if self.isPaused():
+			self.resume()
+			
 		self.join()
 
 	def pause(self):
