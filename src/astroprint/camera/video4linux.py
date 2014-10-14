@@ -12,7 +12,7 @@ from octoprint.server import app
 from astroprint.camera import CameraManager
 
 class CameraV4LManager(CameraManager):
-	def __init__(self,):
+	def __init__(self):
 		super(CameraV4LManager, self).__init__()
 
 		self._camera = None

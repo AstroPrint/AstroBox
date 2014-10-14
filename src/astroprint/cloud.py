@@ -16,7 +16,6 @@ import binascii
 import uuid
 import os
 import json
-#import base64
 
 from urllib import quote_plus
 from os.path import splitext, split

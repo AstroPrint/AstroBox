@@ -16,12 +16,27 @@ def update_timelapse():
 		cm = cameraManager()
 		if cm.activeTimelapse:
 			if cm.update_timelapse(freq):
+				if not cm.activeTimelapse.isAlive():
+					cm.resume_timelapse()
+
 				return jsonify(SUCCESS)
 				
 		else:
 			if cm.start_timelapse(freq):
 				return jsonify(SUCCESS)
-			else:
-				abort(500)
 
-	abort(400)
+	else:
+		abort(400)
+
+	abort(500)
+
+
+@api.route("/camera/timelapse", methods=["DELETE"])
+def pause_timelapse():
+	cm = cameraManager()
+	if cm.activeTimelapse and cm.activeTimelapse.isAlive():
+		cm.pause_timelapse()
+		return jsonify(SUCCESS)
+			
+	else:
+		abort(404)

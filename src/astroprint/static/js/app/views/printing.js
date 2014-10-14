@@ -178,11 +178,12 @@
         'click button.controls': 'showControlPage',
         'show': 'show',
         'click button.take-pic': 'refreshPhoto',
-        'click button.timelapse': 'timelapseClicked'
+        'click button.timelapse': 'timelapseClicked',
     },
     nozzleBar: null,
     bedBar: null,
     printing_progress: null,
+    timelapse: null,
     paused: null,
     photoSeq: 0,
     initialize: function() {
@@ -321,14 +322,36 @@
         img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
     },
     timelapseClicked: function(e) {
-        $.ajax({
-            url: API_BASEURL + "camera/timelapse",
-            type: "POST",
-            dataType: "json",
-            data: {
-                freq: 15
-            }
-        });        
+        if (this.timelapse) {
+            $.ajax({
+                url: API_BASEURL + "camera/timelapse",
+                type: "DELETE",
+                dataType: "json"
+            })
+            .success(_.bind(function(){
+                this.timelapse = null;
+                this.$('button.timelapse').removeClass('blink-animation');
+            }, this))
+            .fail(function(){
+                noty({text: "There was an error stoping your print capture.", timeout: 3000});
+            }); 
+        } else {
+            $.ajax({
+                url: API_BASEURL + "camera/timelapse",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    freq: 15
+                }
+            })
+            .success(_.bind(function(){
+                this.timelapse = true;
+                 this.$('button.timelapse').addClass('blink-animation');
+            }, this))
+            .fail(function(){
+                noty({text: "There was an error starting your print capture.", timeout: 3000});
+            });         
+        }    
     },
     _jobCommand: function(command) {
         $.ajax({

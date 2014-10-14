@@ -301,7 +301,15 @@ class Printer():
 		if self._comm is None:
 			return
 
-		self._comm.setPause(not self._comm.isPaused())
+		wasPaused = self._comm.isPaused()
+
+		self._comm.setPause(not wasPaused)
+
+		#the functions already check if there's a timelapse in progress
+		if wasPaused:
+			self._cameraManager.resume_timelapse()
+		else:
+			self._cameraManager.pause_timelapse()
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
 		"""
@@ -316,9 +324,6 @@ class Printer():
 		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
 		#	commands.extend(["M140 S0", "M106 S0"])
 		#	self.commands(commands)
-
-		#cancel timelaps
-		self._cameraManager.stop_timelapse()
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
@@ -352,6 +357,9 @@ class Printer():
 			eventManager().fire(Events.PRINT_FAILED, payload)
 
 		self._comm.cancelPrint()
+
+		#cancel timelapse if there was one
+		self._cameraManager.stop_timelapse()
 
 	#~~ state monitoring
 
@@ -600,6 +608,9 @@ class Printer():
 		self.setTemperature('tool', 5.0)
 
 		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
+
+		#stop timelapse if there was one
+		self._cameraManager.stop_timelapse()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True

@@ -201,7 +201,7 @@ class Server():
 		printer = Printer(gcodeManager)
 
 		# configure timelapse
-		octoprint.timelapse.configureTimelapse()
+		#octoprint.timelapse.configureTimelapse()
 
 		# setup command triggers
 		events.CommandTrigger(printer)

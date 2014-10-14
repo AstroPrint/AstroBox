@@ -18,6 +18,7 @@ def cameraManager():
 	return _instance
 
 import threading
+import os.path
 
 from sys import platform
 import time
@@ -25,14 +26,14 @@ import time
 from astroprint.cloud import astroprintCloud
 
 class TimelapseWorker(threading.Thread):
-	def __init__(self, manager, timelapseId, timelapseFreq):
-		from octoprint.server import printer
-
+	def __init__(self, manager, printer, timelapseId, timelapseFreq):
 		super(TimelapseWorker, self).__init__()
-		self.daemon = True
+
 		self._stopExecution = False
 		self._cm = manager
 		self._printer = printer
+
+		self.daemon = True
 		self.timelapseId = timelapseId
 		self.timelapseFreq = float(timelapseFreq)
 
@@ -48,10 +49,9 @@ class TimelapseWorker(threading.Thread):
 					("/%d" % printerData['job']['layerCount']) if printerData['job']['layerCount'] else ''
 				)
 
-				picBuf = self._cm.get_pic(text)
+				picBuf = self._cm.get_pic(text=text)
 
 				if picBuf and self._cm._astroprint.uploadImageFile(self.timelapseId, picBuf):
-					print 'image uploaded'
 					lastUpload = time.time()
 
 			time.sleep(1)
@@ -63,23 +63,30 @@ class TimelapseWorker(threading.Thread):
 class CameraManager(object):
 	def __init__(self):
 		self._astroprint = astroprintCloud()
+		self._timelapseId = None
+		self._printer = None
+
 		self.activeTimelapse = None
 
 	def start_timelapse(self, freq):
+		if not self._printer:
+			from octoprint.server import printer
+			self._printer = printer
+
+
 		if self.activeTimelapse:
 			self.stop_timelapse()
+
+		#check that there's a print ongoing otherwise don't start
+		if not self._printer._selectedFile:
+			return False
 
 		if not self.isCameraAvailable():
 			if not self.open_camera():
 				return False
 
-		timelapseId = self._astroprint.startTimelapse('test')
-		if timelapseId:
-			self.activeTimelapse = TimelapseWorker(self, timelapseId, freq)
-			self.activeTimelapse.start()
-			return True
-
-		return False
+		self._timelapseId = self._astroprint.startTimelapse(os.path.split(self._printer._selectedFile["filename"])[1])
+		return self._start_timelapse_worker(freq)
 
 	def update_timelapse(self, freq):
 		if self.activeTimelapse:
@@ -92,8 +99,23 @@ class CameraManager(object):
 		if self.activeTimelapse:
 			self.activeTimelapse.stop()
 			self.activeTimelapse = None
+			self._timelapseId = None
 
 		return True
+
+	def pause_timelapse(self):
+		if self.activeTimelapse and self.activeTimelapse.isAlive():
+			self.activeTimelapse.stop()
+			return True
+
+		return False
+
+	def resume_timelapse(self):
+		if self.activeTimelapse and not self.activeTimelapse.isAlive():
+			self._start_timelapse_worker(self.activeTimelapse.timelapseFreq)
+			return True
+
+		return False
 
 	def open_camera(self):
 		return False
@@ -115,3 +137,12 @@ class CameraManager(object):
 
 	def isCameraAvailable(self):
 		return False
+
+	## Private methods
+	def _start_timelapse_worker(self, freq):
+		if self._timelapseId:
+			self.activeTimelapse = TimelapseWorker(self, self._printer, self._timelapseId, freq)
+			self.activeTimelapse.start()
+			return True	
+
+		return False	

@@ -97,7 +97,7 @@ var FileUploadBase = Backbone.View.extend({
             uploadErrors.push('Not a valid file');
         }
         if(uploadErrors.length > 0) {
-        	noty({text: "There was an error uploading: " + uploadErrors.join("<br/>")});
+        	noty({text: "There was an error uploading: " + uploadErrors.join("<br/>"),  timeout: 3000});
         	return false;
         } else {
         	return true;
