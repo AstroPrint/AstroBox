@@ -16,7 +16,7 @@ def update_timelapse():
 		cm = cameraManager()
 		if cm.activeTimelapse:
 			if cm.update_timelapse(freq):
-				if not cm.activeTimelapse.isAlive():
+				if cm.activeTimelapse.isPaused():
 					cm.resume_timelapse()
 
 				return jsonify(SUCCESS)
@@ -34,7 +34,7 @@ def update_timelapse():
 @api.route("/camera/timelapse", methods=["DELETE"])
 def pause_timelapse():
 	cm = cameraManager()
-	if cm.activeTimelapse and cm.activeTimelapse.isAlive():
+	if cm.activeTimelapse and not cm.activeTimelapse.isPaused():
 		cm.pause_timelapse()
 		return jsonify(SUCCESS)
 			

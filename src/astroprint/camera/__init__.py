@@ -32,6 +32,7 @@ class TimelapseWorker(threading.Thread):
 		self._stopExecution = False
 		self._cm = manager
 		self._printer = printer
+		self._resumeFromPause = threading.Event()
 
 		self.daemon = True
 		self.timelapseId = timelapseId
@@ -39,14 +40,15 @@ class TimelapseWorker(threading.Thread):
 
 	def run(self):
 		lastUpload = 0
+		self._resumeFromPause.set()
 		while not self._stopExecution:
-			if (time.time() - lastUpload ) > self.timelapseFreq:
+			if (time.time() - lastUpload ) >= self.timelapseFreq:
 				#Build text
 				printerData = self._printer.getCurrentData()
 				text = "%d%% - Layer %d%s" % (
 					printerData['progress']['completion'], 
 					printerData['progress']['currentLayer'],
-					("/%d" % printerData['job']['layerCount']) if printerData['job']['layerCount'] else ''
+					"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
 				)
 
 				picBuf = self._cm.get_pic(text=text)
@@ -55,42 +57,52 @@ class TimelapseWorker(threading.Thread):
 					lastUpload = time.time()
 
 			time.sleep(1)
+			self._resumeFromPause.wait()
 
 	def stop(self):
 		self._stopExecution = True
 		self.join()
 
+	def pause(self):
+		self._resumeFromPause.clear()
+
+	def resume(self):
+		self._resumeFromPause.set()
+
+	def isPaused(self):
+		return not self._resumeFromPause.isSet()
+
 class CameraManager(object):
 	def __init__(self):
 		self._astroprint = astroprintCloud()
-		self._timelapseId = None
-		self._printer = None
 
 		self.activeTimelapse = None
 
 	def start_timelapse(self, freq):
-		if not self._printer:
-			from octoprint.server import printer
-			self._printer = printer
-
+		from octoprint.server import printer
 
 		if self.activeTimelapse:
 			self.stop_timelapse()
 
 		#check that there's a print ongoing otherwise don't start
-		if not self._printer._selectedFile:
+		if not printer._selectedFile:
 			return False
 
 		if not self.isCameraAvailable():
 			if not self.open_camera():
 				return False
 
-		self._timelapseId = self._astroprint.startTimelapse(os.path.split(self._printer._selectedFile["filename"])[1])
-		return self._start_timelapse_worker(freq)
+		timelapseId = self._astroprint.startTimelapse(os.path.split(printer._selectedFile["filename"])[1])
+		if timelapseId:
+			self.activeTimelapse = TimelapseWorker(self, printer, timelapseId, freq)
+			self.activeTimelapse.start()
+			return True	
+
+		return False	
 
 	def update_timelapse(self, freq):
 		if self.activeTimelapse:
-			self.activeTimelapse.timelapseFreq = freq
+			self.activeTimelapse.timelapseFreq = float(freq)
 			return True
 
 		return False
@@ -99,20 +111,19 @@ class CameraManager(object):
 		if self.activeTimelapse:
 			self.activeTimelapse.stop()
 			self.activeTimelapse = None
-			self._timelapseId = None
 
 		return True
 
 	def pause_timelapse(self):
-		if self.activeTimelapse and self.activeTimelapse.isAlive():
-			self.activeTimelapse.stop()
+		if self.activeTimelapse and not self.activeTimelapse.isPaused():
+			self.activeTimelapse.pause()
 			return True
 
 		return False
 
 	def resume_timelapse(self):
-		if self.activeTimelapse and not self.activeTimelapse.isAlive():
-			self._start_timelapse_worker(self.activeTimelapse.timelapseFreq)
+		if self.activeTimelapse and self.activeTimelapse.isPaused():
+			self.activeTimelapse.resume()
 			return True
 
 		return False
@@ -137,12 +148,3 @@ class CameraManager(object):
 
 	def isCameraAvailable(self):
 		return False
-
-	## Private methods
-	def _start_timelapse_worker(self, freq):
-		if self._timelapseId:
-			self.activeTimelapse = TimelapseWorker(self, self._printer, self._timelapseId, freq)
-			self.activeTimelapse.start()
-			return True	
-
-		return False	
