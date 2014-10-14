@@ -60,13 +60,14 @@ class Events(object):
 	CONVEYOR = "Conveyor"
 	EJECT = "Eject"
 	E_STOP = "EStop"
+	LAYER_CHANGE = "LayerChange"
 
 	# Timelapse
-	CAPTURE_START = "CaptureStart"
-	CAPTURE_DONE = "CaptureDone"
-	MOVIE_RENDERING = "MovieRendering"
-	MOVIE_DONE = "MovieDone"
-	MOVIE_FAILED = "MovieFailed"
+	#CAPTURE_START = "CaptureStart"
+	#CAPTURE_DONE = "CaptureDone"
+	#MOVIE_RENDERING = "MovieRendering"
+	#MOVIE_DONE = "MovieDone"
+	#MOVIE_FAILED = "MovieFailed"
 
 	# Slicing
 	SLICING_STARTED = "SlicingStarted"
@@ -78,6 +79,7 @@ class Events(object):
 	ASTROPRINT_STATUS = "AstroPrintStatus"
 	NETWORK_STATUS = "NetworkStatus"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
+	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
 
 def eventManager():
 	global _instance

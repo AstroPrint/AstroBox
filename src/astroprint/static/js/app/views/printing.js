@@ -170,22 +170,122 @@
     }
 });
 
- var PrintingView = Backbone.View.extend({
+var PhotoView = Backbone.View.extend({
+    el: "#printing-view .camera-view",
+    events: {
+        'click button.take-pic': 'refreshPhoto',
+        'change .timelapse select': 'timelapseFreqChanged'
+    },
+    parent: null,
+    print_capture: null,
+    photoSeq: 0,
+    initialize: function(options) {
+        this.parent = options.parent;
+
+        this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+    },
+    render: function() {
+        var cameraControls = this.$('.camera-controls');
+        var imageNode = this.$('.camera-image');
+
+        //Camera controls section
+        if (this.parent.printing_progress.camera_connected) {
+            if (!cameraControls.is(":visible")) {
+                cameraControls.show();
+            }
+        } else if (cameraControls.is(":visible") ) {
+            cameraControls.hide();
+        }
+
+        //image
+        var imageUrl = null;
+
+        if (this.print_capture && this.print_capture.last_photo) {
+            imageUrl = this.print_capture.last_photo;
+        } else if (this.parent.printing_progress.rendered_image) {
+            imageUrl = this.parent.printing_progress.rendered_image;
+        }
+
+        if (imageNode.attr('src') != imageUrl) {
+            imageNode.attr('src', imageUrl);
+        }
+
+        //print capture button
+        if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
+            this.$('.timelapse .dot').addClass('blink-animation');
+        } else {
+            this.$('.timelapse .dot').removeClass('blink-animation');
+        }
+
+        //overaly
+        if (this.parent.paused) {
+            this.$('.timelapse .overlay').show();
+        } else {
+            this.$('.timelapse .overlay').hide();
+        }
+
+        //select
+        var freq = 0;
+        if (this.print_capture) {
+            freq = this.print_capture.freq;
+        }
+        
+        this.$('.timelapse select').val(freq);
+    },
+    onPrintCaptureChanged: function(s, value) {
+        this.print_capture = value;
+        this.render();
+    },
+    refreshPhoto: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+        var printing_progress = this.parent.printing_progress;
+
+        loadingBtn.addClass('loading');
+
+        var text = Math.floor(printing_progress.percent)+'% - Layer '+(printing_progress.current_layer ? printing_progress.current_layer : '1')+( printing_progress.layer_count ? '/'+printing_progress.layer_count : '');
+        var img = this.$('.camera-image');
+
+        img.one('load', function() {
+            loadingBtn.removeClass('loading');
+        });
+        img.one('error', function() {
+            loadingBtn.removeClass('loading');
+            $(this).attr('src', null);
+        });
+        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+    },
+    timelapseFreqChanged: function(e) {
+        var newFreq = $(e.target).val();
+
+        if (!this.print_capture || newFreq != this.print_capture.freq) {
+            $.ajax({
+                url: API_BASEURL + "camera/timelapse",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    freq: newFreq
+                }
+            })
+            .fail(function(){
+                noty({text: "There was an error adjusting your print capture.", timeout: 3000});
+            });         
+        }   
+    }
+});
+
+var PrintingView = Backbone.View.extend({
 	el: '#printing-view',
     events: {
         'click button.stop-print': 'stopPrint',
         'click button.pause-print': 'togglePausePrint',
         'click button.controls': 'showControlPage',
-        'show': 'show',
-        'click button.take-pic': 'refreshPhoto',
-        'click button.timelapse': 'timelapseClicked',
+        'show': 'show'
     },
     nozzleBar: null,
     bedBar: null,
+    photoView: null,
     printing_progress: null,
-    timelapse: null,
     paused: null,
-    photoSeq: 0,
     initialize: function() {
         this.nozzleBar = new tempBarHorizontalView({
             scale: [0, 280],
@@ -197,6 +297,7 @@
             el: this.$el.find('.temp-bar.bed'),
             type: 'bed' 
         });
+        this.photoView = new PhotoView({parent: this});
 
         this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
         this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
@@ -206,23 +307,9 @@
     {
         //Progress data
         var filenameNode = this.$('.progress .filename');
-        var cameraControls = this.$('.print-info .camera-controls');
-        var imageNode = this.$('.print-info .camera-image');
 
         if (filenameNode.text() != this.printing_progress.filename) {
             filenameNode.text(this.printing_progress.filename);
-        }
-
-        if (this.printing_progress.camera_connected) {
-            if (!cameraControls.is(":visible")) {
-                cameraControls.show();
-            }
-        } else if (cameraControls.is(":visible") ) {
-            cameraControls.hide();
-        }
-
-        if (imageNode.attr('src') != this.printing_progress.rendered_image) {
-            imageNode.attr('src', this.printing_progress.rendered_image);
         }
 
         //progress bar
@@ -259,6 +346,8 @@
             pauseBtn.html('<i class="icon-pause"></i> Pause Print');
             controlBtn.hide();
         }
+
+        this.photoView.render();
     },
     onTempsChanged: function(s, value) {
         if (!this.$el.hasClass('hide')) {
@@ -303,55 +392,6 @@
     showControlPage: function() {
         app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
-    },
-    refreshPhoto: function(e) {
-        var loadingBtn = $(e.target).closest('.loading-button');
-
-        loadingBtn.addClass('loading');
-
-        var text = Math.floor(this.printing_progress.percent)+'% - Layer '+(this.printing_progress.current_layer ? this.printing_progress.current_layer : '1')+( this.printing_progress.layer_count ? '/'+this.printing_progress.layer_count : '');
-        var img = this.$('.print-info .camera-image');
-
-        img.one('load', function() {
-            loadingBtn.removeClass('loading');
-        });
-        img.one('error', function() {
-            loadingBtn.removeClass('loading');
-            $(this).attr('src', null);
-        });
-        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
-    },
-    timelapseClicked: function(e) {
-        if (this.timelapse) {
-            $.ajax({
-                url: API_BASEURL + "camera/timelapse",
-                type: "DELETE",
-                dataType: "json"
-            })
-            .success(_.bind(function(){
-                this.timelapse = null;
-                this.$('button.timelapse').removeClass('blink-animation');
-            }, this))
-            .fail(function(){
-                noty({text: "There was an error stoping your print capture.", timeout: 3000});
-            }); 
-        } else {
-            $.ajax({
-                url: API_BASEURL + "camera/timelapse",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    freq: 15
-                }
-            })
-            .success(_.bind(function(){
-                this.timelapse = true;
-                 this.$('button.timelapse').addClass('blink-animation');
-            }, this))
-            .fail(function(){
-                noty({text: "There was an error starting your print capture.", timeout: 3000});
-            });         
-        }    
     },
     _jobCommand: function(command) {
         $.ajax({

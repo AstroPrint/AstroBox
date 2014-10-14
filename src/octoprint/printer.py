@@ -578,6 +578,7 @@ class Printer():
 		self._setCurrentZ(newZ)
 
 	def mcLayerChange(self, layer):
+		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
 		self._currentLayer = layer;
 
 	def mcSdStateChange(self, sdReady):

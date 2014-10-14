@@ -355,11 +355,9 @@ class AstroPrintCloud(object):
 
 	def uploadImageFile(self, print_id, imageBuf):
 		try:
-			#m = MultipartEncoder(fields=[('file',(image, open(image, 'rb')))])
 			m = MultipartEncoder(fields=[('file',('snapshot.jpg', imageBuf))])
 			r = requests.post( 
 				"%s/prints/%s/image" % (self.apiHost, print_id),
-				#data={'image_data' = base64.b64encode(imageBuf)}
 				data= m, 
 				headers= {'Content-Type': m.content_type},
 				auth= self.hmacAuth
@@ -371,7 +369,7 @@ class AstroPrintCloud(object):
 
 		if status_code == 201:
 			data = r.json()
-			return data['print_image_id']
+			return data
 
 		else: 
 			return None

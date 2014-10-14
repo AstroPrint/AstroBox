@@ -30,7 +30,8 @@ var SocketData = Backbone.Model.extend({
 		},
         astroprint: {
             status: null
-        }
+        },
+        print_capture: null
 	},
     initialize: function()
     {
@@ -185,6 +186,10 @@ var SocketData = Backbone.Model.extend({
                                 console.log('astroprintStatus unkonwn event: '+payload);
                             }
                             this.set('astroprint', { status: payload });
+                            break;
+
+                        case 'PrintCaptureInfoChanged':
+                            this.set('print_capture', payload);
                             break;
 
                         default:

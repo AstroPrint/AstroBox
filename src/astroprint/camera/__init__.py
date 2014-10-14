@@ -19,42 +19,31 @@ def cameraManager():
 
 import threading
 import os.path
-
-from sys import platform
 import time
 
+from sys import platform
+
+from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 
 class TimelapseWorker(threading.Thread):
-	def __init__(self, manager, printer, timelapseId, timelapseFreq):
+	def __init__(self, manager, timelapseId, timelapseFreq):
 		super(TimelapseWorker, self).__init__()
 
 		self._stopExecution = False
 		self._cm = manager
-		self._printer = printer
 		self._resumeFromPause = threading.Event()
 
 		self.daemon = True
 		self.timelapseId = timelapseId
-		self.timelapseFreq = float(timelapseFreq)
+		self.timelapseFreq = timelapseFreq
 
 	def run(self):
 		lastUpload = 0
 		self._resumeFromPause.set()
 		while not self._stopExecution:
-			if (time.time() - lastUpload ) >= self.timelapseFreq:
-				#Build text
-				printerData = self._printer.getCurrentData()
-				text = "%d%% - Layer %d%s" % (
-					printerData['progress']['completion'], 
-					printerData['progress']['currentLayer'],
-					"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
-				)
-
-				picBuf = self._cm.get_pic(text=text)
-
-				if picBuf and self._cm._astroprint.uploadImageFile(self.timelapseId, picBuf):
-					lastUpload = time.time()
+			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId):
+				lastUpload = time.time()
 
 			time.sleep(1)
 			self._resumeFromPause.wait()
@@ -78,55 +67,143 @@ class TimelapseWorker(threading.Thread):
 class CameraManager(object):
 	def __init__(self):
 		self._astroprint = astroprintCloud()
+		self._eventManager = eventManager()
+		self._printer = None
 
-		self.activeTimelapse = None
+		self.timelapseWorker = None
+		self.timelapseInfo = None
+
+	def addPhotoToTimelapse(self, timelapseId):
+		#Build text
+		printerData = self._printer.getCurrentData()
+		text = "%d%% - Layer %d%s" % (
+			printerData['progress']['completion'], 
+			printerData['progress']['currentLayer'],
+			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
+		)
+
+		picBuf = self.get_pic(text=text)
+
+		if picBuf:
+			picData = self._astroprint.uploadImageFile(timelapseId, picBuf)
+			if picData:
+				self.timelapseInfo['last_photo'] = picData['url']
+				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+				return True
+
+		return False
 
 	def start_timelapse(self, freq):
-		from octoprint.server import printer
+		if freq == '0':
+			return False
 
-		if self.activeTimelapse:
+		if not self._printer:
+			from octoprint.server import printer
+			self._printer = printer
+
+		if self.timelapseWorker:
 			self.stop_timelapse()
 
 		#check that there's a print ongoing otherwise don't start
-		if not printer._selectedFile:
+		if not self._printer._selectedFile:
 			return False
 
 		if not self.isCameraAvailable():
 			if not self.open_camera():
 				return False
 
-		timelapseId = self._astroprint.startTimelapse(os.path.split(printer._selectedFile["filename"])[1])
+		timelapseId = self._astroprint.startTimelapse(os.path.split(self._printer._selectedFile["filename"])[1])
 		if timelapseId:
-			self.activeTimelapse = TimelapseWorker(self, printer, timelapseId, freq)
-			self.activeTimelapse.start()
+			self.timelapseInfo = {
+				'id': timelapseId,
+				'freq': freq,
+				'paused': False,
+				'last_photo': None
+			}
+
+			if freq == 'layer':
+				# send first pic and subscribe to layer change events
+				self.addPhotoToTimelapse(timelapseId)
+				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
+
+			else:
+				try:
+					freq = float(freq)
+				except ValueError:
+					return False
+
+				self.timelapseInfo['freq'] = freq
+				self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
+				self.timelapseWorker.start()
+
+			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+
 			return True	
 
 		return False	
 
 	def update_timelapse(self, freq):
-		if self.activeTimelapse:
-			self.activeTimelapse.timelapseFreq = float(freq)
+		if self.timelapseInfo and self.timelapseInfo['freq'] != freq:
+			if freq == 'layer':
+				if not self.timelapseWorker.isPaused():
+					self.pause_timelapse();
+
+				# subscribe to layer change events
+				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
+			else:
+				try:
+					freq = float(freq)
+				except ValueError:
+					return False
+
+				# if subscribed to layer change events, unsubscribe here
+				self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
+
+				if freq == 0:
+					self.pause_timelapse()
+				elif not self.timelapseWorker:
+					self.timelapseWorker = TimelapseWorker(self, self.timelapseInfo['id'], freq)
+					self.timelapseWorker.start()
+				elif self.timelapseWorker.isPaused():
+					self.timelapseWorker.timelapseFreq = freq
+					self.resume_timelapse()
+				else:
+					self.timelapseWorker.timelapseFreq = freq
+
+			self.timelapseInfo['freq'] = freq
+			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+			
 			return True
 
 		return False
 
 	def stop_timelapse(self):
-		if self.activeTimelapse:
-			self.activeTimelapse.stop()
-			self.activeTimelapse = None
+		if self.timelapseWorker:
+			self.timelapseWorker.stop()
+			self.timelapseWorker = None
+			self.timelapseInfo = None
+
+			#unsubscribe from layer change events
+			self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
+
+			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, None)
 
 		return True
 
 	def pause_timelapse(self):
-		if self.activeTimelapse and not self.activeTimelapse.isPaused():
-			self.activeTimelapse.pause()
+		if self.timelapseWorker and not self.timelapseWorker.isPaused():
+			self.timelapseWorker.pause()
+			self.timelapseInfo['paused'] = True
+			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 			return True
 
 		return False
 
 	def resume_timelapse(self):
-		if self.activeTimelapse and self.activeTimelapse.isPaused():
-			self.activeTimelapse.resume()
+		if self.timelapseWorker and self.timelapseWorker.isPaused():
+			self.timelapseWorker.resume()
+			self.timelapseInfo['paused'] = False
+			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 			return True
 
 		return False
@@ -151,3 +228,9 @@ class CameraManager(object):
 
 	def isCameraAvailable(self):
 		return False
+
+	## private functions
+
+	def _onLayerChange(self, event, payload):
+		if self.timelapseInfo:
+			self.addPhotoToTimelapse(self.timelapseInfo['id'])
