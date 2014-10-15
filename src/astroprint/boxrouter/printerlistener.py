@@ -5,6 +5,10 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import json
 import logging
 
+from copy import deepcopy
+
+from octoprint.events import eventManager, Events
+
 class PrinterListener(object):
 	def __init__(self, socket):
 		self._logger = logging.getLogger(__name__)
@@ -12,8 +16,15 @@ class PrinterListener(object):
 		self._lastSent = {
 			'temp_update': None,
 			'status_update': None,
-			'printing_progress': None
+			'printing_progress': None,
+			'print_capture': None
 		}
+
+		#register for print_capture events
+		eventManager().subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
+
+	def cleanup(self):
+		eventManager().unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
 
 	def sendHistoryData(self, data):
 		pass
@@ -56,6 +67,9 @@ class PrinterListener(object):
 	def sendFeedbackCommandOutput(self, name, output):
 		pass
 
+	def _onCaptureInfoChanged(self, event, payload):
+		self._sendUpdate('print_capture', payload)
+
 	def _sendUpdate(self, event, data):
 		if self._lastSent[event] != data:
 			try:
@@ -67,7 +81,7 @@ class PrinterListener(object):
 					}
 				}))
 
-				self._lastSent[event] = data
+				self._lastSent[event] = deepcopy(data) if data else None
 
 			except Exception as e:
 				self._logger.error( 'Error sending [%s] event: %s' % (event, e) )		

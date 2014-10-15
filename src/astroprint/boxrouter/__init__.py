@@ -37,6 +37,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._printer = printer
 		self._printerListener = None
 		self._subscribers = 0
+		self._cameraManager = cameraManager()
 		self._logger = logging.getLogger(__name__)
 		WebSocketClient.__init__(self, hostname)
 
@@ -80,7 +81,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						'printing': self._printer.isPrinting(),
 						'operational': self._printer.isOperational(),
 						'paused': self._printer.isPaused(),
-						'camera': self._printer.isCameraConnected()
+						'camera': self._printer.isCameraConnected(),
+						'printCapture': self._cameraManager.timelapseInfo
 					}
 				elif request == 'job_info':
 					response = self._printer._stateMonitor._jobData
@@ -97,13 +99,40 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						self._printer.cancelPrint();
 
 					elif command == 'photo':
-						response['image_data'] = base64.b64encode(cameraManager().get_pic())
+						response['image_data'] = base64.b64encode(self._cameraManager.get_pic())
 
 					else:
 						response = {
 							'error': True,
 							'message': 'Printer command [%s] is not supported' % command
 						}
+
+				elif request == 'printCapture':
+					freq = data['freq']
+					if freq:
+						if self._cameraManager.timelapseInfo:
+							if self._cameraManager.update_timelapse(freq):
+								response = {'success': True}
+							else:
+								response = {
+									'error': True,
+									'message': 'Error updating the print capture'
+								}
+								
+						else:
+							if self._cameraManager.start_timelapse(freq):
+								response = {'success': True}
+							else:
+								response = {
+									'error': True,
+									'message': 'Error creating the print capture'
+								}
+
+					else:
+						response = {
+							'error': True,
+							'message': 'Frequency required'
+						}						
 
 				else:
 					response = {
@@ -134,8 +163,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def unregisterEvents(self):
 		if self._printerListener:
 			self._printer.unregisterCallback(self._printerListener)
+			self._printerListener.cleanup()
 			self._printerListener = None
-
 
 class AstroprintBoxRouter(object):
 	MAX_RETRIES = 5

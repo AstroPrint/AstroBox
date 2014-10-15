@@ -55,6 +55,7 @@ class AstroPrintCloud(object):
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None
 		self._sm = softwareManager()
+		self._gcodeMgr = None
 
 	@staticmethod
 	def cloud_enabled():
@@ -329,8 +330,14 @@ class AstroPrintCloud(object):
 		else:
 			return None
 
-	def startTimelapse(self, name, print_file_id = None):
-		data = {'name': name}
+	def startPrintCapture(self, filename):
+		data = {'name': filename}
+
+		if not self._gcodeMgr:
+			from octoprint.server import gcodeManager 
+			self._gcodeMgr = gcodeManager
+
+		print_file_id = self._gcodeMgr.getFileCloudId(filename)
 
 		if print_file_id:
 			data['print_file_id'] = print_file_id

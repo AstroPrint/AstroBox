@@ -76,9 +76,9 @@ class CameraManager(object):
 	def addPhotoToTimelapse(self, timelapseId):
 		#Build text
 		printerData = self._printer.getCurrentData()
-		text = "%d%% - Layer %d%s" % (
+		text = "%d%% - Layer %s%s" % (
 			printerData['progress']['completion'], 
-			printerData['progress']['currentLayer'],
+			str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
 			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
 		)
 
@@ -105,14 +105,15 @@ class CameraManager(object):
 			self.stop_timelapse()
 
 		#check that there's a print ongoing otherwise don't start
-		if not self._printer._selectedFile:
+		selectedFile = self._printer._selectedFile
+		if not selectedFile:
 			return False
 
 		if not self.isCameraAvailable():
 			if not self.open_camera():
 				return False
 
-		timelapseId = self._astroprint.startTimelapse(os.path.split(self._printer._selectedFile["filename"])[1])
+		timelapseId = self._astroprint.startPrintCapture(os.path.split(selectedFile["filename"])[1])
 		if timelapseId:
 			self.timelapseInfo = {
 				'id': timelapseId,
