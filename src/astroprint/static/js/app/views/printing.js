@@ -183,19 +183,10 @@ var PhotoView = Backbone.View.extend({
         this.parent = options.parent;
 
         this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+        this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
     },
     render: function() {
-        var cameraControls = this.$('.camera-controls');
         var imageNode = this.$('.camera-image');
-
-        //Camera controls section
-        if (this.parent.printing_progress.camera_connected) {
-            if (!cameraControls.is(":visible")) {
-                cameraControls.show();
-            }
-        } else if (cameraControls.is(":visible") ) {
-            cameraControls.hide();
-        }
 
         //image
         var imageUrl = null;
@@ -231,6 +222,18 @@ var PhotoView = Backbone.View.extend({
         }
         
         this.$('.timelapse select').val(freq);
+    },
+    onCameraChanged: function(s, value) {
+        var cameraControls = this.$('.camera-controls');
+
+        //Camera controls section
+        if (value) {
+            if (!cameraControls.is(":visible")) {
+                cameraControls.show();
+            }
+        } else if (cameraControls.is(":visible") ) {
+            cameraControls.hide();
+        }
     },
     onPrintCaptureChanged: function(s, value) {
         this.print_capture = value;
@@ -346,8 +349,6 @@ var PrintingView = Backbone.View.extend({
             pauseBtn.html('<i class="icon-pause"></i> Pause Print');
             controlBtn.hide();
         }
-
-        this.photoView.render();
     },
     onTempsChanged: function(s, value) {
         if (!this.$el.hasClass('hide')) {
@@ -358,6 +359,11 @@ var PrintingView = Backbone.View.extend({
     onProgressChanged: function(s, value) {
         this.printing_progress = value;
         this.render();
+    },
+    onPausedChanged: function(s, value) {
+        this.paused = value;
+        this.render();
+        this.photoView.render();
     },
     _formatTime: function(seconds) {
         var sec_num = parseInt(seconds, 10); // don't forget the second param
@@ -370,16 +376,15 @@ var PrintingView = Backbone.View.extend({
         if (seconds < 10) {seconds = "0"+seconds;}
         return [hours, minutes, seconds];
     },
-    onPausedChanged: function(s, value) {
-        this.paused = value;
-        this.render();
-    },
     show: function() {
         this.nozzleBar.onResize();
         this.bedBar.onResize();
         this.printing_progress = app.socketData.get('printing_progress');
         this.paused = app.socketData.get('paused');
         this.render();
+
+        this.photoView.print_capture = app.socketData.get('print_capture');
+        this.photoView.render();
     },
     stopPrint: function() {
         this._jobCommand('cancel');

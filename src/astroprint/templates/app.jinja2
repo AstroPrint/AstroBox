@@ -89,7 +89,8 @@
 		var ASTROBOX_NAME = "{{astroboxName}}";
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
-			paused: {% if paused -%} true {%- else -%} false {%- endif %}
+			paused: {% if paused -%} true {%- else -%} false {%- endif %},
+			print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %}
 		}
 	</script>
 	{% assets filters="closure_js", output="js/gen/app.js", 

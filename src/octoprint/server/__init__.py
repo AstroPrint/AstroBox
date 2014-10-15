@@ -88,12 +88,16 @@ def index():
 		)
 
 	else:
+		paused = printer.isPaused()
+		printing = printer.isPrinting()
+		
 		return render_template(
 			"app.jinja2",
 			user_email= s.get(["cloudSlicer", "email"]),
 			version= VERSION,
-			printing= printer.isPrinting(),
-			paused= printer.isPaused(),
+			printing= printing,
+			paused= paused,
+			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager.getHostname()
 		)
