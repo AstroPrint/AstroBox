@@ -366,6 +366,10 @@ var PrintingView = Backbone.View.extend({
         this.photoView.render();
     },
     _formatTime: function(seconds) {
+        if (seconds == null || isNaN(seconds)) {
+            return ['--','--','--'];
+        }
+
         var sec_num = parseInt(seconds, 10); // don't forget the second param
         var hours   = Math.floor(sec_num / 3600);
         var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
