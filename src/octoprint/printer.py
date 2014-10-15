@@ -339,7 +339,7 @@ class Printer():
 		self.setTemperature('bed', 5)
 		self.setTemperature('tool', 5)
 
-		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
+		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -608,7 +608,7 @@ class Printer():
 		self.setTemperature('bed', 5.0)
 		self.setTemperature('tool', 5.0)
 
-		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
+		self.commands(["M84", "M106 S0"]); #Motors off, Fan off
 
 		#stop timelapse if there was one
 		self._cameraManager.stop_timelapse()
