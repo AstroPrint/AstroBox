@@ -34,8 +34,11 @@
 			</center>
 		</div>
 	{% endif %}
-	<div class="small-12 columns progress {%- if showForceUpdate %} hide {%- endif %}">
+	<div class="small-12 columns progress-info {%- if showForceUpdate %} hide {%- endif %}">
 		<h1 class="bold" align="center">Software Update in Progress</h1>
+		<div class="progress success round">
+		  <span class="meter" style="width:0%"></span>
+		</div>
 		<h3 align="center" class="message">Downloading release...</h3>
 		<center>
 			<div class="progress-animation">
