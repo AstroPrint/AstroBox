@@ -399,25 +399,52 @@ var PrintingView = Backbone.View.extend({
         this.photoView.print_capture = app.socketData.get('print_capture');
         this.photoView.render();
     },
-    stopPrint: function() {
-        this._jobCommand('cancel');
-        app.router.navigate('', {replace:true, trigger: true});
-        this.$el.find('.tab-bar .left-small').show();
+    stopPrint: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+
+        loadingBtn.addClass('loading');
+        this._jobCommand('cancel', _.bind(function(data){
+            if (data && _.has(data, 'error')) {
+                console.error(data.error);
+            } else {
+                app.socketData.set({printing: false, paused: false});
+                this.$el.find('.tab-bar .left-small').show();
+                app.router.navigate('', {replace:true, trigger: true});  
+            }         
+            loadingBtn.removeClass('loading'); 
+        }, this));
     },
-    togglePausePrint: function() {
-        this._jobCommand('pause');
+    togglePausePrint: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+        var wasPaused = app.socketData.get('paused');
+
+        loadingBtn.addClass('loading');
+        this._jobCommand('pause', _.bind(function(data){
+            if (data && _.has(data, 'error')) {
+                console.error(data.error);
+            } else {
+                app.socketData.set('paused', !wasPaused);
+            }
+            loadingBtn.removeClass('loading'); 
+        }, this));
     },
     showControlPage: function() {
         app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
     },
-    _jobCommand: function(command) {
+    _jobCommand: function(command, callback) {
         $.ajax({
             url: API_BASEURL + "job",
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify({command: command})
+        }).
+        done(function(data){
+            if (callback) callback(data);
+        }).
+        fail(function(error) {
+            if (callback) callback({error:error.responseText});
         });
     }
 });

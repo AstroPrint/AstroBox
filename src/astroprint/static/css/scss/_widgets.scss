@@ -4,6 +4,11 @@
 	&.expand {
 		width: 100%;
 		display: block;
+
+		span.loading,
+		button, .button {
+			width: 100%;
+		}
 	}
 
 	span.loading {

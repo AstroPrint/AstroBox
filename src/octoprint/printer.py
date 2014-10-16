@@ -599,7 +599,6 @@ class Printer():
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
-		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])

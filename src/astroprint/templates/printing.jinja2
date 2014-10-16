@@ -88,12 +88,18 @@
 </div>
 <div class="row">
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="success radius pause-print expand"><i class="icon-pause"></i> Pause Print</button>
+		<div class="loading-button expand">
+			<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+			<span class="button loading success radius disabled"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
+		</div>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
 		<button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel Print</button>
+		<div class="loading-button expand">
+			<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
+			<span class="alert radius loading button disabled"><i class="icon-rocket-spinner animate-spin"></i> Cancelling...</span>
+		</div>
 	</div>
 </div>
