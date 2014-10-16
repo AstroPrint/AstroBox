@@ -8,6 +8,7 @@
 	"foundation/settings",
 	"foundation/components/grid",
 	"foundation/components/buttons",
+	"foundation/components/progress-bars",
 	"common-main";
 
 body {
@@ -40,12 +41,23 @@ body {
 	}
 }
 
-.progress {
+.progress-info {
 	padding: 0 20px;
 
 	h1, h3 {
 		color: white;
 		line-height: 1.3em;
+	}
+
+	.progress {
+		height: 25px;
+		width: 100%;
+		background: transparent;
+		border-color: #bbb;
+
+		.meter {
+			transition: width 1s;
+		}
 	}
 }
 

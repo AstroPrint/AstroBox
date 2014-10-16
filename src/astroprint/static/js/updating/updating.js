@@ -67,22 +67,22 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 
                 	if (payload.completed) {
                 		if (payload.success) {
-                            this.$el.find('h3.message').text('Restarting. Please wait..');
-							$.ajax({
-								type: 'POST',
-								url: API_BASEURL + 'settings/software/restart'
-							});
+                            $.ajax({
+                                type: 'POST',
+                                url: API_BASEURL + 'settings/software/restart'
+                            });
                             setTimeout(function() {
                                 location.href = '/';
                             }, 6000);
 						} else {
 							//error case here
-							this.$el.find('.progress').addClass('hide');
+							this.$el.find('.progress-info').addClass('hide');
 							this.$el.find('.error').removeClass('hide');
                             this.$el.find('.info').addClass('hide');
 						}
                 	} else if (payload.message) {
-                		this.$el.find('h3.message').text(payload.message);
+                        this.$('.progress-info .progress .meter').css('width', (payload.progress * 100) + '%');
+                		this.$('h3.message').text(payload.message);
                 	}
            	}
         }
@@ -107,12 +107,12 @@ var SoftwareUpdateProgress = Backbone.View.extend({
                 release_id: RELEASE_ID
             }),
             success: _.bind(function() {
-                this.$el.find('.progress').removeClass('hide');
+                this.$el.find('.progress-info').removeClass('hide');
                 this.$el.find('.error').addClass('hide');
                 this.$el.find('.info').addClass('hide');
             }, this),
             error: _.bind(function(xhr) {
-                this.$el.find('.progress').addClass('hide');
+                this.$el.find('.progress-info').addClass('hide');
                 this.$el.find('.error').removeClass('hide');
                 this.$el.find('.info').addClass('hide');
             }, this),

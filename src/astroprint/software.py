@@ -18,12 +18,51 @@ import json
 import subprocess
 import threading
 import logging
+import time
+import apt.debfile
+import apt.progress.base
 
 from tempfile import mkstemp
 from sys import platform
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+
+MAX_DOWNLOAD_PROGRESS = 0.3
+MAX_DEPS_PROGRESS = 0.3
+START_UPDATE_PROGRESS = 0.7
+
+class UpdateProgress(apt.progress.base.InstallProgress):
+	def __init__(self, progressCb, completionCb):
+		super(UpdateProgress, self).__init__()
+
+		self._progressCb = progressCb
+		self._completionCb = completionCb
+		self._logger = logging.getLogger(__name__)
+		self._errors = False
+
+	def start_update(self):
+		self._logger.info("Software Update started")
+		self._progressCb(START_UPDATE_PROGRESS, "Upgrading software...")
+
+	def error(self, pkg, message):
+		self._logger.error("Error during install [%s]" % message)
+		self._completionCb(message)
+		self._errors = True
+
+	def processing(self, pkg, stage):
+		if stage == 'upgrade':
+			self._progressCb(START_UPDATE_PROGRESS + 0.05, "Upgrading software...")
+		elif stage == 'configure':
+			self._progressCb(START_UPDATE_PROGRESS + 0.1, "Configuring...")
+		elif stage == 'trigproc':
+			self._progressCb(START_UPDATE_PROGRESS + 0.25, "Finalizing...")
+
+	def finish_update(self):
+		if not self._errors:
+			self._logger.info("Software Update completed succesfully")
+			self._progressCb(1.0, "Restarting. Please wait...")
+			self._completionCb()
 
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
@@ -32,9 +71,10 @@ class SoftwareUpdater(threading.Thread):
 		self._manager = manager
 		self._progressCb = progressCb
 		self._completionCb = completionCb
+		self._logger = logging.getLogger(__name__)
 
 	def run(self):
-		self._progressCb(0.2, "Downloading release...")
+		self._progressCb(0.02, "Downloading release...")
 		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
 
 		if r.status_code == 200:
@@ -43,33 +83,53 @@ class SoftwareUpdater(threading.Thread):
 			content_length = float(r.headers['Content-Length']);
 			downloaded_size = 0.0
 
+			self._logger.info('Downloading release.')
 			with os.fdopen(releaseHandle, "wb") as fd:
 				for chunk in r.iter_content(250000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					percent = round((downloaded_size / content_length), 2)
-					self._progressCb(percent, "Downloading release (%d%%)" % (percent * 100) )
+					percent = round((downloaded_size / content_length), 2) * MAX_DOWNLOAD_PROGRESS
+					self._progressCb(percent, "Downloading release...")
 
+			self._logger.info('Release downloaded.')
 			if platform == "linux" or platform == "linux2":
 				self._progressCb(percent, "Installing release. Please be patient..." )
-				if subprocess.call(['dpkg', '-i', releasePath]) == 0:
-					os.remove(releasePath)
+				time.sleep(0.2) #give the message a chance to be sent
 
-					if self.vData['force_setup']:
-						#remove the config file
-						os.remove(self._manager._settings._configfile)
+				def completionCb(error = None):
+					if os.path.isfile(releasePath):
+						os.remove(releasePath)
 
-					return self._completionCb(True)
+					if error:
+						self._completionCb(False)
+					else:
+						if self.vData['force_setup']:
+							#remove the config file
+							os.remove(self._manager._settings._configfile)
+
+						self._completionCb(True)
+
+				pkg = apt.debfile.DebPackage(releasePath)
+				self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.05, "Checking software package. Please be patient..." )
+				pkg.check()
+				if pkg.missing_deps:
+					cache = apt.Cache()
+					with cache.actiongroup():
+						for dep in pkg.missing_deps:
+							cache[dep].mark_install()
+					
+					self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.1, "Installing dependencies. This might take a while...")
+					cache.commit()
+					self._progressCb(MAX_DOWNLOAD_PROGRESS + MAX_DEPS_PROGRESS, "Installing dependencies. Almost done...")
+
+				pkg.install(UpdateProgress(self._progressCb, completionCb))
 
 			else:
-
-				from time import sleep
-
 				i=0.0
 				while i<10:
 					percent = i/10.0
 					self._progressCb(percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
-					sleep(1)
+					time.sleep(1)
 					i+=1
 
 				os.remove(releasePath)
@@ -82,9 +142,6 @@ class SoftwareUpdater(threading.Thread):
 		else:
 			self._manager._logger.error('Error performing software update info: %d' % r.status_code)
 			r.close()
-
-		self._completionCb(False)
-
 
 class SoftwareManager(object):	
 	def __init__(self):
