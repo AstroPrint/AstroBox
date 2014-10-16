@@ -28,6 +28,10 @@ from sys import platform
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
+MAX_DOWNLOAD_PROGRESS = 0.3
+MAX_DEPS_PROGRESS = 0.3
+START_UPDATE_PROGRESS = 0.7
+
 class UpdateProgress(apt.progress.base.InstallProgress):
 	def __init__(self, progressCb, completionCb):
 		super(UpdateProgress, self).__init__()
@@ -39,7 +43,7 @@ class UpdateProgress(apt.progress.base.InstallProgress):
 
 	def start_update(self):
 		self._logger.info("Software Update started")
-		self._progressCb(0.55, "Upgrading software...")
+		self._progressCb(START_UPDATE_PROGRESS, "Upgrading software...")
 
 	def error(self, pkg, message):
 		self._logger.error("Error during install [%s]" % message)
@@ -47,13 +51,12 @@ class UpdateProgress(apt.progress.base.InstallProgress):
 		self._errors = True
 
 	def processing(self, pkg, stage):
-		print "processing %s - %d" % (stage, self.percent)
 		if stage == 'upgrade':
-			self._progressCb(0.65, "Upgrading software...")
+			self._progressCb(START_UPDATE_PROGRESS + 0.05, "Upgrading software...")
 		elif stage == 'configure':
-			self._progressCb(0.8, "Configuring...")
+			self._progressCb(START_UPDATE_PROGRESS + 0.1, "Configuring...")
 		elif stage == 'trigproc':
-			self._progressCb(0.9, "Finalizing...")
+			self._progressCb(START_UPDATE_PROGRESS + 0.25, "Finalizing...")
 
 	def finish_update(self):
 		if not self._errors:
@@ -85,7 +88,7 @@ class SoftwareUpdater(threading.Thread):
 				for chunk in r.iter_content(250000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					percent = round((downloaded_size / content_length), 2) * 0.5
+					percent = round((downloaded_size / content_length), 2) * MAX_DOWNLOAD_PROGRESS
 					self._progressCb(percent, "Downloading release...")
 
 			self._logger.info('Release downloaded.')
@@ -107,17 +110,26 @@ class SoftwareUpdater(threading.Thread):
 						self._completionCb(True)
 
 				pkg = apt.debfile.DebPackage(releasePath)
+				self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.05, "Checking software package. Please be patient..." )
+				pkg.check()
+				if pkg.missing_deps:
+					cache = apt.Cache()
+					with cache.actiongroup():
+						for dep in pkg.missing_deps:
+							cache[dep].mark_install()
+					
+					self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.1, "Installing dependencies. This might take a while...")
+					cache.commit()
+					self._progressCb(MAX_DOWNLOAD_PROGRESS + MAX_DEPS_PROGRESS, "Installing dependencies. Almost done...")
+
 				pkg.install(UpdateProgress(self._progressCb, completionCb))
 
 			else:
-
-				from time import sleep
-
 				i=0.0
 				while i<10:
 					percent = i/10.0
 					self._progressCb(percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
-					sleep(1)
+					time.sleep(1)
 					i+=1
 
 				os.remove(releasePath)
