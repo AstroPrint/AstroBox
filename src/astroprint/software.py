@@ -2,22 +2,6 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-import os
-import yaml
-import requests
-import json
-import subprocess
-import threading
-import logging
-import apt.debfile
-import apt.progress.base
-
-from tempfile import mkstemp
-from sys import platform
-
-from octoprint.settings import settings
-from octoprint.events import eventManager, Events
-
 # singleton
 _instance = None
 
@@ -27,6 +11,23 @@ def softwareManager():
 		_instance = SoftwareManager()
 	return _instance
 
+import os
+import yaml
+import requests
+import json
+import subprocess
+import threading
+import logging
+import time
+import apt.debfile
+import apt.progress.base
+
+from tempfile import mkstemp
+from sys import platform
+
+from octoprint.settings import settings
+from octoprint.events import eventManager, Events
+
 class UpdateProgress(apt.progress.base.InstallProgress):
 	def __init__(self, progressCb, completionCb):
 		super(UpdateProgress, self).__init__()
@@ -34,6 +35,7 @@ class UpdateProgress(apt.progress.base.InstallProgress):
 		self._progressCb = progressCb
 		self._completionCb = completionCb
 		self._logger = logging.getLogger(__name__)
+		self._errors = False
 
 	def start_update(self):
 		self._logger.info("Software Update started")
@@ -41,11 +43,11 @@ class UpdateProgress(apt.progress.base.InstallProgress):
 
 	def error(self, pkg, message):
 		self._logger.error("Error during install [%s]" % message)
-		os.remove(releasePath)
 		self._completionCb(message)
+		self._errors = True
 
 	def processing(self, pkg, stage):
-		print "processing %s" % stage
+		print "processing %s - %d" % (stage, self.percent)
 		if stage == 'upgrade':
 			self._progressCb(0.65, "Upgrading software...")
 		elif stage == 'configure':
@@ -54,9 +56,10 @@ class UpdateProgress(apt.progress.base.InstallProgress):
 			self._progressCb(0.9, "Finalizing...")
 
 	def finish_update(self):
-		self._logger.info("Software Update completed succesfully")
-		self._progressCb(1.0, "Restarting. Please wait...")
-		self._completionCb()
+		if not self._errors:
+			self._logger.info("Software Update completed succesfully")
+			self._progressCb(1.0, "Restarting. Please wait...")
+			self._completionCb()
 
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
@@ -88,9 +91,11 @@ class SoftwareUpdater(threading.Thread):
 			self._logger.info('Release downloaded.')
 			if platform == "linux" or platform == "linux2":
 				self._progressCb(percent, "Installing release. Please be patient..." )
+				time.sleep(0.2) #give the message a chance to be sent
 
 				def completionCb(error = None):
-					os.remove(releasePath)
+					if os.path.isfile(releasePath):
+						os.remove(releasePath)
 
 					if error:
 						self._completionCb(False)
