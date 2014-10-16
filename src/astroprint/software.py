@@ -2,6 +2,15 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+# singleton
+_instance = None
+
+def softwareManager():
+	global _instance
+	if _instance is None:
+		_instance = SoftwareManager()
+	return _instance
+
 import os
 import yaml
 import requests
@@ -15,15 +24,6 @@ from sys import platform
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-
-# singleton
-_instance = None
-
-def softwareManager():
-	global _instance
-	if _instance is None:
-		_instance = SoftwareManager()
-	return _instance
 
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):

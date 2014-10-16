@@ -1,23 +1,53 @@
-<div class="row">
-	<div class="small-12 columns" align="center">
-		<h2 class="bold"> Printing </h2>
-		<div class="progress success radius">
-			<span class="meter" style="width: 0%"></span>
-			<span class="filename"></span>
-			<span class="progress-label"></span> 
+<div class="row print-info">
+	<h2 class="bold" align="center">Printing</h2>
+	<div class="small-12 large-4 columns camera-view" align="center">
+		<div class="camera-container">
+			<i class="icon-3d-object"></i>
+			<img class="camera-image" width="100%"/>
+		</div>
+		<div class="camera-controls">
+			<div class="row collapse">
+				<div class="small-4 columns" align="center">
+					<div class="timelapse">
+						<i class="icon-picture"></i>
+						<select class="bold" align="center">
+							<option value="0">Off</option>
+							<option value="layer">Ea. layer</option>
+							<option value="60">1 min</option>
+							<option value="120">2 mins</option>
+							<option value="300">5 mins</option>
+							<option value="900">15 mins</option>
+							<option value="1800">30 mins</option>
+						</select>
+						<span class="dot"></span>
+						<div class="overlay" style="display:none"></div>
+					</div>
+				</div>
+				<div class="small-4 columns">
+					<div class="loading-button">
+						<button class="success round take-pic"><i class="icon-camera"></i></button>
+						<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+					</div>
+				</div>
+				<div class="small-4 columns"></div>
+			</div>
 		</div>
 	</div>
-</div>
-
-<div class="row print-info">
 	<div class="info">
-		<div class="small-12 medium-6 columns" align="center">
+		<div class="small-12 large-8 columns">
+			<div class="progress success radius">
+				<span class="meter" style="width: 0%"></span>
+				<span class="filename"></span>
+				<span class="progress-label"></span> 
+			</div>
+		</div>
+		<div class="small-12 medium-6 large-4 columns" align="center">
 			<h2 class="bold">Time Remaining</h2>
 			<div class="bold">
 				<span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
 			</div>
 		</div>
-		<div class="small-12 medium-6 columns" align="center">
+		<div class="small-12 medium-6 large-4 columns" align="center">
 			<h2 class="bold">Printing Layer</h2>
 			<div class="bold">
 				<span class="current-layer highlighted">-</span> of <span class="highlighted layer-count">-</span>
@@ -25,7 +55,7 @@
 		</div>
 	</div>
 	<div class="heating">
-		<div class="small-12 columns" align="center">
+		<div class="small-12 large-8 columns" align="center">
 			<i class="icon-temperatire blink-animation"></i>
 			<b>Heating up...</b>
 		</div>
@@ -58,12 +88,18 @@
 </div>
 <div class="row">
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+		<div class="loading-button expand">
+			<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+			<span class="button loading success radius disabled"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
+		</div>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="radius controls" style="display:none"><i class="icon-move"></i> Printer Controls</button>
+		<button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
+		<div class="loading-button expand">
+			<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
+			<span class="alert radius loading button disabled"><i class="icon-rocket-spinner animate-spin"></i> Cancelling...</span>
+		</div>
 	</div>
 </div>

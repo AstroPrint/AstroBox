@@ -6,7 +6,7 @@ import uuid
 import flask
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
-from flask import Flask, render_template, send_from_directory, make_response
+from flask import Flask, render_template, send_from_directory, make_response, Response, request
 from flask.ext.login import LoginManager
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
@@ -27,10 +27,13 @@ debug = False
 
 app = Flask("octoprint", template_folder="../astroprint/templates", static_folder='../astroprint/static')
 app.config.from_object('astroprint.settings')
-if platform == "linux2" and not debug:
+
+app_config_file = os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'), "application.cfg")
+if os.path.isfile(app_config_file):
+	app.config.from_pyfile(app_config_file, silent=True)
+elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
 	app.config.from_pyfile('/etc/astrobox/application.cfg', silent=True)
-else:
-	app.config.from_pyfile(os.path.realpath(os.path.dirname(__file__)+'/../../../local')+'/application.cfg', silent=True)
+
 assets = Environment(app)
 Compress(app)
 
@@ -55,9 +58,10 @@ import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
-import octoprint.timelapse
+#import octoprint.timelapse
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.camera import cameraManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -84,12 +88,16 @@ def index():
 		)
 
 	else:
+		paused = printer.isPaused()
+		printing = printer.isPrinting()
+		
 		return render_template(
 			"app.jinja2",
 			user_email= s.get(["cloudSlicer", "email"]),
 			version= VERSION,
-			printing= printer.isPrinting(),
-			paused= printer.isPaused(),
+			printing= printing,
+			paused= paused,
+			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager.getHostname()
 		)
@@ -113,6 +121,15 @@ def static_proxy_images(path):
 @app.route('/font/<path:path>')
 def static_proxy_fonts(path):
     return app.send_static_file(os.path.join('font', path))
+
+@app.route('/camera/snapshot', methods=["GET"])
+def camera_snapshot():
+	cameraMgr = cameraManager()
+	pic_buf = cameraMgr.get_pic(text=request.args.get('text'))
+	if pic_buf:
+		return Response(pic_buf, mimetype='image/jpeg')
+	else:
+		return 'Camera not ready', 404
 
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
@@ -188,7 +205,7 @@ class Server():
 		printer = Printer(gcodeManager)
 
 		# configure timelapse
-		octoprint.timelapse.configureTimelapse()
+		#octoprint.timelapse.configureTimelapse()
 
 		# setup command triggers
 		events.CommandTrigger(printer)

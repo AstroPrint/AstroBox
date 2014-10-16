@@ -24,7 +24,7 @@ from functools import wraps
 from watchdog.events import PatternMatchingEventHandler
 
 from octoprint.settings import settings
-import octoprint.timelapse
+#import octoprint.timelapse
 import octoprint.server
 from octoprint.users import ApiUser
 from octoprint.events import Events
@@ -126,9 +126,9 @@ def getApiKey(request):
 
 
 class PrinterStateConnection(SockJSConnection):
-	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.MOVIE_RENDERING, Events.MOVIE_DONE,
-			  Events.MOVIE_FAILED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
-			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE]
+	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
+			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE, 
+			  Events.CAPTURE_INFO_CHANGED]
 
 	def __init__(self, printer, gcodeManager, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
@@ -163,19 +163,19 @@ class PrinterStateConnection(SockJSConnection):
 
 		self._printer.registerCallback(self)
 		self._gcodeManager.registerCallback(self)
-		octoprint.timelapse.registerCallback(self)
+		#octoprint.timelapse.registerCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
 
-		octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
+		#octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
 
 	def on_close(self):
 		self._logger.info("Client connection closed")
 		self._printer.unregisterCallback(self)
 		self._gcodeManager.unregisterCallback(self)
-		octoprint.timelapse.unregisterCallback(self)
+		#octoprint.timelapse.unregisterCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_CLOSED)
 		for event in PrinterStateConnection.EVENTS:

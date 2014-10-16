@@ -13,5 +13,14 @@ var PrintFile = Backbone.Model.extend({
 
 var PrintFileCollection = Backbone.Collection.extend({
 	model: PrintFile,
-	url: API_BASEURL + "astroprint/print-files"
+	url: API_BASEURL + "astroprint/print-files",
+	syncCloud: function(params)
+	{
+		if (!params) {
+			params = {}
+		}
+
+		params.data = {forceSyncCloud: true}
+		this.fetch(params);
+	}
 });

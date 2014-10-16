@@ -2,12 +2,6 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-import socket, urllib2, subprocess
-
-from octoprint.settings import settings
-
-from sys import platform
-
 # singleton
 _instance = None
 
@@ -24,6 +18,12 @@ def networkManager():
 			_instance = NetworkManager()
 
 	return _instance
+
+import socket, urllib2, subprocess
+
+from octoprint.settings import settings
+
+from sys import platform
 
 class NetworkManager(object):
 	def __init__(self):

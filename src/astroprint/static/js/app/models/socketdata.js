@@ -14,6 +14,7 @@ var SocketData = Backbone.Model.extend({
 	defaults: {
         printing: false,
         paused: false,
+        camera: false,
         printing_progress: {
             percent: 0.0,
             time_left: 0
@@ -30,12 +31,14 @@ var SocketData = Backbone.Model.extend({
 		},
         astroprint: {
             status: null
-        }
+        },
+        print_capture: null
 	},
     initialize: function()
     {
         this.set('printing', initial_states.printing);
         this.set('paused', initial_states.paused);
+        this.set('print_capture', initial_states.print_capture);
     },
 	connect: function()
 	{
@@ -62,6 +65,8 @@ var SocketData = Backbone.Model.extend({
         }
         this._autoReconnectTrial = 0;
         this.connectionView.setServerConnection('connected');
+
+        //Get some initials
     },
     _onClose: function() {
     	this.connectionView.setServerConnection('failed');
@@ -124,21 +129,18 @@ var SocketData = Backbone.Model.extend({
                         this.connectionView.setPrinterConnection(connectionClass);
 	                }
 
-                    if (this.get('printing') != flags.printing) {
-                        if (!flags.paused) {
-                            this.set('printing', flags.printing);
-                        }
+                    if (!flags.paused) {
+                        this.set('printing', flags.printing);
                     }
-
-                    if (this.get('paused') != flags.paused) {
-                        this.set('paused', flags.paused);
-                    }
+                    this.set('paused', flags.paused);
+                    this.set('camera', flags.camera);
 
                     if (flags.printing) {
                         var progress = data.progress;
 
                         this.set('printing_progress', {
                             filename: data.job.file.name,
+                            rendered_image: data.job.file.rendered_image,
                             layer_count: data.job.layerCount,
                             current_layer: progress.currentLayer,
                             percent: progress.completion ? progress.completion.toFixed(1) : 0,
@@ -183,6 +185,10 @@ var SocketData = Backbone.Model.extend({
                                 console.log('astroprintStatus unkonwn event: '+payload);
                             }
                             this.set('astroprint', { status: payload });
+                            break;
+
+                        case 'PrintCaptureInfoChanged':
+                            this.set('print_capture', payload);
                             break;
 
                         default:

@@ -9,7 +9,7 @@ import uuid
 from flask import request, jsonify, abort
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, printer, SUCCESS, gcodeManager
+from octoprint.server import restricted_access, SUCCESS, gcodeManager
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
@@ -56,19 +56,25 @@ def upload_data():
 @restricted_access
 def designs():
 	slicer = astroprintCloud()
-	cloud_files = json.loads(slicer.print_files())
+	forceSyncCloud = request.args.get('forceSyncCloud')
+	cloud_files = json.loads(slicer.print_files(forceSyncCloud))
 
 	local_files = list(gcodeManager.getAllFileData())
 
-	for p in cloud_files:
-		p['local_filename'] = None
-		for i in range(len(local_files)):
-			if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
-				local_file = local_files[i]
-				p['local_filename'] = local_file['name']
-				p['local_only'] = False
-				del local_files[i]
-				break
+	if cloud_files:
+		for p in cloud_files:
+			p['local_filename'] = None
+			for i in range(len(local_files)):
+				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
+					local_file = local_files[i]
+					p['local_filename'] = local_file['name']
+					p['local_only'] = False
+					del local_files[i]
+					break
+
+		sorted_cloud_files = sorted(cloud_files, key=lambda e: e['local_filename'] is None)
+	else:
+		sorted_cloud_files = []
 
 	if local_files:
 		for p in local_files:
@@ -78,7 +84,7 @@ def designs():
 			p['info'] = p['gcodeAnalysis']
 			del p['gcodeAnalysis']
 
-	return json.dumps(local_files + sorted(cloud_files, key=lambda e: e['local_filename'] is None))
+	return json.dumps(local_files + sorted_cloud_files)
 
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access

@@ -28,6 +28,10 @@ var ConnectionView = Backbone.View.extend({
 		        };
 
 		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed') {
+		        	if (response.current.state.substr(0,5) == 'Error') {
+		        		console.error("Printer connection had error: "+response.current.state);
+		        	}
+
 			        $.ajax({
 			            url: API_BASEURL + "connection",
 			            type: "POST",

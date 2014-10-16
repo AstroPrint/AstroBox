@@ -1,6 +1,15 @@
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 
+# singleton
+_instance = None
+
+def astroprintCloud():
+	global _instance
+	if _instance is None:
+		_instance = AstroPrintCloud()
+	return _instance
+
 import requests
 import hmac
 import binascii
@@ -18,17 +27,7 @@ from requests_toolbelt import MultipartEncoder
 
 from octoprint.settings import settings
 from astroprint.software import softwareManager
-
 from astroprint.boxrouter import boxrouterManager
-
-# singleton
-_instance = None
-
-def astroprintCloud():
-	global _instance
-	if _instance is None:
-		_instance = AstroPrintCloud()
-	return _instance
 
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
@@ -54,7 +53,9 @@ class AstroPrintCloud(object):
 
 		self.hmacAuth = HMACAuth(publicKey, privateKey,)
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
+		self._print_file_store = None
 		self._sm = softwareManager()
+		self._gcodeMgr = None
 
 	@staticmethod
 	def cloud_enabled():
@@ -89,7 +90,7 @@ class AstroPrintCloud(object):
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 
-		#let the singleton be recreated again, so credentials are forgotten
+		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance
 		_instance = None
 
@@ -266,14 +267,11 @@ class AstroPrintCloud(object):
 
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
-	def print_files(self):
-		try:
-			r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
-			data = r.json()
-		except:
-			data = []
+	def print_files(self, forceCloudSync = False):
+		if self.cloud_enabled and (not self._print_file_store or forceCloudSync):
+			self._sync_print_file_store()
 
-		return json.dumps(data)	
+		return json.dumps(self._print_file_store)	
 
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
 		progressCb(2)
@@ -318,3 +316,75 @@ class AstroPrintCloud(object):
 
 		errorCb(destFile, 'Unable to download file')
 		return False
+
+	def getPrintFile(self, cloudId):
+		if not self._print_file_store:
+			self._sync_print_file_store()
+
+		if self._print_file_store:
+			for x in self._print_file_store:
+				if x['id'] == cloudId:
+					return x
+			else:
+				return None
+		else:
+			return None
+
+	def startPrintCapture(self, filename):
+		data = {'name': filename}
+
+		if not self._gcodeMgr:
+			from octoprint.server import gcodeManager 
+			self._gcodeMgr = gcodeManager
+
+		print_file_id = self._gcodeMgr.getFileCloudId(filename)
+
+		if print_file_id:
+			data['print_file_id'] = print_file_id
+
+		try:
+			r = requests.post( 
+				"%s/prints" % self.apiHost, 
+				data= data,
+				auth= self.hmacAuth
+			)
+			status_code = r.status_code
+		except:
+			status_code = 500
+
+		if status_code == 201:
+			data = r.json()
+			return data['print_id']
+
+		else:
+			return None
+
+
+	def uploadImageFile(self, print_id, imageBuf):
+		try:
+			m = MultipartEncoder(fields=[('file',('snapshot.jpg', imageBuf))])
+			r = requests.post( 
+				"%s/prints/%s/image" % (self.apiHost, print_id),
+				data= m, 
+				headers= {'Content-Type': m.content_type},
+				auth= self.hmacAuth
+			)
+			m = None #Free the memory?
+			status_code = r.status_code
+		except: 
+			status_code = 500
+
+		if status_code == 201:
+			data = r.json()
+			return data
+
+		else: 
+			return None
+
+	def _sync_print_file_store(self):
+		if self.cloud_enabled():
+			try:
+				r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
+				self._print_file_store = r.json()
+			except:
+				pass		

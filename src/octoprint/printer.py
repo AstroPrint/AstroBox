@@ -14,6 +14,8 @@ import octoprint.util as util
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+from astroprint.cloud import astroprintCloud
+from astroprint.camera import cameraManager
 
 from octoprint.filemanager.destinations import FileDestinations
 
@@ -35,6 +37,8 @@ class Printer():
 
 		self._gcodeManager = gcodeManager
 		self._gcodeManager.registerCallback(self)
+		self._astroprintCloud = astroprintCloud()
+		self._cameraManager = cameraManager()
 
 		# state
 		# TODO do we really need to hold the temperature here?
@@ -63,6 +67,8 @@ class Printer():
 		self._currentLayer = None
 		self._layerCount = None
 		self._estimatedPrintTime = None
+
+		self._printId = None
 
 		self._printAfterSelect = False
 
@@ -286,6 +292,7 @@ class Printer():
 
 		self._setCurrentZ(None)
 		self._comm.startPrint()
+		self._cameraManager.open_camera()
 
 	def togglePausePrint(self):
 		"""
@@ -294,7 +301,15 @@ class Printer():
 		if self._comm is None:
 			return
 
-		self._comm.setPause(not self._comm.isPaused())
+		wasPaused = self._comm.isPaused()
+
+		self._comm.setPause(not wasPaused)
+
+		#the functions already check if there's a timelapse in progress
+		if wasPaused:
+			self._cameraManager.resume_timelapse()
+		else:
+			self._cameraManager.pause_timelapse()
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
 		"""
@@ -324,7 +339,7 @@ class Printer():
 		self.setTemperature('bed', 5)
 		self.setTemperature('tool', 5)
 
-		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
+		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -342,6 +357,9 @@ class Printer():
 			eventManager().fire(Events.PRINT_FAILED, payload)
 
 		self._comm.cancelPrint()
+
+		#cancel timelapse if there was one
+		self._cameraManager.stop_timelapse()
 
 	#~~ state monitoring
 
@@ -431,13 +449,21 @@ class Printer():
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
+		cloudId = self._gcodeManager.getFileCloudId(filename)
+		renderedIimage = None
+		if cloudId:
+			printFile = self._astroprintCloud.getPrintFile(cloudId)
+			if printFile:
+				renderedIimage = printFile['images']['square']
+
 		self._stateMonitor.setJobData({
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
 				"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
 				"size": filesize,
 				"date": date,
-				"cloudId": self._gcodeManager.getFileCloudId(filename)
+				"cloudId": cloudId,
+				"rendered_image": renderedIimage
 			},
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
@@ -470,7 +496,8 @@ class Printer():
 			"paused": self.isPaused(),
 			"ready": self.isReady(),
 			"sdReady": self.isSdReady(),
-			"heatingUp": self.isHeatingUp()
+			"heatingUp": self.isHeatingUp(),
+			"camera": self.isCameraConnected()
 		}
 
 	#~~ callbacks triggered from self._comm
@@ -551,6 +578,7 @@ class Printer():
 		self._setCurrentZ(newZ)
 
 	def mcLayerChange(self, layer):
+		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
 		self._currentLayer = layer;
 
 	def mcSdStateChange(self, sdReady):
@@ -571,7 +599,6 @@ class Printer():
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
-		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
@@ -580,7 +607,10 @@ class Printer():
 		self.setTemperature('bed', 5.0)
 		self.setTemperature('tool', 5.0)
 
-		self.commands(["M84", "M106 S0", "M1"]); #Fan off, Sleep
+		self.commands(["M84", "M106 S0"]); #Motors off, Fan off
+
+		#stop timelapse if there was one
+		self._cameraManager.stop_timelapse()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
@@ -735,6 +765,9 @@ class Printer():
 			return False
 		else:
 			return self._comm.isSdReady()
+
+	def isCameraConnected(self):
+		return self._cameraManager.isCameraAvailable()
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

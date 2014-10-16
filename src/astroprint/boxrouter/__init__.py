@@ -2,20 +2,6 @@
 __author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-import json
-import threading
-import logging
-
-from time import sleep
-
-from octoprint.events import eventManager, Events
-from octoprint.settings import settings
-
-from astroprint.network import networkManager
-from astroprint.boxrouter.printerlistener import PrinterListener
-
-from ws4py.client.threadedclient import WebSocketClient
-
 # singleton
 _instance = None
 
@@ -24,6 +10,23 @@ def boxrouterManager():
 	if _instance is None:
 		_instance = AstroprintBoxRouter()
 	return _instance
+
+
+import json
+import threading
+import logging
+import base64
+
+from time import sleep
+
+from octoprint.events import eventManager, Events
+from octoprint.settings import settings
+
+from astroprint.network import networkManager
+from astroprint.boxrouter.printerlistener import PrinterListener
+from astroprint.camera import cameraManager
+
+from ws4py.client.threadedclient import WebSocketClient
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
@@ -34,6 +37,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._printer = printer
 		self._printerListener = None
 		self._subscribers = 0
+		self._cameraManager = cameraManager()
+		self._logger = logging.getLogger(__name__)
 		WebSocketClient.__init__(self, hostname)
 
 	def closed(self, code, reason=None):
@@ -66,43 +71,75 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				self.unregisterEvents()
 
 		elif msg['type'] == 'request':
-			reqId = msg['reqId']
-			request = msg['data']['type']
-			data = msg['data']['payload']
+			try:
+				reqId = msg['reqId']
+				request = msg['data']['type']
+				data = msg['data']['payload']
 
-			if request == 'initial_state':
-				response = {
-					'printing': self._printer.isPrinting(),
-					'operational': self._printer.isOperational(),
-					'paused': self._printer.isPaused()
-				}
-			elif request == 'job_info':
-				response = self._printer._stateMonitor._jobData
+				if request == 'initial_state':
+					response = {
+						'printing': self._printer.isPrinting(),
+						'operational': self._printer.isOperational(),
+						'paused': self._printer.isPaused(),
+						'camera': self._printer.isCameraConnected(),
+						'printCapture': self._cameraManager.timelapseInfo
+					}
+				elif request == 'job_info':
+					response = self._printer._stateMonitor._jobData
 
-			elif request == 'printerCommand':
-				command = data['command']
-				options = data['options']
+				elif request == 'printerCommand':
+					command = data['command']
+					options = data['options']
 
-				response = {'success': True}
-				if command == 'pause' or command == 'resume':
-					self._printer.togglePausePrint();
+					response = {'success': True}
+					if command == 'pause' or command == 'resume':
+						self._printer.togglePausePrint();
 
-				elif command == 'cancel':
-					self._printer.cancelPrint();
+					elif command == 'cancel':
+						self._printer.cancelPrint();
+
+					elif command == 'photo':
+						response['image_data'] = base64.b64encode(self._cameraManager.get_pic())
+
+					else:
+						response = {
+							'error': True,
+							'message': 'Printer command [%s] is not supported' % command
+						}
+
+				elif request == 'printCapture':
+					freq = data['freq']
+					if freq:
+						if self._cameraManager.timelapseInfo:
+							if self._cameraManager.update_timelapse(freq):
+								response = {'success': True}
+							else:
+								response = {
+									'error': True,
+									'message': 'Error updating the print capture'
+								}
+								
+						else:
+							if self._cameraManager.start_timelapse(freq):
+								response = {'success': True}
+							else:
+								response = {
+									'error': True,
+									'message': 'Error creating the print capture'
+								}
+
+					else:
+						response = {
+							'error': True,
+							'message': 'Frequency required'
+						}						
 
 				else:
 					response = {
 						'error': True,
-						'message': 'Printer command [%s] is not supported' % command
+						'message': 'This Box does not recognize the request type [%s]' % request
 					}
 
-			else:
-				response = {
-					'error': True,
-					'message': 'This Box does not recognize the request type [%s]' % request
-				}
-
-			try:
 				self.send(json.dumps({
 					'type': 'req_response',
 					'reqId': reqId,
@@ -110,7 +147,13 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				}))
 
 			except Exception as e:
-				self._logger.error( 'Error sending [%s] response: %s' % (request, e) )	
+				message = 'Error sending [%s] response: %s' % (request, e) 
+				self._logger.error( message )	
+				self.send(json.dumps({
+					'type': 'req_response',
+					'reqId': reqId,
+					'data': {'error': True, 'message':message }
+				}))
 
 	def registerEvents(self):
 		if not self._printerListener:
@@ -120,8 +163,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def unregisterEvents(self):
 		if self._printerListener:
 			self._printer.unregisterCallback(self._printerListener)
+			self._printerListener.cleanup()
 			self._printerListener = None
-
 
 class AstroprintBoxRouter(object):
 	MAX_RETRIES = 5

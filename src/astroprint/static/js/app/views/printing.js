@@ -170,7 +170,122 @@
     }
 });
 
- var PrintingView = Backbone.View.extend({
+var PhotoView = Backbone.View.extend({
+    el: "#printing-view .camera-view",
+    events: {
+        'click button.take-pic': 'refreshPhoto',
+        'change .timelapse select': 'timelapseFreqChanged'
+    },
+    parent: null,
+    print_capture: null,
+    photoSeq: 0,
+    initialize: function(options) {
+        this.parent = options.parent;
+
+        this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+        this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+        this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+    },
+    render: function() {
+        var imageNode = this.$('.camera-image');
+
+        //image
+        var imageUrl = null;
+
+        if (this.print_capture && this.print_capture.last_photo) {
+            imageUrl = this.print_capture.last_photo;
+        } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
+            imageUrl = this.parent.printing_progress.rendered_image;
+        }
+
+        if (imageNode.attr('src') != imageUrl) {
+            imageNode.attr('src', imageUrl);
+        }
+
+        //print capture button
+        if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
+            this.$('.timelapse .dot').addClass('blink-animation');
+        } else {
+            this.$('.timelapse .dot').removeClass('blink-animation');
+        }
+
+        //overaly
+        if (this.parent.paused) {
+            this.$('.timelapse .overlay').show();
+        } else {
+            this.$('.timelapse .overlay').hide();
+        }
+
+        //select
+        var freq = 0;
+        if (this.print_capture) {
+            freq = this.print_capture.freq;
+        }
+        
+        this.$('.timelapse select').val(freq);
+    },
+    onCameraChanged: function(s, value) {
+        var cameraControls = this.$('.camera-controls');
+
+        //Camera controls section
+        if (value) {
+            if (!cameraControls.is(":visible")) {
+                cameraControls.show();
+            }
+        } else if (cameraControls.is(":visible") ) {
+            cameraControls.hide();
+        }
+    },
+    onPrintCaptureChanged: function(s, value) {
+        this.print_capture = value;
+        this.render();
+    },
+    onPrintingProgressChanged: function(s, value) {
+        if (!this.$('.camera-image').attr('src') && value && value.rendered_image) {
+            //This allows the change to propagate
+            setTimeout(_.bind(function(){
+                this.render();
+            },this), 1);
+        }
+    },
+    refreshPhoto: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+        var printing_progress = this.parent.printing_progress;
+
+        loadingBtn.addClass('loading');
+
+        var text = Math.floor(printing_progress.percent)+'% - Layer '+(printing_progress.current_layer ? printing_progress.current_layer : '1')+( printing_progress.layer_count ? '/'+printing_progress.layer_count : '');
+        var img = this.$('.camera-image');
+
+        img.one('load', function() {
+            loadingBtn.removeClass('loading');
+        });
+        img.one('error', function() {
+            loadingBtn.removeClass('loading');
+            $(this).attr('src', null);
+        });
+        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+    },
+    timelapseFreqChanged: function(e) {
+        var newFreq = $(e.target).val();
+
+        if (!this.print_capture || newFreq != this.print_capture.freq) {
+            $.ajax({
+                url: API_BASEURL + "camera/timelapse",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    freq: newFreq
+                }
+            })
+            .fail(function(){
+                noty({text: "There was an error adjusting your print capture.", timeout: 3000});
+            });         
+        }   
+    }
+});
+
+var PrintingView = Backbone.View.extend({
 	el: '#printing-view',
     events: {
         'click button.stop-print': 'stopPrint',
@@ -180,6 +295,7 @@
     },
     nozzleBar: null,
     bedBar: null,
+    photoView: null,
     printing_progress: null,
     paused: null,
     initialize: function() {
@@ -193,6 +309,7 @@
             el: this.$el.find('.temp-bar.bed'),
             type: 'bed' 
         });
+        this.photoView = new PhotoView({parent: this});
 
         this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
         this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
@@ -201,33 +318,35 @@
     render: function() 
     {
         //Progress data
-        var filenameNode = this.$el.find('.progress .filename');
+        var filenameNode = this.$('.progress .filename');
 
-        if (filenameNode.text() != this.printing_progress.filename) {
-            filenameNode.text(this.printing_progress.filename);
-        }
+        if (this.printing_progress) {
+            if (filenameNode.text() != this.printing_progress.filename) {
+                filenameNode.text(this.printing_progress.filename);
+            }
 
-        //progress bar
-        this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
-        this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
+            //progress bar
+            this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
+            this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
 
-        //time
-        var time = this._formatTime(this.printing_progress.time_left);
-        this.$el.find('.estimated-hours').text(time[0]);
-        this.$el.find('.estimated-minutes').text(time[1]);
-        this.$el.find('.estimated-seconds').text(time[2]);
+            //time
+            var time = this._formatTime(this.printing_progress.time_left);
+            this.$el.find('.estimated-hours').text(time[0]);
+            this.$el.find('.estimated-minutes').text(time[1]);
+            this.$el.find('.estimated-seconds').text(time[2]);
 
-        //layers
-        this.$el.find('.current-layer').text(this.printing_progress.current_layer);
-        if (this.printing_progress.layer_count) {
-            this.$el.find('.layer-count').text(this.printing_progress.layer_count);
-        }
+            //layers
+            this.$el.find('.current-layer').text(this.printing_progress.current_layer);
+            if (this.printing_progress.layer_count) {
+                this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+            }
 
-        //heating up
-        if (this.printing_progress.heating_up) {
-            this.$el.addClass("heating-up");
-        } else {
-            this.$el.removeClass("heating-up");
+            //heating up
+            if (this.printing_progress.heating_up) {
+                this.$el.addClass("heating-up");
+            } else {
+                this.$el.removeClass("heating-up");
+            }
         }
 
         //Paused state
@@ -252,7 +371,16 @@
         this.printing_progress = value;
         this.render();
     },
+    onPausedChanged: function(s, value) {
+        this.paused = value;
+        this.render();
+        this.photoView.render();
+    },
     _formatTime: function(seconds) {
+        if (seconds == null || isNaN(seconds)) {
+            return ['--','--','--'];
+        }
+
         var sec_num = parseInt(seconds, 10); // don't forget the second param
         var hours   = Math.floor(sec_num / 3600);
         var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
@@ -263,36 +391,60 @@
         if (seconds < 10) {seconds = "0"+seconds;}
         return [hours, minutes, seconds];
     },
-    onPausedChanged: function(s, value) {
-        this.paused = value;
-        this.render();
-    },
     show: function() {
         this.nozzleBar.onResize();
         this.bedBar.onResize();
         this.printing_progress = app.socketData.get('printing_progress');
         this.paused = app.socketData.get('paused');
         this.render();
+
+        this.photoView.print_capture = app.socketData.get('print_capture');
+        this.photoView.render();
     },
-    stopPrint: function() {
-        this._jobCommand('cancel');
-        app.router.navigate('', {replace:true, trigger: true});
-        this.$el.find('.tab-bar .left-small').show();
+    stopPrint: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+
+        loadingBtn.addClass('loading');
+        this._jobCommand('cancel', _.bind(function(data){
+            if (data && _.has(data, 'error')) {
+                console.error(data.error);
+            } else {
+                app.socketData.set({printing: false, paused: false}); 
+            }         
+            loadingBtn.removeClass('loading'); 
+        }, this));
     },
-    togglePausePrint: function() {
-        this._jobCommand('pause');
+    togglePausePrint: function(e) {
+        var loadingBtn = $(e.target).closest('.loading-button');
+        var wasPaused = app.socketData.get('paused');
+
+        loadingBtn.addClass('loading');
+        this._jobCommand('pause', _.bind(function(data){
+            if (data && _.has(data, 'error')) {
+                console.error(data.error);
+            } else {
+                app.socketData.set('paused', !wasPaused);
+            }
+            loadingBtn.removeClass('loading'); 
+        }, this));
     },
     showControlPage: function() {
         app.router.navigate('control', {trigger: true, replace: true});
         this.$el.addClass('hide');
     },
-    _jobCommand: function(command) {
+    _jobCommand: function(command, callback) {
         $.ajax({
             url: API_BASEURL + "job",
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify({command: command})
+        }).
+        done(function(data){
+            if (callback) callback(data);
+        }).
+        fail(function(error) {
+            if (callback) callback({error:error.responseText});
         });
     }
 });

@@ -50,6 +50,110 @@
 		.heating {
 			display: none;
 		}
+
+		.camera-container {
+			padding-top: 75%;
+			position: relative;
+			background: #efefef;
+			overflow: hidden;
+
+			i {
+				display: block;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				margin-left: -42px;
+				margin-top: -30px;
+				font-size: 60px;
+				color: #ccc;
+			}
+
+			img {
+				position:absolute;
+				width: 100%;
+				top: 0;
+				left: 0;
+			}
+		}
+
+		$camera-controls-height: 60px;
+
+		.camera-controls {
+			height: $camera-controls-height;
+			background: #dfdfdf;
+
+			.loading-button {
+				display: inline-block;
+				height: 70px;
+				width: 70px;
+			}
+
+			button, .button.loading {
+				padding: 0;
+				margin-top: -20px;
+				width: 100%;
+				height: 100%;
+			}
+
+			button.take-pic {
+				i {
+					margin-left: -2px;
+					margin-top: 1px;
+					display: block;
+					font-size: 30px					
+				}
+			}
+
+			.timelapse {
+				position: relative;
+				height: $camera-controls-height;
+
+				.overlay {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+				}
+
+				i {
+					font-size: rem-calc(25);
+					color: #505050;
+				}
+
+				.dot {
+					position: absolute;
+					top: 34px;
+					left: 10px;
+					display: inline-block;
+					width: 10px;
+					height: 10px;
+					background-color: $alert-color;
+					@include radius(30px);
+				}
+
+				select {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					margin: 0;
+					padding: 20px 0 0 25px;
+					border: 0;
+					background: none;
+					color: #505050;
+				}
+			}
+
+			.button.loading {				
+				i {
+					display: inline-block;
+					font-size: 30px;
+					margin-top: 16px;
+				}
+			}
+		}
 	}
 
 	.temperatures {
@@ -149,13 +253,16 @@
 				display: block;
 				font-size: rem-calc(50);
 
+				> div {
+					padding: 40px 0;
+				}
+
 				i {
 					display: block;
 					margin-bottom: 20px;
 					font-size: rem-calc(70);
 					color: $alert-color;
 				}
-
 			}
 
 			.info {
