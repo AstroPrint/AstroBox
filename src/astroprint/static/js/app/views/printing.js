@@ -183,6 +183,7 @@ var PhotoView = Backbone.View.extend({
         this.parent = options.parent;
 
         this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+        this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
         this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
     },
     render: function() {
@@ -238,6 +239,14 @@ var PhotoView = Backbone.View.extend({
     onPrintCaptureChanged: function(s, value) {
         this.print_capture = value;
         this.render();
+    },
+    onPrintingProgressChanged: function(s, value) {
+        if (!this.$('.camera-image').attr('src') && value && value.rendered_image) {
+            //This allows the change to propagate
+            setTimeout(_.bind(function(){
+                this.render();
+            },this), 1);
+        }
     },
     refreshPhoto: function(e) {
         var loadingBtn = $(e.target).closest('.loading-button');
