@@ -16,7 +16,6 @@ flask-compress>=1.0.2
 scss>=0.8.73
 closure>=20140110
 python-networkmanager
-python-apt
 netifaces
 ws4py>=0.3.4
 usbid>=1.0.3
