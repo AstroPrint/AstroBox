@@ -194,7 +194,7 @@ var PhotoView = Backbone.View.extend({
 
         if (this.print_capture && this.print_capture.last_photo) {
             imageUrl = this.print_capture.last_photo;
-        } else if (this.parent.printing_progress.rendered_image) {
+        } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
             imageUrl = this.parent.printing_progress.rendered_image;
         }
 
@@ -320,31 +320,33 @@ var PrintingView = Backbone.View.extend({
         //Progress data
         var filenameNode = this.$('.progress .filename');
 
-        if (filenameNode.text() != this.printing_progress.filename) {
-            filenameNode.text(this.printing_progress.filename);
-        }
+        if (this.printing_progress) {
+            if (filenameNode.text() != this.printing_progress.filename) {
+                filenameNode.text(this.printing_progress.filename);
+            }
 
-        //progress bar
-        this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
-        this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
+            //progress bar
+            this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
+            this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
 
-        //time
-        var time = this._formatTime(this.printing_progress.time_left);
-        this.$el.find('.estimated-hours').text(time[0]);
-        this.$el.find('.estimated-minutes').text(time[1]);
-        this.$el.find('.estimated-seconds').text(time[2]);
+            //time
+            var time = this._formatTime(this.printing_progress.time_left);
+            this.$el.find('.estimated-hours').text(time[0]);
+            this.$el.find('.estimated-minutes').text(time[1]);
+            this.$el.find('.estimated-seconds').text(time[2]);
 
-        //layers
-        this.$el.find('.current-layer').text(this.printing_progress.current_layer);
-        if (this.printing_progress.layer_count) {
-            this.$el.find('.layer-count').text(this.printing_progress.layer_count);
-        }
+            //layers
+            this.$el.find('.current-layer').text(this.printing_progress.current_layer);
+            if (this.printing_progress.layer_count) {
+                this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+            }
 
-        //heating up
-        if (this.printing_progress.heating_up) {
-            this.$el.addClass("heating-up");
-        } else {
-            this.$el.removeClass("heating-up");
+            //heating up
+            if (this.printing_progress.heating_up) {
+                this.$el.addClass("heating-up");
+            } else {
+                this.$el.removeClass("heating-up");
+            }
         }
 
         //Paused state
@@ -407,9 +409,7 @@ var PrintingView = Backbone.View.extend({
             if (data && _.has(data, 'error')) {
                 console.error(data.error);
             } else {
-                app.socketData.set({printing: false, paused: false});
-                this.$el.find('.tab-bar .left-small').show();
-                app.router.navigate('', {replace:true, trigger: true});  
+                app.socketData.set({printing: false, paused: false}); 
             }         
             loadingBtn.removeClass('loading'); 
         }, this));
