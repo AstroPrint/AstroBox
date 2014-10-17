@@ -19,8 +19,6 @@ import subprocess
 import threading
 import logging
 import time
-import apt.debfile
-import apt.progress.base
 
 from tempfile import mkstemp
 from sys import platform
@@ -28,41 +26,45 @@ from sys import platform
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
-MAX_DOWNLOAD_PROGRESS = 0.3
-MAX_DEPS_PROGRESS = 0.3
-START_UPDATE_PROGRESS = 0.7
+if platform != 'darwin':
+	import apt.debfile
+	import apt.progress.base
 
-class UpdateProgress(apt.progress.base.InstallProgress):
-	def __init__(self, progressCb, completionCb):
-		super(UpdateProgress, self).__init__()
+	MAX_DOWNLOAD_PROGRESS = 0.3
+	MAX_DEPS_PROGRESS = 0.3
+	START_UPDATE_PROGRESS = 0.7
 
-		self._progressCb = progressCb
-		self._completionCb = completionCb
-		self._logger = logging.getLogger(__name__)
-		self._errors = False
+	class UpdateProgress(apt.progress.base.InstallProgress):
+		def __init__(self, progressCb, completionCb):
+			super(UpdateProgress, self).__init__()
 
-	def start_update(self):
-		self._logger.info("Software Update started")
-		self._progressCb(START_UPDATE_PROGRESS, "Upgrading software...")
+			self._progressCb = progressCb
+			self._completionCb = completionCb
+			self._logger = logging.getLogger(__name__)
+			self._errors = False
 
-	def error(self, pkg, message):
-		self._logger.error("Error during install [%s]" % message)
-		self._completionCb(message)
-		self._errors = True
+		def start_update(self):
+			self._logger.info("Software Update started")
+			self._progressCb(START_UPDATE_PROGRESS, "Upgrading software...")
 
-	def processing(self, pkg, stage):
-		if stage == 'upgrade':
-			self._progressCb(START_UPDATE_PROGRESS + 0.05, "Upgrading software...")
-		elif stage == 'configure':
-			self._progressCb(START_UPDATE_PROGRESS + 0.1, "Configuring...")
-		elif stage == 'trigproc':
-			self._progressCb(START_UPDATE_PROGRESS + 0.25, "Finalizing...")
+		def error(self, pkg, message):
+			self._logger.error("Error during install [%s]" % message)
+			self._completionCb(message)
+			self._errors = True
 
-	def finish_update(self):
-		if not self._errors:
-			self._logger.info("Software Update completed succesfully")
-			self._progressCb(1.0, "Restarting. Please wait...")
-			self._completionCb()
+		def processing(self, pkg, stage):
+			if stage == 'upgrade':
+				self._progressCb(START_UPDATE_PROGRESS + 0.05, "Upgrading software...")
+			elif stage == 'configure':
+				self._progressCb(START_UPDATE_PROGRESS + 0.1, "Configuring...")
+			elif stage == 'trigproc':
+				self._progressCb(START_UPDATE_PROGRESS + 0.25, "Finalizing...")
+
+		def finish_update(self):
+			if not self._errors:
+				self._logger.info("Software Update completed succesfully")
+				self._progressCb(1.0, "Restarting. Please wait...")
+				self._completionCb()
 
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
