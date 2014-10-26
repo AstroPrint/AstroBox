@@ -128,7 +128,7 @@ def design_download(print_file_id):
 			}
 		)
 		
-		if os.path.exists(destFile):
+		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
 
 	if slicer.download_print_file(print_file_id, progressCb, successCb, errorCb):
