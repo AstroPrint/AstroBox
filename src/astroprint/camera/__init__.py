@@ -146,7 +146,7 @@ class CameraManager(object):
 	def update_timelapse(self, freq):
 		if self.timelapseInfo and self.timelapseInfo['freq'] != freq:
 			if freq == 'layer':
-				if not self.timelapseWorker.isPaused():
+				if self.timelapseWorker and not self.timelapseWorker.isPaused():
 					self.pause_timelapse();
 
 				# subscribe to layer change events
