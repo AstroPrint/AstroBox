@@ -87,39 +87,13 @@ $row-width: rem-calc(1000);
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
 // We use these to define default font weights
-// $font-weight-normal: normal !default;
-// $font-weight-bold: bold !default;
-
-// Global
+// $font-family-sans-serif: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+// $font-family-serif: Georgia, Cambria, "Times New Roman", Times, serif;
+// $font-family-monospace: Consolas, "Liberation Mono", Courier, monospace;
 
 // We use these to define default font weights
 // $font-weight-normal: normal !default;
 // $font-weight-bold: bold !default;
-
-// We use these to control various global styles
-// $body-bg: $white;
-// $body-font-color: $jet;
-$body-font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-// $font-weight-normal:normal;
-// $body-font-weight: $font-weight-normal;
-// $body-font-style: normal;
-
-// We use this to control font-smoothing
-// $font-smoothing: antialiased;
-
-// We use these to control text direction settings
-// $text-direction: ltr;
-// $opposite-direction: right;
-// $default-float: left;
-// $last-child-float: $opposite-direction;
-
-// We use these as default colors throughout
-// $primary-color: #008CBA;
-// $secondary-color: #e7e7e7;
-$alert-color: #f05151;
-$success-color: #71c4c6;
-// $warning-color: #f08a24;
-// $info-color: #a0d3e8;
 
 $white       : #FFFFFF;
 // $ghost       : #FAFAFA;
@@ -140,6 +114,30 @@ $white       : #FFFFFF;
 // $oil         : #333333;
 // $jet         : #222222;
 // $black       : #000000;
+
+// We use these as default colors throughout
+// $primary-color: #008CBA;
+// $secondary-color: #e7e7e7;
+$alert-color: #f05151;
+$success-color: #71c4c6;
+// $warning-color: #f08a24;
+// $info-color: #a0d3e8;
+
+// We use these to control various global styles
+// $body-bg: $white;
+// $body-font-color: $jet;
+$body-font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+// $body-font-weight: $font-weight-normal;
+// $body-font-style: normal;
+
+// We use this to control font-smoothing
+// $font-smoothing: antialiased;
+
+// We use these to control text direction settings
+// $text-direction: ltr;
+// $opposite-direction: right;
+// $default-float: left;
+// $last-child-float: $opposite-direction;
 
 // We use these to make sure border radius matches unless we want it different.
 // $global-radius: 3px;
@@ -314,7 +312,6 @@ $h5-font-size: rem-calc(18);
 // $microformat-abbr-font-weight: $font-weight-bold;
 // $microformat-abbr-font-decoration: none;
 
-
 // 01. Accordion
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -383,7 +380,6 @@ $h5-font-size: rem-calc(18);
 // $block-grid-elements: 12;
 // $block-grid-default-spacing: rem-calc(20);
 // $align-block-grid-to-grid: false;
-
 
 // Enables media queries for block-grid classes. Set to false if writing semantic HTML.
 // $block-grid-media-queries: true;
@@ -555,6 +551,10 @@ $h5-font-size: rem-calc(18);
 // We use this to control the styles for when the dropdown has custom content.
 // $f-dropdown-content-padding: rem-calc(20);
 
+// Default radius for dropdown.
+// $f-dropdown-radius: $global-radius;
+
+
 // 09. Dropdown Buttons
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -678,7 +678,6 @@ $h5-font-size: rem-calc(18);
 // $select-bg-color: $ghost;
 // $select-hover-bg-color: scale-color($select-bg-color, $lightness: -3%);
 
-
 // 12. Icon Bar
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -715,7 +714,7 @@ $h5-font-size: rem-calc(18);
 // We use this to control the list items
 // $inline-list-display: block;
 
-// We use this to control any elments within list items
+// We use this to control any elements within list items
 // $inline-list-children-display: block;
 
 // 14. Joyride
@@ -731,7 +730,7 @@ $h5-font-size: rem-calc(18);
 // $joyride-tip-radius: 4px;
 // $joyride-tip-position-offset: 22px;
 
-// Here, we're setting the tip dont styles
+// Here, we're setting the tip font styles
 // $joyride-tip-font-color: $white;
 // $joyride-tip-font-size: rem-calc(14);
 // $joyride-tip-header-weight: $font-weight-bold;
@@ -803,8 +802,6 @@ $h5-font-size: rem-calc(18);
 
 // $include-html-off-canvas-classes: $include-html-classes;
 
-// $include-html-off-canvas-classes: $include-html-classes;
-
 $tabbar-bg: $white;
 $tabbar-height: rem-calc(50);
 // $tabbar-icon-width: $tabbar-height;
@@ -825,6 +822,7 @@ $tabbar-height: rem-calc(50);
 // Off Canvas Menu Variables
 // $off-canvas-width: rem-calc(250);
 // $off-canvas-bg: $oil;
+// $off-canvas-bg-hover: scale-color($tabbar-bg, $lightness: -30%);
 
 // Off Canvas Menu List Variables
 // $off-canvas-label-padding: 0.3rem rem-calc(15);
@@ -1024,7 +1022,6 @@ $tabbar-menu-icon-color: #505050;
 // $price-cta-align: center;
 // $price-cta-padding: rem-calc(20 20 0);
 
-
 // 23. Progress Bar
 // - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -1096,6 +1093,7 @@ $tabbar-menu-icon-color: #505050;
 // $reveal-modal-bg: $white;
 // $reveal-position-top: rem-calc(100);
 // $reveal-default-width: 80%;
+// $reveal-max-width: $row-width;
 // $reveal-modal-padding: rem-calc(20);
 // $reveal-box-shadow: 0 0 10px rgba($black,.4);
 
@@ -1142,7 +1140,7 @@ $tabbar-menu-icon-color: #505050;
 // $side-nav-font-weight: $font-weight-normal;
 // $side-nav-font-weight-active: $side-nav-font-weight;
 // $side-nav-font-family: $body-font-family;
-// $side-nav-active-font-family: $side-nav-font-family;
+// $side-nav-font-family-active: $side-nav-font-family;
 
 // We use these to control heading styles.
 // $side-nav-heading-color: $side-nav-link-color;
@@ -1213,7 +1211,6 @@ $tabbar-menu-icon-color: #505050;
 // $sub-nav-border-radius: 3px;
 // $sub-nav-font-color-hover: scale-color($sub-nav-font-color, $lightness: -25%);
 
-
 // We use these to control the active item styles
 // $sub-nav-active-font-weight: $font-weight-normal;
 // $sub-nav-active-bg: $primary-color;
@@ -1224,7 +1221,6 @@ $tabbar-menu-icon-color: #505050;
 
 // $sub-nav-item-divider: "";
 // $sub-nav-item-divider-margin: rem-calc(12);
-
 
 // 29. Switch
 // - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1292,7 +1288,8 @@ $tabbar-menu-icon-color: #505050;
 // $table-row-font-color: $jet;
 // $table-line-height: rem-calc(18);
 
-// These are for controlling the display and margin of tables
+// These are for controlling the layout, display and margin of tables
+// $table-layout: auto;
 // $table-display: table-cell;
 // $table-margin-bottom: rem-calc(20);
 
@@ -1364,11 +1361,11 @@ $tabbar-menu-icon-color: #505050;
 // $include-html-top-bar-classes: $include-html-classes;
 
 // Background color for the top bar
-// $topbar-bg-color: $white;
+// $topbar-bg-color: $oil;
 // $topbar-bg: $topbar-bg-color;
 
 // Height and margin
-// $topbar-height: 65px;
+// $topbar-height: 45px;
 // $topbar-margin-bottom: 0;
 
 // Controlling the styles for the title in the top bar
