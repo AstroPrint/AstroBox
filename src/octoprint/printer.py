@@ -330,7 +330,7 @@ class Printer():
 		while not commandQueue.empty():
 			commandQueue.get_nowait()
 
-		self._comm._sendCommand("M112");
+		#self._comm._sendCommand("M112");
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
@@ -339,7 +339,7 @@ class Printer():
 		self.setTemperature('bed', 5)
 		self.setTemperature('tool', 5)
 
-		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
+		self.commands(["M29", "M84", "M106 S0"]); #Motors Off, Fan off
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -607,7 +607,7 @@ class Printer():
 		self.setTemperature('bed', 5.0)
 		self.setTemperature('tool', 5.0)
 
-		self.commands(["M84", "M106 S0"]); #Motors off, Fan off
+		self.commands(["M29", "M84", "M106 S0"]); #Motors off, Fan off
 
 		#stop timelapse if there was one
 		self._cameraManager.stop_timelapse()
