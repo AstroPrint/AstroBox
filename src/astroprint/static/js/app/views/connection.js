@@ -20,17 +20,17 @@ var ConnectionView = Backbone.View.extend({
             method: "GET",
             dataType: "json",
             success: function(response) {
-		        var data = {
-		            "command": "connect",
-		            "port": response.options.portPreference,
-		            "baudrate": response.options.baudratePreference,
-		            "autoconnect": true
-		        };
-
 		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed') {
 		        	if (response.current.state.substr(0,5) == 'Error') {
 		        		console.error("Printer connection had error: "+response.current.state);
 		        	}
+
+			        var data = {
+			            "command": "connect",
+			            "port": response.options.portPreference,
+			            "baudrate": response.options.baudratePreference,
+			            "autoconnect": true
+			        };
 
 			        $.ajax({
 			            url: API_BASEURL + "connection",

@@ -15,23 +15,15 @@
 	</div>
 	<div class="small-12 medium-7 large-8 columns">
 		<div id="printer-connection" class="settings-page">
-			<h1 class="bold show-for-small" align="center">Printer</h1>
-			<form>
-				<div class="row">
-					<div class="small-12">
-						<label for="settings-serial-port" class="bold">Serial Port
-							<select id="settings-serial-port"></select>
-						</label>
-					</div>
+			<h1 class="bold show-for-small" align="center">Printer Connection</h1>
+			<form></form>
+			<div class="row connection-status">
+				<div class="small-12">
+					<span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
+					<span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
+					<span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
 				</div>
-				<div class="row">
-					<div class="small-12">
-						<label for="settings-baudrate" class="bold">Baud Rate
-							<select id="settings-baudrate"></select>
-						</label>
-					</div>
-				</div>
-			</form>
+			</div>
 		</div>
 
 		<div class="show-for-small">
@@ -62,6 +54,46 @@
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
+		<script type="text/template" id="printer-connection-settings-page-template">
+			<div class="row">
+				<div class="small-12">
+					<label for="settings-serial-port" class="bold">
+						USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
+						<% if (settings.serial.portOptions.length > 0) { %>
+							<% if (settings.serial.portOptions.length > 1) { %>
+								<select id="settings-serial-port" name="port"></select>
+								<% _.each(settings.serial.portOptions, function(e) { %>
+									<option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+								<% }) %>
+							<% } else { %>
+								<% var e = settings.serial.portOptions[0] %>
+								<input type="hidden" value="<%= e[0] %>" name="port"/>
+								<p><%= e[1] %></p>
+							<% } %>
+						<% } else { %>
+							<p>
+							No printer detected. Is your printer plugged in?<br/>
+							<a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+							</p>
+						<% } %>
+					</label>
+				</div>
+			</div>
+			<% if (settings.serial.portOptions.length > 0) { %>
+				<div class="row">
+					<div class="small-12">
+						<label for="settings-baudrate" class="bold">Baud Rate
+							<select id="settings-baudrate" name="baudrate">
+								<% _.each(settings.serial.baudrateOptions, function(e) { %>
+									<option value="<%= e %>"<%= settings.serial.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+								<% }) %>
+							</select>
+						</label>
+					</div>
+				</div>
+			<% } %>
+		</script>
+
 		<script type="text/template" id="internet-connection-settings-page-template">
 			<div class="connection">
 				<h3 class="bold">Wired Connection</h3>

@@ -32,6 +32,9 @@ var SocketData = Backbone.Model.extend({
         astroprint: {
             status: null
         },
+        printer: {
+            status: null
+        },
         print_capture: null
 	},
     initialize: function()
@@ -119,14 +122,18 @@ var SocketData = Backbone.Model.extend({
 	                if (data.state && data.state.text != this.currentState) {
 	                	this.currentState = data.state.text;
                         var connectionClass = 'blink-animation';
+                        var printerStatus = 'connecting';
                         
 	                	if (flags.error) {
                             connectionClass = 'failed';
+                            printerStatus = 'failed';
 	                	} else if (flags.operational) {
                             connectionClass = 'connected';
+                            printerStatus = 'connected';
 	                	}
                         
                         this.connectionView.setPrinterConnection(connectionClass);
+                        this.set('printer', {status: printerStatus });
 	                }
 
                     if (!flags.paused) {

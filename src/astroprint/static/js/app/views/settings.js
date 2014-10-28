@@ -21,68 +21,94 @@ var SettingsPage = Backbone.View.extend({
 
 var PrinterConnectionView = SettingsPage.extend({
 	el: '#printer-connection',
+	template: _.template( $("#printer-connection-settings-page-template").html() ),
 	settings: null,
-	events: {
-		'change #settings-baudrate': 'baudrateChanged',
-		'change #settings-serial-port': 'portChanged'
+	initialize: function(params)
+	{
+		this.listenTo(app.socketData, 'change:printer', this.printerStatusChanged );
+
+		SettingsPage.prototype.initialize.call(this, params);
 	},
 	show: function() {
 		//Call Super
 		SettingsPage.prototype.show.apply(this);
 
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
+			this.getInfo();
+		}
+	},
+	getInfo: function()
+	{
+		this.$('a.retry-ports i').addClass('animate-spin');
+		$.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
+			if (data.serial) {
 				this.settings = data;
-				if (data.serial) {
-					if (data.serial.baudrateOptions) {
-						var baudList = this.$el.find('#settings-baudrate').empty();
-						_.each(data.serial.baudrateOptions, function(element){
-							baudList.append('<option value="'+element+'">'+element+'</option>');
-						});
-						baudList.val(data.serial.baudrate);
-					}
+				this.undelegateEvents();
+				this.render(); // This removes the animate-spin from the link
+				this.delegateEvents({
+					'change #settings-baudrate': 'connectionSettingsChanged',
+					'change #settings-serial-port': 'connectionSettingsChanged',
+					'click a.retry-ports': 'retryPortsClicked',
+				});
+			} else {
+				noty({text: "No serial settings found.", timeout: 3000});
+			}
+		}, this))
+		.fail(function() {
+			noty({text: "There was an error getting serial settings.", timeout: 3000});
+			this.$('a.retry-ports i').removeClass('animate-spin');
+		})
+	},
+	render: function() 
+	{
+		this.$('form').html(this.template({ 
+			settings: this.settings
+		}));
 
-					if (data.serial.portOptions) {
-						var portList = this.$el.find('#settings-serial-port').empty();
-						portList.append('<option value="">Pick a port</option>');
-						_.each(data.serial.portOptions, function(element){
-							var option = $('<option value="'+element[0]+'">'+element[1]+'</option>');
-							if (data.serial.port == element[0]) {
-								option.attr('selected', 1);
-							}
-							portList.append(option);
-						});
-					}
-				} 
-			}, this))
-			.fail(function() {
-				noty({text: "There was an error getting serial settings.", timeout: 3000});
+		this.printerStatusChanged(app.socketData, app.socketData.get('printer'));
+	},
+	retryPortsClicked: function(e)
+	{
+		e.preventDefault();
+		this.getInfo();
+	},
+	connectionSettingsChanged: function(e) {
+		var connectionData = {};
+
+		_.each(this.$('form').serializeArray(), function(e){
+			connectionData[e.name] = e.value;
+		});
+
+		if (connectionData.baudrate && connectionData.port) {
+			$.ajax({
+				url: API_BASEURL + 'settings/printer', 
+				type: 'POST',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(connectionData)
+			})
+			.done(function(){
+		        $.ajax({
+		            url: API_BASEURL + "connection",
+		            type: "POST",
+		            dataType: "json",
+		            contentType: "application/json; charset=UTF-8",
+		            data: JSON.stringify({
+			            "command": "connect",
+			            "port": connectionData.port,
+			            "baudrate": parseInt(connectionData.baudrate),
+			            "autoconnect": true
+			        })
+		        });
+			})
+			.fail(function(){
+				noty({text: "There was an error saving baud rate.", timeout: 3000});
 			});
 		}
 	},
-	baudrateChanged: function(e) {
-		$.ajax({
-			url: API_BASEURL + 'settings/printer', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify({serial: { baudrate: $(e.target).val() }})
-		})
-		.fail(function(){
-			noty({text: "There was an error saving setting.", timeout: 3000});
-		});
-	},
-	portChanged: function(e) {
-		$.ajax({
-			url: API_BASEURL + 'settings/printer', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify({serial: { port: $(e.target).val() }})
-		})
-		.fail(function(){
-			noty({text: "There was an error saving setting.", timeout: 3000});
-		});
+	printerStatusChanged: function(s, value)
+	{
+		this.$('.connection-status').removeClass('connecting failed connected').addClass(value.status);
 	}
 });
 
