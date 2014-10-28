@@ -61,10 +61,11 @@
 						USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
 						<% if (settings.serial.portOptions.length > 0) { %>
 							<% if (settings.serial.portOptions.length > 1) { %>
-								<select id="settings-serial-port" name="port"></select>
-								<% _.each(settings.serial.portOptions, function(e) { %>
-									<option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
-								<% }) %>
+								<select id="settings-serial-port" name="port">
+									<% _.each(settings.serial.portOptions, function(e) { %>
+										<option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+									<% }) %>
+								</select>
 							<% } else { %>
 								<% var e = settings.serial.portOptions[0] %>
 								<input type="hidden" value="<%= e[0] %>" name="port"/>
