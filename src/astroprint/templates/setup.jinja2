@@ -216,31 +216,52 @@
 				</div>
 				<div class="settings-state">
 					<p>
-						Select your settings from the dropdown lists.
+						Select your connection settings.
 					</p>
-					<form>
-						<label for="port">
-							<b>USB Port</b>
-							<select id="port" name="port">
-							</select>
-						</label>
-						<label for="baud-rate">
-							<b>Baud Rate</b>
-							<select id="baud-rate" name="baudrate">
-							</select>
-						</label>
-						<div align="center">
-							<div class="loading-button expand">
-								<button class="button success radius submit-action expand bold" href="#share">Connect</button>
-								<span class="button success disabled radius loading expand"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
-							</div>
-						</div>
-					</form>
+					<form></form>
 					<div align="right">
 						<a href="#share" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 			</div>
+			<script type="text/template" id="step-printer-template">
+				<label for="settings-serial-port" class="bold">
+					USB Device
+					<% if (settings.portOptions.length > 0) { %>
+						<% if (settings.portOptions.length > 1) { %>
+							<select id="settings-serial-port" name="port">
+								<% _.each(settings.portOptions, function(e) { %>
+									<option value="<%= e[0] %>"<%= settings.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+								<% }) %>
+							</select>
+						<% } else { %>
+							<% var e = settings.portOptions[0] %>
+							<input type="hidden" value="<%= e[0] %>" name="port"/>
+							<p><%= e[1] %></p>
+						<% } %>
+					<% } else { %>
+						<p>
+						No printer detected. Is your printer plugged in?<br/>
+						<a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+						</p>
+					<% } %>
+				</label>
+				<% if (settings.portOptions.length > 0) { %>
+					<label for="settings-baudrate" class="bold">Baud Rate
+						<select id="settings-baudrate" name="baudrate">
+							<% _.each(settings.baudrateOptions, function(e) { %>
+								<option value="<%= e %>"<%= settings.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+							<% }) %>
+						</select>
+					</label>
+					<div align="center">
+						<div class="loading-button expand">
+							<button class="button success radius submit-action expand bold" href="#share">Connect</button>
+							<span class="button success disabled radius loading expand"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
+						</div>
+					</div>
+				<% } %>
+			</script>
 		</div>
 
 		<div id="step-share" class="step hide">

@@ -43,7 +43,6 @@ var PrinterConnectionView = SettingsPage.extend({
 		$.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
 			if (data.serial) {
 				this.settings = data;
-				this.undelegateEvents();
 				this.render(); // This removes the animate-spin from the link
 				this.delegateEvents({
 					'change #settings-baudrate': 'connectionSettingsChanged',

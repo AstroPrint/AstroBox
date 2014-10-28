@@ -400,6 +400,7 @@ var StepConnectPrinter = StepView.extend({
 
 var StepPrinter = StepView.extend({
 	el: "#step-printer",
+	template: _.template( $("#step-printer-template").html() ),
 	onShow: function()
 	{
 		this.$el.removeClass('success settings');
@@ -410,20 +411,10 @@ var StepPrinter = StepView.extend({
 			success: _.bind(function(data) {
 				this.$el.addClass('settings');
 				if (data.portOptions && data.baudrateOptions) {
-					var portSelect = this.$el.find('select#port');
-					portSelect.empty();
-					portSelect.append('<option value="">Pick a port</option>');
-					_.each(data.portOptions, function(p) {
-						portSelect.append('<option value="'+p[0]+'">'+p[1]+'</option>');
-					});
-					portSelect.val(data.port);
-
-					var baudSelect = this.$el.find('select#baud-rate');
-					baudSelect.empty();
-					_.each(data.baudrateOptions, function(b) {
-						baudSelect.append('<option value="'+b+'">'+b+'</option>');
-					});
-					baudSelect.val(data.baudrate);
+					this.render(data);
+					this.delegateEvents(_.extend(this.events, {
+						'click a.retry-ports': 'retryPortsClicked'
+					}));
 				} else {
 					noty({text: "Error reading printer connection settings", timeout: 3000});
 				}
@@ -442,6 +433,12 @@ var StepPrinter = StepView.extend({
 				this.$el.removeClass('checking');
 			}, this)
 		});
+	},
+	render: function(settings)
+	{
+		this.$('form').html(this.template({ 
+			settings: settings
+		}));
 	},
 	onSubmit: function(data) {
 		this._setConnecting(true);
@@ -487,6 +484,11 @@ var StepPrinter = StepView.extend({
 			this.$el.find('.loading-button').removeClass('loading');
 			this.$el.find('.skip-step').show();			
 		}
+	},
+	retryPortsClicked: function(e)
+	{
+		e.preventDefault();
+		this.onShow();
 	}
 });
 

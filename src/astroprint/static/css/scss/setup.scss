@@ -277,6 +277,16 @@ $setup-heading-nub-size: 15px;
 	}
 }
 
+#step-printer {
+	label {
+		p {
+			text-transform: none;
+			font-family: $body-font-family;
+			margin: 0 0 15px 0;
+		}
+	}
+}
+
 #step-share {
 	.share-button {
 		font-size: rem-calc(40) !important;
