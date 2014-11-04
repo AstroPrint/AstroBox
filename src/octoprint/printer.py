@@ -214,9 +214,11 @@ class Printer():
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
-	def extrude(self, amount):
-		extrusionSpeed = settings().get(["printerParameters", "movementSpeed", "e"])
-		self.commands(["G91", "G1 E%s F%d" % (amount, extrusionSpeed), "G90"])
+	def extrude(self, amount, speed=None):
+		if not speed:
+			speed = settings().get(["printerParameters", "movementSpeed", "e"])
+
+		self.commands(["G91", "G1 E%s F%d" % (amount, speed), "G90"])
 
 	def changeTool(self, tool):
 		try:

@@ -296,7 +296,9 @@ var ExtrusionControlView = Backbone.View.extend({
 	el: '#extrusion-control',
 	events: {
 		'click .extrude': 'extrudeTapped',
-		'click .retract': 'retractTapped'
+		'click .retract': 'retractTapped',
+		'change .extrusion-length': 'lengthChanged',
+		'change .extruder-number': 'extruderChanged'
 	},
 	extrudeTapped: function() {
 		if (this._checkAmount()) {
@@ -308,13 +310,42 @@ var ExtrusionControlView = Backbone.View.extend({
 			this._sendExtrusionCommand(-1);
 		}
 	},
+	lengthChanged: function(e) {
+		var elem = $(e.target);
+
+		if (elem.val() == 'other') {
+			elem.addClass('hide');
+			this.$('.other').removeClass('hide').focus();
+			this.$('.other').focus();
+		} else {
+			this.$('input[name="extrusion-length"]').val(elem.val());
+		}
+	},
+	extruderChanged: function(e) {
+		this._sendChangeToolCommand($(e.target).val())
+	},
+	_sendChangeToolCommand: function(tool)
+	{
+        var data = {
+            command: "select",
+            tool: 'tool'+tool
+        }
+
+        $.ajax({
+            url: API_BASEURL + "printer/tool",
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data)
+        });			
+	},
 	_checkAmount: function() {
-		return !isNaN(this.$el.find('.amount-field').val()); 
+		return !isNaN(this.$el.find('input[name="extrusion-length"]').val()); 
 	},
 	_sendExtrusionCommand: function(direction) {
         var data = {
             command: "extrude",
-            amount: this.$el.find('.amount-field').val() * direction
+            amount: this.$el.find('input[name="extrusion-length"]').val() * direction
         }
 
         $.ajax({

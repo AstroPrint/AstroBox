@@ -39,17 +39,40 @@
 			</div>
 			<div class="small-12 columns" id="extrusion-control">
 				<h2 class="bold">Extrude Filament</h2>
-				<div class="small-5 columns">
-					<div class="row collapse">
-						<div class="small-8 columns">
-							<input type="number" class="expand amount-field" placeholder="e.g 100"/>
+				<div class="small-12 medium-7 columns">
+					<div class="row">
+						<div class="small-3 columns">
+							<i class="icon-extruder"></i>
 						</div>
-						<div class="small-4 columns">
-							<span class="postfix radius">mm</span>
+						<div class="small-3 columns">
+							<select class="extruder-number">
+								<option value="0">1</option>
+								<option value="1">2</option>
+								<option value="2">3</option>
+								<option value="3">4</option>
+							</select>
+						</div>
+						<div class="small-6 columns">
+							<select class="extrusion-length">
+								<option value="10">10 mm</option>
+								<option value="50">50 mm</option>
+								<option value="100" selected>100 mm</option>
+								<option value="200">200 mm</option>
+								<option value="500">500 mm</option>
+								<option value="other">Other...</option>
+							</select>
+							<div class="row collapse other hide">
+								<div class="small-8 columns">
+									<input type="number" value="100" class="expand" name="extrusion-length"/>
+								</div>
+								<div class="small-4 columns">
+									<span class="postfix radius">mm</span>
+								</div>
+					</div>					
 						</div>
 					</div>
 				</div>
-				<div class="small-7 columns">
+				<div class="small-12 medium-5 columns">
 					<div class="row">
 						<div class="small-6 columns">
 							<button class="small radius expand success extrude">Extrude</button>

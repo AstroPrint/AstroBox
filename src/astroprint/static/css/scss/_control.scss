@@ -195,9 +195,19 @@
 #extrusion-control {
 	margin-top: 22px;
 
-	input, .postfix {
+	i.icon-extruder {
+		font-size: 40px;
+		color: $success-color;
+		display: inline-block;
+		margin-top: -4px;
+	}
+
+	input, select, .postfix {
 		height: 45px;
-		padding: 3px;
+	}
+
+	.postfix {
+		padding-top: 3px;
 	}
 
 	input {

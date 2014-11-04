@@ -111,6 +111,31 @@ var PrinterConnectionView = SettingsPage.extend({
 	}
 });
 
+/***********************
+* Printer - Profile
+************************/
+
+var PrinterProfileView = SettingsPage.extend({
+	el: '#printer-profile',
+	template: _.template( $("#printer-profile-settings-page-template").html() ),
+	settings: null,
+	initialize: function(params)
+	{
+		SettingsPage.prototype.initialize.call(this, params);
+	},
+	show: function() {
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+
+		this.render();
+	},
+	render: function() {
+		this.$el.html(this.template({ 
+			settings: this.settings
+		}));
+	},
+});
+
 /*************************
 * Internet - Connection
 **************************/
@@ -481,6 +506,7 @@ var SettingsView = Backbone.View.extend({
 	initialize: function() {
 		this.subviews = {
 			'printer-connection': new PrinterConnectionView({parent: this}),
+			'printer-profile': new PrinterProfileView({parent: this}),
 			'internet-connection': new InternetConnectionView({parent: this}),
 			'software-update': new SoftwareUpdateView({parent: this}),
 			'software-advanced': new SoftwareAdvancedView({parent: this})
