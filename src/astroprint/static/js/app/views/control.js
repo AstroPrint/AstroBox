@@ -294,11 +294,28 @@ var ZControlView = MovementControlView.extend({
 
 var ExtrusionControlView = Backbone.View.extend({
 	el: '#extrusion-control',
-	events: {
-		'click .extrude': 'extrudeTapped',
-		'click .retract': 'retractTapped',
-		'change .extrusion-length': 'lengthChanged',
-		'change .extruder-number': 'extruderChanged'
+	template: null,
+	initialize: function() {
+		this.template = _.template( this.$("#extruder-switch-template").html() );
+	},
+	render: function() {
+		var printer_profile = app.printerProfile.toJSON();
+
+		this.$('.row.extruder-switch').html(this.template({ 
+			profile: printer_profile
+		}));
+
+		var events = {
+			'click .extrude': 'extrudeTapped',
+			'click .retract': 'retractTapped',
+			'change .extrusion-length': 'lengthChanged'
+		};
+
+		if (printer_profile.extruder_count > 1) {
+			events['change .extruder-number'] = "extruderChanged";
+		}
+
+		this.delegateEvents(events);
 	},
 	extrudeTapped: function() {
 		if (this._checkAmount()) {
@@ -424,6 +441,8 @@ var ControlView = Backbone.View.extend({
 		} else {
 			this.$el.find('.back-to-print').hide();
 		}
+
+		this.extrusionView.render();
 	},
 	resumePrinting: function() {
 		app.router.printingView.togglePausePrint();
