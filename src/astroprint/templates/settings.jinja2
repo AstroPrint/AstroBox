@@ -4,6 +4,7 @@
 			<ul class="side-nav">
 				<li class="heading bold">Printer</li>
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
+				<li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
 				<li class="divider"></li>
 				<li class="heading bold">Internet</li>
 				<li class="internet-connection"><a href="#settings/internet-connection">Connection</a></li>
@@ -24,6 +25,35 @@
 					<span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
 				</div>
 			</div>
+		</div>
+
+		<div class="show-for-small">
+			<hr/>
+			<h1 class="bold" align="center">Printer Profile</h1>
+		</div>
+		<div id="printer-profile" class="settings-page hide">
+			<script type="text/template" id="printer-profile-settings-page-template">
+				<div class="row">
+					<div class="small-12">
+						<label for="extruder-count" class="bold">
+							No. of Extruders
+						</label>
+						<select id="extruder-count" name="extruder_count">
+							<option value='1'>1</option>
+							<option value='2'>2</option>
+							<option value='3'>3</option>
+							<option value='4'>4</option>
+						</select>
+						{# <label for="heated-bed" class="bold">
+							Heated Bed
+						</label>
+						<div class="switch radius">
+						  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+						  <label for="heated-bed"></label>
+						</div> #}
+					</div>
+				</div>
+			</script>
 		</div>
 
 		<div class="show-for-small">
@@ -90,6 +120,12 @@
 								<% }) %>
 							</select>
 						</label>
+					</div>
+					<div align="center">
+					<div class="loading-button test-connection">
+						<button class="success radius">Test Connection</button>
+						<span class="button disabled radius success loading">Connecting...</span>
+					</div>
 					</div>
 				</div>
 			<% } %>

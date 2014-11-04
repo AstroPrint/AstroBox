@@ -46,6 +46,7 @@ var AstroBoxApp = Backbone.View.extend({
 	router: null,
 	connectionView: null,
 	turnOffModal: null,
+	printerProfile: null,
 	events: {
 		'click button.turn-off': 'turnOffClicked'
 	},
@@ -56,6 +57,7 @@ var AstroBoxApp = Backbone.View.extend({
 		this.router = new AppRouter();
 		this.connectionView = new ConnectionView();
 		this.turnOffModal = new TurnoffConfirmationModal();
+		this.printerProfile = new PrinterProfile(initial_printer_profile);
 
 		this.eventManager = Backbone.Events;
 

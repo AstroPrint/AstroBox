@@ -62,6 +62,7 @@ import octoprint.events as events
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
+from astroprint.printerprofile import printerProfileManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -98,6 +99,7 @@ def index():
 			printing= printing,
 			paused= paused,
 			print_capture= cameraManager().timelapseInfo if printing or paused else None,
+			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager.getHostname()
 		)

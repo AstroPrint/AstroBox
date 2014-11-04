@@ -26,7 +26,7 @@ def settings(init=False, configfile=None, basedir=None):
 default_settings = {
 	"serial": {
 		"port": None,
-		"baudrate": None,
+		"baudrate": 250000,
 		"autoconnect": True,
 		"log": False,
 		"timeout": {
@@ -89,6 +89,7 @@ default_settings = {
 			]
 	},
 	"printerParameters": {
+		"infoFile": None,
 		"movementSpeed": {
 			"x": 6000,
 			"y": 6000,
