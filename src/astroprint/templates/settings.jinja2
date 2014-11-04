@@ -35,15 +35,22 @@
 			<script type="text/template" id="printer-profile-settings-page-template">
 				<div class="row">
 					<div class="small-12">
-						<label for="extruder-count">
+						<label for="extruder-count" class="bold">
 							No. of Extruders
-							<select>
-								<option value='1'>1</option>
-								<option value='2'>2</option>
-								<option value='3'>3</option>
-								<option value='4'>4</option>
-							</select>
 						</label>
+						<select id="extruder-count" name="extruder_count">
+							<option value='1'>1</option>
+							<option value='2'>2</option>
+							<option value='3'>3</option>
+							<option value='4'>4</option>
+						</select>
+						<label for="heated-bed" class="bold">
+							Heated Bed
+						</label>
+						<div class="switch radius">
+						  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+						  <label for="heated-bed"></label>
+						</div> 
 					</div>
 				</div>
 			</script>

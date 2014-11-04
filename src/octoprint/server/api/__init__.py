@@ -35,6 +35,7 @@ from astroprint.api import setup as api_astroprint_setup
 from astroprint.api import boxrouter as api_astroprint_boxrouter
 from astroprint.api import cloud as api_astroprint_cloud
 from astroprint.api import camera as api_astroprint_camera
+from astroprint.api import printerprofile as api_astroprint_printerprofile
 
 VERSION = "1.0"
 

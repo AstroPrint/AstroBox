@@ -122,6 +122,8 @@ var PrinterProfileView = SettingsPage.extend({
 	initialize: function(params)
 	{
 		SettingsPage.prototype.initialize.call(this, params);
+
+		this.settings = app.printerProfile;
 	},
 	show: function() {
 		//Call Super
@@ -131,9 +133,34 @@ var PrinterProfileView = SettingsPage.extend({
 	},
 	render: function() {
 		this.$el.html(this.template({ 
-			settings: this.settings
+			settings: this.settings.toJSON()
 		}));
+
+		this.$('#extruder-count').val(this.settings.get('extruder_count'));
+
+		this.delegateEvents({
+			"change select, input": "fieldChanged"
+		});
 	},
+	fieldChanged: function(e)
+	{
+		var elem = $(e.target);
+		var name = elem.attr('name');
+		var value = null;
+
+		if (elem.is('input[type="radio"], input[type="checkbox"]')) {
+			value = elem.is(':checked');
+		} else {
+			value = elem.val();
+		}
+
+		this.settings.save(name, value, {
+			patch: true,
+			error: function() {
+				console.error('Failed to save printer profile change for '+name);
+			}
+		});		
+	}
 });
 
 /*************************

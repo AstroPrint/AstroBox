@@ -89,6 +89,7 @@ default_settings = {
 			]
 	},
 	"printerParameters": {
+		"infoFile": None,
 		"movementSpeed": {
 			"x": 6000,
 			"y": 6000,
