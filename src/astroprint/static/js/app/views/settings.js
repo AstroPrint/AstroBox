@@ -45,9 +45,10 @@ var PrinterConnectionView = SettingsPage.extend({
 				this.settings = data;
 				this.render(); // This removes the animate-spin from the link
 				this.delegateEvents({
-					'change #settings-baudrate': 'connectionSettingsChanged',
-					'change #settings-serial-port': 'connectionSettingsChanged',
+					'change #settings-baudrate': 'saveConnectionSettings',
+					'change #settings-serial-port': 'saveConnectionSettings',
 					'click a.retry-ports': 'retryPortsClicked',
+					'click .loading-button.test-connection button': 'testConnection'
 				});
 			} else {
 				noty({text: "No serial settings found.", timeout: 3000});
@@ -71,7 +72,7 @@ var PrinterConnectionView = SettingsPage.extend({
 		e.preventDefault();
 		this.getInfo();
 	},
-	connectionSettingsChanged: function(e) {
+	saveConnectionSettings: function(e) {
 		var connectionData = {};
 
 		_.each(this.$('form').serializeArray(), function(e){
@@ -79,35 +80,39 @@ var PrinterConnectionView = SettingsPage.extend({
 		});
 
 		if (connectionData.baudrate && connectionData.port) {
-			$.ajax({
-				url: API_BASEURL + 'settings/printer', 
-				type: 'POST',
-				contentType: 'application/json',
-				dataType: 'json',
-				data: JSON.stringify(connectionData)
-			})
-			.done(function(){
-		        $.ajax({
-		            url: API_BASEURL + "connection",
-		            type: "POST",
-		            dataType: "json",
-		            contentType: "application/json; charset=UTF-8",
-		            data: JSON.stringify({
-			            "command": "connect",
-			            "port": connectionData.port,
-			            "baudrate": parseInt(connectionData.baudrate),
-			            "autoconnect": true
-			        })
-		        });
-			})
+			this.$('.loading-button.test-connection').addClass('loading');
+			this.$('.connection-status').removeClass('failed connected').addClass('connecting');
+	        $.ajax({
+	            url: API_BASEURL + "connection",
+	            type: "POST",
+	            dataType: "json",
+	            contentType: "application/json; charset=UTF-8",
+	            data: JSON.stringify({
+		            "command": "connect",
+		            "port": connectionData.port,
+		            "baudrate": parseInt(connectionData.baudrate),
+		            "autoconnect": true,
+		            "save": true
+		        })
+	        })
 			.fail(function(){
-				noty({text: "There was an error saving baud rate.", timeout: 3000});
+				noty({text: "There was an error saving connection settings.", timeout: 3000});
 			});
 		}
 	},
 	printerStatusChanged: function(s, value)
 	{
 		this.$('.connection-status').removeClass('connecting failed connected').addClass(value.status);
+
+		if (value.status != 'connecting') {
+			console.log(value);
+			this.$('.loading-button.test-connection').removeClass('loading');
+		}
+	},
+	testConnection: function(e)
+	{
+		e.preventDefault();
+		this.saveConnectionSettings();
 	}
 });
 
