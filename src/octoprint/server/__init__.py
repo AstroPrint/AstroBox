@@ -63,6 +63,7 @@ from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.variant import variantManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -77,7 +78,8 @@ def index():
 			"setup.jinja2",
 			debug= debug,
 			uiApiKey= UI_API_KEY,
-			version= VERSION
+			version= VERSION,
+			variantData= variantManager().data
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
@@ -101,7 +103,8 @@ def index():
 			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
-			astroboxName= networkManager.getHostname()
+			astroboxName= networkManager.getHostname(),
+			variantData= VariantManager().data
 		)
 
 @app.route("/robots.txt")

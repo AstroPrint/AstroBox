@@ -36,7 +36,10 @@
 					<li><a href="#"><i class="icon-home"></i> Home</a></li>
 					<li><a href="#control"><i class="icon-move"></i> Control</a></li>
 					<li><a href="#settings"><i class="icon-cog"></i> Settings</a></li>
-					<li><a href="mailto:support@astroprint.zendesk.com?subject=AstroBox%20question"><i class="icon-help"></i> Support</a></li>
+					<li><a href="{{variantData['supportLink']}}"><i class="icon-help"></i> Support</a></li>
+					{% if variantData['suppliesLink'] %}
+						<li><a href="{{variantData['suppliesLink']}}"><i class="icon-basket"></i> Supplies</a></li>
+					{% endif %}
 					{% if user_email %}
 						<li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
 						<li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-rocket-spinner animate-spin hide"></i></a></li>

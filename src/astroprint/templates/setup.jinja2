@@ -11,14 +11,10 @@
 <div id="setup-view" class="row">
 	<div class="small-12 large-8 large-centered columns" align="center">
 		<div id="step-welcome" class="step hide">
-			<h1 class="bold">Welcome to Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
+			<h1 class="bold">{{variantData['welcomeMsgHeader']}}<div class="nub"></div></h1>
 			<div class="content" align="center">
 				<img src="/img/setup/step_1_rocket.png" height="104"/>
-				<h2 class="bold">Thanks for backing us on <img src="/img/kickstarter_logo.png"/></h2>
-				<p>
-					Your support has made AstroPrint™ a reality! In other words, 
-					you are amazing and you are changing the world for the better!
-				</p>
+				{{variantData['welcomeMsgContent']}}
 				<a class="button success radius expand bold" href="#name">Begin Setup</i></a>
 			</div>
 		</div>
@@ -268,10 +264,7 @@
 			<h1 class="bold">You're done!<div class="nub"></div></h1>
 			<div class="content">
 				<img src="/img/setup/final_step_astroprint_logo.png" height=""/>
-				<p>
-					<b>Congratulations!</b> Your AstroBox is all set up. Now go print 
-					something awesome or if you are feeling generous share the love!
-				</p>
+				<p>{{variantData['congratsMsg']}}</p>
 				<button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i> Share</button>
 				<button class="radius share-button twitter bold expand"><i class="icon-twitter"></i> Tweet</button>
 				<a class="button radius success bold setup-done expand" style="display:none" href="#">Start Printing!</a>
@@ -291,6 +284,7 @@
 		var BASEURL = "{{ url_for('index') }}";
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
+		var shareOptions = {{ variantData['share'] | tojson | safe }}
 	</script>
 	{% assets filters="closure_js", output="js/gen/setup.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",

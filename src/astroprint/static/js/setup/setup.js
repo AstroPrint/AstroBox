@@ -508,14 +508,14 @@ var StepShare = StepView.extend({
 	onFacebookClicked: function(e)
 	{
 		e.preventDefault();
-		window.open('https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fwww.astroprint.com','facebook','width=740,height=280,left=300,top=300');
+		window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareOptions.facebook.link),'facebook','width=740,height=280,left=300,top=300');
 		this.$el.find('a.button.setup-done').show();
 		this.$el.find('a.setup-done').addClass('hide');
 	},
 	onTwitterClicked: function(e)
 	{
 		e.preventDefault();
-		window.open('https://twitter.com/share?url=http%3A%2F%2Fwww.astroprint.com&text=I+just+setup+my+AstroBox+and+%40AstroPrint3D+for+easy+%233DPrinting.+Get+yours+at','twitter','width=740,height=280,left=300,top=300');
+		window.open('https://twitter.com/share?url='+encodeURIComponent(shareOptions.twitter.link)+'&text='+encodeURIComponent(shareOptions.twitter.copy),'twitter','width=740,height=280,left=300,top=300');
 		this.$el.find('a.button.setup-done').show();
 		this.$el.find('a.setup-done').addClass('hide');
 	},
