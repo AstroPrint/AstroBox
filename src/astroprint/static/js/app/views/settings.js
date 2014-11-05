@@ -105,7 +105,6 @@ var PrinterConnectionView = SettingsPage.extend({
 		this.$('.connection-status').removeClass('connecting failed connected').addClass(value.status);
 
 		if (value.status != 'connecting') {
-			console.log(value);
 			this.$('.loading-button.test-connection').removeClass('loading');
 		}
 	},
