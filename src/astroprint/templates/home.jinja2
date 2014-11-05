@@ -52,20 +52,20 @@
 				<div class="actions">
 					<% if (p.local_filename) { %>
 						<a class="remove" href="#">
-							<i class="icon-trash with-separator" title="Remove from AstroBox"></i>
+							<i class="icon-trash with-separator" title="Remove from {{variantData['productName']}}"></i>
 						</a>
 						<a class="print" href="#">
 							<i class="icon-3d-printer" title="Print"></i>
 						</a>
 					<% } else { %>
 						<a class="download" href="#">
-							<i class="icon-download-cloud" title="Download to AstroBox"></i>
+							<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
 						</a>
 					<% } %>
 				</div>
 				<div class="print-settings">
 					<% if (p.local_only) { %>
-						This file is <b>only</b> stored on this AstroBox
+						This file is <b>only</b> stored on this {{variantData['productName']}}
 					<% } else { %>
 						<a href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %></a>
 						/
@@ -122,7 +122,7 @@
 							</a>
 						<% } else { %>
 							<a href="#" onclick="home_download_print_file_clicked('<%= p.id %>', arguments[0])">
-								<i class="icon-download-cloud" title="Download to AstroBox"></i>
+								<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
 							</a>
 						<% } %>
 					</div>

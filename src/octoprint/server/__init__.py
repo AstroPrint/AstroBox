@@ -87,7 +87,8 @@ def index():
 			"updating.jinja2",
 			uiApiKey= UI_API_KEY,
 			showForceUpdate=  softwareManager.forceUpdateInfo != None,
-			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo
+			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo,
+			variantData= variantManager().data
 		)
 
 	else:

@@ -316,7 +316,7 @@ var PrintFilesListView = Backbone.View.extend({
             	}
 
             	self.render();
-            	noty({text: filename+" deleted form your AstroBox", type:"success", timeout: 3000});
+            	noty({text: filename+" deleted form your "+PRODUCT_NAME, type:"success", timeout: 3000});
             },
             error: function() {
             	noty({text: "Error deleting "+filename, timeout: 3000});

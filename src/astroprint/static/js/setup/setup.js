@@ -239,7 +239,7 @@ var StepInternet = StepView.extend({
 		})
 		.done(_.bind(function(data) {
 			if (data.name) {
-				noty({text: "Your AstroBox is now connected to "+data.name+".", type: "success", timeout: 3000});
+				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
 				if (callback) callback(false);
 				this.$el.removeClass('settings');
 				this.$el.addClass('success');

@@ -1,5 +1,6 @@
 supportLink: mailto:support@astroprint.zendesk.com?subject=AstroBox%20question
 suppliesLink: 
+productName: "AstroBox&trade;"
 defaultHostname: astrobox
 welcomeMsgHeader: 'Welcome to Your <span class="light">Astro</span>Box&trade;'
 welcomeMsgContent: >

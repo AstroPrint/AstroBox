@@ -214,7 +214,7 @@ var InternetConnectionView = SettingsPage.extend({
 			url: API_BASEURL + "settings/internet/hotspot",
 			type: "POST",
 			success: _.bind(function(data, code, xhr) {
-				noty({text: 'Your AstroBox has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
+				noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
 				this.settings.hotspot.active = true;
 				this.render();
 			}, this),
@@ -314,7 +314,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		})
 		.done(function(data) {
 			if (data.name && data.signal && data.ip) {
-				noty({text: "Your AstroBox is now connected to "+data.name+".", type: "success", timeout: 3000});
+				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
 				self.$el.foundation('reveal', 'close');
 				self.parent.settings.networks['wireless'] = data
 				self.parent.render();
