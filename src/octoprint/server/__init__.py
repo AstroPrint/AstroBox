@@ -104,7 +104,7 @@ def index():
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager.getHostname(),
-			variantData= VariantManager().data
+			variantData= variantManager().data
 		)
 
 @app.route("/robots.txt")
