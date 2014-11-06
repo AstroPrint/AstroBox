@@ -36,14 +36,17 @@
 					<li><a href="#"><i class="icon-home"></i> Home</a></li>
 					<li><a href="#control"><i class="icon-move"></i> Control</a></li>
 					<li><a href="#settings"><i class="icon-cog"></i> Settings</a></li>
-					<li><a href="mailto:support@astroprint.zendesk.com?subject=AstroBox%20question"><i class="icon-help"></i> Support</a></li>
+					<li><a href="{{variantData['supportLink']}}"><i class="icon-help"></i> Support</a></li>
+					{% if variantData['suppliesLink'] %}
+						<li><a href="{{variantData['suppliesLink']}}"><i class="icon-basket"></i> Supplies</a></li>
+					{% endif %}
 					{% if user_email %}
 						<li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
 						<li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-rocket-spinner animate-spin hide"></i></a></li>
 					{% endif %}
 				</ul>
 				<div class="turn-off-area" align="center">
-					<button class="alert tiny radius turn-off"><i class="icon-off"></i> Turn AstroBox&trade; Off</button>
+					<button class="alert tiny radius turn-off"><i class="icon-off"></i> Turn {{variantData['productName']}} Off</button>
 				</div>
 				<div class="copy" align="center">&copy; 3DaGoGo, Inc. AstroPrint&trade;<br/>{{version}}</div>
 			</aside>
@@ -87,6 +90,7 @@
 		var LOGGED_IN = {% if user_email -%} true {%- else -%} false {%- endif %};
 		var app = null;
 		var ASTROBOX_NAME = "{{astroboxName}}";
+		var PRODUCT_NAME = "{{variantData['productName']}}";
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
 			paused: {% if paused -%} true {%- else -%} false {%- endif %},

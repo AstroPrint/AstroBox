@@ -11,14 +11,10 @@
 <div id="setup-view" class="row">
 	<div class="small-12 large-8 large-centered columns" align="center">
 		<div id="step-welcome" class="step hide">
-			<h1 class="bold">Welcome to Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
+			<h1 class="bold">{{variantData['welcomeMsgHeader']}}<div class="nub"></div></h1>
 			<div class="content" align="center">
 				<img src="/img/setup/step_1_rocket.png" height="104"/>
-				<h2 class="bold">Thanks for backing us on <img src="/img/kickstarter_logo.png"/></h2>
-				<p>
-					Your support has made AstroPrint™ a reality! In other words, 
-					you are amazing and you are changing the world for the better!
-				</p>
+				{{variantData['welcomeMsgContent']}}
 				<a class="button success radius expand bold" href="#name">Begin Setup</i></a>
 			</div>
 		</div>
@@ -28,12 +24,12 @@
 			<div class="content">
 				<img src="/img/setup/step_2_rocket.png" height="104"/>
 				<p>
-					If you have more than one AstroBox, make sure and give them different names!
+					If you have more than one {{variantData['productName']}}, make sure and give them different names!
 				</p>
 				<div class="settings-state">
 					<form align="center">
 						<label for="astrobox-name">
-							<b>AstroBox Name:</b>
+							<b>{{variantData['productName']}} Name:</b>
 							<input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
 						</label>
 						<p>
@@ -41,7 +37,7 @@
 						</p>
 						<ul class="preview">
 							<li><i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span></li>
-							<li><i class="icon-link"></i> AstroBox URL: http://<span class="astrobox-url bold"></span>.local</li>
+							<li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="astrobox-url bold"></span>.local</li>
 						</ul>
 						<div class="loading-button expand">
 							<a class="button success radius submit-action expand" href="#internet"><small>Next:</small> <b>Internet Setup</b> <i class="icon-right-open"></i></a>
@@ -68,7 +64,7 @@
 					<img src="/img/setup/step_4_wifi-box.png" height="107"/>
 					<h3 class="bold" align="center">Success!</h3>
 					<p>
-						Your AstroBox is now connected to the internet.
+						Your {{variantData['productName']}} is now connected to the internet.
 					</p>
 					<a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
 				</div>
@@ -81,7 +77,7 @@
 					<h3 class="bold" align="center"></h3>
 					<button class="success radius expand">Retry</button>
 					<div align="right">
-						<a href="#connect-printer" class="skip-step">Skip internet. Use AstroBox offline <i class="icon-right-open"></i></a>
+						<a href="#connect-printer" class="skip-step">Skip internet. Use {{variantData['productName']}} offline <i class="icon-right-open"></i></a>
 					</div>
 				</div>
 				<div class="settings-state">
@@ -104,7 +100,7 @@
 					</div>
 					<p class="small">
 						<sup>*</sup> Without being connected to the internet, you can only 
-						use the AstroBox when you are near it. 
+						use the {{variantData['productName']}} when you are near it. 
 					</p>
 				</div>
 			</div>
@@ -171,7 +167,7 @@
 					</p>
 					<form>
 						<label for="email">
-							<i class="icon-user"></i> <b>Email</b> (<a target="_astroprint" href="https://www.astroprint.com/#signup">don't have account?</a>)
+							<i class="icon-user"></i> <b>Email</b> (<a target="_astroprint" href="https://www.astroprint.com/account/signup">don't have account?</a>)
 							<input type="email" id="email" class="radius" name="email"/>
 						</label>
 						<label for="password">
@@ -197,7 +193,7 @@
 			<div class="content">
 				<img src="/img/setup/step_6_connect-box.png" height="90"/>
 				<p align="center">
-					Plug your printer's USB in the AstroBox and click continue when done.
+					Plug your printer's USB in the {{variantData['productName']}} and click continue when done.
 				</p>
 				<a href="#printer" class="button success radius share-button bold expand">Continue</a>
 				<div align="right">
@@ -268,10 +264,7 @@
 			<h1 class="bold">You're done!<div class="nub"></div></h1>
 			<div class="content">
 				<img src="/img/setup/final_step_astroprint_logo.png" height=""/>
-				<p>
-					<b>Congratulations!</b> Your AstroBox is all set up. Now go print 
-					something awesome or if you are feeling generous share the love!
-				</p>
+				<p>{{variantData['congratsMsg']}}</p>
 				<button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i> Share</button>
 				<button class="radius share-button twitter bold expand"><i class="icon-twitter"></i> Tweet</button>
 				<a class="button radius success bold setup-done expand" style="display:none" href="#">Start Printing!</a>
@@ -291,6 +284,8 @@
 		var BASEURL = "{{ url_for('index') }}";
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
+		var PRODUCT_NAME = "{{variantData['productName']}}";
+		var shareOptions = {{ variantData['share'] | tojson | safe }}
 	</script>
 	{% assets filters="closure_js", output="js/gen/setup.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
