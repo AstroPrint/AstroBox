@@ -8,6 +8,13 @@
 			margin: 0;
 			vertical-align: middle;
 		}
+
+		ul.storage {
+			a.button.active {
+				background: $alert-color;
+				color: white;
+			}
+		}
 	}
 
 	.file-upload-view {

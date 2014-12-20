@@ -220,6 +220,7 @@ var FileUploadPrint = FileUploadBase.extend({
     		if (gcodeData.file == filename) {
 	    		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
 	    		app.router.homeView.refreshPrintFiles(true);
+	    		app.router.homeView.printFilesListView.storage_control_view.selectStorage('local');
 		        this.progressBar.hide();
 		        this.buttonContainer.show();
 		        this._updateProgress(0);
@@ -236,8 +237,6 @@ var PrintFileView = Backbone.View.extend({
 	{
 		this.list = options.list;
 		this.print_file = options.print_file;
-
-		this.listenTo(this.print_file, 'remove', this.onFileRemoved);
 	},
 	render: function()
 	{
@@ -310,41 +309,95 @@ var PrintFileView = Backbone.View.extend({
 	        	setTimeout(function(){
 	        		loadingBtn.removeClass('loading');
 	        	},2000);
-
-	            //this.$el.find('.progress .filename').text(filename);
 	        }, this))
 	        .fail(function() {
 	        	noty({text: "There was an error starting the print", timeout: 3000});
 	        	loadingBtn.removeClass('loading');
 	        })
 	    }
+	}
+});
+
+var StorageControlView = Backbone.View.extend({
+	print_file_view: null,
+	events: {
+		'click a.local': 'localClicked',
+		'click a.cloud': 'cloudClicked'
 	},
-	onFileRemoved: function()
+	selected: null,
+	initialize: function(options)
 	{
-		this.remove();
+		this.print_file_view = options.print_file_view;
+	},
+	selectStorage: function(storage)
+	{
+		this.$('a.active').removeClass('active');
+		this.$('a.'+storage).addClass('active');
+		this.selected = storage;
+		this.print_file_view.render();
+	},
+	localClicked: function(e)
+	{
+		e.preventDefault();
+		this.selectStorage('local');
+	},
+	cloudClicked: function(e)
+	{
+		e.preventDefault();
+
+		if (LOGGED_IN) {
+			this.selectStorage('cloud');
+	    } else {
+	    	$('#login-modal').foundation('reveal', 'open');
+	    }
 	}
 });
 
 var PrintFilesListView = Backbone.View.extend({
 	info_dialog: null,
-	file_list: null,
 	print_file_views: [],
+	storage_control_view: null,
+	file_list: null,
 	events: {
 		'click .list-header button.sync': 'forceSync' 
 	},
 	initialize: function() {
 		this.file_list = new PrintFileCollection();
 		this.info_dialog = new PrintFileInfoDialog({file_list_view: this});
+		this.storage_control_view = new StorageControlView({
+			el: this.$('.list-header ul.storage'),
+			print_file_view: this
+		});
 		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
+		this.listenTo(this.file_list, 'remove', this.onFileRemoved);
 		this.refresh(false);
 	},
 	render: function() 
 	{ 
 		var list = this.$('.design-list-container');
+		var selectedStorage = this.storage_control_view.selected;
 
-		if (this.print_file_views.length) {
-			list.empty();
-			_.each(this.print_file_views, function(p){
+		list.children().detach();
+
+		if (selectedStorage) {
+			var filteredViews = _.filter(this.print_file_views, function(p){
+				if (selectedStorage == 'local') {
+					if (p.print_file.get('local_filename')) {
+						return true
+					}
+				} else if (!p.print_file.get('local_only')) {
+					return true;
+				}
+
+				return false;
+			});
+		} else {
+			var filteredViews = this.print_file_views;
+		}
+
+		if (filteredViews.length) {
+
+			_.each(filteredViews, function(p) {
 				list.append(p.$el);
 			});
 	    } else {
@@ -374,6 +427,8 @@ var PrintFilesListView = Backbone.View.extend({
 					print_file_view.render();
 					this.print_file_views.push( print_file_view );
 				}, this));
+
+				this.$('.design-list-container').empty();
 				this.render();
 				loadingBtn.removeClass('loading');
 			}, this);
@@ -412,6 +467,21 @@ var PrintFilesListView = Backbone.View.extend({
 	forceSync: function()
 	{
 		this.refresh(true);
+	},
+	onFileRemoved: function(print_file)
+	{
+		//Find the view that correspond to this print file
+		var view = _.find(this.print_file_views, function(v) {
+			return v.print_file == print_file;
+		});
+
+		if (view) {
+			//Remove from DOM
+			view.remove();
+
+			//Remove from views array
+			this.print_file_views.splice(this.print_file_views.indexOf(view), 1);
+		}
 	}
 });
 
