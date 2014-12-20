@@ -1,17 +1,12 @@
 #home-view {
-	h3 {
-		font-size: rem-calc(30);
-
-		.icon-refresh {
-			font-size: rem-calc(20);
-			cursor:pointer;
+	.list-header {
+		h3 {
 			display: inline-block;
-			color: $success-color;
-			padding: 0 10px;
-
-			&.animate-spin {
-				color: $body-font-color;
-			}
+			font-size: rem-calc(20);
+			padding-right: 10px;
+			padding-top: 10px;
+			margin: 0;
+			vertical-align: middle;
 		}
 	}
 
@@ -145,7 +140,7 @@
 	}
 }
 
-#printer-file-info {
+#print-file-info {
 	padding: 0;
 
 	h2 {
@@ -191,17 +186,25 @@
 				&:hover,
 				&:active {
 					color: $success-color;
-				}
 
-				i {
-					font-size: rem-calc(70);
-					padding: 0 10px;
-
-					&.with-separator {
-						border-right: 2px solid #ccc;
+					&.remove {
+						color: $alert-color;
 					}
 				}
+
+				&.delete {
+					color: $alert-color;
+				}
 			} 
+
+			i {
+				font-size: rem-calc(70);
+				padding: 0 10px;
+
+				&.with-separator {
+					border-right: 2px solid #ccc;
+				}
+			}
 		}
 
 		.print-settings {

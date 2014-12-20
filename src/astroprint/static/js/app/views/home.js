@@ -5,48 +5,76 @@
  */
 
 var PrintFileInfoDialog = Backbone.View.extend({
-	el: '#printer-file-info',
-	file_list: null,
-	template: _.template( $("#printerfile-info-template").html() ),
-	printer_file: null,
+	el: '#print-file-info',
+	file_list_view: null,
+	template: _.template( $("#printfile-info-template").html() ),
+	print_file_view: null,
 	events: {
-		'click .actions .remove': 'onDeleteClicked',
-		'click .actions .print': 'onPrintClicked',
-		'click .actions .download': 'onDownloadClicked'
+		'click .actions a.remove': 'onDeleteClicked',
+		'click .actions a.print': 'onPrintClicked',
+		'click .actions a.download': 'onDownloadClicked'
 	},
 	initialize: function(params) 
 	{
-		this.file_list = params.file_list;
+		this.file_list_view = params.file_list_view;
 	},
 	render: function() 
 	{
 		this.$el.find('.dlg-content').html(this.template({ 
-        	p: this.printer_file,
+        	p: this.print_file_view.print_file.toJSON(),
         	time_format: app.utils.timeFormat
         }));
 	},
-	open: function(printer_file) 
+	open: function(print_file_view) 
 	{
-		this.printer_file = printer_file;
+		this.print_file_view = print_file_view;
 		this.render();
 		this.$el.foundation('reveal', 'open');
 	},
 	onDeleteClicked: function(e) 
 	{
 		e.preventDefault();
-		this.file_list.doDelete(this.printer_file.id, this.printer_file.local_filename);
-		this.$el.foundation('reveal', 'close');
+
+		var print_file = this.print_file_view.print_file;
+
+		if (print_file) {
+			var filename = print_file.get('local_filename');
+			var id = print_file.get('id');
+			var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+			loadingBtn.addClass('loading');
+	        $.ajax({
+	            url: '/api/files/local/'+filename,
+	            type: "DELETE",
+	            success: _.bind(function() {
+	            	//Update model 
+            		if (print_file.get('local_only')) {
+            			this.file_list_view.file_list.remove(print_file);
+            		} else {
+            			print_file.set('local_filename', false);
+            		}
+
+	            	noty({text: filename+" deleted form your "+PRODUCT_NAME, type:"success", timeout: 3000});
+	            	this.print_file_view.render();
+	            	this.$el.foundation('reveal', 'close');
+	            }, this),
+	            error: function() {
+	            	noty({text: "Error deleting "+filename, timeout: 3000});
+	            },
+	            always: function() {
+					loadingBtn.removeClass('loading');
+	            }
+	        });
+	    }
 	},
 	onPrintClicked: function(e) 
 	{
-		e.preventDefault();
-		this.file_list.startPrint(this.printer_file.local_filename);
+		this.print_file_view.printClicked(e);
 		this.$el.foundation('reveal', 'close');
 	},
 	onDownloadClicked: function(e) 
 	{
-		e.preventDefault();
-		this.file_list.doDownload(this.printer_file.id);
+		this.print_file_view.downloadClicked(e);
 		this.$el.foundation('reveal', 'close');
 	}
 });
@@ -200,40 +228,160 @@ var FileUploadPrint = FileUploadBase.extend({
 	}
 });
 
+var PrintFileView = Backbone.View.extend({
+	template: _.template( $("#print-file-template").html() ),
+	print_file: null,
+	list: null,
+	initialize: function(options)
+	{
+		this.list = options.list;
+		this.print_file = options.print_file;
+
+		this.listenTo(this.print_file, 'remove', this.onFileRemoved);
+	},
+	render: function()
+	{
+		var print_file = this.print_file.toJSON();
+
+		if (print_file.local_filename) {
+			this.$el.removeClass('remote');
+		} else {
+			this.$el.addClass('remote');
+		}
+
+		this.$el.empty();
+		this.$el.html(this.template({
+        	p: print_file,
+        	time_format: app.utils.timeFormat,
+        	size_format: app.utils.sizeFormat			
+		}));
+		this.delegateEvents({
+			'click .left-section, .middle-section': 'infoClicked',
+			'click a.print': 'printClicked',
+			'click a.download': 'downloadClicked'
+		});
+	},
+	infoClicked: function(evt) 
+	{
+		evt.preventDefault();
+		this.list.info_dialog.open(this);
+	},
+	downloadClicked: function(evt)
+	{
+		evt.preventDefault();
+
+		var options = this.$('.print-file-options');
+		var progress = this.$('.progress');
+
+		options.hide();
+		progress.show();
+
+        $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
+        	.done(_.bind(function(response) {
+        		this.render();
+	        }, this))
+	        .fail(function(){
+	            noty({text: "Couldn't download the print file.", timeout: 3000});
+	        })
+	        .always(function(){
+	            options.show();
+				progress.hide();
+	        });
+	},
+	printClicked: function (evt)
+	{
+		evt.preventDefault();
+
+		var filename = this.print_file.get('local_filename');
+
+		if (filename) {
+			//We can't use evt because this can come from another source than the row print button
+			var loadingBtn = this.$('.loading-button.print');
+
+			loadingBtn.addClass('loading');
+	        $.ajax({
+	            url: '/api/files/local/'+filename,
+	            type: "POST",
+	            dataType: "json",
+	            contentType: "application/json; charset=UTF-8",
+	            data: JSON.stringify({command: "select", print: true})
+	        })
+	        .done(_.bind(function() {
+	        	setTimeout(function(){
+	        		loadingBtn.removeClass('loading');
+	        	},2000);
+
+	            //this.$el.find('.progress .filename').text(filename);
+	        }, this))
+	        .fail(function() {
+	        	noty({text: "There was an error starting the print", timeout: 3000});
+	        	loadingBtn.removeClass('loading');
+	        })
+	    }
+	},
+	onFileRemoved: function()
+	{
+		this.remove();
+	}
+});
+
 var PrintFilesListView = Backbone.View.extend({
-	template: _.template( $("#print-file-list-template").html() ),
 	info_dialog: null,
 	file_list: null,
-	loader: null,
+	print_file_views: [],
+	events: {
+		'click .list-header button.sync': 'forceSync' 
+	},
 	initialize: function() {
 		this.file_list = new PrintFileCollection();
-		this.info_dialog = new PrintFileInfoDialog({file_list: this});
-		this.loader = this.$el.find('h3 .icon-refresh');
+		this.info_dialog = new PrintFileInfoDialog({file_list_view: this});
 		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
 		this.refresh(false);
 	},
 	render: function() 
 	{ 
-        this.$el.find('.design-list-container').html(this.template({ 
-        	print_files: this.file_list.toJSON(),
-        	time_format: app.utils.timeFormat,
-        	size_format: app.utils.sizeFormat
-        }));
+		var list = this.$('.design-list-container');
+
+		if (this.print_file_views.length) {
+			list.empty();
+			_.each(this.print_file_views, function(p){
+				list.append(p.$el);
+			});
+	    } else {
+	    	list.html(
+		    	'<div class="empty panel radius" align="center">'+
+				'	<i class="icon-inbox empty-icon"></i>'+
+				'	<h3>Nothing here yet.</h3>'+
+				'</div>'
+			);
+	    }
     },
 	refresh: function(syncCloud) 
 	{
-		if (!this.loader.hasClass('animate-spin')) {
-			this.loader.addClass('animate-spin');
+		var loadingBtn = this.$('.loading-button.sync');
+
+		if (!loadingBtn.hasClass('loading')) {
+			loadingBtn.addClass('loading');
 
 			var success = _.bind(function() {
-				this.loader.removeClass('animate-spin');
+				this.print_file_views = [];
+				this.file_list.each(_.bind(function(print_file, idx) {
+					var print_file_view = new PrintFileView({
+						list: this,
+						print_file: print_file,
+						attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
+					});
+					print_file_view.render();
+					this.print_file_views.push( print_file_view );
+				}, this));
 				this.render();
+				loadingBtn.removeClass('loading');
 			}, this);
 
-			var error = _.bind(function() {
+			var error = function() {
 				noty({text: "There was an error retrieving design list", timeout: 3000});
-				this.loader.removeClass('animate-spin');
-			}, this);
+				loadingBtn.removeClass('loading');
+			};
 
 			if (syncCloud) {
 				this.file_list.syncCloud({success: success, error: error});
@@ -242,106 +390,28 @@ var PrintFilesListView = Backbone.View.extend({
 			}
 		}	
 	},
-	onInfoClicked: function(el) 
-	{
-		var row = $(el).closest('.row');
-		var printfile_id = row.data('printfile-id');
-		var print_file = this.file_list.get(printfile_id);
-
-		if (print_file) {
-			this.info_dialog.open(print_file.toJSON());
-		} else {
-			console.error('Invalid printfile_id: '+printfile_id);
-		}
-	},
-	startPrint: function(filename, cb) 
-	{
-        $.ajax({
-            url: '/api/files/local/'+filename,
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify({command: "select", print: true})
-        }).
-        done(_.bind(function() {
-            this.$el.find('.progress .filename').text(filename);
-            if (cb) {
-        	   cb(true);
-            }
-        }, this)).
-        fail(function() {
-        	noty({text: "There was an error starting the print", timeout: 3000});
-            if (cb) {
-        	   cb(false);
-            }
-        });
-	},
-	doDownload: function(id) 
-	{
-		var self = this;
-		var container = this.$el.find('#print-file-'+id);
-		var options = container.find('.print-file-options');
-		var progress = container.find('.progress');
-
-		options.hide();
-		progress.show();
-
-        $.getJSON('/api/astroprint/print-files/'+id+'/download', 
-        	function(response) {
-        		self.render();
-	        }).fail(function(){
-	            noty({text: "Couldn't download the print file.", timeout: 3000});
-	        }).always(function(){
-	            options.show();
-				progress.hide();
-	        });
-	},
-	doDelete: function(id, filename) 
-	{
-		var self = this;
-
-        $.ajax({
-            url: '/api/files/local/'+filename,
-            type: "DELETE",
-            success: function() {            	
-            	//Update model
-            	var print_file = self.file_list.get(id);
-
-            	if (print_file) {
-            		if (print_file.get('local_only')) {
-            			self.file_list.remove(print_file);
-            		} else {
-            			print_file.set('local_filename', false);
-            		}
-            	}
-
-            	self.render();
-            	noty({text: filename+" deleted form your "+PRODUCT_NAME, type:"success", timeout: 3000});
-            },
-            error: function() {
-            	noty({text: "Error deleting "+filename, timeout: 3000});
-            }
-        });
-	},
 	downloadProgress: function(data) 
 	{
-		var container = this.$el.find('#print-file-'+data.id);
-		var progress = container.find('.progress .meter');
+		var print_file_view = _.find(this.print_file_views, function(v) {
+			return v.print_file.get('id') == data.id;
+		});
+		var progress = print_file_view.$('.progress .meter');
 
 		if (data.type == "progress") {
 			progress.css('width', data.progress+'%');
 		} else if (data.type == "success") {
-			var print_file = this.file_list.get(data.id);
+			var print_file = print_file_view.print_file;
 
 			if (print_file) {
 				print_file.set('local_filename', data.filename);
 				print_file.set('print_time', data.print_time);
 				print_file.set('layer_count', data.layer_count);
 			}
-
-		} else if (data.type == "success") {
-			console.log('done');
-		}
+		} 
+	},
+	forceSync: function()
+	{
+		this.refresh(true);
 	}
 });
 
@@ -349,9 +419,6 @@ var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
 	printFilesListView: null,
-	events: {
-		'click h3 .icon-refresh': 'refreshPrintFiles' 
-	},
 	initialize: function() 
 	{
 		this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
@@ -362,21 +429,3 @@ var HomeView = Backbone.View.extend({
 		this.printFilesListView.refresh(true);
 	}
 });
-
-function home_info_print_file_clicked(el, evt) 
-{
-	evt.preventDefault();
-	app.router.homeView.printFilesListView.onInfoClicked.call(app.router.homeView.printFilesListView, $(el));
-}
-
-function home_download_print_file_clicked(id, evt)
-{
-	evt.preventDefault();
-	app.router.homeView.printFilesListView.doDownload.call(app.router.homeView.printFilesListView, id);
-}
-
-function home_print_print_file_clicked(filename, evt)
-{
-	evt.preventDefault();
-	app.router.homeView.printFilesListView.startPrint(filename);
-}

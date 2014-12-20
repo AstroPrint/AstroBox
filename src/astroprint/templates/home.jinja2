@@ -7,7 +7,7 @@
 			</span>
 		</div>
 		<div class="small-12 medium-6 large-4 columns left">
-			<span class="file-upload-button button success radius expand print" style="margin-bottom: 10px">
+			<span class="file-upload-button button secondary radius expand print" style="margin-bottom: 10px">
 				<i class="icon-upload-cloud-1"></i> Upload Print File (.gcode)
 				<input class="file-upload" type="file" name="file" data-url="/api/files/local" accept=".gcode">
 			</span>
@@ -25,19 +25,42 @@
 	</div>
 </div>
 
-<div class="row">
-	<div class="design-list small-12 columns">
-		<h3 class="bold">Printable Files {%- if user_email %} <i class="icon-refresh" title="Refresh"></i> {%- endif %}</h3>
-		<div class="design-list-container"></div>
+<hr/>
+
+<div class="design-list">
+	<div class="row list-header">
+		<div class="small-12 medium-7 large-8 columns">
+			<h3 class="bold">Printable Files</h3>
+			{%- if user_email %} 
+				<div class="loading-button sync">
+					<button class="tiny success radius sync"><i class="icon-refresh"></i> Sync</button>
+					<span class="tiny success button radius disabled loading"><i class="icon-refresh animate-spin"></i> Sync</span>
+				</div>
+			{%- endif %}
+		</div>
+		<div class="small-12 medium-5 large-4 columns">
+			{% if user_email %}
+				<ul class="button-group radius even-2">
+				  <li><a href="#" class="button small secondary">Local</a></li>
+				  <li><a href="#" class="button small secondary">Cloud</a></li>
+				</ul>
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="small-12 columns">
+			<div class="design-list-container"></div>
+		</div>
 	</div>
 </div>
 
-<div id="printer-file-info" class="reveal-modal xlarge" data-reveal>
+<div id="print-file-info" class="reveal-modal xlarge" data-reveal>
 	<div class="dlg-content"></div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
 
-<script type="text/template" id="printerfile-info-template">
+<script type="text/template" id="printfile-info-template">
 	<h2 class="bold"><%= p.name %></h2>
 	<div class="reveal-content">
 		<div class="row">
@@ -51,9 +74,12 @@
 			<div class="small-12<%= p.images.square ? ' medium-7 large-8' : '' %> columns">
 				<div class="actions">
 					<% if (p.local_filename) { %>
-						<a class="remove" href="#">
-							<i class="icon-trash with-separator" title="Remove from {{variantData['productName']}}"></i>
-						</a>
+						<div class="loading-button">
+							<a class="remove idle" href="#">
+								<i class="icon-trash with-separator" title="Remove from {{variantData['productName']}}"></i>
+							</a>
+							<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+						</div>
 						<a class="print" href="#">
 							<i class="icon-3d-printer" title="Print"></i>
 						</a>
@@ -94,45 +120,37 @@
 	</div>
 </script>
 
-<script type="text/template" id="print-file-list-template">
-	<% if (print_files.length) { %>
-		<% _.each(print_files, function(p, idx) { %>
-			<div id="print-file-<%= p.id%>" class="row<%= idx % 2 ? ' dark' : '' %><%= p.local_filename ? '' : ' remote' %>" data-printfile-id="<%= p.id %>">
-				<div class="small-2 large-1 columns left-section" onclick="home_info_print_file_clicked(this, arguments[0])">
-					<% if (p.images.thumbnail) { %>
-						<div class="thumb-container">
-							<img src="<%= p.images.thumbnail %>"/>
-						</div>
-					<% } else { %>
-						<i class="icon-3d-object"></i>
-					<% } %>
-				</div>
-				<div class="small-8 large-10 columns middle-section" onclick="home_info_print_file_clicked(this, arguments[0])">
-					<h3 class="bold"> <%= p.name %></h3>
-					<b><%= size_format(p.size) %></b> · <i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
-					<div class="progress round tiny" style="display:none">
-						<div class="meter" style="width: 0%"></div>
-					</div>
-				</div>
-				<div class="small-2 large-1 columns right-section">
-					<div class="print-file-options">
-						<% if (p.local_filename) { %>
-							<a onclick="home_print_print_file_clicked('<%= p.local_filename %>', arguments[0])">
-								<i class="icon-3d-printer" title="Print"></i>
-							</a>
-						<% } else { %>
-							<a href="#" onclick="home_download_print_file_clicked('<%= p.id %>', arguments[0])">
-								<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
-							</a>
-						<% } %>
-					</div>
-				</div>
+<script type="text/template" id="print-file-template">
+	<div class="small-2 large-1 columns left-section">
+		<% if (p.images.thumbnail) { %>
+			<div class="thumb-container">
+				<img src="<%= p.images.thumbnail %>"/>
 			</div>
-		<% }); %>
-	<% } else { %>
-		<div class="empty panel radius" align="center">
-			<i class="icon-inbox empty-icon"></i>
-			<h3>Nothing here yet.</h3>
+		<% } else { %>
+			<i class="icon-3d-object"></i>
+		<% } %>
+	</div>
+	<div class="small-8 large-10 columns middle-section">
+		<h3 class="bold"> <%= p.name %></h3>
+		<b><%= size_format(p.size) %></b> · <i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
+		<div class="progress round tiny" style="display:none">
+			<div class="meter" style="width: 0%"></div>
 		</div>
-	<% } %>
+	</div>
+	<div class="small-2 large-1 columns right-section">
+		<div class="print-file-options">
+			<% if (p.local_filename) { %>
+				<div class="loading-button print">
+					<a href="#" class="print idle">
+						<i class="icon-3d-printer" title="Print"></i>
+					</a>
+					<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+				</div>
+			<% } else { %>
+				<a href="#" class="download">
+					<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
+				</a>
+			<% } %>
+		</div>
+	</div>
 </script>

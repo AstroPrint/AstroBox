@@ -6,7 +6,7 @@
 		display: block;
 
 		span.loading,
-		button, .button {
+		button, .button, .idle {
 			width: 100%;
 		}
 	}
@@ -16,7 +16,7 @@
 	}
 
 	&.loading {
-		button, .button {
+		button, .button, .idle {
 		  display: none;
 		}
 
