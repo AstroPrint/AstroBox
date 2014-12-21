@@ -214,18 +214,12 @@ var FileUploadPrint = FileUploadBase.extend({
 	acceptFileTypes: /(\.|\/)(gcode)$/i,
 	onUploadDone: function(e, data) 
 	{
-		var filename = data.files[0].name;
-    	this._updateProgress(95, 'Analyzing G-Code');
-    	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(function(gcodeData){
-    		if (gcodeData.file == filename) {
-	    		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
-	    		app.router.homeView.refreshPrintFiles(true);
-	    		app.router.homeView.printFilesListView.storage_control_view.selectStorage('local');
-		        this.progressBar.hide();
-		        this.buttonContainer.show();
-		        this._updateProgress(0);
-		    }
-    	}, this));
+		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
+		app.router.homeView.refreshPrintFiles(true);
+		app.router.homeView.printFilesListView.storage_control_view.selectStorage('local');
+        this.progressBar.hide();
+        this.buttonContainer.show();
+        this._updateProgress(0);
 	}
 });
 
@@ -310,8 +304,12 @@ var PrintFileView = Backbone.View.extend({
 	        		loadingBtn.removeClass('loading');
 	        	},2000);
 	        }, this))
-	        .fail(function() {
-	        	noty({text: "There was an error starting the print", timeout: 3000});
+	        .fail(function(xhr) {
+	        	var error = null;
+	        	if (xhr.status == 409) {
+	        		error = xhr.responseText;
+	        	}
+	        	noty({text: error ? error : "There was an error starting the print", timeout: 3000});
 	        	loadingBtn.removeClass('loading');
 	        })
 	    }
@@ -371,6 +369,8 @@ var PrintFilesListView = Backbone.View.extend({
 		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
 		this.listenTo(this.file_list, 'remove', this.onFileRemoved);
 		this.refresh(false);
+
+    	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
 	},
 	render: function() 
 	{ 
@@ -481,6 +481,17 @@ var PrintFilesListView = Backbone.View.extend({
 
 			//Remove from views array
 			this.print_file_views.splice(this.print_file_views.indexOf(view), 1);
+		}
+	},
+	onMetadataAnalysisFinished: function(data)
+	{
+		var affected_view = _.find(this.print_file_views, function(v){
+			return v.print_file.get('name') == data.file;
+		});
+
+		if (affected_view) {
+			affected_view.print_file.set('info', data.result);
+			affected_view.render();
 		}
 	}
 });

@@ -551,18 +551,16 @@ class Printer():
 		#Calculate estimated print time left
 		printTime = self._comm.getPrintTime()
 		progress = self._comm.getPrintProgress()
+		estimatedTimeLeft = None
 
-		if printTime and progress:
+		if printTime and progress and self._estimatedPrintTime:
 			if progress < 1.0:
 				estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
 				elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
 				adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
 				estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
 
-			else:
-				estimatedTimeLeft = 0
-
-		else:
+		elif self._estimatedPrintTime:
 			estimatedTimeLeft = self._estimatedPrintTime / 60
 
 		self._setProgressData(progress, self._comm.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)

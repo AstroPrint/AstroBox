@@ -327,7 +327,7 @@ var PrintingView = Backbone.View.extend({
 
             //progress bar
             this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
-            this.$el.find('.progress .progress-label').text(Math.floor(this.printing_progress.percent)+'%');
+            this.$el.find('.progress .progress-label').text(this.printing_progress.percent+'%');
 
             //time
             var time = this._formatTime(this.printing_progress.time_left);

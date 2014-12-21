@@ -81,8 +81,11 @@ def designs():
 			p['id'] = uuid.uuid4().hex
 			p['local_filename'] = p['name']
 			p['local_only'] = True
-			p['info'] = p['gcodeAnalysis']
-			del p['gcodeAnalysis']
+			if 'gcodeAnalysis' in p:
+				p['info'] = p['gcodeAnalysis']
+				del p['gcodeAnalysis']
+			else:
+				p['info'] = None
 
 	return json.dumps(local_files + sorted_cloud_files)
 

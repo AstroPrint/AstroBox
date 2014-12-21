@@ -1,18 +1,18 @@
 # coding=utf-8
-from octoprint.events import Events
-
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask import request, jsonify, make_response, url_for
-
 import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
+import time
+
+from flask import request, jsonify, make_response, url_for
+
 from octoprint.filemanager.destinations import FileDestinations
+from octoprint.events import Events
 from octoprint.settings import settings, valid_boolean_trues
 from octoprint.server import printer, gcodeManager, eventManager, restricted_access, NO_CONTENT
 from octoprint.server.api import api
-
 
 #~~ GCODE file handling
 
@@ -226,7 +226,18 @@ def gcodeFileCommand(filename, target):
 		printAfterLoading = False
 		if "print" in data.keys() and data["print"]:
 			if not printer.isOperational():
-				return make_response("Printer is not operational, cannot directly start printing", 409)
+				#We try at least once
+				printer.connect()
+
+				start = time.time()
+				connect_timeout = 5 #5 secs
+
+				while not printer.isOperational() and not printer.isClosedOrError() and time.time() - start < connect_timeout:
+					time.sleep(1)
+
+				if not printer.isOperational():
+					return make_response("The printer is not responding, can't start printing", 409)
+
 			printAfterLoading = True
 
 		sd = False

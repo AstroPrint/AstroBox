@@ -251,9 +251,9 @@ class MachineCom(object):
 		return "?%d?" % (self._state)
 	
 	def getShortErrorString(self):
-		if len(self._errorValue) < 20:
+		if len(self._errorValue) < 50:
 			return self._errorValue
-		return self._errorValue[:20] + "..."
+		return self._errorValue[:50] + "..."
 
 	def getErrorString(self):
 		return self._errorValue
