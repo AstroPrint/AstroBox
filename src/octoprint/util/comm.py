@@ -206,7 +206,8 @@ class MachineCom(object):
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):
-		self._callback.mcLog(message)
+		#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
+		#self._callback.mcLog(message)
 		self._serialLogger.debug(message)
 
 	def _addToLastLines(self, cmd):

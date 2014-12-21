@@ -200,7 +200,8 @@ class PrinterStateConnection(SockJSConnection):
 
 		data.update({
 			"temps": temperatures,
-			"logs": logs,
+			#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
+			#"logs": logs,
 			"messages": messages
 		})
 		self._emit("current", data)

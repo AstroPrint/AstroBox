@@ -480,7 +480,8 @@ class Printer():
 			data = self._stateMonitor.getCurrentData()
 			data.update({
 				"temps": list(self._temps),
-				"logs": list(self._log),
+				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
+				#"logs": list(self._log),
 				"messages": list(self._messages)
 			})
 			callback.sendHistoryData(data)
