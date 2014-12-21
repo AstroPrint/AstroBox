@@ -227,6 +227,7 @@ var PrintFileView = Backbone.View.extend({
 	template: _.template( $("#print-file-template").html() ),
 	print_file: null,
 	list: null,
+	printWhenDownloaded: false,
 	initialize: function(options)
 	{
 		this.list = options.list;
@@ -262,7 +263,7 @@ var PrintFileView = Backbone.View.extend({
 	},
 	downloadClicked: function(evt)
 	{
-		evt.preventDefault();
+		if (evt) evt.preventDefault();
 
 		var options = this.$('.print-file-options');
 		var progress = this.$('.progress');
@@ -271,9 +272,6 @@ var PrintFileView = Backbone.View.extend({
 		progress.show();
 
         $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
-        	.done(_.bind(function(response) {
-        		this.render();
-	        }, this))
 	        .fail(function(){
 	            noty({text: "Couldn't download the print file.", timeout: 3000});
 	        })
@@ -284,7 +282,7 @@ var PrintFileView = Backbone.View.extend({
 	},
 	printClicked: function (evt)
 	{
-		evt.preventDefault();
+		if (evt) evt.preventDefault();
 
 		var filename = this.print_file.get('local_filename');
 
@@ -313,6 +311,10 @@ var PrintFileView = Backbone.View.extend({
 	        	noty({text: error ? error : "There was an error starting the print", timeout: 3000});
 	        	loadingBtn.removeClass('loading');
 	        })
+	    } else {
+	    	//We need to download and print
+	    	this.printWhenDownloaded = true;
+	    	this.downloadClicked();
 	    }
 	}
 });
@@ -367,11 +369,12 @@ var PrintFilesListView = Backbone.View.extend({
 			el: this.$('.list-header ul.storage'),
 			print_file_view: this
 		});
-		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
-		this.listenTo(this.file_list, 'remove', this.onFileRemoved);
-		this.refresh(options.forceSync, options.syncCompleted);
 
-    	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
+		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
+		app.eventManager.on('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
+		this.listenTo(this.file_list, 'remove', this.onFileRemoved);
+
+		this.refresh(options.forceSync, options.syncCompleted);
 	},
 	render: function() 
 	{ 
@@ -472,6 +475,13 @@ var PrintFilesListView = Backbone.View.extend({
 				print_file.set('local_filename', data.filename);
 				print_file.set('print_time', data.print_time);
 				print_file.set('layer_count', data.layer_count);
+
+				print_file_view.render();
+
+				if (print_file_view.printWhenDownloaded) {
+					print_file_view.printWhenDownloaded = false;
+					print_file_view.printClicked();
+				}
 			}
 		} 
 	},
