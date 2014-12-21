@@ -95,7 +95,17 @@
 			}
 
 			.progress {
+				position: relative;;
+
 				margin-top: 10px;
+
+				label {
+					position: absolute;
+					top: 2px;
+					left: 15px;
+					color: $secondary-color;
+					font-size: rem-calc(13);
+				}
 
 				.meter {
 					transition: width 1s;

@@ -460,9 +460,11 @@ var PrintFilesListView = Backbone.View.extend({
 			return v.print_file.get('id') == data.id;
 		});
 		var progress = print_file_view.$('.progress .meter');
+		var label = print_file_view.$('.progress label span');
 
 		if (data.type == "progress") {
 			progress.css('width', data.progress+'%');
+			label.text(Math.floor(data.progress));
 		} else if (data.type == "success") {
 			var print_file = print_file_view.print_file;
 
