@@ -256,7 +256,8 @@ var PrintFileView = Backbone.View.extend({
 	},
 	infoClicked: function(evt) 
 	{
-		evt.preventDefault();
+		if (evt) evt.preventDefault();
+
 		this.list.info_dialog.open(this);
 	},
 	downloadClicked: function(evt)
@@ -359,7 +360,7 @@ var PrintFilesListView = Backbone.View.extend({
 	events: {
 		'click .list-header button.sync': 'forceSync' 
 	},
-	initialize: function() {
+	initialize: function(options) {
 		this.file_list = new PrintFileCollection();
 		this.info_dialog = new PrintFileInfoDialog({file_list_view: this});
 		this.storage_control_view = new StorageControlView({
@@ -368,7 +369,7 @@ var PrintFilesListView = Backbone.View.extend({
 		});
 		app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
 		this.listenTo(this.file_list, 'remove', this.onFileRemoved);
-		this.refresh(false);
+		this.refresh(options.forceSync, options.syncCompleted);
 
     	app.eventManager.once('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
 	},
@@ -409,7 +410,7 @@ var PrintFilesListView = Backbone.View.extend({
 			);
 	    }
     },
-	refresh: function(syncCloud) 
+	refresh: function(syncCloud, doneCb) 
 	{
 		var loadingBtn = this.$('.loading-button.sync');
 
@@ -431,11 +432,19 @@ var PrintFilesListView = Backbone.View.extend({
 				this.$('.design-list-container').empty();
 				this.render();
 				loadingBtn.removeClass('loading');
+
+				if (_.isFunction(doneCb)) {
+					doneCb(true);
+				}
 			}, this);
 
 			var error = function() {
 				noty({text: "There was an error retrieving design list", timeout: 3000});
 				loadingBtn.removeClass('loading');
+
+				if (_.isFunction(doneCb)) {
+					doneCb(false);
+				}
 			};
 
 			if (syncCloud) {
@@ -500,13 +509,28 @@ var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
 	printFilesListView: null,
-	initialize: function() 
+	initialize: function(options) 
 	{
 		this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
-		this.printFilesListView = new PrintFilesListView({el: this.$el.find('.design-list')});
+		this.printFilesListView = new PrintFilesListView({
+			el: this.$el.find('.design-list'),
+			forceSync: options.forceSync,
+			syncCompleted: options.syncCompleted
+		});
 	},
 	refreshPrintFiles: function() 
 	{
 		this.printFilesListView.refresh(true);
+	},
+	fileInfo: function(fileId)
+	{
+		var view = _.find(this.printFilesListView.print_file_views, function(v) {
+			return v.print_file.get('id') == fileId;
+		})
+
+		if (view) {
+			this.printFilesListView.storage_control_view.selectStorage('cloud');
+			view.infoClicked();
+		}
 	}
 });
