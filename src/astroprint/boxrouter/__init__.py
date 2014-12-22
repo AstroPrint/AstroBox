@@ -50,7 +50,7 @@ class LineCheck(threading.Thread):
 
 			if self.outstandingPings > 0:
 				self.websocket._logger.error('The line seems to be down')
-				self.websocket.silent_reconnect()
+				self.websocket.close()
 				break
 			
 			if time() - self.websocket._lastReceived > self.timeout:
@@ -62,7 +62,7 @@ class LineCheck(threading.Thread):
 					logger.error("Line Check failed to send")
 
 					#retry connection
-					self.websocket.silent_reconnect()
+					self.websocket.close()
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
@@ -87,24 +87,14 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			self._logger.error('Error raised during send: %s' % e)
 
 			#Something happened to the link. Let's try to reset it
-			self.silent_reconnect()
-
-	def silent_reconnect(self):
-		self._silentReconnect = True
-		self.close()
+			self.close()
 
 	def ponged(self, pong):
 		if self._router._lineCheck and str(pong) == LINE_CHECK_STRING:
 			self._router._lineCheck.outstandingPings -= 1
 
 	def closed(self, code, reason=None):
-		if self._silentReconnect:
-			self._silentReconnect = False
-			self._router.close()
-			self._router._doRetry()
-			return
-
-		#only retry if the connection was terminated by the remote
+		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
 		retry = self._router.connected
 
 		self._router.close()
