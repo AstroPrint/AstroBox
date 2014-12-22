@@ -11,13 +11,13 @@ def boxrouterManager():
 		_instance = AstroprintBoxRouter()
 	return _instance
 
-
 import json
 import threading
 import logging
 import base64
+import socket
 
-from time import sleep
+from time import sleep, time
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -27,6 +27,42 @@ from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 
 from ws4py.client.threadedclient import WebSocketClient
+from ws4py.messaging import PingControlMessage
+
+LINE_CHECK_STRING = 'box'
+
+class LineCheck(threading.Thread):
+	def __init__(self, websocket, timeout=30.0):
+		threading.Thread.__init__(self)
+		self.websocket = websocket
+		self.timeout = timeout
+		self.outstandingPings = 0
+
+	def stop(self):
+		self.running = False
+
+	def run(self):
+		self.running = True
+		while self.running:
+			sleep(self.timeout)
+			if self.websocket.terminated:
+				break
+
+			if self.outstandingPings > 0:
+				self.websocket._logger.error('The line seems to be down')
+				self.websocket.silent_reconnect()
+				break
+			
+			if time() - self.websocket._lastReceived > self.timeout:
+				try:
+					self.websocket.send(PingControlMessage(data=LINE_CHECK_STRING))
+					self.outstandingPings += 1
+
+				except socket.error:
+					logger.error("Line Check failed to send")
+
+					#retry connection
+					self.websocket.silent_reconnect()
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
@@ -36,12 +72,38 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._router = router
 		self._printer = printer
 		self._printerListener = None
+		self._lastReceived = 0
 		self._subscribers = 0
+		self._silentReconnect = False
 		self._cameraManager = cameraManager()
 		self._logger = logging.getLogger(__name__)
 		WebSocketClient.__init__(self, hostname)
 
+	def send(self, data):
+		try:
+			WebSocketClient.send(self, data)
+
+		except socket.error as e:
+			self._logger.error('Error raised during send: %s' % e)
+
+			#Something happened to the link. Let's try to reset it
+			self.silent_reconnect()
+
+	def silent_reconnect(self):
+		self._silentReconnect = True
+		self.close()
+
+	def ponged(self, pong):
+		if self._router._lineCheck and str(pong) == LINE_CHECK_STRING:
+			self._router._lineCheck.outstandingPings -= 1
+
 	def closed(self, code, reason=None):
+		if self._silentReconnect:
+			self._silentReconnect = False
+			self._router.close()
+			self._router._doRetry()
+			return
+
 		#only retry if the connection was terminated by the remote
 		retry = self._router.connected
 
@@ -51,6 +113,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			self._router._doRetry()
 
 	def received_message(self, m):
+		self._lastReceived = time()
 		msg = json.loads(str(m))
 
 		if msg['type'] == 'auth':
@@ -184,6 +247,8 @@ class AstroprintBoxRouter(object):
 		self._listener = None
 		self._boxId = None
 		self._ws = None
+		self._lineCheck = None
+		self._silentReconnect = False
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
 
@@ -215,13 +280,15 @@ class AstroprintBoxRouter(object):
 		try:
 			self._ws = AstroprintBoxRouterClient(self._address, self)
 			self._ws.connect()
+			self._lineCheck = LineCheck(self._ws)
 
 		except Exception as e:
 			self._logger.error("Error connecting to boxrouter: %s" % e)
-			self._doRetry()
+			self._doRetry(False) #This one should not be silent
 
 		else:
 			try:
+				self._lineCheck.start()
 				self._ws.run_forever()
 
 			except Exception as e:
@@ -242,8 +309,12 @@ class AstroprintBoxRouter(object):
 			self._ws.close()
 			self._ws.unregisterEvents()
 
+		if self._lineCheck:
+			self._lineCheck.stop()
+
 		self._ws = None
 		self._listener = None
+		self._lineCheck = None
 
 	def _onNetworkStateChanged(self, event, state):
 		if state == 'offline':
@@ -265,11 +336,12 @@ class AstroprintBoxRouter(object):
 		self.close()
 		self._doRetry()
 
-	def _doRetry(self):
+	def _doRetry(self, silent=True):
 		if self._retries < self.MAX_RETRIES:
 			self._retries += 1
 			sleep(self.START_WAIT_BETWEEN_RETRIES * self.WAIT_MULTIPLIER_BETWEEN_RETRIES * (self._retries - 1) )
 			self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
+			self._silentReconnect = silent
 			self.boxrouter_connect()
 
 		else:
@@ -291,6 +363,8 @@ class AstroprintBoxRouter(object):
 
 	def processAuthenticate(self, data):
 		if data:
+			self._silentReconnect = False
+
 			if 'error' in data:
 				self._logger.warn(data['message'] if 'message' in data else 'Unkonwn authentication error')
 				self.status = self.STATUS_ERROR
@@ -337,6 +411,7 @@ class AstroprintBoxRouter(object):
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
+					'silentReconnect': self._silentReconnect,
 					'boxId': self._boxId,
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
