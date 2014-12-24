@@ -253,6 +253,27 @@ class AstroprintBoxRouter(object):
 		else:
 			self._logger.error('cloudSlicer.boxrouter not present in config file')
 
+	@property
+	def boxId(self):
+		if not self._boxId:
+			import os
+
+			boxIdFile = "%s/box-id" % os.path.dirname(self._settings._configfile)
+
+			if os.path.exists(boxIdFile):
+				with open(boxIdFile, 'r') as f:
+					self._boxId = f.read()
+
+			else:
+				import uuid
+
+				self._boxId = uuid.uuid4().hex
+
+				with open(boxIdFile, 'w') as f:
+					f.write(self._boxId)
+
+		return self._boxId
+
 	def boxrouter_connect(self):
 		if not self.connected:
 			self._publicKey	= self._settings.get(['cloudSlicer', 'publicKey'])
@@ -381,28 +402,11 @@ class AstroprintBoxRouter(object):
 			else:
 				localIpAddress = None
 
-			if not self._boxId:
-				import os
-
-				boxIdFile = "%s/box-id" % os.path.dirname(self._settings._configfile)
-
-				if os.path.exists(boxIdFile):
-					with open(boxIdFile, 'r') as f:
-						self._boxId = f.read()
-
-				else:
-					import uuid
-
-					self._boxId = uuid.uuid4().hex
-
-					with open(boxIdFile, 'w') as f:
-						f.write(self._boxId)
-
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
 					'silentReconnect': self._silentReconnect,
-					'boxId': self._boxId,
+					'boxId': self.boxId,
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
 					'localIpAddress': localIpAddress,

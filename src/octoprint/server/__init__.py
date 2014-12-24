@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import uuid
 import flask
+import json
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request
@@ -67,6 +68,22 @@ from astroprint.variant import variantManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
+
+@app.route('/astrobox/identify', methods=['GET'])
+def box_identify():
+	br = boxrouterManager()
+	nm = networkManager
+
+	response = Response()
+
+	response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
+	response.data = json.dumps({
+		'id': br.boxId,
+		'name': nm.getHostname(),
+		'version': VERSION
+	})
+
+	return response
 
 @app.route("/")
 def index():
