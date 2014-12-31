@@ -91,4 +91,12 @@ var AstroBoxApp = Backbone.View.extend({
 
 app = new AstroBoxApp();
 
+function receiveMessage(event)
+{
+	console.log(ASTROBOX_NAME);
+  	event.source.postMessage(ASTROBOX_NAME, event.origin);
+}
+
+window.addEventListener("message", receiveMessage, false);
+
 Backbone.history.start();
