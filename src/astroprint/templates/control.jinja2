@@ -15,7 +15,7 @@
 	<div class="medium-12 large-7 columns">
 		<div class="row">
 			<div class="small-7 columns" id="xy-controls">
-				<h2 class="bold" align="center">X/Y Axis</h2>
+				<h2 class="bold" align="center">Horizontal</h2>
 				<div class="control_bg_xy" align="center">
 					<button class="control_btn_y_plus"></button><br/>
 					<button class="control_btn_x_minus"></button> <button class="home_z"></button> <button class="control_btn_x_plus"></button><br/>
@@ -23,7 +23,7 @@
 				</div>
 			</div>
 			<div class="small-5 columns" id="z-controls">
-				<h2 class="bold" align="center">Z Axis</h2>
+				<h2 class="bold" align="center">Vertical</h2>
 				<center>
 					<button class="control_btn_z_plus"></button><br/>
 					<button class="home_z"></button><br/>
@@ -81,9 +81,9 @@
 					<div class="<% if (profile.extruder_count > 1) { %> small-6 <% } else { %> small-9 <% } %>columns">
 						<label class="bold">Filament Ammount</label>
 						<select class="extrusion-length">
-							<option value="10">10 mm</option>
+							<option value="10" selected>10 mm</option>
 							<option value="50">50 mm</option>
-							<option value="100" selected>100 mm</option>
+							<option value="100">100 mm</option>
 							<option value="200">200 mm</option>
 							<option value="500">500 mm</option>
 							<option value="other">Other...</option>
