@@ -164,7 +164,7 @@ class MachineCom(object):
 		self._regex_minMaxError = re.compile("Error:[0-9]\n")
 		self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
 		self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
-		self._regex_M114Response = re.compile("X:(%s)Y:(%s)Z:(%s)" % (floatPattern, floatPattern, floatPattern))
+		self._regex_M114Response = re.compile("X:(%s)Y:(%s)Z:(%s)E:(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
 
 		# Regex matching temperature entries in line. Groups will be as follows:
 		# - 1: whole tool designator incl. optional toolNumber ("T", "Tn", "B")
@@ -473,9 +473,14 @@ class MachineCom(object):
 				#restore position
 				if self._positionWhenPaused:
 					self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
-					movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
-					self.sendCommand("G1 X%.4f Y%.4f F%d" % (self._positionWhenPaused[0], self._positionWhenPaused[1], min(movementSpeed["x"], movementSpeed["y"])))
-					self.sendCommand("G1 Z%.4f F%d" % (self._positionWhenPaused[2], movementSpeed["z"]))
+					#reset extrusion to what it was in case we did some extrusion while paused
+					self._sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
+					#We need to reset the Z axis first in case they lowered it
+					self._sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
+					#Get back to where you were before pausing
+					self._sendCommand("G1 X%.4f Y%.4f E%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1], self._positionWhenPaused[3] ))
+					#slow down the speed for the first movement
+					self._sendCommand("G1 F1000")
 
 				self._sendNext()
 
@@ -491,6 +496,7 @@ class MachineCom(object):
 			else:
 				self.sendCommand("M106 S0") #Stop fans
 				self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
+				#the head movement out of the way is done on the M114 reponse.
 
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
@@ -907,8 +913,12 @@ class MachineCom(object):
 							self._positionWhenPaused = (
 								float(positionMatch.group(1)),
 								float(positionMatch.group(2)),
-								float(positionMatch.group(3))
+								float(positionMatch.group(3)),
+								float(positionMatch.group(4))
 							)
+
+							if self.isPaused():
+								self.sendCommand("G1 F9000 X0 Y0 Z%.4f E%.4f" % (self._positionWhenPaused[2] + 5, self._positionWhenPaused[3] - 5))
 
 				### Printing
 				elif self._state == self.STATE_PRINTING:

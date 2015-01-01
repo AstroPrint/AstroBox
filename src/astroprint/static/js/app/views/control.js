@@ -270,7 +270,9 @@ var XYControlView = MovementControlView.extend({
 		this.sendJogCommand('y', -1, this.distanceControl.selected);
 	},
 	homeTapped: function() {
-		this.sendHomeCommand(['x', 'y']);
+		if (!app.socketData.get('paused')) {
+			this.sendHomeCommand(['x', 'y']);
+		}
 	}
 });
 
@@ -288,7 +290,9 @@ var ZControlView = MovementControlView.extend({
 		this.sendJogCommand('z', -1, this.distanceControl.selected);
 	},
 	homeTapped: function() {
-		this.sendHomeCommand('z');
+		if (!app.socketData.get('paused')) {
+			this.sendHomeCommand('z');
+		}
 	}
 });
 
@@ -436,16 +440,15 @@ var ControlView = Backbone.View.extend({
 	},
 	render: function() {
 		if (app.socketData.get('paused')) {
-			this.$el.find('.back-to-print .filename').text(app.socketData.get('printing_progress').filename);
-			this.$el.find('.back-to-print').show();
+			this.$el.addClass('print-paused');
 		} else {
-			this.$el.find('.back-to-print').hide();
+			this.$el.removeClass('print-paused');
 		}
 
 		this.extrusionView.render();
 	},
-	resumePrinting: function() {
-		app.router.printingView.togglePausePrint();
+	resumePrinting: function(e) {
+		app.router.printingView.togglePausePrint(e);
 		app.showPrinting();
 		this.$el.addClass('hide');
 	}
