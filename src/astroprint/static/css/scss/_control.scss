@@ -1,5 +1,7 @@
 #xy-controls,
 #z-controls  {
+	margin-bottom: 20px;
+
 	button {
 		display: inline-block;
 		margin-bottom: 0;
@@ -15,6 +17,8 @@
 #xy-controls {
 	.control_bg_xy {
 		position: relative;
+		display: inline-block;
+
 
 		button {
 			position: absolute;
@@ -58,8 +62,10 @@
 
 #control-view {
 	h1 {
-		font-size: rem-calc(60);
-		margin: 10px 0;
+		background-color: #fafafa;
+		border-bottom: 1px solid #ccc;
+		font-size: rem-calc(25);
+		margin: 0 0 10px 0;
 	}
 
 	h2 {
@@ -105,7 +111,7 @@
 }
 
 #distance-control {
-	margin-top: 40px;
+	margin-top: 20px;
 
 	ul {
 		display: inline-block;
@@ -269,6 +275,17 @@
 	.row.closer {
 		.columns {
 			padding: 0 5px;
+		}
+	}
+}
+
+@media #{$large-up} {
+	#control-view {
+		h1 {
+			@include side-radius(bottom);
+			border: 1px solid #ccc;
+			border-top: none;
+			padding: 5px 0;
 		}
 	}
 }
