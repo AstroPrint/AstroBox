@@ -35,22 +35,53 @@
 			<script type="text/template" id="printer-profile-settings-page-template">
 				<div class="row">
 					<div class="small-12">
-						<label for="extruder-count" class="bold">
-							No. of Extruders
-						</label>
-						<select id="extruder-count" name="extruder_count">
-							<option value='1'>1</option>
-							<option value='2'>2</option>
-							<option value='3'>3</option>
-							<option value='4'>4</option>
-						</select>
-						{# <label for="heated-bed" class="bold">
-							Heated Bed
-						</label>
-						<div class="switch radius">
-						  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-						  <label for="heated-bed"></label>
-						</div> #}
+						<form data-abide="ajax">
+							<label for="extruder-count" class="bold">
+								No. of Extruders
+							</label>
+							<select id="extruder-count" name="extruder_count">
+								<option value='1'>1</option>
+								<option value='2'>2</option>
+								<option value='3'>3</option>
+								<option value='4'>4</option>
+							</select>
+							<div class="input-wrapper">
+								<label for="max-nozzle-temp" class="bold">
+									Max. Nozzle Temperature
+								</label>
+								<div class="row collapse">
+							        <div class="small-9 columns">
+							        	<input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+							        	<small class="error">Invalid Nozzle Temperature.</small>
+							        </div>
+							        <div class="small-3 columns"><span class="postfix">&deg;C</div>
+							    </div>
+							</div>
+							<label for="heated-bed" class="bold">
+								Heated Bed
+							</label>
+							<div class="switch radius">
+							  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+							  <label for="heated-bed"></label>
+							</div>
+							<div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+								<label for="max-bed-temp" class="bold">
+									Max. Bed Temperature
+								</label>
+								<div class="row collapse">
+							        <div class="small-9 columns">
+							        	<input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+							        	<small class="error">Invalid Bed Temperature.</small>
+							        </div>
+							        <div class="small-3 columns"><span class="postfix">&deg;C</div>
+							    </div>
+							</div>
+							<hr/>
+							<div class="loading-button">
+								<button class="success radius">Save Profile</button>
+								<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+							</div>
+						</form>
 					</div>
 				</div>
 			</script>

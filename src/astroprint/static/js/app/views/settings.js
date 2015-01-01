@@ -140,30 +140,70 @@ var PrinterProfileView = SettingsPage.extend({
 			settings: this.settings.toJSON()
 		}));
 
+		this.$el.foundation();
+
 		this.$('#extruder-count').val(this.settings.get('extruder_count'));
 
 		this.delegateEvents({
-			"change select, input": "fieldChanged"
+			"invalid.fndtn.abide form": 'invalidForm',
+			"valid.fndtn.abide form": 'validForm',
+			"change input[name='heated_bed']": 'heatedBedChanged'
 		});
 	},
-	fieldChanged: function(e)
+	heatedBedChanged: function(e)
 	{
-		var elem = $(e.target);
-		var name = elem.attr('name');
-		var value = null;
+		var target = $(e.currentTarget);
+		var wrapper = this.$('.input-wrapper.max_bed_temp');
 
-		if (elem.is('input[type="radio"], input[type="checkbox"]')) {
-			value = elem.is(':checked');
+		if (target.is(':checked')) {
+			wrapper.removeClass('hide');
 		} else {
-			value = elem.val();
+			wrapper.addClass('hide');
 		}
+	},
+	invalidForm: function(e)
+	{
+	    if (e.namespace !== 'abide.fndtn') {
+	        return;
+	    }
 
-		this.settings.save(name, value, {
-			patch: true,
-			error: function() {
-				console.error('Failed to save printer profile change for '+name);
+		noty({text: "Please check your errors", timeout: 3000});
+	},
+	validForm: function(e) {
+	    if (e.namespace !== 'abide.fndtn') {
+	        return;
+	    }
+
+	    var form = this.$('form');
+	    var loadingBtn = form.find('.loading-button');
+		var attrs = {};
+
+		loadingBtn.addClass('loading');
+
+		form.find('input, select').each(function(idx, elem) {
+			var value = null;
+			var elem = $(elem);
+
+			if (elem.is('input[type="radio"], input[type="checkbox"]')) {
+				value = elem.is(':checked');
+			} else {
+				value = elem.val();
 			}
-		});		
+
+			attrs[elem.attr('name')] = value;
+		});
+
+		this.settings.save(attrs, {
+			patch: true,
+			success: function() {
+				noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+				loadingBtn.removeClass('loading');
+			},
+			error: function() {
+				noty({text: "Failed to save printer profile change", timeout: 3000});
+				loadingBtn.removeClass('loading');
+			}
+		});			
 	}
 });
 

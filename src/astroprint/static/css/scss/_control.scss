@@ -133,6 +133,21 @@
 
 	.temp-control-cont {
 		max-width: 110px;
+
+		&.disabled {
+			.temp-bar {
+				background: #ccc;
+			}
+
+			.set-temp, 
+			.current-temp {
+				display: none;
+			}
+
+			.current-temp-top {
+				color: #ccc;
+			}
+		}
 	}
 
 	.temp-bar {

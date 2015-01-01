@@ -33,6 +33,18 @@ var tempBarView = Backbone.View.extend({
 		this._sendToolCommand('target', this.type, 0);
 		this.setHandle(0);
 	},
+	setMax: function(value) {
+		if (this.scale[1] != value) {
+			this.scale[1] = value;
+			this.onResize();
+
+			var currentTemp = parseInt(this.$el.find('.set-temp').text())
+
+			if (!isNaN(currentTemp)) {
+				this.setHandle(Math.min(currentTemp, value));
+			}
+		}
+	},
 	setHandle: function(value) {
 		if (!this.dragging) {
 			var position = this._temp2px(value);
@@ -176,15 +188,27 @@ var TempView = Backbone.View.extend({
 	bedTempBar: null,
 	initialize: function() {
 		this.nozzleTempBar = new tempBarView({
-			scale: [0, 315],
+			scale: [0, app.printerProfile.get('max_nozzle_temp')],
 			el: this.$el.find('.temp-control-cont.nozzle'),
 			type: 'tool0'
 		});
 		this.bedTempBar = new tempBarView({
-			scale: [0, 140],
+			scale: [0, app.printerProfile.get('max_bed_temp')],
 			el: this.$el.find('.temp-control-cont.bed'),
 			type: 'bed'
 		});
+	},
+	render: function()
+	{
+		this.nozzleTempBar.setMax(app.printerProfile.get('max_nozzle_temp'));
+
+		if (app.printerProfile.get('heated_bed')) {
+			this.bedTempBar.$el.removeClass('disabled');
+		} else {
+			this.bedTempBar.$el.addClass('disabled');
+		}
+
+		this.bedTempBar.setMax(app.printerProfile.get('max_bed_temp'));
 	},
 	resetBars: function() {
 		this.nozzleTempBar.onResize();
@@ -446,6 +470,7 @@ var ControlView = Backbone.View.extend({
 		}
 
 		this.extrusionView.render();
+		this.tempView.render();
 	},
 	resumePrinting: function(e) {
 		app.router.printingView.togglePausePrint(e);

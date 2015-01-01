@@ -25,6 +25,7 @@ class PrinterProfileManager(object):
 
 		self.data = {
 			'extruder_count': 1,
+			'max_nozzle_temp': 280,
 			'heated_bed': True
 		}
 
@@ -55,10 +56,12 @@ class PrinterProfileManager(object):
 			if k in self.data:
 				self.data[k] = self._clean(k, changes[k])
 			else:
-				this._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
+				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 
 	def _clean(self, field, value):
-		if field == 'extruder_count':
+		if field in ['extruder_count', 'max_nozzle_temp', 'max_bed_temp']:
 			return int(value)
 		elif field == 'heated_bed':
 			return bool(value)
+		else:
+			return value
