@@ -65,6 +65,7 @@ from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
+from astroprint.discovery import discoveryManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -126,6 +127,12 @@ def index():
 			astroboxName= networkManager.getHostname(),
 			variantData= variantManager().data
 		)
+
+@app.route("/discovery.xml")
+def discoveryXml():
+	response = flask.make_response( discoveryManager().getDiscoveryXmlContents() )
+	response.headers['Content-Type'] = 'application/xml'
+	return response
 
 @app.route("/robots.txt")
 def robotsTxt():
@@ -273,6 +280,8 @@ class Server():
 
 		self._boxrouter = boxrouterManager()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
+
+		self._discovery = discoveryManager()
 
 		def access_validation_factory(validator):
 			"""

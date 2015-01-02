@@ -19,3 +19,4 @@ python-networkmanager
 netifaces
 ws4py>=0.3.4
 usbid>=1.0.3
+pybonjour
