@@ -19,12 +19,12 @@ def discoveryManager():
 import logging
 import os
 import flask
-import pybonjour
 import octoprint.util
 
 from astroprint.variant import variantManager
 from astroprint.network import networkManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.software import softwareManager
 
 class DiscoveryManager(object):
 	ssdp_multicast_addr = "239.255.255.250"
@@ -36,10 +36,7 @@ class DiscoveryManager(object):
 		self.variantMgr = variantManager()
 		self.networkMgr = networkManager()
 		self.boxrouterMgr = boxrouterManager()
-
-		# zeroconf
-		self._sd_refs = dict()
-		self._cnames = dict()
+		self.softwareMgr = softwareManager()
 
 		# upnp/ssdp
 		self._ssdp_monitor_active = False
@@ -47,25 +44,12 @@ class DiscoveryManager(object):
 		self._ssdp_notify_timeout = 10
 		self._ssdp_last_notify = 0
 
-		#Zeroconf and SSDP services upon startup
-
-		self.host = "%s.local" % self.get_instance_name()
-		self.port = 80
-
-		# Zeroconf
-		self.zeroconf_register("_http._tcp", self.get_instance_name(), txt_record=self._create_http_txt_record_dict())
-		self.zeroconf_register("_astroprint._tcp", self.get_instance_name(), txt_record=self._create_astroprint_txt_record_dict())
-
 		# SSDP
 		self._ssdp_register()
 
-	# unregistering Zeroconf and SSDP service upon application shutdown
+	# unregistering SSDP service upon shutdown
 
 	def __del__(self):
-		for key in self._sd_refs:
-			reg_type, port = key
-			self.zeroconf_unregister(reg_type, port)
-
 		self._ssdp_unregister()
 
 	##~~ helpers
@@ -76,108 +60,15 @@ class DiscoveryManager(object):
 	def get_uuid(self):
 		return self.boxrouterMgr.boxId
 
-	# ZeroConf
-
-	def zeroconf_register(self, reg_type, name=None, port=None, txt_record=None):
-		"""
-		Registers a new service with Zeroconf/Bonjour/Avahi.
-
-		:param reg_type: type of service to register, e.g. "_gntp._tcp"
-		:param name: displayable name of the service, if not given defaults to the AstroPrint instance name
-		:param port: port to register for the service, if not given defaults to AstroPrint's (public) port
-		:param txt_record: optional txt record to attach to the service, dictionary of key-value-pairs
-		"""
-
-		if not name:
-			name = self.get_instance_name()
-		if not port:
-			port = self.port
-
-		params = dict(
-			name=name,
-			regtype=reg_type,
-			port=port
-		)
-		if txt_record:
-			params["txtRecord"] = pybonjour.TXTRecord(txt_record)
-
-		key = (reg_type, port)
-		self._sd_refs[key] = pybonjour.DNSServiceRegister(**params)
-		self.logger.info(u"Registered {name} for {reg_type}".format(**locals()))
-
-	def zeroconf_unregister(self, reg_type, port=None):
-		"""
-		Unregisteres a previously registered Zeroconf/Bonjour/Avahi service identified by service and port.
-
-		:param reg_type: the type of the service to be unregistered
-		:param port: the port of the service to be unregistered, defaults to AstroPrint's (public) port if not given
-		:return:
-		"""
-
-		if not port:
-			port = self.port
-
-		key = (reg_type, port)
-		if not key in self._sd_refs:
-			return
-
-		sd_ref = self._sd_refs[key]
-		try:
-			sd_ref.close()
-			self.logger.debug("Unregistered {reg_type} on port {port}".format(reg_type=reg_type, port=port))
-		except:
-			self.logger.exception("Could not unregister {reg_type} on port {port}".format(reg_type=reg_type, port=port))
-
-	# Zeroconf
-
-	def _create_http_txt_record_dict(self):
-		"""
-		Creates a TXT record for the _http._tcp Zeroconf service supplied by this AstroPrint instance.
-
-		Defines the keys for _http._tcp as defined in http://www.dns-sd.org/txtrecords.html
-
-		:return: a dictionary containing the defined key-value-pairs, ready to be turned into a TXT record
-		"""
-
-		entries = dict(
-			path="http://%s.local/" % self.get_instance_name()
-		)
-
-		return entries
-
-	def _create_astroprint_txt_record_dict(self):
-		"""
-		Creates a TXT record for the _astroprint._tcp Zeroconf service supplied by this Astroprint instance.
-
-		The following keys are defined:
-
-		  * `path`: path prefix to actual AstroPrint instance, inherited from _http._tcp
-		  * `version`: AstroPrint software version
-		  * `model`: Model of the device that is running AstroPrint
-
-		:return: a dictionary containing the defined key-value-pairs, ready to be turned into a TXT record
-		"""
-
-		entries = self._create_http_txt_record_dict()
-
-		import octoprint.server
-
-		entries.update(dict(
-			version=octoprint.server.VERSION
-			))
-
-		modelName = self.variantMgr.data.get('productName')
-		if modelName:
-			entries.update(dict(model=modelName))
-
-		return entries
-
 	# SSDP/UPNP
 
 	def getDiscoveryXmlContents(self):
 		modelName = self.variantMgr.data.get('productName')
-		vendor = "AstroPrint(R)"
+		modelLink = self.variantMgr.data.get('productLink')
+		modelDescription = "%s running on %s" % (self.softwareMgr.versionString, self.softwareMgr.platform)
+		vendor = "AstroPrint"
 		vendorUrl = "https://www.astroprint.com/"
+		friendlyName = "%s (%s)" % (self.get_instance_name(), modelName)
 
 		return """<?xml version="1.0"?>
 <root xmlns="urn:schemas-upnp-org:device-1-0">
@@ -201,13 +92,13 @@ class DiscoveryManager(object):
         <presentationURL>{presentationUrl}</presentationURL>
     </device>
 </root>""".format(
-	friendlyName=self.get_instance_name(),
+	friendlyName=friendlyName,
 	manufacturer=vendor,
 	manufacturerUrl=vendorUrl,
 	modelName=modelName,
-	modelDescription="",
-	modelNumber="",
-	modelUrl="",
+	modelDescription=modelDescription,
+	modelNumber="N/A",
+	modelUrl=modelLink,
 	serialNumber=self.get_uuid(),
 	uuid=self.get_uuid(),
 	presentationUrl=flask.url_for("index", _external=True)

@@ -198,6 +198,10 @@ class SoftwareManager(object):
 			self.data['version']['build'])
 
 	@property
+	def platform(self):
+		return self.data['platform']
+
+	@property
 	def userAgent(self):
 		return "Astrobox; version:%d.%d(%s); variant: %s; platform: [%s]" % (
 			self.data['version']['major'], self.data['version']['minor'], self.data['version']['build'],
