@@ -82,8 +82,7 @@ class DiscoveryManager(object):
         <manufacturer>{manufacturer}</manufacturer>
         <manufacturerURL>{manufacturerUrl}</manufacturerURL>
         <modelName>{modelName}</modelName>
-        <modelDescription>{modelDescription}</modelDescription>
-        <modelNumber>{modelNumber}</modelNumber>
+        <modelNumber>{modelDescription}</modelNumber>
        	<modelURL>{modelUrl}</modelURL>
         <serialNumber>{serialNumber}</serialNumber>
         <UDN>uuid:{uuid}</UDN>
@@ -97,7 +96,6 @@ class DiscoveryManager(object):
 	manufacturerUrl=vendorUrl,
 	modelName=modelName,
 	modelDescription=modelDescription,
-	modelNumber="N/A",
 	modelUrl=modelLink,
 	serialNumber=self.get_uuid(),
 	uuid=self.get_uuid(),
