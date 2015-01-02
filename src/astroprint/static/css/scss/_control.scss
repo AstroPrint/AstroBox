@@ -139,7 +139,7 @@
 				background: #ccc;
 			}
 
-			.set-temp, 
+			.temp-target, 
 			.current-temp {
 				display: none;
 			}
@@ -156,7 +156,7 @@
 		position: relative;
 		margin-bottom: 19px;
 
-		.set-temp {
+		.temp-target {
 			position: absolute;
 			left: -5%;
 			top: 20px;

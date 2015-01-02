@@ -4,35 +4,15 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
- var tempBarHorizontalView = Backbone.View.extend({
+ var TempBarHorizontalView = TempBarView.extend({
     containerDimensions: null,
     scale: null,
     type: null,
     dragging: false,
     lastSent: null,
-    events: {
-        'touchstart .temp-target': 'onTouchStart',
-        'mousedown .temp-target': 'onTouchStart',
-        'touchmove .temp-target': 'onTouchMove',
-        'mousemove .temp-target': 'onTouchMove',
-        'touchend .temp-target': 'onTouchEnd',
-        'mouseup .temp-target': 'onTouchEnd',
-        'mouseout .temp-target': 'onTouchEnd',
+    events: _.extend(TempBarView.prototype.events, {
         'click': 'onClicked'
-    },
-    initialize: function(params) {
-        this.scale = params.scale;
-        this.type = params.type;
-        $(window).bind("resize.app", _.bind(this.onResize, this));
-    },
-    remove: function() {
-        $(window).unbind("resize.app");
-        Backbone.View.prototype.remove.call(this);
-    },
-    turnOff: function(e) {
-        this._sendToolCommand('target', this.type, 0);
-        this.setHandle(0);
-    },
+    }),
     setHandle: function(value) {
         if (!this.dragging) {
             var position = this._temp2px(value);
@@ -45,11 +25,6 @@
                 handle.css({transition: ''});
             }, 800);
         }
-    },
-    onTouchStart: function(e) {
-        e.preventDefault();
-        this.dragging = true;
-        $(e.target).addClass('moving');
     },
     onTouchMove: function(e) {
         if (this.dragging) {
@@ -69,15 +44,6 @@
             target.text(this._px2temp(newLeft));
             target.css({left: newLeft+'px'});
         }
-    },
-    onTouchEnd: function(e) {
-        e.preventDefault();
-
-        $(e.target).removeClass('moving');
-
-        this._sendToolCommand('target', this.type, this.$el.find('.temp-target').text());
-
-        this.dragging = false;
     },
     onClicked: function(e) {
         e.preventDefault();
@@ -124,49 +90,6 @@
     },
     _px2temp: function(px) {
         return Math.round( ( (px - this.containerDimensions.minLeft) / this.containerDimensions.px4degree ) );
-    },
-    _sendToolCommand: function(command, type, temp) {
-        if (temp == this.lastSent) return;
-
-        var data = {
-            command: command
-        };
-
-        var endpoint;
-        if (type == "bed") {
-            if ("target" == command) {
-                data["target"] = parseInt(temp);
-            } else if ("offset" == command) {
-                data["offset"] = parseInt(temp);
-            } else {
-                return;
-            }
-
-            endpoint = "bed";
-        } else {
-            var group;
-            if ("target" == command) {
-                group = "targets";
-            } else if ("offset" == command) {
-                group = "offsets";
-            } else {
-                return;
-            }
-            data[group] = {};
-            data[group][type] = parseInt(temp);
-
-            endpoint = "tool";
-        }
-
-        $.ajax({
-            url: API_BASEURL + "printer/" + endpoint,
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify(data)
-        });
-
-        this.lastSent = temp;
     }
 });
 
@@ -299,13 +222,13 @@ var PrintingView = Backbone.View.extend({
     printing_progress: null,
     paused: null,
     initialize: function() {
-        this.nozzleBar = new tempBarHorizontalView({
-            scale: [0, 280],
+        this.nozzleBar = new TempBarHorizontalView({
+            scale: [0, app.printerProfile.get('max_nozzle_temp')],
             el: this.$el.find('.temp-bar.nozzle'),
             type: 'tool0' 
         });
-        this.bedBar = new tempBarHorizontalView({
-            scale: [0, 120],
+        this.bedBar = new TempBarHorizontalView({
+            scale: [0, app.printerProfile.get('max_bed_temp')],
             el: this.$el.find('.temp-bar.bed'),
             type: 'bed' 
         });
@@ -359,6 +282,17 @@ var PrintingView = Backbone.View.extend({
         } else {
             pauseBtn.html('<i class="icon-pause"></i> Pause Print');
             controlBtn.hide();
+        }
+
+        var profile = app.printerProfile.toJSON();
+
+        this.nozzleBar.setMax(profile.max_nozzle_temp);
+
+        if (profile.heated_bed) {
+            this.bedBar.setMax(profile.max_bed_temp);
+            this.bedBar.$el.removeClass('hide');
+        } else {
+            this.bedBar.$el.addClass('hide');
         }
     },
     onTempsChanged: function(s, value) {
