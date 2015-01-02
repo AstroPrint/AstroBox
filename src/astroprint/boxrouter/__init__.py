@@ -25,6 +25,7 @@ from octoprint.settings import settings
 from astroprint.network import networkManager
 from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
+from astroprint.software import softwareManager
 
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
@@ -409,6 +410,7 @@ class AstroprintBoxRouter(object):
 					'boxId': self.boxId,
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
+					'platform': softwareManager().platform,
 					'localIpAddress': localIpAddress,
 					'publicKey': self._publicKey,
 					'privateKey': self._privateKey
