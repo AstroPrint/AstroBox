@@ -91,12 +91,14 @@ var AstroBoxApp = Backbone.View.extend({
 
 app = new AstroBoxApp();
 
-function receiveMessage(event)
+//This code is for astroprint.com communication with astrobox webUI window
+//It doesn't really work now, so we comment it out for now
+/*function receiveMessage(event)
 {
 	console.log(ASTROBOX_NAME);
   	event.source.postMessage(ASTROBOX_NAME, event.origin);
 }
 
-window.addEventListener("message", receiveMessage, false);
+window.addEventListener("message", receiveMessage, false);*/
 
 Backbone.history.start();
