@@ -13,16 +13,19 @@ from astroprint.camera import CameraManager
 
 class CameraV4LManager(CameraManager):
 	def __init__(self):
-		super(CameraV4LManager, self).__init__()
-
-		self._camera = None
 		self._camera = None
 		self._watermakMaskWeighted = None
 		self._watermarkInverted = None
 		self._infoArea = None		
 		self._logger = logging.getLogger(__name__)
 
+		super(CameraV4LManager, self).__init__()
+
+
 	def open_camera(self):
+		if (self.isCameraAvailable()):
+			return True
+
 		cameras = self.list_devices()
 
 		if cameras:

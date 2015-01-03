@@ -72,6 +72,7 @@ class CameraManager(object):
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
+		self.open_camera()
 
 	def addPhotoToTimelapse(self, timelapseId):
 		#Build text
