@@ -16,6 +16,7 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.camera import cameraManager
+from astroprint.printerprofile import printerProfileManager
 
 from octoprint.filemanager.destinations import FileDestinations
 
@@ -39,6 +40,7 @@ class Printer():
 		self._gcodeManager.registerCallback(self)
 		self._astroprintCloud = astroprintCloud()
 		self._cameraManager = cameraManager()
+		self._profileManager = printerProfileManager()
 
 		# state
 		# TODO do we really need to hold the temperature here?
@@ -229,6 +231,7 @@ class Printer():
 
 	def setTemperature(self, type, value):
 		if type.startswith("tool"):
+			value = min(value, self._profileManager.data.get('max_nozzle_temp'))
 			if settings().getInt(["printerParameters", "numExtruders"]) > 1:
 				try:
 					toolNum = int(type[len("tool"):])
@@ -238,7 +241,7 @@ class Printer():
 			else:
 				self.command("M104 S%f" % value)
 		elif type == "bed":
-			self.command("M140 S%f" % value)
+			self.command("M140 S%f" % min(value, self._profileManager.data.get('max_bed_temp')))
 
 	def setTemperatureOffset(self, offsets={}):
 		if self._comm is None:
