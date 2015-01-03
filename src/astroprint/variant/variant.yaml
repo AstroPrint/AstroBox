@@ -1,13 +1,13 @@
 supportLink: mailto:support@astroprint.zendesk.com?subject=AstroBox%20question
-suppliesLink: 
+suppliesLink: http://amzn.to/1xoi88o
 productName: "AstroBox"
 productLink: "https://www.astroprint.com/p/astrobox"
 defaultHostname: astrobox
 welcomeMsgHeader: 'Welcome to Your <span class="light">Astro</span>Box&trade;'
 welcomeMsgContent: >
- <h2 class="bold">Thanks for backing us on <img src="/img/kickstarter_logo.png"/></h2>
+ <h2 class="bold">Thanks for purchasing your AstroBox!</h2>
  <p>
-  Your support has made AstroPrint™ a reality! In other words, 
+  Your support makes AstroPrint&trade; a reality! In other words, 
   you are amazing and you are changing the world for the better!
  </p>
 congratsMsg: <b>Congratulations!</b> Your AstroBox is all set up. Now go print something awesome or if you are feeling generous share the love!
