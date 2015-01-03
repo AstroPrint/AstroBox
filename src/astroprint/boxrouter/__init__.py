@@ -26,6 +26,7 @@ from astroprint.network import networkManager
 from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 from astroprint.software import softwareManager
+from astroprint.printerprofile import printerProfileManager
 
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
@@ -77,6 +78,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._subscribers = 0
 		self._silentReconnect = False
 		self._cameraManager = cameraManager()
+		self._profileManager = printerProfileManager()
 		self._logger = logging.getLogger(__name__)
 		WebSocketClient.__init__(self, hostname)
 
@@ -136,7 +138,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						'operational': self._printer.isOperational(),
 						'paused': self._printer.isPaused(),
 						'camera': self._printer.isCameraConnected(),
-						'printCapture': self._cameraManager.timelapseInfo
+						'printCapture': self._cameraManager.timelapseInfo,
+						'profile': self._profileManager.data
 					}
 				elif request == 'job_info':
 					response = self._printer._stateMonitor._jobData
