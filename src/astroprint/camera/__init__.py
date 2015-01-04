@@ -183,12 +183,12 @@ class CameraManager(object):
 		if self.timelapseWorker:
 			self.timelapseWorker.stop()
 			self.timelapseWorker = None
-			self.timelapseInfo = None
 
-			#unsubscribe from layer change events
-			self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
+		self.timelapseInfo = None
 
-			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, None)
+		#unsubscribe from layer change events
+		self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
+		self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, None)
 
 		return True
 

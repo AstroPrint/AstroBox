@@ -330,6 +330,9 @@ class Printer():
 		#	commands.extend(["M140 S0", "M106 S0"])
 		#	self.commands(commands)
 
+		#cancel timelapse if there was one
+		self._cameraManager.stop_timelapse()
+
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
 		while not commandQueue.empty():
@@ -362,9 +365,6 @@ class Printer():
 			eventManager().fire(Events.PRINT_FAILED, payload)
 
 		self._comm.cancelPrint()
-
-		#cancel timelapse if there was one
-		self._cameraManager.stop_timelapse()
 
 	#~~ state monitoring
 
@@ -600,6 +600,9 @@ class Printer():
 			self.startPrint()
 
 	def mcPrintjobDone(self):
+		#stop timelapse if there was one
+		self._cameraManager.stop_timelapse()
+		
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
@@ -612,9 +615,6 @@ class Printer():
 		self.setTemperature('tool', 5.0)
 
 		self.commands(["M29", "M84", "M106 S0"]); #Motors off, Fan off
-
-		#stop timelapse if there was one
-		self._cameraManager.stop_timelapse()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
