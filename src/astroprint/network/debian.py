@@ -50,7 +50,7 @@ class NetworkManagerEvents(threading.Thread):
 		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0 and self._online:
 			self._online = False
 			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
-			if self._manager.isHotspotActive() is False:
+			if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
 				gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
 				result = self._manager.startHotspot() 
 				if result is True:
@@ -124,8 +124,8 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		return False
 
-	def isHotspotAble(self):
-		return bool(self.settings.get(['wifi', 'hotspotDevice']))
+	def isHotspotable(self):
+		return bool(self.settings.get(['wifi', 'hotspotDevice'])) and self.isHotspotActive() != None
 
 	def setWifiNetwork(self, bssid, password = None):
 		wifiDevice = self.getWifiDevice()

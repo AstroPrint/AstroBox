@@ -56,7 +56,7 @@ def getWifiNetworks():
 @api.route("/settings/internet", methods=["GET"])
 @restricted_access
 def getInternetSettings():
-	isHotspotAble = networkManager.isHotspotAble()
+	isHotspotable = networkManager.isHotspotable()
 
 	return jsonify({
 		'networks': networkManager.getActiveConnections(),
@@ -64,7 +64,7 @@ def getInternetSettings():
 		'hotspot': {
 			'active': networkManager.isHotspotActive(),
 			'name': networkManager.getHostname()		
-		} if isHotspotAble else False
+		} if isHotspotable else False
 	})
 
 @api.route("/settings/internet/active", methods=["POST"])
