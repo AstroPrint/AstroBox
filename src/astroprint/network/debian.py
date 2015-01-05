@@ -203,7 +203,7 @@ class DebianNetworkManager(NetworkManagerBase):
 				info = netifaces.ifaddresses(interface)
 
 			except ValueError:
-				logger.warn("Hotsport interface (%s) is not valid in this system." % interface)
+				logger.warn("Hotspot interface (%s) is not valid in this system." % interface)
 
 			else:
 				return netifaces.AF_INET in info
