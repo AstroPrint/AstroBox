@@ -18,6 +18,7 @@ class CameraV4LManager(CameraManager):
 		self._watermarkInverted = None
 		self._infoArea = None		
 		self._logger = logging.getLogger(__name__)
+		self._camerasDir = '/sys/class/video4linux'
 
 		super(CameraV4LManager, self).__init__()
 
@@ -63,19 +64,24 @@ class CameraV4LManager(CameraManager):
 		self._infoArea = None
 
 	def list_camera_info(self):
-		cameras = os.listdir('/sys/class/video4linux')
 		result = []
-		for c in cameras:
-			with open('/sys/class/video4linux/%s/name' % c, 'r') as name_file:
-				result.append({
-					'id': c,
-					'name': name_file.read().replace('\n', '')
-				})
+
+		if os.path.exists(self._camerasDir):
+			cameras = os.listdir(self._camerasDir)
+			for c in cameras:
+				with open(os.path.join(self._camerasDir, c ,'name'), 'r') as name_file:
+					result.append({
+						'id': c,
+						'name': name_file.read().replace('\n', '')
+					})
 
 		return result
 
 	def list_devices(self):
-		return os.listdir('/sys/class/video4linux')
+		if os.path.exists(self._camerasDir): 
+			return os.listdir(self._camerasDir)
+		else:
+			return []
 
 	def get_pic(self, text=None):
 		img = self._snapshot_from_camera()
