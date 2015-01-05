@@ -199,8 +199,14 @@ class DebianNetworkManager(NetworkManagerBase):
 		interface = self.settings.get(['wifi', 'hotspotDevice'])
 
 		if interface:
-			info = netifaces.ifaddresses(interface)
-			return netifaces.AF_INET in info
+			try:
+				info = netifaces.ifaddresses(interface)
+
+			except ValueError:
+				logger.warn("Hotsport interface (%s) is not valid in this system." % interface)
+
+			else:
+				return netifaces.AF_INET in info
 
 		return None
 
