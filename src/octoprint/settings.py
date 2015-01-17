@@ -94,7 +94,7 @@ default_settings = {
 			"x": 6000,
 			"y": 6000,
 			"z": 200,
-			"e": 300
+			"e": 100
 		},
 		"pauseTriggers": [],
 		"invertAxes": [],
