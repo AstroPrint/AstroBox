@@ -1190,10 +1190,13 @@ class MachineCom(object):
 				except ValueError:
 					pass
 
-		elif self._state == self.STATE_PRINTING and self._currentZ > self._lastLayerHeight and self._regex_extrusion.search(cmd) != None:
-			self._currentLayer += 1
-			self._callback.mcLayerChange(self._currentLayer)
+		elif self._state == self.STATE_PRINTING and self._currentZ != self._lastLayerHeight and self._regex_extrusion.search(cmd) != None:
+			if self._currentZ > self._lastLayerHeight:
+				self._currentLayer += 1
+				self._callback.mcLayerChange(self._currentLayer)
+
 			self._lastLayerHeight = self._currentZ
+			
 
 		return cmd
 	_gcode_G1 = _gcode_G0
