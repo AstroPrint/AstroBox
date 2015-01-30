@@ -115,7 +115,7 @@
 							<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
 							<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
 						<% } %>
-						<b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume.toFixed(2) %></span> mm<sup>3</sup>
+						<b>Filament Used:</b> <span class="hl"><%= (p.info.filament_volume/1000).toFixed(2) %></span> cm<sup>3</sup>
 					<% } else { %>
 						<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 					<% } %>
