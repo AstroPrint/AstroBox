@@ -195,6 +195,18 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		return None
 
+	def forgetWifiNetworks(self):
+		conns = self._nm.Settings.ListConnections()
+
+		if not self.isHotspotActive():
+			self.startHotspot()
+
+		for c in conns:
+			settings = c.GetSettings()
+			if '802-11-wireless' in settings:
+				logger.info('Deleting connection %s' % settings['802-11-wireless']['ssid'])
+				c.Delete()
+
 	def isHotspotActive(self):
 		interface = self.settings.get(['wifi', 'hotspotDevice'])
 

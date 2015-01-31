@@ -71,6 +71,9 @@ class NetworkManager(object):
 	def setWifiNetwork(self, bssid, password):
 		return None
 
+	def forgetWifiNetworks(self):
+		return None
+
 	def isHotspotActive(self):
 		return None
 
