@@ -69,7 +69,6 @@ class DebianNetworkManager(NetworkManagerBase):
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._eventListener.start()
-		self._defaultHostname = None
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())
