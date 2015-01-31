@@ -13,5 +13,9 @@
 		&.noty_container_type_success {
 			background-color: $success-color;
 		}
+
+		&.noty_container_type_information {
+			background-color: $primary-color;
+		}
 	}
 }

@@ -12,7 +12,7 @@ var ConnectionView = Backbone.View.extend({
 		'click i.astroprint': 'astroprintTapped'
 	},
 	socketData: null,
-	connect: function() {
+	connect: function(clicked) {
 		var self = this;
 
         $.ajax({
@@ -21,6 +21,12 @@ var ConnectionView = Backbone.View.extend({
             dataType: "json",
             success: function(response) {
 		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed') {
+		        	if (clicked && response.current.port == null) {
+        				app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
+        				noty({text: 'Enter Connection settings.', type:"information", timeout: 3000});
+		        		return;
+		        	}
+
 		        	if (response.current.state.substr(0,5) == 'Error') {
 		        		console.error("Printer connection had error: "+response.current.state);
 		        	}
@@ -40,6 +46,9 @@ var ConnectionView = Backbone.View.extend({
 			            data: JSON.stringify(data),
 			            error: function() {
 			            	self.setPrinterConnection('failed');
+			       		    if (clicked) {
+	            				noty({text: 'No Printer connected.', type:"alert", timeout: 3000});
+	            			}
 			            }
 			        });
 			    } else if (response.current.state != 'Connecting') {
@@ -134,7 +143,7 @@ var ConnectionView = Backbone.View.extend({
 	},
 	printerTapped: function(e) {
 		if ($(e.target).hasClass('failed')) {
-			this.connect();
+			this.connect(true);
 		}
 	},
 	serverTapped: function(e) {
