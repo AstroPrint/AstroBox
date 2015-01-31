@@ -76,14 +76,22 @@ class DebianNetworkManager(NetworkManagerBase):
 	def getWifiNetworks(self):
 		wifiDevice = self.getWifiDevice()
 
-		if wifiDevice:
-			networks = [{
-				'id': ap.HwAddress,
-				'signal': ord(ap.Strength),
-				'name': ap.Ssid,
-				'secured': True if ap.WpaFlags or ap.RsnFlags else False} for ap in wifiDevice.SpecificDevice().GetAccessPoints()]
+		networks = {}
 
-			return networks
+		if wifiDevice:
+			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
+				signal = ord(ap.Strength)
+				ssid = ap.Ssid
+
+				if ap.Ssid not in networks or signal > networks[ssid]['signal']:
+					networks[ssid] = {
+						'id': ap.HwAddress,
+						'signal': signal,
+						'name': ssid,
+						'secured': True if ap.WpaFlags or ap.RsnFlags else False
+					}
+
+			return [v for k,v in networks.iteritems()]
 
 		return None
 
