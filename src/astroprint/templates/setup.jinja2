@@ -265,11 +265,17 @@
 			<div class="content">
 				<img src="/img/setup/final_step_astroprint_logo.png" height=""/>
 				<p>{{variantData['congratsMsg']}}</p>
-				<button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i> Share</button>
-				<button class="radius share-button twitter bold expand"><i class="icon-twitter"></i> Tweet</button>
-				<a class="button radius success bold setup-done expand" style="display:none" href="#">Start Printing!</a>
-				<div align="right">
-					<a class="setup-done skip-step" href="#">Skip Sharing and Start Printing! <i class="icon-right-open"></i></a>
+				<div class="row">
+					<div class="small-offset-1 small-5 columns">
+						<button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i></button>
+					</div>
+					<div class="small-5 small-pull-1 columns">
+						<button class="radius share-button twitter bold expand"><i class="icon-twitter"></i></button>
+					</div>
+				</div>
+				<div class="loading-button expand">
+					<a class="button radius success bold setup-done expand" href="#">Start Printing <i class="icon-right-open"></i></a>
+					<span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Launching</span>
 				</div>
 			</div>
 		</div>
