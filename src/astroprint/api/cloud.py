@@ -90,6 +90,7 @@ def designs():
 			p['id'] = uuid.uuid4().hex
 			p['local_filename'] = p['name']
 			p['local_only'] = True
+			p['last_print'] = None
 			if 'gcodeAnalysis' in p:
 				p['info'] = p['gcodeAnalysis']
 				del p['gcodeAnalysis']
