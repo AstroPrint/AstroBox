@@ -521,6 +521,9 @@ var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadView: null,
 	printFilesListView: null,
+	events: {
+		'show': 'onShow'
+	},
 	initialize: function(options) 
 	{
 		this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
@@ -544,5 +547,9 @@ var HomeView = Backbone.View.extend({
 			this.printFilesListView.storage_control_view.selectStorage('cloud');
 			view.infoClicked();
 		}
+	},
+	onShow: function()
+	{
+		this.printFilesListView.refresh(false);
 	}
 });

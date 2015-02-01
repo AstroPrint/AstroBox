@@ -58,23 +58,26 @@ def designs():
 	slicer = astroprintCloud()
 	forceSyncCloud = request.args.get('forceSyncCloud')
 	cloud_files = json.loads(slicer.print_files(forceSyncCloud))
-
 	local_files = list(gcodeManager.getAllFileData())
 
 	if cloud_files:
 		for p in cloud_files:
 			p['local_filename'] = None
+			p['last_print'] = None
 			for i in range(len(local_files)):
 				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
 					local_file = local_files[i]
 					p['local_filename'] = local_file['name']
 					p['local_only'] = False
+					
+					if 'prints' in local_file and 'last' in local_file['prints'] and 'date' in local_file['prints']['last']:
+						p['last_print'] = local_file['prints']['last']['date']
+
 					del local_files[i]
+
 					break
 
-		sorted_cloud_files = sorted(cloud_files, key=lambda e: e['local_filename'] is None)
-	else:
-		sorted_cloud_files = []
+		cloud_files = sorted(cloud_files, key=lambda e: e['local_filename'] is None)
 
 	if local_files:
 		for p in local_files:
@@ -87,7 +90,13 @@ def designs():
 			else:
 				p['info'] = None
 
-	return json.dumps(local_files + sorted_cloud_files)
+			if 'prints' in p and 'last' in p['prints'] and 'date' in p['prints']['last']:
+				p['last_print'] = p['prints']['last']['date']
+				del p['prints']
+
+	files = sorted(local_files + cloud_files, key=lambda e: e['last_print'], reverse=True)
+
+	return json.dumps(files)
 
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
