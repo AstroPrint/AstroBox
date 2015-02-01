@@ -29,7 +29,7 @@ class CameraV4LManager(CameraManager):
 
 		cameras = self.list_devices()
 
-		if cameras:
+		if cameras:			
 			self._camera = cv2.VideoCapture()
 			if self._camera.open(int(cameras[0].replace('video',''))):
 				self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
@@ -115,7 +115,12 @@ class CameraV4LManager(CameraManager):
 		for i in range(5):
 			self._camera.grab()
 
-		retval, img = self._camera.retrieve()
+		try:
+			retval, img = self._camera.retrieve()
+
+		except:
+			retval = None
+
 		if retval:
 			return img
 

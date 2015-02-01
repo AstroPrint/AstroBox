@@ -108,6 +108,8 @@ var PhotoView = Backbone.View.extend({
         this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
         this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
         this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+
+        this.onCameraChanged(app.socketData, app.socketData.get('camera'));
     },
     render: function() {
         var imageNode = this.$('.camera-image');
@@ -152,11 +154,11 @@ var PhotoView = Backbone.View.extend({
 
         //Camera controls section
         if (value) {
-            if (!cameraControls.is(":visible")) {
-                cameraControls.show();
+            if (cameraControls.hasClass('hide')) {
+                cameraControls.removeClass('hide');
             }
-        } else if (cameraControls.is(":visible") ) {
-            cameraControls.hide();
+        } else if (!cameraControls.hasClass('hide')) {
+            cameraControls.addClass('hide');
         }
     },
     onPrintCaptureChanged: function(s, value) {
