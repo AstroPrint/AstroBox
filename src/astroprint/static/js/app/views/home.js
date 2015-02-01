@@ -359,6 +359,8 @@ var PrintFilesListView = Backbone.View.extend({
 	print_file_views: [],
 	storage_control_view: null,
 	file_list: null,
+	refresh_threshold: 1000, //don't allow refreshes faster than this (in ms)
+	last_refresh: 0,
 	events: {
 		'click .list-header button.sync': 'forceSync' 
 	},
@@ -415,47 +417,53 @@ var PrintFilesListView = Backbone.View.extend({
     },
 	refresh: function(syncCloud, doneCb) 
 	{
-		var loadingBtn = this.$('.loading-button.sync');
+		var now = new Date().getTime();
 
-		if (!loadingBtn.hasClass('loading')) {
-			loadingBtn.addClass('loading');
+		if (this.last_refresh < (now - this.refresh_threshold) ) {
+			this.last_refresh = now;
+			var loadingBtn = this.$('.loading-button.sync');
 
-			var success = _.bind(function() {
-				this.print_file_views = [];
-				this.file_list.each(_.bind(function(print_file, idx) {
-					var print_file_view = new PrintFileView({
-						list: this,
-						print_file: print_file,
-						attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
-					});
-					print_file_view.render();
-					this.print_file_views.push( print_file_view );
-				}, this));
+			if (!loadingBtn.hasClass('loading')) {
+				loadingBtn.addClass('loading');
 
-				this.$('.design-list-container').empty();
-				this.render();
-				loadingBtn.removeClass('loading');
+				var success = _.bind(function() {
+					this.print_file_views = [];
+					this.file_list.each(_.bind(function(print_file, idx) {
+						var print_file_view = new PrintFileView({
+							list: this,
+							print_file: print_file,
+							attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
+						});
+						print_file_view.render();
+						this.print_file_views.push( print_file_view );
+					}, this));
 
-				if (_.isFunction(doneCb)) {
-					doneCb(true);
+					this.$('.design-list-container').empty();
+					this.render();
+					loadingBtn.removeClass('loading');
+
+					if (_.isFunction(doneCb)) {
+						doneCb(true);
+					}
+
+				}, this);
+
+				var error = function() {
+					noty({text: "There was an error retrieving design list", timeout: 3000});
+					loadingBtn.removeClass('loading');
+
+					if (_.isFunction(doneCb)) {
+						doneCb(false);
+					}
+				};
+
+				if (syncCloud) {
+					this.file_list.syncCloud({success: success, error: error});
+				} else {
+					this.file_list.fetch({success: success, error: error});
 				}
-			}, this);
-
-			var error = function() {
-				noty({text: "There was an error retrieving design list", timeout: 3000});
-				loadingBtn.removeClass('loading');
-
-				if (_.isFunction(doneCb)) {
-					doneCb(false);
-				}
-			};
-
-			if (syncCloud) {
-				this.file_list.syncCloud({success: success, error: error});
-			} else {
-				this.file_list.fetch({success: success, error: error});
 			}
-		}	
+		}
 	},
 	downloadProgress: function(data) 
 	{

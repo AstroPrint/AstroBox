@@ -79,6 +79,9 @@ def designs():
 
 		cloud_files = sorted(cloud_files, key=lambda e: e['local_filename'] is None)
 
+	else:
+		cloud_files = []
+
 	if local_files:
 		for p in local_files:
 			p['id'] = uuid.uuid4().hex
@@ -93,6 +96,9 @@ def designs():
 			if 'prints' in p and 'last' in p['prints'] and 'date' in p['prints']['last']:
 				p['last_print'] = p['prints']['last']['date']
 				del p['prints']
+
+	else:
+		local_files = []
 
 	files = sorted(local_files + cloud_files, key=lambda e: e['last_print'], reverse=True)
 
