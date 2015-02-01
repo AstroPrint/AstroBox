@@ -70,7 +70,10 @@ def designs():
 					p['local_filename'] = local_file['name']
 					p['local_only'] = False
 					
-					if 'prints' in local_file and 'last' in local_file['prints'] and 'date' in local_file['prints']['last']:
+					if 'prints' in local_file 
+						and 'last' in local_file['prints'] 
+						and local_file['prints']['last']
+						and 'date' in local_file['prints']['last']:
 						p['last_print'] = local_file['prints']['last']['date']
 
 					del local_files[i]
@@ -93,7 +96,10 @@ def designs():
 			else:
 				p['info'] = None
 
-			if 'prints' in p and 'last' in p['prints'] and 'date' in p['prints']['last']:
+			if 'prints' in p 
+				and 'last' in p['prints'] 
+				and p['prints']['last']
+				and 'date' in p['prints']['last']:
 				p['last_print'] = p['prints']['last']['date']
 				del p['prints']
 
