@@ -10,6 +10,8 @@ var TempBarView = Backbone.View.extend({
     type: null,
     dragging: false,
     lastSent: null,
+    lastSentTimestamp: null,
+    waitAfterSent: 2000, //During this time, ignore incoming target sets
     events: {
         'touchstart .temp-target': 'onTouchStart',
         'mousedown .temp-target': 'onTouchStart',
@@ -101,7 +103,17 @@ var TempBarView = Backbone.View.extend({
             error: function() { if (errorCb !== undefined) errorCb(); }
         });
 
+        this.lastSentTimestamp = new Date().getTime();
         this.lastSent = temp;
+    },
+    setTemps: function(actual, target) {
+        var now = new Date().getTime();
+
+        if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
+            target = this.lastSent;
+        }
+
+        this.renderTemps(actual, target);
     },
 
     //Implement these in subclasses
@@ -109,7 +121,7 @@ var TempBarView = Backbone.View.extend({
     onTouchMove: function(e) {},
     onClicked: function(e) {},
     onResize: function() {},
-    setTemps: function(actual, target) {},
+    renderTemps: function(actual, target) {},
     _temp2px: function(temp) {},
     _px2temp: function(px) {}
 });

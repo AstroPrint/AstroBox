@@ -76,7 +76,7 @@
             px4degree: (maxLeft - minLeft) / (this.scale[1] - this.scale[0])
         };
     },
-    setTemps: function(actual, target) {
+    renderTemps: function(actual, target) {
         var handleWidth = this.$el.find('.temp-target').innerWidth();
 
         this.setHandle(Math.min(Math.round(target), this.scale[1]));

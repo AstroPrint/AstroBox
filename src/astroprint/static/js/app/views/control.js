@@ -73,7 +73,7 @@ var TempBarVerticalView = TempBarView.extend({
 			px4degree: maxTop / (this.scale[1] - this.scale[0])
 		};
 	},
-	setTemps: function(actual, target) {
+	renderTemps: function(actual, target) {
 		var handleHeight = this.$el.find('.temp-target').innerHeight();
 
 		this.setHandle(Math.min(Math.round(target), this.scale[1]));
