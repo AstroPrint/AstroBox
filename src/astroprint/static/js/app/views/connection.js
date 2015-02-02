@@ -116,7 +116,7 @@ var ConnectionView = Backbone.View.extend({
 				break;
 
 			case 'failed':
-				titleText = 'The Printer is not connected';
+				titleText = 'The printer is not connected';
 				break;
 		}
 
@@ -177,14 +177,25 @@ var ConnectionView = Backbone.View.extend({
 		var target = $(e.target);
 
 		if (!this.tooltip) {
-			this.tooltip = $('<div class="tooltip"><span class="pip"></span><div class="text"></div></div>')
+			this.tooltip = $('<div class="tooltip radius"><span class="pip"></span><div class="text"></div></div>')
 			$('body').append(this.tooltip);
 		}
 
+		var position = target.offset();
+		var screenWidth = $(document).width();
+
+		var top = position.top + target.height() - 5;
+		var right = screenWidth - (position.left + target.width());
+
 		this.tooltip
+			.css('top', top)
+			.css('right', right)
+			.css('background', target.css('color'))
 			.removeClass('hide')
 			.find('.text')
 				.text(target.data('title'));
+
+		this.tooltip.find('.pip').css('border-color', 'transparent transparent '+target.css('color')+' transparent');
 	},
 	onMouseOut: function(e) {
 		this.tooltip.addClass('hide');
