@@ -92,6 +92,12 @@ body, html {
 	.inner-wrap {
 		min-height: 100%;
 	}
+
+	.top-logo-small {
+		float: left;
+		color: $alert-color;
+		font-size: rem-calc(40);
+	}
 }
 
 #main {

@@ -9,9 +9,12 @@ var ConnectionView = Backbone.View.extend({
 	events: {
 		'click i.printer': 'printerTapped',
 		'click i.server': 'serverTapped',
-		'click i.astroprint': 'astroprintTapped'
+		'click i.astroprint': 'astroprintTapped',
+		'mouseover i': 'onMouseOver',
+		'mouseout i': 'onMouseOut'
 	},
 	socketData: null,
+	tooltip: null,
 	connect: function(clicked) {
 		var self = this;
 
@@ -95,7 +98,7 @@ var ConnectionView = Backbone.View.extend({
 				break;
 		}
 
-		element.attr('title', titleText);
+		element.data('title', titleText);
 	},
 	setPrinterConnection: function(className) {
 		var element = this.$el.find('i.printer');
@@ -117,7 +120,7 @@ var ConnectionView = Backbone.View.extend({
 				break;
 		}
 
-		element.attr('title', titleText);
+		element.data('title', titleText);
 	},
 	setAstroprintConnection: function(className) {
 		var element = this.$el.find('i.astroprint')
@@ -139,7 +142,7 @@ var ConnectionView = Backbone.View.extend({
 				break;
 		}
 
-		element.attr('title', titleText);
+		element.data('title', titleText);
 	},
 	printerTapped: function(e) {
 		if ($(e.target).hasClass('failed')) {
@@ -169,5 +172,21 @@ var ConnectionView = Backbone.View.extend({
 		    	$('#login-modal').foundation('reveal', 'open');
 		    }
 		}
+	},
+	onMouseOver: function(e) {
+		var target = $(e.target);
+
+		if (!this.tooltip) {
+			this.tooltip = $('<div class="tooltip"><span class="pip"></span><div class="text"></div></div>')
+			$('body').append(this.tooltip);
+		}
+
+		this.tooltip
+			.removeClass('hide')
+			.find('.text')
+				.text(target.data('title'));
+	},
+	onMouseOut: function(e) {
+		this.tooltip.addClass('hide');
 	}
 });
