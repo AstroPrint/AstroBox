@@ -32,8 +32,8 @@
 	padding: 10px;
 	position: absolute;
 	font-size: rem-calc(12);
-	@include radius($global-radius);
 	box-shadow: 1px 1px 3px #222;
+	@include radius($global-radius);
 
 	.pip {
 		@include css-triangle(5px, black, bottom);

@@ -161,13 +161,42 @@
 			left: -5%;
 			top: 20px;
 			background-color: #505050;
-			padding: 10px;
 			text-align: center;
 			color: white;
 			width: 110%;
-			font-size: rem-calc(22);
+			font-size: rem-calc(20);
 			border-radius: $global-radius;
 			cursor: pointer;
+
+			a.temp-edit {
+				padding: 10px 0;
+				text-align: center;
+				width: 30%;
+				display: inline-block;
+				border-right: 1px solid #a5a5a5;
+				color: white;
+				float: left;
+			}
+
+			span.label {
+				padding: 10px 0;
+				width: 70%;
+				display: inline-block;
+				float: right;
+			}
+
+			input {
+				margin-top:5px;
+				text-align: center;
+				display: inline-block;
+				background: transparent;
+				color: white;
+				border: none;
+				width: 65%;
+				box-shadow: none;
+				font-size: rem-calc(20);
+				margin-bottom: 0px;
+			}
 
 			&.moving {
 				background-color: lighten(#505050, 20%);

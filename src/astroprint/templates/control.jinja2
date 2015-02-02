@@ -100,21 +100,30 @@
 			</div>
 		</div>
 	</div>
+
+{%- macro temp_control(class, label) %}
+	<div class="temp-control-cont {{class}}">
+		<span class="current-temp-top bold">- -</span>
+		<div class="temp-bar">
+			<label class="bold">{{label}}</label>
+			<div class="current-temp">
+				<div class="triangle_left"></div>
+				<div class="triangle_right"></div>
+			</div>
+			<div class="temp-target radius bold">
+				<a class="temp-edit"><i class="icon-pencil"></i></a>
+				<span class="label">- -</span>
+				<input type="number" class="hide"/>
+			</div>
+		</div>
+		<button class="temp-off secondary small radius expand">OFF</button>
+	</div>
+{%- endmacro %}
+
 	<div class="medium-12 large-5 columns" id="temp-control">
 		<div class="row">
 			<div class="small-4 columns" align="center">
-				<div class="temp-control-cont nozzle">
-					<span class="current-temp-top bold">- -</span>
-					<div class="temp-bar">
-						<label class="bold">Nozzle</label>
-						<div class="current-temp">
-							<div class="triangle_left"></div>
-							<div class="triangle_right"></div>
-						</div>
-						<div class="temp-target radius bold">- -</div>
-					</div>
-					<button class="temp-off secondary small radius expand">OFF</button>
-				</div>
+				{{ temp_control('nozzle', 'Nozzle')}}
 			</div>
 			<div class="small-4 columns fan-control">
 				<div class="fan-control-push" align="center">
@@ -125,18 +134,7 @@
 				<button class="radius small secondary expand fan-off">OFF</button>
 			</div>
 			<div class="small-4 columns" align="center">
-				<div class="temp-control-cont bed">
-					<span class="current-temp-top bold">- -</span>
-					<div class="temp-bar">
-						<label class="bold">Bed</label>
-						<div class="current-temp">
-							<div class="triangle_left"></div>
-							<div class="triangle_right"></div>
-						</div>
-						<div class="temp-target radius bold">- -</div>
-					</div>
-					<button class="temp-off secondary small radius expand">OFF</button>
-				</div>
+				{{ temp_control('bed', 'Bed')}}
 			</div>
 		</div>
 	</div>

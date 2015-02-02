@@ -13,13 +13,16 @@ var TempBarView = Backbone.View.extend({
     lastSentTimestamp: null,
     waitAfterSent: 2000, //During this time, ignore incoming target sets
     events: {
-        'touchstart .temp-target': 'onTouchStart',
-        'mousedown .temp-target': 'onTouchStart',
-        'touchmove .temp-target': 'onTouchMove',
-        'mousemove .temp-target': 'onTouchMove',
-        'touchend .temp-target': 'onTouchEnd',
-        'mouseup .temp-target': 'onTouchEnd',
-        'mouseout .temp-target': 'onTouchEnd'
+        'touchstart .temp-target span.label': 'onTouchStart',
+        'mousedown .temp-target span.label': 'onTouchStart',
+        'touchmove .temp-target span.label': 'onTouchMove',
+        'mousemove .temp-target span.label': 'onTouchMove',
+        'touchend .temp-target span.label': 'onTouchEnd',
+        'mouseup .temp-target span.label': 'onTouchEnd',
+        'mouseout .temp-target span.label': 'onTouchEnd',
+        'click .temp-target a.temp-edit': 'onEditClicked',
+        'change .temp-target input': 'onTempFieldChanged',
+        'blur .temp-target input': 'onTempFieldChanged'
     },
     initialize: function(params) {
         this.scale = params.scale;
@@ -39,7 +42,7 @@ var TempBarView = Backbone.View.extend({
             this.scale[1] = value;
             this.onResize();
 
-            var currentTemp = parseInt(this.$el.find('.temp-target').text())
+            var currentTemp = parseInt(this.$el.find('.temp-target span.label').text())
 
             if (!isNaN(currentTemp)) {
                 this.setHandle(Math.min(currentTemp, value));
@@ -56,9 +59,34 @@ var TempBarView = Backbone.View.extend({
 
         $(e.target).removeClass('moving');
 
-        this._sendToolCommand('target', this.type, this.$el.find('.temp-target').text());
+        this._sendToolCommand('target', this.type, this.$el.find('.temp-target span.label').text());
 
         this.dragging = false;
+    },
+    onEditClicked: function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        var target = $(e.target);
+        var container = target.closest('.temp-target');
+        var label = container.find('span.label');
+
+        label.addClass('hide');
+        container.find('input').removeClass('hide').val(label.text()).focus();
+
+    },
+    onTempFieldChanged: function(e) {
+        var input = $(e.target);
+        var value = input.val();
+
+        if (value != this.lastSent && !isNaN(value) ) {
+            value = Math.min(Math.max(value, this.scale[0]), this.scale[1]);
+            this._sendToolCommand('target', this.type, value);
+            input.addClass('hide');
+            input.closest('.temp-target').find('span.label').removeClass('hide');
+
+            this.setHandle(value);
+        }
     },
     _sendToolCommand: function(command, type, temp, successCb, errorCb) {
         if (temp == this.lastSent) return;

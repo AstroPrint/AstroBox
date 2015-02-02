@@ -62,28 +62,28 @@
 	</div>
 </div>
 
+{%- macro temp_control(class, label) %}
+	<div class="temp-bar {{class}}">
+		<h3 class="bold">Current Temp</h3>
+		<label class="bold">{{label}}</label>
+		<div class="temp-curret-line">
+			<div class="triangle_left"></div>
+			<div class="triangle_right"></div>
+		</div>
+		<div class="temp-target bold">
+			<a class="temp-edit"><i class="icon-pencil"></i></a>
+			<span class="label">- -</span>
+			<input type="number" class="hide"/>
+		</div>
+		<div class="temp-current bold">--</div>
+	</div>
+{%- endmacro %}
+
 <div class="row temperatures">
 	<div class="small-12 columns">
 		<h2 class="bold">Printer Temperature</h2>
-		<div class="temp-bar nozzle">
-			<h3 class="bold">Current Temp</h3>
-			<label class="bold">Nozzle</label>
-			<div class="temp-curret-line">
-				<div class="triangle_left"></div>
-				<div class="triangle_right"></div>
-			</div>
-			<div class="temp-target bold">--</div>
-			<div class="temp-current bold">--</div>
-		</div>
-		<div class="temp-bar bed">
-			<label class="bold">Bed</label>
-			<div class="temp-curret-line">
-				<div class="triangle_left"></div>
-				<div class="triangle_right"></div>
-			</div>
-			<div class="temp-target bold">--</div>
-			<div class="temp-current bold">--</div>
-		</div>
+		{{ temp_control('nozzle', 'Nozzle')}}
+		{{ temp_control('bed', 'Bed')}}
 	</div>
 </div>
 <div class="row">

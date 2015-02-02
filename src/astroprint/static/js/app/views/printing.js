@@ -18,7 +18,7 @@
             var position = this._temp2px(value);
             var handle = this.$el.find('.temp-target');
 
-            handle.text(value);
+            handle.find('span.label').text(value);
             handle.css({transition: 'left 0.5s'});
             handle.css({left: position + 'px'});
             setTimeout(function() {
@@ -42,7 +42,7 @@
             newLeft = Math.min(Math.max(newLeft, this.containerDimensions.minLeft), this.containerDimensions.maxLeft );
 
             target.text(this._px2temp(newLeft));
-            target.css({left: newLeft+'px'});
+            target.closest('.temp-target').css({left: newLeft+'px'});
         }
     },
     onClicked: function(e) {
