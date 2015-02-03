@@ -22,7 +22,7 @@ var TempBarView = Backbone.View.extend({
         'mouseout .temp-target span.label': 'onTouchEnd',
         'click .temp-target a.temp-edit': 'onEditClicked',
         'change .temp-target input': 'onTempFieldChanged',
-        'blur .temp-target input': 'onTempFieldChanged'
+        'blur .temp-target input': 'onTempFieldBlur'
     },
     initialize: function(params) {
         this.scale = params.scale;
@@ -82,11 +82,17 @@ var TempBarView = Backbone.View.extend({
         if (value != this.lastSent && !isNaN(value) ) {
             value = Math.min(Math.max(value, this.scale[0]), this.scale[1]);
             this._sendToolCommand('target', this.type, value);
-            input.addClass('hide');
-            input.closest('.temp-target').find('span.label').removeClass('hide');
-
+            input.blur();
+ 
             this.setHandle(value);
         }
+    },
+    onTempFieldBlur: function(e)
+    {
+        var input = $(e.target);
+
+        input.addClass('hide');
+        input.closest('.temp-target').find('span.label').removeClass('hide');
     },
     _sendToolCommand: function(command, type, temp, successCb, errorCb) {
         if (temp == this.lastSent) return;

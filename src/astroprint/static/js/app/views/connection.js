@@ -145,17 +145,23 @@ var ConnectionView = Backbone.View.extend({
 		element.data('title', titleText);
 	},
 	printerTapped: function(e) {
+		e.stopPropagation();
+
 		if ($(e.target).hasClass('failed')) {
 			this.connect(true);
 		}
 	},
 	serverTapped: function(e) {
+		e.stopPropagation();
+
 		if ($(e.target).hasClass('failed')) {
 			this.socketData.reconnect();
 			this.connect();
 		}
 	},
 	astroprintTapped: function(e) {
+		e.stopPropagation();
+
 		var icon = $(e.target);
 		if (icon.hasClass('failed')) {
 			if (LOGGED_IN) {
@@ -174,6 +180,8 @@ var ConnectionView = Backbone.View.extend({
 		}
 	},
 	onMouseOver: function(e) {
+		if ($('html').hasClass('touch')) return;
+
 		var target = $(e.target);
 
 		if (!this.tooltip) {
