@@ -86,15 +86,15 @@ var ConnectionView = Backbone.View.extend({
 
 		switch(className) {
 			case 'blink-animation':
-				titleText = 'Connecting to '+ASTROBOX_NAME+'...';
+				titleText = 'Connecting to <b>'+ASTROBOX_NAME+'</b>...';
 				break;
 
 			case 'connected':
-				titleText = 'Connected to '+ASTROBOX_NAME;
+				titleText = 'Connected to <b>'+ASTROBOX_NAME+'</b>';
 				break;
 
 			case 'failed':
-				titleText = ASTROBOX_NAME+' is unreachable';
+				titleText = '<b>'+ASTROBOX_NAME+'</b> is unreachable';
 				break;
 		}
 
@@ -201,7 +201,7 @@ var ConnectionView = Backbone.View.extend({
 			.css('background', target.css('color'))
 			.removeClass('hide')
 			.find('.text')
-				.text(target.data('title'));
+				.html(target.data('title'));
 
 		this.tooltip.find('.pip').css('border-color', 'transparent transparent '+target.css('color')+' transparent');
 	},
