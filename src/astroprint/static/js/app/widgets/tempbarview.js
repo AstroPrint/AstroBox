@@ -15,11 +15,11 @@ var TempBarView = Backbone.View.extend({
     events: {
         'touchstart .temp-target span.label': 'onTouchStart',
         'mousedown .temp-target span.label': 'onTouchStart',
-        'touchmove .temp-target span.label': 'onTouchMove',
-        'mousemove .temp-target span.label': 'onTouchMove',
-        'touchend .temp-target span.label': 'onTouchEnd',
-        'mouseup .temp-target span.label': 'onTouchEnd',
-        'mouseout .temp-target span.label': 'onTouchEnd',
+        'touchmove': 'onTouchMove',
+        'mousemove': 'onTouchMove',
+        'touchend .temp-target': 'onTouchEnd',
+        'mouseup .temp-target': 'onTouchEnd',
+        'mouseout .temp-target': 'onTouchEnd',
         'click .temp-target a.temp-edit': 'onEditClicked',
         'change .temp-target input': 'onTempFieldChanged',
         'blur .temp-target input': 'onTempFieldBlur'
@@ -51,13 +51,16 @@ var TempBarView = Backbone.View.extend({
     },
     onTouchStart: function(e) {
         e.preventDefault();
+        e.stopPropagation();
+
         this.dragging = true;
-        $(e.target).addClass('moving');
+        $(e.currentTarget).closest('.temp-target').addClass('moving');
     },
     onTouchEnd: function(e) {
         e.preventDefault();
+        e.stopPropagation();
 
-        $(e.target).removeClass('moving');
+       $(e.currentTarget).removeClass('moving');
 
         this._sendToolCommand('target', this.type, this.$el.find('.temp-target span.label').text());
 

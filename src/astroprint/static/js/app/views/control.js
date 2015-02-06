@@ -29,20 +29,22 @@ var TempBarVerticalView = TempBarView.extend({
 	onTouchMove: function(e) {
 		if (this.dragging) {
 			e.preventDefault();
+			e.stopPropagation();
 
-			var target = $(e.target);
+            var target = this.$('.temp-target');
 
 			if (e.type == 'mousemove') {
 				var pageY = e.originalEvent.pageY;
 			} else {
-				var pageY = e.originalEvent.changedTouches[0].clientY;
+				var pageY = e.originalEvent.changedTouches[0].clientY + $(document).scrollTop();
 			}
 
 			var newTop = pageY - this.containerDimensions.top - target.innerHeight()/2.0;
+
 			newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
 
-			target.closest('.temp-target').css({top: newTop+'px'});
-			target.text(this._px2temp(newTop));
+			target.css({top: newTop+'px'});
+			target.find('span.label').text(this._px2temp(newTop));
 		}
 	},
     onClicked: function(e) {

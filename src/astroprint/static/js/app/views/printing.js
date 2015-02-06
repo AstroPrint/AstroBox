@@ -29,8 +29,9 @@
     onTouchMove: function(e) {
         if (this.dragging) {
             e.preventDefault();
+            e.stopPropagation();
 
-            var target = $(e.target);
+            var target = this.$('.temp-target');
 
             if (e.type == 'mousemove') {
                 var pageX = e.originalEvent.pageX;
@@ -41,8 +42,8 @@
             var newLeft = pageX - this.containerDimensions.left - target.innerWidth()/2.0;
             newLeft = Math.min(Math.max(newLeft, this.containerDimensions.minLeft), this.containerDimensions.maxLeft );
 
-            target.text(this._px2temp(newLeft));
-            target.closest('.temp-target').css({left: newLeft+'px'});
+            target.find('span.label').text(this._px2temp(newLeft));
+            target.css({left: newLeft+'px'});
         }
     },
     onClicked: function(e) {
@@ -77,9 +78,13 @@
         };
     },
     renderTemps: function(actual, target) {
-        var handleWidth = this.$el.find('.temp-target').innerWidth();
+        var handle = this.$el.find('.temp-target');
+        var handleWidth = handle.innerWidth();
 
-        this.setHandle(Math.min(Math.round(target), this.scale[1]));
+        if (target != handle.find('span.label').text()) {
+            this.setHandle(Math.min(Math.round(target), this.scale[1]));
+        }
+
         this.$el.find('.temp-current').html(Math.round(actual)+'&deg;');
         this.$el.find('.temp-curret-line').css({left: ( this._temp2px(actual) + handleWidth/2.0 )+'px'});
     },
