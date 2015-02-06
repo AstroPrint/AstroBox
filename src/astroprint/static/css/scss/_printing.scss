@@ -239,7 +239,12 @@
 					border: none;
 					width: 55%;
 					box-shadow: none;
-					margin: 12px 0 0 0;
+
+					&::-webkit-inner-spin-button, 
+					&::-webkit-outer-spin-button { 
+					  -webkit-appearance: none; 
+					  margin: 0; 
+					}
 				}
 
 				&.moving {

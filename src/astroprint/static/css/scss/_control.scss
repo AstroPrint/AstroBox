@@ -196,6 +196,12 @@
 				box-shadow: none;
 				font-size: rem-calc(20);
 				margin-bottom: 0px;
+
+				&::-webkit-inner-spin-button, 
+				&::-webkit-outer-spin-button { 
+				  -webkit-appearance: none; 
+				  margin: 0; 
+				}
 			}
 
 			&.moving {
