@@ -31,10 +31,15 @@ from octoprint.events import eventManager, Events
 if platform != 'darwin':
 	import apt.debfile
 	import apt.progress.base
+	import apt_pkg
 
-	MAX_DOWNLOAD_PROGRESS = 0.3
-	MAX_DEPS_PROGRESS = 0.3
-	START_UPDATE_PROGRESS = 0.7
+	DOWNLOAD_PROGRESS_SPREAD = 0.2
+	START_SOURCES_UPDATE = DOWNLOAD_PROGRESS_SPREAD + 0.05
+	SOURCES_UPDATE_SPREAD = 0.2
+	START_DEPS_UPDATE = START_SOURCES_UPDATE + SOURCES_UPDATE_SPREAD
+	DEPS_UPDATE_SPREAD = 0.3
+	START_REL_UPDATE = START_DEPS_UPDATE + DEPS_UPDATE_SPREAD
+	REL_UPDATE_SPREAD = 0.25
 
 	class UpdateProgress(apt.progress.base.InstallProgress):
 		def __init__(self, progressCb, completionCb):
@@ -47,7 +52,7 @@ if platform != 'darwin':
 
 		def start_update(self):
 			self._logger.info("Software Update started")
-			self._progressCb(START_UPDATE_PROGRESS, "Upgrading software...")
+			self._progressCb(START_REL_UPDATE, "Upgrading software...")
 
 		def error(self, pkg, message):
 			self._logger.error("Error during install [%s]" % message)
@@ -56,17 +61,37 @@ if platform != 'darwin':
 
 		def processing(self, pkg, stage):
 			if stage == 'upgrade':
-				self._progressCb(START_UPDATE_PROGRESS + 0.05, "Upgrading software...")
+				self._progressCb(START_REL_UPDATE + (0.15 * REL_UPDATE_SPREAD), "Upgrading software...")
 			elif stage == 'configure':
-				self._progressCb(START_UPDATE_PROGRESS + 0.1, "Configuring...")
+				self._progressCb(START_REL_UPDATE + (0.3 * REL_UPDATE_SPREAD), "Configuring...")
 			elif stage == 'trigproc':
-				self._progressCb(START_UPDATE_PROGRESS + 0.25, "Finalizing...")
+				self._progressCb(START_REL_UPDATE + (0.55 * REL_UPDATE_SPREAD), "Finalizing...")
 
 		def finish_update(self):
 			if not self._errors:
 				self._logger.info("Software Update completed succesfully")
 				self._progressCb(1.0, "Restarting. Please wait...")
 				self._completionCb()
+
+	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
+                def __init__(self, progressCb, completionCb):
+                        super(CacheUpdateFetchProgress, self).__init__()
+
+                        self._progressCb = progressCb
+                        self._completionCb = completionCb
+                        self._logger = logging.getLogger(__name__)
+                        self._errors = False
+			self._lastCurrentReported = None
+			self._lastTotalReported = None
+
+		def pulse(self, owner):
+			if self.current_items != self._lastCurrentReported or self.total_items != self._lastTotalReported:
+				self._progressCb(START_SOURCES_UPDATE + (SOURCES_UPDATE_SPREAD * self.current_items/self.total_items), "Updating Package Sources...") 
+				self._logger.info("Update progress item %d of %d" % (self.current_items, self.total_items))
+				self._lastCurrentReported = self.current_items
+				self._lastTotalReported = self.total_items
+
+			return True
 
 class SoftwareUpdater(threading.Thread):
 	def __init__(self, manager, versionData, progressCb, completionCb):
@@ -92,7 +117,7 @@ class SoftwareUpdater(threading.Thread):
 				for chunk in r.iter_content(250000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					percent = round((downloaded_size / content_length), 2) * MAX_DOWNLOAD_PROGRESS
+					percent = round((downloaded_size / content_length), 2) * DOWNLOAD_PROGRESS_SPREAD
 					self._progressCb(percent, "Downloading release...")
 
 			self._logger.info('Release downloaded.')
@@ -114,17 +139,29 @@ class SoftwareUpdater(threading.Thread):
 						self._completionCb(True)
 
 				pkg = apt.debfile.DebPackage(releasePath)
-				self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.05, "Checking software package. Please be patient..." )
+				self._progressCb(START_SOURCES_UPDATE, "Checking software package. Please be patient..." )
 				pkg.check()
 				if pkg.missing_deps:
 					cache = apt.Cache()
+					cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
+					cache.open()
+
 					with cache.actiongroup():
 						for dep in pkg.missing_deps:
+							self._logger.info("Marking dependency [%s] to be installed." % dep)
 							cache[dep].mark_install()
 					
-					self._progressCb(MAX_DOWNLOAD_PROGRESS + 0.1, "Installing dependencies. This might take a while...")
-					cache.commit()
-					self._progressCb(MAX_DOWNLOAD_PROGRESS + MAX_DEPS_PROGRESS, "Installing dependencies. Almost done...")
+					self._progressCb(START_DEPS_UPDATE, "Installing %d dependencies. This might take a while..." % len(pkg.missing_deps))
+					try:
+						cache.commit()
+						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
+
+					except Exception as e:
+						self._logger.error('There was a problem installing dependencies: \n	%s' % e)
+						completionCb(True)
+						return
+
+					self._progressCb(START_REL_UPDATE, "Installing dependencies. Almost done...")
 
 				pkg.install(UpdateProgress(self._progressCb, completionCb))
 
