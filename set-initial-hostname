@@ -23,7 +23,6 @@ defaultHostnameFile = "%s/default-hostname" % os.path.dirname(_settings._configf
 
 if not os.path.exists(defaultHostnameFile):
 	import random
-	import subprocess
 
 	from sys import platform
 
@@ -39,7 +38,3 @@ if not os.path.exists(defaultHostnameFile):
 
 	networkManager().setHostname(defaultHostname)
 	print "hostname set to %s" % defaultHostname
-
-	if 'linux' in platform:
-		print "Restarting server"
-		subprocess.call('reboot')
