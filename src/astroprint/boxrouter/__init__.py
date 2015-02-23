@@ -268,7 +268,7 @@ class AstroprintBoxRouter(object):
 				with open(boxIdFile, 'r') as f:
 					self._boxId = f.read()
 
-			else:
+			if not self._boxId:
 				import uuid
 
 				self._boxId = uuid.uuid4().hex
@@ -406,14 +406,17 @@ class AstroprintBoxRouter(object):
 			else:
 				localIpAddress = None
 
+			sm = softwareManager()
+
 			self._ws.send(json.dumps({
 				'type': 'auth',
 				'data': {
 					'silentReconnect': self._silentReconnect,
 					'boxId': self.boxId,
+					'variantId': sm.variant['id'],
 					'boxName': nm.getHostname(),
 					'swVersion': VERSION,
-					'platform': softwareManager().platform,
+					'platform': sm.platform,
 					'localIpAddress': localIpAddress,
 					'publicKey': self._publicKey,
 					'privateKey': self._privateKey
