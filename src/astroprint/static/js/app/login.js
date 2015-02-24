@@ -33,8 +33,12 @@ var LoginModal = Backbone.View.extend({
             success: function() { 
             	location.reload();
             },
-            error: function() { 
-				errorContainer.text('Invalid Email/Password').show();
+            error: function(xhr) { 
+                if (xhr.status == 503) {
+                    errorContainer.text('Your device is not connected to AstroPrint.com').show();
+                } else {
+                    errorContainer.text('Invalid Email/Password').show();
+                }
                 self.button.removeClass('loading');
             }
         });
