@@ -411,10 +411,13 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 
 							default:
 								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+								loadingBtn.removeClass('loading');
+
 						} 
 					}, this));
 				} else if (data.message) {
 					noty({text: data.message, timeout: 3000});
+					loadingBtn.removeClass('loading');
 				}
 			}, this))
 			.fail(_.bind(function(){

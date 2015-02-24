@@ -259,22 +259,53 @@ var StepInternet = StepView.extend({
 		})
 		.done(_.bind(function(data) {
 			if (data.name) {
-				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
-				if (callback) callback(false);
-				this.$el.removeClass('settings');
-				this.$el.addClass('success');
+				app.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+					switch (connectionInfo.status) {
+						case 'disconnected':
+						case 'connecting':
+							//Do nothing. the failed case should report the error
+						break;
+
+						case 'connected':
+							noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
+							this.parent.settings.networks['wireless'] = connectionInfo.info;
+							this.parent.render();
+							form.find('.network-password-field').val('');
+							this.$el.foundation('reveal', 'close');
+							loadingBtn.removeClass('loading');
+							if (callback) callback(false);
+						break;
+
+						case 'failed':
+							console.log(connectionInfo.reason);
+							if (connectionInfo.reason == 'no_secrets') {
+								form.find('.network-password-field').val('');
+								noty({text: "Invalid password for "+data.name+".", timeout: 3000});
+							} else {
+								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+							}
+							loadingBtn.removeClass('loading');
+							if (callback) callback(true);
+							break;
+
+						default:
+							noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+							loadingBtn.removeClass('loading');
+							if (callback) callback(true);
+
+					} 
+				}, this));
 			} else if (data.message) {
 				noty({text: data.message, timeout: 3000});
+				loadingBtn.removeClass('loading');
 				if (callback) callback(true);
 			}
 		}, this))
 		.fail(function(){
 			noty({text: "There was an error connecting.", timeout: 3000});
+			loadingBtn.removeClass('loading');
 			if (callback) callback(true);
 		})
-		.complete(function() {
-			loadingBtn.removeClass('loading');
-		});
 	}
 });
 
