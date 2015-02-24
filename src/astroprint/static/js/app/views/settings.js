@@ -343,7 +343,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	el: '#wifi-network-password-modal',
 	events: {
 		'click button.connect': 'connectClicked',
-		'submit form': 'connectClicked'
+		'submit form': 'connect'
 	},
 	parent: null,
 	initialize: function(params) {
@@ -360,13 +360,17 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	connectClicked: function(e) {
 		e.preventDefault();
 
-		var form = this.$el.find('form');
-
-		this.connect($(e.target), form.find('.network-id-field').val(), form.find('.network-password-field').val());
+		var form = this.$('form');
+		form.submit();
 	},
-	connect: function(btn, id, password) {
-		var loadingBtn = btn.closest('.loading-button');
-		var self = this;
+	connect: function(e) {
+		e.preventDefault();
+
+		var form = $(e.currentTarget);
+		var id = form.find('.network-id-field').val();
+		var password = form.find('.network-password-field').val();
+		var loadingBtn = this.$('button.connect').closest('.loading-button');
+
 		loadingBtn.addClass('loading');
 
 		$.ajax({
@@ -376,23 +380,51 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 			dataType: 'json',
 			data: JSON.stringify({id: id, password: password})
 		})
-		.done(function(data) {
-			if (data.name && data.signal && data.ip) {
-				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
-				self.$el.foundation('reveal', 'close');
-				self.parent.settings.networks['wireless'] = data
-				self.parent.render();
-			} else if (data.message) {
-				noty({text: data.message});
-			}
-		})
-		.fail(function(){
-			noty({text: "There was an error saving setting.", timeout: 3000});
-			self.$el.foundation('reveal', 'close');
-		})
-		.complete(function() {
-			loadingBtn.removeClass('loading');
-		});
+			.done(_.bind(function(data) {
+				if (data.name) {
+					app.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+						switch (connectionInfo.status) {
+							case 'disconnected':
+							case 'connecting':
+								//Do nothing. the failed case should report the error
+							break;
+
+							case 'connected':
+								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
+								this.parent.settings.networks['wireless'] = connectionInfo.info;
+								this.parent.render();
+								form.find('.network-password-field').val('');
+								this.$el.foundation('reveal', 'close');
+								loadingBtn.removeClass('loading');
+							break;
+
+							case 'failed':
+								console.log(connectionInfo.reason);
+								if (connectionInfo.reason == 'no_secrets') {
+									form.find('.network-password-field').val('');
+									noty({text: "Invalid password for "+data.name+".", timeout: 3000});
+								} else {
+									noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+								}
+								loadingBtn.removeClass('loading');
+								break;
+
+							default:
+								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+						} 
+					}, this));
+				} else if (data.message) {
+					noty({text: data.message, timeout: 3000});
+				}
+			}, this))
+			.fail(_.bind(function(){
+				loadingBtn.removeClass('loading');
+				noty({text: "There was an error saving setting.", timeout: 3000});
+				this.$el.foundation('reveal', 'close');
+
+			}, this))
+
+		return false;
 	}
 });
 
