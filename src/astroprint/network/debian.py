@@ -218,6 +218,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		networks = {}
 
 		if wifiDevice:
+			#wifiDevice.SpecificDevice().RequestScan()
 			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
 				signal = ord(ap.Strength)
 				ssid = ap.Ssid
