@@ -370,8 +370,10 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		var id = form.find('.network-id-field').val();
 		var password = form.find('.network-password-field').val();
 		var loadingBtn = this.$('button.connect').closest('.loading-button');
+		var cancelBtn = this.$('button.cancel');
 
 		loadingBtn.addClass('loading');
+		cancelBtn.hide();
 
 		$.ajax({
 			url: API_BASEURL + 'settings/internet/active', 
@@ -396,6 +398,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 								form.find('.network-password-field').val('');
 								this.$el.foundation('reveal', 'close');
 								loadingBtn.removeClass('loading');
+								cancelBtn.show();
 							break;
 
 							case 'failed':
@@ -406,21 +409,24 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 									noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
 								}
 								loadingBtn.removeClass('loading');
+								cancelBtn.show();
 								break;
 
 							default:
 								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
 								loadingBtn.removeClass('loading');
-
+								cancelBtn.show();
 						} 
 					}, this));
 				} else if (data.message) {
 					noty({text: data.message, timeout: 3000});
 					loadingBtn.removeClass('loading');
+					cancelBtn.show();
 				}
 			}, this))
 			.fail(_.bind(function(){
 				loadingBtn.removeClass('loading');
+				cancelBtn.show();
 				noty({text: "There was an error saving setting.", timeout: 3000});
 				this.$el.foundation('reveal', 'close');
 
@@ -448,7 +454,10 @@ var WiFiNetworksDialog = Backbone.View.extend({
 
 		content.find('button').bind('click', _.bind(this.networkSelected, this));
 
-		this.$el.foundation('reveal', 'open');
+		this.$el.foundation('reveal', 'open', {
+			close_on_background_click: false,
+			close_on_esc: false			
+		});
 	},
 	networkSelected: function(e) {
 		e.preventDefault();
