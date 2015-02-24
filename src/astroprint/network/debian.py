@@ -45,6 +45,7 @@ class NetworkManagerEvents(threading.Thread):
 		self._online = None
 		self._currentIpv4Address = None
 		self._activeDevice = None
+		self._activatingConnection = None
 
 	def __del__(self):
 		self._propertiesListener.remove()
@@ -115,6 +116,7 @@ class NetworkManagerEvents(threading.Thread):
 						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 
 						self._monitorActivatingListener = c.Devices[0].connect_to_signal('StateChanged', self.monitorActivatingConnection)
+						self._activatingConnection = c.Connection
 						return
 
 		if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
@@ -138,10 +140,17 @@ class NetworkManagerEvents(threading.Thread):
 				}
 			})
 
+			if (self._activatingConnection):
+				self._activatingConnection = None
+
 			self._setOnline(True)
 
 		elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
 			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
+			# we should probably remove the connection
+			if self._activatingConnection:
+				self._activatingConnection.Delete()
+				self._activatingConnection = None
 
 		elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
 			if self._monitorActivatingListener:
@@ -149,6 +158,9 @@ class NetworkManagerEvents(threading.Thread):
 				self._monitorActivatingListener = None
 
 			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
+
+			if (self._activatingConnection):
+				self._activatingConnection = None
 
 			self._setOnline(False)			
 
