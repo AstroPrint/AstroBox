@@ -117,27 +117,35 @@
 				</div>
 			</div>
 
-			<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
+			<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal>
 				<script type="text/template" id="wifi-network-password-modal-template">
 					<% if (wifi.wep) { %>
-						<h2 class="bold">WEP Security Deprecated</h2>
-						<p align="center">
-							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2003</a>, please configure your WiFi network to use WPA or WPA2
+						<h2 class="bold" align="center">WEP Security Deprecated</h2>
+						<p>
+							The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
 						</p>
-						<a class="button secondary radius cancel" href="#internet">Cancel</a>
+						<p>
+							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a> 
+							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
+						</p>
+						<center>
+							<a class="button secondary radius cancel" href="#internet">Cancel</a>
+						</center>
 					<% } else { %>
-						<h2 class="bold">WiFi Password</h2>
+						<h2 class="bold" align="center">WiFi Password</h2>
 						<p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
 						<form>
 							<input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>"/>
 							<input type="password" class="network-password-field" name="password"/>
-							<div class="loading-button">
-								<a class="button secondary radius cancel" href="#internet">Cancel</a>
-								<input type="submit" class="button radius success connect" value="Connect"/>
-								<span class="loading button success disabled radius">
-									<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
-								</span>
-							</div>
+							<center>
+								<div class="loading-button">
+									<a class="button secondary radius cancel" href="#internet">Cancel</a>
+									<input type="submit" class="button radius success connect" value="Connect"/>
+									<span class="loading button success disabled radius">
+										<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
+									</span>
+								</div>
+							</center>
 						</form>
 					<% } %>
 				</script>

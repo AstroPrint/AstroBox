@@ -218,7 +218,6 @@ class DebianNetworkManager(NetworkManagerBase):
 		networks = {}
 
 		if wifiDevice:
-			#wifiDevice.SpecificDevice().RequestScan()
 			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
 				signal = ord(ap.Strength)
 				ssid = ap.Ssid
@@ -322,7 +321,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 					else:
 						options['802-11-wireless-security'] = {
-							'psk': password
+							'psk': password,
 						}
 
 				try:

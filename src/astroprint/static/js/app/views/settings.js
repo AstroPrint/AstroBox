@@ -397,13 +397,17 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		'click button.connect': 'connectClicked',
 		'submit form': 'connect'
 	},
+	template: _.template($('#wifi-network-password-modal-template').html()),
 	parent: null,
 	initialize: function(params) {
 		this.parent = params.parent;
 	},
-	open: function(id, name) {
-		this.$el.find('.network-id-field').val(id);
-		this.$el.find('.name').text(name);
+	render: function(wifiInfo)
+	{
+		this.$el.html( this.template({wifi: wifiInfo}) );
+	},
+	open: function(wifiInfo) {
+		this.render(wifiInfo);
 		this.$el.foundation('reveal', 'open', {
 			close_on_background_click: false,
 			close_on_esc: false	
@@ -444,65 +448,6 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 				this.$el.foundation('reveal', 'close');
 			}, this));
 
-
-
-		/*$.ajax({
-			url: API_BASEURL + 'settings/internet/active', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify({id: id, password: password})
-		})
-			.done(_.bind(function(data) {
-				if (data.name) {
-					app.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
-						switch (connectionInfo.status) {
-							case 'disconnected':
-							case 'connecting':
-								//Do nothing. the failed case should report the error
-							break;
-
-							case 'connected':
-								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
-								this.parent.settings.networks['wireless'] = connectionInfo.info;
-								this.parent.render();
-								form.find('.network-password-field').val('');
-								this.$el.foundation('reveal', 'close');
-								loadingBtn.removeClass('loading');
-								cancelBtn.show();
-							break;
-
-							case 'failed':
-								if (connectionInfo.reason == 'no_secrets') {
-									form.find('.network-password-field').val('');
-									noty({text: "Invalid password for "+data.name+".", timeout: 3000});
-								} else {
-									noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
-								}
-								loadingBtn.removeClass('loading');
-								cancelBtn.show();
-								break;
-
-							default:
-								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
-								loadingBtn.removeClass('loading');
-								cancelBtn.show();
-						} 
-					}, this));
-				} else if (data.message) {
-					noty({text: data.message, timeout: 3000});
-					loadingBtn.removeClass('loading');
-					cancelBtn.show();
-				}
-			}, this))
-			.fail(_.bind(function(){
-				loadingBtn.removeClass('loading');
-				cancelBtn.show();
-				noty({text: "There was an error saving setting.", timeout: 3000});
-				this.$el.foundation('reveal', 'close');
-
-			}, this))*/
-
 		return false;
 	}
 });
@@ -512,6 +457,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 	networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
 	passwordDlg: null,
 	parent: null,
+	networks: null,
 	initialize: function(params) {
 		this.parent = params.parent;
 	},
@@ -519,8 +465,10 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		var content = this.$el.find('.modal-content');
 		content.empty();
 
+		this.networks = networks;
+
 		content.html(this.networksTemplate({ 
-			networks: networks
+			networks: this.networks
 		}));
 
 		content.find('button').bind('click', _.bind(this.networkSelected, this));
@@ -533,26 +481,26 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		var button = $(e.target);
 	
 		if (!this.passwordDlg) {
-			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent,});
+			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
 		}
 
-		if (button.data('secured') == '1') {
-			this.passwordDlg.open(button.data('id'), button.data('name'));
+		var network = this.networks[button.data('id')]
+
+		if (network.secured) {
+			this.passwordDlg.open(network);
 		} else {
 			var loadingBtn = button.closest('.loading-button');
 
 			loadingBtn.addClass('loading');
 
-			this.parent.connect(button.data('id'), null)
+			this.parent.connect(network.id, null)
 				.done(_.bind(function(){
 					this.$el.foundation('reveal', 'close');
 					loadingBtn.removeClass('loading');
 				}, this))
 				.fail(function(){
 					loadingBtn.removeClass('loading');
-				})
-
-			//this.passwordDlg.connect(button, button.data('id'), null);
+				});
 		}
 	}
 });
