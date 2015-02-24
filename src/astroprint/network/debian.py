@@ -135,6 +135,9 @@ class DebianNetworkManager(NetworkManagerBase):
 	def isHotspotable(self):
 		return bool(self.settings.get(['wifi', 'hotspotDevice'])) and self.isHotspotActive() != None
 
+	def isOnline(self):
+		return self._eventListener._online
+
 	def setWifiNetwork(self, bssid, password = None):
 		wifiDevice = self.getWifiDevice()
 

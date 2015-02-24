@@ -70,39 +70,54 @@ class AstroPrintCloud(object):
 		return s.get(['cloudSlicer', 'publicKey']) and s.get(['cloudSlicer', 'privateKey']) and s.get(['cloudSlicer', 'apiHost'])
 
 	def signin(self, email, password):
-		private_key = self.get_private_key(email, password)
+		from octoprint.server import userManager
+		from astroprint.network import networkManager
 
-		if private_key:
-			public_key = self.get_public_key(email, private_key)
+		user = None
+		userLoggedIn = False
 
-			if public_key:
-				#The signin was successful
-				self.settings.set(["cloudSlicer", "privateKey"], private_key)
-				self.settings.set(["cloudSlicer", "publicKey"], public_key)
+		if networkManager().isOnline():
+			private_key = self.get_private_key(email, password)
+
+			if private_key:
+				public_key = self.get_public_key(email, private_key)
+
+				if public_key:
+					#The signin was successful
+					self.settings.set(["cloudSlicer", "privateKey"], private_key)
+					self.settings.set(["cloudSlicer", "publicKey"], public_key)
+					self.settings.set(["cloudSlicer", "email"], email)
+					self.settings.save()
+					boxrouterManager().boxrouter_connect()
+
+					#Let's protect the box now:
+					user = userManager.findUser(email)
+
+					if user:
+						userManager.changeUserPassword(email, password)
+					else:
+						user = userManager.addUser(email, password, True)
+
+					userLoggedIn = True
+
+		else:
+			user = userManager.findUser(email)
+			if user is not None and user.check_password(userManager.createPasswordHash(password)):
 				self.settings.set(["cloudSlicer", "email"], email)
 				self.settings.save()
-				boxrouterManager().boxrouter_connect()
+				userLoggedIn = True
 
-				from octoprint.server import userManager
+		if userLoggedIn:
+			login_user(user, remember=True)
+			userId = user.get_id()
+			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
-				#Let's protect the box now:
-				user = userManager.findUser(email)
+			#let the singleton be recreated again, so new credentials are taken into use
+			global _instance
+			_instance = None
 
-				if user:
-					userManager.changeUserPassword(email, password)
-				else:
-					user = userManager.addUser(email, password, True)
-
-				login_user(user, remember=True)
-				userId = user.get_id()
-				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
-				eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
-
-				#let the singleton be recreated again, so new credentials are taken into use
-				global _instance
-				_instance = None
-
-				return True
+			return True
 
 		return False
 
