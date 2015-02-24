@@ -399,7 +399,6 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 							break;
 
 							case 'failed':
-								console.log(connectionInfo.reason);
 								if (connectionInfo.reason == 'no_secrets') {
 									form.find('.network-password-field').val('');
 									noty({text: "Invalid password for "+data.name+".", timeout: 3000});
