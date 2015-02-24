@@ -224,11 +224,15 @@ class DebianNetworkManager(NetworkManagerBase):
 				ssid = ap.Ssid
 
 				if ap.Ssid not in networks or signal > networks[ssid]['signal']:
+					wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
+					wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
+
 					networks[ssid] = {
 						'id': ap.HwAddress,
 						'signal': signal,
 						'name': ssid,
-						'secured': True if ap.WpaFlags or ap.RsnFlags else False
+						'secured': wpaSecured or wepSecured,
+						'wep': wepSecured
 					}
 
 			return [v for k,v in networks.iteritems()]
@@ -254,12 +258,17 @@ class DebianNetworkManager(NetworkManagerBase):
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
 							ap = c.SpecificObject
+							
+							wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
+							wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
+
 							activeConnections['wireless'] = {
 								'id': ap.HwAddress,
 								'signal': ord(ap.Strength),
 								'name': ap.Ssid,
 								'ip': d.Ip4Address,
-								'secured': True if ap.WpaFlags or ap.RsnFlags else False
+								'secured': wpaSecured or wepSecured,
+								'wep': wepSecured
 							}
 
 		return activeConnections

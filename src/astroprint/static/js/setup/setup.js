@@ -226,7 +226,7 @@ var StepInternet = StepView.extend({
 					this.passwordDialog = new WiFiNetworkPasswordDialog({parent: this});
 				}
 
-				this.passwordDialog.open(network.id, network.name);
+				this.passwordDialog.open(network);
 			} else {
 				this.doConnect({id: network.id, password: null});
 			}
@@ -316,14 +316,18 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		'click a.cancel': 'cancelClicked'
 	},
 	parent: null,
+	template: _.template($('#wifi-network-password-modal-template').html()),
 	initialize: function(params) 
 	{
 		this.parent = params.parent;
 	},
-	open: function(id, name) 
+	render: function(wifiInfo)
 	{
-		this.$el.find('.network-id-field').val(id);
-		this.$el.find('.name').text(name);
+		this.$el.html( this.template({wifi: wifiInfo}) );
+	},
+	open: function(wifiInfo) 
+	{
+		this.render(wifiInfo)
 		this.$el.foundation('reveal', 'open', {
 			close_on_background_click: false,
 			close_on_esc: false
