@@ -403,19 +403,19 @@ var StepAstroprint = StepView.extend({
 			method: 'post',
 			data: data,
 			success: _.bind(function() {
-				location.href = this.$el.find('.submit-action').attr('href');
+				location.href = this.$('.submit-action').attr('href');
 			}, this),
 			error: _.bind(function(xhr) {
-				if (xhr.status == 400 || xhr.status == 401) {
+				if (xhr.status == 400 || xhr.status == 401 || xhr.status == 503) {
 					message = xhr.responseText;
 				} else {
 					message = "There was an error logging you in";
 				}
 				noty({text: message, timeout: 3000});
-				this.$el.find('#email').focus();
+				this.$('#email').focus();
 			}, this),
 			complete: _.bind(function() {
-				this.$el.find('.loading-button').removeClass('loading');
+				this.$('.loading-button').removeClass('loading');
 			}, this)
 		});
 	},

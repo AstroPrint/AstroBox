@@ -16,7 +16,7 @@ from octoprint.settings import settings
 from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
-from astroprint.cloud import astroprintCloud
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
 from astroprint.network.manager import networkManager
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
@@ -123,8 +123,12 @@ def login_astroprint():
 	if email and password:
 		ap = astroprintCloud()
 
-		if ap.signin(email, password):
-			return make_response("OK", 200)
+		try:
+			if ap.signin(email, password):
+				return make_response("OK", 200)
+
+		except AstroPrintCloudNoConnectionException:
+			return make_response("Your device is not connected to AstroPrint.com", 503)
 
 	return make_response('Invalid Credentials', 400)
 

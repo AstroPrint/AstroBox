@@ -38,6 +38,13 @@ from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles.downloadmanager import downloadManager
 
+class AstroPrintCloudException(Exception):
+    pass
+
+class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
+	#There no connection to the astroprint cloud
+	pass
+
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
 		self.publicKey = publicKey
@@ -82,7 +89,9 @@ class AstroPrintCloud(object):
 		user = None
 		userLoggedIn = False
 
-		if networkManager().isOnline():
+		online = networkManager().isOnline()
+
+		if online:
 			private_key = self.get_private_key(email, password)
 
 			if private_key:
@@ -122,6 +131,9 @@ class AstroPrintCloud(object):
 			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
 			return True
+
+		elif not online:
+			raise AstroPrintCloudNoConnectionException()
 
 		return False
 
