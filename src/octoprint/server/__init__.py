@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import uuid
@@ -53,7 +54,7 @@ user_permission = Permission(RoleNeed("user"))
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
 from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, \
 	UrlForwardHandler, user_validator, GcodeWatchdogHandler, UploadCleanupWatchdogHandler
-from octoprint.printer import Printer, getConnectionOptions
+from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
@@ -234,7 +235,7 @@ class Server():
 
 		eventManager = events.eventManager()
 		gcodeManager = gcodefiles.GcodeManager()
-		printer = Printer(gcodeManager)
+		printer = printerManager(s.get(["serial","driver"]), gcodeManager)
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
@@ -317,7 +318,7 @@ class Server():
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):
 			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
-			connectionOptions = getConnectionOptions()
+			connectionOptions = printer.getConnectionOptions()
 			if port in connectionOptions["ports"]:
 				printer.connect(port, baudrate)
 

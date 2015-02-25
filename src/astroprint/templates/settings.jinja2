@@ -118,6 +118,13 @@
 		<script type="text/template" id="printer-connection-settings-page-template">
 			<div class="row">
 				<div class="small-12">
+					<label for="settings-printer-driver" class="bold">
+						Driver
+						<select id="settings-printer-driver" name="driver">
+							<option value="marlin" <%= settings.serial.driver == 'marlin' ? 'selected' : '' %>>Marlin / GCODE</option>
+							<option value="s3g" <%= settings.serial.driver == 's3g' ? 'selected' : '' %>>Sailfish / S3G</option>
+						</select>
+					</label>
 					<label for="settings-serial-port" class="bold">
 						USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
 						<% if (settings.serial.portOptions.length > 0) { %>

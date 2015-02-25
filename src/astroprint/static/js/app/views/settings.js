@@ -47,6 +47,7 @@ var PrinterConnectionView = SettingsPage.extend({
 				this.delegateEvents({
 					'change #settings-baudrate': 'saveConnectionSettings',
 					'change #settings-serial-port': 'saveConnectionSettings',
+					'change #settings-printer-driver': 'saveConnectionSettings',
 					'click a.retry-ports': 'retryPortsClicked',
 					'click .loading-button.test-connection button': 'testConnection'
 				});
@@ -79,7 +80,7 @@ var PrinterConnectionView = SettingsPage.extend({
 			connectionData[e.name] = e.value;
 		});
 
-		if (connectionData.baudrate && connectionData.port) {
+		if (connectionData.driver && connectionData.baudrate && connectionData.port) {
 			this.$('.loading-button.test-connection').addClass('loading');
 			this.$('.connection-status').removeClass('failed connected').addClass('connecting');
 	        $.ajax({
@@ -89,6 +90,7 @@ var PrinterConnectionView = SettingsPage.extend({
 	            contentType: "application/json; charset=UTF-8",
 	            data: JSON.stringify({
 		            "command": "connect",
+		            "driver": connectionData.driver,
 		            "port": connectionData.port,
 		            "baudrate": parseInt(connectionData.baudrate),
 		            "autoconnect": true,

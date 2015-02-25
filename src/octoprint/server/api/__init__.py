@@ -22,9 +22,7 @@ from octoprint.settings import settings as s, valid_boolean_trues
 
 api = Blueprint("api", __name__)
 
-from . import printer as api_printer
 from . import job as api_job
-from . import connection as api_connection
 from . import files as api_files
 #from . import settings as api_settings
 #from . import timelapse as api_timelapse
@@ -36,6 +34,8 @@ from astroprint.api import boxrouter as api_astroprint_boxrouter
 from astroprint.api import cloud as api_astroprint_cloud
 from astroprint.api import camera as api_astroprint_camera
 from astroprint.api import printerprofile as api_astroprint_printerprofile
+from astroprint.api import printer as api_astroprint_printer
+from astroprint.api import connection as api_astroprint_connection
 
 VERSION = "1.0"
 

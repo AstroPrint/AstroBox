@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import sys
@@ -25,6 +26,7 @@ def settings(init=False, configfile=None, basedir=None):
 
 default_settings = {
 	"serial": {
+		"driver": "marlin",
 		"port": None,
 		"baudrate": 250000,
 		"autoconnect": True,

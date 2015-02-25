@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import time
@@ -17,22 +18,13 @@ from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.printer import Printer 
 
 from octoprint.filemanager.destinations import FileDestinations
 
-def getConnectionOptions():
-	"""
-	 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
-	"""
-	return {
-		"ports": comm.serialList(),
-		"baudrates": comm.baudrateList(),
-		"portPreference": settings().get(["serial", "port"]),
-		"baudratePreference": settings().getInt(["serial", "baudrate"]),
-		"autoconnect": settings().getBoolean(["serial", "autoconnect"])
-	}
+class PrinterMarlin(Printer):
+	driverName = 'marlin'
 
-class Printer():
 	def __init__(self, gcodeManager):
 		from collections import deque
 
@@ -117,6 +109,9 @@ class Printer():
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
+	def __del__(self):
+		self._gcodeManager.unregisterCallback(self)
+
 	#~~ callback handling
 
 	def registerCallback(self, callback):
@@ -180,6 +175,7 @@ class Printer():
 		 Connects to the printer. If port and/or baudrate is provided, uses these settings, otherwise autodetection
 		 will be attempted.
 		"""
+
 		if self._comm is not None:
 			self._comm.close()
 		self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
