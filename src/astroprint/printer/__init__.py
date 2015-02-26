@@ -6,11 +6,13 @@ import threading
 import time
 import serial.tools.list_ports
 import copy
+import os
 
 from sys import platform
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+from octoprint.filemanager.destinations import FileDestinations
 
 from astroprint.camera import cameraManager
 
@@ -168,11 +170,12 @@ class Printer(object):
 			"camera": self.isCameraConnected()
 		}
 
-	def _setJobData(self, filename, filesize):
+	def _setJobData(self, filename, filesize, sd):
 		if filename is not None:
 			self._selectedFile = {
 				"filename": filename,
-				"filesize": filesize
+				"filesize": filesize,
+				"sd": sd
 			}
 		else:
 			self._selectedFile = None
@@ -245,7 +248,8 @@ class Printer(object):
 	def onMetadataAnalysisFinished(self, event, data):
 		if self._selectedFile:
 			self._setJobData(self._selectedFile["filename"],
-							 self._selectedFile["filesize"])
+							 self._selectedFile["filesize"],
+							 self._selectedFile["sd"])
 
 	# ~~~ Implement this API ~~~
 

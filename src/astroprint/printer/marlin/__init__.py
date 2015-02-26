@@ -6,8 +6,6 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import time
 import datetime
 import threading
-import copy
-import os
 import logging
 
 import octoprint.util as util
