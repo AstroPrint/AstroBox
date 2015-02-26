@@ -74,14 +74,6 @@ class PrinterMarlin(Printer):
 
 	#~~ callback handling
 
-	def registerCallback(self, callback):
-		self._callbacks.append(callback)
-		self._sendInitialStateUpdate(callback)
-
-	def unregisterCallback(self, callback):
-		if callback in self._callbacks:
-			self._callbacks.remove(callback)
-
 	def _sendTriggerUpdateCallbacks(self, type):
 		for callback in self._callbacks:
 			try: callback.sendEvent(type)
@@ -352,21 +344,6 @@ class PrinterMarlin(Printer):
 		self._bedTemp = bedTemp
 
 		self._stateMonitor.addTemperature(data)
-
-	def _sendInitialStateUpdate(self, callback):
-		try:
-			data = self._stateMonitor.getCurrentData()
-			data.update({
-				"temps": list(self._temps),
-				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
-				#"logs": list(self._log),
-				"messages": list(self._messages)
-			})
-			callback.sendHistoryData(data)
-		except Exception, err:
-			import sys
-			sys.stderr.write("ERROR: %s\n" % str(err))
-			pass
 
 	#~~ callbacks triggered from self._comm
 

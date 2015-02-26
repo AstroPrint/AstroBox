@@ -207,7 +207,8 @@ class PrinterStateConnection(SockJSConnection):
 		self._emit("current", data)
 
 	def sendHistoryData(self, data):
-		self._emit("history", data)
+		pass
+		#self._emit("history", data)
 
 	def sendEvent(self, type, payload=None):
 		self._emit("event", {"type": type, "payload": payload})

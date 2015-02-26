@@ -5,6 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import threading
 import time
 import serial.tools.list_ports
+import copy
 
 from sys import platform
 
@@ -108,9 +109,32 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
-
 	def __del__(self):
 		self._fileManager.unregisterCallback(self)
+
+	def registerCallback(self, callback):
+		self._callbacks.append(callback)
+		self._sendInitialStateUpdate(callback)
+
+	def unregisterCallback(self, callback):
+		if callback in self._callbacks:
+			self._callbacks.remove(callback)
+
+	def _sendInitialStateUpdate(self, callback):
+		try:
+			data = self._stateMonitor.getCurrentData()
+			data.update({
+				"temps": list(self._temps),
+				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
+				#"logs": list(self._log),
+				"messages": list(self._messages)
+			})
+			callback.sendCurrentData(data)
+			#callback.sendHistoryData(data)
+		except Exception, err:
+			import sys
+			sys.stderr.write("ERROR: %s\n" % str(err))
+			pass
 
 	def _sendCurrentDataCallbacks(self, data):
 		for callback in self._callbacks:

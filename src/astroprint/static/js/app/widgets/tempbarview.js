@@ -150,6 +150,14 @@ var TempBarView = Backbone.View.extend({
             target = this.lastSent;
         }
 
+        if (isNaN(actual)) {
+            actual = null;
+        }
+
+        if (isNaN(target)) {
+            target = null;
+        }
+ 
         this.renderTemps(actual, target);
     },
 

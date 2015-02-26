@@ -78,9 +78,14 @@ var TempBarVerticalView = TempBarView.extend({
 	renderTemps: function(actual, target) {
 		var handleHeight = this.$el.find('.temp-target').innerHeight();
 
-		this.setHandle(Math.min(Math.round(target), this.scale[1]));
-		this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
-		this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+		if (actual !== null) {
+			this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
+			this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+		}
+
+		if (target !== null) {
+			this.setHandle(Math.min(Math.round(target), this.scale[1]));
+		}
 	},
 	_temp2px: function(temp) {
 		var px = temp * this.containerDimensions.px4degree;
