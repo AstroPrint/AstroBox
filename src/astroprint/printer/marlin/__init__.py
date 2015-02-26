@@ -10,13 +10,11 @@ import copy
 import os
 import logging
 
-import octoprint.util.comm as comm
 import octoprint.util as util
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
-from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.printer import Printer 
 
@@ -25,13 +23,10 @@ from octoprint.filemanager.destinations import FileDestinations
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
 
-	def __init__(self, gcodeManager):
+	def __init__(self, fileManager):
 		from collections import deque
 
-		self._gcodeManager = gcodeManager
-		self._gcodeManager.registerCallback(self)
 		self._astroprintCloud = astroprintCloud()
-		self._cameraManager = cameraManager()
 		self._profileManager = printerProfileManager()
 
 		# state
@@ -50,8 +45,6 @@ class PrinterMarlin(Printer):
 		self._latestLog = None
 		self._log = deque([], 300)
 		self._logBacklog = []
-
-		self._state = None
 
 		self._currentZ = None
 
@@ -77,40 +70,7 @@ class PrinterMarlin(Printer):
 		# comm
 		self._comm = None
 
-		# callbacks
-		self._callbacks = []
-		self._lastProgressReport = None
-
-		self._stateMonitor = StateMonitor(
-			ratelimit=1.0,
-			updateCallback=self._sendCurrentDataCallbacks,
-			addTemperatureCallback=self._sendAddTemperatureCallbacks,
-			addLogCallback=self._sendAddLogCallbacks,
-			addMessageCallback=self._sendAddMessageCallbacks
-		)
-		self._stateMonitor.reset(
-			state={"text": self.getStateString(), "flags": self._getStateFlags()},
-			jobData={
-				"file": {
-					"name": None,
-					"size": None,
-					"origin": None,
-					"date": None
-				},
-				"estimatedPrintTime": None,
-				"filament": {
-					"length": None,
-					"volume": None
-				}
-			},
-			progress={"completion": None, "filepos": None, "printTime": None, "printTimeLeft": None},
-			currentZ=None
-		)
-
-		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
-
-	def __del__(self):
-		self._gcodeManager.unregisterCallback(self)
+		super(PrinterMarlin, self).__init__(fileManager)
 
 	#~~ callback handling
 
@@ -121,26 +81,6 @@ class PrinterMarlin(Printer):
 	def unregisterCallback(self, callback):
 		if callback in self._callbacks:
 			self._callbacks.remove(callback)
-
-	def _sendAddTemperatureCallbacks(self, data):
-		for callback in self._callbacks:
-			try: callback.addTemperature(data)
-			except: pass
-
-	def _sendAddLogCallbacks(self, data):
-		for callback in self._callbacks:
-			try: callback.addLog(data)
-			except: pass
-
-	def _sendAddMessageCallbacks(self, data):
-		for callback in self._callbacks:
-			try: callback.addMessage(data)
-			except: pass
-
-	def _sendCurrentDataCallbacks(self, data):
-		for callback in self._callbacks:
-			try: callback.sendCurrentData(copy.deepcopy(data))
-			except: pass
 
 	def _sendTriggerUpdateCallbacks(self, type):
 		for callback in self._callbacks:
@@ -160,14 +100,6 @@ class PrinterMarlin(Printer):
 				self._selectedFile["filesize"],
 				self._selectedFile["sd"])
 
-	#~~ callback from metadata analysis event
-
-	def onMetadataAnalysisFinished(self, event, data):
-		if self._selectedFile:
-			self._setJobData(self._selectedFile["filename"],
-							 self._selectedFile["filesize"],
-							 self._selectedFile["sd"])
-
 	#~~ printer commands
 
 	def connect(self, port=None, baudrate=None):
@@ -178,6 +110,9 @@ class PrinterMarlin(Printer):
 
 		if self._comm is not None:
 			self._comm.close()
+
+		import astroprint.printer.marlin.comm as comm
+
 		self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
 
 	def disconnect(self):
@@ -351,7 +286,7 @@ class PrinterMarlin(Printer):
 
 		# mark print as failure
 		if self._selectedFile is not None:
-			self._gcodeManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+			self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
 			payload = {
 				"file": self._selectedFile["filename"],
 				"origin": FileDestinations.LOCAL
@@ -418,62 +353,6 @@ class PrinterMarlin(Printer):
 
 		self._stateMonitor.addTemperature(data)
 
-	def _setJobData(self, filename, filesize, sd):
-		if filename is not None:
-			self._selectedFile = {
-				"filename": filename,
-				"filesize": filesize,
-				"sd": sd
-			}
-		else:
-			self._selectedFile = None
-
-		estimatedPrintTime = None
-		date = None
-		filament = None
-		layerCount = None
-		cloudId = None
-
-		if filename:
-			# Use a string for mtime because it could be float and the
-			# javascript needs to exact match
-			if not sd:
-				date = int(os.stat(filename).st_ctime)
-
-			fileData = self._gcodeManager.getFileData(filename)
-			if fileData is not None and "gcodeAnalysis" in fileData.keys():
-				fileDataProps = fileData["gcodeAnalysis"].keys()
-				if "print_time" in fileDataProps:
-					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
-				if "filament_lenght" in fileDataProps:
-					filament = fileData["gcodeAnalysis"]["filament_length"]
-				if "layer_count" in fileDataProps:
-					layerCount = fileData["gcodeAnalysis"]['layer_count']
-
-		cloudId = self._gcodeManager.getFileCloudId(filename)
-		renderedIimage = None
-		if cloudId:
-			printFile = self._astroprintCloud.getPrintFile(cloudId)
-			if printFile:
-				renderedIimage = printFile['images']['square']
-
-		self._stateMonitor.setJobData({
-			"file": {
-				"name": os.path.basename(filename) if filename is not None else None,
-				"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
-				"size": filesize,
-				"date": date,
-				"cloudId": cloudId,
-				"rendered_image": renderedIimage
-			},
-			"estimatedPrintTime": estimatedPrintTime,
-			"layerCount": layerCount,
-			"filament": filament,
-		})
-
-		self._layerCount = layerCount
-		self._estimatedPrintTime = estimatedPrintTime
-
 	def _sendInitialStateUpdate(self, callback):
 		try:
 			data = self._stateMonitor.getCurrentData()
@@ -488,19 +367,6 @@ class PrinterMarlin(Printer):
 			import sys
 			sys.stderr.write("ERROR: %s\n" % str(err))
 			pass
-
-	def _getStateFlags(self):
-		return {
-			"operational": self.isOperational(),
-			"printing": self.isPrinting(),
-			"closedOrError": self.isClosedOrError(),
-			"error": self.isError(),
-			"paused": self.isPaused(),
-			"ready": self.isReady(),
-			"sdReady": self.isSdReady(),
-			"heatingUp": self.isHeatingUp(),
-			"camera": self.isCameraConnected()
-		}
 
 	#~~ callbacks triggered from self._comm
 
@@ -526,12 +392,12 @@ class PrinterMarlin(Printer):
 		if self._comm is not None and oldState == self._comm.STATE_PRINTING:
 			if self._selectedFile is not None:
 				if state == self._comm.STATE_OPERATIONAL:
-					self._gcodeManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+					self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
 				elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
-					self._gcodeManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
-			self._gcodeManager.resumeAnalysis() # printing done, put those cpu cycles to good use
+					self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and state == self._comm.STATE_PRINTING:
-			self._gcodeManager.pauseAnalysis() # do not analyse gcode while printing
+			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 
 		self._setState(state)
 
@@ -739,6 +605,13 @@ class PrinterMarlin(Printer):
 		port, baudrate = self._comm.getConnection()
 		return self._comm.getStateString(), port, baudrate
 
+	def isReady(self):
+		return self.isOperational() and not self._comm.isStreaming()
+
+	def isHeatingUp(self):
+		return self._comm is not None and self._comm.isHeatingUp()
+
+	"""
 	def isClosedOrError(self):
 		return self._comm is None or self._comm.isClosedOrError()
 
@@ -746,19 +619,13 @@ class PrinterMarlin(Printer):
 		return self._comm is not None and self._comm.isOperational()
 
 	def isPrinting(self):
-		return self._comm is not None and self._comm.isPrinting()
-
-	def isHeatingUp(self):
-		return self._comm is not None and self._comm.isHeatingUp()
+		return self._comm is not None and self._comm.isPrinting()=
 
 	def isPaused(self):
 		return self._comm is not None and self._comm.isPaused()
 
 	def isError(self):
 		return self._comm is not None and self._comm.isError()
-
-	def isReady(self):
-		return self.isOperational() and not self._comm.isStreaming()
 
 	def isSdReady(self):
 		if not settings().getBoolean(["feature", "sdSupport"]) or self._comm is None:
@@ -768,90 +635,4 @@ class PrinterMarlin(Printer):
 
 	def isCameraConnected(self):
 		return self._cameraManager.isCameraAvailable()
-
-class StateMonitor(object):
-	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):
-		self._ratelimit = ratelimit
-		self._updateCallback = updateCallback
-		self._addTemperatureCallback = addTemperatureCallback
-		self._addLogCallback = addLogCallback
-		self._addMessageCallback = addMessageCallback
-
-		self._state = None
-		self._jobData = None
-		self._gcodeData = None
-		self._sdUploadData = None
-		self._currentZ = None
-		self._progress = None
-
-		self._offsets = {}
-
-		self._changeEvent = threading.Event()
-
-		self._lastUpdate = time.time()
-		self._worker = threading.Thread(target=self._work)
-		self._worker.daemon = True
-		self._worker.start()
-
-	def reset(self, state=None, jobData=None, progress=None, currentZ=None):
-		self.setState(state)
-		self.setJobData(jobData)
-		self.setProgress(progress)
-		self.setCurrentZ(currentZ)
-
-	def addTemperature(self, temperature):
-		self._addTemperatureCallback(temperature)
-		self._changeEvent.set()
-
-	def addLog(self, log):
-		self._addLogCallback(log)
-		self._changeEvent.set()
-
-	def addMessage(self, message):
-		self._addMessageCallback(message)
-		self._changeEvent.set()
-
-	def setCurrentZ(self, currentZ):
-		self._currentZ = currentZ
-		self._changeEvent.set()
-
-	def setState(self, state):
-		self._state = state
-		self._changeEvent.set()
-
-	def setJobData(self, jobData):
-		self._jobData = jobData
-		self._changeEvent.set()
-
-	def setProgress(self, progress):
-		self._progress = progress
-		self._changeEvent.set()
-
-	def setTempOffsets(self, offsets):
-		self._offsets = offsets
-		self._changeEvent.set()
-
-	def _work(self):
-		while True:
-			self._changeEvent.wait()
-
-			now = time.time()
-			delta = now - self._lastUpdate
-			additionalWaitTime = self._ratelimit - delta
-			if additionalWaitTime > 0:
-				time.sleep(additionalWaitTime)
-
-			data = self.getCurrentData()
-			self._updateCallback(data)
-			self._lastUpdate = time.time()
-			self._changeEvent.clear()
-
-	def getCurrentData(self):
-		return {
-			"state": self._state,
-			"job": self._jobData,
-			"currentZ": self._currentZ,
-			"progress": self._progress,
-			"offsets": self._offsets
-		}
-
+	"""

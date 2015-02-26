@@ -1,9 +1,9 @@
 from __future__ import absolute_import
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net> based on work by David Braam"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AGPLv3 License"
-
 
 import os
 import glob
@@ -13,9 +13,6 @@ import threading
 import Queue as queue
 import logging
 import serial
-import serial.tools.list_ports
-
-from sys import platform
 
 from collections import deque
 
@@ -29,34 +26,12 @@ from octoprint.gcodefiles import isGcodeFileName
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
 
-from usbid.device import device_list
+from astroprint.printer import serialList, baudrateList 
 
 try:
 	import _winreg
 except:
 	pass
-
-def serialList():
-	ports = {}
-	if platform.startswith('linux'):
-		for p in device_list():
-			if p.tty:
-				ports['/dev/%s' % p.tty] = p.nameProduct
-
-	else:
-		for p in serial.tools.list_ports.comports():
-			if p[1] != 'n/a':
-				ports[p[0]] = p[1]
-
-	return ports
-
-def baudrateList():
-	ret = [250000, 230400, 115200, 57600, 38400, 19200, 9600]
-	prev = settings().getInt(["serial", "baudrate"])
-	if prev in ret:
-		ret.remove(prev)
-		ret.insert(0, prev)
-	return ret
 
 gcodeToEvent = {
 	# pause for user input

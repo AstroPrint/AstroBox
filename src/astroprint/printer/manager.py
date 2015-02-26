@@ -13,13 +13,13 @@ printerDriverMap = {
 	PrinterS3g.driverName: PrinterS3g
 }
 
-def printerManager(driver, gcodeManager = None):
+def printerManager(driver, fileManager = None):
 	global _instance
 	if _instance is None:
-		_instance = printerDriverMap[driver](gcodeManager)
+		_instance = printerDriverMap[driver](fileManager)
 
 	elif _instance.driverName != driver:
 		_instance.disconnect()
-		_instance = printerDriverMap[driver](gcodeManager or _instance._gcodeManager )
+		_instance = printerDriverMap[driver](fileManager or _instance._gcodeManager )
 
 	return _instance

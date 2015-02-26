@@ -1,0 +1,379 @@
+{
+  "eeprom_info": {
+    "dependent_toolhead_map": {
+      "value": "None"
+    }, 
+    "software_variant": {
+      "value": "0x01"
+    }
+  }, 
+  "eeprom_map": {
+    "ACCELERATION2_SETTINGS": {
+      "eeprom_map": "acceleration2_eeprom_offsets", 
+      "offset": "0x01D8", 
+      "sub_map": {
+        "EXTRUDER_DEPRIME_STEPS": {
+          "constraints": "a", 
+          "offset": "0x08", 
+          "type": "HH", 
+          "unit": "steps"
+        }, 
+        "JKN_ADVANCE_K": {
+          "constraints": "a", 
+          "offset": "0x00", 
+          "type": "I"
+        }, 
+        "JKN_ADVANCE_K2": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "I"
+        }, 
+        "SLOWDOWN_FLAG": {
+          "constraints": "l,0,1", 
+          "offset": "0x0C", 
+          "type": "B"
+        }
+      }
+    }, 
+    "ACCELERATION_SETTINGS": {
+      "eeprom_map": "acceleration_eeprom_offsets", 
+      "offset": "0x016E", 
+      "sub_map": {
+        "ACCELERATION_ACTIVE": {
+          "constraints": "l,0,1", 
+          "offset": "0x00", 
+          "tooltip": "Set to 1 to use acceleration.  0 for no acceleration.  Note that you must turn acceleration on to print safely at speeds over 50mm/s.", 
+          "type": "B"
+        }, 
+        "MAX_ACCELERATION_AXIS": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "HHHHH", 
+          "unit": "mm/s\u00b2"
+        }, 
+        "MAX_ACCELERATION_EXTRUDER_MOVE": {
+          "constraints": "a", 
+          "offset": "0x18", 
+          "type": "H", 
+          "unit": "mm/s\u00b2"
+        }, 
+        "MAX_ACCELERATION_NORMAL_MOVE": {
+          "constraints": "a", 
+          "offset": "0x02", 
+          "type": "H", 
+          "unit": "mm/s\u00b2"
+        }, 
+        "MAX_SPEED_CHANGE": {
+          "constraints": "a", 
+          "floating_point": "True", 
+          "offset": "0x0E", 
+          "type": "HHHHH", 
+          "unit": "mm/s"
+        }
+      }
+    }, 
+    "AXIS_HOME_DIRECTION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x000C", 
+      "tooltip": "A Bitfield representing the XYZAB axes, with X as bit 0. If an axis is homing in the wrong direction, toggle the bit for that axis", 
+      "type": "B"
+    }, 
+    "AXIS_HOME_POSITIONS_MM": {
+      "constraints": "a", 
+      "offset": "0x0224", 
+      "type": "iiiii", 
+      "unit": "mm"
+    }, 
+    "AXIS_INVERSION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x0002", 
+      "tooltip": "A Bitfield representing the XYZAB axes, with X as bit 0. If an axis is moving in the wrong direction, toggle the bit for that axis", 
+      "type": "B"
+    }, 
+    "AXIS_LENGTHS_MM": {
+      "constraints": "a", 
+      "offset": "0x0210", 
+      "type": "IIIII", 
+      "unit": "mm"
+    }, 
+    "AXIS_MAX_FEEDRATES": {
+      "constraints": "a", 
+      "offset": "0x0246", 
+      "type": "HHHHH", 
+      "unit": "mm/s"
+    }, 
+    "AXIS_STEPS_PER_MM": {
+      "constraints": "a", 
+      "offset": "0x01A4", 
+      "type": "IIIII", 
+      "unit": "1,000,000 * steps/mm"
+    }, 
+    "BUZZ_SETTINGS": {
+      "eeprom_map": "buzz_eeprom_offsets", 
+      "offset": "0x014A", 
+      "sub_map": {
+        "SOUND_ON": {
+          "constraints": "l,0,1", 
+          "offset": "0x00", 
+          "tooltip": "Set to 1 to play bot sounds.  0 for no sounds.", 
+          "type": "B"
+        }
+      }
+    }, 
+    "DIGI_POT_SETTINGS": {
+      "constraints": "a", 
+      "offset": "0x0006", 
+      "type": "BBBBB", 
+      "unit": "scale(1-127)"
+    }, 
+    "ENDSTOP_INVERSION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x0004", 
+      "type": "B"
+    }, 
+    "FILAMENT_HELP_TEXT_ON": {
+      "constraints": "l,0,1", 
+      "offset": "0x0160", 
+      "tooltip": "'Display extra help during the load filament scripts? non zero value == yes.'", 
+      "type": "B"
+    }, 
+    "HBP_PRESENT": {
+      "constraints": "l,0,1", 
+      "offset": "0x004C", 
+      "tooltip": "Set to 1 if this machine has a heated build platform.  0 if it does not.", 
+      "type": "B"
+    }, 
+    "HEATER_CALIBRATION": {
+      "constraints": "a", 
+      "offset": "0x020A", 
+      "type": "BBB", 
+      "unit": "scaling factor"
+    }, 
+    "HEATER_TIMEOUT_ON_CANCEL": {
+      "contraints": "m,0,30", 
+      "offset": "0x0244", 
+      "type": "B", 
+      "units": "min"
+    }, 
+    "LED_STRIP_SETTINGS": {
+      "eeprom_map": "blink_eeprom_offsets", 
+      "offset": "0x0140", 
+      "sub_map": {
+        "BASIC_COLOR": {
+          "constraints": "m,0,10", 
+          "offset": "0x00", 
+          "type": "B"
+        }, 
+        "CUSTOM_COLOR": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "BBB", 
+          "unit": "RGB"
+        }, 
+        "LED_HEAT_ON": {
+          "constraints": "l,1,0", 
+          "offset": "0x02", 
+          "type": "B"
+        }
+      }
+    }, 
+    "MACHINE_NAME": {
+      "constraints": "a", 
+      "length": "16", 
+      "offset": "0x0022", 
+      "type": "s"
+    }, 
+    "PREHEAT_SETTINGS": {
+      "eeprom_map": "preheat_eeprom_offsets", 
+      "offset": "0x0158", 
+      "sub_map": {
+        "PREHEAT_LEFT_TEMP": {
+          "constraints": "m,0,300", 
+          "offset": "0x02", 
+          "type": "H", 
+          "unit": "\u00b0C"
+        }, 
+        "PREHEAT_PLATFORM_TEMP": {
+          "constraints": "m,0,200", 
+          "offset": "0x04", 
+          "type": "H", 
+          "unit": "\u00b0C"
+        }, 
+        "PREHEAT_RIGHT_TEMP": {
+          "constraints": "m,0,300", 
+          "offset": "0x00", 
+          "type": "H", 
+          "unit": "\u00b0C"
+        }
+      }
+    }, 
+    "T0_DATA_BASE": {
+      "eeprom_map": "toolhead_eeprom_offsets", 
+      "offset": "0x0100", 
+      "sub_map": {
+        "COOLING_FAN_SETTINGS": {
+          "eeprom_map": "cooler_eeprom_offsets", 
+          "offset": "0x001A", 
+          "sub_map": {
+            "ENABLE": {
+              "constraints": "l,0,1", 
+              "offset": "0", 
+              "type": "B"
+            }, 
+            "SETPOINT_C": {
+              "constraints": "m,0,300", 
+              "offset": "1", 
+              "type": "B", 
+              "unit": "\u00b0C"
+            }
+          }
+        }, 
+        "EXTRUDER_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x000A", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }, 
+        "HBP_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x0010", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }
+      }, 
+      "tool_index": "0"
+    }, 
+    "T1_DATA_BASE": {
+      "eeprom_map": "toolhead_eeprom_offsets", 
+      "offset": "0x011C", 
+      "sub_map": {
+        "COOLING_FAN_SETTINGS": {
+          "eeprom_map": "cooler_eeprom_offsets", 
+          "offset": "0x001A", 
+          "sub_map": {
+            "ENABLE": {
+              "constraints": "l,0,1", 
+              "offset": "0", 
+              "type": "B"
+            }, 
+            "SETPOINT_C": {
+              "constraints": "m,0,300", 
+              "offset": "1", 
+              "type": "B", 
+              "unit": "\u00b0C"
+            }
+          }
+        }, 
+        "EXTRUDER_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x000A", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }, 
+        "HBP_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x0010", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }
+      }, 
+      "tool_index": "1"
+    }, 
+    "TOOLHEAD_OFFSET_SETTINGS_UM": {
+      "constraints": "m,-2000,35000", 
+      "offset": "0x0238", 
+      "type": "iii", 
+      "unit": "\u00b5m"
+    }, 
+    "TOOL_COUNT": {
+      "constraints": "l,1,2", 
+      "offset": "0x0042", 
+      "type": "B"
+    }, 
+    "VERSION_HIGH": {
+      "constraints": "m,0,10", 
+      "offset": "0x0001", 
+      "type": "B"
+    }, 
+    "VERSION_LOW": {
+      "constraints": "m,0,100", 
+      "offset": "0x0000", 
+      "type": "B"
+    }
+  }
+}

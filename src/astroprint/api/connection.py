@@ -49,7 +49,7 @@ def connectionCommand():
 
 			driver = data["driver"]
 
-			printer = printerManager(driver, printer._gcodeManager)
+			printer = printerManager(driver, printer._fileManager)
 
 		if "port" in data.keys():
 			port = data["port"]
