@@ -192,6 +192,23 @@ def printerBedState():
 
 	return jsonify(_getTemperatureData(deleteTools))
 
+@api.route("/printer/fan", methods=["POST"])
+def printerFanCommand():
+	if not printer.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	valid_commands = {
+		"set": ["tool", "speed"]
+	}
+
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	if response is not None:
+		return response
+
+	printer.fan(data["tool"], data["speed"])
+
+	return NO_CONTENT
+
 
 ##~~ Print head
 

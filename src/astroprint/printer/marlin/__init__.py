@@ -12,8 +12,6 @@ import octoprint.util as util
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from astroprint.cloud import astroprintCloud
-from astroprint.printerprofile import printerProfileManager
 from astroprint.printer import Printer 
 
 from octoprint.filemanager.destinations import FileDestinations
@@ -24,20 +22,13 @@ class PrinterMarlin(Printer):
 	def __init__(self, fileManager):
 		from collections import deque
 
-		self._astroprintCloud = astroprintCloud()
-		self._profileManager = printerProfileManager()
-
 		# state
 		# TODO do we really need to hold the temperature here?
-		self._temp = None
-		self._bedTemp = None
 		self._targetTemp = None
 		self._targetBedTemp = None
-		self._temps = deque([], 300)
 		self._tempBacklog = []
 
 		self._latestMessage = None
-		self._messages = deque([], 300)
 		self._messageBacklog = []
 
 		self._latestLog = None
@@ -129,6 +120,9 @@ class PrinterMarlin(Printer):
 
 		for command in commands:
 			self._comm.sendCommand(command)
+
+	def fan(self, tool, speed):
+		self.command("M106 S%d" % max(speed, speed))
 
 	def jog(self, axis, amount):
 		movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
@@ -319,30 +313,6 @@ class PrinterMarlin(Printer):
 			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
 		})
 
-	def _addTemperatureData(self, temp, bedTemp):
-		currentTimeUtc = int(time.time())
-
-		data = {
-			"time": currentTimeUtc
-		}
-		for tool in temp.keys():
-			data["tool%d" % tool] = {
-				"actual": temp[tool][0],
-				"target": temp[tool][1]
-			}
-		if bedTemp is not None and isinstance(bedTemp, tuple):
-			data["bed"] = {
-				"actual": bedTemp[0],
-				"target": bedTemp[1]
-			}
-
-		self._temps.append(data)
-
-		self._temp = temp
-		self._bedTemp = bedTemp
-
-		self._stateMonitor.addTemperature(data)
-
 	#~~ callbacks triggered from self._comm
 
 	def mcLog(self, message):
@@ -353,9 +323,6 @@ class PrinterMarlin(Printer):
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
-
-	def mcTempUpdate(self, temp, bedTemp):
-		self._addTemperatureData(temp, bedTemp)
 
 	def mcStateChange(self, state):
 		"""
@@ -585,29 +552,3 @@ class PrinterMarlin(Printer):
 
 	def isHeatingUp(self):
 		return self._comm is not None and self._comm.isHeatingUp()
-
-	"""
-	def isClosedOrError(self):
-		return self._comm is None or self._comm.isClosedOrError()
-
-	def isOperational(self):
-		return self._comm is not None and self._comm.isOperational()
-
-	def isPrinting(self):
-		return self._comm is not None and self._comm.isPrinting()=
-
-	def isPaused(self):
-		return self._comm is not None and self._comm.isPaused()
-
-	def isError(self):
-		return self._comm is not None and self._comm.isError()
-
-	def isSdReady(self):
-		if not settings().getBoolean(["feature", "sdSupport"]) or self._comm is None:
-			return False
-		else:
-			return self._comm.isSdReady()
-
-	def isCameraConnected(self):
-		return self._cameraManager.isCameraAvailable()
-	"""

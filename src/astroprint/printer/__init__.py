@@ -10,10 +10,14 @@ import os
 
 from sys import platform
 
+from collections import deque
+
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
 
+from astroprint.cloud import astroprintCloud
+from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
 
 from usbid.device import device_list
@@ -73,9 +77,18 @@ class Printer(object):
 		}
 
 	def __init__(self, fileManager):
+		self._astroprintCloud = astroprintCloud()
+		self._profileManager = printerProfileManager()
+
 		self._fileManager= fileManager
 		self._fileManager.registerCallback(self)
 		self._state = self.STATE_NONE
+
+		self._temp = {}
+		self._bedTemp = None
+		self._temps = deque([], 300)
+
+		self._messages = deque([], 300)
 
 		self._cameraManager = cameraManager()
 
@@ -243,6 +256,37 @@ class Printer(object):
 	def isCameraConnected(self):
 		return self._cameraManager.isCameraAvailable()
 
+	#~~~ Printer callbacks ~~~
+
+	def mcTempUpdate(self, temp, bedTemp):
+		self._addTemperatureData(temp, bedTemp)
+
+	#~~~ Data processing functions ~~~
+
+	def _addTemperatureData(self, temp, bedTemp):
+		currentTimeUtc = int(time.time())
+
+		data = {
+			"time": currentTimeUtc
+		}
+		for tool in temp.keys():
+			data["tool%d" % tool] = {
+				"actual": temp[tool][0],
+				"target": temp[tool][1]
+			}
+		if bedTemp is not None and isinstance(bedTemp, tuple):
+			data["bed"] = {
+				"actual": bedTemp[0],
+				"target": bedTemp[1]
+			}
+
+		self._temps.append(data)
+
+		self._temp = temp
+		self._bedTemp = bedTemp
+
+		self._stateMonitor.addTemperature(data)
+
 	#~~ callback from metadata analysis event
 
 	def onMetadataAnalysisFinished(self, event, data):
@@ -277,6 +321,17 @@ class Printer(object):
 	def home(self, axes):
 		raise NotImplementedError()
 
+	def fan(self, tool, speed):
+		raise NotImplementedError()
+
+	def extrude(self, amount, speed=None):
+		raise NotImplementedError()
+
+	def setTemperature(self, type, value):
+		raise NotImplementedError()
+
+	def setTemperatureOffset(self, offsets={}):
+		raise NotImplementedError()
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

@@ -338,11 +338,13 @@ var FanControlView = Backbone.View.extend({
 	_setFanSpeed: function(speed)
 	{
         var data = {
-            command: "M106 S"+speed,
+            command: "set",
+            tool: 0,
+            speed: speed
         }
 
         $.ajax({
-            url: API_BASEURL + "printer/command",
+            url: API_BASEURL + "printer/fan",
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
