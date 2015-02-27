@@ -141,6 +141,7 @@ class MachineInquisitor(object):
         import makerbot_driver.s3g as s3g
         settings = {}
         s3gDriver = self.create_s3g(condition)
+        s3gDriver.clear_buffer()
         settings['vid'], settings['pid'] = s3gDriver.get_vid_pid()
         firmware_version = s3gDriver.get_version()
         

@@ -15,6 +15,8 @@ class PrinterS3g(Printer):
 	driverName = 's3g'
 
 	_comm = None
+	_profile = None
+	_gcodeParser = None
 	_port = None
 	_baudrate = None
 	_errorValue = ''
@@ -46,6 +48,8 @@ class PrinterS3g(Printer):
 		if self._comm and self._comm.is_open():
 			self._comm.close()
 			self._comm = None
+			self._profile = None
+			self._gcodeParser = None
 			self._botThread = None
 			self._toolHeadCount = None
 			self._changeState(self.STATE_CLOSED)
@@ -123,12 +127,15 @@ class PrinterS3g(Printer):
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def _work(self):
-		import makerbot_driver
-
-		self._comm = makerbot_driver.s3g.from_filename(self._port, threading.Condition())
+		import makerbot_driver.MachineFactory
 		
 		try:
-			self._comm.clear_buffer()
+			result = makerbot_driver.MachineFactory().build_from_port(self._port)
+
+			self._comm = result.s3g
+			self._profile = result.profile
+			self._gcodeParser = result.gcodeparser
+
 			self._changeState(self.STATE_OPERATIONAL)
 			self._toolHeadCount = self._comm.get_toolhead_count()
 			self._retries = 5
@@ -192,29 +199,47 @@ class PrinterS3g(Printer):
 
 	def jog(self, axis, amount):
 		if self._comm and axis in ['x','y','z']:
-			ddAmount = amount * 100
+			position, endstops = self._comm.get_extended_position()
+
+			amount = float(amount)
 
 			if axis == 'x':
-				position = [ddAmount,0,0,0,0]
+				steps = int ( amount * self._profile.values['axes']['X']['steps_per_mm'] )
+				position[0] += steps
 
 			if axis == 'y':
-				position = [0,ddAmount,0,0,0]
+				steps = int ( amount * self._profile.values['axes']['Y']['steps_per_mm'] )
+				position[1] += steps
 
 			if axis == 'z':
-				position = [0,0,ddAmount,0,0]
+				steps = int ( amount * self._profile.values['axes']['Z']['steps_per_mm'] )
+				position[2] += steps
 
-			self._comm.queue_extended_point_new(position, 3000, ['x','y','z','a','b'])
+			self._comm.queue_extended_point_classic(position, 500)
 
 	def fan(self, tool, speed):
 		if self._comm:
 			self._comm.toggle_fan(tool, speed > 0)
 
-	def extrude(self, amount, speed=None):
+	def extrude(self, tool, amount, speed=None):
 		if self._comm:
-			if not speed:
-				speed = settings().get(["printerParameters", "movementSpeed", "e"])
+			amount = float(amount)
 
-			self._comm.queue_extended_point_new([0,0,0,-amount * 10, speed ], 3000, ['x','y','z','a','b'])
+			position, endstops = self._comm.get_extended_position()
+
+			if tool is None:
+				tool = 0
+
+			#find out what axis is this:
+			axis = self._profile.values['tools'][str(tool)]['stepper_axis']
+			steps = int ( amount * self._profile.values['axes'][axis]['steps_per_mm'] )
+			if axis == 'A':
+				position[3] += steps
+			elif axis == 'B':
+				position[4] += steps
+
+
+			self._comm.queue_extended_point_classic(position, 3000)
 
 	def setTemperature(self, type, value):
 		if self._comm:

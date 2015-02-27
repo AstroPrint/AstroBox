@@ -119,7 +119,7 @@ def printerToolCommand():
 		amount = data["amount"]
 		if not isinstance(amount, (int, long, float)):
 			return make_response("Not a number for extrusion amount: %r" % amount, 400)
-		printer.extrude(amount)
+		printer.extrude(None, amount)
 
 	return NO_CONTENT
 

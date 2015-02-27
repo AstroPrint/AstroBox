@@ -324,7 +324,7 @@ class Printer(object):
 	def fan(self, tool, speed):
 		raise NotImplementedError()
 
-	def extrude(self, amount, speed=None):
+	def extrude(self, tool, amount, speed=None):
 		raise NotImplementedError()
 
 	def setTemperature(self, type, value):

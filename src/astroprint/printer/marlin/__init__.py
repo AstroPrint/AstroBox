@@ -131,7 +131,7 @@ class PrinterMarlin(Printer):
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
-	def extrude(self, amount, speed=None):
+	def extrude(self, tool, amount, speed=None):
 		if not speed:
 			speed = settings().get(["printerParameters", "movementSpeed", "e"])
 
