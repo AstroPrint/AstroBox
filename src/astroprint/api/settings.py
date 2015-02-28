@@ -7,7 +7,7 @@ import logging
 from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
-from astroprint.printer import Printer
+from astroprint.printer.manager import printerManager
 
 from octoprint.server import restricted_access, admin_permission, networkManager, softwareManager
 from octoprint.server.api import api
@@ -16,7 +16,7 @@ from octoprint.server.api import api
 def getSettings():
 	s = settings()
 
-	connectionOptions = Printer.getConnectionOptions()
+	connectionOptions = printerManager(s.get(['serial','driver'])).getConnectionOptions()
 
 	return jsonify({
 		"serial": {

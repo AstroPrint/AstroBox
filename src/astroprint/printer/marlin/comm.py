@@ -26,8 +26,6 @@ from octoprint.gcodefiles import isGcodeFileName
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
 
-from astroprint.printer import serialList, baudrateList 
-
 try:
 	import _winreg
 except:
@@ -96,7 +94,7 @@ class MachineCom(object):
 		self._callback = callbackObject
 		self._state = self.STATE_NONE
 		self._serial = None
-		self._baudrateDetectList = baudrateList()
+		self._baudrateDetectList = callbackObject.baudrateList()
 		self._baudrateDetectRetry = 0
 		self._temp = {}
 		self._tempOffset = {}
@@ -943,8 +941,8 @@ class MachineCom(object):
 		if self._port == 'AUTO':
 			self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
-			self._log("Serial port list: %s" % (str(serialList())))
-			for p in serialList():
+			self._log("Serial port list: %s" % (str(self._callback.serialList())))
+			for p in self._callback.serialList():
 				try:
 					self._log("Connecting to: %s" % (p))
 					programmer.connect(p)

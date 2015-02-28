@@ -14,7 +14,6 @@ from flask import make_response, request, jsonify
 from octoprint.settings import settings
 from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
 from octoprint.server.api import api
-from astroprint.printer import Printer
 from astroprint.cloud import astroprintCloud
 
 def not_setup_only(func):
@@ -115,7 +114,7 @@ def login_astroprint():
 @api.route('/setup/printer', methods=['GET'])
 @not_setup_only
 def connection_settings():
-	connectionOptions = Printer.getConnectionOptions()
+	connectionOptions = printer.getConnectionOptions()
 
 	if connectionOptions:
 		response = {

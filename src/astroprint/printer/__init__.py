@@ -4,11 +4,8 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import threading
 import time
-import serial.tools.list_ports
 import copy
 import os
-
-from sys import platform
 
 from collections import deque
 
@@ -19,30 +16,6 @@ from octoprint.filemanager.destinations import FileDestinations
 from astroprint.cloud import astroprintCloud
 from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
-
-from usbid.device import device_list
-
-def serialList():
-	ports = {}
-	if platform.startswith('linux'):
-		for p in device_list():
-			if p.tty:
-				ports['/dev/%s' % p.tty] = p.nameProduct
-
-	else:
-		for p in serial.tools.list_ports.comports():
-			if p[1] != 'n/a':
-				ports[p[0]] = p[1]
-
-	return ports
-
-def baudrateList():
-	ret = [250000, 230400, 115200, 57600, 38400, 19200, 9600]
-	prev = settings().getInt(["serial", "baudrate"])
-	if prev in ret:
-		ret.remove(prev)
-		ret.insert(0, prev)
-	return ret
 
 class Printer(object):
 	STATE_NONE = 0
@@ -62,19 +35,12 @@ class Printer(object):
 	_fileManager = None
 	_comm = None
 	_selectedFile = None
-
-	@staticmethod
-	def getConnectionOptions():
-		"""
-		 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
-		"""
-		return {
-			"ports": serialList(),
-			"baudrates": baudrateList(),
-			"portPreference": settings().get(["serial", "port"]),
-			"baudratePreference": settings().getInt(["serial", "baudrate"]),
-			"autoconnect": settings().getBoolean(["serial", "autoconnect"])
-		}
+	_printAfterSelect = False
+	_currentZ = None
+	_progress = None
+	_printTime = None
+	_printTimeLeft = None
+	_currentLayer = None
 
 	def __init__(self, fileManager):
 		self._astroprintCloud = astroprintCloud()
@@ -126,6 +92,18 @@ class Printer(object):
 
 	def __del__(self):
 		self._fileManager.unregisterCallback(self)
+
+	def getConnectionOptions(self):
+		"""
+		 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
+		"""
+		return {
+			"ports": self.serialList(),
+			"baudrates": self.baudrateList(),
+			"portPreference": settings().get(["serial", "port"]),
+			"baudratePreference": settings().getInt(["serial", "baudrate"]),
+			"autoconnect": settings().getBoolean(["serial", "autoconnect"])
+		}
 
 	def registerCallback(self, callback):
 		self._callbacks.append(callback)
@@ -247,6 +225,9 @@ class Printer(object):
 	def isError(self):
 		return self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR
 
+	def isBusy(self):
+		return self.isPrinting() or self.isPaused()
+
 	def isPaused(self):
 		return self._state == self.STATE_PAUSED
 
@@ -255,6 +236,40 @@ class Printer(object):
 
 	def isCameraConnected(self):
 		return self._cameraManager.isCameraAvailable()
+
+	def _setCurrentZ(self, currentZ):
+		self._currentZ = currentZ
+		self._stateMonitor.setCurrentZ(self._currentZ)
+
+	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		self._progress = progress
+		self._printTime = printTime
+		self._printTimeLeft = printTimeLeft
+		self._currentLayer = currentLayer
+
+		self._stateMonitor.setProgress({
+			"completion": self._progress * 100 if self._progress is not None else None,
+			"currentLayer": self._currentLayer,
+			"filepos": filepos,
+			"printTime": int(self._printTime) if self._printTime is not None else None,
+			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
+		})
+
+	def startPrint(self):
+		"""
+		 Starts the currently loaded print job.
+		 Only starts if the printer is connected and operational, not currently printing and a printjob is loaded
+		"""
+		if not self.isConnected() or not self.isOperational() or self.isPrinting():
+			return False
+
+		if self._selectedFile is None:
+			return False
+
+		self._setCurrentZ(None)
+		self._cameraManager.open_camera()
+
+		return True
 
 	#~~~ Printer callbacks ~~~
 
@@ -295,9 +310,44 @@ class Printer(object):
 							 self._selectedFile["filesize"],
 							 self._selectedFile["sd"])
 
+	# ~~~ File Management ~~~~
+
+	def selectFile(self, filename, sd, printAfterSelect=False):
+		if not self.isConnected() or (self.isBusy() or self.isStreaming()):
+			logging.info("Cannot load file: printer not connected or currently busy")
+			return False
+
+		self._printAfterSelect = printAfterSelect
+		self._setProgressData(0, None, None, None, 1)
+		self._setCurrentZ(None)
+		return True
+
+	def unselectFile(self):
+		if not self.isConnected() and (self.isBusy() or self.isStreaming()):
+			return False
+
+		self._setProgressData(0, None, None, None, 1)
+		self._setCurrentZ(None)
+		return True
+
+	# ~~~ State functions ~~~
+
+	def getCurrentJob(self):
+		currentData = self._stateMonitor.getCurrentData()
+		return currentData["job"]
+
 	# ~~~ Implement this API ~~~
 
+	def serialList(self):
+		raise NotImplementedError()
+
+	def baudrateList(self):
+		raise NotImplementedError()
+
 	def connect(self, port=None, baudrate=None):
+		raise NotImplementedError()
+
+	def isConnected(self):
 		raise NotImplementedError()
 
 	def disconnect(self):
@@ -307,6 +357,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def isHeatingUp(self):
+		raise NotImplementedError()
+
+	def isStreaming(self):
 		raise NotImplementedError()
 
 	def getStateString(self):

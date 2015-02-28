@@ -26,7 +26,7 @@ var ConnectionView = Backbone.View.extend({
 		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed') {
 		        	if (clicked && response.current.port == null) {
         				app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
-        				noty({text: 'Enter Connection settings.', type:"information", timeout: 3000});
+        				noty({text: 'Enter Connection Settings.', type:"information", timeout: 3000});
 		        		return;
 		        	}
 

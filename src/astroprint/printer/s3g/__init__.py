@@ -5,9 +5,14 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import threading
 import logging
 import time
+import os
+
+from serial import SerialException
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+from octoprint.filemanager.destinations import FileDestinations
+from octoprint.util import getExceptionString
 
 from astroprint.printer import Printer 
 
@@ -22,6 +27,7 @@ class PrinterS3g(Printer):
 	_errorValue = ''
 	_botThread = None
 	_retries = 5
+	_currentFile = None
 
 	_toolHeadCount = None
 
@@ -33,27 +39,6 @@ class PrinterS3g(Printer):
 		if self._comm and self._comm.is_open():
 			self._comm.close()
 			self._comm = None
-
-	def connect(self, port, baudrate = None):
-		self._changeState(self.STATE_CONNECTING)
-		self._errorValue = ''
-		self._port = port
-		self._baudrate = baudrate
-
-		self._botThread = threading.Thread(target=self._work)
-		self._botThread.daemon = True
-		self._botThread.start()
-
-	def disconnect(self):
-		if self._comm and self._comm.is_open():
-			self._comm.close()
-			self._comm = None
-			self._profile = None
-			self._gcodeParser = None
-			self._botThread = None
-			self._toolHeadCount = None
-			self._changeState(self.STATE_CLOSED)
-			eventManager().fire(Events.DISCONNECTED)
 
 	def isReady(self):
 		return self.isOperational() #and not self._comm.isStreaming()
@@ -76,12 +61,12 @@ class PrinterS3g(Printer):
 		if self._state == self.STATE_OPERATIONAL:
 			return "Operational"
 		if self._state == self.STATE_PRINTING:
-			if self.isSdFileSelected():
-				return "Printing from SD"
-			elif self.isStreaming():
-				return "Sending file to SD"
-			else:
-				return "Printing"
+			#if self.isSdFileSelected():
+			#	return "Printing from SD"
+			#elif self.isStreaming():
+			#	return "Sending file to SD"
+			#else:
+			return "Printing"
 		if self._state == self.STATE_PAUSED:
 			return "Paused"
 		if self._state == self.STATE_CLOSED:
@@ -136,9 +121,11 @@ class PrinterS3g(Printer):
 			self._profile = result.profile
 			self._gcodeParser = result.gcodeparser
 
+			self._comm.init()
 			self._changeState(self.STATE_OPERATIONAL)
 			self._toolHeadCount = self._comm.get_toolhead_count()
 			self._retries = 5
+			self._comm.display_message(0,0,"Powered by\nAstroPrint", 10, True, True, False)
 
 			while self._comm:
 				for i in range(0, self._toolHeadCount):
@@ -149,9 +136,7 @@ class PrinterS3g(Printer):
 				time.sleep(1)
 
 		except makerbot_driver.errors.TransmissionError as e:
-			if self._comm:
-				self._comm.close()
-				self._comm = None
+			self.disconnect()
 
 			self._logger.error('Error connecting to printer %s' % e)
 			self._changeState(self.STATE_ERROR)
@@ -163,9 +148,7 @@ class PrinterS3g(Printer):
 				self.connect(self._port)
 
 		except makerbot_driver.errors.UnknownResponseError as e:
-			if self._comm:
-				self._comm.close()
-				self._comm = None
+			self.disconnect()
 
 			self._changeState(self.STATE_ERROR)
 			self._errorValue = "UnknownResponseError"
@@ -175,7 +158,59 @@ class PrinterS3g(Printer):
 				self._logger.info('Retrying...')
 				self.connect(self._port)
 
+		except SerialException as e:
+			self._logger.error(e)
+			self._errorValue = "Serial Link failed"
+			self._changeState(self.STATE_ERROR)
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+			self.disconnect()
+
 	# ~~~ Printer API ~~~~~
+
+	def connect(self, port= None, baudrate = None):
+		if port is None:
+			port = settings().get(["serial", "port"])
+
+		self.disconnect()
+		self._changeState(self.STATE_CONNECTING)
+		self._errorValue = ''
+		self._port = port
+		self._baudrate = baudrate
+
+		self._botThread = threading.Thread(target=self._work)
+		self._botThread.daemon = True
+		self._botThread.start()
+
+	def isConnected(self):
+		return self._comm and self._comm.is_open()
+
+	def disconnect(self):
+		if self.isConnected():
+			self._comm.close()
+			self._comm = None
+			self._profile = None
+			self._gcodeParser = None
+			self._botThread = None
+			self._toolHeadCount = None
+			self._changeState(self.STATE_CLOSED)
+			eventManager().fire(Events.DISCONNECTED)
+
+	def serialList(self):
+		from makerbot_driver.MachineDetector import MachineDetector
+
+		detector = MachineDetector()
+		machines = detector.get_available_machines()
+
+		ports = {}
+
+		for port in machines:
+			m = machines[port]
+			ports[port] = detector.get_machine_name_from_vid_pid(m['VID'], m['PID'])
+
+		return ports
+
+	def baudrateList(self):
+		return []
 
 	def home(self, axes):
 		if self._comm:
@@ -238,7 +273,6 @@ class PrinterS3g(Printer):
 			elif axis == 'B':
 				position[4] += steps
 
-
 			self._comm.queue_extended_point_classic(position, 3000)
 
 	def setTemperature(self, type, value):
@@ -256,4 +290,103 @@ class PrinterS3g(Printer):
 
 			elif type == "bed":
 				self._comm.set_platform_temperature(0, min(value, self._profileManager.data.get('max_bed_temp')))
+
+	def isStreaming(self):
+		return self._selectedFile is not None and isinstance(self._selectedFile, StreamingGcodeFileInformation)
+
+	def selectFile(self, filename, sd, printAfterSelect=False):
+		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
+			return
+
+		if sd:
+			raise('Printing from SD card is not supported for the S3G Driver')
+
+		if not os.path.exists(filename) or not os.path.isfile(filename):
+			raise IOError("File %s does not exist" % filename)
+		filesize = os.stat(filename).st_size
+
+		eventManager().fire(Events.FILE_SELECTED, {
+			"file": filename,
+			"origin": FileDestinations.LOCAL
+		})
+
+		self._setJobData(filename, filesize, sd)
+		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+
+		self._currentFile = {
+			'filename': filename,
+			'size': filesize,
+			'origin': FileDestinations.LOCAL
+		}
+
+		if self._printAfterSelect:
+			self.startPrint()
+
+	def unselectFile(self):
+		if not super(PrinterS3g, self).unselectFile():
+			return
+
+		self._currentFile = None
+
+	def startPrint(self):
+		if not super(PrinterS3g, self).startPrint():
+			return
+
+		if not self.isOperational() or self.isPrinting():
+			return
+
+		if self._currentFile is None:
+			raise ValueError("No file selected for printing")
+
+		try:
+			#self._currentLayer  = 0;
+
+			wasPaused = self.isPaused()
+			self._changeState(self.STATE_PRINTING)
+			eventManager().fire(Events.PRINT_STARTED, {
+				"file": self._currentFile['filename'],
+				"filename": os.path.basename(self._currentFile['filename']),
+				"origin": self._currentFile['origin']
+			})
+
+			from makerbot_driver import BufferOverflowError, GcodeAssembler
+			from makerbot_driver.Gcode import GcodeParser
+			from makerbot_driver.Gcode.errors import UnrecognizedCommandError
+
+			assembler = GcodeAssembler(self._profile)
+			start, end, variables = assembler.assemble_recipe()
+			
+			parser = GcodeParser()
+			parser.environment.update(variables)
+			parser.state.values["build_name"] = os.path.basename(self._currentFile['filename'])[:15]
+			parser.state.profile = self._profile
+			parser.s3g = self._comm
+
+			def exec_line(line):
+				while True:
+					try:
+						parser.execute_line(line)
+						break
+					except BufferOverflowError as e:
+						parser.s3g.writer._condition.wait(.2)
+
+					except UnrecognizedCommandError as e:
+						logging.warn(e)
+						break
+
+			parser.state.values['last_extra_index'] = 0
+			parser.state.values['last_toolhead_index'] = 0
+			parser.state.values['last_platform_index'] = 0
+
+			with open(self._currentFile['filename'], 'r') as f:
+				for line in f:
+					print(line)
+					exec_line(line)
+
+			#self._comm.build_start_notification(self._currentFile['name'])
+
+		except:
+			self._errorValue = getExceptionString()
+			self._changeState(self.STATE_ERROR)
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 

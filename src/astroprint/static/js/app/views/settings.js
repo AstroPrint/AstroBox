@@ -47,7 +47,7 @@ var PrinterConnectionView = SettingsPage.extend({
 				this.delegateEvents({
 					'change #settings-baudrate': 'saveConnectionSettings',
 					'change #settings-serial-port': 'saveConnectionSettings',
-					'change #settings-printer-driver': 'saveConnectionSettings',
+					'change #settings-printer-driver': 'printerDriverChanged',
 					'click a.retry-ports': 'retryPortsClicked',
 					'click .loading-button.test-connection button': 'testConnection'
 				});
@@ -80,7 +80,7 @@ var PrinterConnectionView = SettingsPage.extend({
 			connectionData[e.name] = e.value;
 		});
 
-		if (connectionData.driver && connectionData.baudrate && connectionData.port) {
+		if (connectionData.driver && connectionData.port) {
 			this.$('.loading-button.test-connection').addClass('loading');
 			this.$('.connection-status').removeClass('failed connected').addClass('connecting');
 	        $.ajax({
@@ -92,13 +92,13 @@ var PrinterConnectionView = SettingsPage.extend({
 		            "command": "connect",
 		            "driver": connectionData.driver,
 		            "port": connectionData.port,
-		            "baudrate": parseInt(connectionData.baudrate),
+		            "baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
 		            "autoconnect": true,
 		            "save": true
 		        })
 	        })
 			.fail(function(){
-				noty({text: "There was an error saving connection settings.", timeout: 3000});
+				noty({text: "There was an error testing connection settings.", timeout: 3000});
 			});
 		}
 	},
@@ -114,6 +114,37 @@ var PrinterConnectionView = SettingsPage.extend({
 	{
 		e.preventDefault();
 		this.saveConnectionSettings();
+	},
+	printerDriverChanged: function(e)
+	{
+		var target = $(e.target);
+
+		driver = target.val();
+
+		if (driver == 's3g') {
+			this.$('#settings-baudrate').closest('label').hide()
+		} else {
+			this.$('#settings-baudrate').closest('label').show()
+		}
+
+		if (driver) {
+	        $.ajax({
+	            url: API_BASEURL + "connection",
+	            type: "POST",
+	            dataType: "json",
+	            contentType: "application/json; charset=UTF-8",
+	            data: JSON.stringify({
+		            "command": "save",
+		            "driver": driver
+		        })
+	        })
+	        .success( _.bind(function() {
+	        	this.getInfo();
+	        }, this))
+			.fail(function(){
+				noty({text: "There was an error saving driver.", timeout: 3000});
+			});
+		}
 	}
 });
 

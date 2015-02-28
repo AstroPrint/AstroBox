@@ -7,6 +7,9 @@ import time
 import datetime
 import threading
 import logging
+import serial.tools.list_ports
+
+from sys import platform
 
 import octoprint.util as util
 
@@ -15,6 +18,8 @@ from octoprint.events import eventManager, Events
 from astroprint.printer import Printer 
 
 from octoprint.filemanager.destinations import FileDestinations
+
+from usbid.device import device_list
 
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
@@ -35,18 +40,10 @@ class PrinterMarlin(Printer):
 		self._log = deque([], 300)
 		self._logBacklog = []
 
-		self._currentZ = None
-
-		self._progress = None
-		self._printTime = None
-		self._printTimeLeft = None
-		self._currentLayer = None
 		self._layerCount = None
 		self._estimatedPrintTime = None
 
 		self._printId = None
-
-		self._printAfterSelect = False
 
 		# sd handling
 		self._sdPrinting = False
@@ -81,7 +78,29 @@ class PrinterMarlin(Printer):
 				self._selectedFile["filesize"],
 				self._selectedFile["sd"])
 
-	#~~ printer commands
+	#~~ printer object API implementation
+
+	def serialList(self):
+		ports = {}
+		if platform.startswith('linux'):
+			for p in device_list():
+				if p.tty:
+					ports['/dev/%s' % p.tty] = p.nameProduct
+
+		else:
+			for p in serial.tools.list_ports.comports():
+				if p[1] != 'n/a':
+					ports[p[0]] = p[1]
+
+		return ports
+
+	def baudrateList(self):
+		ret = [250000, 230400, 115200, 57600, 38400, 19200, 9600]
+		prev = settings().getInt(["serial", "baudrate"])
+		if prev in ret:
+			ret.remove(prev)
+			ret.insert(0, prev)
+		return ret
 
 	def connect(self, port=None, baudrate=None):
 		"""
@@ -183,36 +202,22 @@ class PrinterMarlin(Printer):
 		self._stateMonitor.setTempOffsets(validatedOffsets)
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if self._comm is None or (self._comm.isBusy() or self._comm.isStreaming()):
-			logging.info("Cannot load file: printer not connected or currently busy")
+		if not super(PrinterMarlin, self).selectFile(filename, sd, printAfterSelect):
 			return
 
-		self._printAfterSelect = printAfterSelect
 		self._comm.selectFile(filename, sd)
-		self._setProgressData(0, None, None, None, 1)
-		self._setCurrentZ(None)
 
 	def unselectFile(self):
-		if self._comm is not None and (self._comm.isBusy() or self._comm.isStreaming()):
+		if not super(PrinterMarlin, self).unselectFile():
 			return
 
 		self._comm.unselectFile()
-		self._setProgressData(0, None, None, None, 1)
-		self._setCurrentZ(None)
 
 	def startPrint(self):
-		"""
-		 Starts the currently loaded print job.
-		 Only starts if the printer is connected and operational, not currently printing and a printjob is loaded
-		"""
-		if self._comm is None or not self._comm.isOperational() or self._comm.isPrinting():
-			return
-		if self._selectedFile is None:
+		if not super(PrinterMarlin, self).startPrint():
 			return
 
-		self._setCurrentZ(None)
 		self._comm.startPrint()
-		self._cameraManager.open_camera()
 
 	def togglePausePrint(self):
 		"""
@@ -283,10 +288,6 @@ class PrinterMarlin(Printer):
 
 	#~~ state monitoring
 
-	def _setCurrentZ(self, currentZ):
-		self._currentZ = currentZ
-		self._stateMonitor.setCurrentZ(self._currentZ)
-
 	def _setState(self, state):
 		self._state = state
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
@@ -298,20 +299,6 @@ class PrinterMarlin(Printer):
 	def _addMessage(self, message):
 		self._messages.append(message)
 		self._stateMonitor.addMessage(message)
-
-	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
-		self._progress = progress
-		self._printTime = printTime
-		self._printTimeLeft = printTimeLeft
-		self._currentLayer = currentLayer
-
-		self._stateMonitor.setProgress({
-			"completion": self._progress * 100 if self._progress is not None else None,
-			"currentLayer": self._currentLayer,
-			"filepos": filepos,
-			"printTime": int(self._printTime) if self._printTime is not None else None,
-			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
-		})
 
 	#~~ callbacks triggered from self._comm
 
@@ -509,10 +496,6 @@ class PrinterMarlin(Printer):
 	def getCurrentData(self):
 		return self._stateMonitor.getCurrentData()
 
-	def getCurrentJob(self):
-		currentData = self._stateMonitor.getCurrentData()
-		return currentData["job"]
-
 	def getCurrentTemperatures(self):
 		if self._comm is not None:
 			tempOffset, bedTempOffset = self._comm.getOffsets()
@@ -552,3 +535,9 @@ class PrinterMarlin(Printer):
 
 	def isHeatingUp(self):
 		return self._comm is not None and self._comm.isHeatingUp()
+
+	def isStreaming(self):
+		return self._comm.isStreaming()
+
+	def isConnected(self):
+		return self._comm and self._comm.isOperational()
