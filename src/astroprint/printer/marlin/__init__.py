@@ -240,18 +240,8 @@ class PrinterMarlin(Printer):
 		"""
 		 Cancel the current printjob.
 		"""
-		if self._comm is None:
+		if not super(PrinterMarlin, self).cancelPrint():
 			return
-
-		#if disableMotorsAndHeater:
-			# disable motors, switch off hotends, bed and fan
-		#	commands = ["M84"]
-		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
-		#	commands.extend(["M140 S0", "M106 S0"])
-		#	self.commands(commands)
-
-		#cancel timelapse if there was one
-		self._cameraManager.stop_timelapse()
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
@@ -308,9 +298,6 @@ class PrinterMarlin(Printer):
 		"""
 		self._addLog(message)
 
-	def mcHeatingUpUpdate(self, value):
-		self._stateMonitor._state['flags']['heatingUp'] = value
-
 	def mcStateChange(self, state):
 		"""
 		 Callback method for the comm object, called if the connection state changes.
@@ -336,29 +323,6 @@ class PrinterMarlin(Printer):
 		 Stores the message in the message buffer, truncates buffer to the last 300 lines.
 		"""
 		self._addMessage(message)
-
-	def mcProgress(self):
-		"""
-		 Callback method for the comm object, called upon any change in progress of the printjob.
-		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
-		"""
-
-		#Calculate estimated print time left
-		printTime = self._comm.getPrintTime()
-		progress = self._comm.getPrintProgress()
-		estimatedTimeLeft = None
-
-		if printTime and progress and self._estimatedPrintTime:
-			if progress < 1.0:
-				estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
-				elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
-				adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
-				estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
-
-		elif self._estimatedPrintTime:
-			estimatedTimeLeft = self._estimatedPrintTime / 60
-
-		self._setProgressData(progress, self._comm.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
 
 	def mcZChange(self, newZ):
 		"""
@@ -493,9 +457,6 @@ class PrinterMarlin(Printer):
 		else:
 			return self._comm.getStateString()
 
-	def getCurrentData(self):
-		return self._stateMonitor.getCurrentData()
-
 	def getCurrentTemperatures(self):
 		if self._comm is not None:
 			tempOffset, bedTempOffset = self._comm.getOffsets()
@@ -530,6 +491,15 @@ class PrinterMarlin(Printer):
 		port, baudrate = self._comm.getConnection()
 		return self._comm.getStateString(), port, baudrate
 
+	def getPrintTime(self):
+		return self._comm.getPrintTime()
+
+	def getPrintProgress(self):
+		return self._comm.getPrintProgress()
+
+	def getPrintFilepos(self):
+		return self._comm.getPrintFilepos()
+
 	def isReady(self):
 		return self.isOperational() and not self._comm.isStreaming()
 
@@ -541,3 +511,9 @@ class PrinterMarlin(Printer):
 
 	def isConnected(self):
 		return self._comm and self._comm.isOperational()
+
+	def isPaused(self):
+		return self._comm and self._comm.isPaused()
+
+	def setPause(self, paused):
+		self._comm.setPause(paused)

@@ -6,6 +6,7 @@ import threading
 import time
 import copy
 import os
+import logging
 
 from collections import deque
 
@@ -271,10 +272,75 @@ class Printer(object):
 
 		return True
 
+	def cancelPrint(self, disableMotorsAndHeater=True):
+		"""
+		 Cancel the current printjob.
+		"""
+		if self._comm is None:
+			return False
+
+		#if disableMotorsAndHeater:
+			# disable motors, switch off hotends, bed and fan
+		#	commands = ["M84"]
+		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
+		#	commands.extend(["M140 S0", "M106 S0"])
+		#	self.commands(commands)
+
+		#cancel timelapse if there was one
+		self._cameraManager.stop_timelapse()
+
+		return True
+
+	def togglePausePrint(self):
+		"""
+		 Pause the current printjob.
+		"""
+		if self._comm is None:
+			return
+
+		wasPaused = self.isPaused()
+
+		self.setPause(not wasPaused)
+
+		#the functions already check if there's a timelapse in progress
+		if wasPaused:
+			self._cameraManager.resume_timelapse()
+		else:
+			self._cameraManager.pause_timelapse()
+
 	#~~~ Printer callbacks ~~~
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
+
+	def mcProgress(self):
+		"""
+		 Callback method for the comm object, called upon any change in progress of the printjob.
+		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
+		"""
+
+		#Calculate estimated print time left
+		printTime = self.getPrintTime()
+		progress = self.getPrintProgress()
+		estimatedTimeLeft = None
+
+		if printTime and progress and self._estimatedPrintTime:
+			if progress < 1.0:
+				estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
+				elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
+				adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
+				estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+
+		elif self._estimatedPrintTime:
+			estimatedTimeLeft = self._estimatedPrintTime / 60
+
+		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
+
+	def mcPrintjobDone(self):
+		pass
+
+	def mcHeatingUpUpdate(self, value):
+		self._stateMonitor._state['flags']['heatingUp'] = value
 
 	#~~~ Data processing functions ~~~
 
@@ -313,7 +379,8 @@ class Printer(object):
 	# ~~~ File Management ~~~~
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not self.isConnected() or (self.isBusy() or self.isStreaming()):
+		if not self.isConnected() or self.isBusy() or self.isStreaming():
+			print "connected %d, busy: %d, isStreaming: %d" % (self.isConnected(), self.isBusy(), self.isStreaming())
 			logging.info("Cannot load file: printer not connected or currently busy")
 			return False
 
@@ -336,6 +403,9 @@ class Printer(object):
 		currentData = self._stateMonitor.getCurrentData()
 		return currentData["job"]
 
+	def getCurrentData(self):
+		return self._stateMonitor.getCurrentData()
+
 	# ~~~ Implement this API ~~~
 
 	def serialList(self):
@@ -356,6 +426,12 @@ class Printer(object):
 	def isReady(self):
 		raise NotImplementedError()
 
+	def isPaused(self):
+		raise NotImplementedError()
+
+	def setPause(self, paused):
+		raise NotImplementedError()
+
 	def isHeatingUp(self):
 		raise NotImplementedError()
 
@@ -363,6 +439,15 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def getStateString(self):
+		raise NotImplementedError()
+
+	def getPrintTime(self):
+		raise NotImplementedError()
+
+	def getPrintProgress(self):
+		raise NotImplementedError()
+
+	def getPrintFilepos(self):
 		raise NotImplementedError()
 
 	def getCurrentConnection(self):

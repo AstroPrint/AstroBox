@@ -666,14 +666,10 @@ class MachineCom(object):
 					self._callback.mcTempUpdate(self._temp, self._bedTemp)
 
 					#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
-					if not 'ok' in line:
-						self._heatingUp = True
-						self._callback.mcHeatingUpUpdate(self._heatingUp)
-
-						if self._heatupWaitStartTime != 0:
-							t = time.time()
-							self._heatupWaitTimeLost = t - self._heatupWaitStartTime
-							self._heatupWaitStartTime = t
+					if not 'ok' in line and self._heatupWaitStartTime != 0:
+						t = time.time()
+						self._heatupWaitTimeLost = t - self._heatupWaitStartTime
+						self._heatupWaitStartTime = t
 				elif supportRepetierTargetTemp and ('TargetExtr' in line or 'TargetBed' in line):
 					matchExtr = self._regex_repetierTempExtr.match(line)
 					matchBed = self._regex_repetierTempBed.match(line)
@@ -1212,10 +1208,14 @@ class MachineCom(object):
 		return cmd
 
 	def _gcode_M109(self, cmd):
+		self._heatingUp = True
+		self._callback.mcHeatingUpUpdate(self._heatingUp)
 		self._heatupWaitStartTime = time.time()
 		return self._gcode_M104(cmd)
 
 	def _gcode_M190(self, cmd):
+		self._heatingUp = True
+		self._callback.mcHeatingUpUpdate(self._heatingUp)
 		self._heatupWaitStartTime = time.time()
 		return self._gcode_M140(cmd)
 

@@ -6,6 +6,7 @@ import threading
 import logging
 import time
 import os
+import makerbot_driver.errors
 
 from serial import SerialException
 
@@ -15,6 +16,7 @@ from octoprint.filemanager.destinations import FileDestinations
 from octoprint.util import getExceptionString
 
 from astroprint.printer import Printer 
+from astroprint.printer.s3g.printjob import PrintJobS3G
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
@@ -28,6 +30,8 @@ class PrinterS3g(Printer):
 	_botThread = None
 	_retries = 5
 	_currentFile = None
+	_printJob = None
+	_heatingUp = False
 
 	_toolHeadCount = None
 
@@ -44,8 +48,7 @@ class PrinterS3g(Printer):
 		return self.isOperational() #and not self._comm.isStreaming()
 
 	def isHeatingUp(self):
-		#return self._comm is not None and self._comm.isHeatingUp()
-		return False
+		return self._heatingUp
 
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
@@ -90,6 +93,25 @@ class PrinterS3g(Printer):
 	def getErrorString(self):
 		return self._errorValue
 
+	def getPrintTime(self):
+		if self._currentFile is None or self._currentFile['start_time'] is None:
+			return None
+		else:
+			return time.time() - self._currentFile['start_time']
+
+	def getPrintTimeRemainingEstimate(self):
+		printTime = self.getPrintTime()
+		if printTime is None:
+			return None
+
+		printTime /= 60
+		progress = self._currentFile['progress']
+		if progress:
+			return printTimeTotal - printTime
+	
+		else:
+			return None
+
 	def _changeState(self, newState):
 		if self._state == newState:
 			return
@@ -100,11 +122,11 @@ class PrinterS3g(Printer):
 
 		# forward relevant state changes to gcode manager
 		if self._comm is not None and oldState == self.STATE_PRINTING:
-			#if self._selectedFile is not None:
+			#if self._currentFile is not None:
 			#	if state == self.STATE_OPERATIONAL:
-			#		self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+			#		self._fileManager.printSucceeded(self._currentFile["filename"], self._comm.getPrintTime())
 			#	elif state == self.STATE_CLOSED or state == self.STATE_ERROR or state == self.STATE_CLOSED_WITH_ERROR:
-			#		self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+			#		self._fileManager.printFailed(self._currentFile["filename"], self._comm.getPrintTime())
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
@@ -128,12 +150,17 @@ class PrinterS3g(Printer):
 			self._comm.display_message(0,0,"Powered by\nAstroPrint", 10, True, True, False)
 
 			while self._comm:
-				for i in range(0, self._toolHeadCount):
-					self._temp[i] = (self._comm.get_toolhead_temperature(i), self._comm.get_toolhead_target_temperature(i))
+				try:
+					for i in range(0, self._toolHeadCount):
+						self._temp[i] = (self._comm.get_toolhead_temperature(i), self._comm.get_toolhead_target_temperature(i))
 
-				self._bedTemp = (self._comm.get_platform_temperature(0), self._comm.get_platform_target_temperature(0))
-				self.mcTempUpdate(self._temp, self._bedTemp)
-				time.sleep(1)
+					self._bedTemp = (self._comm.get_platform_temperature(0), self._comm.get_platform_target_temperature(0))
+					self.mcTempUpdate(self._temp, self._bedTemp)
+
+				except makerbot_driver.errors.BufferOverflowError:
+					pass
+				
+				time.sleep(2)
 
 		except makerbot_driver.errors.TransmissionError as e:
 			self.disconnect()
@@ -277,22 +304,57 @@ class PrinterS3g(Printer):
 
 	def setTemperature(self, type, value):
 		if self._comm:
-			if type.startswith("tool"):
-				value = min(value, self._profileManager.data.get('max_nozzle_temp'))
-				if settings().getInt(["printerParameters", "numExtruders"]) > 1:
-					try:
-						toolNum = int(type[len("tool"):])
-						self._comm.set_toolhead_temperature(toolNum, value)
-					except ValueError:
-						pass
-				else:
-					self._comm.set_toolhead_temperature(0, value)
+			try:
+				if type.startswith("tool"):
+					value = min(value, self._profileManager.data.get('max_nozzle_temp'))
+					if settings().getInt(["printerParameters", "numExtruders"]) > 1:
+						try:
+							toolNum = int(type[len("tool"):])
+							self._comm.set_toolhead_temperature(toolNum, value)
+						except ValueError:
+							pass
+					else:
+						self._comm.set_toolhead_temperature(0, value)
 
-			elif type == "bed":
-				self._comm.set_platform_temperature(0, min(value, self._profileManager.data.get('max_bed_temp')))
+				elif type == "bed":
+					self._comm.set_platform_temperature(0, min(value, self._profileManager.data.get('max_bed_temp')))
+
+			except makerbot_driver.errors.BufferOverflowError:
+				time.sleep(.2)
+
 
 	def isStreaming(self):
-		return self._selectedFile is not None and isinstance(self._selectedFile, StreamingGcodeFileInformation)
+		# We don't yet support sd card printing on S3G
+		return False
+
+	def isPaused(self):
+		return self._state == self.STATE_PAUSED
+
+	def setPause(self, pause):
+		if self.isStreaming():
+			return
+
+		if not pause and self.isPaused():
+			self._changeState(self.STATE_PRINTING)
+
+			self._comm.reset()
+
+			eventManager().fire(Events.PRINT_RESUMED, {
+				"file": self._currentFile['filanema'],
+				"filename": os.path.basename(self._currentFile['filename']),
+				"origin": self._currentFile['origin']
+			})
+
+		elif pause and self.isPrinting():
+			self._changeState(self.STATE_PAUSED)
+
+			self._comm.pause()
+
+			eventManager().fire(Events.PRINT_PAUSED, {
+				"file": self._currentFile['filanema'],
+				"filename": os.path.basename(self._currentFile['filename']),
+				"origin": self._currentFile['origin']
+			})
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
@@ -316,17 +378,38 @@ class PrinterS3g(Printer):
 		self._currentFile = {
 			'filename': filename,
 			'size': filesize,
-			'origin': FileDestinations.LOCAL
+			'origin': FileDestinations.LOCAL,
+			'start_time': None,
+			'progress': None,
+			'position': None
 		}
 
 		if self._printAfterSelect:
 			self.startPrint()
 
 	def unselectFile(self):
+		self._currentFile = None
+
 		if not super(PrinterS3g, self).unselectFile():
 			return
 
-		self._currentFile = None
+	def getPrintTime(self):
+		if self._currentFile is None or self._currentFile['start_time'] is None:
+			return None
+		else:
+			return time.time() - self._currentFile['start_time']
+
+	def getPrintFilepos(self):
+		if self._currentFile is None:
+			return None
+
+		return self._currentFile['position']
+
+	def getPrintProgress(self):
+		if self._currentFile is None:
+			return None
+
+		return self._currentFile['progress']
 
 	def startPrint(self):
 		if not super(PrinterS3g, self).startPrint():
@@ -338,55 +421,39 @@ class PrinterS3g(Printer):
 		if self._currentFile is None:
 			raise ValueError("No file selected for printing")
 
-		try:
-			#self._currentLayer  = 0;
 
-			wasPaused = self.isPaused()
-			self._changeState(self.STATE_PRINTING)
-			eventManager().fire(Events.PRINT_STARTED, {
-				"file": self._currentFile['filename'],
-				"filename": os.path.basename(self._currentFile['filename']),
-				"origin": self._currentFile['origin']
-			})
+		if self._printJob and self._printJob.isAlive():
+			raise Exception("A Print Job is still running")
 
-			from makerbot_driver import BufferOverflowError, GcodeAssembler
-			from makerbot_driver.Gcode import GcodeParser
-			from makerbot_driver.Gcode.errors import UnrecognizedCommandError
+		#self._currentLayer  = 0;
 
-			assembler = GcodeAssembler(self._profile)
-			start, end, variables = assembler.assemble_recipe()
-			
-			parser = GcodeParser()
-			parser.environment.update(variables)
-			parser.state.values["build_name"] = os.path.basename(self._currentFile['filename'])[:15]
-			parser.state.profile = self._profile
-			parser.s3g = self._comm
+		self._changeState(self.STATE_PRINTING)
+		eventManager().fire(Events.PRINT_STARTED, {
+			"file": self._currentFile['filename'],
+			"filename": os.path.basename(self._currentFile['filename']),
+			"origin": self._currentFile['origin']
+		})
 
-			def exec_line(line):
-				while True:
-					try:
-						parser.execute_line(line)
-						break
-					except BufferOverflowError as e:
-						parser.s3g.writer._condition.wait(.2)
+		self._printJob = PrintJobS3G(self, self._currentFile)
+		self._printJob.start()
 
-					except UnrecognizedCommandError as e:
-						logging.warn(e)
-						break
+	def cancelPrint(self, disableMotorsAndHeater=True):
+		"""
+		 Cancel the current printjob.
+		"""
+		if not super(PrinterS3g, self).cancelPrint():
+			return
 
-			parser.state.values['last_extra_index'] = 0
-			parser.state.values['last_toolhead_index'] = 0
-			parser.state.values['last_platform_index'] = 0
+		self._printJob.cancel()
 
-			with open(self._currentFile['filename'], 'r') as f:
-				for line in f:
-					print(line)
-					exec_line(line)
+	# ~~~ Internal Callbacks ~~~~
 
-			#self._comm.build_start_notification(self._currentFile['name'])
+	def printJobCancelled(self):
+		# reset progress, height, print time
+		self._setCurrentZ(None)
+		self._setProgressData(None, None, None, None, None)
 
-		except:
-			self._errorValue = getExceptionString()
-			self._changeState(self.STATE_ERROR)
-			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-
+		# mark print as failure
+		if self._currentFile is not None:
+			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			self.unselectFile()
