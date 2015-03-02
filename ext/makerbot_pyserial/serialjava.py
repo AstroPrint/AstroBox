@@ -7,7 +7,7 @@
 # (C) 2002-2008 Chris Liechti <cliechti@gmx.net>
 # this is distributed under a free software license, see license.txt
 
-from serial.serialutil import *
+from makerbot_pyserial.serialutil import *
 
 def my_import(name):
     mod = __import__(name)

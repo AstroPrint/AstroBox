@@ -15,7 +15,7 @@
 import sys, os, fcntl, termios, struct, select, errno, time
 import tempfile
 import subprocess
-from serial.serialutil import *
+from makerbot_pyserial.serialutil import *
 
 # Do check the Python version as some constants have moved.
 if (sys.hexversion < 0x020100f0):

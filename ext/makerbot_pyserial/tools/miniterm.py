@@ -8,7 +8,7 @@
 # repr, useful for debug purposes)
 
 
-import sys, os, serial, threading
+import sys, os, makerbot_pyserial, threading
 
 EXITCHARCTER = '\x1d'   # GS/CTRL+]
 MENUCHARACTER = '\x14'  # Menu: CTRL+T
@@ -50,7 +50,7 @@ def get_help_text():
 ---    x X        disable/enable software flow control
 ---    r R        disable/enable hardware flow control
 """ % {
-    'version': getattr(serial, 'VERSION', 'unknown version'),
+    'version': getattr(makerbot_pyserial, 'VERSION', 'unknown version'),
     'exit': key_description(EXITCHARCTER),
     'menu': key_description(MENUCHARACTER),
     'rts': key_description('\x12'),
@@ -143,7 +143,7 @@ REPR_MODES = ('raw', 'some control', 'all control', 'hex')
 class Miniterm(object):
     def __init__(self, port, baudrate, parity, rtscts, xonxoff, echo=False, convert_outgoing=CONVERT_CRLF, repr_mode=0):
         try:
-            self.serial = serial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
+            self.serial = makerbot_pyserial.serial_for_url(port, baudrate, parity=parity, rtscts=rtscts, xonxoff=xonxoff, timeout=1)
         except AttributeError:
             # happens when the installed pyserial is older than 2.5. use the
             # Serial class directly then.
@@ -203,7 +203,7 @@ class Miniterm(object):
                     (self.serial.getDSR() and 'active' or 'inactive'),
                     (self.serial.getRI() and 'active' or 'inactive'),
                     (self.serial.getCD() and 'active' or 'inactive')))
-        except serial.SerialException:
+        except makerbot_pyserial.SerialException:
             # on RFC 2217 ports it can happen to no modem state notification was
             # yet received. ignore this error.
             pass
@@ -265,7 +265,7 @@ class Miniterm(object):
                 try:
                     b = console.getkey()
                 except KeyboardInterrupt:
-                    b = serial.to_bytes([3])
+                    b = makerbot_pyserial.to_bytes([3])
                 c = character(b)
                 if menu_active:
                     if c == MENUCHARACTER or c == EXITCHARCTER: # Menu character again/exit char -> send itself
@@ -344,11 +344,11 @@ class Miniterm(object):
                             settings = self.serial.getSettingsDict()
                             try:
                                 try:
-                                    new_serial = serial.serial_for_url(port, do_not_open=True)
+                                    new_serial = makerbot_pyserial.serial_for_url(port, do_not_open=True)
                                 except AttributeError:
                                     # happens when the installed pyserial is older than 2.5. use the
                                     # Serial class directly then.
-                                    new_serial = serial.Serial()
+                                    new_serial = makerbot_pyserial.Serial()
                                     new_serial.port = port
                                 # restore settings and open
                                 new_serial.applySettingsDict(settings)
@@ -379,34 +379,34 @@ class Miniterm(object):
                             self.dump_port_settings()
                         console.setup()
                     elif c == '8':                          # 8 -> change to 8 bits
-                        self.serial.bytesize = serial.EIGHTBITS
+                        self.serial.bytesize = makerbot_pyserial.EIGHTBITS
                         self.dump_port_settings()
                     elif c == '7':                          # 7 -> change to 8 bits
-                        self.serial.bytesize = serial.SEVENBITS
+                        self.serial.bytesize = makerbot_pyserial.SEVENBITS
                         self.dump_port_settings()
                     elif c in 'eE':                         # E -> change to even parity
-                        self.serial.parity = serial.PARITY_EVEN
+                        self.serial.parity = makerbot_pyserial.PARITY_EVEN
                         self.dump_port_settings()
                     elif c in 'oO':                         # O -> change to odd parity
-                        self.serial.parity = serial.PARITY_ODD
+                        self.serial.parity = makerbot_pyserial.PARITY_ODD
                         self.dump_port_settings()
                     elif c in 'mM':                         # M -> change to mark parity
-                        self.serial.parity = serial.PARITY_MARK
+                        self.serial.parity = makerbot_pyserial.PARITY_MARK
                         self.dump_port_settings()
                     elif c in 'sS':                         # S -> change to space parity
-                        self.serial.parity = serial.PARITY_SPACE
+                        self.serial.parity = makerbot_pyserial.PARITY_SPACE
                         self.dump_port_settings()
                     elif c in 'nN':                         # N -> change to no parity
-                        self.serial.parity = serial.PARITY_NONE
+                        self.serial.parity = makerbot_pyserial.PARITY_NONE
                         self.dump_port_settings()
                     elif c == '1':                          # 1 -> change to 1 stop bits
-                        self.serial.stopbits = serial.STOPBITS_ONE
+                        self.serial.stopbits = makerbot_pyserial.STOPBITS_ONE
                         self.dump_port_settings()
                     elif c == '2':                          # 2 -> change to 2 stop bits
-                        self.serial.stopbits = serial.STOPBITS_TWO
+                        self.serial.stopbits = makerbot_pyserial.STOPBITS_TWO
                         self.dump_port_settings()
                     elif c == '3':                          # 3 -> change to 1.5 stop bits
-                        self.serial.stopbits = serial.STOPBITS_ONE_POINT_FIVE
+                        self.serial.stopbits = makerbot_pyserial.STOPBITS_ONE_POINT_FIVE
                         self.dump_port_settings()
                     elif c in 'xX':                         # X -> change software flow control
                         self.serial.xonxoff = (c == 'X')

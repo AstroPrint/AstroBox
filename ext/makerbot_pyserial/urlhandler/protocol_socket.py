@@ -17,7 +17,7 @@
 # options:
 # - "debug" print diagnostic messages
 
-from serial.serialutil import *
+from makerbot_pyserial.serialutil import *
 import time
 import socket
 import logging

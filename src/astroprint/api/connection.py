@@ -31,7 +31,6 @@ def connectionState():
 def connectionCommand():
 	global printer
 
-
 	valid_commands = {
 		"connect": ["autoconnect"],
 		"save": [],

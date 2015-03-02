@@ -224,7 +224,7 @@ class Printer(object):
 		return self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
 
 	def isError(self):
-		return self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR
+		return self._state != self.STATE_CONNECTING and (self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR)
 
 	def isBusy(self):
 		return self.isPrinting() or self.isPaused()

@@ -10,6 +10,8 @@ import makerbot_driver.errors
 
 from serial import SerialException
 
+from makerbot_driver import MachineFactory
+
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.filemanager.destinations import FileDestinations
@@ -21,6 +23,8 @@ from astroprint.printer.s3g.printjob import PrintJobS3G
 class PrinterS3g(Printer):
 	driverName = 's3g'
 
+	CONNECT_MAX_RETRIES = 10
+
 	_comm = None
 	_profile = None
 	_gcodeParser = None
@@ -28,7 +32,6 @@ class PrinterS3g(Printer):
 	_baudrate = None
 	_errorValue = ''
 	_botThread = None
-	_retries = 5
 	_currentFile = None
 	_printJob = None
 	_heatingUp = False
@@ -135,20 +138,49 @@ class PrinterS3g(Printer):
 
 	def _work(self):
 		import makerbot_driver.MachineFactory
+
+		s = settings()
 		
+		retries = self.CONNECT_MAX_RETRIES
+
 		try:
-			result = makerbot_driver.MachineFactory().build_from_port(self._port)
+			while retries:
+				try:
+					result = makerbot_driver.MachineFactory().build_from_port(self._port)
 
-			self._comm = result.s3g
-			self._profile = result.profile
-			self._gcodeParser = result.gcodeparser
+					self._comm = result.s3g
+					self._profile = result.profile
+					self._gcodeParser = result.gcodeparser
 
-			self._comm.init()
-			self._changeState(self.STATE_OPERATIONAL)
-			self._toolHeadCount = self._comm.get_toolhead_count()
-			self._retries = 5
-			self._comm.display_message(0,0,"Powered by\nAstroPrint", 10, True, True, False)
+					self._comm.init()
+					self._toolHeadCount = self._comm.get_toolhead_count()
+					self._changeState(self.STATE_OPERATIONAL)
+					s.set(['serial', 'port'], self._port)
+					s.save()
+					break
 
+				except makerbot_driver.errors.TransmissionError as e:
+					if retries > 0:
+						retries -= 1
+						self._logger.info('Retrying. Retries left %d...' % retries)
+					else:
+						self._changeState(self.STATE_ERROR)
+						self._errorValue = "TransmissionError"
+						self._logger.error('Error connecting to printer %s.' % e)
+						self.disconnect()
+						return
+
+				except makerbot_driver.errors.UnknownResponseError as e:
+					if retries > 0:
+						retries -= 1
+						self._logger.info('Retrying. Retries left %d...' % retries)
+					else:
+						self._changeState(self.STATE_ERROR)
+						self._errorValue = "UnknownResponseError"
+						self._logger.error('Error connecting to printer %s.' % e)
+						self.disconnect()
+						return
+				
 			while self._comm:
 				try:
 					for i in range(0, self._toolHeadCount):
@@ -162,29 +194,6 @@ class PrinterS3g(Printer):
 				
 				time.sleep(2)
 
-		except makerbot_driver.errors.TransmissionError as e:
-			self.disconnect()
-
-			self._logger.error('Error connecting to printer %s' % e)
-			self._changeState(self.STATE_ERROR)
-			self._errorValue = "TransmissionError"
-
-			if self._retries > 0:
-				self._retries -= 1
-				self._logger.info('Retrying...')
-				self.connect(self._port)
-
-		except makerbot_driver.errors.UnknownResponseError as e:
-			self.disconnect()
-
-			self._changeState(self.STATE_ERROR)
-			self._errorValue = "UnknownResponseError"
-			self._logger.error('Error connecting to printer %s.' % e)
-			if self._retries > 0:
-				self._retries -= 1
-				self._logger.info('Retrying...')
-				self.connect(self._port)
-
 		except SerialException as e:
 			self._logger.error(e)
 			self._errorValue = "Serial Link failed"
@@ -195,18 +204,28 @@ class PrinterS3g(Printer):
 	# ~~~ Printer API ~~~~~
 
 	def connect(self, port= None, baudrate = None):
+		self._changeState(self.STATE_CONNECTING)
+
 		if port is None:
 			port = settings().get(["serial", "port"])
 
 		self.disconnect()
-		self._changeState(self.STATE_CONNECTING)
 		self._errorValue = ''
 		self._port = port
 		self._baudrate = baudrate
 
-		self._botThread = threading.Thread(target=self._work)
-		self._botThread.daemon = True
-		self._botThread.start()
+		ports = self.serialList()
+
+		if self._port in ports:
+			self._botThread = threading.Thread(target=self._work)
+			self._botThread.daemon = True
+			self._botThread.start()
+
+		else:
+			self._changeState(self.STATE_ERROR)
+			self._errorValue = "No compatible machine detected in %s" % self._port
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+			self._logger.warn(self._errorValue)
 
 	def isConnected(self):
 		return self._comm and self._comm.is_open()
@@ -337,7 +356,7 @@ class PrinterS3g(Printer):
 		if not pause and self.isPaused():
 			self._changeState(self.STATE_PRINTING)
 
-			self._comm.reset()
+			self._comm.pause()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
 				"file": self._currentFile['filanema'],

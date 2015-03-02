@@ -20,7 +20,8 @@ class StreamWriter(AbstractWriter):
         @param string file File object to interact with
         """
         super(StreamWriter, self).__init__(file, condition)
-        self._log = logging.getLogger(self.__class__.__name__)
+        #self._log = logging.getLogger(self.__class__.__name__)
+        self._log = logging.getLogger('SERIAL')
         self._log.debug('{"event":"begin_writing_to_stream", "stream":%s}',
                        str(self.file))
         self.total_retries = 0
@@ -111,7 +112,8 @@ class StreamWriter(AbstractWriter):
 
                 self.total_overflows += 1
                 overflow_count += 1
-                raise e
+                self._condition.wait(.2)
+                #raise e
 
             except makerbot_driver.RetryableError as e:
                 # Sent a packet to the host, but got a malformed response or timed out waiting

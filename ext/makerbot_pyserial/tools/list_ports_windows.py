@@ -10,7 +10,7 @@ def ValidHandle(value, func, arguments):
         raise ctypes.WinError()
     return value
 
-import serial
+import makerbot_pyserial
 from serial.win32 import ULONG_PTR, is_64bit
 from ctypes.wintypes import HANDLE
 from ctypes.wintypes import BOOL
@@ -139,7 +139,7 @@ KEY_READ = 0x20019
 REG_SZ = 1
 
 # workaround for compatibility between Python 2.x and 3.x
-PortName = serial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
+PortName = makerbot_pyserial.to_bytes([80, 111, 114, 116, 78, 97, 109, 101]) # "PortName"
 
 def comports():
     """This generator scans the device registry for com ports and yields port, desc, hwid"""

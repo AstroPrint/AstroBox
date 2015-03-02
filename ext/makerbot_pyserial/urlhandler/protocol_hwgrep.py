@@ -11,30 +11,30 @@
 #
 # URL format:    hwgrep://regexp
 
-import serial
-import serial.tools.list_ports
+import makerbot_pyserial
+import makerbot_pyserial.tools.list_ports
 
-class Serial(serial.Serial):
+class Serial(makerbot_pyserial.Serial):
     """Just inherit the native Serial port implementation and patch the open function."""
 
     def setPort(self, value):
         """translate port name before storing it"""
         if isinstance(value, basestring) and value.startswith('hwgrep://'):
-            serial.Serial.setPort(self, self.fromURL(value))
+            makerbot_pyserial.Serial.setPort(self, self.fromURL(value))
         else:
-            serial.Serial.setPort(self, value)
+            makerbot_pyserial.Serial.setPort(self, value)
 
     def fromURL(self, url):
         """extract host and port from an URL string"""
         if url.lower().startswith("hwgrep://"): url = url[9:]
         # use a for loop to get the 1st element from the generator
-        for port, desc, hwid in serial.tools.list_ports.grep(url):
+        for port, desc, hwid in makerbot_pyserial.tools.list_ports.grep(url):
             return port
         else:
-            raise serial.SerialException('no ports found matching regexp %r' % (url,))
+            raise makerbot_pyserial.SerialException('no ports found matching regexp %r' % (url,))
 
     # override property
-    port = property(serial.Serial.getPort, setPort, doc="Port setting")
+    port = property(makerbot_pyserial.Serial.getPort, setPort, doc="Port setting")
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 if __name__ == '__main__':

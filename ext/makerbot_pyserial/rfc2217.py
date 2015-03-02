@@ -59,7 +59,7 @@
 #   RFC).
 # the order of the options is not relevant
 
-from serial.serialutil import *
+from makerbot_pyserial.serialutil import *
 import time
 import struct
 import socket
