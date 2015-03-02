@@ -193,6 +193,9 @@ class PrinterS3g(Printer):
 				except makerbot_driver.errors.BufferOverflowError:
 					pass
 
+				except SerialException as e:
+					raise e
+
 				except:
 					self._logger.warn(getExceptionString())
 				
