@@ -246,6 +246,7 @@ class AstroprintBoxRouter(object):
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
 
+		self._logger.info('This box has id %s' % self.boxId)
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
