@@ -24,6 +24,7 @@ class PrinterS3g(Printer):
 	driverName = 's3g'
 
 	CONNECT_MAX_RETRIES = 10
+	UPDATE_INTERVAL = 3 #secs
 
 	_comm = None
 	_profile = None
@@ -191,8 +192,11 @@ class PrinterS3g(Printer):
 
 				except makerbot_driver.errors.BufferOverflowError:
 					pass
+
+				except:
+					self._logger.warn(getExceptionString())
 				
-				time.sleep(2)
+				time.sleep(self.UPDATE_INTERVAL)
 
 		except SerialException as e:
 			self._logger.error(e)
@@ -359,7 +363,7 @@ class PrinterS3g(Printer):
 			self._comm.pause()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
-				"file": self._currentFile['filanema'],
+				"file": self._currentFile['filaneme'],
 				"filename": os.path.basename(self._currentFile['filename']),
 				"origin": self._currentFile['origin']
 			})
@@ -370,7 +374,7 @@ class PrinterS3g(Printer):
 			self._comm.pause()
 
 			eventManager().fire(Events.PRINT_PAUSED, {
-				"file": self._currentFile['filanema'],
+				"file": self._currentFile['filename'],
 				"filename": os.path.basename(self._currentFile['filename']),
 				"origin": self._currentFile['origin']
 			})
@@ -464,6 +468,7 @@ class PrinterS3g(Printer):
 			return
 
 		self._printJob.cancel()
+		self._comm.abort_immediately()
 
 	# ~~~ Internal Callbacks ~~~~
 

@@ -112,7 +112,7 @@ class StreamWriter(AbstractWriter):
 
                 self.total_overflows += 1
                 overflow_count += 1
-                self._condition.wait(.2)
+                time.sleep(.2)
                 #raise e
 
             except makerbot_driver.RetryableError as e:

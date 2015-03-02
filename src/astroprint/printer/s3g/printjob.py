@@ -13,7 +13,7 @@ from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString
 
 from makerbot_driver import BufferOverflowError, GcodeAssembler
-from makerbot_driver.errors import BuildCancelledError
+from makerbot_driver.errors import BuildCancelledError, ProtocolError
 from makerbot_driver.Gcode import GcodeParser
 from makerbot_driver.Gcode.errors import UnrecognizedCommandError
 
@@ -23,6 +23,7 @@ class PrintJobS3G(threading.Thread):
 	def __init__(self, printer, currentFile):
 		super(PrintJobS3G, self).__init__()
 
+		self._logger = logging.getLogger(__name__)
 		self._printer = printer
 		self._file = currentFile
 		self._parser = None
@@ -43,11 +44,11 @@ class PrintJobS3G(threading.Thread):
 				time.sleep(.2)
 
 			except UnrecognizedCommandError as e:
-				logging.warn(e)
+				self._logger.warn(e)
 				break
 
 			except BuildCancelledError:
-				logging.warn("print job cancelled by bot")
+				self._logger.warn("print job cancelled by bot")
 				self._canceled = True
 				break
 
@@ -90,41 +91,41 @@ class PrintJobS3G(threading.Thread):
 
 			with open(self._file['filename'], 'r') as f:
 				while True:
-					line = f.readline()
+					try:
+						line = f.readline()
 
-					if self._canceled:
-						break
+						if self._canceled:
+							break
 
-					if not line:
-						break
+						if not line:
+							break
 
-					line = self._preprocessGcode(line)
-					if line is not None:
-						self.exec_line(line)
+						line = self._preprocessGcode(line)
+						if line is not None:
+							self.exec_line(line)
 
-						now = time.time()
-						if now - lastProgressReport > self.UPDATE_INTERVAL_SECS:
-							position = f.tell()
-							self._file['position'] = position
-							self._file['progress'] = float(position) / float(self._file['size'])
-							self._printer.mcProgress()
+							now = time.time()
+							if now - lastProgressReport > self.UPDATE_INTERVAL_SECS:
+								position = f.tell()
+								self._file['position'] = position
+								self._file['progress'] = float(position) / float(self._file['size'])
+								self._printer.mcProgress()
 
-							printerProgress = int(self._file['progress'] * 100.0)
+								printerProgress = int(self._file['progress'] * 100.0)
 
-							if lastProgressValueSentToPrinter != printerProgress:
-								try:
-									self._parser.s3g.set_build_percent(printerProgress)
-									lastProgressValueSentToPrinter = printerProgress
+								if lastProgressValueSentToPrinter != printerProgress:
+									try:
+										self._parser.s3g.set_build_percent(printerProgress)
+										lastProgressValueSentToPrinter = printerProgress
 
-								except BufferOverflowError:
-									time.sleep(.2)
+									except BufferOverflowError:
+										time.sleep(.2)
 
-							lastProgressReport = now
+								lastProgressReport = now
 
-						if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
-							lastHeatingCheck = now
+							if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
+								lastHeatingCheck = now
 
-							try:
 								if  	( not self._heatingPlatform or ( self._heatingPlatform and self._parser.s3g.is_platform_ready(0) ) )  \
 									and ( not self._heatingTool or ( self._heatingTool and self._parser.s3g.is_tool_ready(0) ) ):
 								 
@@ -136,8 +137,8 @@ class PrintJobS3G(threading.Thread):
 									self._heatupWaitStartTime = now
 									self._file['start_time'] += self._heatupWaitTimeLost
 
-							except BufferOverflowError:
-								time.sleep(.2)
+					except ProtocolError:
+						self._logger.warn('ProtocolError')
 
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
@@ -161,10 +162,11 @@ class PrintJobS3G(threading.Thread):
 				if line is not None:
 					self.exec_line(line)
 
-		except:
+		except Exception:
 			self._errorValue = getExceptionString()
 			self._printer._changeState(self._printer.STATE_ERROR)
 			eventManager().fire(Events.ERROR, {"error": self._errorValue })
+			self._logger.error(self._errorValue)
 
 	# ~~~ GCODE handlers
 
