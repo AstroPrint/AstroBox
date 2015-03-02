@@ -54,7 +54,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
             			print_file.set('local_filename', false);
             		}
 
-	            	noty({text: filename+" deleted form your "+PRODUCT_NAME, type:"success", timeout: 3000});
+	            	noty({text: filename+" deleted from your "+PRODUCT_NAME, type:"success", timeout: 3000});
 	            	this.print_file_view.render();
 	            	this.$el.foundation('reveal', 'close');
 	            }, this),
