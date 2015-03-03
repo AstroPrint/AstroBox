@@ -185,7 +185,7 @@ class PrinterS3g(Printer):
 							self._logger.info('UnknownResponseError - Retrying. Retries left %d...' % retries)
 							time.sleep(.2)
 
-					except makerbot_driver.error.BuildCancelledError:
+					except makerbot_driver.errors.BuildCancelledError:
 						self._logger.info("Build cancelled detected. No problem")
 				
 
