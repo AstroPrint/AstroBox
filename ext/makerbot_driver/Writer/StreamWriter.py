@@ -76,6 +76,8 @@ class StreamWriter(AbstractWriter):
                 self.file.write(packet)
                 self.file.flush()
 
+            self._log.info('{"event":"packet_sent", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in packet) )
+
             # Timeout if a response is not received within 1 second.
             start_time = time.time()
 
@@ -96,6 +98,7 @@ class StreamWriter(AbstractWriter):
                         data = ord(data)
                         decoder.parse_byte(data)
 
+                    self._log.info('{"event":"response_received", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in decoder.payload) )
                     makerbot_driver.Encoder.check_response_code(decoder.payload[0])
                     if self.external_stop:
                         self._log.error('{"event":"external_stop"}')
