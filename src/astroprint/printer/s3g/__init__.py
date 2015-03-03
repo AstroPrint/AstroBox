@@ -36,11 +36,11 @@ class PrinterS3g(Printer):
 	_currentFile = None
 	_printJob = None
 	_heatingUp = False
-
-	_toolHeadCount = None
+	_firmwareVersion = None
 
 	def __init__(self, fileManager):
 		self._logger = logging.getLogger(__name__)
+		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__(fileManager)
 
 	def __del__(self):
@@ -145,61 +145,92 @@ class PrinterS3g(Printer):
 		retries = self.CONNECT_MAX_RETRIES
 
 		try:
-			while retries:
-				try:
-					result = makerbot_driver.MachineFactory().build_from_port(self._port)
+			while True:
+				if self.isConnected():
+					self._comm.close()
 
-					self._comm = result.s3g
-					self._profile = result.profile
-					self._gcodeParser = result.gcodeparser
+				if retries < 0:
+					self._changeState(self.STATE_ERROR)
+					self._errorValue = "Error Connecting"
+					self._logger.error('Error connecting to printer.')
+					self._comm = None
+					break;
 
-					self._comm.init()
-					self._toolHeadCount = self._comm.get_toolhead_count()
-					self._changeState(self.STATE_OPERATIONAL)
-					s.set(['serial', 'port'], self._port)
-					s.save()
-					break
+				else:
+					try:
+						result = makerbot_driver.MachineFactory().build_from_port(self._port, condition= self._state_condition)
 
-				except makerbot_driver.errors.TransmissionError as e:
-					if retries > 0:
+						self._comm = result.s3g
+						self._profile = result.profile
+						self._gcodeParser = result.gcodeparser
+
+						version_info = self._comm.get_advanced_version()
+						self._firmwareVersion = version_info['Version']
+						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
+
+						self._changeState(self.STATE_OPERATIONAL)
+						s.set(['serial', 'port'], self._port)
+						s.save()
+						break
+
+					except makerbot_driver.errors.TransmissionError as e:
 						retries -= 1
-						self._logger.info('Retrying. Retries left %d...' % retries)
-					else:
-						self._changeState(self.STATE_ERROR)
-						self._errorValue = "TransmissionError"
-						self._logger.error('Error connecting to printer %s.' % e)
-						self.disconnect()
-						return
+						if retries > 0:
+							self._logger.info('TransmissionError - Retrying. Retries left %d...' % retries)
+							time.sleep(.2)
 
-				except makerbot_driver.errors.UnknownResponseError as e:
-					if retries > 0:
+					except makerbot_driver.errors.UnknownResponseError as e:
 						retries -= 1
-						self._logger.info('Retrying. Retries left %d...' % retries)
-					else:
-						self._changeState(self.STATE_ERROR)
-						self._errorValue = "UnknownResponseError"
-						self._logger.error('Error connecting to printer %s.' % e)
+						if retries > 0:
+							self._logger.info('UnknownResponseError - Retrying. Retries left %d...' % retries)
+							time.sleep(.2)
+
+					except makerbot_driver.error.BuildCancelledError:
+						self._logger.info("Build cancelled detected. No problem")
+				
+
+			if retries >=0:
+				toolHeadCount = len(self._profile.values['tools'])
+
+				while self._comm:
+					try:
+						for i in range(0, toolHeadCount):
+							self._temp[i] = (self._comm.get_toolhead_temperature(i), self._comm.get_toolhead_target_temperature(i))
+
+						self._bedTemp = (self._comm.get_platform_temperature(0), self._comm.get_platform_target_temperature(0))
+						self.mcTempUpdate(self._temp, self._bedTemp)
+
+					except makerbot_driver.BufferOverflowError:
+						pass
+
+					except makerbot_driver.TransmissionError:
+						self._logger.error('Unfortunatelly an unrecoverable error occurred between the printer and the box')
 						self.disconnect()
-						return
-				
-			while self._comm:
-				try:
-					for i in range(0, self._toolHeadCount):
-						self._temp[i] = (self._comm.get_toolhead_temperature(i), self._comm.get_toolhead_target_temperature(i))
+						break
 
-					self._bedTemp = (self._comm.get_platform_temperature(0), self._comm.get_platform_target_temperature(0))
-					self.mcTempUpdate(self._temp, self._bedTemp)
+					except makerbot_driver.BuildCancelledError:
+						self._logger.warn('Build cancelled detected.')
+						if self._printJob:
+							self._logger.warn('Cancelling current job.')
+							self._printJob.cancel()
 
-				except makerbot_driver.errors.BufferOverflowError:
-					pass
+					except makerbot_driver.ProtocolError:
+						# It has been observed that sometimes the response comes back empty but
+						# in a valid package. This was in a Flash Forge running Sailfish 7.7
+						self._logger.warn('Badly formatted response. skipping...')
 
-				except SerialException as e:
-					raise e
+					except SerialException as e:
+						raise e
 
-				except:
-					self._logger.warn(getExceptionString())
-				
-				time.sleep(self.UPDATE_INTERVAL)
+					except Exception as e:
+						# we shouldn't kill the thread as this is only an informational
+						# thread
+						import traceback
+
+						print traceback.format_exc()
+						self._logger.warn(getExceptionString())
+					
+					time.sleep(self.UPDATE_INTERVAL)
 
 		except SerialException as e:
 			self._logger.error(e)
@@ -211,40 +242,45 @@ class PrinterS3g(Printer):
 	# ~~~ Printer API ~~~~~
 
 	def connect(self, port= None, baudrate = None):
-		self._changeState(self.STATE_CONNECTING)
+		with self._state_condition:
+			self._changeState(self.STATE_CONNECTING)
 
-		if port is None:
-			port = settings().get(["serial", "port"])
+			if port is None:
+				port = settings().get(["serial", "port"])
 
-		self.disconnect()
-		self._errorValue = ''
-		self._port = port
-		self._baudrate = baudrate
+			self._errorValue = ''
+			self._port = port
+			self._baudrate = baudrate
 
-		ports = self.serialList()
+			ports = self.serialList()
 
-		if self._port in ports:
-			self._botThread = threading.Thread(target=self._work)
-			self._botThread.daemon = True
-			self._botThread.start()
+			if self._port in ports:
+				self._botThread = threading.Thread(target=self._work)
+				self._botThread.daemon = True
+				self._botThread.start()
 
-		else:
-			self._changeState(self.STATE_ERROR)
-			self._errorValue = "No compatible machine detected in %s" % self._port
-			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-			self._logger.warn(self._errorValue)
+			else:
+				self._changeState(self.STATE_ERROR)
+				self._errorValue = "No compatible machine detected in %s" % self._port
+				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+				self._logger.warn(self._errorValue)
 
 	def isConnected(self):
 		return self._comm and self._comm.is_open()
 
 	def disconnect(self):
-		if self.isConnected():
-			self._comm.close()
+		with self._state_condition:
+			if self._printJob:
+				self._printJob.cancel()
+
+			if self.isConnected():
+				self._comm.close()
+
 			self._comm = None
 			self._profile = None
 			self._gcodeParser = None
 			self._botThread = None
-			self._toolHeadCount = None
+			self._firmwareVersion = None
 			self._changeState(self.STATE_CLOSED)
 			eventManager().fire(Events.DISCONNECTED)
 
@@ -267,86 +303,92 @@ class PrinterS3g(Printer):
 
 	def home(self, axes):
 		if self._comm:
-			maximums = []
-			minumums = []
+			with self._state_condition:
+				maximums = []
+				minumums = []
 
-			if 'x' in axes:
-				maximums.append('X')
+				if 'x' in axes:
+					maximums.append('X')
 
-			if 'y' in axes:
-				maximums.append('Y')
+				if 'y' in axes:
+					maximums.append('Y')
 
-			if 'z' in axes:
-				minumums.append('Z')
+				if 'z' in axes:
+					minumums.append('Z')
 
-			if maximums:
-				self._comm.find_axes_maximums(maximums, 200, 60)
+				if maximums:
+					self._comm.find_axes_maximums(maximums, 200, 60)
 
-			if minumums:
-				self._comm.find_axes_minimums(minumums, 200, 60)
+				if minumums:
+					self._comm.find_axes_minimums(minumums, 200, 60)
 
 	def jog(self, axis, amount):
-		if self._comm and axis in ['x','y','z']:
-			position, endstops = self._comm.get_extended_position()
+		with self._state_condition:
+			with self._state_condition:
+				if self._comm and axis in ['x','y','z']:
+					position, endstops = self._comm.get_extended_position()
 
-			amount = float(amount)
+					amount = float(amount)
 
-			if axis == 'x':
-				steps = int ( amount * self._profile.values['axes']['X']['steps_per_mm'] )
-				position[0] += steps
+					if axis == 'x':
+						steps = int ( amount * self._profile.values['axes']['X']['steps_per_mm'] )
+						position[0] += steps
 
-			if axis == 'y':
-				steps = int ( amount * self._profile.values['axes']['Y']['steps_per_mm'] )
-				position[1] += steps
+					if axis == 'y':
+						steps = int ( amount * self._profile.values['axes']['Y']['steps_per_mm'] )
+						position[1] += steps
 
-			if axis == 'z':
-				steps = int ( amount * self._profile.values['axes']['Z']['steps_per_mm'] )
-				position[2] += steps
+					if axis == 'z':
+						steps = int ( amount * self._profile.values['axes']['Z']['steps_per_mm'] )
+						position[2] += steps
 
-			self._comm.queue_extended_point_classic(position, 500)
+					self._comm.queue_extended_point_classic(position, 500)
 
 	def fan(self, tool, speed):
 		if self._comm:
-			self._comm.toggle_fan(tool, speed > 0)
+			with self._state_condition:
+				self._comm.toggle_fan(tool, speed > 0)
 
 	def extrude(self, tool, amount, speed=None):
 		if self._comm:
-			amount = float(amount)
+			with self._state_condition:
+				amount = float(amount)
 
-			position, endstops = self._comm.get_extended_position()
+				position, endstops = self._comm.get_extended_position()
 
-			if tool is None:
-				tool = 0
+				if tool is None:
+					tool = 0
 
-			#find out what axis is this:
-			axis = self._profile.values['tools'][str(tool)]['stepper_axis']
-			steps = int ( amount * self._profile.values['axes'][axis]['steps_per_mm'] )
-			if axis == 'A':
-				position[3] += steps
-			elif axis == 'B':
-				position[4] += steps
+				#find out what axis is this:
+				axis = self._profile.values['tools'][str(tool)]['stepper_axis']
+				steps = int ( amount * self._profile.values['axes'][axis]['steps_per_mm'] )
+				if axis == 'A':
+					position[3] += steps
+				elif axis == 'B':
+					position[4] += steps
 
-			self._comm.queue_extended_point_classic(position, 3000)
+				self._comm.queue_extended_point_classic(position, 3000)
 
 	def setTemperature(self, type, value):
 		if self._comm:
-			try:
-				if type.startswith("tool"):
-					value = min(value, self._profileManager.data.get('max_nozzle_temp'))
-					if settings().getInt(["printerParameters", "numExtruders"]) > 1:
-						try:
-							toolNum = int(type[len("tool"):])
-							self._comm.set_toolhead_temperature(toolNum, value)
-						except ValueError:
-							pass
-					else:
-						self._comm.set_toolhead_temperature(0, value)
+			with self._state_condition:
+				try:
+					if type.startswith("tool"):
+						value = min(value, self._profileManager.data.get('max_nozzle_temp'))
+						if settings().getInt(["printerParameters", "numExtruders"]) > 1:
+							try:
+								toolNum = int(type[len("tool"):])
+								self._comm.set_toolhead_temperature(toolNum, value)
+							except ValueError:
+								pass
+						else:
+							self._comm.set_toolhead_temperature(0, value)
 
-				elif type == "bed":
-					self._comm.set_platform_temperature(0, min(value, self._profileManager.data.get('max_bed_temp')))
+					elif type == "bed":
+						self._comm.set_platform_temperature(0, min(value, self._profileManager.data.get('max_bed_temp')))
 
-			except makerbot_driver.errors.BufferOverflowError:
-				time.sleep(.2)
+				except makerbot_driver.errors.BufferOverflowError:
+					self._state_condition.wait(.2)
 
 
 	def isStreaming(self):
@@ -360,27 +402,28 @@ class PrinterS3g(Printer):
 		if self.isStreaming():
 			return
 
-		if not pause and self.isPaused():
-			self._changeState(self.STATE_PRINTING)
+		with self._state_condition:
+			if not pause and self.isPaused():
+				self._changeState(self.STATE_PRINTING)
 
-			self._comm.pause()
+				self._comm.pause()
 
-			eventManager().fire(Events.PRINT_RESUMED, {
-				"file": self._currentFile['filaneme'],
-				"filename": os.path.basename(self._currentFile['filename']),
-				"origin": self._currentFile['origin']
-			})
+				eventManager().fire(Events.PRINT_RESUMED, {
+					"file": self._currentFile['filaname'],
+					"filename": os.path.basename(self._currentFile['filename']),
+					"origin": self._currentFile['origin']
+				})
 
-		elif pause and self.isPrinting():
-			self._changeState(self.STATE_PAUSED)
+			elif pause and self.isPrinting():
+				self._changeState(self.STATE_PAUSED)
 
-			self._comm.pause()
+				self._comm.pause()
 
-			eventManager().fire(Events.PRINT_PAUSED, {
-				"file": self._currentFile['filename'],
-				"filename": os.path.basename(self._currentFile['filename']),
-				"origin": self._currentFile['origin']
-			})
+				eventManager().fire(Events.PRINT_PAUSED, {
+					"file": self._currentFile['filename'],
+					"filename": os.path.basename(self._currentFile['filename']),
+					"origin": self._currentFile['origin']
+				})
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):

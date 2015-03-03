@@ -8,12 +8,11 @@ import os
 import time
 import re
 
-
 from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString
 
-from makerbot_driver import BufferOverflowError, GcodeAssembler
-from makerbot_driver.errors import BuildCancelledError, ProtocolError
+from makerbot_driver import GcodeAssembler
+from makerbot_driver.errors import BuildCancelledError, ProtocolError, ExternalStopError, PacketTooBigError, BufferOverflowError
 from makerbot_driver.Gcode import GcodeParser
 from makerbot_driver.Gcode.errors import UnrecognizedCommandError
 
@@ -35,22 +34,25 @@ class PrintJobS3G(threading.Thread):
 		self._regex_command = re.compile("^\s*([GM]\d+|T)")
 
 	def exec_line(self, line):
-		while True:
-			try:
-				self._parser.execute_line(line)
-				break
+		line = str(line).strip() # NOTE: s3g can't handle unicode.
+		self._logger.debug('G-CODE: %s', line)
+		line = self._preprocessGcode(line)
 
-			except BufferOverflowError as e:
-				time.sleep(.2)
+		if not line:
+			return False
 
-			except UnrecognizedCommandError as e:
-				self._logger.warn(e)
-				break
+		with self._printer._state_condition:
+			while True:
+				try:
+					self._parser.execute_line(line)
+					return True
 
-			except BuildCancelledError:
-				self._logger.warn("print job cancelled by bot")
-				self._canceled = True
-				break
+				except BufferOverflowError:
+					self._printer._state_condition.wait(.2)
+
+				except PacketTooBigError:
+					self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+					return False
 
 	def cancel(self):
 		self._canceled = True
@@ -72,15 +74,21 @@ class PrintJobS3G(threading.Thread):
 			
 			self._parser = GcodeParser()
 			self._parser.environment.update(variables)
-			self._parser.state.values["build_name"] = os.path.basename(self._file['filename'])[:15]
-			self._parser.state.profile = self._printer._profile
+			self._parser.state.set_build_name(os.path.basename(self._file['filename'])[:15])
+			self._parser.state.profile = profile
 			self._parser.s3g = self._printer._comm
 
-			for line in start_gcode:
-				line = self._preprocessGcode(line)
+			self._parser.state.values['last_extra_index'] = 0
+			self._parser.state.values['last_platform_index'] = 0
 
-				if line is not None:
-					self.exec_line(line)
+			if self._printer._firmwareVersion >= 700:
+				vid, pid = self._printer._comm.get_vid_pid_iface()
+				self._parser.s3g.x3g_version(1, 0, pid=pid) # Currently hardcode x3g v1.0
+
+			self._printer._comm.reset()
+
+			for line in start_gcode:
+				self.exec_line(line)
 
 			self._file['start_time'] = time.time()
 			self._file['progress'] = 0
@@ -94,15 +102,10 @@ class PrintJobS3G(threading.Thread):
 					try:
 						line = f.readline()
 
-						if self._canceled:
+						if self._canceled or not line:
 							break
 
-						if not line:
-							break
-
-						line = self._preprocessGcode(line)
-						if line is not None:
-							self.exec_line(line)
+						if self.exec_line(line):
 
 							now = time.time()
 							if now - lastProgressReport > self.UPDATE_INTERVAL_SECS:
@@ -114,14 +117,14 @@ class PrintJobS3G(threading.Thread):
 								printerProgress = int(self._file['progress'] * 100.0)
 
 								if lastProgressValueSentToPrinter != printerProgress:
-									try:
-										self._parser.s3g.set_build_percent(printerProgress)
-										lastProgressValueSentToPrinter = printerProgress
+									with self._printer._state_condition:
+										try:
+											self._parser.s3g.set_build_percent(printerProgress)
+											lastProgressValueSentToPrinter = printerProgress
+											lastProgressReport = now
 
-									except BufferOverflowError:
-										time.sleep(.2)
-
-								lastProgressReport = now
+										except BufferOverflowError:
+											self._printer._state_condition.wait(.2)
 
 							if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
 								lastHeatingCheck = now
@@ -137,8 +140,8 @@ class PrintJobS3G(threading.Thread):
 									self._heatupWaitStartTime = now
 									self._file['start_time'] += self._heatupWaitTimeLost
 
-					except ProtocolError:
-						self._logger.warn('ProtocolError')
+					except ProtocolError as e:
+						self._logger.warn('ProtocolError: %s' % e)
 
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
@@ -157,10 +160,20 @@ class PrintJobS3G(threading.Thread):
 				eventManager().fire(Events.PRINT_DONE, payload)
 
 			for line in end_gcode:
-				line = self._preprocessGcode(line)
+				self.exec_line(line)
 
-				if line is not None:
-					self.exec_line(line)
+		except BuildCancelledError:
+			self._logger.warn('Build Cancel detected')
+			self.cancel()
+			self._printer.printJobCancelled()
+			eventManager().fire(Events.PRINT_FAILED, payload)
+
+		except ExternalStopError:
+			self._logger.warn('External Stop detected')
+			self.cancel()
+			self._printer._comm.writer.set_external_stop(False)
+			self._printer.printJobCancelled()
+			eventManager().fire(Events.PRINT_FAILED, payload)
 
 		except Exception:
 			self._errorValue = getExceptionString()
@@ -202,5 +215,14 @@ class PrintJobS3G(threading.Thread):
 	def _handleGcode_G21(self, cmd):
 		return None
 
+	def _handleGcode_G28(self, cmd):
+		return None
+
 	def _handleGcode_M106(self, cmd):
+		return None
+
+	def _handleGcode_M103(self, cmd):
+		return None
+
+	def _handleGcode_M101(self, cmd):
 		return None

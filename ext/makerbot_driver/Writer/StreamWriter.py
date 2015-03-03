@@ -112,8 +112,7 @@ class StreamWriter(AbstractWriter):
 
                 self.total_overflows += 1
                 overflow_count += 1
-                time.sleep(.2)
-                #raise e
+                raise e
 
             except makerbot_driver.RetryableError as e:
                 # Sent a packet to the host, but got a malformed response or timed out waiting

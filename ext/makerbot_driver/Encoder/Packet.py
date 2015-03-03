@@ -59,6 +59,12 @@ def check_response_code(response_code):
     elif response_code == makerbot_driver.constants.response_code_dict['ACTION_BUFFER_OVERFLOW']:
         raise makerbot_driver.errors.BufferOverflowError()
 
+    elif response_code == makerbot_driver.constants.response_code_dict['PACKET_TIMEOUT']:
+        raise makerbot_driver.errors.PacketTimeoutError()
+
+    elif response_code == makerbot_driver.constants.response_code_dict['PACKET_TOO_BIG']:
+        raise makerbot_driver.errors.PacketTooBigError()
+
     elif response_code == makerbot_driver.constants.response_code_dict['CRC_MISMATCH']:
         raise makerbot_driver.errors.CRCMismatchError()
 

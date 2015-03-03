@@ -58,6 +58,11 @@ class CRCMismatchError(RetryableError):
     Signifies a bad crc code was received by the machine
     """
 
+class PacketTimeoutError(RetryableError):
+    """
+    Packet timeout error, packet discarded
+    """
+
 
 class TimeoutError(RetryableError):
     """
@@ -75,6 +80,11 @@ class TimeoutError(RetryableError):
 class BufferOverflowError(Exception):
     """
     Signifies a reported overflow of the buffer from the bot
+    """
+
+class PacketTooBigError(Exception):
+    """
+    Action buffer overflow, entire packet discarded
     """
 
 
