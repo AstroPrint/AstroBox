@@ -96,6 +96,7 @@ class StreamWriter(AbstractWriter):
                             data = self.file.read(1)
 
                         data = ord(data)
+                        self._log.info("byte read: 0x%x" % data)
                         decoder.parse_byte(data)
 
                     self._log.info('{"event":"response_received", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in decoder.payload) )
@@ -126,6 +127,9 @@ class StreamWriter(AbstractWriter):
                 self.total_retries += 1
                 retry_count += 1
                 received_errors.append(e.__class__.__name__)
+
+                #flush the input buffer
+                self.file.flushInput()
 
             except Exception as e:
                 # Other exceptions are propigated upwards.
