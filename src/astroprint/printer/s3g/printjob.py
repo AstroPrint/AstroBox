@@ -41,18 +41,18 @@ class PrintJobS3G(threading.Thread):
 		if not line:
 			return False
 
-		with self._printer._state_condition:
-			while True:
-				try:
-					self._parser.execute_line(line)
-					return True
+		while True:
+			try:
+				self._parser.execute_line(line)
+				return True
 
-				except BufferOverflowError:
-					self._printer._state_condition.wait(.2)
+			except BufferOverflowError:
+				time.sleep(.2)
+				#self._printer._state_condition.wait(.2)
 
-				except PacketTooBigError:
-					self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
-					return False
+			except PacketTooBigError:
+				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+				return False
 
 	def cancel(self):
 		self._canceled = True
@@ -117,14 +117,14 @@ class PrintJobS3G(threading.Thread):
 								printerProgress = int(self._file['progress'] * 100.0)
 
 								if lastProgressValueSentToPrinter != printerProgress:
-									with self._printer._state_condition:
-										try:
-											self._parser.s3g.set_build_percent(printerProgress)
-											lastProgressValueSentToPrinter = printerProgress
-											lastProgressReport = now
+									try:
+										self._parser.s3g.set_build_percent(printerProgress)
+										lastProgressValueSentToPrinter = printerProgress
+										lastProgressReport = now
 
-										except BufferOverflowError:
-											self._printer._state_condition.wait(.2)
+									except BufferOverflowError:
+										time.sleep(.2)
+										#self._printer._state_condition.wait(.2)
 
 							if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
 								lastHeatingCheck = now
@@ -225,4 +225,7 @@ class PrintJobS3G(threading.Thread):
 		return None
 
 	def _handleGcode_M101(self, cmd):
+		return None
+
+	def _handleGcode_M107(self, cmd):
 		return None

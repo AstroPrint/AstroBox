@@ -202,7 +202,7 @@ class PrinterS3g(Printer):
 
 					except makerbot_driver.BufferOverflowError:
 						pass
-
+						
 					except makerbot_driver.TransmissionError:
 						self._logger.error('Unfortunatelly an unrecoverable error occurred between the printer and the box')
 						self.disconnect()

@@ -67,22 +67,23 @@ class StreamWriter(AbstractWriter):
         overflow_count = 0
         retry_count = 0
         received_errors = []
-        while True:
-            if self.external_stop:
-                self._log.error('{"event":"external_stop"}')
-                raise makerbot_driver.ExternalStopError
-            decoder = makerbot_driver.Encoder.PacketStreamDecoder()
-            with self._condition:
+        with self._condition:
+
+            while True:
+                if self.external_stop:
+                    self._log.error('{"event":"external_stop"}')
+                    raise makerbot_driver.ExternalStopError
+                decoder = makerbot_driver.Encoder.PacketStreamDecoder()
+                #with self._condition:
                 self.file.write(packet)
                 self.file.flush()
 
-            self._log.info('{"event":"packet_sent", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in packet) )
+                #self._log.info('{"event":"packet_sent", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in packet) )
 
-            # Timeout if a response is not received within 1 second.
-            start_time = time.time()
+                # Timeout if a response is not received within 1 second.
+                start_time = time.time()
 
-            try:
-                with self._condition:
+                try:
                     while (decoder.state != 'PAYLOAD_READY'):
                         # Try to read a byte
                         data = ''
@@ -96,47 +97,47 @@ class StreamWriter(AbstractWriter):
                             data = self.file.read(1)
 
                         data = ord(data)
-                        self._log.info("byte read: 0x%x" % data)
+                        #self._log.info("byte read: 0x%x" % data)
                         decoder.parse_byte(data)
 
-                    self._log.info('{"event":"response_received", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in decoder.payload) )
+                    #self._log.info('{"event":"response_received", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in decoder.payload) )
                     makerbot_driver.Encoder.check_response_code(decoder.payload[0])
                     if self.external_stop:
                         self._log.error('{"event":"external_stop"}')
                         raise makerbot_driver.ExternalStopError
 
-                # TODO: Should we chop the response code?
-                return decoder.payload
+                    # TODO: Should we chop the response code?
+                    return decoder.payload
 
-            except (makerbot_driver.BufferOverflowError) as e:
-                # Relative to the StreamWriter, BufferOverflowErrors aren't retryable.  But, they
-                # are expected to be caught by a higher power
+                except (makerbot_driver.BufferOverflowError) as e:
+                    # Relative to the StreamWriter, BufferOverflowErrors aren't retryable.  But, they
+                    # are expected to be caught by a higher power
 
-                self._log.debug('{"event":"buffer_overflow", "overflow_count":%i, "retry_count"=%i}', overflow_count, retry_count)
+                    self._log.debug('{"event":"buffer_overflow", "overflow_count":%i, "retry_count"=%i}', overflow_count, retry_count)
 
-                self.total_overflows += 1
-                overflow_count += 1
-                raise e
+                    self.total_overflows += 1
+                    overflow_count += 1
+                    raise e
 
-            except makerbot_driver.RetryableError as e:
-                # Sent a packet to the host, but got a malformed response or timed out waiting
-                # for a reply. Retry immediately.
+                except makerbot_driver.RetryableError as e:
+                    # Sent a packet to the host, but got a malformed response or timed out waiting
+                    # for a reply. Retry immediately.
 
-                self._log.debug('{"event":"transmission_problem", "exception":"%s", "message":"%s", "retry_count"=%i}', type(e), e.__str__(), retry_count)
+                    self._log.debug('{"event":"transmission_problem", "exception":"%s", "message":"%s", "retry_count"=%i}', type(e), e.__str__(), retry_count)
 
-                self.total_retries += 1
-                retry_count += 1
-                received_errors.append(e.__class__.__name__)
+                    self.total_retries += 1
+                    retry_count += 1
+                    received_errors.append(e.__class__.__name__)
 
-                #flush the input buffer
-                self.file.flushInput()
+                    #flush the input buffer
+                    self.file.flushInput()
 
-            except Exception as e:
-                # Other exceptions are propigated upwards.
+                except Exception as e:
+                    # Other exceptions are propigated upwards.
 
-                self._log.error('{"event":"unhandled_exception", "exception":"%s", "message":"%s", "retry_count"=%i}', type(e), e.__str__(), retry_count)
-                raise e
+                    self._log.error('{"event":"unhandled_exception", "exception":"%s", "message":"%s", "retry_count"=%i}', type(e), e.__str__(), retry_count)
+                    raise e
 
-            if retry_count >= makerbot_driver.max_retry_count:
-                self._log.error('{"event":"transmission_error"}')
-                raise makerbot_driver.TransmissionError(received_errors)
+                if retry_count >= makerbot_driver.max_retry_count:
+                    self._log.error('{"event":"transmission_error"}')
+                    raise makerbot_driver.TransmissionError(received_errors)
