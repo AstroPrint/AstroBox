@@ -24,6 +24,7 @@ class PrinterProfileManager(object):
 		self._logger = logging.getLogger(__name__)
 
 		self.data = {
+			'driver': "marlin",
 			'extruder_count': 1,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
@@ -55,7 +56,22 @@ class PrinterProfileManager(object):
 	def set(self, changes):
 		for k in changes:
 			if k in self.data:
-				self.data[k] = self._clean(k, changes[k])
+				if self.data[k] != changes[k]:
+					if k == 'driver':
+						#change printer object
+						from octoprint.server import printer
+						from astroprint.printer.manager import printerManager 
+
+						global printer
+
+						print printer.driverName
+
+						printer.disconnect()
+						printer = printerManager(changes['driver'], printer._fileManager) 
+
+						print printer.driverName
+
+					self.data[k] = self._clean(k, changes[k])
 			else:
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 

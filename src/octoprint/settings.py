@@ -26,7 +26,6 @@ def settings(init=False, configfile=None, basedir=None):
 
 default_settings = {
 	"serial": {
-		"driver": "marlin",
 		"port": None,
 		"baudrate": 250000,
 		"autoconnect": True,
@@ -491,7 +490,8 @@ class Settings(object):
 			self._dirty = True
 		elif force or (not key in config.keys() and defaults[key] != value) or (key in config.keys() and config[key] != value):
 			if value is None:
-				del config[key]
+				if key in config:
+					del config[key]
 			else:
 				config[key] = value
 			self._dirty = True

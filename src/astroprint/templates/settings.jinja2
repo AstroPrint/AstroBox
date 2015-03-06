@@ -30,13 +30,6 @@
 		<script type="text/template" id="printer-connection-settings-page-template">
 			<div class="row">
 				<div class="small-12">
-					<label for="settings-printer-driver" class="bold">
-						Driver
-						<select id="settings-printer-driver" name="driver">
-							<option value="marlin" <%= settings.serial.driver == 'marlin' ? 'selected' : '' %>>Marlin / GCODE</option>
-							<option value="s3g" <%= settings.serial.driver == 's3g' ? 'selected' : '' %>>Sailfish / S3G</option>
-						</select>
-					</label>
 					<label for="settings-serial-port" class="bold">
 						USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
 						<% if (settings.serial.portOptions.length > 0) { %>
@@ -71,11 +64,13 @@
 							</select>
 						</label>
 					</div>
-					<div align="center">
+				</div>
+			<% } %>
+			<% if (settings.serial.portOptions.length > 0 && ( settings.serial.baudrateOptions.length > 0 || settings.driver == 's3g') )  { %>
+				<div align="center">
 					<div class="loading-button test-connection">
 						<button class="success radius">Test Connection</button>
 						<span class="button disabled radius success loading">Connecting...</span>
-					</div>
 					</div>
 				</div>
 			<% } %>
@@ -90,6 +85,13 @@
 				<div class="row">
 					<div class="small-12">
 						<form data-abide="ajax">
+							<label for="settings-printer-driver" class="bold">
+								Driver
+								<select id="settings-printer-driver" name="driver">
+									<option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
+									<option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+								</select>
+							</label>
 							<label for="extruder-count" class="bold">
 								No. of Extruders
 							</label>

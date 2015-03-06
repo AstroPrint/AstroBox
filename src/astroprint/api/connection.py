@@ -33,7 +33,6 @@ def connectionCommand():
 
 	valid_commands = {
 		"connect": ["autoconnect"],
-		"save": [],
 		"disconnect": []
 	}
 
@@ -47,31 +46,25 @@ def connectionCommand():
 		driver = None
 		port = None
 		baudrate = None
-		if "driver" in data.keys():
-			driver = data["driver"]
-
-			printer = printerManager(driver, printer._fileManager)
 
 		options = printer.getConnectionOptions()
 
-		if "port" in data.keys():
+		if "port" in data:
 			port = data["port"]
 			if port not in options["ports"]:
 				return make_response("Invalid port: %s" % port, 400)
 
-		if "baudrate" in data.keys():
+		if "baudrate" in data:
 			baudrate = data["baudrate"]
 			baudrates = options["baudrates"]
 			if baudrates and baudrate not in baudrates:
 				return make_response("Invalid baudrate: %d" % baudrate, 400)
 
-		if "save" in data.keys() and data["save"]:
-
-			s.set(["serial", "driver"], driver)
+		if "save" in data and data["save"]:
 			s.set(["serial", "port"], port)
 			s.setInt(["serial", "baudrate"], baudrate)
 
-		if "autoconnect" in data.keys():
+		if "autoconnect" in data:
 			s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
 
 		s.save()
@@ -80,17 +73,6 @@ def connectionCommand():
 
 	elif command == "disconnect":
 		printer.disconnect()
-
-	elif command == "save":
-		if "driver" in data.keys():
-
-			s = settings()
-			driver = data["driver"]
-
-			s.set(["serial", "driver"], driver)
-			s.save()
-
-			printer = printerManager(driver)
 
 	return NO_CONTENT
 

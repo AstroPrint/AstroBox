@@ -16,11 +16,13 @@ from octoprint.server.api import api
 def getSettings():
 	s = settings()
 
-	connectionOptions = printerManager(s.get(['serial','driver'])).getConnectionOptions()
+	pm = printerManager()
+
+	connectionOptions = pm.getConnectionOptions()
 
 	return jsonify({
+		"driver": pm.driverName,
 		"serial": {
-			"driver": s.get(["serial", "driver"]),
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
 			"portOptions": connectionOptions["ports"].items(),

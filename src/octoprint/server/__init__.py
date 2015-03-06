@@ -235,7 +235,7 @@ class Server():
 
 		eventManager = events.eventManager()
 		gcodeManager = gcodefiles.GcodeManager()
-		printer = printerManager(s.get(["serial","driver"]), gcodeManager)
+		printer = printerManager(printerProfileManager().data['driver'], gcodeManager)
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
