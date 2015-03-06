@@ -34,7 +34,6 @@ class PrintJobS3G(threading.Thread):
 		self._regex_command = re.compile("^\s*([GM]\d+|T)")
 
 	def exec_line(self, line):
-		line = str(line).strip() # NOTE: s3g can't handle unicode.
 		self._logger.debug('G-CODE: %s', line)
 		line = self._preprocessGcode(line)
 
@@ -48,10 +47,13 @@ class PrintJobS3G(threading.Thread):
 
 			except BufferOverflowError:
 				time.sleep(.2)
-				#self._printer._state_condition.wait(.2)
 
 			except PacketTooBigError:
 				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+				return False
+
+			except UnrecognizedCommandError:
+				self._logger.warn('The following GCode command was ignored: %s' % line)
 				return False
 
 	def cancel(self):
@@ -124,7 +126,6 @@ class PrintJobS3G(threading.Thread):
 
 									except BufferOverflowError:
 										time.sleep(.2)
-										#self._printer._state_condition.wait(.2)
 
 							if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
 								lastHeatingCheck = now
@@ -194,12 +195,66 @@ class PrintJobS3G(threading.Thread):
 
 		return cmd
 
+	#G90: Absolute Positioning
+	def _handleGcode_G90(self, cmd):
+		return None #ignored
+
+	#G21: Set to milimeters
+	def _handleGcode_G21(self, cmd):
+		return None #Ignored.
+
+	#G28: Home Axis
+	def _handleGcode_G28(self, cmd):
+		return None
+
+	def _handleGcode_M73(self, cmd):
+		return None
+
+	def _handleGcode_M84(self, cmd):
+		return None
+
+	#M101: Undo retraction
+	def _handleGcode_M101(self, cmd):
+		return None #ignore
+
+	#M103: Turn all extruders off
+	def _handleGcode_M103(self, cmd):
+		return None #ignore
+
 	def _handleGcode_M104(self, cmd):
+		return None
 		self._printer._heatingUp = True
 		self._printer.mcHeatingUpUpdate(True)
 		self._heatingTool = True
 		self._heatupWaitStartTime = time.time()
 		return cmd
+
+	#M105: Get Temperature
+	def _handleGcode_M105(self, cmd):
+		return None #Ignore
+
+	#M106: Fan On
+	def _handleGcode_M106(self, cmd):
+		return None #Ignore
+
+	#M107: Fan Off
+	def _handleGcode_M107(self, cmd):
+		return None #Ignore
+
+	#M108: Set Extruder Speed
+	def _handleGcode_M108(self, cmd):
+		codes, flags, comments = makerbot_driver.Gcode.parse_line(match.string)
+		#Since were using variable_replace in gcode.utils, we need to make the codes dict
+		#a dictionary of only strings
+		string_codes = {}
+		for key in codes:
+			string_codes[str(key)] = str(codes[key])
+		if 'T' not in codes:
+			transformed_line = ''
+		else:
+			transformed_line = 'M135 T#T'  # Set the line up for variable replacement
+			transformed_line = makerbot_driver.Gcode.variable_substitute(transformed_line, string_codes)
+		return transformed_line
 
 	def _handleGcode_M109(self, cmd):
 		self._printer._heatingUp = True
@@ -208,24 +263,12 @@ class PrintJobS3G(threading.Thread):
 		self._heatupWaitStartTime = time.time()
 		return cmd
 
-	# These Gcodes are ignored by the parser so cut them off here
-	def _handleGcode_G90(self, cmd):
-		return None
+	#M127: Set screen text
+	def _handleGcode_M127(self, cmd):
+		return None #Ignore
 
-	def _handleGcode_G21(self, cmd):
-		return None
+	def _handleGcode_M136(self, cmd):
+		return None	
 
-	def _handleGcode_G28(self, cmd):
-		return None
-
-	def _handleGcode_M106(self, cmd):
-		return None
-
-	def _handleGcode_M103(self, cmd):
-		return None
-
-	def _handleGcode_M101(self, cmd):
-		return None
-
-	def _handleGcode_M107(self, cmd):
-		return None
+	def _handleGcode_M137(self, cmd):
+		return None	
