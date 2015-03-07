@@ -25,6 +25,7 @@ from sys import platform
 
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
+from astroprint.printer.manager import printerManager
 
 class TimelapseWorker(threading.Thread):
 	def __init__(self, manager, timelapseId, timelapseFreq):
@@ -99,8 +100,7 @@ class CameraManager(object):
 			return False
 
 		if not self._printer:
-			from octoprint.server import printer
-			self._printer = printer
+			self._printer = printerManager()
 
 		if self.timelapseWorker:
 			self.stop_timelapse()

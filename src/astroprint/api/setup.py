@@ -12,7 +12,7 @@ from sys import platform
 from flask import make_response, request, jsonify
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
+from octoprint.server import restricted_access, NO_CONTENT, networkManager
 from octoprint.server.api import api
 from astroprint.cloud import astroprintCloud
 
@@ -114,7 +114,7 @@ def login_astroprint():
 @api.route('/setup/printer', methods=['GET'])
 @not_setup_only
 def connection_settings():
-	connectionOptions = printer.getConnectionOptions()
+	connectionOptions = printerManager().getConnectionOptions()
 
 	if connectionOptions:
 		response = {
@@ -141,7 +141,7 @@ def save_connection_settings():
 		s.setInt(["serial", "baudrate"], baudrate)
 		s.save()
 
-		printer.connect()
+		printerManager().connect()
 		return make_response("OK", 200)
 
 	return make_response('Invalid Connection Settings', 400)

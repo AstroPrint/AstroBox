@@ -8,7 +8,7 @@ import octoprint.util as util
 from flask import request, jsonify, make_response
 
 from octoprint.settings import settings
-from octoprint.server import printer, restricted_access, NO_CONTENT
+from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
@@ -17,20 +17,20 @@ from astroprint.printer.manager import printerManager
 
 @api.route("/connection", methods=["GET"])
 def connectionState():
-	state, port, baudrate = printer.getCurrentConnection()
+	pm = printerManager()
+
+	state, port, baudrate = pm.getCurrentConnection()
 	current = {
 		"state": state,
 		"port": port,
 		"baudrate": baudrate
 	}
-	return jsonify({"current": current, "options": printer.getConnectionOptions()})
+	return jsonify({"current": current, "options": pm.getConnectionOptions()})
 
 
 @api.route("/connection", methods=["POST"])
 @restricted_access
 def connectionCommand():
-	global printer
-
 	valid_commands = {
 		"connect": ["autoconnect"],
 		"disconnect": []
@@ -40,6 +40,8 @@ def connectionCommand():
 	if response is not None:
 		return response
 
+	pm = printerManager()
+
 	if command == "connect":
 		s = settings()
 
@@ -47,7 +49,7 @@ def connectionCommand():
 		port = None
 		baudrate = None
 
-		options = printer.getConnectionOptions()
+		options = pm.getConnectionOptions()
 
 		if "port" in data:
 			port = data["port"]
@@ -69,10 +71,10 @@ def connectionCommand():
 
 		s.save()
 
-		printer.connect(port=port, baudrate=baudrate)
+		pm.connect(port=port, baudrate=baudrate)
 
 	elif command == "disconnect":
-		printer.disconnect()
+		pm.disconnect()
 
 	return NO_CONTENT
 

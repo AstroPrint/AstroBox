@@ -3,20 +3,27 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask import request, jsonify, make_response
 import re
 
-from octoprint.settings import settings, valid_boolean_trues
-from octoprint.server import printer, restricted_access, NO_CONTENT
-from octoprint.server.api import api
 import octoprint.util as util
+
+
+from flask import request, jsonify, make_response
+
+from octoprint.settings import settings, valid_boolean_trues
+from octoprint.server import restricted_access, NO_CONTENT
+from octoprint.server.api import api
+
+from astroprint.printer.manager import printerManager 
 
 #~~ Printer
 
 
 @api.route("/printer", methods=["GET"])
 def printerState():
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
 	# process excludes
@@ -34,11 +41,11 @@ def printerState():
 
 	# add sd information
 	if not "sd" in excludes and settings().getBoolean(["feature", "sdSupport"]):
-		result.update({"sd": {"ready": printer.isSdReady()}})
+		result.update({"sd": {"ready": pm.isSdReady()}})
 
 	# add state information
 	if not "state" in excludes:
-		state = printer.getCurrentData()["state"]
+		state = pm.getCurrentData()["state"]
 		result.update({"state": state})
 
 	return jsonify(result)
@@ -50,7 +57,9 @@ def printerState():
 @api.route("/printer/tool", methods=["POST"])
 @restricted_access
 def printerToolCommand():
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
 	valid_commands = {
@@ -73,7 +82,7 @@ def printerToolCommand():
 		if not tool.startswith("tool"):
 			return make_response("Invalid tool for selection: %s" % tool, 400)
 
-		printer.changeTool(tool)
+		pm.changeTool(tool)
 
 	##~~ temperature
 	elif command == "target":
@@ -90,7 +99,7 @@ def printerToolCommand():
 
 		# perform the actual temperature commands
 		for tool in validated_values.keys():
-			printer.setTemperature(tool, validated_values[tool])
+			pm.setTemperature(tool, validated_values[tool])
 
 	##~~ temperature offset
 	elif command == "offset":
@@ -108,18 +117,18 @@ def printerToolCommand():
 			validated_values[tool] = value
 
 		# set the offsets
-		printer.setTemperatureOffset(validated_values)
+		pm.setTemperatureOffset(validated_values)
 
 	##~~ extrusion
 	elif command == "extrude":
-		if printer.isPrinting():
+		if pm.isPrinting():
 			# do not extrude when a print job is running
 			return make_response("Printer is currently printing", 409)
 
 		amount = data["amount"]
 		if not isinstance(amount, (int, long, float)):
 			return make_response("Not a number for extrusion amount: %r" % amount, 400)
-		printer.extrude(None, amount)
+		pm.extrude(None, amount)
 
 	return NO_CONTENT
 
@@ -142,7 +151,9 @@ def printerToolState():
 @api.route("/printer/bed", methods=["POST"])
 @restricted_access
 def printerBedCommand():
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
 	valid_commands = {
@@ -162,7 +173,7 @@ def printerBedCommand():
 			return make_response("Not a number: %r" % target, 400)
 
 		# perform the actual temperature command
-		printer.setTemperature("bed", target)
+		pm.setTemperature("bed", target)
 
 	##~~ temperature offset
 	elif command == "offset":
@@ -175,7 +186,7 @@ def printerBedCommand():
 			return make_response("Offset not in range [-50, 50]: %f" % offset, 400)
 
 		# set the offsets
-		printer.setTemperatureOffset({"bed": offset})
+		pm.setTemperatureOffset({"bed": offset})
 
 	return NO_CONTENT
 
@@ -194,7 +205,9 @@ def printerBedState():
 
 @api.route("/printer/fan", methods=["POST"])
 def printerFanCommand():
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
 	valid_commands = {
@@ -205,7 +218,7 @@ def printerFanCommand():
 	if response is not None:
 		return response
 
-	printer.fan(data["tool"], data["speed"])
+	pm.fan(data["tool"], data["speed"])
 
 	return NO_CONTENT
 
@@ -216,7 +229,9 @@ def printerFanCommand():
 @api.route("/printer/printhead", methods=["POST"])
 @restricted_access
 def printerPrintheadCommand():
-	if not printer.isOperational() or printer.isPrinting():
+	pm = printerManager()
+
+	if not pm.isOperational() or pm.isPrinting():
 		# do not jog when a print job is running or we don't have a connection
 		return make_response("Printer is not operational or currently printing", 409)
 
@@ -242,7 +257,7 @@ def printerPrintheadCommand():
 
 		# execute the jog commands
 		for axis, value in validated_values.iteritems():
-			printer.jog(axis, value)
+			pm.jog(axis, value)
 
 	##~~ home command
 	elif command == "home":
@@ -254,7 +269,7 @@ def printerPrintheadCommand():
 			validated_values.append(axis)
 
 		# execute the home command
-		printer.home(validated_values)
+		pm.home(validated_values)
 
 	return NO_CONTENT
 
@@ -268,7 +283,9 @@ def printerSdCommand():
 	if not settings().getBoolean(["feature", "sdSupport"]):
 		return make_response("SD support is disabled", 404)
 
-	if not printer.isOperational() or printer.isPrinting() or printer.isPaused():
+	pm = printerManager()
+
+	if not pm.isOperational() or pm.isPrinting() or pm.isPaused():
 		return make_response("Printer is not operational or currently busy", 409)
 
 	valid_commands = {
@@ -281,11 +298,11 @@ def printerSdCommand():
 		return response
 
 	if command == "init":
-		printer.initSdCard()
+		pm.initSdCard()
 	elif command == "refresh":
-		printer.refreshSdFiles()
+		pm.refreshSdFiles()
 	elif command == "release":
-		printer.releaseSdCard()
+		pm.releaseSdCard()
 
 	return NO_CONTENT
 
@@ -295,7 +312,7 @@ def printerSdState():
 	if not settings().getBoolean(["feature", "sdSupport"]):
 		return make_response("SD support is disabled", 404)
 
-	return jsonify(ready=printer.isSdReady())
+	return jsonify(ready=printerManager().isSdReady())
 
 
 ##~~ Commands
@@ -304,8 +321,9 @@ def printerSdState():
 @api.route("/printer/command", methods=["POST"])
 @restricted_access
 def printerCommand():
-	# TODO: document me
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
 	if not "application/json" in request.headers["Content-Type"]:
@@ -330,7 +348,7 @@ def printerCommand():
 			commandToSend = command % parameters
 		commandsToSend.append(commandToSend)
 
-	printer.commands(commandsToSend)
+	pm.commands(commandsToSend)
 
 	return NO_CONTENT
 
@@ -343,13 +361,15 @@ def getCustomControls():
 
 
 def _getTemperatureData(filter):
-	if not printer.isOperational():
+	pm = printerManager()
+
+	if not pm.isOperational():
 		return make_response("Printer is not operational", 409)
 
-	tempData = printer.getCurrentTemperatures()
+	tempData = pm.getCurrentTemperatures()
 
 	if "history" in request.values.keys() and request.values["history"] in valid_boolean_trues:
-		tempHistory = printer.getTemperatureHistory()
+		tempHistory = pm.getTemperatureHistory()
 
 		limit = 300
 		if "limit" in request.values.keys() and unicode(request.values["limit"]).isnumeric():

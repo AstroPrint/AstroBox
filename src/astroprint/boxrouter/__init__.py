@@ -27,6 +27,7 @@ from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 from astroprint.software import softwareManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.printer.manager import printerManager
 
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
@@ -68,11 +69,8 @@ class LineCheck(threading.Thread):
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
-		#it needs to be imported here because on the main body 'printer' is None
-		from octoprint.server import printer
-
 		self._router = router
-		self._printer = printer
+		self._printer = printerManager()
 		self._printerListener = None
 		self._lastReceived = 0
 		self._subscribers = 0

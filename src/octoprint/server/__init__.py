@@ -39,7 +39,6 @@ elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
 assets = Environment(app)
 Compress(app)
 
-printer = None
 gcodeManager = None
 userManager = None
 eventManager = None
@@ -113,8 +112,10 @@ def index():
 		)
 
 	else:
-		paused = printer.isPaused()
-		printing = printer.isPrinting()
+		pm = printerManager()
+
+		paused = pm.isPaused()
+		printing = pm.isPrinting()
 		
 		return render_template(
 			"app.jinja2",
@@ -201,7 +202,6 @@ class Server():
 		if not self._allowRoot:
 			self._checkForRoot()
 
-		global printer
 		global gcodeManager
 		global userManager
 		global eventManager
@@ -340,8 +340,8 @@ class Server():
 		observer.join()
 
 	def _createSocketConnection(self, session):
-		global printer, gcodeManager, userManager, eventManager
-		return PrinterStateConnection(printer, gcodeManager, userManager, eventManager, session)
+		global gcodeManager, userManager, eventManager
+		return PrinterStateConnection(printerManager(), gcodeManager, userManager, eventManager, session)
 
 	def _checkForRoot(self):
 		return

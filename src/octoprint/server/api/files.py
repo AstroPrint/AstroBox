@@ -11,7 +11,7 @@ from flask import request, jsonify, make_response, url_for
 from octoprint.filemanager.destinations import FileDestinations
 from octoprint.events import Events
 from octoprint.settings import settings, valid_boolean_trues
-from octoprint.server import printer, gcodeManager, eventManager, restricted_access, NO_CONTENT
+from octoprint.server import gcodeManager, eventManager, restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
 #~~ GCODE file handling
@@ -47,7 +47,7 @@ def _getFileDetails(origin, filename):
 
 def _getFileList(origin):
 	if origin == FileDestinations.SDCARD:
-		sdFileList = printer.getSdFiles()
+		sdFileList = printerManager().getSdFiles()
 
 		files = []
 		if sdFileList is not None:
@@ -76,7 +76,7 @@ def _getFileList(origin):
 
 def _verifyFileExists(origin, filename):
 	if origin == FileDestinations.SDCARD:
-		availableFiles = map(lambda x: x[0], printer.getSdFiles())
+		availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 	else:
 		availableFiles = gcodeManager.getAllFilenames()
 
@@ -86,6 +86,8 @@ def _verifyFileExists(origin, filename):
 @api.route("/files/<string:target>", methods=["POST"])
 @restricted_access
 def uploadGcodeFile(target):
+	printer = printerManager()
+
 	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
 		return make_response("Unknown target: %s" % target, 404)
 
@@ -134,7 +136,7 @@ def uploadGcodeFile(target):
 		Depending on the file's destination triggers either streaming to SD card or directly calls selectAndOrPrint.
 		"""
 		if destination == FileDestinations.SDCARD:
-			return filename, printer.addSdFile(filename, absFilename, selectAndOrPrint)
+			return filename, printerManager().addSdFile(filename, absFilename, selectAndOrPrint)
 		else:
 			selectAndOrPrint(filename, absFilename, destination)
 			return filename
@@ -149,7 +151,7 @@ def uploadGcodeFile(target):
 		exact file is already selected, such reloading it.
 		"""
 		if selectAfterUpload or printAfterSelect or (currentFilename == filename and currentOrigin == destination):
-			printer.selectFile(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
+			printerManager().selectFile(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
 
 	filename, done = gcodeManager.addFile(file, target, fileProcessingFinished)
 	if filename is None:
@@ -221,6 +223,8 @@ def gcodeFileCommand(filename, target):
 	if response is not None:
 		return response
 
+	printer = printerManager()
+
 	if command == "select":
 		# selects/loads a file
 		printAfterLoading = False
@@ -261,6 +265,8 @@ def deleteGcodeFile(filename, target):
 		return make_response("File not found on '%s': %s" % (target, filename), 404)
 
 	sd = target == FileDestinations.SDCARD
+
+	printer = printerManager()
 
 	currentJob = printer.getCurrentJob()
 	currentFilename = None

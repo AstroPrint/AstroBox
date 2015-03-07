@@ -59,17 +59,11 @@ class PrinterProfileManager(object):
 				if self.data[k] != changes[k]:
 					if k == 'driver':
 						#change printer object
-						from octoprint.server import printer
 						from astroprint.printer.manager import printerManager 
 
-						global printer
-
-						print printer.driverName
-
+						printer = printerManager()
 						printer.disconnect()
-						printer = printerManager(changes['driver'], printer._fileManager) 
-
-						print printer.driverName
+						printerManager(changes['driver'], printer._fileManager) 
 
 					self.data[k] = self._clean(k, changes[k])
 			else:
