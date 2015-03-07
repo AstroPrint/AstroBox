@@ -7,10 +7,7 @@
 			</span>
 		</div>
 		<div class="small-12 medium-6 large-4 columns left">
-			<span class="file-upload-button button secondary radius expand print" style="margin-bottom: 10px">
-				<i class="icon-upload-cloud-1"></i> Upload Print File (.gcode)
-				<input class="file-upload" type="file" name="file" data-url="/api/files/local" accept=".gcode">
-			</span>
+			<span class="file-upload-button button secondary radius expand print" style="margin-bottom: 10px"></span>
 		</div>
 	</div>
 	<div class="row upload-progress" style="display:none">
@@ -57,6 +54,11 @@
 	<div class="dlg-content"></div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
+
+<script type="text/template" id="printfile-upload-template">
+	<i class="icon-upload-cloud-1"></i> Upload Print File (.<%= (profile.driver == 's3g') ? 'x3g' : 'gcode' %>)
+	<input class="file-upload" type="file" name="file" data-url="/api/files/local" accept=".<%= (profile.driver == 's3g') ? 'x3g' : 'gcode' %>">
+</script>
 
 <script type="text/template" id="printfile-info-template">
 	<h2 class="bold"><%= p.name %></h2>
