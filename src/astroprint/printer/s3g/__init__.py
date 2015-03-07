@@ -14,14 +14,17 @@ from makerbot_driver import MachineFactory
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from octoprint.filemanager.destinations import FileDestinations
 from octoprint.util import getExceptionString
 
 from astroprint.printer import Printer 
 from astroprint.printer.s3g.printjob import PrintJobS3G
+from astroprint.printfiles.x3g import PrintFileManagerX3g
+from astroprint.printfiles import FileDestinations
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
+
+	_fileManagerClass = PrintFileManagerX3g
 
 	CONNECT_MAX_RETRIES = 10
 	UPDATE_INTERVAL = 3 #secs
@@ -38,10 +41,10 @@ class PrinterS3g(Printer):
 	_heatingUp = False
 	_firmwareVersion = None
 
-	def __init__(self, fileManager):
+	def __init__(self):
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
-		super(PrinterS3g, self).__init__(fileManager)
+		super(PrinterS3g, self).__init__()
 
 	def __del__(self):
 		if self._comm and self._comm.is_open():

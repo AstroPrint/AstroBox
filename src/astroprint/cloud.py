@@ -28,6 +28,7 @@ from requests_toolbelt import MultipartEncoder
 from octoprint.settings import settings
 from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.printer.manager import printerManager
 
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
@@ -55,7 +56,6 @@ class AstroPrintCloud(object):
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None
 		self._sm = softwareManager()
-		self._gcodeMgr = None
 
 	@staticmethod
 	def cloud_enabled():
@@ -290,12 +290,10 @@ class AstroPrintCloud(object):
 			r = requests.get(data["download_url"], stream=True)
 
 			if r.status_code == 200:
-				from octoprint.server import gcodeManager
-
 				content_length = float(r.headers['Content-Length']);
 				downloaded_size = 0.0
 
-				destFile = gcodeManager.getAbsolutePath(data['name'], mustExist=False)
+				destFile = printerManager().fileManager.getAbsolutePath(data['name'], mustExist=False)
 
 				with open(destFile, 'wb') as fd:
 					for chunk in r.iter_content(524288): #0.5 MB
@@ -333,11 +331,7 @@ class AstroPrintCloud(object):
 	def startPrintCapture(self, filename):
 		data = {'name': filename}
 
-		if not self._gcodeMgr:
-			from octoprint.server import gcodeManager 
-			self._gcodeMgr = gcodeManager
-
-		print_file_id = self._gcodeMgr.getFileCloudId(filename)
+		print_file_id = printerManager().fileManager.getFileCloudId(filename)
 
 		if print_file_id:
 			data['print_file_id'] = print_file_id

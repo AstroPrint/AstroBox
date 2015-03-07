@@ -15,16 +15,19 @@ import octoprint.util as util
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from astroprint.printer import Printer 
 
-from octoprint.filemanager.destinations import FileDestinations
+from astroprint.printer import Printer 
+from astroprint.printfiles.gcode import PrintFileManagerGcode
+from astroprint.printfiles import FileDestinations
 
 from usbid.device import device_list
 
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
 
-	def __init__(self, fileManager):
+	_fileManagerClass = PrintFileManagerGcode
+
+	def __init__(self):
 		from collections import deque
 
 		# state
@@ -56,7 +59,7 @@ class PrinterMarlin(Printer):
 		# comm
 		self._comm = None
 
-		super(PrinterMarlin, self).__init__(fileManager)
+		super(PrinterMarlin, self).__init__()
 
 	#~~ callback handling
 

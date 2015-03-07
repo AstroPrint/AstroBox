@@ -63,7 +63,7 @@ class PrinterProfileManager(object):
 
 						printer = printerManager()
 						printer.disconnect()
-						printerManager(changes['driver'], printer._fileManager) 
+						printerManager(changes['driver']) 
 
 					self.data[k] = self._clean(k, changes[k])
 			else:

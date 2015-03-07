@@ -229,9 +229,9 @@ var FileUploadPrint = FileUploadBase.extend({
 	initialize: function(options) 
 	{
 		if (options.printerProfile.driver == 's3g') {
-			this.acceptFileTypes = /(\.|\/)(gcode)$/i;
-		} else {
 			this.acceptFileTypes = /(\.|\/)(x3g)$/i;
+		} else {
+			this.acceptFileTypes = /(\.|\/)(gcode)$/i;
 		}
 
 		FileUploadBase.prototype.initialize.call(this, options);

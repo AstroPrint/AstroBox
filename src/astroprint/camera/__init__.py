@@ -69,7 +69,6 @@ class CameraManager(object):
 	def __init__(self):
 		self._astroprint = astroprintCloud()
 		self._eventManager = eventManager()
-		self._printer = None
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
@@ -77,7 +76,7 @@ class CameraManager(object):
 
 	def addPhotoToTimelapse(self, timelapseId):
 		#Build text
-		printerData = self._printer.getCurrentData()
+		printerData = printerManager().getCurrentData()
 		text = "%d%% - Layer %s%s" % (
 			printerData['progress']['completion'], 
 			str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
@@ -99,14 +98,11 @@ class CameraManager(object):
 		if freq == '0':
 			return False
 
-		if not self._printer:
-			self._printer = printerManager()
-
 		if self.timelapseWorker:
 			self.stop_timelapse()
 
 		#check that there's a print ongoing otherwise don't start
-		selectedFile = self._printer._selectedFile
+		selectedFile = printerManager()._selectedFile
 		if not selectedFile:
 			return False
 

@@ -1,6 +1,5 @@
 # coding=utf-8
-import re
-
+__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -9,59 +8,28 @@ import Queue
 import threading
 import yaml
 import time
-import logging
 import octoprint.util as util
-import octoprint.util.gcodeInterpreter as gcodeInterpreter
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from octoprint.filemanager.destinations import FileDestinations
 
 from werkzeug.utils import secure_filename
 
-GCODE_EXTENSIONS = ["gcode", "gco", "g"]
-STL_EXTENSIONS = ["stl"]
-SUPPORTED_EXTENSIONS = GCODE_EXTENSIONS + STL_EXTENSIONS
+class FileDestinations(object):
+	SDCARD = "sdcard"
+	LOCAL = "local"
 
-def isGcodeFileName(filename):
-	"""Simple helper to determine if a filename has the .gcode extension.
+class FileTypes(object):
+	STL = "stl"
+	GCODE = "gcode"
+	X3G = "x3g"
 
-	:param filename: :class: `str`
+class PrintFilesManager(object):
+	name = None
+	SUPPORTED_EXTENSIONS = []
+	SUPPORTED_DESIGN_EXTENSIONS = ["stl"]
 
-	:returns boolean:
-	"""
-	return "." in filename and filename.rsplit(".", 1)[1].lower() in GCODE_EXTENSIONS
-
-
-def isSTLFileName(filename):
-	"""Simple helper to determine if a filename has the .stl extension.
-
-	:param filename: :class: `str`
-
-	:returns boolean:
-	"""
-	return "." in filename and filename.rsplit(".", 1)[1].lower() in STL_EXTENSIONS
-
-
-def genGcodeFileName(filename):
-	if not filename:
-		return None
-
-	name, ext = filename.rsplit(".", 1)
-	return name + ".gcode"
-
-
-def genStlFileName(filename):
-	if not filename:
-		return None
-
-	name, ext = filename.rsplit(".", 1)
-	return name + ".stl"
-
-
-class GcodeManager:
 	def __init__(self):
-		self._logger = logging.getLogger(__name__)
 
 		self._settings = settings()
 
@@ -75,15 +43,19 @@ class GcodeManager:
 		self._metadataTempFile = os.path.join(self._uploadFolder, "metadata.yaml.tmp")
 		self._metadataFileAccessMutex = threading.Lock()
 
-		self._metadataAnalyzer = MetadataAnalyzer(getPathCallback=self.getAbsolutePath, loadedCallback=self._onMetadataAnalysisFinished)
-
 		self._loadMetadata(migrate=True)
 		self._processAnalysisBacklog()
+
+	def isValidFilename(self, filename):
+		return "." in filename and filename.rsplit(".", 1)[1].lower() in self.SUPPORTED_EXTENSIONS
+
+	def isDesignFileName(self, filename):
+		return "." in filename and filename.rsplit(".", 1)[1].lower() in self.SUPPORTED_DESIGN_EXTENSIONS
 
 	def _processAnalysisBacklog(self):
 		for osFile in os.listdir(self._uploadFolder):
 			filename = self._getBasicFilename(osFile)
-			if not isGcodeFileName(filename):
+			if not self.isValidFilename(filename):
 				continue
 
 			absolutePath = self.getAbsolutePath(filename)
@@ -133,6 +105,7 @@ class GcodeManager:
 			self._metadata[basename] = metadata
 			self._metadataDirty = True
 			self._saveMetadata()
+
 		eventManager().fire(Events.METADATA_ANALYSIS_FINISHED, {"file": basename, "result": analysisResult})
 
 	def _loadMetadata(self, migrate=False):
@@ -144,18 +117,11 @@ class GcodeManager:
 		if self._metadata is None:
 			self._metadata = {}
 
-		# TODO: Remove in a couple of versions (2013-12-21)
 		if migrate:
 			self._migrateMetadata()
 
 	def _migrateMetadata(self):
 		self._logger.info("Migrating metadata if necessary...")
-
-		printTimeRe = re.compile("(\d+):(\d{2}):(\d{2})")
-		filamentRe = re.compile("(\d*\.\d+)m(\s/\s(\d*\.\d+)cm.)?")
-
-		hoursToSeconds = 60 * 60
-		minutesToSeconds = 60
 
 		updateCount = 0
 		for metadata in self._metadata.values():
@@ -163,7 +129,7 @@ class GcodeManager:
 				continue
 
 			updated = False
-			if "estimatedPrintTime" in metadata["gcodeAnalysis"]:
+			"""if "estimatedPrintTime" in metadata["gcodeAnalysis"]:
 				estimatedPrintTime = metadata["gcodeAnalysis"]["estimatedPrintTime"]
 				if isinstance(estimatedPrintTime, (str, unicode)):
 					match = re.match(printTimeRe, estimatedPrintTime)
@@ -200,7 +166,7 @@ class GcodeManager:
 							"volume": filament["volume"]
 						})
 					self._metadataDirty = True
-					updated = True
+					updated = True"""
 
 			if updated:
 				updateCount += 1
@@ -259,23 +225,23 @@ class GcodeManager:
 		filename = file.filename
 
 		absolutePath = self.getAbsolutePath(filename, mustExist=False)
-		gcode = isGcodeFileName(filename)
+		valid = self.isValidFilename(filename)
 
-		if absolutePath is None or (not slicerEnabled and not gcode):
+		if absolutePath is None or (not slicerEnabled and not valid):
 			return None, True
 
 		file.save(absolutePath)
 
-		if gcode:
-			return self.processGcode(absolutePath, destination, uploadCallback), True
+		if valid:
+			return self.processPrintFile(absolutePath, destination, uploadCallback), True
 		else:
-			if curaEnabled and isSTLFileName(filename):
-				return self.processStl(absolutePath, destination, uploadCallback), False
+			if curaEnabled and self.isDesignFileName(filename):
+				return self.processDesign(absolutePath, destination, uploadCallback), False
 			else:
 				return filename, False
 
-			if slicerEnabled and isSTLFileName(filename):
-				self.processStl(absolutePath, destination, uploadCallback)
+			if slicerEnabled and self.isDesignFileName(filename):
+				self.processDesign(absolutePath, destination, uploadCallback)
 			return filename, False
 
 	def getFutureFileName(self, file):
@@ -288,24 +254,24 @@ class GcodeManager:
 
 		return self._getBasicFilename(absolutePath)
 
-	def processStl(self, absolutePath, destination, uploadCallback=None):
+	def processDesign(self, absolutePath, destination, uploadCallback=None):
 		
-		def stlProcessed(stlPath, gcodePath, error=None):
+		def designProcessed(stlPath, filePath, error=None):
 			if error:
-				eventManager().fire(Events.SLICING_FAILED, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(gcodePath), "reason": error})
+				eventManager().fire(Events.SLICING_FAILED, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(filePath), "reason": error})
 				if os.path.exists(stlPath):
 					os.remove(stlPath)
 			else:
 				slicingStop = time.time()
-				eventManager().fire(Events.SLICING_DONE, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(gcodePath), "time": slicingStop - slicingStart})
-				self.processGcode(gcodePath, destination, uploadCallback)
+				eventManager().fire(Events.SLICING_DONE, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(filePath), "time": slicingStop - slicingStart})
+				self.processPrintFile(filePath, destination, uploadCallback)
 
-		eventManager().fire(Events.SLICING_STARTED, {"stl": self._getBasicFilename(absolutePath), "gcode": self._getBasicFilename(gcodePath)})
-		cura.process_file(config, gcodePath, absolutePath, stlProcessed, [absolutePath, gcodePath])
+		eventManager().fire(Events.SLICING_STARTED, {"stl": self._getBasicFilename(absolutePath), "gcode": self._getBasicFilename(filePath)})
+		cura.process_file(config, filePath, absolutePath, designProcessed, [absolutePath, filePath])
 
-		return self._getBasicFilename(gcodePath)
+		return self._getBasicFilename(filePath)
 
-	def processGcode(self, absolutePath, destination, uploadCallback=None):
+	def processPrintFile(self, absolutePath, destination, uploadCallback=None):
 		if absolutePath is None:
 			return None
 
@@ -324,7 +290,7 @@ class GcodeManager:
 		else:
 			return filename
 
-	def saveCloudGcode(self, absolutePath, fileInfo, destination, uploadCallback=None):
+	def saveCloudPrintFile(self, absolutePath, fileInfo, destination, uploadCallback=None):
 		if absolutePath is None:
 			return None
 
@@ -364,10 +330,12 @@ class GcodeManager:
 	def removeFile(self, filename):
 		filename = self._getBasicFilename(filename)
 		absolutePath = self.getAbsolutePath(filename)
-		stlPath = genStlFileName(absolutePath)
 
 		if absolutePath is None:
 			return
+
+		name, ext = absolutePath.rsplit(".", 1)
+		stlPath = name + ".stl"
 
 		os.remove(absolutePath)
 		if os.path.exists(stlPath):
@@ -425,7 +393,7 @@ class GcodeManager:
 		filename = self._getBasicFilename(filename)
 
 		# TODO: Make this more robust when STLs will be viewable from the client
-		if isSTLFileName(filename):
+		if self.isDesignFileName(filename):
 			return
 	
 		absolutePath = self.getAbsolutePath(filename)
@@ -565,10 +533,10 @@ class GcodeManager:
 	def resumeAnalysis(self):
 		self._metadataAnalyzer.resume()
 
-class MetadataAnalyzer:
-	def __init__(self, getPathCallback, loadedCallback):
-		self._logger = logging.getLogger(__name__)
+	#~~ Child API ~~~
 
+class MetadataAnalyzer(object):
+	def __init__(self, getPathCallback, loadedCallback):
 		self._getPathCallback = getPathCallback
 		self._loadedCallback = loadedCallback
 
@@ -624,32 +592,17 @@ class MetadataAnalyzer:
 			self._active.wait()
 
 			try:
-				self._analyzeGcode(filename)
+				self._analyzeFile(filename)
 				self._queue.task_done()
-			except gcodeInterpreter.AnalysisAborted:
+			except AnalysisAborted:
 				aborted = filename
 				self._logger.debug("Running analysis of file %s aborted" % filename)
 
-	def _analyzeGcode(self, filename):
-		path = self._getPathCallback(filename)
-		if path is None or not os.path.exists(path):
-			return
-
-		self._currentFile = filename
-		self._currentProgress = 0
-
-		try:
-			self._logger.debug("Starting analysis of file %s" % filename)
-			eventManager().fire(Events.METADATA_ANALYSIS_STARTED, {"file": filename})
-			self._gcode = gcodeInterpreter.gcode()
-			self._gcode.progressCallback = self._onParsingProgress
-			self._gcode.load(path)
-			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
-			self._loadedCallback(self._currentFile, self._gcode)
-		finally:
-			self._gcode = None
-			self._currentProgress = None
-			self._currentFile = None
-
 	def _onParsingProgress(self, progress):
 		self._currentProgress = progress
+
+	def _analyzeFile(self, filename):
+		raise NotImplementedError()
+
+class AnalysisAborted(Exception):
+	pass

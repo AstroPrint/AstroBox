@@ -9,11 +9,13 @@ import uuid
 from flask import request, jsonify, abort
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, SUCCESS, gcodeManager
+from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
-from octoprint.filemanager.destinations import FileDestinations
+
 from astroprint.cloud import astroprintCloud
+from astroprint.printfiles import FileDestinations
+from astroprint.printer.manager import printerManager
 
 #~~ Cloud Slicer control
 
@@ -58,7 +60,7 @@ def designs():
 	slicer = astroprintCloud()
 	forceSyncCloud = request.args.get('forceSyncCloud')
 	cloud_files = json.loads(slicer.print_files(forceSyncCloud))
-	local_files = list(gcodeManager.getAllFileData())
+	local_files = list(printerManager().fileManager.getAllFileData())
 
 	if cloud_files:
 		for p in cloud_files:
@@ -130,12 +132,12 @@ def design_download(print_file_id):
 		)
 
 	def successCb(destFile, fileInfo):
-		if gcodeManager.saveCloudGcode(destFile, fileInfo, FileDestinations.LOCAL):
+		if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
 			em.fire(
 				Events.CLOUD_DOWNLOAD, {
 					"type": "success",
 					"id": print_file_id,
-					"filename": gcodeManager._getBasicFilename(destFile),
+					"filename": printerManager().fileManager._getBasicFilename(destFile),
 					"info": fileInfo["info"]
 				}
 			)

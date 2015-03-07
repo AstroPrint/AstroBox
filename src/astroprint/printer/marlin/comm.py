@@ -21,10 +21,10 @@ from octoprint.util.avr_isp import ispBase
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from octoprint.filemanager.destinations import FileDestinations
-from octoprint.gcodefiles import isGcodeFileName
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
+
+from astroprint.printfiles import FileDestinations
 
 try:
 	import _winreg
@@ -653,7 +653,7 @@ class MachineCom(object):
 						filename = fileinfo[0].lower()
 						size = None
 
-					if isGcodeFileName(filename):
+					if self._callback.fileManager.isValidFilename(filename):
 						if filterNonAscii(filename):
 							self._logger.warn("Got a file from printer's SD that has a non-ascii filename (%s), that shouldn't happen according to the protocol" % filename)
 						else:
@@ -926,7 +926,7 @@ class MachineCom(object):
 			except:
 				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
 
-				errorMsg = "See octoprint.log for details"
+				errorMsg = "See astrobox.log for details"
 				self._log(errorMsg)
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)

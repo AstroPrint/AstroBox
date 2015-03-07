@@ -12,11 +12,13 @@ from collections import deque
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
-from octoprint.filemanager.destinations import FileDestinations
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
+from astroprint.printfiles.map import printFileManagerMap
+from astroprint.printfiles import FileDestinations
+
 
 class Printer(object):
 	STATE_NONE = 0
@@ -42,12 +44,13 @@ class Printer(object):
 	_printTime = None
 	_printTimeLeft = None
 	_currentLayer = None
+	_fileManagerClass = None
 
-	def __init__(self, fileManager):
+	def __init__(self):
 		self._astroprintCloud = astroprintCloud()
 		self._profileManager = printerProfileManager()
 
-		self._fileManager= fileManager
+		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
 		self._fileManager.registerCallback(self)
 		self._state = self.STATE_NONE
 
@@ -93,6 +96,10 @@ class Printer(object):
 
 	def __del__(self):
 		self._fileManager.unregisterCallback(self)
+
+	@property
+	def fileManager(self):
+		return self._fileManager
 
 	def getConnectionOptions(self):
 		"""

@@ -1,31 +1,33 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
 import time
 
 from flask import request, jsonify, make_response, url_for
 
-from octoprint.filemanager.destinations import FileDestinations
 from octoprint.events import Events
 from octoprint.settings import settings, valid_boolean_trues
-from octoprint.server import gcodeManager, eventManager, restricted_access, NO_CONTENT
+from octoprint.server import eventManager, restricted_access, NO_CONTENT
 from octoprint.server.api import api
+
+from astroprint.printer.manager import printerManager
+from astroprint.printfiles import FileDestinations
 
 #~~ GCODE file handling
 
 
 @api.route("/files", methods=["GET"])
-def readGcodeFiles():
+def readPrintFiles():
 	files = _getFileList(FileDestinations.LOCAL)
 	files.extend(_getFileList(FileDestinations.SDCARD))
 	return jsonify(files=files, free=util.getFreeBytes(settings().getBaseFolder("uploads")))
 
 
 @api.route("/files/<string:origin>", methods=["GET"])
-def readGcodeFilesForOrigin(origin):
+def readPrintFilesForOrigin(origin):
 	if origin not in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
 		return make_response("Unknown origin: %s" % origin, 404)
 
@@ -63,7 +65,7 @@ def _getFileList(origin):
 					file.update({"size": sdSize})
 				files.append(file)
 	else:
-		files = gcodeManager.getAllFileData()
+		files = printerManager().fileManager.getAllFileData()
 		for file in files:
 			file.update({
 				"refs": {
@@ -78,14 +80,14 @@ def _verifyFileExists(origin, filename):
 	if origin == FileDestinations.SDCARD:
 		availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 	else:
-		availableFiles = gcodeManager.getAllFilenames()
+		availableFiles = printerManager().fileManager.getAllFilenames()
 
 	return filename in availableFiles
 
 
 @api.route("/files/<string:target>", methods=["POST"])
 @restricted_access
-def uploadGcodeFile(target):
+def uploadPrintFile(target):
 	printer = printerManager()
 
 	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
@@ -120,8 +122,8 @@ def uploadGcodeFile(target):
 			currentOrigin = currentJobFile["origin"]
 
 	# determine future filename of file to be uploaded, abort if it can't be uploaded
-	futureFilename = gcodeManager.getFutureFilename(file)
-	if futureFilename is None or (not settings().getBoolean(["cura", "enabled"]) and not gcodefiles.isGcodeFileName(futureFilename)):
+	futureFilename = printer.fileManager.getFutureFilename(file)
+	if futureFilename is None or (not settings().getBoolean(["cura", "enabled"]) and not printer.fileManager.isValidFilename(futureFilename)):
 		return make_response("Can not upload file %s, wrong format?" % file.filename, 415)
 
 	# prohibit overwriting currently selected file while it's being printed
@@ -153,7 +155,7 @@ def uploadGcodeFile(target):
 		if selectAfterUpload or printAfterSelect or (currentFilename == filename and currentOrigin == destination):
 			printerManager().selectFile(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
 
-	filename, done = gcodeManager.addFile(file, target, fileProcessingFinished)
+	filename, done = printer.fileManager.addFile(file, target, fileProcessingFinished)
 	if filename is None:
 		return make_response("Could not upload the file %s" % file.filename, 500)
 
@@ -194,7 +196,7 @@ def uploadGcodeFile(target):
 
 
 @api.route("/files/<string:target>/<path:filename>", methods=["GET"])
-def readGcodeFile(target, filename):
+def readPrintFile(target, filename):
 	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
 		return make_response("Unknown target: %s" % target, 404)
 
@@ -207,7 +209,7 @@ def readGcodeFile(target, filename):
 
 @api.route("/files/<string:target>/<path:filename>", methods=["POST"])
 @restricted_access
-def gcodeFileCommand(filename, target):
+def printFileCommand(filename, target):
 	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
 		return make_response("Unknown target: %s" % target, 404)
 
@@ -249,7 +251,7 @@ def gcodeFileCommand(filename, target):
 			filenameToSelect = filename
 			sd = True
 		else:
-			filenameToSelect = gcodeManager.getAbsolutePath(filename)
+			filenameToSelect = printer.fileManager.getAbsolutePath(filename)
 		printer.selectFile(filenameToSelect, sd, printAfterLoading)
 
 	return NO_CONTENT
@@ -257,7 +259,7 @@ def gcodeFileCommand(filename, target):
 
 @api.route("/files/<string:target>/<path:filename>", methods=["DELETE"])
 @restricted_access
-def deleteGcodeFile(filename, target):
+def deletePrintFile(filename, target):
 	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
 		return make_response("Unknown target: %s" % target, 404)
 
@@ -287,7 +289,7 @@ def deleteGcodeFile(filename, target):
 	if sd:
 		printer.deleteSdFile(filename)
 	else:
-		gcodeManager.removeFile(filename)
+		printer.fileManager.removeFile(filename)
 
 	return NO_CONTENT
 

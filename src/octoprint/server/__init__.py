@@ -39,7 +39,6 @@ elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
 assets = Environment(app)
 Compress(app)
 
-gcodeManager = None
 userManager = None
 eventManager = None
 loginManager = None
@@ -55,7 +54,6 @@ from octoprint.server.util import LargeResponseHandler, ReverseProxied, restrict
 	UrlForwardHandler, user_validator, GcodeWatchdogHandler, UploadCleanupWatchdogHandler
 from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
-import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
@@ -202,7 +200,6 @@ class Server():
 		if not self._allowRoot:
 			self._checkForRoot()
 
-		global gcodeManager
 		global userManager
 		global eventManager
 		global loginManager
@@ -234,8 +231,7 @@ class Server():
 		softwareManager.checkForcedUpdate()
 
 		eventManager = events.eventManager()
-		gcodeManager = gcodefiles.GcodeManager()
-		printer = printerManager(printerProfileManager().data['driver'], gcodeManager)
+		printer = printerManager(printerProfileManager().data['driver'])
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
@@ -324,8 +320,8 @@ class Server():
 
 		# start up watchdogs
 		observer = Observer()
-		#observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), s.getBaseFolder("watched"))
-		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), s.getBaseFolder("uploads"))
+		#observer.schedule(GcodeWatchdogHandler(printer), s.getBaseFolder("watched"))
+		observer.schedule(UploadCleanupWatchdogHandler(printerManager().fileManager), s.getBaseFolder("uploads"))
 		observer.start()
 
 		try:
@@ -340,8 +336,8 @@ class Server():
 		observer.join()
 
 	def _createSocketConnection(self, session):
-		global gcodeManager, userManager, eventManager
-		return PrinterStateConnection(printerManager(), gcodeManager, userManager, eventManager, session)
+		global userManager, eventManager
+		return PrinterStateConnection(userManager, eventManager, session)
 
 	def _checkForRoot(self):
 		return
@@ -372,7 +368,7 @@ class Server():
 					"formatter": "simple",
 					"when": "D",
 					"backupCount": "1",
-					"filename": os.path.join(settings().getBaseFolder("logs"), "octoprint.log")
+					"filename": os.path.join(settings().getBaseFolder("logs"), "astrobox.log")
 				},
 				"serialFile": {
 					"class": "logging.handlers.RotatingFileHandler",
