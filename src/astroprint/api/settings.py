@@ -134,7 +134,6 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'timelapse']) or s.getBaseFolder('timelapse'))
 	emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
-	emptyFolder(s.get(['folder', 'watched']) or s.getBaseFolder('watched'))
 
 	settings_dir = s.settings_dir
 	#remove info about users

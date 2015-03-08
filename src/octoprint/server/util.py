@@ -20,7 +20,6 @@ import os
 import threading
 import logging
 from functools import wraps
-from watchdog.events import PatternMatchingEventHandler
 
 from octoprint.settings import settings
 #import octoprint.timelapse
@@ -500,76 +499,3 @@ def redirectToTornado(request, target):
 		fragment = requestUrl[requestUrl.rfind("?"):]
 		redirectUrl += fragment
 	return redirect(redirectUrl)
-
-
-class UploadCleanupWatchdogHandler(PatternMatchingEventHandler):
-	"""
-	Takes care of automatically deleting metadata entries for files that get deleted from the uploads folder
-	"""
-
-	patterns = map(lambda x: "*.%s" % x, SUPPORTED_EXTENSIONS)
-
-	def __init__(self, file_manager):
-		PatternMatchingEventHandler.__init__(self)
-		self._file_manager = file_manager
-
-	def on_deleted(self, event):
-		filename = self._file_manager._getBasicFilename(event.src_path)
-		if not filename:
-			return
-
-		self._file_manager.removeFileFromMetadata(filename)
-
-
-class GcodeWatchdogHandler(PatternMatchingEventHandler):
-	"""
-	Takes care of automatically "uploading" files that get added to the watched folder.
-	"""
-
-	patterns = map(lambda x: "*.%s" % x, SUPPORTED_EXTENSIONS)
-
-	def __init__(self, printer):
-		PatternMatchingEventHandler.__init__(self)
-
-		self._logger = logging.getLogger(__name__)
-
-	def _upload(self, path):
-		class WatchdogFileWrapper(object):
-
-			def __init__(self, path):
-				self._path = path
-				self.filename = os.path.basename(self._path)
-
-			def save(self, target):
-				util.safeRename(self._path, target)
-
-		fileWrapper = WatchdogFileWrapper(path)
-		printer = printerManager()
-
-		# determine current job
-		currentFilename = None
-		currentOrigin = None
-		currentJob = printer.getCurrentJob()
-		if currentJob is not None and "file" in currentJob.keys():
-			currentJobFile = currentJob["file"]
-			if "name" in currentJobFile.keys() and "origin" in currentJobFile.keys():
-				currentFilename = currentJobFile["name"]
-				currentOrigin = currentJobFile["origin"]
-
-		# determine future filename of file to be uploaded, abort if it can't be uploaded
-		futureFilename = printer.fileManager.getFutureFilename(fileWrapper)
-		if futureFilename is None or (not settings().getBoolean(["cura", "enabled"]) and not printer.fileManager.isValidName(futureFilename)):
-			self._logger.warn("Could not add %s: Invalid file" % fileWrapper.filename)
-			return
-
-		# prohibit overwriting currently selected file while it's being printed
-		if futureFilename == currentFilename and not currentOrigin == FileDestinations.SDCARD and printer.isPrinting() or printer.isPaused():
-			self._logger.warn("Could not add %s: Trying to overwrite file that is currently being printed" % fileWrapper.filename)
-			return
-
-		printer.fileManager.addFile(fileWrapper, FileDestinations.LOCAL)
-
-	def on_created(self, event):
-		self._upload(event.src_path)
-
-

@@ -51,13 +51,14 @@ user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
 from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, \
-	UrlForwardHandler, user_validator, GcodeWatchdogHandler, UploadCleanupWatchdogHandler
+	UrlForwardHandler, user_validator
 from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
 import octoprint.users as users
 import octoprint.events as events
 #import octoprint.timelapse
+
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
@@ -213,6 +214,8 @@ class Server():
 		from tornado.ioloop import IOLoop
 		from tornado.web import Application, FallbackHandler
 
+		from astroprint.printfiles.watchdogs import UploadCleanupWatchdogHandler
+
 		debug = self._debug
 
 		# first initialize the settings singleton and make sure it uses given configfile and basedir if available
@@ -320,8 +323,7 @@ class Server():
 
 		# start up watchdogs
 		observer = Observer()
-		#observer.schedule(GcodeWatchdogHandler(printer), s.getBaseFolder("watched"))
-		observer.schedule(UploadCleanupWatchdogHandler(printerManager().fileManager), s.getBaseFolder("uploads"))
+		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
 
 		try:
