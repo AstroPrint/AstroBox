@@ -6,7 +6,7 @@ import threading
 import logging
 import os
 import time
-import re
+import struct
 
 from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString
@@ -25,36 +25,59 @@ class PrintJobS3G(threading.Thread):
 		self._logger = logging.getLogger(__name__)
 		self._printer = printer
 		self._file = currentFile
-		self._parser = None
 		self._canceled = False
 		self._heatingPlatform = False
 		self._heatingTool = False
 		self._heatupWaitStartTime = 0
 		self.daemon = True
-		self._regex_command = re.compile("^\s*([GM]\d+|T)")
 
-	def exec_line(self, line):
-		self._logger.debug('G-CODE: %s', line)
-		line = self._preprocessGcode(line)
+		# ~~~ From https://github.com/jetty840/ReplicatorG/blob/master/scripts/s3g-decompiler.py
 
-		if not line:
-			return False
-
-		while True:
-			try:
-				self._parser.execute_line(line)
-				return True
-
-			except BufferOverflowError:
-				time.sleep(.2)
-
-			except PacketTooBigError:
-				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
-				return False
-
-			except UnrecognizedCommandError:
-				self._logger.warn('The following GCode command was ignored: %s' % line)
-				return False
+		# Command table entries consist of:
+		# * The key: the integer command code
+		# * A tuple:
+		#   * idx 0: the python struct description of the rest of the data,
+		#            of a function that unpacks the remaining data from the
+		#            stream
+		#   * idx 1: either a format string that will take the tuple of unpacked
+		#            data, or a function that takes the tuple as input and returns
+		#            a string
+		# REMINDER: all values are little-endian. Struct strings with multibyte
+		# types should begin with "<".
+		# For a refresher on Python struct syntax, see here:
+		# http://docs.python.org/library/struct.html
+		self.commandTable = {    
+			129: "<iiiI",
+			130: "<iii",
+			131: "<BIH",
+			132: "<BIH",
+			133: "<I",
+			134: "<B",
+			135: self.parseWaitForToolAction,
+			136: self.parseToolAction,
+			137: "<B",
+			138: "<H",
+			139: "<iiiiiI",
+			140: "<iiiii",
+			141: self.parseWaitForPlatformAction,
+			142: "<iiiiiIB",
+			143: "<b",
+			144: "<b",
+			145: "<BB",
+			146: "<BBBBB",
+			147: "<HHB",
+			148: "<BHB",
+			149: self.parseDisplayMessageAction,
+			150: "<BB",
+			151: "<B",
+			152: "<B",
+			153: self.parseBuildStartNotificationAction,
+			154: "<B",
+			155: "<iiiiiIBfh",
+			156: "<B",
+			157: "<BBBIHHIIB",
+			158: "<f"
+		}
 
 	def cancel(self):
 		self._canceled = True
@@ -63,34 +86,7 @@ class PrintJobS3G(threading.Thread):
 		profile = self._printer._profile
 
 		try:
-			assembler = GcodeAssembler(profile)
-			start, end, variables = assembler.assemble_recipe()
-			start_gcode = assembler.assemble_start_sequence(start)
-			end_gcode = assembler.assemble_end_sequence(end)
-
-			variables.update({
-				'START_X': profile.values['print_start_sequence']['start_position']['start_x'],
-				'START_Y': profile.values['print_start_sequence']['start_position']['start_y'],
-				'START_Z': profile.values['print_start_sequence']['start_position']['start_z']
-			})
-			
-			self._parser = GcodeParser()
-			self._parser.environment.update(variables)
-			self._parser.state.set_build_name(os.path.basename(self._file['filename'])[:15])
-			self._parser.state.profile = profile
-			self._parser.s3g = self._printer._comm
-
-			self._parser.state.values['last_extra_index'] = 0
-			self._parser.state.values['last_platform_index'] = 0
-
-			if self._printer._firmwareVersion >= 700:
-				vid, pid = self._printer._comm.get_vid_pid_iface()
-				self._parser.s3g.x3g_version(1, 0, pid=pid) # Currently hardcode x3g v1.0
-
 			self._printer._comm.reset()
-
-			for line in start_gcode:
-				self.exec_line(line)
 
 			self._file['start_time'] = time.time()
 			self._file['progress'] = 0
@@ -99,16 +95,32 @@ class PrintJobS3G(threading.Thread):
 			lastProgressValueSentToPrinter = 0
 			lastHeatingCheck = 0
 
-			with open(self._file['filename'], 'r') as f:
+			with open(self._file['filename'], 'rb') as f:
 				while True:
-					try:
-						line = f.readline()
+					packet = bytearray()
 
-						if self._canceled or not line:
+					try:
+						command = f.read(1)
+
+						if self._canceled or len(command) == 0:
 							break
 
-						if self.exec_line(line):
+						packet.append(ord(command))
 
+						(command) = struct.unpack("B",command)
+						parse = self.commandTable[command[0]]
+						if type(parse) == type(""):
+							packetLen = struct.calcsize(parse)
+							packetData = f.read(packetLen)
+							if len(packetData) != packetLen:
+								raise "Packet incomplete"
+						else:
+							packetData = parse(f)
+
+						for c in packetData:
+							packet.append(ord(c))
+
+						if self.send_packet(packet):
 							now = time.time()
 							if now - lastProgressReport > self.UPDATE_INTERVAL_SECS:
 								position = f.tell()
@@ -120,7 +132,7 @@ class PrintJobS3G(threading.Thread):
 
 								if lastProgressValueSentToPrinter != printerProgress:
 									try:
-										self._parser.s3g.set_build_percent(printerProgress)
+										self._printer._comm.set_build_percent(printerProgress)
 										lastProgressValueSentToPrinter = printerProgress
 										lastProgressReport = now
 
@@ -130,9 +142,10 @@ class PrintJobS3G(threading.Thread):
 							if self._printer._heatingUp and now - lastHeatingCheck > self.UPDATE_INTERVAL_SECS:
 								lastHeatingCheck = now
 
-								if  	( not self._heatingPlatform or ( self._heatingPlatform and self._parser.s3g.is_platform_ready(0) ) )  \
-									and ( not self._heatingTool or ( self._heatingTool and self._parser.s3g.is_tool_ready(0) ) ):
+								if  	( not self._heatingPlatform or ( self._heatingPlatform and self._printer._comm.is_platform_ready(0) ) )  \
+									and ( not self._heatingTool or ( self._heatingTool and self._printer._comm.is_tool_ready(0) ) ):
 								 
+								 	print 'not heating'
 									self._heatingTool = False
 									self._heatingPlatform = False
 									self._printer._heatingUp = False
@@ -143,6 +156,11 @@ class PrintJobS3G(threading.Thread):
 
 					except ProtocolError as e:
 						self._logger.warn('ProtocolError: %s' % e)
+
+			#Lower the plate, home and switch motors off
+			if self._canceled:
+				self._printer._comm.clear_buffer()
+				self._printer._comm.find_axes_maximums(['X','Y','Z'], 200, 60)
 
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
@@ -159,9 +177,6 @@ class PrintJobS3G(threading.Thread):
 			else:
 				self._printer.mcPrintjobDone()
 				eventManager().fire(Events.PRINT_DONE, payload)
-
-			for line in end_gcode:
-				self.exec_line(line)
 
 		except BuildCancelledError:
 			self._logger.warn('Build Cancel detected')
@@ -182,93 +197,85 @@ class PrintJobS3G(threading.Thread):
 			eventManager().fire(Events.ERROR, {"error": self._errorValue })
 			self._logger.error(self._errorValue)
 
-	# ~~~ GCODE handlers
+	def send_packet(self, data):
+		while True:
+			try:
+				self._printer._comm.writer.send_action_payload(data)
+				return True
 
-	def _preprocessGcode(self, cmd):
-		gcode = self._regex_command.search(cmd)
-		if gcode:
-			gcode = gcode.group(1)
+			except BufferOverflowError:
+				time.sleep(.2)
 
-			gcodeHandler = "_handleGcode_" + gcode
-			if hasattr(self, gcodeHandler):
-				cmd = getattr(self, gcodeHandler)(cmd)
+			except PacketTooBigError:
+				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+				return False
 
-		return cmd
+			except UnrecognizedCommandError:
+				self._logger.warn('The following GCode command was ignored: %s' % line)
+				return False
 
-	#G90: Absolute Positioning
-	def _handleGcode_G90(self, cmd):
-		return None #ignored
+	# ~~~ Slightly modified code for parsing from https://github.com/jetty840/ReplicatorG/blob/master/scripts/s3g-decompiler.py
 
-	#G21: Set to milimeters
-	def _handleGcode_G21(self, cmd):
-		return None #Ignored.
+	def parseToolAction(self, s3gFile):
+		packetStr = s3gFile.read(3)
+		if len(packetStr) != 3:
+			raise "Incomplete s3g file during tool command parse"
+		(index,command,payload) = struct.unpack("<BBB",packetStr)
+		contents = s3gFile.read(payload)
+		if len(contents) != payload:
+			raise "Incomplete s3g file: tool packet truncated"
+		return packetStr + contents
 
-	#G28: Home Axis
-	def _handleGcode_G28(self, cmd):
-		return None
+	def parseWaitForToolAction(self, s3gFile):
+		packetLen = struct.calcsize("<BHH")
+		packetData = s3gFile.read(packetLen)
+		if len(packetData) != packetLen:
+			raise "Packet incomplete"
 
-	def _handleGcode_M73(self, cmd):
-		return None
+		if not self._printer._heatingUp:
+			self._printer._heatingUp = True
+			self._printer.mcHeatingUpUpdate(True)
+			self._heatupWaitStartTime = time.time()
 
-	def _handleGcode_M84(self, cmd):
-		return None
-
-	#M101: Undo retraction
-	def _handleGcode_M101(self, cmd):
-		return None #ignore
-
-	#M103: Turn all extruders off
-	def _handleGcode_M103(self, cmd):
-		return None #ignore
-
-	def _handleGcode_M104(self, cmd):
-		return None
-		self._printer._heatingUp = True
-		self._printer.mcHeatingUpUpdate(True)
 		self._heatingTool = True
-		self._heatupWaitStartTime = time.time()
-		return cmd
+		return packetData
 
-	#M105: Get Temperature
-	def _handleGcode_M105(self, cmd):
-		return None #Ignore
+	def parseWaitForPlatformAction(self, s3gFile):
+		packetLen = struct.calcsize("<BHH")
+		packetData = s3gFile.read(packetLen)
+		if len(packetData) != packetLen:
+			raise "Packet incomplete"
 
-	#M106: Fan On
-	def _handleGcode_M106(self, cmd):
-		return None #Ignore
+		if not self._printer._heatingUp:
+			self._printer._heatingUp = True
+			self._printer.mcHeatingUpUpdate(True)
+			self._heatupWaitStartTime = time.time()
 
-	#M107: Fan Off
-	def _handleGcode_M107(self, cmd):
-		return None #Ignore
-
-	#M108: Set Extruder Speed
-	def _handleGcode_M108(self, cmd):
-		codes, flags, comments = makerbot_driver.Gcode.parse_line(match.string)
-		#Since were using variable_replace in gcode.utils, we need to make the codes dict
-		#a dictionary of only strings
-		string_codes = {}
-		for key in codes:
-			string_codes[str(key)] = str(codes[key])
-		if 'T' not in codes:
-			transformed_line = ''
-		else:
-			transformed_line = 'M135 T#T'  # Set the line up for variable replacement
-			transformed_line = makerbot_driver.Gcode.variable_substitute(transformed_line, string_codes)
-		return transformed_line
-
-	def _handleGcode_M109(self, cmd):
-		self._printer._heatingUp = True
-		self._printer.mcHeatingUpUpdate(True)
 		self._heatingPlatform = True
-		self._heatupWaitStartTime = time.time()
-		return cmd
+		return packetData
 
-	#M127: Set screen text
-	def _handleGcode_M127(self, cmd):
-		return None #Ignore
+	def parseDisplayMessageAction(self, s3gFile):
+		packetStr = s3gFile.read(4)
+		if len(packetStr) < 4:
+			raise "Incomplete s3g file during tool command parse"
+		message = "";
+		while True:
+		   	c = s3gFile.read(1);
+			message += c;
+			if c == '\0':
+			  	break;
 
-	def _handleGcode_M136(self, cmd):
-		return None	
+		return packetStr + message
 
-	def _handleGcode_M137(self, cmd):
-		return None	
+	def parseBuildStartNotificationAction(self, s3gFile):
+		packetStr = s3gFile.read(4)
+		if len(packetStr) < 4:
+			raise "Incomplete s3g file during tool command parse"
+		buildName = "";
+		while True:
+			c = s3gFile.read(1);
+			buildName += c;
+			if c == '\0':
+				break;
+
+		return packetStr + buildName
