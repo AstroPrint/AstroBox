@@ -58,7 +58,7 @@ def _getFileList(origin):
 					"name": sdFile,
 					"origin": FileDestinations.SDCARD,
 					"refs": {
-						"resource": url_for(".readGcodeFile", target=FileDestinations.SDCARD, filename=sdFile, _external=True)
+						"resource": url_for(".readPrintFile", target=FileDestinations.SDCARD, filename=sdFile, _external=True)
 					}
 				}
 				if sdSize is not None:
@@ -69,7 +69,7 @@ def _getFileList(origin):
 		for file in files:
 			file.update({
 				"refs": {
-					"resource": url_for(".readGcodeFile", target=FileDestinations.LOCAL, filename=file["name"], _external=True),
+					"resource": url_for(".readPrintFile", target=FileDestinations.LOCAL, filename=file["name"], _external=True),
 					"download": url_for("index", _external=True) + "downloads/files/" + FileDestinations.LOCAL + "/" + file["name"]
 				}
 			})
@@ -166,7 +166,7 @@ def uploadPrintFile(target):
 	eventManager.fire(Events.UPLOAD, {"file": filename, "target": target})
 
 	files = {}
-	location = url_for(".readGcodeFile", target=FileDestinations.LOCAL, filename=filename, _external=True)
+	location = url_for(".readPrintFile", target=FileDestinations.LOCAL, filename=filename, _external=True)
 	files.update({
 		FileDestinations.LOCAL: {
 			"name": filename,
@@ -179,7 +179,7 @@ def uploadPrintFile(target):
 	})
 
 	if sd and sdFilename:
-		location = url_for(".readGcodeFile", target=FileDestinations.SDCARD, filename=sdFilename, _external=True)
+		location = url_for(".readPrintFile", target=FileDestinations.SDCARD, filename=sdFilename, _external=True)
 		files.update({
 			FileDestinations.SDCARD: {
 				"name": sdFilename,

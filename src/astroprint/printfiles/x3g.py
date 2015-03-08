@@ -2,10 +2,11 @@ __author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
+import os
 
 from octoprint.events import eventManager, Events
 
-from astroprint.printfiles import PrintFilesManager, MetadataAnalyzer
+from astroprint.printfiles import PrintFilesManager, MetadataAnalyzer, MetadataAnalyzerResults
 
 class PrintFileManagerX3g(PrintFilesManager):
 	name = 'x3g'
@@ -13,10 +14,8 @@ class PrintFileManagerX3g(PrintFilesManager):
 
 	def __init__(self):
 		self._logger = logging.getLogger(__name__)
-
-		super(PrintFileManagerX3g, self).__init__()
-
 		self._metadataAnalyzer = X3gMetadataAnalyzer(getPathCallback=self.getAbsolutePath, loadedCallback=self._onMetadataAnalysisFinished)
+		super(PrintFileManagerX3g, self).__init__()
 
 class X3gMetadataAnalyzer(MetadataAnalyzer):
 	def __init__(self, getPathCallback, loadedCallback):
@@ -38,7 +37,7 @@ class X3gMetadataAnalyzer(MetadataAnalyzer):
 			#self._gcode.progressCallback = self._onParsingProgress
 			#self._gcode.load(path)
 			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
-			self._loadedCallback(self._currentFile, self._gcode)
+			self._loadedCallback(self._currentFile, MetadataAnalyzerResults())
 		finally:
 			#self._gcode = None
 			self._currentProgress = None

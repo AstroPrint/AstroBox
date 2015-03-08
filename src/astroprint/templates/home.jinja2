@@ -112,12 +112,16 @@
 						<% if (p.info.size) { %>
 							<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
 						<% } %>
-						<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
-						<% if (p.info.layer_count) { %>
-							<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
-							<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
+						<% if (p.info.print_time) { %>
+							<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
+							<% if (p.info.layer_count) { %>
+								<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
+								<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
+							<% } %>
 						<% } %>
-						<b>Filament Used:</b> <span class="hl"><%= (p.info.filament_volume/1000).toFixed(2) %></span> cm<sup>3</sup>
+						<% if (p.info.filament_volume) { %>
+							<b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume ? (p.info.filament_volume/1000).toFixed(2) : '--' %></span> cm<sup>3</sup>
+						<% } %>
 					<% } else { %>
 						<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 					<% } %>
@@ -139,11 +143,13 @@
 	</div>
 	<div class="small-8 large-10 columns middle-section">
 		<h3 class="bold"> <%= p.name %></h3>
-		<b><%= size_format(p.size) %></b> · 
+		<b><%= size_format(p.size) %></b>
 		<% if (p.info) { %>
-			<i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
+			<% if (p.info.print_time) { %>
+				· <i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
+			<% } %>
 		<% } else { %>
-			<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+			· <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 		<% } %>
 		<div class="progress round tiny" style="display:none">
 			<div class="meter" style="width: 0%"></div>

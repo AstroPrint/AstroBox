@@ -287,30 +287,32 @@ class AstroPrintCloud(object):
 		if data and "download_url" in data and "name" in data and "info" in data:
 			progressCb(5)
 
-			r = requests.get(data["download_url"], stream=True)
+			destFile = printerManager().fileManager.getAbsolutePath(data['name'], mustExist=False)
 
-			if r.status_code == 200:
-				content_length = float(r.headers['Content-Length']);
-				downloaded_size = 0.0
+			if destFile:
+				r = requests.get(data["download_url"], stream=True)
 
-				destFile = printerManager().fileManager.getAbsolutePath(data['name'], mustExist=False)
+				if r.status_code == 200:
+					content_length = float(r.headers['Content-Length']);
+					downloaded_size = 0.0
 
-				with open(destFile, 'wb') as fd:
-					for chunk in r.iter_content(524288): #0.5 MB
-						downloaded_size += len(chunk)
-						fd.write(chunk)
-						progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
 
-				fileInfo = {
-					'id': print_file_id,
-					'info': data["info"]
-				}
+					with open(destFile, 'wb') as fd:
+						for chunk in r.iter_content(524288): #0.5 MB
+							downloaded_size += len(chunk)
+							fd.write(chunk)
+							progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
 
-				successCb(destFile, fileInfo)
-				return True;
+					fileInfo = {
+						'id': print_file_id,
+						'info': data["info"]
+					}
 
-			else:
-				r.close()
+					successCb(destFile, fileInfo)
+					return True;
+
+				else:
+					r.close()
 
 		errorCb(destFile, 'Unable to download file')
 		return False

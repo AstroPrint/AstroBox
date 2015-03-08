@@ -68,8 +68,8 @@ class PrintFilesManager(object):
 
 			self._metadataAnalyzer.addFileToBacklog(filename)
 
-	def _onMetadataAnalysisFinished(self, filename, gcode):
-		if filename is None or gcode is None:
+	def _onMetadataAnalysisFinished(self, filename, results):
+		if filename is None or results is None:
 			return
 
 		basename = os.path.basename(filename)
@@ -80,20 +80,20 @@ class PrintFilesManager(object):
 
 		analysisResult = {}
 		dirty = False
-		if gcode.totalMoveTimeMinute:
-			analysisResult["print_time"] = gcode.totalMoveTimeMinute * 60
+		if results.totalMoveTimeMinute:
+			analysisResult["print_time"] = results.totalMoveTimeMinute * 60
 			dirty = True
-		if gcode.extrusionAmount:
+		if results.extrusionAmount:
 			analysisResult["filament"] = {}
 			totalVolume = 0
 			totalLength = 0
-			for i in range(len(gcode.extrusionAmount)):
+			for i in range(len(results.extrusionAmount)):
 				analysisResult["filament"]["tool%d" % i] = {
-					"length": gcode.extrusionAmount[i],
-					"volume": gcode.extrusionVolume[i]
+					"length": results.extrusionAmount[i],
+					"volume": results.extrusionVolume[i]
 				}
-				totalVolume += gcode.extrusionVolume[i]
-				totalLength += gcode.extrusionAmount[i]
+				totalVolume += results.extrusionVolume[i]
+				totalLength += results.extrusionAmount[i]
 			dirty = True
 
 			analysisResult['filament_volume'] = totalVolume
@@ -365,7 +365,7 @@ class PrintFilesManager(object):
 		"""
 		filename = self._getBasicFilename(filename)
 
-		if not util.isAllowedFile(filename.lower(), set(SUPPORTED_EXTENSIONS)):
+		if not util.isAllowedFile(filename.lower(), set(self.SUPPORTED_EXTENSIONS)):
 			return None
 
 		# TODO: detect which type of file and add in the extra folder portion 
@@ -376,6 +376,8 @@ class PrintFilesManager(object):
 		return secure
 
 	def getAllFilenames(self):
+		return [x["name"] for x in self.getAllFileData()]
+		print self.getAllFileData()
 		return map(lambda x: x["name"], self.getAllFileData())
 
 	def getAllFileData(self):
@@ -384,6 +386,7 @@ class PrintFilesManager(object):
 			fileData = self.getFileData(osFile)
 			if fileData is not None:
 				files.append(fileData)
+
 		return files
 
 	def getFileData(self, filename):
@@ -603,6 +606,13 @@ class MetadataAnalyzer(object):
 
 	def _analyzeFile(self, filename):
 		raise NotImplementedError()
+
+class MetadataAnalyzerResults(object):
+	layerList = None
+	extrusionAmount = [0]
+	extrusionVolume = [0]
+	totalMoveTimeMinute = 0
+	filename = None
 
 class AnalysisAborted(Exception):
 	pass

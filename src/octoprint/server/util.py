@@ -518,7 +518,7 @@ class UploadCleanupWatchdogHandler(PatternMatchingEventHandler):
 		if not filename:
 			return
 
-		self._gcode_manager.removeFileFromMetadata(filename)
+		self._file_manager.removeFileFromMetadata(filename)
 
 
 class GcodeWatchdogHandler(PatternMatchingEventHandler):
