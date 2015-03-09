@@ -145,7 +145,6 @@ class PrintJobS3G(threading.Thread):
 								if  	( not self._heatingPlatform or ( self._heatingPlatform and self._printer._comm.is_platform_ready(0) ) )  \
 									and ( not self._heatingTool or ( self._heatingTool and self._printer._comm.is_tool_ready(0) ) ):
 								 
-								 	print 'not heating'
 									self._heatingTool = False
 									self._heatingPlatform = False
 									self._printer._heatingUp = False
