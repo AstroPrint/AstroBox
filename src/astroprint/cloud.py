@@ -380,7 +380,7 @@ class AstroPrintCloud(object):
 	def _sync_print_file_store(self):
 		if self.cloud_enabled():
 			try:
-				r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
+				r = requests.get( "%s/print-files?format=%s" % (self.apiHost, printerManager().fileManager.fileFormat), auth=self.hmacAuth )
 				self._print_file_store = r.json()
 			except:
 				pass		
