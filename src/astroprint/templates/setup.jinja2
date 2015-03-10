@@ -221,6 +221,13 @@
 				</div>
 			</div>
 			<script type="text/template" id="step-printer-template">
+				<label for="settings-printer-driver" class="bold">
+					Driver
+					<select id="settings-printer-driver" name="driver">
+						<option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
+						<option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+					</select>
+				</label>
 				<label for="settings-serial-port" class="bold">
 					USB Device
 					<% if (settings.portOptions.length > 0) { %>
@@ -242,7 +249,7 @@
 						</p>
 					<% } %>
 				</label>
-				<% if (settings.portOptions.length > 0) { %>
+				<% if (settings.portOptions.length > 0 && settings.driver != 's3g') { %>
 					<label for="settings-baudrate" class="bold">Baud Rate
 						<select id="settings-baudrate" name="baudrate">
 							<% _.each(settings.baudrateOptions, function(e) { %>
@@ -250,6 +257,8 @@
 							<% }) %>
 						</select>
 					</label>
+				<% } %>
+				<% if (settings.portOptions.length > 0 && ( settings.baudrateOptions.length > 0 || settings.driver == 's3g')) { %>
 					<div align="center">
 						<div class="loading-button expand">
 							<button class="button success radius submit-action expand bold" href="#share">Connect</button>

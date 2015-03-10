@@ -95,9 +95,6 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
-	def __del__(self):
-		print "deleting Printer..."
-
 	@property
 	def fileManager(self):
 		return self._fileManager
@@ -105,7 +102,7 @@ class Printer(object):
 	def rampdown(self):
 		self.disconnect()
 		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
-		del self._callbacks
+		self._callbacks = []
 		self._stateMonitor.stop()
 		self._stateMonitor._worker.join()
 		del self._stateMonitor

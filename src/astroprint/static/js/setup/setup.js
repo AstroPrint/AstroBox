@@ -403,36 +403,7 @@ var StepPrinter = StepView.extend({
 	template: _.template( $("#step-printer-template").html() ),
 	onShow: function()
 	{
-		this.$el.removeClass('success settings');
-		this.$el.addClass('checking');
-		$.ajax({
-			url: API_BASEURL + 'setup/printer',
-			method: 'GET',
-			success: _.bind(function(data) {
-				this.$el.addClass('settings');
-				if (data.portOptions && data.baudrateOptions) {
-					this.render(data);
-					this.delegateEvents(_.extend(this.events, {
-						'click a.retry-ports': 'retryPortsClicked'
-					}));
-				} else {
-					noty({text: "Error reading printer connection settings", timeout: 3000});
-				}
-			}, this),
-			error: _.bind(function(xhr) {
-				this.$el.addClass('settings');
-				if (xhr.status == 400) {
-					message = xhr.responseText;
-				} else {
-					message = "Error reading printer connection settings";
-				}
-				noty({text: message, timeout: 3000});
-
-			}, this),
-			complete: _.bind(function() {
-				this.$el.removeClass('checking');
-			}, this)
-		});
+		this._checkPrinters()
 	},
 	render: function(settings)
 	{
@@ -475,6 +446,40 @@ var StepPrinter = StepView.extend({
 			}, this)
 		});
 	},
+	_checkPrinters: function()
+	{
+		this.$el.removeClass('success settings');
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/printer',
+			method: 'GET',
+			success: _.bind(function(data) {
+				this.$el.addClass('settings');
+				if (data.portOptions && (data.baudrateOptions || data.driver == 's3g')) {
+					this.render(data);
+					this.delegateEvents(_.extend(this.events, {
+						'click a.retry-ports': 'retryPortsClicked',
+						'change #settings-printer-driver': 'driverChanged'
+					}));
+				} else {
+					noty({text: "Error reading printer connection settings", timeout: 3000});
+				}
+			}, this),
+			error: _.bind(function(xhr) {
+				this.$el.addClass('settings');
+				if (xhr.status == 400) {
+					message = xhr.responseText;
+				} else {
+					message = "Error reading printer connection settings";
+				}
+				noty({text: message, timeout: 3000});
+
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		});
+	},
 	_setConnecting: function(connecting)
 	{
 		if (connecting) {
@@ -489,6 +494,35 @@ var StepPrinter = StepView.extend({
 	{
 		e.preventDefault();
 		this.onShow();
+	},
+	driverChanged: function(e)
+	{
+		this.$el.removeClass('success settings');
+		this.$el.addClass('checking');
+		$.ajax({
+			url: API_BASEURL + 'setup/printer/profile',
+			method: 'POST',
+			data: {
+				driver: $(e.target).val()
+			},
+			success: _.bind(function() {
+				this._checkPrinters();
+			}, this),
+			error: _.bind(function(xhr) {
+				this.$el.addClass('settings');
+				if (xhr.status == 400) {
+					message = xhr.responseText;
+				} else {
+					message = "Error saving printer connection settings";
+				}
+				noty({text: message, timeout: 3000});
+
+			}, this),
+			complete: _.bind(function() {
+				this.$el.removeClass('checking');
+			}, this)
+		});
+
 	}
 });
 
