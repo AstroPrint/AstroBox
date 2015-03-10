@@ -85,8 +85,42 @@ class PrintJobS3G(threading.Thread):
 	def run(self):
 		profile = self._printer._profile
 
+		self._printer._heatingUp = True
+		self._printer.mcHeatingUpUpdate(True)
+		self._heatupWaitStartTime = time.time()
+		self._heatingTool = True
+
 		try:
+			assembler = GcodeAssembler(profile)
+			start, end, variables = assembler.assemble_recipe()
+			start_gcode = assembler.assemble_start_sequence(start)
+			end_gcode = assembler.assemble_end_sequence(end)
+
+			variables.update({
+				'START_X': profile.values['print_start_sequence']['start_position']['start_x'],
+				'START_Y': profile.values['print_start_sequence']['start_position']['start_y'],
+				'START_Z': profile.values['print_start_sequence']['start_position']['start_z']
+			})
+
+			self._parser = GcodeParser()
+			self._parser.environment.update(variables)
+			self._parser.state.set_build_name(os.path.basename(self._file['filename'])[:15])
+			self._parser.state.profile = profile
+			self._parser.s3g = self._printer._comm
+
 			self._printer._comm.reset()
+
+			#self._parser.state.values['last_extra_index'] = 0
+			#self._parser.state.values['last_platform_index'] = 0
+
+			if self._printer._firmwareVersion >= 700:
+				vid, pid = self._printer._comm.get_vid_pid_iface()
+				self._parser.s3g.x3g_version(1, 0, pid=pid) # Currently hardcode x3g v1.0
+
+			for line in start_gcode:
+				self.exec_gcode_line(line)
+
+			self.exec_gcode_line('G1 X0 Y0 Z0')
 
 			self._file['start_time'] = time.time()
 			self._file['progress'] = 0
@@ -156,10 +190,12 @@ class PrintJobS3G(threading.Thread):
 					except ProtocolError as e:
 						self._logger.warn('ProtocolError: %s' % e)
 
-			#Lower the plate, home and switch motors off
 			if self._canceled:
-				self._printer._comm.clear_buffer()
-				self._printer._comm.find_axes_maximums(['X','Y','Z'], 200, 60)
+				self._printer._comm.build_end_notification()
+
+			else:
+				for line in end_gcode:
+					self.exec_gcode_line(line)
 
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
@@ -200,6 +236,24 @@ class PrintJobS3G(threading.Thread):
 		while True:
 			try:
 				self._printer._comm.writer.send_action_payload(data)
+				return True
+
+			except BufferOverflowError:
+				time.sleep(.2)
+
+			except PacketTooBigError:
+				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+				return False
+
+			except UnrecognizedCommandError:
+				self._logger.warn('The following GCode command was ignored: %s' % line)
+				return False
+
+	def exec_gcode_line(self, line):
+		print line
+		while True:
+			try:
+				self._parser.execute_line(line)
 				return True
 
 			except BufferOverflowError:
