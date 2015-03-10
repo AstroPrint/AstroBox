@@ -250,7 +250,6 @@ class PrintJobS3G(threading.Thread):
 				return False
 
 	def exec_gcode_line(self, line):
-		print line
 		while True:
 			try:
 				self._parser.execute_line(line)

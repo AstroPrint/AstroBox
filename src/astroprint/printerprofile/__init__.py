@@ -61,8 +61,6 @@ class PrinterProfileManager(object):
 						#change printer object
 						from astroprint.printer.manager import printerManager 
 
-						printer = printerManager()
-						printer.disconnect()
 						printerManager(changes['driver']) 
 
 					self.data[k] = self._clean(k, changes[k])

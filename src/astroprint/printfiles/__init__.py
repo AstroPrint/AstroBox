@@ -26,6 +26,7 @@ class FileTypes(object):
 
 class PrintFilesManager(object):
 	name = None
+	fileFormat = None
 	SUPPORTED_EXTENSIONS = []
 	SUPPORTED_DESIGN_EXTENSIONS = ["stl"]
 
@@ -45,6 +46,11 @@ class PrintFilesManager(object):
 
 		self._loadMetadata(migrate=True)
 		self._processAnalysisBacklog()
+
+	def rampdown(self):
+		del self._callbacks
+		self._metadataAnalyzer.stop()
+		self._metadataAnalyzer._worker.join()
 
 	def isValidFilename(self, filename):
 		return "." in filename and filename.rsplit(".", 1)[1].lower() in self.SUPPORTED_EXTENSIONS
@@ -548,9 +554,9 @@ class MetadataAnalyzer(object):
 
 		self._currentFile = None
 		self._currentProgress = None
+		self._stop = False
 
 		self._queue = Queue.PriorityQueue()
-		self._gcode = None
 
 		self._worker = threading.Thread(target=self._work)
 		self._worker.daemon = True
@@ -571,28 +577,45 @@ class MetadataAnalyzer(object):
 		return self._active.is_set()
 
 	def pause(self):
-		self._logger.debug("Pausing Gcode analyzer")
+		self._logger.debug("Pausing Print File analyzer")
 		self._active.clear()
-		if self._gcode is not None:
-			self._logger.debug("Aborting running analysis, will restart when Gcode analyzer is resumed")
-			self._gcode.abort()
 
 	def resume(self):
-		self._logger.debug("Resuming Gcode analyzer")
+		self._logger.debug("Resuming Print File analyzer")
 		self._active.set()
+
+	def stop(self):
+		self._stop = True
+		if not self._active.isSet():
+			#It's waiting on a _active.wait()
+			self._active.set()
+		else:
+			#It's waiting on a _queue.get()
+			#We add a fake item so that _queue.get returns and we can kill the thread
+			self._queue.put((0, None))
 
 	def _work(self):
 		aborted = None
-		while True:
+		while not self._stop:
 			if aborted is not None:
 				filename = aborted
 				aborted = None
 				self._logger.debug("Got an aborted analysis job for file %s, processing this instead of first item in queue" % filename)
 			else:
 				(priority, filename) = self._queue.get()
+				if filename is None:
+					self._queue.task_done()
+					if self._stop:
+						break
+					else:
+						continue
+				
 				self._logger.debug("Processing file %s from queue (priority %d)" % (filename, priority))
 
 			self._active.wait()
+
+			if self._stop:
+				break
 
 			try:
 				self._analyzeFile(filename)
@@ -600,6 +623,9 @@ class MetadataAnalyzer(object):
 			except AnalysisAborted:
 				aborted = filename
 				self._logger.debug("Running analysis of file %s aborted" % filename)
+
+		self._getPathCallback = None
+		self._loadedCallback = None
 
 	def _onParsingProgress(self, progress):
 		self._currentProgress = progress

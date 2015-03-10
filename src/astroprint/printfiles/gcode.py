@@ -17,6 +17,7 @@ from astroprint.printfiles import PrintFilesManager, MetadataAnalyzer, FileDesti
 
 class PrintFileManagerGcode(PrintFilesManager):
 	name = 'gcode'
+	fileFormat = 'gcode'
 	SUPPORTED_EXTENSIONS = ["gcode", "gco", "g"]
 
 	def __init__(self):
@@ -27,7 +28,17 @@ class PrintFileManagerGcode(PrintFilesManager):
 class GcodeMetadataAnalyzer(MetadataAnalyzer):
 	def __init__(self, getPathCallback, loadedCallback):
 		self._logger = logging.getLogger(__name__)
+
+		self._gcode = None
+
 		super(GcodeMetadataAnalyzer, self).__init__(getPathCallback, loadedCallback)
+
+	def pause(self):
+		super(GcodeMetadataAnalyzer, self).pause()
+		
+		if self._gcode is not None:
+			self._logger.debug("Aborting running analysis, will restart when Gcode analyzer is resumed")
+			self._gcode.abort()
 
 	def _analyzeFile(self, filename):
 		path = self._getPathCallback(filename)

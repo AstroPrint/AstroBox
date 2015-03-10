@@ -67,12 +67,13 @@ class Printer(object):
 		#self._lastProgressReport = None
 
 		self._stateMonitor = StateMonitor(
-			ratelimit=1.0,
-			updateCallback=self._sendCurrentDataCallbacks,
-			addTemperatureCallback=self._sendAddTemperatureCallbacks,
-			addLogCallback=self._sendAddLogCallbacks,
-			addMessageCallback=self._sendAddMessageCallbacks
+			ratelimit= 1.0,
+			updateCallback= self._sendCurrentDataCallbacks,
+			addTemperatureCallback= self._sendAddTemperatureCallbacks,
+			addLogCallback= self._sendAddLogCallbacks,
+			addMessageCallback= self._sendAddMessageCallbacks
 		)
+
 		self._stateMonitor.reset(
 			state={"text": self.getStateString(), "flags": self._getStateFlags()},
 			jobData={
@@ -95,11 +96,21 @@ class Printer(object):
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
 	def __del__(self):
-		self._fileManager.unregisterCallback(self)
+		print "deleting Printer..."
 
 	@property
 	def fileManager(self):
 		return self._fileManager
+
+	def rampdown(self):
+		self.disconnect()
+		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
+		del self._callbacks
+		self._stateMonitor.stop()
+		self._stateMonitor._worker.join()
+		del self._stateMonitor
+		self._fileManager.rampdown()
+		del self._fileManager
 
 	def getConnectionOptions(self):
 		"""
@@ -286,14 +297,6 @@ class Printer(object):
 		if self._comm is None:
 			return False
 
-		#if disableMotorsAndHeater:
-			# disable motors, switch off hotends, bed and fan
-		#	commands = ["M84"]
-		#	commands.extend(map(lambda x: "M104 T%d S0" % x, range(settings().getInt(["printerParameters", "numExtruders"]))))
-		#	commands.extend(["M140 S0", "M106 S0"])
-		#	self.commands(commands)
-
-		#cancel timelapse if there was one
 		self._cameraManager.stop_timelapse()
 
 		return True
@@ -492,6 +495,7 @@ class StateMonitor(object):
 		self._sdUploadData = None
 		self._currentZ = None
 		self._progress = None
+		self._stop = False
 
 		self._offsets = {}
 
@@ -507,6 +511,10 @@ class StateMonitor(object):
 		self.setJobData(jobData)
 		self.setProgress(progress)
 		self.setCurrentZ(currentZ)
+
+	def stop(self):
+		self._stop = True
+		self._changeEvent.set()
 
 	def addTemperature(self, temperature):
 		self._addTemperatureCallback(temperature)
@@ -543,6 +551,9 @@ class StateMonitor(object):
 	def _work(self):
 		while True:
 			self._changeEvent.wait()
+
+			if self._stop:
+				break;
 
 			now = time.time()
 			delta = now - self._lastUpdate

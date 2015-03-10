@@ -61,6 +61,14 @@ class PrinterMarlin(Printer):
 
 		super(PrinterMarlin, self).__init__()
 
+	def rampdown(self):
+		if self._comm:	
+			self._comm.close()
+			self._comm.thread.join()		
+			del self._comm
+
+		super(PrinterMarlin, self).rampdown()
+
 	#~~ callback handling
 
 	def _sendTriggerUpdateCallbacks(self, type):

@@ -931,6 +931,7 @@ class MachineCom(object):
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
 		self._log("Connection closed, closing down monitor")
 
 	def _openSerial(self):

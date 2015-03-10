@@ -13,13 +13,16 @@ printerDriverMap = {
 	PrinterS3g.driverName: PrinterS3g
 }
 
+# This object is recreated when the driver is changed in the printer profile page.
+# DO NOT store a reference to the result of printerManager in any persistant object.
+
 def printerManager(driver = None):
 	global _instance
 	if _instance is None:
 		_instance = printerDriverMap[driver]()
 
 	elif driver is not None and _instance.driverName != driver:
-		_instance.disconnect()
+		_instance.rampdown()
 		_instance = printerDriverMap[driver]()
 
 	return _instance

@@ -10,6 +10,7 @@ from astroprint.printfiles import PrintFilesManager, MetadataAnalyzer, MetadataA
 
 class PrintFileManagerX3g(PrintFilesManager):
 	name = 'x3g'
+	fileFormat = 'x3g'
 	SUPPORTED_EXTENSIONS = ["x3g"]
 
 	def __init__(self):
@@ -33,15 +34,8 @@ class X3gMetadataAnalyzer(MetadataAnalyzer):
 		try:
 			self._logger.debug("Starting analysis of file %s" % filename)
 			eventManager().fire(Events.METADATA_ANALYSIS_STARTED, {"file": filename})
-			#self._gcode = gcodeInterpreter.gcode()
-			#self._gcode.progressCallback = self._onParsingProgress
-			#self._gcode.load(path)
 			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
 			self._loadedCallback(self._currentFile, MetadataAnalyzerResults())
 		finally:
-			#self._gcode = None
 			self._currentProgress = None
 			self._currentFile = None
-
-	def _onParsingProgress(self, progress):
-		self._currentProgress = progress

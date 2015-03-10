@@ -46,10 +46,14 @@ class PrinterS3g(Printer):
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
 
-	def __del__(self):
-		if self._comm and self._comm.is_open():
-			self._comm.close()
-			self._comm = None
+	def rampdown(self):
+		super(PrinterS3g, self).rampdown()
+
+		if self._comm:
+			if self._comm.is_open():
+				self._comm.close()
+				
+			del self._comm
 
 	def isReady(self):
 		return self.isOperational() #and not self._comm.isStreaming()
@@ -275,17 +279,22 @@ class PrinterS3g(Printer):
 		with self._state_condition:
 			if self._printJob:
 				self._printJob.cancel()
+				self._printJob.join()
 
 			if self.isConnected():
 				self._comm.close()
 
-			self._comm = None
-			self._profile = None
-			self._gcodeParser = None
+		self._comm = None
+		self._profile = None
+		self._gcodeParser = None
+
+		if self._botThread:
+			self._botThread.join()
 			self._botThread = None
-			self._firmwareVersion = None
-			self._changeState(self.STATE_CLOSED)
-			eventManager().fire(Events.DISCONNECTED)
+
+		self._firmwareVersion = None
+		self._changeState(self.STATE_CLOSED)
+		eventManager().fire(Events.DISCONNECTED)
 
 	def serialList(self):
 		from makerbot_driver.MachineDetector import MachineDetector
