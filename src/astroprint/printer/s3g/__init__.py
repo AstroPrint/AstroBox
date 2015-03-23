@@ -40,6 +40,7 @@ class PrinterS3g(Printer):
 	_printJob = None
 	_heatingUp = False
 	_firmwareVersion = None
+	_selectedTool = 0
 
 	def __init__(self):
 		self._logger = logging.getLogger(__name__)
@@ -289,7 +290,6 @@ class PrinterS3g(Printer):
 		self._gcodeParser = None
 
 		if self._botThread:
-			self._botThread.join()
 			self._botThread = None
 
 		self._firmwareVersion = None
@@ -369,7 +369,7 @@ class PrinterS3g(Printer):
 				position, endstops = self._comm.get_extended_position()
 
 				if tool is None:
-					tool = 0
+					tool = self._selectedTool
 
 				#find out what axis is this:
 				axis = self._profile.values['tools'][str(tool)]['stepper_axis']
@@ -402,6 +402,12 @@ class PrinterS3g(Printer):
 				except makerbot_driver.errors.BufferOverflowError:
 					self._state_condition.wait(.2)
 
+	def changeTool(self, tool):
+		try:
+			toolNum = int(tool[len("tool"):])
+			self._selectedTool = toolNum
+		except ValueError:
+			pass
 
 	def isStreaming(self):
 		# We don't yet support sd card printing on S3G
