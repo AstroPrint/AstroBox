@@ -217,7 +217,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 	def unregisterEvents(self):
 		if self._printerListener:
-			self._printer.unregisterCallback(self._printerListener)
+			printerManager().unregisterCallback(self._printerListener)
 			self._printerListener.cleanup()
 			self._printerListener = None
 
