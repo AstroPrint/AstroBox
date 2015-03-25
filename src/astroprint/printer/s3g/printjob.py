@@ -29,7 +29,11 @@ class PrintJobS3G(threading.Thread):
 		self._heatingPlatform = False
 		self._heatingTool = False
 		self._heatupWaitStartTime = 0
+		self._currentZ = None
+		self._lastLayerHeight = None
+		self._currentLayer = None
 		self.daemon = True
+
 
 		# ~~~ From https://github.com/jetty840/ReplicatorG/blob/master/scripts/s3g-decompiler.py
 
@@ -57,10 +61,12 @@ class PrintJobS3G(threading.Thread):
 			136: self.parseToolAction,
 			137: "<B",
 			138: "<H",
-			139: "<iiiiiI",
+			#139: "<iiiiiI",
+			139: self.parseQueueExtendedPoint,
 			140: "<iiiii",
 			141: self.parseWaitForPlatformAction,
-			142: "<iiiiiIB",
+			#142: "<iiiiiIB",
+			142: self.parseQueueExtendedPointNew,
 			143: "<b",
 			144: "<b",
 			145: "<BB",
@@ -73,7 +79,8 @@ class PrintJobS3G(threading.Thread):
 			152: "<B",
 			153: self.parseBuildStartNotificationAction,
 			154: "<B",
-			155: "<iiiiiIBfh",
+			#155: "<iiiiiIBfh",
+			155: self.parseQueueExtendedPointX3g,
 			156: "<B",
 			157: "<BBBIHHIIB",
 			158: "<f"
@@ -89,6 +96,8 @@ class PrintJobS3G(threading.Thread):
 		self._printer.mcHeatingUpUpdate(True)
 		self._heatupWaitStartTime = time.time()
 		self._heatingTool = True
+		self._lastLayerHeight = 0.0
+		self._currentLayer = 0
 
 		try:
 			self._printer._comm.reset()
@@ -308,3 +317,37 @@ class PrintJobS3G(threading.Thread):
 				break;
 
 		return packetStr + buildName
+
+	def parseMovement(self, s3gFile, format):
+		packetLen = struct.calcsize(format)
+		packetData = s3gFile.read(packetLen)
+		if len(packetData) != packetLen:
+			raise Exception("Packet incomplete")
+
+		unpacked = struct.unpack(format, buffer(packetData))
+
+		if unpacked[2] != self._currentZ:
+			self._currentZ = unpacked[2]
+			self._printer.mcZChange(float(unpacked[2])/float(self._printer._profile.values['axes']['Z']['steps_per_mm']))
+		elif self._currentZ != self._lastLayerHeight \
+			and (unpacked[3] != 0 or unpacked[4] != 0): #add check for extrusion to avoid counting missed layers
+			
+			if self._currentZ > self._lastLayerHeight:
+				self._currentLayer += 1
+				self._printer.mcLayerChange(self._currentLayer)
+
+			self._lastLayerHeight = self._currentZ
+
+		return packetData, unpacked
+
+	def parseQueueExtendedPoint(self, s3gFile):
+		raw, unpacked = self.parseMovement(s3gFile, "<iiiiiI")
+		return raw
+
+	def parseQueueExtendedPointNew(self, s3gFile):
+		raw, unpacked = self.parseMovement(s3gFile, "<iiiiiIB")
+		return raw
+
+	def parseQueueExtendedPointX3g(self, s3gFile):
+		raw, unpacked = self.parseMovement(s3gFile, "<iiiiiIBfh")
+		return raw

@@ -314,6 +314,21 @@ class Printer(object):
 			self._cameraManager.pause_timelapse()
 
 	#~~~ Printer callbacks ~~~
+	def mcZChange(self, newZ):
+		"""
+		 Callback method for the comm object, called upon change of the z-layer.
+		"""
+		oldZ = self._currentZ
+		if newZ != oldZ:
+			# we have to react to all z-changes, even those that might "go backward" due to a slicer's retraction or
+			# anti-backlash-routines. Event subscribes should individually take care to filter out "wrong" z-changes
+			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
+
+		self._setCurrentZ(newZ)
+
+	def mcLayerChange(self, layer):
+		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
+		self._currentLayer = layer;
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
