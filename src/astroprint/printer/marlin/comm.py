@@ -311,11 +311,17 @@ class MachineCom(object):
 	def close(self, isError = False):
 		printing = self.isPrinting() or self.isPaused()
 		if self._serial is not None:
-			self._serial.close()
+			try:
+				self._serial.close()
+			except OSError as e:
+				#log it but continue
+				self._logger.error('Error closing serial port: %s' % e)
+
 			if isError:
 				self._changeState(self.STATE_CLOSED_WITH_ERROR)
 			else:
 				self._changeState(self.STATE_CLOSED)
+
 		self._serial = None
 
 		if settings().get(["feature", "sdSupport"]):
@@ -330,6 +336,7 @@ class MachineCom(object):
 					"origin": self._currentFile.getFileLocation()
 				}
 			eventManager().fire(Events.PRINT_FAILED, payload)
+
 		eventManager().fire(Events.DISCONNECTED)
 
 	def setTemperatureOffset(self, tool=None, bed=None):
@@ -629,7 +636,7 @@ class MachineCom(object):
 				line = self._readline()
 				if line is None:
 					break
-				if line.strip() is not "":
+				if line.strip() is not "" and line.isalnum():
 					timeout = getNewTimeout("communication")
 
 				##~~ Error handling
@@ -846,7 +853,10 @@ class MachineCom(object):
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
 					if (line == "" or "wait" in line) and startSeen:
-						self._sendCommand("M105")
+						if time.time() > timeout:
+							self.close()
+						else:
+							self._sendCommand("M105")
 					elif "start" in line:
 						startSeen = True
 					elif "ok" in line and startSeen:

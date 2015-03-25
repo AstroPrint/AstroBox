@@ -64,8 +64,8 @@ class PrinterMarlin(Printer):
 	def rampdown(self):
 		if self._comm:	
 			self._comm.close()
-			self._comm.thread.join()		
-			del self._comm
+			self._comm.thread.join()
+			self._comm = None
 
 		super(PrinterMarlin, self).rampdown()
 

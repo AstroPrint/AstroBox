@@ -105,9 +105,7 @@ class Printer(object):
 		self._callbacks = []
 		self._stateMonitor.stop()
 		self._stateMonitor._worker.join()
-		del self._stateMonitor
 		self._fileManager.rampdown()
-		del self._fileManager
 
 	def getConnectionOptions(self):
 		"""
@@ -550,6 +548,8 @@ class StateMonitor(object):
 			self._changeEvent.wait()
 
 			if self._stop:
+				#one last update
+				self._updateCallback(self.getCurrentData())
 				break;
 
 			now = time.time()
