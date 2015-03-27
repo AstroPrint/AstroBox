@@ -756,7 +756,8 @@ class MachineCom(object):
 						"file": self._currentFile.getFilename(),
 						"filename": os.path.basename(self._currentFile.getFilename()),
 						"origin": self._currentFile.getFileLocation(),
-						"time": self.getPrintTime()
+						"time": self.getPrintTime(),
+						"layerCount": self._currentLayer
 					})
 				elif 'Done saving file' in line:
 					self.refreshSdFiles()
@@ -1050,7 +1051,8 @@ class MachineCom(object):
 						"file": self._currentFile.getFilename(),
 						"filename": os.path.basename(self._currentFile.getFilename()),
 						"origin": self._currentFile.getFileLocation(),
-						"time": self.getPrintTime()
+						"time": self.getPrintTime(),
+						"layerCount": self._currentLayer
 					}
 					self._callback.mcPrintjobDone()
 					self._changeState(self.STATE_OPERATIONAL)

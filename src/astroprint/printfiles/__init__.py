@@ -135,44 +135,44 @@ class PrintFilesManager(object):
 				continue
 
 			updated = False
-			"""if "estimatedPrintTime" in metadata["gcodeAnalysis"]:
-				estimatedPrintTime = metadata["gcodeAnalysis"]["estimatedPrintTime"]
-				if isinstance(estimatedPrintTime, (str, unicode)):
-					match = re.match(printTimeRe, estimatedPrintTime)
-					if match:
-						metadata["gcodeAnalysis"]["estimatedPrintTime"] = int(match.group(1)) * hoursToSeconds + int(match.group(2)) * minutesToSeconds + int(match.group(3))
-						self._metadataDirty = True
-						updated = True
-			if "filament" in metadata["gcodeAnalysis"]:
-				filament = metadata["gcodeAnalysis"]["filament"]
-				if isinstance(filament, (str, unicode)):
-					match = re.match(filamentRe, filament)
-					if match:
-						metadata["gcodeAnalysis"]["filament"] = {
-							"tool0": {
-								"length": int(float(match.group(1)) * 1000)
-							}
-						}
-						if match.group(3) is not None:
-							metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-								"volume": float(match.group(3))
-							})
-						self._metadataDirty = True
-						updated = True
-				elif isinstance(filament, dict) and ("length" in filament.keys() or "volume" in filament.keys()):
-					metadata["gcodeAnalysis"]["filament"] = {
-						"tool0": {}
-					}
-					if "length" in filament.keys():
-						metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-							"length": filament["length"]
-						})
-					if "volume" in filament.keys():
-						metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-							"volume": filament["volume"]
-						})
-					self._metadataDirty = True
-					updated = True"""
+			# if "estimatedPrintTime" in metadata["gcodeAnalysis"]:
+			# 	estimatedPrintTime = metadata["gcodeAnalysis"]["estimatedPrintTime"]
+			# 	if isinstance(estimatedPrintTime, (str, unicode)):
+			# 		match = re.match(printTimeRe, estimatedPrintTime)
+			# 		if match:
+			# 			metadata["gcodeAnalysis"]["estimatedPrintTime"] = int(match.group(1)) * hoursToSeconds + int(match.group(2)) * minutesToSeconds + int(match.group(3))
+			# 			self._metadataDirty = True
+			# 			updated = True
+			# if "filament" in metadata["gcodeAnalysis"]:
+			# 	filament = metadata["gcodeAnalysis"]["filament"]
+			# 	if isinstance(filament, (str, unicode)):
+			# 		match = re.match(filamentRe, filament)
+			# 		if match:
+			# 			metadata["gcodeAnalysis"]["filament"] = {
+			# 				"tool0": {
+			# 					"length": int(float(match.group(1)) * 1000)
+			# 				}
+			# 			}
+			# 			if match.group(3) is not None:
+			# 				metadata["gcodeAnalysis"]["filament"]["tool0"].update({
+			# 					"volume": float(match.group(3))
+			# 				})
+			# 			self._metadataDirty = True
+			# 			updated = True
+			# 	elif isinstance(filament, dict) and ("length" in filament.keys() or "volume" in filament.keys()):
+			# 		metadata["gcodeAnalysis"]["filament"] = {
+			# 			"tool0": {}
+			# 		}
+			# 		if "length" in filament.keys():
+			# 			metadata["gcodeAnalysis"]["filament"]["tool0"].update({
+			# 				"length": filament["length"]
+			# 			})
+			# 		if "volume" in filament.keys():
+			# 			metadata["gcodeAnalysis"]["filament"]["tool0"].update({
+			# 				"volume": filament["volume"]
+			# 			})
+			# 		self._metadataDirty = True
+			# 		updated = True
 
 			if updated:
 				updateCount += 1
@@ -470,7 +470,7 @@ class PrintFilesManager(object):
 
 	#~~ print job data
 
-	def printSucceeded(self, filename, printTime):
+	def printSucceeded(self, filename, printTime = None, layerCount = None):
 		filename = self._getBasicFilename(filename)
 		absolutePath = self.getAbsolutePath(filename)
 		if absolutePath is None:
@@ -485,6 +485,10 @@ class PrintFilesManager(object):
 
 		if printTime is not None:
 			metadata["prints"]["last"]["lastPrintTime"] = printTime
+			metadata["gcodeAnalysis"]["print_time"] = printTime
+
+		if layerCount is not None and ("layer_count" not in metadata["gcodeAnalysis"] or not metadata["gcodeAnalysis"]["layer_count"]):
+			metadata["gcodeAnalysis"]["layer_count"] = layerCount
 
 		self.setFileMetadata(filename, metadata)
 		self._saveMetadata()

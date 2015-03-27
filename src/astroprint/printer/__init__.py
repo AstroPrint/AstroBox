@@ -357,7 +357,12 @@ class Printer(object):
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
 
 	def mcPrintjobDone(self):
-		pass
+		#stop timelapse if there was one
+		self._cameraManager.stop_timelapse()
+		
+		#Not sure if this is the best way to get the layer count
+		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
+		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value

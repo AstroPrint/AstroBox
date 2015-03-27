@@ -105,12 +105,6 @@ class PrinterS3g(Printer):
 	def getErrorString(self):
 		return self._errorValue
 
-	def getPrintTime(self):
-		if self._currentFile is None or self._currentFile['start_time'] is None:
-			return None
-		else:
-			return time.time() - self._currentFile['start_time']
-
 	def getPrintTimeRemainingEstimate(self):
 		printTime = self.getPrintTime()
 		if printTime is None:

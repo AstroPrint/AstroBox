@@ -195,25 +195,31 @@ class PrintJobS3G(threading.Thread):
 				"file": self._file['filename'],
 				"filename": os.path.basename(self._file['filename']),
 				"origin": self._file['origin'],
-				"time": self._printer.getPrintTime()
+				"time": self._printer.getPrintTime(),
+				"layerCount": self._currentLayer
 			}
 
 			if self._canceled:
 				self._printer.printJobCancelled()
 				eventManager().fire(Events.PRINT_FAILED, payload)
+				self._printer._fileManager.printFailed(payload['filename'], payload['time'])
+
 			else:
 				self._printer.mcPrintjobDone()
+				self._printer._fileManager.printSucceeded(payload['filename'], payload['time'], payload['layerCount'])
 				eventManager().fire(Events.PRINT_DONE, payload)
 
 		except BuildCancelledError:
 			self._logger.warn('Build Cancel detected')
 			self._printer.printJobCancelled()
-			eventManager().fire(Events.PRINT_FAILED, {
+			payload = {
 				"file": self._file['filename'],
 				"filename": os.path.basename(self._file['filename']),
 				"origin": self._file['origin'],
 				"time": self._printer.getPrintTime()
-			})
+			}
+			eventManager().fire(Events.PRINT_FAILED, payload)
+			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
 
@@ -221,12 +227,14 @@ class PrintJobS3G(threading.Thread):
 			self._logger.warn('External Stop detected')
 			self._printer._comm.writer.set_external_stop(False)
 			self._printer.printJobCancelled()
-			eventManager().fire(Events.PRINT_FAILED, {
+			payload = {
 				"file": self._file['filename'],
 				"filename": os.path.basename(self._file['filename']),
 				"origin": self._file['origin'],
 				"time": self._printer.getPrintTime()
-			})
+			}
+			eventManager().fire(Events.PRINT_FAILED, payload)
+			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
 		except Exception:

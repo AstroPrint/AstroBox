@@ -114,8 +114,10 @@
 						<% } %>
 						<% if (p.info.print_time) { %>
 							<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
-							<% if (p.info.layer_count) { %>
+							<% if (p.info.layer_height) { %>
 								<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
+							<% } %>
+							<% if (p.info.layer_count) { %>
 								<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
 							<% } %>
 						<% } %>

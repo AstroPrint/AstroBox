@@ -350,12 +350,7 @@ class PrinterMarlin(Printer):
 			self.startPrint()
 
 	def mcPrintjobDone(self):
-		#stop timelapse if there was one
-		self._cameraManager.stop_timelapse()
-		
-		#Not sure if this is the best way to get the layer count
-		self._setProgressData(1.0, self._selectedFile["filesize"], self._comm.getPrintTime(), 0, self._layerCount)
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+		super(PrinterMarlin, self).mcPrintjobDone()
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
