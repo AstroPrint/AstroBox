@@ -292,6 +292,9 @@ class AstroprintBoxRouter(object):
 				self._listener = threading.Thread(target=self.run_threaded)
 				self._listener.daemon = True
 				self._listener.start()
+				return True
+
+		return False
 
 	def run_threaded(self):
 		try:
