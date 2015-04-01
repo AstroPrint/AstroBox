@@ -1,0 +1,40 @@
+{% extends 'base.jinja2' %}
+
+{% block css %}
+	{% assets filters="scss", output="css/gen/locked.css", 
+		"css/scss/locked.scss" %}
+		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+	{% endassets %}
+{% endblock %}
+
+{% block content %}
+	<div class="row">
+		<div class="small-12 medium-10 large-7 columns small-centered">
+			<div class="locked-area">
+				<center><img src="/img/astrolock.png"/></center>
+				<h2 class="bold"><span class="highlight">{{astroboxName}}</span> is password protected.</h2>
+				User: <span class="highlight">{{username}}</span><br/>
+				Enter your password for access:
+				<form id="login-form" action="/api/login" method="post">
+					<input type="hidden" name="user" value="{{username}}"/>
+					<input type="password" name="pass" class="radius"/>
+					<div class="loading-button expand">
+						<button class="button radius success"><b>Enter</b></button>
+						<span class="button radius disabled success loading bold"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+{% endblock %}
+
+{% block js %}
+	<script type="text/javascript">
+		var UI_API_KEY = "{{ uiApiKey }}";
+	</script>
+	{% assets filters="closure_js", output="js/gen/locked.js", 
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/locked/locked.js",
+		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js" -%}
+			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
+	{%- endassets %}
+{% endblock %}

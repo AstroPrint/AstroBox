@@ -9,7 +9,7 @@ import json
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request
-from flask.ext.login import LoginManager
+from flask.ext.login import LoginManager, current_user, logout_user
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
 from flask.ext.assets import Environment
@@ -88,6 +88,7 @@ def box_identify():
 @app.route("/")
 def index():
 	s = settings()
+	loggedUsername = s.get(["cloudSlicer", "email"])
 
 	if (s.getBoolean(["server", "firstRun"])):
 		# we need to get the user to sign into their AstroPrint account
@@ -108,6 +109,18 @@ def index():
 			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo,
 			variantData= variantManager().data,
 			astroboxName= networkManager.getHostname()
+		)
+
+	elif loggedUsername and (not current_user or current_user.get_id() != loggedUsername):
+		if current_user:
+			logout_user()
+
+		return render_template(
+			"locked.jinja2",
+			username= loggedUsername,
+			uiApiKey= UI_API_KEY,
+			astroboxName= networkManager.getHostname(),
+			variantData= variantManager().data
 		)
 
 	else:
@@ -254,7 +267,7 @@ class Server():
 
 		app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-		app.secret_key = "k3PuVYgtxNm8DXKKTw2nWmFQQun9qceV"
+		app.secret_key = boxrouterManager().boxId
 		loginManager = LoginManager()
 		loginManager.session_protection = "strong"
 		loginManager.user_callback = load_user
