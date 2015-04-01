@@ -116,7 +116,7 @@ default_settings = {
 	},
 	"accessControl": {
 		"enabled": True,
-		"userManager": "octoprint.users.FilebasedUserManager",
+		"userManager": "astroprint.users.FilebasedUserManager",
 		"userfile": None,
 		"autologinLocal": False,
 		"localNetworks": ["127.0.0.0/8"],

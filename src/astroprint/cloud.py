@@ -25,7 +25,11 @@ from time import sleep
 
 from requests_toolbelt import MultipartEncoder
 
+from flask.ext.login import login_user, logout_user
+
 from octoprint.settings import settings
+from octoprint.server import userManager
+
 from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
 
@@ -69,11 +73,24 @@ class AstroPrintCloud(object):
 			public_key = self.get_public_key(email, private_key)
 
 			if public_key:
+				#The signin was successful
 				self.settings.set(["cloudSlicer", "privateKey"], private_key)
 				self.settings.set(["cloudSlicer", "publicKey"], public_key)
 				self.settings.set(["cloudSlicer", "email"], email)
 				self.settings.save()
 				boxrouterManager().boxrouter_connect()
+
+				from octoprint.server import userManager
+
+				#Let's protect the box now:
+				user = userManager.findUser(email)
+
+				if user:
+					userManager.changeUserPassword(email, password)
+				else:
+					user = userManager.addUser(email, password, True)
+
+				login_user(user, remember=True)
 
 				#let the singleton be recreated again, so new credentials are taken into use
 				global _instance
@@ -93,6 +110,9 @@ class AstroPrintCloud(object):
 		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance
 		_instance = None
+
+		#log the user out
+		logout_user()
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)
