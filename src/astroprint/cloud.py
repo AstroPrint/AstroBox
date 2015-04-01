@@ -92,11 +92,6 @@ class AstroPrintCloud(object):
 				public_key = self.get_public_key(email, private_key)
 
 				if public_key:
-					#The signin was successful
-					self.settings.set(["cloudSlicer", "loggedUser"], email)
-					self.settings.save()
-					boxrouterManager().boxrouter_connect()
-
 					#Let's protect the box now:
 					user = userManager.findUser(email)
 
@@ -110,16 +105,19 @@ class AstroPrintCloud(object):
 
 		else:
 			user = userManager.findUser(email)
-			if user and user.check_password(userManager.createPasswordHash(password)):
-				userLoggedIn = True
-				self.settings.set(["cloudSlicer", "loggedUser"], email)
-				self.settings.save()
+			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
 
 		if userLoggedIn:
 			login_user(user, remember=True)
 			userId = user.get_id()
+
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
 			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
+			boxrouterManager().boxrouter_connect()
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -130,11 +128,11 @@ class AstroPrintCloud(object):
 		return False
 
 	def signout(self):
-		logout_user()
-
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
+		
+		logout_user()
 
 		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance

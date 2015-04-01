@@ -281,6 +281,9 @@ class AstroprintBoxRouter(object):
 		return self._boxId
 
 	def boxrouter_connect(self):
+		if not networkManager().isOnline():
+			return False
+
 		if not self.connected and current_user and current_user.is_authenticated():
 			self._publicKey = current_user.publicKey
 			self._privateKey = current_user.privateKey
