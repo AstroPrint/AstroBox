@@ -2,6 +2,7 @@
 from octoprint.filemanager.destinations import FileDestinations
 
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask.ext.principal import identity_changed, Identity

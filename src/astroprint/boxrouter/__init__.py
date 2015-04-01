@@ -19,6 +19,8 @@ import socket
 
 from time import sleep, time
 
+from flask.ext.login import current_user
+
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
@@ -279,9 +281,9 @@ class AstroprintBoxRouter(object):
 		return self._boxId
 
 	def boxrouter_connect(self):
-		if not self.connected:
-			self._publicKey	= self._settings.get(['cloudSlicer', 'publicKey'])
-			self._privateKey = self._settings.get(['cloudSlicer', 'privateKey'])
+		if not self.connected and current_user and current_user.is_authenticated():
+			self._publicKey = current_user.publicKey
+			self._privateKey = current_user.privateKey
 
 			if self._publicKey and self._privateKey:
 				self.status = self.STATUS_CONNECTING

@@ -20,10 +20,13 @@ class UserManager(object):
 	def createPasswordHash(password):
 		return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
 
-	def addUser(self, username, password, active, roles):
+	def addUser(self, username, password, publicKey, privateKey, active, roles):
 		pass
 
 	def changeUserActivation(self, username, active):
+		pass
+
+	def changeCloudAccessKeys(self, username, publicKey, privateKey):
 		pass
 
 	def changeUserRoles(self, username, roles):
@@ -74,9 +77,15 @@ class FilebasedUserManager(UserManager):
 				for name in data.keys():
 					attributes = data[name]
 					apikey = None
+					publicKey = None
+					privateKey = None
 					if "apikey" in attributes:
 						apikey = attributes["apikey"]
-					self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], apikey)
+					if "publicKey" in attributes:
+						publicKey = attributes['publicKey']
+					if 'privateKey' in attributes:
+						privateKey = attributes['privateKey']
+					self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey)
 		else:
 			self._customized = False
 
@@ -91,7 +100,9 @@ class FilebasedUserManager(UserManager):
 				"password": user._passwordHash,
 				"active": user._active,
 				"roles": user._roles,
-				"apikey": user._apikey
+				"apikey": user._apikey,
+				"publicKey": user.publicKey,
+				"privateKey": user.privateKey
 			}
 
 		with open(self._userfile, "wb") as f:
@@ -99,11 +110,11 @@ class FilebasedUserManager(UserManager):
 			self._dirty = False
 		self._load()
 
-	def addUser(self, username, password, active=False, roles=["user"], apikey=None):
+	def addUser(self, username, password, publicKey, privateKey, active=False, roles=["user"], apikey=None):
 		if username in self._users.keys():
 			raise UserAlreadyExists(username)
 
-		user = User(username, UserManager.createPasswordHash(password), active, roles, apikey)
+		user = User(username, UserManager.createPasswordHash(password), active, roles, publicKey, privateKey, apikey)
 		self._users[username] = user
 		self._dirty = True
 		self._save()
@@ -115,6 +126,16 @@ class FilebasedUserManager(UserManager):
 
 		if self._users[username]._active != active:
 			self._users[username]._active = active
+			self._dirty = True
+			self._save()
+
+	def changeCloudAccessKeys(self, username, publicKey, privateKey):
+		if not username in self._users.keys():
+			raise UnknownUser(username)
+
+		if publicKey and privateKey:
+			self._users[username].publicKey = publicKey
+			self._users[username].privateKey = privateKey			
 			self._dirty = True
 			self._save()
 
@@ -227,12 +248,14 @@ class UnknownRole(Exception):
 ##~~ User object
 
 class User(UserMixin):
-	def __init__(self, username, passwordHash, active, roles, apikey=None):
+	def __init__(self, username, passwordHash, active, roles, publicKey, privateKey, apikey=None):
 		self._username = username
 		self._passwordHash = passwordHash
 		self._active = active
 		self._roles = roles
 		self._apikey = apikey
+		self.publicKey = publicKey
+		self.privateKey = privateKey
 
 	def asDict(self):
 		return {
@@ -240,7 +263,9 @@ class User(UserMixin):
 			"active": self.is_active(),
 			"admin": self.is_admin(),
 			"user": self.is_user(),
-			"apikey": self._apikey
+			"apikey": self._apikey,
+			"privateKey": self.privateKey,
+			"publicKey": self.publicKey
 		}
 
 	def check_password(self, passwordHash):

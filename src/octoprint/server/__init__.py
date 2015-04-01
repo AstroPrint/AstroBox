@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import uuid
@@ -89,7 +90,7 @@ def box_identify():
 @app.route("/")
 def index():
 	s = settings()
-	loggedUsername = s.get(["cloudSlicer", "email"])
+	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
 
 	if (s.getBoolean(["server", "firstRun"])):
 		# we need to get the user to sign into their AstroPrint account
@@ -112,8 +113,8 @@ def index():
 			astroboxName= networkManager.getHostname()
 		)
 
-	elif loggedUsername and (not current_user or current_user.get_id() != loggedUsername):
-		if current_user:
+	elif loggedUsername and (current_user is None or not current_user.is_authenticated() or current_user.get_id() != loggedUsername):
+		if current_user.is_authenticated():
 			logout_user()
 
 		return render_template(
@@ -130,7 +131,7 @@ def index():
 		
 		return render_template(
 			"app.jinja2",
-			user_email= s.get(["cloudSlicer", "email"]),
+			user_email= loggedUsername,
 			version= VERSION,
 			printing= printing,
 			paused= paused,

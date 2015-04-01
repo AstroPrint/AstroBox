@@ -23,6 +23,8 @@ import time
 from tempfile import mkstemp
 from sys import platform
 
+from flask.ext.login import current_user
+
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
@@ -337,13 +339,14 @@ class SoftwareManager(object):
 		return True
 
 	def _checkAuth(self):
-		privateKey = self._settings.get(['cloudSlicer', 'privateKey'])
-		publicKey = self._settings.get(['cloudSlicer', 'publicKey'])
-		if self._settings.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
-			from astroprint.cloud import HMACAuth
+		if current_user and current_user.is_authenticated():
+			privateKey = current_user.privateKey
+			publicKey = current_user.publicKey
 
-			return HMACAuth(publicKey, privateKey)
+			if self._settings.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
+				from astroprint.cloud import HMACAuth
 
-		else:
-			return None
+				return HMACAuth(publicKey, privateKey)
+
+		return None
 

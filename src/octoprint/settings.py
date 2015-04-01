@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import sys
@@ -129,9 +130,7 @@ default_settings = {
 	},
 	"cloudSlicer": {
 		"apiHost": None,
-		"email": None,
-		"privateKey": None,
-		"publicKey": None,
+		"loggedUser": None,
 		"boxrouter": None
 	},
 	"events": {

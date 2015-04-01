@@ -26,7 +26,7 @@ from time import sleep
 from requests_toolbelt import MultipartEncoder
 
 from flask import current_app
-from flask.ext.login import login_user, logout_user
+from flask.ext.login import login_user, logout_user, current_user
 from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
@@ -55,8 +55,12 @@ class AstroPrintCloud(object):
 	def __init__(self):
 		self.settings = settings()
 
-		publicKey = self.settings.get(['cloudSlicer', 'publicKey'])
-		privateKey = self.settings.get(['cloudSlicer', 'privateKey'])
+		if current_user and current_user.is_authenticated():
+			publicKey = current_user.publicKey
+			privateKey = current_user.privateKey
+		else:
+			publicKey = None
+			privateKey = None		
 
 		self.hmacAuth = HMACAuth(publicKey, privateKey,)
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
@@ -67,7 +71,12 @@ class AstroPrintCloud(object):
 	@staticmethod
 	def cloud_enabled():
 		s = settings()
-		return s.get(['cloudSlicer', 'publicKey']) and s.get(['cloudSlicer', 'privateKey']) and s.get(['cloudSlicer', 'apiHost'])
+		u = current_user
+
+		if not u.is_authenticated():
+			return False
+		else:
+			return s.get(['cloudSlicer', 'apiHost']) and u.privateKey and u.publicKey
 
 	def signin(self, email, password):
 		from octoprint.server import userManager
@@ -84,9 +93,7 @@ class AstroPrintCloud(object):
 
 				if public_key:
 					#The signin was successful
-					self.settings.set(["cloudSlicer", "privateKey"], private_key)
-					self.settings.set(["cloudSlicer", "publicKey"], public_key)
-					self.settings.set(["cloudSlicer", "email"], email)
+					self.settings.set(["cloudSlicer", "loggedUser"], email)
 					self.settings.save()
 					boxrouterManager().boxrouter_connect()
 
@@ -95,17 +102,15 @@ class AstroPrintCloud(object):
 
 					if user:
 						userManager.changeUserPassword(email, password)
+						userManager.changeCloudAccessKeys(email, public_key, private_key)
 					else:
-						user = userManager.addUser(email, password, True)
+						user = userManager.addUser(email, password, public_key, private_key, True)
 
 					userLoggedIn = True
 
 		else:
 			user = userManager.findUser(email)
-			if user is not None and user.check_password(userManager.createPasswordHash(password)):
-				self.settings.set(["cloudSlicer", "email"], email)
-				self.settings.save()
-				userLoggedIn = True
+			userLoggedIn = user is not None and user.check_password(userManager.createPasswordHash(password))
 
 		if userLoggedIn:
 			login_user(user, remember=True)
@@ -122,9 +127,9 @@ class AstroPrintCloud(object):
 		return False
 
 	def signout(self):
-		self.settings.set(["cloudSlicer", "privateKey"], None)
-		self.settings.set(["cloudSlicer", "publicKey"], None)
-		self.settings.set(["cloudSlicer", "email"], None)
+		logout_user()
+
+		self.settings.set(["cloudSlicer", "loggedUser"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 
@@ -132,8 +137,6 @@ class AstroPrintCloud(object):
 		global _instance
 		_instance = None
 
-		#log the user out
-		logout_user()
 		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
@@ -152,8 +155,8 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data:
-			publicKey = self.settings.get(['cloudSlicer', 'publicKey'])
-			privateKey = self.settings.get(['cloudSlicer', 'privateKey'])
+			publicKey = current_user.publicKey
+			privateKey = current_user.privateKey
 
 			request = json.dumps({
 				'design_id': design_id,
