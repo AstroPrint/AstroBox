@@ -11,6 +11,7 @@ var SocketData = Backbone.Model.extend({
     _nextReconnectAttempt: null,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	currentState: 0,
+    lockedUser: null, //username or null
 	defaults: {
         printing: false,
         paused: false,
@@ -192,6 +193,10 @@ var SocketData = Backbone.Model.extend({
                                 console.log('astroprintStatus unkonwn event: '+payload);
                             }
                             this.set('astroprint', { status: payload });
+                            break;
+
+                        case 'LockStatusChanged':
+                            location.reload();
                             break;
 
                         case 'PrintCaptureInfoChanged':

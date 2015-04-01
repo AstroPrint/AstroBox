@@ -128,7 +128,7 @@ def getApiKey(request):
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
 			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE, 
-			  Events.CAPTURE_INFO_CHANGED]
+			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED]
 
 	def __init__(self, printer, gcodeManager, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)

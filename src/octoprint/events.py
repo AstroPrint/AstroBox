@@ -77,6 +77,7 @@ class Events(object):
 	#AstroPrint Events
 	CLOUD_DOWNLOAD = "CloudDownloadEvent"
 	ASTROPRINT_STATUS = "AstroPrintStatus"
+	LOCK_STATUS_CHANGED = "LockStatusChanged"
 	NETWORK_STATUS = "NetworkStatus"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"

@@ -25,10 +25,13 @@ from time import sleep
 
 from requests_toolbelt import MultipartEncoder
 
+from flask import current_app
 from flask.ext.login import login_user, logout_user
+from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
 from octoprint.server import userManager
+from octoprint.events import eventManager, Events
 
 from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
@@ -91,6 +94,8 @@ class AstroPrintCloud(object):
 					user = userManager.addUser(email, password, True)
 
 				login_user(user, remember=True)
+				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+				eventManager().fire(Events.LOCK_STATUS_CHANGED)
 
 				#let the singleton be recreated again, so new credentials are taken into use
 				global _instance
@@ -113,6 +118,9 @@ class AstroPrintCloud(object):
 
 		#log the user out
 		logout_user()
+		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+		eventManager().fire(Events.LOCK_STATUS_CHANGED)
+
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)
