@@ -11,7 +11,7 @@ var SocketData = Backbone.Model.extend({
     _nextReconnectAttempt: null,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	currentState: 0,
-    lockedUser: null, //username or null
+    loggedUser: LOGGED_USER, //username or null
 	defaults: {
         printing: false,
         paused: false,
@@ -196,7 +196,9 @@ var SocketData = Backbone.Model.extend({
                             break;
 
                         case 'LockStatusChanged':
-                            location.reload();
+                            if (payload != this.loggedUser) {
+                                location.reload();
+                            }
                             break;
 
                         case 'PrintCaptureInfoChanged':

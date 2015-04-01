@@ -94,8 +94,9 @@ class AstroPrintCloud(object):
 					user = userManager.addUser(email, password, True)
 
 				login_user(user, remember=True)
-				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
-				eventManager().fire(Events.LOCK_STATUS_CHANGED)
+				userId = user.get_id()
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+				eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
 				#let the singleton be recreated again, so new credentials are taken into use
 				global _instance
@@ -119,7 +120,7 @@ class AstroPrintCloud(object):
 		#log the user out
 		logout_user()
 		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
-		eventManager().fire(Events.LOCK_STATUS_CHANGED)
+		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
 
 	def get_upload_info(self, filePath):

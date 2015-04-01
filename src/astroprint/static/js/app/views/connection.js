@@ -164,7 +164,7 @@ var ConnectionView = Backbone.View.extend({
 
 		var icon = $(e.target);
 		if (icon.hasClass('failed')) {
-			if (LOGGED_IN) {
+			if (LOGGED_USER) {
 				icon.addClass('blink-animation');
 		        $.ajax({
 		            url: API_BASEURL + "boxrouter",
