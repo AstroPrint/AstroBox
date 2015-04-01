@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask.ext.login import UserMixin
@@ -10,13 +11,14 @@ import yaml
 import uuid
 
 from octoprint.settings import settings
+from astroprint.boxrouter import boxrouterManager
 
 class UserManager(object):
 	valid_roles = ["user", "admin"]
 
 	@staticmethod
 	def createPasswordHash(password):
-		return hashlib.sha512(password + "mvBUTvwzBzD3yPwvnJ4E4tXNf3CGJvvW").hexdigest()
+		return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
 
 	def addUser(self, username, password, active, roles):
 		pass
@@ -101,9 +103,11 @@ class FilebasedUserManager(UserManager):
 		if username in self._users.keys():
 			raise UserAlreadyExists(username)
 
-		self._users[username] = User(username, UserManager.createPasswordHash(password), active, roles, apikey)
+		user = User(username, UserManager.createPasswordHash(password), active, roles, apikey)
+		self._users[username] = user
 		self._dirty = True
 		self._save()
+		return user
 
 	def changeUserActivation(self, username, active):
 		if not username in self._users.keys():

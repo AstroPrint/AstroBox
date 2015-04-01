@@ -53,7 +53,7 @@ def restricted_access(func, apiEnabled=True):
 	@wraps(func)
 	def decorated_view(*args, **kwargs):
 		# if OctoPrint hasn't been set up yet, abort
-		if settings().getBoolean(["server", "firstRun"]) and (octoprint.server.userManager is None or not octoprint.server.userManager.hasBeenCustomized()):
+		if settings().getBoolean(["server", "firstRun"]) and (astroprint.server.userManager is None or not astroprint.server.userManager.hasBeenCustomized()):
 			return make_response("OctoPrint isn't setup yet", 403)
 
 		# if API is globally enabled, enabled for this request and an api key is provided that is not the current UI API key, try to use that
@@ -64,7 +64,7 @@ def restricted_access(func, apiEnabled=True):
 				user = ApiUser()
 			else:
 				# user key might have been used
-				user = octoprint.server.userManager.findUser(apikey=apikey)
+				user = astroprint.server.userManager.findUser(apikey=apikey)
 
 			if user is None:
 				return make_response("Invalid API key", 401)

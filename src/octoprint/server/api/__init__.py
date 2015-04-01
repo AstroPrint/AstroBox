@@ -196,8 +196,8 @@ def login():
 			remember = False
 
 		user = octoprint.server.userManager.findUser(username)
-		if user is not None:
-			if user.check_password(octoprint.users.UserManager.createPasswordHash(password)):
+		if user is not None:			
+			if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
 				login_user(user, remember=remember)
 				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
 				return jsonify(user.asDict())
