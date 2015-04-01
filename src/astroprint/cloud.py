@@ -110,7 +110,10 @@ class AstroPrintCloud(object):
 
 		else:
 			user = userManager.findUser(email)
-			userLoggedIn = user is not None and user.check_password(userManager.createPasswordHash(password))
+			if user and user.check_password(userManager.createPasswordHash(password)):
+				userLoggedIn = True
+				self.settings.set(["cloudSlicer", "loggedUser"], email)
+				self.settings.save()
 
 		if userLoggedIn:
 			login_user(user, remember=True)
