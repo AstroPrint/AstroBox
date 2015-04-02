@@ -94,8 +94,11 @@ body, html {
 
 	.top-logo-small {
 		float: left;
-		color: $alert-color;
 		font-size: rem-calc(40);
+
+		a {
+			color: $alert-color;
+		}
 	}
 }
 
@@ -120,6 +123,28 @@ body, html {
 		&.failed {
 			color: $alert-color;
 			cursor: pointer;
+		}
+
+		&.astroprint {
+			.offline & {
+				display: none;
+			}
+		}
+	}
+
+	a.offline {
+		display: inline-block;
+		height: 100%;
+		padding: 0px 8px;
+  		color: #ccc;
+
+		img {
+			height: 18px;
+			margin-top: -5px;
+		}
+
+		.online & {
+			display: none;
 		}
 	}
 }

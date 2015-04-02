@@ -128,6 +128,7 @@ def index():
 	else:
 		paused = printer.isPaused()
 		printing = printer.isPrinting()
+		online = networkManager.isOnline()
 		
 		return render_template(
 			"app.jinja2",
@@ -135,6 +136,7 @@ def index():
 			version= VERSION,
 			printing= printing,
 			paused= paused,
+			online= online,
 			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,

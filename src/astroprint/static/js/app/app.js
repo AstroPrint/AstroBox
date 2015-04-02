@@ -65,6 +65,7 @@ var AstroBoxApp = Backbone.View.extend({
 		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
+		this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
 	},
 	turnOffClicked: function()
 	{
@@ -81,6 +82,14 @@ var AstroBoxApp = Backbone.View.extend({
 			}, {silent: true});
 			this.$el.find('.tab-bar .left-small').show();
 			this.router.navigate("", {replace: true, trigger: true});
+		}
+	},
+	onlineStatusChange: function(s, value)
+	{
+		if (value) {
+			this.$('#app').addClass('online').removeClass('offline');
+		} else {
+			this.$('#app').addClass('offline').removeClass('online');
 		}
 	},
 	showPrinting: function() {

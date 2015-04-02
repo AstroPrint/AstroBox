@@ -11,7 +11,9 @@ var ConnectionView = Backbone.View.extend({
 		'click i.server': 'serverTapped',
 		'click i.astroprint': 'astroprintTapped',
 		'mouseover i': 'onMouseOver',
-		'mouseout i': 'onMouseOut'
+		'mouseout i': 'onMouseOut',
+		'mouseover a.offline': 'onMouseOver',
+		'mouseout a.offline': 'onMouseOut'
 	},
 	socketData: null,
 	tooltip: null,
@@ -182,7 +184,7 @@ var ConnectionView = Backbone.View.extend({
 	onMouseOver: function(e) {
 		if ($('html').hasClass('touch')) return;
 
-		var target = $(e.target);
+		var target = $(e.currentTarget);
 
 		if (!this.tooltip) {
 			this.tooltip = $('<div class="tooltip radius"><span class="pip"></span><div class="text"></div></div>')
@@ -193,7 +195,7 @@ var ConnectionView = Backbone.View.extend({
 		var screenWidth = $(document).width();
 
 		var top = position.top + target.height() - 5;
-		var right = screenWidth - (position.left + target.width());
+		var right = screenWidth - ( position.left + ( target.outerWidth() / 2 ) + 10);
 
 		this.tooltip
 			.css('top', top)
@@ -207,5 +209,6 @@ var ConnectionView = Backbone.View.extend({
 	},
 	onMouseOut: function(e) {
 		this.tooltip.addClass('hide');
+		this.tooltip.find('.text').html('');
 	}
 });

@@ -12,16 +12,19 @@
 {% endblock %}
 
 {% block content %}
-	<div id="app" class="off-canvas-wrap" data-offcanvas>
+	<div id="app" class="off-canvas-wrap {%- if online %} online {%- else -%} offline {%- endif %}" data-offcanvas>
 		<div class="inner-wrap">
 			<nav class="tab-bar">
 				<section class="left-small">
 					<a class="left-off-canvas-toggle menu-icon" href="#"><span></span></a>
 				</section>
 				<section class="middle tab-bar-section">
-					<span class="top-logo-small show-for-small"><i class="icon-rocket"></i></span>
-					<h1 class="title hide-for-small"><img src="/img/astrobox_logo_medium.png"/></h1>
+					<span class="top-logo-small show-for-small"><a href="#"><i class="icon-rocket"></i></a></span>
+					<h1 class="title hide-for-small"><a href="#"><img src="/img/astrobox_logo_medium.png"/></a></h1>
 					<div id="connection-view">
+						<a href="#settings/internet-connection" class="offline" data-title="Not connected to the internet">
+							<img src="/img/no-internet-icon.png" />
+						</a>
 						<i class="icon-rocket astroprint"></i>
 						<i class="icon-3d-printer printer"></i>
 						<i class="icon-exchange server"></i>
@@ -95,7 +98,8 @@
 		var initial_states = {
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
 			paused: {% if paused -%} true {%- else -%} false {%- endif %},
-			print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %}
+			print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %},
+			online: {% if online -%} true {%- else -%} false {%- endif %}
 		};
 		var initial_printer_profile = {{ printer_profile | tojson | safe }};
 	</script>
