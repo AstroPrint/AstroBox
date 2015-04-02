@@ -248,7 +248,6 @@ class AstroprintBoxRouter(object):
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
 
-
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
 		self._address = self._settings .get(['cloudSlicer','boxrouter'])
@@ -284,18 +283,24 @@ class AstroprintBoxRouter(object):
 		if not networkManager().isOnline():
 			return False
 
-		if not self.connected and current_user and current_user.is_authenticated():
-			self._publicKey = current_user.publicKey
-			self._privateKey = current_user.privateKey
+		if not self.connected:
+			from octoprint.server import userManager
+			loggedUser = self._settings.get(['cloudSlicer', 'loggedUser'])
+			if loggedUser:
+				user = userManager.findUser(loggedUser)
 
-			if self._publicKey and self._privateKey:
-				self.status = self.STATUS_CONNECTING
-				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+				if user:
+					self._publicKey = user.publicKey
+					self._privateKey = user.privateKey
 
-				self._listener = threading.Thread(target=self.run_threaded)
-				self._listener.daemon = True
-				self._listener.start()
-				return True
+					if self._publicKey and self._privateKey:
+						self.status = self.STATUS_CONNECTING
+						self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+
+						self._listener = threading.Thread(target=self.run_threaded)
+						self._listener.daemon = True
+						self._listener.start()
+						return True
 
 		return False
 
