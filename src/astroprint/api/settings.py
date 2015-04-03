@@ -63,7 +63,8 @@ def getInternetSettings():
 		'hasWifi': bool(networkManager.getWifiDevice()),
 		'hotspot': {
 			'active': networkManager.isHotspotActive(),
-			'name': networkManager.getHostname()		
+			'name': networkManager.getHostname(),
+			'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
 		} if isHotspotable else False
 	})
 

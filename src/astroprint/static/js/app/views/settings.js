@@ -219,7 +219,8 @@ var InternetConnectionView = SettingsPage.extend({
 	events: {
 		'click .loading-button.start-hotspot button': 'startHotspotClicked',
 		'click .loading-button.stop-hotspot button': 'stopHotspotClicked',
-		'click .loading-button.list-networks button': 'listNetworksClicked'
+		'click .loading-button.list-networks button': 'listNetworksClicked',
+		'change .hotspot-off input': 'hotspotOffChanged'
 	},
 	initialize: function(params) {
 		SettingsPage.prototype.initialize.apply(this, arguments);
@@ -312,7 +313,24 @@ var InternetConnectionView = SettingsPage.extend({
 		complete(function(){
 			el.removeClass('loading');
 		});
-	}
+	},
+	hotspotOffChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+
+		$.ajax({
+			url: '/api/settings/internet/hotspot',
+			method: 'PUT',
+			data: JSON.stringify({
+				'hotspotOnlyOffline': target.is(':checked')
+			}),
+			contentType: 'application/json',
+			dataType: 'json'
+		}).
+		fail(function(){
+			noty({text: "There was an error saving hotspot option.", timeout: 3000});
+		})
+	},
 });
 
 var WiFiNetworkPasswordDialog = Backbone.View.extend({

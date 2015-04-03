@@ -154,10 +154,7 @@ var StepInternet = StepView.extend({
 			'click .failed-state button': 'onShow',
 			'click .settings-state button.connect': 'onConnectClicked',
 			'change .hotspot-off input': 'hotspotOffChanged'
-
-		})
-		//this.events['click .failed-state button'] = 'onShow';
-		//this.events['click .settings-state button.connect'] = 'onConnectClicked';
+		});
 	},
 	onShow: function()
 	{

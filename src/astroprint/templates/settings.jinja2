@@ -199,23 +199,34 @@
 
 			<% if (settings.hotspot && (settings.networks || !settings.hotspot.active)) { %>
 				<hr/>
+				<h3 class="bold">Local Hotspot</h3>
 				<div>
-				<% if (settings.hotspot.active) { %>
-					<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
-					<div class="loading-button stop-hotspot">
-						<button class="radius">Stop hotspot</button>
-						<span class="loading button disabled radius">
-							<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
-						</span>
+					<% if (settings.hotspot.active) { %>
+						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
+						<div class="loading-button stop-hotspot">
+							<button class="radius">Stop hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
+							</span>
+						</div>
+					<% } else { %>
+						<div class="loading-button start-hotspot">
+							<button class="radius">Start hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
+							</span>
+						</div>
+					<% } %>
+					<div class="row hotspot-off">
+						<div class="small-2 large-1 columns">
+							<input id="hotspot-off" type="checkbox" <% if (settings.hotspot.hotspotOnlyOffline) { %> value="yes" checked <% } %>>
+						</div>
+						<div class="small-10 large-11 columns">
+							<label for="hotspot-off">
+								<b>Turn hotspot off when a known network is found in the future.</b>
+							</label>
+						</div>
 					</div>
-				<% } else { %>
-					<div class="loading-button start-hotspot">
-						<button class="radius">Start hotspot</button>
-						<span class="loading button disabled radius">
-							<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
-						</span>
-					</div>
-				<% } %>
 				</div>
 			<% } %>
 		</script>
