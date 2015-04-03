@@ -114,6 +114,15 @@
 			margin-top: 10px; 
 		}
 	}
+
+	.hotspot-off {
+		padding: 15px 0;
+
+		label {
+			font-size: rem-calc(18);
+			line-height: 1.2em;
+		}
+	}
 }
 
 #software-update-modal {

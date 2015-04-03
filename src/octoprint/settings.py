@@ -161,7 +161,8 @@ default_settings = {
 		}
 	},
 	"wifi": {
-		"hotspotDevice": None
+		"hotspotDevice": None,
+		"hotspotOnlyOffline": True,
 	},
 	"software": {
 		"infoFile": None,

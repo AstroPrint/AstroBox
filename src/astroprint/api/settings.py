@@ -63,7 +63,8 @@ def getInternetSettings():
 		'hasWifi': bool(networkManager.getWifiDevice()),
 		'hotspot': {
 			'active': networkManager.isHotspotActive(),
-			'name': networkManager.getHostname()		
+			'name': networkManager.getHostname(),
+			'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
 		} if isHotspotable else False
 	})
 
@@ -90,6 +91,20 @@ def startWifiHotspot():
 		return jsonify()
 	else:
 		return (result, 500)
+
+@api.route("/settings/internet/hotspot", methods=["PUT"])
+@restricted_access
+def changeWifiHotspot():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+
+		if "hotspotOnlyOffline" in data:
+			s = settings()
+			s.setBoolean(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
+			s.save()
+			return jsonify()
+
+	return ("Invalid Request", 400)
 
 @api.route("/settings/internet/hotspot", methods=["DELETE"])
 @restricted_access

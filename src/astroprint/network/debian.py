@@ -70,6 +70,9 @@ class DebianNetworkManager(NetworkManagerBase):
 		self._eventListener = NetworkManagerEvents(self)
 		self._eventListener.start()
 
+		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
+			self.startHotspot()
+
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())
 
@@ -234,6 +237,9 @@ class DebianNetworkManager(NetworkManagerBase):
 		return None
 
 	def startHotspot(self):
+		if self.isHotspotActive():
+			return True
+
 		try:
 			p = sarge.run("service wifi_access_point start", stderr=sarge.Capture())
 			if p.returncode != 0:
