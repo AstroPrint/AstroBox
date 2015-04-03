@@ -100,7 +100,8 @@ def index():
 			uiApiKey= UI_API_KEY,
 			version= VERSION,
 			variantData= variantManager().data,
-			astroboxName= networkManager.getHostname()
+			astroboxName= networkManager.getHostname(),
+			settings=s
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:

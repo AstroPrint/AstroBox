@@ -195,6 +195,27 @@ $setup-heading-nub-size: 15px;
 			text-align: center !important;
 			font-size: rem-calc(22) !important;
 		}
+
+		hr {
+			height: 1px;
+			border: none;
+			background: #ccc;
+		}
+
+		.hotspot-off {
+			padding: 15px 0;
+
+			label {
+				font-size: rem-calc(18);
+				line-height: 1.2em;
+
+				small {
+					font-size: rem-calc(14);
+					color: #a5a5a5;
+					text-transform: none;
+				}
+			}
+		}
 	}
 
 	.failed-state {

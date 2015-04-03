@@ -150,8 +150,14 @@ var StepInternet = StepView.extend({
 	passwordDialog: null,
 	initialize: function()
 	{
-		this.events['click .failed-state button'] = 'onShow';
-		this.events['click .settings-state button.connect'] = 'onConnectClicked';
+		_.extend(this.events, {
+			'click .failed-state button': 'onShow',
+			'click .settings-state button.connect': 'onConnectClicked',
+			'change .hotspot-off input': 'hotspotOffChanged'
+
+		})
+		//this.events['click .failed-state button'] = 'onShow';
+		//this.events['click .settings-state button.connect'] = 'onConnectClicked';
 	},
 	onShow: function()
 	{
@@ -224,6 +230,23 @@ var StepInternet = StepView.extend({
 				this.doConnect({id: network.id, password: null});
 			}
 		}
+	},
+	hotspotOffChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+
+		$.ajax({
+			url: '/api/setup/internet',
+			method: 'PUT',
+			data: JSON.stringify({
+				'hotspotOnlyOffline': target.is(':checked')
+			}),
+			contentType: 'application/json',
+			dataType: 'json'
+		}).
+		fail(function(){
+			noty({text: "There was an error saving hotspot option.", timeout: 3000});
+		})
 	},
 	doConnect: function(data, callback)
 	{

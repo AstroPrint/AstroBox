@@ -80,6 +80,20 @@ def connect_internet():
 
 	return ("Invalid Request", 400)
 
+@api.route('/setup/internet', methods=['PUT'])
+@not_setup_only
+def save_hotspot_option():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+
+		if "hotspotOnlyOffline" in data:
+			s = settings()
+			s.set(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
+			s.save()
+			return jsonify()
+
+	return ("Invalid Request", 400)
+
 @api.route('/setup/astroprint', methods=['GET'])
 @not_setup_only
 def get_astroprint_info():
