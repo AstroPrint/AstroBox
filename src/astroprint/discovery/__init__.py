@@ -129,10 +129,14 @@ class DiscoveryManager(object):
 
 		time_since_last_unregister = time.time() - self._ssdp_last_unregister
 
-		if time_since_last_unregister < self._ssdp_notify_timeout:
-			wait_seconds = (self._ssdp_notify_timeout - time_since_last_unregister) + 1
+		if time_since_last_unregister < ( self._ssdp_notify_timeout + 1 ):
+			wait_seconds = ( self._ssdp_notify_timeout + 1) - time_since_last_unregister
 			self.logger.info("Waiting %s seconds before starting SSDP Service..." % wait_seconds)
-			time.sleep(wait_seconds + 1)
+			time.sleep(wait_seconds)
+
+			#Make sure that the network is still after the wait
+			if not networkManager().isOnline():
+				return
 
 		self._ssdp_monitor_active = True
 
