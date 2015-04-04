@@ -245,9 +245,7 @@ class Server():
 		softwareManager = swManager()
 		VERSION = softwareManager.versionString
 
-		logger.info("Starting OctoPrint (%s)" % VERSION)
-
-		softwareManager.checkForcedUpdate()
+		logger.info("Starting AstroBox (%s)" % VERSION)
 
 		eventManager = events.eventManager()
 		gcodeManager = gcodefiles.GcodeManager()
@@ -282,6 +280,9 @@ class Server():
 
 		from astroprint.network import networkManager as networkManagerLoader
 		networkManager = networkManagerLoader()
+
+		if networkManager.isOnline():
+			softwareManager.checkForcedUpdate()
 
 		if self._host is None:
 			self._host = s.get(["server", "host"])
