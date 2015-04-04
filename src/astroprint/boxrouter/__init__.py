@@ -258,6 +258,9 @@ class AstroprintBoxRouter(object):
 		else:
 			self._logger.error('cloudSlicer.boxrouter not present in config file')
 
+	def __del__(self):
+		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+
 	@property
 	def boxId(self):
 		if not self._boxId:
@@ -352,6 +355,7 @@ class AstroprintBoxRouter(object):
 
 		elif state == 'online':
 			if not self.connected:
+				self._logger.info('Device is online. Attempting to connect to box router.')
 				self.boxrouter_connect()
 
 		else:

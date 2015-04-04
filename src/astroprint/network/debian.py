@@ -38,30 +38,55 @@ class NetworkManagerEvents(threading.Thread):
 		super(NetworkManagerEvents, self).__init__()
 		self.daemon = True
 		self._manager = manager
-		self._online = True
+		self._online = False
 
 		NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
+		NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
+
+		logger.info('Looking for Active Connections...')
+		connections = NetworkManager.NetworkManager.ActiveConnections
+		for c in connections:
+			if c.State == self._manager._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+				d = c.Devices[0]
+				d.connect_to_signal('StateChanged', self.deviceStateChanged)
+				logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
+				self._online = True
+				break;
 
 	def run(self):
 		gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
 		gobject.MainLoop().run()
 
-	def propertiesChanged(self, properties):
-		if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0 and self._online:
-			self._online = False
-			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
-			if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
-				gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
-				result = self._manager.startHotspot() 
-				if result is True:
-					gobject.idle_add(logger.info, 'Hostspot started.')
-				else:
-					gobject.idle_add(logger.error, 'Failed to start hostspot: %s' % result)
+	def globalStateChanged(self, state):
+		#uncomment for debugging only
+		#gobject.idle_add(logger.info, 'globalStateChanged, new(%s)' % NetworkManager.const('state', state))
+		if not self._online and state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+			self._online = True
+			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
 
-		elif "State" in properties and not self._online:
-			if properties['State'] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+	def propertiesChanged(self, properties):
+		if self._online:
+			if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
+				self._online = False
+				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
+				if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
+					gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
+					result = self._manager.startHotspot() 
+					if result is True:
+						gobject.idle_add(logger.info, 'Hostspot started.')
+					else:
+						gobject.idle_add(logger.error, 'Failed to start hostspot: %s' % result)
+
+		elif ("State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL):
 				self._online = True
-				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+		 		gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+
+	def deviceStateChanged(self, new_state, old_state, reason):
+		#uncomment for debugging only
+		#gobject.idle_add(logger.info, 'deviceStateChanged, new(%s), old(%s), reason(%s)' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state', old_state), NetworkManager.const('device_state_reason', reason)))
+		if not self._online and new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
+			self._online = True
+		 	gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
 
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
