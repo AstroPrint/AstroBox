@@ -79,6 +79,7 @@ class Events(object):
 	ASTROPRINT_STATUS = "AstroPrintStatus"
 	LOCK_STATUS_CHANGED = "LockStatusChanged"
 	NETWORK_STATUS = "NetworkStatus"
+	NETWORK_IP_CHANGED = "NetworkIpChanged"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
 

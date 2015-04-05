@@ -255,6 +255,7 @@ class AstroprintBoxRouter(object):
 		self.authenticated = False
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
 		self._address = self._settings .get(['cloudSlicer','boxrouter'])
 
@@ -266,6 +267,7 @@ class AstroprintBoxRouter(object):
 
 	def __del__(self):
 		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
 	@property
 	def boxId(self):
@@ -353,6 +355,12 @@ class AstroprintBoxRouter(object):
 
 		else:
 			self._logger.warn('Invalid network state (%s)' % state)
+
+	def _onIpChanged(self, event, ipAddress):
+		self._logger.info("BoxRouter detected IP Address changed to %s" % ipAddress)
+		self.close()
+		self._doRetry()
+
 
 	def _error(self, err):
 		self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)

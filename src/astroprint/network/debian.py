@@ -39,19 +39,29 @@ class NetworkManagerEvents(threading.Thread):
 		self.daemon = True
 		self._manager = manager
 		self._online = False
+		self._currentIpv4Address = None
+		self._activeDevice = None
 
 		NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
 		NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
 
 		logger.info('Looking for Active Connections...')
+		d = self.getActiveConnectionDevice()
+		if d:
+			d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+			self._currentIpv4Address = d.Ip4Address
+			self._activeDevice = d
+			self._online = True
+			logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
+
+	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
-			if c.State == self._manager._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+			if c.State == self._manager._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
 				d = c.Devices[0]
-				d.connect_to_signal('StateChanged', self.deviceStateChanged)
-				logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
-				self._online = True
-				break;
+				return d
+
+		return None		
 
 	def run(self):
 		gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
@@ -68,6 +78,7 @@ class NetworkManagerEvents(threading.Thread):
 		if self._online:
 			if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
 				self._online = False
+				self._currentIpv4Address = None
 				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
 				if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
 					gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
@@ -77,16 +88,23 @@ class NetworkManagerEvents(threading.Thread):
 					else:
 						gobject.idle_add(logger.error, 'Failed to start hostspot: %s' % result)
 
-		elif ("State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL):
-				self._online = True
-		 		gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+		elif ("State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL):				
+			d = self.getActiveConnectionDevice()
+			if d:
+				if d.IpInterface != self._activeDevice.IpInterface:
+					self._currentIpv4Address = self._activeDevice.Ip4Address
+					self._activeDevice = d
+					d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+					gobject.idle_add(logger.info, 'Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
-	def deviceStateChanged(self, new_state, old_state, reason):
-		#uncomment for debugging only
-		#gobject.idle_add(logger.info, 'deviceStateChanged, new(%s), old(%s), reason(%s)' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state', old_state), NetworkManager.const('device_state_reason', reason)))
-		if not self._online and new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-			self._online = True
-		 	gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+				self._online = True
+				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+
+	def activeDeviceConfigChanged(self, properties):
+		if "Options" in properties and "ip_address" in properties["Options"] and properties["Options"]["ip_address"] != self._currentIpv4Address:
+			self._currentIpv4Address = properties["Options"]["ip_address"]
+			gobject.idle_add(eventManager.fire, Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
+
 
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
