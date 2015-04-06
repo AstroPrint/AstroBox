@@ -29,7 +29,7 @@ class NetworkManager(object):
 	def __init__(self):
 		self.settings = settings()
 
-		if self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']) and not self.isHotspotActive() is False:
+		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']) and not self.isHotspotActive() is False:
 			self.startHotspot()
 
 	def isAstroprintReachable(self):
