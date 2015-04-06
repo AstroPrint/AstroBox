@@ -163,6 +163,9 @@ def resetFactorySettings():
 
 	networkManager.forgetWifiNetworks()
 
+	#We should reboot the whole device
+	softwareManager.restartServer()
+
 	return jsonify()
 
 @api.route("/settings/software/check", methods=['GET'])

@@ -56,27 +56,24 @@ class AstroPrintCloud(object):
 		self.settings = settings()
 
 		if current_user and current_user.is_authenticated():
-			publicKey = current_user.publicKey
-			privateKey = current_user.privateKey
-		else:
-			publicKey = None
-			privateKey = None		
+			self.hmacAuth = HMACAuth(current_user.publicKey, current_user.privateKey)
 
-		self.hmacAuth = HMACAuth(publicKey, privateKey,)
+		else:
+			self.hmacAuth = None
+
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None
 		self._sm = softwareManager()
 		self._gcodeMgr = None
 
-	@staticmethod
-	def cloud_enabled():
+	def cloud_enabled(self):
 		s = settings()
 		u = current_user
 
 		if not u.is_authenticated():
 			return False
 		else:
-			return s.get(['cloudSlicer', 'apiHost']) and u.privateKey and u.publicKey
+			return s.get(['cloudSlicer', 'apiHost']) and u.privateKey and u.publicKey and self.hmacAuth
 
 	def signin(self, email, password):
 		from octoprint.server import userManager
@@ -316,7 +313,7 @@ class AstroPrintCloud(object):
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
 	def print_files(self, forceCloudSync = False):
-		if self.cloud_enabled and (not self._print_file_store or forceCloudSync):
+		if self.cloud_enabled() and (not self._print_file_store or forceCloudSync):
 			self._sync_print_file_store()
 
 		return json.dumps(self._print_file_store)	
@@ -431,8 +428,5 @@ class AstroPrintCloud(object):
 
 	def _sync_print_file_store(self):
 		if self.cloud_enabled():
-			try:
-				r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
-				self._print_file_store = r.json()
-			except:
-				pass		
+			r = requests.get( "%s/print-files" % self.apiHost, auth=self.hmacAuth )
+			self._print_file_store = r.json()
