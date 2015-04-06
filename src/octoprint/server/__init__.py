@@ -58,9 +58,10 @@ from octoprint.printer import Printer, getConnectionOptions
 from octoprint.settings import settings
 import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
-import octoprint.users as users
 import octoprint.events as events
 #import octoprint.timelapse
+import astroprint.users as users
+
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager

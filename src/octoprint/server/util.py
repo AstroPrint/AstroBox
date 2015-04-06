@@ -27,10 +27,12 @@ from watchdog.events import PatternMatchingEventHandler
 from octoprint.settings import settings
 #import octoprint.timelapse
 import octoprint.server
-from octoprint.users import ApiUser
 from octoprint.events import Events
 from octoprint import gcodefiles
+
 from astroprint.boxrouter import boxrouterManager
+from astroprint.users import ApiUser
+
 import octoprint.util as util
 
 def restricted_access(func, apiEnabled=True):
