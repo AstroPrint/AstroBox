@@ -30,7 +30,6 @@ from flask.ext.login import login_user, logout_user, current_user
 from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
-from octoprint.server import userManager
 from octoprint.events import eventManager, Events
 
 from astroprint.software import softwareManager
@@ -54,12 +53,16 @@ class HMACAuth(requests.auth.AuthBase):
 class AstroPrintCloud(object):
 	def __init__(self):
 		self.settings = settings()
+		self.hmacAuth = None
 
-		if current_user and current_user.is_authenticated():
-			self.hmacAuth = HMACAuth(current_user.publicKey, current_user.privateKey)
+		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
+		if loggedUser:
+			from octoprint.server import userManager
+			
+			user = userManager.findUser(loggedUser)
 
-		else:
-			self.hmacAuth = None
+			if user and user.publicKey and user.privateKey:
+				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None

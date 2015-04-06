@@ -243,23 +243,6 @@ class Server():
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
 
-		softwareManager = swManager()
-		VERSION = softwareManager.versionString
-
-		logger.info("Starting AstroBox (%s)" % VERSION)
-
-		eventManager = events.eventManager()
-		gcodeManager = gcodefiles.GcodeManager()
-		printer = Printer(gcodeManager)
-
-		# configure timelapse
-		#octoprint.timelapse.configureTimelapse()
-
-		# setup command triggers
-		events.CommandTrigger(printer)
-		if self._debug:
-			events.DebugEventListener()
-
 		if s.getBoolean(["accessControl", "enabled"]):
 			userManagerName = settings().get(["accessControl", "userManager"])
 			try:
@@ -278,6 +261,23 @@ class Server():
 			loginManager.anonymous_user = users.DummyUser
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
+
+		softwareManager = swManager()
+		VERSION = softwareManager.versionString
+
+		logger.info("Starting AstroBox (%s)" % VERSION)
+
+		eventManager = events.eventManager()
+		gcodeManager = gcodefiles.GcodeManager()
+		printer = Printer(gcodeManager)
+
+		# configure timelapse
+		#octoprint.timelapse.configureTimelapse()
+
+		# setup command triggers
+		events.CommandTrigger(printer)
+		if self._debug:
+			events.DebugEventListener()
 
 		from astroprint.network import networkManager as networkManagerLoader
 		networkManager = networkManagerLoader()
