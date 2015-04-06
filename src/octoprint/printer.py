@@ -38,7 +38,6 @@ class Printer():
 
 		self._gcodeManager = gcodeManager
 		self._gcodeManager.registerCallback(self)
-		self._astroprintCloud = astroprintCloud()
 		self._cameraManager = cameraManager()
 		self._profileManager = printerProfileManager()
 
@@ -457,7 +456,7 @@ class Printer():
 		cloudId = self._gcodeManager.getFileCloudId(filename)
 		renderedIimage = None
 		if cloudId:
-			printFile = self._astroprintCloud.getPrintFile(cloudId)
+			printFile = astroprintCloud().getPrintFile(cloudId)
 			if printFile:
 				renderedIimage = printFile['images']['square']
 
