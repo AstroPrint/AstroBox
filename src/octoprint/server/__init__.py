@@ -251,17 +251,6 @@ class Server():
 			except AttributeError, e:
 				logger.exception("Could not instantiate user manager %s, will run with accessControl disabled!" % userManagerName)
 
-		app.wsgi_app = ReverseProxied(app.wsgi_app)
-
-		app.secret_key = boxrouterManager().boxId
-		loginManager = LoginManager()
-		loginManager.session_protection = "strong"
-		loginManager.user_callback = load_user
-		if userManager is None:
-			loginManager.anonymous_user = users.DummyUser
-			principals.identity_loaders.appendleft(users.dummy_identity_loader)
-		loginManager.init_app(app)
-
 		softwareManager = swManager()
 		VERSION = softwareManager.versionString
 
@@ -273,6 +262,17 @@ class Server():
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
+
+		app.wsgi_app = ReverseProxied(app.wsgi_app)
+
+		app.secret_key = boxrouterManager().boxId
+		loginManager = LoginManager()
+		loginManager.session_protection = "strong"
+		loginManager.user_callback = load_user
+		if userManager is None:
+			loginManager.anonymous_user = users.DummyUser
+			principals.identity_loaders.appendleft(users.dummy_identity_loader)
+		loginManager.init_app(app)
 
 		# setup command triggers
 		events.CommandTrigger(printer)
