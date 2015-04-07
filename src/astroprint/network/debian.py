@@ -38,13 +38,14 @@ class NetworkManagerEvents(threading.Thread):
 		super(NetworkManagerEvents, self).__init__()
 		self.daemon = True
 		self._manager = manager
-		self._online = False
+		self._online = None
 		self._currentIpv4Address = None
 		self._activeDevice = None
 
 		self._propertiesListener = NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
 		self._stateChangeListener = NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
 		self._devicePropertiesListener = None
+		self._monitorActivatingListener = None
 
 		logger.info('Looking for Active Connections...')
 		d = self.getActiveConnectionDevice()
@@ -62,7 +63,7 @@ class NetworkManagerEvents(threading.Thread):
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
-			if c.State == self._manager._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
+			if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
 				d = c.Devices[0]
 				return d
 
@@ -83,12 +84,30 @@ class NetworkManagerEvents(threading.Thread):
 			if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
 				self._setOnline(False)
 
-		elif ("State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL):				
+		else:
+			if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+				self._setOnline(True)
+
+			elif "ActiveConnections" in properties and len(properties['ActiveConnections']) > 0:
+				for c in properties['ActiveConnections']:
+					if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
+						if self._monitorActivatingListener:
+							self._monitorActivatingListener.remove()
+
+						self._monitorActivatingListener = c.connect_to_signal('PropertiesChanged', self.monitorActivatingConnection)
+
+	def monitorActivatingConnection(self, properties):
+		if "State" in properties and properties['State'] == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+			if self._monitorActivatingListener:
+				self._monitorActivatingListener.remove()
+				self._monitorActivatingListener = None
+
 			self._setOnline(True)
 
 	def activeDeviceConfigChanged(self, properties):
 		if "Options" in properties and "ip_address" in properties["Options"] and properties["Options"]["ip_address"] != self._currentIpv4Address:
 			self._currentIpv4Address = properties["Options"]["ip_address"]
+			self._setOnline(True)
 			gobject.idle_add(eventManager.fire, Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
 
 	def _setOnline(self, value):
@@ -97,8 +116,11 @@ class NetworkManagerEvents(threading.Thread):
 
 		if value:
 			d = self.getActiveConnectionDevice()
+
 			if d:
-				self._currentIpv4Address = self._activeDevice.Ip4Address
+				if self._activeDevice:
+					self._currentIpv4Address = self._activeDevice.Ip4Address
+
 				self._activeDevice = d
 				if self._devicePropertiesListener:
 					self._devicePropertiesListener.remove()
