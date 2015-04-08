@@ -59,10 +59,7 @@ class FilebasedUserManager(UserManager):
 	def __init__(self):
 		UserManager.__init__(self)
 
-		userfile = settings().get(["accessControl", "userfile"])
-		if userfile is None:
-			userfile = os.path.join(settings().settings_dir, "users.yaml")
-		self._userfile = userfile
+		self._userfile  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(settings()._configfile), "users.yaml")
 		self._users = {}
 		self._dirty = False
 
@@ -248,7 +245,7 @@ class UnknownRole(Exception):
 ##~~ User object
 
 class User(UserMixin):
-	def __init__(self, username, passwordHash, active, roles, publicKey, privateKey, apikey=None):
+	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None):
 		self._username = username
 		self._passwordHash = passwordHash
 		self._active = active

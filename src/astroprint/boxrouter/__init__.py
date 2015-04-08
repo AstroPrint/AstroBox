@@ -296,8 +296,9 @@ class AstroprintBoxRouter(object):
 
 		if not self.connected:
 			from octoprint.server import userManager
+			
 			loggedUser = self._settings.get(['cloudSlicer', 'loggedUser'])
-			if loggedUser:
+			if loggedUser and userManager:
 				user = userManager.findUser(loggedUser)
 
 				if user:
