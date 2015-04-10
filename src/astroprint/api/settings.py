@@ -148,15 +148,14 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
 	emptyFolder(s.get(['folder', 'watched']) or s.getBaseFolder('watched'))
 
-	settings_dir = s.settings_dir
-	#remove info about users
-	user_file = s.get(["accessControl", "userfile"]) or os.path.join(settings_dir, "users.yaml")
-	if user_file and os.path.exists(user_file):
-		os.unlink(user_file)
-
 	#replace config.yaml with config.factory
 	config_file = s._configfile
 	os.unlink(config_file)
+
+	#remove info about users
+	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
+	if user_file and os.path.exists(user_file):
+		os.unlink(user_file)
 
 	s._config = {}
 	s.load(migrate=False)
