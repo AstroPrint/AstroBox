@@ -6,6 +6,7 @@ import threading
 import logging
 import time
 import os
+import struct
 import makerbot_driver.errors
 
 from serial import SerialException
@@ -370,7 +371,11 @@ class PrinterS3g(Printer):
 	def fan(self, tool, speed):
 		if self._comm:
 			with self._state_condition:
-				self._comm.toggle_fan(tool, speed > 0)
+				payload = struct.pack(
+					'<B',
+					speed > 0
+				)
+				self._comm.tool_action_command(tool, makerbot_driver.slave_action_command_dict['TOGGLE_EXTRA_OUTPUT'], payload)
 
 	def extrude(self, tool, amount, speed=None):
 		if self._comm:
