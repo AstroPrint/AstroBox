@@ -186,7 +186,19 @@ class PrintJobS3G(threading.Thread):
 				self._printer._comm.clear_buffer()
 
 			self._printer._comm.find_axes_maximums(['x', 'y'], 200, 10)
-			self._printer._comm.find_axes_maximums(['z'], 100, 10)
+
+			#find current z:
+			moveToPosition, endStopsStates = self._printer._comm.get_extended_position()
+			zEndStopReached = endStopsStates & 16 == 16 #endstop is a bitfield. See https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md (command 21)
+
+			if zEndStopReached:
+
+				#calculate Z max
+				moveToPosition[2] = self._printer._profile.values['axes']['Z']['platform_length'] *  self._printer._profile.values['axes']['Z']['steps_per_mm']
+
+				#move to the bottom:
+				self._printer._comm.queue_extended_point_classic(moveToPosition, 100)
+
 			self._printer._comm.toggle_axes(['x','y','z','a','b'], False)
 
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
