@@ -7,6 +7,7 @@ import json
 import uuid
 
 from flask import request, jsonify, abort
+from flask.ext.login import current_user
 
 from octoprint.settings import settings
 from octoprint.server import restricted_access, SUCCESS
@@ -116,7 +117,7 @@ def designs():
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
 def design_download(print_file_id):
-	if not bool(settings().get(["cloudSlicer", "publicKey"])):
+	if current_user is None or not current_user.is_authenticated() or not current_user.publicKey:
 		abort(401)
 
 	slicer = astroprintCloud()

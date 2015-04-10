@@ -11,7 +11,9 @@ var SocketData = Backbone.Model.extend({
     _nextReconnectAttempt: null,
 	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
 	currentState: 0,
+    loggedUser: LOGGED_USER, //username or null
 	defaults: {
+        online: false,
         printing: false,
         paused: false,
         camera: false,
@@ -41,6 +43,7 @@ var SocketData = Backbone.Model.extend({
     {
         this.set('printing', initial_states.printing);
         this.set('paused', initial_states.paused);
+        this.set('online', initial_states.online);
         this.set('print_capture', initial_states.print_capture);
     },
 	connect: function()
@@ -194,8 +197,18 @@ var SocketData = Backbone.Model.extend({
                             this.set('astroprint', { status: payload });
                             break;
 
+                        case 'LockStatusChanged':
+                            if (payload != this.loggedUser) {
+                                location.reload();
+                            }
+                            break;
+
                         case 'PrintCaptureInfoChanged':
                             this.set('print_capture', payload);
+                            break;
+
+                        case 'NetworkStatus':
+                            this.set('online', payload == 'online');
                             break;
 
                         default:

@@ -47,7 +47,6 @@ class Printer(object):
 	_fileManagerClass = None
 
 	def __init__(self):
-		self._astroprintCloud = astroprintCloud()
 		self._profileManager = printerProfileManager()
 
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
@@ -209,7 +208,7 @@ class Printer(object):
 		cloudId = self._fileManager.getFileCloudId(filename)
 		renderedIimage = None
 		if cloudId:
-			printFile = self._astroprintCloud.getPrintFile(cloudId)
+			printFile = astroprintCloud().getPrintFile(cloudId)
 			if printFile:
 				renderedIimage = printFile['images']['square']
 

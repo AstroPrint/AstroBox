@@ -370,7 +370,7 @@ var StorageControlView = Backbone.View.extend({
 	{
 		e.preventDefault();
 
-		if (LOGGED_IN) {
+		if (LOGGED_USER) {
 			this.selectStorage('cloud');
 	    } else {
 	    	$('#login-modal').foundation('reveal', 'open');

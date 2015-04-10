@@ -129,9 +129,7 @@ default_settings = {
 	},
 	"cloudSlicer": {
 		"apiHost": None,
-		"email": None,
-		"privateKey": None,
-		"publicKey": None,
+		"loggedUser": None,
 		"boxrouter": None
 	},
 	"events": {
@@ -162,7 +160,8 @@ default_settings = {
 		}
 	},
 	"wifi": {
-		"hotspotDevice": None
+		"hotspotDevice": None,
+		"hotspotOnlyOffline": True,
 	},
 	"software": {
 		"infoFile": None,

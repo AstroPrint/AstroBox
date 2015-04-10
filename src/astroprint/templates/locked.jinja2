@@ -31,9 +31,10 @@
 {% block js %}
 	<script type="text/javascript">
 		var UI_API_KEY = "{{ uiApiKey }}";
+		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 	</script>
 	{% assets filters="closure_js", output="js/gen/locked.js", 
-		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/fastclick.js", "js/locked/locked.js",
+		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/locked/locked.js",
 		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
 	{%- endassets %}

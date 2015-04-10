@@ -17,6 +17,9 @@ class MacDevNetworkManager(NetworkManagerBase):
 			'wireless': None
 		}
 
+	def isOnline(self):
+		return True
+
 	def startHotspot(self):
 		#return True when succesful
 		return "Not supporded on Mac"

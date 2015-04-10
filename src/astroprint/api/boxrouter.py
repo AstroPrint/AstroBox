@@ -2,7 +2,7 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask import jsonify
+from flask import jsonify, abort
 
 from octoprint.server.api import api
 from astroprint.boxrouter import boxrouterManager
@@ -11,6 +11,7 @@ from astroprint.boxrouter import boxrouterManager
 def connect_boxrouter():
 	br = boxrouterManager()
 
-	br.boxrouter_connect()
-
-	return jsonify()
+	if br.boxrouter_connect():
+		return jsonify()
+	else:
+		return abort(400)

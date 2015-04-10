@@ -23,6 +23,9 @@ class PrinterListener(object):
 		#register for print_capture events
 		eventManager().subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
 
+	def __del__(self):
+		self.cleanup()
+
 	def cleanup(self):
 		eventManager().unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
 

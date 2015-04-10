@@ -19,6 +19,8 @@ import socket
 
 from time import sleep, time
 
+from flask.ext.login import current_user
+
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
@@ -34,39 +36,6 @@ from ws4py.messaging import PingControlMessage
 
 LINE_CHECK_STRING = 'box'
 
-class LineCheck(threading.Thread):
-	def __init__(self, websocket, timeout=30.0):
-		threading.Thread.__init__(self)
-		self.websocket = websocket
-		self.timeout = timeout
-		self.outstandingPings = 0
-
-	def stop(self):
-		self.running = False
-
-	def run(self):
-		self.running = True
-		while self.running:
-			sleep(self.timeout)
-			if self.websocket.terminated:
-				break
-
-			if self.outstandingPings > 0:
-				self.websocket._logger.error('The line seems to be down')
-				self.websocket.close()
-				break
-			
-			if time() - self.websocket._lastReceived > self.timeout:
-				try:
-					self.websocket.send(PingControlMessage(data=LINE_CHECK_STRING))
-					self.outstandingPings += 1
-
-				except socket.error:
-					logger.error("Line Check failed to send")
-
-					#retry connection
-					self.websocket.close()
-
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
 		self._router = router
@@ -77,7 +46,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._cameraManager = cameraManager()
 		self._profileManager = printerProfileManager()
 		self._logger = logging.getLogger(__name__)
-		WebSocketClient.__init__(self, hostname)
+		self._lineCheck = None
+		super(AstroprintBoxRouterClient, self).__init__(hostname)
 
 	def send(self, data):
 		try:
@@ -90,16 +60,55 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			self.close()
 
 	def ponged(self, pong):
-		if self._router._lineCheck and str(pong) == LINE_CHECK_STRING:
-			self._router._lineCheck.outstandingPings -= 1
+		if str(pong) == LINE_CHECK_STRING:
+			self.outstandingPings -= 1
+
+	def lineCheck(self, timeout=30):
+		while not self.terminated:
+			sleep(timeout)
+			if self.terminated:
+				break
+
+			if self.outstandingPings > 0:
+				self._logger.error('The line seems to be down')
+				self._router.close()
+				self._router._doRetry()
+				break
+			
+			if time() - self._lastReceived > timeout:
+				try:
+					self.send(PingControlMessage(data=LINE_CHECK_STRING))
+					self.outstandingPings += 1
+
+				except socket.error:
+					self._logger.error("Line Check failed to send")
+
+					#retry connection
+					self._router.close()
+					self._router._doRetry()
+
+		self._lineCheckThread = None
+
+	def terminate(self):
+		#This is code to fix an apparent error in ws4py
+		try:
+			super(AstroprintBoxRouterClient, self).terminate()
+		except AttributeError as e:
+			if self.stream is None:
+				self.environ = None
+			else:
+				raise e
+
+	def opened(self):
+		self.outstandingPings = 0
+		self._lineCheckThread = threading.Thread(target=self.lineCheck)
+		self._lineCheckThread.daemon = True
+		self._lineCheckThread.start()
 
 	def closed(self, code, reason=None):
 		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
-		retry = self._router.connected
-
-		self._router.close()
-
-		if retry:
+		if self.server_terminated and self._router.connected:
+			self._router.close()
 			self._router._doRetry()
 
 	def received_message(self, m):
@@ -236,17 +245,17 @@ class AstroprintBoxRouter(object):
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
 		self._retries = 0
-		self._listener = None
 		self._boxId = None
 		self._ws = None
-		self._lineCheck = None
 		self._silentReconnect = False
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
+		self.authenticated = False
 
 		self._logger.info('This box has id %s' % self.boxId)
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
 		self._address = self._settings .get(['cloudSlicer','boxrouter'])
 
@@ -255,6 +264,10 @@ class AstroprintBoxRouter(object):
 
 		else:
 			self._logger.error('cloudSlicer.boxrouter not present in config file')
+
+	def __del__(self):
+		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
 	@property
 	def boxId(self):
@@ -278,57 +291,57 @@ class AstroprintBoxRouter(object):
 		return self._boxId
 
 	def boxrouter_connect(self):
+		if not networkManager().isOnline():
+			return False
+
 		if not self.connected:
-			self._publicKey	= self._settings.get(['cloudSlicer', 'publicKey'])
-			self._privateKey = self._settings.get(['cloudSlicer', 'privateKey'])
+			from octoprint.server import userManager
+			
+			loggedUser = self._settings.get(['cloudSlicer', 'loggedUser'])
+			if loggedUser and userManager:
+				user = userManager.findUser(loggedUser)
 
-			if self._publicKey and self._privateKey:
-				self.status = self.STATUS_CONNECTING
-				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+				if user:
+					self._publicKey = user.publicKey
+					self._privateKey = user.privateKey
 
-				self._listener = threading.Thread(target=self.run_threaded)
-				self._listener.daemon = True
-				self._listener.start()
+					if self._publicKey and self._privateKey:
+						self.status = self.STATUS_CONNECTING
+						self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
-	def run_threaded(self):
-		try:
-			self._ws = AstroprintBoxRouterClient(self._address, self)
-			self._ws.connect()
-			self._lineCheck = LineCheck(self._ws)
+						try:
+							self._ws = AstroprintBoxRouterClient(self._address, self)
+							self._ws.connect()
+							self.connected = True
 
-		except Exception as e:
-			self._logger.error("Error connecting to boxrouter: %s" % e)
-			self._doRetry(False) #This one should not be silent
+						except Exception as e:
+							self._logger.error("Error connecting to boxrouter: %s" % e)
+							self._doRetry(False) #This one should not be silent
 
-		else:
-			try:
-				self._lineCheck.start()
-				self._ws.run_forever()
+						return True
 
-			except Exception as e:
-				self._error(e)
+		return False
 
 	def boxrouter_disconnect(self):
-		if self.connected:
-			self.close()
+		self.close()
 
 	def close(self):
-		self.connected = False
-		self._publicKey = None
-		self._privateKey = None
-		self.status = self.STATUS_DISCONNECTED
-		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+		if self.connected:
+			self.authenticated = False
+			self.connected = False
 
-		if self._ws:
-			self._ws.close()
-			self._ws.unregisterEvents()
+			self._publicKey = None
+			self._privateKey = None
+			self.status = self.STATUS_DISCONNECTED
+			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
-		if self._lineCheck:
-			self._lineCheck.stop()
+			if self._ws:
+				ws = self._ws
+				self._ws = None
 
-		self._ws = None
-		self._listener = None
-		self._lineCheck = None
+				ws.unregisterEvents()
+				if not ws.terminated:
+					ws.terminate()
 
 	def _onNetworkStateChanged(self, event, state):
 		if state == 'offline':
@@ -338,10 +351,17 @@ class AstroprintBoxRouter(object):
 
 		elif state == 'online':
 			if not self.connected:
+				self._logger.info('Device is online. Attempting to connect to box router.')
 				self.boxrouter_connect()
 
 		else:
 			self._logger.warn('Invalid network state (%s)' % state)
+
+	def _onIpChanged(self, event, ipAddress):
+		self._logger.info("BoxRouter detected IP Address changed to %s" % ipAddress)
+		self.close()
+		self._doRetry()
+
 
 	def _error(self, err):
 		self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
@@ -387,7 +407,7 @@ class AstroprintBoxRouter(object):
 
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
-				self.connected = True;
+				self.authenticated = True;
 				self._retries = 0;
 				self.status = self.STATUS_CONNECTED
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);

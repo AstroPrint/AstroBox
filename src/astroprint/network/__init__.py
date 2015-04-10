@@ -77,6 +77,9 @@ class NetworkManager(object):
 	def isHotspotActive(self):
 		return None
 
+	def isOnline(self):
+		return None
+
 	def startHotspot(self):
 		#return True when succesful
 		return "Starting a hotspot is not supported"

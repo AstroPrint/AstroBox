@@ -21,18 +21,19 @@ import threading
 import logging
 from functools import wraps
 
-from octoprint.settings import settings
 #import octoprint.timelapse
 import octoprint.server
-from octoprint.users import ApiUser
+import octoprint.util as util
+
+from octoprint.settings import settings
 from octoprint.events import Events
 
 from astroprint.boxrouter import boxrouterManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.map import SUPPORTED_EXTENSIONS
 from astroprint.printer.manager import printerManager
+from astroprint.users import ApiUser
 
-import octoprint.util as util
 
 def restricted_access(func, apiEnabled=True):
 	"""
@@ -55,7 +56,7 @@ def restricted_access(func, apiEnabled=True):
 	@wraps(func)
 	def decorated_view(*args, **kwargs):
 		# if OctoPrint hasn't been set up yet, abort
-		if settings().getBoolean(["server", "firstRun"]) and (astroprint.server.userManager is None or not astroprint.server.userManager.hasBeenCustomized()):
+		if settings().getBoolean(["server", "firstRun"]) and (octoprint.server.userManager is None or not octoprint.server.userManager.hasBeenCustomized()):
 			return make_response("OctoPrint isn't setup yet", 403)
 
 		# if API is globally enabled, enabled for this request and an api key is provided that is not the current UI API key, try to use that
@@ -66,7 +67,7 @@ def restricted_access(func, apiEnabled=True):
 				user = ApiUser()
 			else:
 				# user key might have been used
-				user = astroprint.server.userManager.findUser(apikey=apikey)
+				user = octoprint.server.userManager.findUser(apikey=apikey)
 
 			if user is None:
 				return make_response("Invalid API key", 401)
@@ -130,7 +131,7 @@ def getApiKey(request):
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
 			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE, 
-			  Events.CAPTURE_INFO_CHANGED]
+			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS]
 
 	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)

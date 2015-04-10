@@ -66,6 +66,18 @@
 					<p>
 						Your {{variantData['productName']}} is now connected to the internet.
 					</p>
+					<hr/>
+					<div class="row hotspot-off">
+						<div class="small-2 medium-1 columns">
+							<input id="hotspot-off" type="checkbox" {%- if (settings.getBoolean(['wifi','hotspotOnlyOffline'])) %} value="yes" checked {%- endif %}>
+						</div>
+						<div class="small-10 medium-11 columns">
+							<label for="hotspot-off">
+								<b>Turn hotspot off when a known network is found in the future.</b><br/>
+								<small>(This can be changed later in the settings menu)</small>
+							</label>
+						</div>
+					</div>
 					<a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
 				</div>
 				<div class="checking-state" align="center">

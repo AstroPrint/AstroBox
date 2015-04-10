@@ -5,7 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 from flask import request, jsonify, abort, make_response
 from flask.ext.login import current_user
 
-import octoprint.users as users
+import astroprint.users as users
 
 from octoprint.server import restricted_access, SUCCESS, admin_permission, userManager
 from octoprint.server.api import api
@@ -28,25 +28,26 @@ def getUsers():
 @restricted_access
 @admin_permission.require(403)
 def addUser():
-	if userManager is None:
-		return jsonify(SUCCESS)
+	# if userManager is None:
+	# 	return jsonify(SUCCESS)
 
-	if "application/json" in request.headers["Content-Type"]:
-		data = request.json
+	# if "application/json" in request.headers["Content-Type"]:
+	# 	data = request.json
 
-		name = data["name"]
-		password = data["password"]
-		active = data["active"]
+	# 	name = data["name"]
+	# 	password = data["password"]
+	# 	active = data["active"]
 
-		roles = ["user"]
-		if "admin" in data.keys() and data["admin"]:
-			roles.append("admin")
+	# 	roles = ["user"]
+	# 	if "admin" in data.keys() and data["admin"]:
+	# 		roles.append("admin")
 
-		try:
-			userManager.addUser(name, password, active, roles)
-		except users.UserAlreadyExists:
-			abort(409)
-	return getUsers()
+	# 	try:
+	# 		userManager.addUser(name, password, active, roles)
+	# 	except users.UserAlreadyExists:
+	# 		abort(409)
+	# return getUsers()
+	abort(404)
 
 
 @api.route("/users/<username>", methods=["GET"])

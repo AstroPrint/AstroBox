@@ -31,7 +31,17 @@ class CameraV4LManager(CameraManager):
 
 		if cameras:			
 			self._camera = cv2.VideoCapture()
+
+			if not self._camera:
+				return False
+
 			if self._camera.open(int(cameras[0].replace('video',''))):
+				try:
+					self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
+					self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+				except Exception as e:
+					self._logger.error('Error setting camera frame to 800x448 size: %s' % e)
+
 				self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
 				self._infoAreaShape = self._infoArea.shape
 

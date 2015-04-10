@@ -55,9 +55,10 @@ from octoprint.server.util import LargeResponseHandler, ReverseProxied, restrict
 from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
-import octoprint.users as users
 import octoprint.events as events
 #import octoprint.timelapse
+
+import astroprint.users as users
 
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
@@ -88,7 +89,7 @@ def box_identify():
 @app.route("/")
 def index():
 	s = settings()
-	loggedUsername = s.get(["cloudSlicer", "email"])
+	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
 
 	if (s.getBoolean(["server", "firstRun"])):
 		# we need to get the user to sign into their AstroPrint account
@@ -98,7 +99,8 @@ def index():
 			uiApiKey= UI_API_KEY,
 			version= VERSION,
 			variantData= variantManager().data,
-			astroboxName= networkManager.getHostname()
+			astroboxName= networkManager.getHostname(),
+			settings=s
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
@@ -111,8 +113,8 @@ def index():
 			astroboxName= networkManager.getHostname()
 		)
 
-	elif loggedUsername and (not current_user or current_user.get_id() != loggedUsername):
-		if current_user:
+	elif loggedUsername and (current_user is None or not current_user.is_authenticated() or current_user.get_id() != loggedUsername):
+		if current_user.is_authenticated():
 			logout_user()
 
 		return render_template(
@@ -128,13 +130,15 @@ def index():
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
+		online = networkManager.isOnline()
 		
 		return render_template(
 			"app.jinja2",
-			user_email= s.get(["cloudSlicer", "email"]),
+			user_email= loggedUsername,
 			version= VERSION,
 			printing= printing,
 			paused= paused,
+			online= online,
 			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
@@ -239,24 +243,6 @@ class Server():
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
 
-		softwareManager = swManager()
-		VERSION = softwareManager.versionString
-
-		logger.info("Starting OctoPrint (%s)" % VERSION)
-
-		softwareManager.checkForcedUpdate()
-
-		eventManager = events.eventManager()
-		printer = printerManager(printerProfileManager().data['driver'])
-
-		# configure timelapse
-		#octoprint.timelapse.configureTimelapse()
-
-		# setup command triggers
-		events.CommandTrigger(printer)
-		if self._debug:
-			events.DebugEventListener()
-
 		if s.getBoolean(["accessControl", "enabled"]):
 			userManagerName = settings().get(["accessControl", "userManager"])
 			try:
@@ -264,6 +250,17 @@ class Server():
 				userManager = clazz()
 			except AttributeError, e:
 				logger.exception("Could not instantiate user manager %s, will run with accessControl disabled!" % userManagerName)
+
+		softwareManager = swManager()
+		VERSION = softwareManager.versionString
+
+		logger.info("Starting AstroBox (%s)" % VERSION)
+
+		eventManager = events.eventManager()
+		printer = printerManager(printerProfileManager().data['driver'])
+
+		# configure timelapse
+		#octoprint.timelapse.configureTimelapse()
 
 		app.wsgi_app = ReverseProxied(app.wsgi_app)
 
@@ -276,8 +273,16 @@ class Server():
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
 
+		# setup command triggers
+		events.CommandTrigger(printer)
+		if self._debug:
+			events.DebugEventListener()
+
 		from astroprint.network import networkManager as networkManagerLoader
 		networkManager = networkManagerLoader()
+
+		if networkManager.isOnline():
+			softwareManager.checkForcedUpdate()
 
 		if self._host is None:
 			self._host = s.get(["server", "host"])

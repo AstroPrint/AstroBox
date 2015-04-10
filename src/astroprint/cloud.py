@@ -25,10 +25,12 @@ from time import sleep
 
 from requests_toolbelt import MultipartEncoder
 
-from flask.ext.login import login_user, logout_user
+from flask import current_app
+from flask.ext.login import login_user, logout_user, current_user
+from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
-from octoprint.server import userManager
+from octoprint.events import eventManager, Events
 
 from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
@@ -52,67 +54,93 @@ class HMACAuth(requests.auth.AuthBase):
 class AstroPrintCloud(object):
 	def __init__(self):
 		self.settings = settings()
+		self.hmacAuth = None
 
-		publicKey = self.settings.get(['cloudSlicer', 'publicKey'])
-		privateKey = self.settings.get(['cloudSlicer', 'privateKey'])
+		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
+		if loggedUser:
+			from octoprint.server import userManager
+			
+			user = userManager.findUser(loggedUser)
 
-		self.hmacAuth = HMACAuth(publicKey, privateKey,)
+			if user and user.publicKey and user.privateKey:
+				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
+
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None
 		self._sm = softwareManager()
 
-	@staticmethod
-	def cloud_enabled():
+	def cloud_enabled(self):
 		s = settings()
-		return s.get(['cloudSlicer', 'publicKey']) and s.get(['cloudSlicer', 'privateKey']) and s.get(['cloudSlicer', 'apiHost'])
+		u = current_user
+
+		if not u.is_authenticated():
+			return False
+		else:
+			return s.get(['cloudSlicer', 'apiHost']) and u.privateKey and u.publicKey and self.hmacAuth
 
 	def signin(self, email, password):
-		private_key = self.get_private_key(email, password)
+		from octoprint.server import userManager
+		from astroprint.network import networkManager
 
-		if private_key:
-			public_key = self.get_public_key(email, private_key)
+		user = None
+		userLoggedIn = False
 
-			if public_key:
-				#The signin was successful
-				self.settings.set(["cloudSlicer", "privateKey"], private_key)
-				self.settings.set(["cloudSlicer", "publicKey"], public_key)
-				self.settings.set(["cloudSlicer", "email"], email)
-				self.settings.save()
-				boxrouterManager().boxrouter_connect()
+		if networkManager().isOnline():
+			private_key = self.get_private_key(email, password)
 
-				from octoprint.server import userManager
+			if private_key:
+				public_key = self.get_public_key(email, private_key)
 
-				#Let's protect the box now:
-				user = userManager.findUser(email)
+				if public_key:
+					#Let's protect the box now:
+					user = userManager.findUser(email)
 
-				if user:
-					userManager.changeUserPassword(email, password)
-				else:
-					user = userManager.addUser(email, password, True)
+					if user:
+						userManager.changeUserPassword(email, password)
+						userManager.changeCloudAccessKeys(email, public_key, private_key)
+					else:
+						user = userManager.addUser(email, password, public_key, private_key, True)
 
-				login_user(user, remember=True)
+					userLoggedIn = True
 
-				#let the singleton be recreated again, so new credentials are taken into use
-				global _instance
-				_instance = None
+		else:
+			user = userManager.findUser(email)
+			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
 
-				return True
+		if userLoggedIn:
+			login_user(user, remember=True)
+			userId = user.get_id()
+
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
+			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
+			boxrouterManager().boxrouter_connect()
+
+			#let the singleton be recreated again, so new credentials are taken into use
+			global _instance
+			_instance = None
+
+			return True
 
 		return False
 
 	def signout(self):
-		self.settings.set(["cloudSlicer", "privateKey"], None)
-		self.settings.set(["cloudSlicer", "publicKey"], None)
-		self.settings.set(["cloudSlicer", "email"], None)
+		self.settings.set(["cloudSlicer", "loggedUser"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
+		
+		logout_user()
 
 		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance
 		_instance = None
 
-		#log the user out
-		logout_user()
+		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
+
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)
@@ -128,8 +156,8 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data:
-			publicKey = self.settings.get(['cloudSlicer', 'publicKey'])
-			privateKey = self.settings.get(['cloudSlicer', 'privateKey'])
+			publicKey = current_user.publicKey
+			privateKey = current_user.privateKey
 
 			request = json.dumps({
 				'design_id': design_id,
@@ -288,7 +316,7 @@ class AstroPrintCloud(object):
 		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
 	def print_files(self, forceCloudSync = False):
-		if self.cloud_enabled and (not self._print_file_store or forceCloudSync):
+		if self.cloud_enabled() and (not self._print_file_store or forceCloudSync):
 			self._sync_print_file_store()
 
 		return json.dumps(self._print_file_store)	

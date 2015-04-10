@@ -67,7 +67,6 @@ class TimelapseWorker(threading.Thread):
 
 class CameraManager(object):
 	def __init__(self):
-		self._astroprint = astroprintCloud()
 		self._eventManager = eventManager()
 
 		self.timelapseWorker = None
@@ -86,7 +85,7 @@ class CameraManager(object):
 		picBuf = self.get_pic(text=text)
 
 		if picBuf:
-			picData = self._astroprint.uploadImageFile(timelapseId, picBuf)
+			picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
 			if picData:
 				self.timelapseInfo['last_photo'] = picData['url']
 				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
@@ -110,7 +109,7 @@ class CameraManager(object):
 			if not self.open_camera():
 				return False
 
-		timelapseId = self._astroprint.startPrintCapture(os.path.split(selectedFile["filename"])[1])
+		timelapseId = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
 		if timelapseId:
 			self.timelapseInfo = {
 				'id': timelapseId,

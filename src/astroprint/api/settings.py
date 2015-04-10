@@ -66,7 +66,8 @@ def getInternetSettings():
 		'hasWifi': bool(networkManager.getWifiDevice()),
 		'hotspot': {
 			'active': networkManager.isHotspotActive(),
-			'name': networkManager.getHostname()		
+			'name': networkManager.getHostname(),
+			'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
 		} if isHotspotable else False
 	})
 
@@ -93,6 +94,20 @@ def startWifiHotspot():
 		return jsonify()
 	else:
 		return (result, 500)
+
+@api.route("/settings/internet/hotspot", methods=["PUT"])
+@restricted_access
+def changeWifiHotspot():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+
+		if "hotspotOnlyOffline" in data:
+			s = settings()
+			s.setBoolean(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
+			s.save()
+			return jsonify()
+
+	return ("Invalid Request", 400)
 
 @api.route("/settings/internet/hotspot", methods=["DELETE"])
 @restricted_access
@@ -135,20 +150,22 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
 
-	settings_dir = s.settings_dir
-	#remove info about users
-	user_file = s.get(["accessControl", "userfile"]) or os.path.join(settings_dir, "users.yaml")
-	if user_file and os.path.exists(user_file):
-		os.unlink(user_file)
-
 	#replace config.yaml with config.factory
 	config_file = s._configfile
 	os.unlink(config_file)
+
+	#remove info about users
+	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
+	if user_file and os.path.exists(user_file):
+		os.unlink(user_file)
 
 	s._config = {}
 	s.load(migrate=False)
 
 	networkManager.forgetWifiNetworks()
+
+	#We should reboot the whole device
+	softwareManager.restartServer()
 
 	return jsonify()
 

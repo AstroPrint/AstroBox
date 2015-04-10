@@ -10,6 +10,7 @@ from functools import wraps
 from sys import platform
 
 from flask import make_response, request, jsonify
+from flask.ext.login import current_user
 
 from octoprint.settings import settings
 from octoprint.server import restricted_access, NO_CONTENT, networkManager
@@ -81,15 +82,25 @@ def connect_internet():
 
 	return ("Invalid Request", 400)
 
+@api.route('/setup/internet', methods=['PUT'])
+@not_setup_only
+def save_hotspot_option():
+	if "application/json" in request.headers["Content-Type"]:
+		data = request.json
+
+		if "hotspotOnlyOffline" in data:
+			s = settings()
+			s.set(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
+			s.save()
+			return jsonify()
+
+	return ("Invalid Request", 400)
+
 @api.route('/setup/astroprint', methods=['GET'])
 @not_setup_only
 def get_astroprint_info():
-	s = settings()
-
-	email = s.get(['cloudSlicer', 'email'])
-
-	if s.get(['cloudSlicer', "privateKey"]) and email:
-		return jsonify(user=email)
+	if current_user and current_user.is_authenticated() and current_user.privateKey:
+		return jsonify(user=current_user.get_id())
 	else:
 		return jsonify(user=None)
 

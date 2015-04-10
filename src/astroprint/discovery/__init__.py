@@ -20,6 +20,10 @@ import logging
 import os
 import flask
 import octoprint.util
+import threading
+import time
+
+from octoprint.events import eventManager, Events
 
 from astroprint.variant import variantManager
 from astroprint.network import networkManager
@@ -31,11 +35,11 @@ class DiscoveryManager(object):
 	ssdp_multicast_port = 1900
 
 	def __init__(self):
+		self._eventManager = eventManager()
+
 		self.logger = logging.getLogger(__name__)
 
 		self.variantMgr = variantManager()
-		self.networkMgr = networkManager()
-		self.boxrouterMgr = boxrouterManager()
 		self.softwareMgr = softwareManager()
 
 		# upnp/ssdp
@@ -43,22 +47,38 @@ class DiscoveryManager(object):
 		self._ssdp_monitor_thread = None
 		self._ssdp_notify_timeout = 10
 		self._ssdp_last_notify = 0
+		self._ssdp_last_unregister = 0
 
 		# SSDP
-		self._ssdp_register()
+		if networkManager().isOnline():
+			self._ssdp_register()
+
+		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+
 
 	# unregistering SSDP service upon shutdown
 
 	def __del__(self):
 		self._ssdp_unregister()
+		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
 	##~~ helpers
 
 	def get_instance_name(self):
-		return self.networkMgr.getHostname()
+		return networkManager().getHostname()
 
 	def get_uuid(self):
-		return self.boxrouterMgr.boxId
+		return boxrouterManager().boxId
+
+	def _onNetworkStateChanged(self, event, state):
+		if state == 'offline':
+			self._ssdp_unregister()
+
+		elif state == 'online':
+			self._ssdp_register()
+
+		else:
+			self._logger.warn('Invalid network state (%s)' % state)
 
 	# SSDP/UPNP
 
@@ -107,7 +127,16 @@ class DiscoveryManager(object):
 		Registers the AstroPrint instance as basic service with a presentation URL pointing to the web interface
 		"""
 
-		import threading
+		time_since_last_unregister = time.time() - self._ssdp_last_unregister
+
+		if time_since_last_unregister < ( self._ssdp_notify_timeout + 1 ):
+			wait_seconds = ( self._ssdp_notify_timeout + 1) - time_since_last_unregister
+			self.logger.info("Waiting %s seconds before starting SSDP Service..." % wait_seconds)
+			time.sleep(wait_seconds)
+
+			#Make sure that the network is still after the wait
+			if not networkManager().isOnline():
+				return
 
 		self._ssdp_monitor_active = True
 
@@ -120,10 +149,12 @@ class DiscoveryManager(object):
 		Unregisters the AstroPrint instance again
 		"""
 
-		self._ssdp_monitor_active = False
-		if self.host and self.port:
+		if self._ssdp_monitor_active:
+			self._ssdp_monitor_active = False
 			for _ in xrange(2):
 				self._ssdp_notify(alive=False)
+
+			self._ssdp_last_unregister = time.time()
 
 	def _ssdp_notify(self, alive=True):
 		"""
@@ -133,7 +164,6 @@ class DiscoveryManager(object):
 		"""
 
 		import socket
-		import time
 
 		if alive and self._ssdp_last_notify + self._ssdp_notify_timeout > time.time():
 			# we just sent an alive, no need to send another one now
