@@ -111,6 +111,8 @@ def index():
 			uiApiKey= UI_API_KEY,
 			showForceUpdate=  softwareManager.forceUpdateInfo != None,
 			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo,
+			lastCompletionPercent= softwareManager.lastCompletionPercent,
+			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
 			astroboxName= networkManager.getHostname()
 		)

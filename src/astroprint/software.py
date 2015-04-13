@@ -28,18 +28,19 @@ from flask.ext.login import current_user
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
+DOWNLOAD_PROGRESS_SPREAD = 0.2
+START_SOURCES_UPDATE = DOWNLOAD_PROGRESS_SPREAD + 0.05
+SOURCES_UPDATE_SPREAD = 0.2
+START_DEPS_UPDATE = START_SOURCES_UPDATE + SOURCES_UPDATE_SPREAD
+DEPS_UPDATE_SPREAD = 0.3
+START_REL_UPDATE = START_DEPS_UPDATE + DEPS_UPDATE_SPREAD
+REL_UPDATE_SPREAD = 0.25
+
+
 if platform != 'darwin':
 	import apt.debfile
 	import apt.progress.base
 	import apt_pkg
-
-	DOWNLOAD_PROGRESS_SPREAD = 0.2
-	START_SOURCES_UPDATE = DOWNLOAD_PROGRESS_SPREAD + 0.05
-	SOURCES_UPDATE_SPREAD = 0.2
-	START_DEPS_UPDATE = START_SOURCES_UPDATE + SOURCES_UPDATE_SPREAD
-	DEPS_UPDATE_SPREAD = 0.3
-	START_REL_UPDATE = START_DEPS_UPDATE + DEPS_UPDATE_SPREAD
-	REL_UPDATE_SPREAD = 0.25
 
 	class UpdateProgress(apt.progress.base.InstallProgress):
 		def __init__(self, progressCb, completionCb):
@@ -169,7 +170,7 @@ class SoftwareUpdater(threading.Thread):
 				i=0.0
 				while i<10:
 					percent = i/10.0
-					self._progressCb(percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
+					self._progressCb(START_REL_UPDATE + (percent * REL_UPDATE_SPREAD), "Installation Progress Sim (%d%%)" % (percent * 100) )
 					time.sleep(1)
 					i+=1
 
@@ -190,6 +191,9 @@ class SoftwareManager(object):
 		self._updater = None
 		self._infoFile = self._settings.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(self._settings._configfile)
 		self._logger = logging.getLogger(__name__)
+
+		self.lastCompletionPercent = None
+		self.lastMessage = None
 
 		self.forceUpdateInfo = None
 		self.data = {
@@ -331,6 +335,9 @@ class SoftwareManager(object):
 							'message': message
 						})
 
+						self.lastCompletionPercent = progress
+						self.lastMessage = message
+
 					def completionCb(success):
 						self._updater = None
 						eventManager().fire(Events.SOFTWARE_UPDATE, {
@@ -339,6 +346,9 @@ class SoftwareManager(object):
 						})
 						if success:
 							self.forceUpdateInfo = None
+
+					self.lastCompletionPercent = None
+					self.lastMessage = None
 
 					self._updater = SoftwareUpdater(self, data, progressCb, completionCb)
 					self._updater.start()
