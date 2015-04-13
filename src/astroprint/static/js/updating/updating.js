@@ -25,6 +25,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 	initialize: function()
 	{
 		this.connect();
+        this.updateInfo(updateInfo.progress, updateInfo.message);
 	},
 	connect: function()
 	{
@@ -81,10 +82,19 @@ var SoftwareUpdateProgress = Backbone.View.extend({
                             this.$el.find('.info').addClass('hide');
 						}
                 	} else if (payload.message) {
-                        this.$('.progress-info .progress .meter').css('width', (payload.progress * 100) + '%');
-                		this.$('h3.message').text(payload.message);
+                        this.updateInfo(payload.progress, payload.message);
                 	}
            	}
+        }
+    },
+    updateInfo: function(progress, message)
+    {
+        if (progress) {
+            this.$('.progress-info .progress .meter').css('width', (progress * 100) + '%');
+        }
+
+        if (message) {
+            this.$('h3.message').text(message);
         }
     },
     closeClicked: function(e)

@@ -78,6 +78,10 @@
 		var API_BASEURL = BASEURL + "api/";
 		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
 		var RELEASE_ID = "{{ releaseInfo['id'] }}";
+		var updateInfo = {
+			'progress': {{ lastCompletionPercent or 'null' }},
+			'message': "{{ lastMessage or '' }}"
+		}
 	</script>
 	{% assets filters="closure_js", output="js/gen/updating.js", 
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/updating/updating.js" -%}
