@@ -7,7 +7,7 @@ import logging
 from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
-from octoprint.printer import getConnectionOptions
+from astroprint.printer.manager import printerManager
 
 from octoprint.server import restricted_access, admin_permission, networkManager
 from octoprint.server.api import api
@@ -21,7 +21,7 @@ def getSettings():
 	[movementSpeedX, movementSpeedY, movementSpeedZ, movementSpeedE] \
 		= s.get(["printerParameters", "movementSpeed", ["x", "y", "z", "e"]])
 
-	connectionOptions = getConnectionOptions()
+	connectionOptions = printerManager().getConnectionOptions()
 
 	return jsonify({
 		"api": {

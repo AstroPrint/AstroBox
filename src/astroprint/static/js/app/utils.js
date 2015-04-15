@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -10,6 +10,10 @@ var Utils = function() {
 	return {
 		timeFormat: function(seconds) 
 		{
+			if (isNaN(seconds)) {
+				return '-- : -- : --';
+			}
+
 	    	var sec_num = parseInt(seconds, 10); // don't forget the second param
 	        var hours   = Math.floor(sec_num / 3600);
 	        var minutes = Math.floor((sec_num - (hours * 3600)) / 60);

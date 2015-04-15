@@ -1,0 +1,347 @@
+{
+  "eeprom_info": {
+    "dependent_toolhead_map": {
+      "value": "None"
+    }, 
+    "software_variant": {
+      "value": "0x00"
+    }
+  }, 
+  "eeprom_map": {
+    "ACCELERATION_SETTINGS": {
+      "eeprom_map": "acceleration_eeprom_offsets", 
+      "offset": "0x016E", 
+      "sub_map": {
+        "ACCELERATION_ACTIVE": {
+          "constraints": "l,0,1", 
+          "offset": "0x00", 
+          "type": "B"
+        }, 
+        "DEFAULTS_FLAG": {
+          "constraints": "a", 
+          "offset": "0x1A", 
+          "type": "B"
+        }, 
+        "MAX_ACCELERATION_AXIS": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "HHHHH"
+        }, 
+        "MAX_ACCELERATION_EXTRUDER_MOVE": {
+          "constraints": "a", 
+          "offset": "0x18", 
+          "type": "H"
+        }, 
+        "MAX_ACCELERATION_NORMAL_MOVE": {
+          "constraints": "a", 
+          "offset": "0x02", 
+          "type": "H"
+        }, 
+        "MAX_SPEED_CHANGE": {
+          "constraints": "a", 
+          "floating_point": "True", 
+          "offset": "0x0E", 
+          "type": "HHHHH"
+        }
+      }
+    }, 
+    "AXIS_HOME_DIRECTION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x000C", 
+      "type": "B"
+    }, 
+    "AXIS_HOME_POSITIONS_MM": {
+      "constraints": "a", 
+      "offset": "0x0224", 
+      "type": "iiiii"
+    }, 
+    "AXIS_HOME_POSITIONS_STEPS": {
+      "constraints": "a", 
+      "offset": "0x000E", 
+      "type": "iiiii"
+    }, 
+    "AXIS_INVERSION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x0002", 
+      "type": "B"
+    }, 
+    "AXIS_LENGTHS": {
+      "constraints": "m,0,2147483647", 
+      "offset": "0x018C", 
+      "type": "iiiii"
+    }, 
+    "AXIS_LENGTHS_MM": {
+      "constraints": "a", 
+      "offset": "0x0210", 
+      "type": "IIIII"
+    }, 
+    "AXIS_MAX_FEEDRATES": {
+      "constraints": "a", 
+      "offset": "0x01F4", 
+      "type": "HHHHH"
+    }, 
+    "AXIS_STEPS_PER_MM": {
+      "constraints": "a", 
+      "offset": "0x01A4", 
+      "type": "IIIII"
+    }, 
+    "BOTSTEP_TYPE": {
+      "constraints": "l,1,2", 
+      "offset": "0x0208", 
+      "type": "B"
+    }, 
+    "BOT_STATUS_BYTES": {
+      "constraints": "a", 
+      "offset": "0x018A", 
+      "type": "BB"
+    }, 
+    "BUZZ_SETTINGS": {
+      "eeprom_map": "buzz_eeprom_offsets", 
+      "offset": "0x014A", 
+      "sub_map": {
+        "SOUND_ON": {
+          "constraints": "l,0,1", 
+          "offset": "0x00", 
+          "type": "B"
+        }
+      }
+    }, 
+    "COMMIT_VERSION": {
+      "constraints": "a", 
+      "offset": "0x004A", 
+      "type": "H"
+    }, 
+    "DIGI_POT_SETTINGS": {
+      "constraints": "a", 
+      "offset": "0x0006", 
+      "type": "BBBBB"
+    }, 
+    "ENDSTOP_INVERSION": {
+      "axis_expand": "True", 
+      "constraints": "a", 
+      "offset": "0x0004", 
+      "type": "B"
+    }, 
+    "FILAMENT_HELP_TEXT_ON": {
+      "constraints": "l,0,1", 
+      "offset": "0x0160", 
+      "type": "B"
+    }, 
+    "HBP_PRESENT": {
+      "constraints": "l,0,1", 
+      "offset": "0x004C", 
+      "type": "B"
+    }, 
+    "HEATER_CALIBRATION": {
+      "constraints": "a", 
+      "offset": "0x020A", 
+      "type": "BBB"
+    }, 
+    "INTERNAL_VERSION": {
+      "constraints": "a", 
+      "offset": "0x0048", 
+      "type": "H"
+    }, 
+    "LED_STRIP_SETTINGS": {
+      "eeprom_map": "blink_eeprom_offsets", 
+      "offset": "0x0140", 
+      "sub_map": {
+        "BASIC_COLOR": {
+          "constraints": "m,0,10", 
+          "offset": "0x00", 
+          "type": "B"
+        }, 
+        "CUSTOM_COLOR": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "BBB"
+        }, 
+        "LED_HEAT_ON": {
+          "constraints": "l,1,0", 
+          "offset": "0x02", 
+          "type": "B"
+        }
+      }
+    }, 
+    "MACHINE_NAME": {
+      "constraints": "a", 
+      "length": "16", 
+      "offset": "0x0022", 
+      "type": "s"
+    }, 
+    "PREHEAT_SETTINGS": {
+      "eeprom_map": "preheat_eeprom_offsets", 
+      "offset": "0x0158", 
+      "sub_map": {
+        "PREHEAT_LEFT_TEMP": {
+          "constraints": "m,0,300", 
+          "offset": "0x02", 
+          "type": "H"
+        }, 
+        "PREHEAT_PLATFORM_TEMP": {
+          "constraints": "m,0,200", 
+          "offset": "0x04", 
+          "type": "H"
+        }, 
+        "PREHEAT_RIGHT_TEMP": {
+          "constraints": "m,0,300", 
+          "offset": "0x00", 
+          "type": "H"
+        }
+      }
+    }, 
+    "T0_DATA_BASE": {
+      "eeprom_map": "toolhead_eeprom_offsets", 
+      "offset": "0x0100", 
+      "sub_map": {
+        "COOLING_FAN_SETTINGS": {
+          "eeprom_map": "cooler_eeprom_offsets", 
+          "offset": "0x001A", 
+          "sub_map": {
+            "ENABLE": {
+              "constraints": "l,0,1", 
+              "offset": "0", 
+              "type": "B"
+            }, 
+            "SETPOINT_C": {
+              "constraints": "m,0,300", 
+              "offset": "1", 
+              "type": "B"
+            }
+          }
+        }, 
+        "EXTRUDER_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x000A", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }
+      }, 
+      "tool_index": "0"
+    }, 
+    "T1_DATA_BASE": {
+      "eeprom_map": "toolhead_eeprom_offsets", 
+      "offset": "0x011C", 
+      "sub_map": {
+        "COOLING_FAN_SETTINGS": {
+          "eeprom_map": "cooler_eeprom_offsets", 
+          "offset": "0x001A", 
+          "sub_map": {
+            "ENABLE": {
+              "constraints": "l,0,1", 
+              "offset": "0", 
+              "type": "B"
+            }, 
+            "SETPOINT_C": {
+              "constraints": "m,0,300", 
+              "offset": "1", 
+              "type": "B"
+            }
+          }
+        }, 
+        "EXTRUDER_PID_BASE": {
+          "eeprom_map": "pid_eeprom_offsets", 
+          "offset": "0x000A", 
+          "sub_map": {
+            "D_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "4", 
+              "type": "H"
+            }, 
+            "I_TERM": {
+              "constraints": "m,0,1", 
+              "floating_point": "True", 
+              "offset": "2", 
+              "type": "H"
+            }, 
+            "P_TERM": {
+              "constraints": "m,0,100", 
+              "floating_point": "True", 
+              "offset": "0", 
+              "type": "H"
+            }
+          }
+        }
+      }, 
+      "tool_index": "1"
+    }, 
+    "THERM_TABLE": {
+      "eeprom_map": "therm_eeprom_offsets", 
+      "offset": "0x0074", 
+      "sub_map": {
+        "THERM_BETA": {
+          "constraints": "a", 
+          "offset": "0x08", 
+          "type": "i"
+        }, 
+        "THERM_R0": {
+          "constraints": "a", 
+          "offset": "0x00", 
+          "type": "i"
+        }, 
+        "THERM_T0": {
+          "constraints": "a", 
+          "offset": "0x04", 
+          "type": "i"
+        }
+      }
+    }, 
+    "TOOLHEAD_OFFSET_SETTINGS": {
+      "constraints": "m,-200,35000", 
+      "offset": "0x0162", 
+      "type": "iii"
+    }, 
+    "TOOL_COUNT": {
+      "constraints": "l,1,2", 
+      "offset": "0x0042", 
+      "type": "B"
+    }, 
+    "TOTAL_BUILD_TIME": {
+      "eeprom_map": "build_time_offsets", 
+      "offset": "0x01A0", 
+      "sub_map": {
+        "HOURS": {
+          "constraints": "a", 
+          "offset": "0x00", 
+          "type": "H"
+        }, 
+        "MINUTES": {
+          "constraints": "m,0,60", 
+          "offset": "0x02", 
+          "type": "B"
+        }
+      }
+    }, 
+    "VERSION_HIGH": {
+      "constraints": "m,0,10", 
+      "offset": "0x0001", 
+      "type": "B"
+    }, 
+    "VERSION_LOW": {
+      "constraints": "m,0,100", 
+      "offset": "0x0000", 
+      "type": "B"
+    }
+  }
+}

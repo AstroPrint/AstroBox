@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import sys
@@ -79,8 +79,7 @@ default_settings = {
 		"timelapse": None,
 		"timelapse_tmp": None,
 		"logs": None,
-		"virtualSd": None,
-		"watched": None,
+		"virtualSd": None
 	},
 	"temperature": {
 		"profiles":
@@ -489,7 +488,8 @@ class Settings(object):
 			self._dirty = True
 		elif force or (not key in config.keys() and defaults[key] != value) or (key in config.keys() and config[key] != value):
 			if value is None:
-				del config[key]
+				if key in config:
+					del config[key]
 			else:
 				config[key] = value
 			self._dirty = True

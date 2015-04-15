@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import re
@@ -13,10 +13,12 @@ from flask import make_response, request, jsonify
 from flask.ext.login import current_user
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, printer, NO_CONTENT, networkManager
+from octoprint.server import restricted_access, NO_CONTENT, networkManager
 from octoprint.server.api import api
-from octoprint.printer import getConnectionOptions
+
 from astroprint.cloud import astroprintCloud
+from astroprint.printer.manager import printerManager
+from astroprint.printerprofile import printerProfileManager
 
 def not_setup_only(func):
 	"""
@@ -126,10 +128,11 @@ def login_astroprint():
 @api.route('/setup/printer', methods=['GET'])
 @not_setup_only
 def connection_settings():
-	connectionOptions = getConnectionOptions()
+	connectionOptions = printerManager().getConnectionOptions()
 
 	if connectionOptions:
 		response = {
+			"driver": printerProfileManager().data['driver'],
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
 			"portOptions": connectionOptions["ports"].items(),
@@ -145,15 +148,40 @@ def connection_settings():
 def save_connection_settings():
 	port = request.values.get('port', None)
 	baudrate = request.values.get('baudrate', None)
+	driver = request.values.get('driver', None)
 
-	if port and baudrate:
+	if port and ( baudrate or driver == 's3g'):
 		s = settings()
 
 		s.set(["serial", "port"], port)
-		s.setInt(["serial", "baudrate"], baudrate)
+		if baudrate:
+			s.setInt(["serial", "baudrate"], baudrate)
 		s.save()
 
-		printer.connect()
+		pp = printerProfileManager()
+		pp.data['driver'] = driver
+		pp.save()
+
+		pm = printerManager(driver)
+		pm.connect()
+
+		return make_response("OK", 200)
+
+	return make_response('Invalid Connection Settings', 400)
+
+@api.route('/setup/printer/profile', methods=['POST'])
+@not_setup_only
+def save_printer_profile_settings():
+	driver = request.values.get('driver', None)
+
+	if driver:
+		pp = printerProfileManager()
+		pp.data['driver'] = driver
+		pp.save()
+
+		#swap the printerManager here
+		printerManager(driver)
+
 		return make_response("OK", 200)
 
 	return make_response('Invalid Connection Settings', 400)

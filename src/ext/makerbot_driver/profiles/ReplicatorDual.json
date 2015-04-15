@@ -1,0 +1,147 @@
+{
+  "type"  :  "The Replicator Dual",
+  "machinenames" : ["TheReplicator"],
+  "axes"  : {
+    "X" : {
+      "platform_length"        : 225,
+      "max_feedrate"  : 12450,
+      "steps_per_mm"  : 94.139704
+    },
+    "Y" : {
+      "platform_length"        : 145,
+      "max_feedrate"  : 12450,
+      "steps_per_mm"  : 94.139704
+    },
+    "Z" : {
+      "platform_length"        : 150,
+      "max_feedrate"  : 1170,
+      "steps_per_mm"  : 400
+    },
+    "A" : {
+      "max_feedrate"  : 1600,
+      "steps_per_mm"  : -96.275
+    },
+    "B" : {
+      "max_feedrate"  : 1600,
+      "steps_per_mm"  : -96.275
+    }
+  },
+  "tools" :
+  {
+    "0" : {
+      "name"          : "Mk8 Right",
+      "model"         : "Mk8",
+      "stepper_axis"  : "A"
+    },
+    "1" : {
+      "name"          : "Mk8 Left",
+      "model"         : "Mk8",
+      "stepper_axis"  : "B"
+    }
+  },
+  "heated_platforms" : {
+    "0" : {
+      "name"          : "heated_platform"
+    }
+  },
+  "baudrate"  : 115200,
+  "VID"       : 9153,
+  "PID"       : [54036],
+  "print_start_sequence" : {
+    "begin_print" : {
+      "replicator_begin" : [
+          "M136 (enable build progress)",
+          "M73 P0"
+          ]
+      },
+    "homing" : {
+      "replicator_homing" : [
+        "G162 X Y F2000(home XY axes maximum)",
+        "G161 Z F900(home Z axis minimum)",
+        "G92 X0 Y0 Z-5 A0 B0 (set Z to -5)",
+        "G1 Z0.0 F900(move Z to '0')",
+        "G161 Z F100(home Z axis minimum)",
+        "M132 X Y Z A B (Recall stored home offsets for XYZAB axis)"
+        ]
+      },
+    "start_position" : {
+      "replicator_start_position": [
+        "G92 X152 Y75 Z0 A0 B0",
+        "G1 X#START_X Y#START_Y Z#START_Z F3300.0 (move to waiting position)",
+        "G130 X20 Y20 A20 B20 (Lower stepper Vrefs while heating)"
+        ],
+      "start_x" : -112,
+      "start_y" : -73,
+      "start_z" : 150
+      },
+    "heat_platform" : {
+      "no_heat" : [],
+      "heat_platform" : [
+        "M109 S#PLATFORM_TEMP T0",
+        "M134 T0"
+        ]
+      },
+    "heat_tools" : {
+      "heat_0" : [
+        "M135 T0",
+        "M104 S#TOOL_0_TEMP T0",
+        "M133 T0"
+        ],
+      "heat_1" : [
+        "M135 T1",
+        "M104 S#TOOL_1_TEMP T1",
+        "M133 T1"
+        ],
+      "dualstrusion" : [
+        "M104 S#TOOL_0_TEMP T0",
+        "M104 S#TOOL_1_TEMP T1",
+        "M133 T0",
+        "M133 T1"
+        ]
+      },
+    "end_start_sequence" : {
+      "replicator_end_start_sequence" : [
+        "G130 X127 Y127 A127 B127 (Set Stepper motor Vref to defaults)"
+        ]
+      }
+    },
+  "print_end_sequence" : {
+    "end_position" : {
+      "replicator_end_position" : [
+        "M18 A B(Turn off A and B Steppers)",
+        "G1 Z155 F900",
+        "G162 X Y F2000",
+        "M18 X Y Z(Turn off steppers after a build)"
+        ]
+      },
+    "cool_platform": {
+      "no_cool" : [],
+      "cool_platform" : ["M109 S0 T0"]
+      },
+    "cool_tools": {
+      "cool_0" : ["M104 S0 T0"],
+      "cool_1" : ["M104 S0 T1"],
+      "dualstrusion" : [
+        "M104 S0 T0",
+        "M104 S0 T1"
+        ]
+      },
+    "end_print" : {
+      "replicator_end" : [
+        "M70 P5 (We <3 Making Things!)",
+        "M72 P1  ( Play Ta-Da song )",
+        "M73 P100 (end  build progress )",
+        "M137 (build end notification)"
+        ]
+      }
+    },
+  "find_axis_maximum_timeout"  : 20,
+  "find_axis_minimum_timeout"  : 20,
+  "dualstrusion": {
+    "retract_distance_mm": "NULL",
+    "squirt_reduce_mm": "NULL",
+    "squirt_feedrate": "NULL",
+    "snort_feedrate" : "NULL"
+    },
+  "use_legacy_parser": 0
+}

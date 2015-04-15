@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import uuid
@@ -39,8 +39,6 @@ elif platform == "linux2" and os.path.isfile('/etc/astrobox/application.cfg'):
 assets = Environment(app)
 Compress(app)
 
-printer = None
-gcodeManager = None
 userManager = None
 eventManager = None
 loginManager = None
@@ -53,13 +51,13 @@ user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
 from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, \
-	UrlForwardHandler, user_validator, GcodeWatchdogHandler, UploadCleanupWatchdogHandler
-from octoprint.printer import Printer, getConnectionOptions
+	UrlForwardHandler, user_validator
+from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
-import octoprint.gcodefiles as gcodefiles
 import octoprint.util as util
 import octoprint.events as events
 #import octoprint.timelapse
+
 import astroprint.users as users
 
 from astroprint.software import softwareManager as swManager
@@ -130,8 +128,10 @@ def index():
 		)
 
 	else:
-		paused = printer.isPaused()
-		printing = printer.isPrinting()
+		pm = printerManager()
+
+		paused = pm.isPaused()
+		printing = pm.isPrinting()
 		online = networkManager.isOnline()
 		
 		return render_template(
@@ -220,8 +220,6 @@ class Server():
 		if not self._allowRoot:
 			self._checkForRoot()
 
-		global printer
-		global gcodeManager
 		global userManager
 		global eventManager
 		global loginManager
@@ -234,6 +232,8 @@ class Server():
 		from tornado.httpserver import HTTPServer
 		from tornado.ioloop import IOLoop
 		from tornado.web import Application, FallbackHandler
+
+		from astroprint.printfiles.watchdogs import UploadCleanupWatchdogHandler
 
 		debug = self._debug
 
@@ -259,8 +259,7 @@ class Server():
 		logger.info("Starting AstroBox (%s)" % VERSION)
 
 		eventManager = events.eventManager()
-		gcodeManager = gcodefiles.GcodeManager()
-		printer = Printer(gcodeManager)
+		printer = printerManager(printerProfileManager().data['driver'])
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
@@ -338,14 +337,13 @@ class Server():
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):
 			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
-			connectionOptions = getConnectionOptions()
+			connectionOptions = printer.getConnectionOptions()
 			if port in connectionOptions["ports"]:
 				printer.connect(port, baudrate)
 
 		# start up watchdogs
 		observer = Observer()
-		#observer.schedule(GcodeWatchdogHandler(gcodeManager, printer), s.getBaseFolder("watched"))
-		observer.schedule(UploadCleanupWatchdogHandler(gcodeManager), s.getBaseFolder("uploads"))
+		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
 
 		try:
@@ -360,8 +358,8 @@ class Server():
 		observer.join()
 
 	def _createSocketConnection(self, session):
-		global printer, gcodeManager, userManager, eventManager
-		return PrinterStateConnection(printer, gcodeManager, userManager, eventManager, session)
+		global userManager, eventManager
+		return PrinterStateConnection(userManager, eventManager, session)
 
 	def _checkForRoot(self):
 		return
@@ -392,7 +390,7 @@ class Server():
 					"formatter": "simple",
 					"when": "D",
 					"backupCount": "1",
-					"filename": os.path.join(settings().getBaseFolder("logs"), "octoprint.log")
+					"filename": os.path.join(settings().getBaseFolder("logs"), "astrobox.log")
 				},
 				"serialFile": {
 					"class": "logging.handlers.RotatingFileHandler",

@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -78,9 +78,14 @@ var TempBarVerticalView = TempBarView.extend({
 	renderTemps: function(actual, target) {
 		var handleHeight = this.$el.find('.temp-target').innerHeight();
 
-		this.setHandle(Math.min(Math.round(target), this.scale[1]));
-		this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
-		this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+		if (actual !== null) {
+			this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
+			this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+		}
+
+		if (target !== null) {
+			this.setHandle(Math.min(Math.round(target), this.scale[1]));
+		}
 	},
 	_temp2px: function(temp) {
 		var px = temp * this.containerDimensions.px4degree;
@@ -333,11 +338,13 @@ var FanControlView = Backbone.View.extend({
 	_setFanSpeed: function(speed)
 	{
         var data = {
-            command: "M106 S"+speed,
+            command: "set",
+            tool: 0,
+            speed: speed
         }
 
         $.ajax({
-            url: API_BASEURL + "printer/command",
+            url: API_BASEURL + "printer/fan",
             type: "POST",
             dataType: "json",
             contentType: "application/json; charset=UTF-8",

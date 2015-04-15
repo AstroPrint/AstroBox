@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -150,6 +150,14 @@ var TempBarView = Backbone.View.extend({
             target = this.lastSent;
         }
 
+        if (isNaN(actual)) {
+            actual = null;
+        }
+
+        if (isNaN(target)) {
+            target = null;
+        }
+ 
         this.renderTemps(actual, target);
     },
 

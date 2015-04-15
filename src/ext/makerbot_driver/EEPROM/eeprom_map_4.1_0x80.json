@@ -1,0 +1,273 @@
+{
+  "eeprom_info": {}, 
+  "eeprom_map": {
+    "ABP_COPIES": {
+      "offset": "0x00C3", 
+      "type": "B"
+    }, 
+    "ACCELERATION_ON": {
+      "constraints": "l,0,1", 
+      "offset": "0x0126", 
+      "tooltip": "Set to 1 to use acceleration.  0 for no acceleration.  Note that you must turn acceleration on to print safely at speeds over 50mm/s.", 
+      "type": "B"
+    }, 
+    "ACCEL_ADVANCE_K": {
+      "offset": "0x0167", 
+      "type": "I", 
+      "unit": "factor * 100000"
+    }, 
+    "ACCEL_ADVANCE_K2": {
+      "offset": "0x015F", 
+      "type": "I", 
+      "unit": "factor * 100000"
+    }, 
+    "ACCEL_EXTRUDER_DEPRIME_A": {
+      "constraints": "m,-32767,32767", 
+      "offset": "0x0185", 
+      "type": "i", 
+      "unit": "steps"
+    }, 
+    "ACCEL_EXTRUDER_DEPRIME_B": {
+      "constraints": "m,-32767,32767", 
+      "offset": "0x01AA", 
+      "type": "i", 
+      "unit": "steps"
+    }, 
+    "ACCEL_MAX_ACCELERATION_A": {
+      "offset": "0x0147", 
+      "type": "I", 
+      "unit": "mm/s/s"
+    }, 
+    "ACCEL_MAX_ACCELERATION_B": {
+      "offset": "0x01A6", 
+      "type": "I", 
+      "unit": "mm/s/s"
+    }, 
+    "ACCEL_MAX_ACCELERATION_X": {
+      "offset": "0x013B", 
+      "type": "I", 
+      "unit": "mm/s/s"
+    }, 
+    "ACCEL_MAX_ACCELERATION_Y": {
+      "offset": "0x013F", 
+      "type": "I", 
+      "unit": "mm/s/s"
+    }, 
+    "ACCEL_MAX_ACCELERATION_Z": {
+      "offset": "0x0143", 
+      "type": "I", 
+      "unit": "mm/s/s"
+    }, 
+    "ACCEL_MAX_EXTRUDER_NORM": {
+      "offset": "0x014B", 
+      "type": "I"
+    }, 
+    "ACCEL_MAX_EXTRUDER_RETRACT": {
+      "offset": "0x014F", 
+      "type": "I"
+    }, 
+    "ACCEL_MAX_FEEDRATE_A": {
+      "offset": "0x0133", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "ACCEL_MAX_FEEDRATE_B": {
+      "offset": "0x0137", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "ACCEL_MAX_FEEDRATE_X": {
+      "offset": "0x0127", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "ACCEL_MAX_FEEDRATE_Y": {
+      "offset": "0x012B", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "ACCEL_MAX_FEEDRATE_Z": {
+      "offset": "0x012F", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "ACCEL_MAX_SPEED_CHANGE_A": {
+      "offset": "0x019E", 
+      "type": "I", 
+      "unit": "mm/s * 10"
+    }, 
+    "ACCEL_MAX_SPEED_CHANGE_B": {
+      "offset": "0x01A2", 
+      "type": "I", 
+      "unit": "mm/s * 10"
+    }, 
+    "ACCEL_MAX_SPEED_CHANGE_X": {
+      "offset": "0x0192", 
+      "type": "I", 
+      "unit": "mm/s * 10"
+    }, 
+    "ACCEL_MAX_SPEED_CHANGE_Y": {
+      "offset": "0x0196", 
+      "type": "I", 
+      "unit": "mm/s * 10"
+    }, 
+    "ACCEL_MAX_SPEED_CHANGE_Z": {
+      "offset": "0x019A", 
+      "type": "I", 
+      "unit": "mm/s * 10"
+    }, 
+    "ACCEL_SLOWDOWN_FLAG": {
+      "constraints": "l,0,1", 
+      "offset": "0x0189", 
+      "type": "B"
+    }, 
+    "AXIS_HOME_POSITIONS": {
+      "offset": "0x0060", 
+      "type": "IIIII"
+    }, 
+    "AXIS_INVERSION": {
+      "axis_expand": "True", 
+      "offset": "0x0002", 
+      "type": "B"
+    }, 
+    "AXIS_LENGTHS": {
+      "constraints": "m,0,2147483647", 
+      "offset": "0x01BC", 
+      "type": "iiiii", 
+      "unit": "steps"
+    }, 
+    "BUZZER_REPEATS": {
+      "offset": "0x008A", 
+      "type": "B"
+    }, 
+    "DITTO_PRINT_ENABLED": {
+      "constraints": "l,0,1", 
+      "offset": "0x01DC", 
+      "type": "B"
+    }, 
+    "ENDSTOPS_USED": {
+      "offset": "0x0174", 
+      "tooltip": "A bitfield representing presence/absence (0/1) of endstops [0,0,ZMax,ZMin,YMax,YMin,XMax,XMin]", 
+      "type": "B"
+    }, 
+    "ENDSTOP_INVERSION": {
+      "axis_expand": "True", 
+      "offset": "0x0003", 
+      "type": "B"
+    }, 
+    "ESTOP_CONFIGURATION": {
+      "offset": "0x0074", 
+      "tooltip": " 0 None, 1 Active High, 2 Active Low", 
+      "type": "B"
+    }, 
+    "EXTRUDER_HOLD": {
+      "constraints": "l,0,1", 
+      "offset": "0x1E9", 
+      "type": "B"
+    }, 
+    "FILAMENT_LIFETIME_A": {
+      "offset": "0x00B3", 
+      "type": "q"
+    }, 
+    "FILAMENT_LIFETIME_B": {
+      "offset": "0x01D4", 
+      "type": "q"
+    }, 
+    "FILAMENT_TRIP_A": {
+      "offset": "0x00BB", 
+      "type": "q"
+    }, 
+    "FILAMENT_TRIP_B": {
+      "offset": "0x01DD", 
+      "type": "q"
+    }, 
+    "HOMING_FEED_RATE_X": {
+      "offset": "0x0175", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "HOMING_FEED_RATE_Y": {
+      "offset": "0x0179", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "HOMING_FEED_RATE_Z": {
+      "offset": "0x017D", 
+      "type": "I", 
+      "unit": "mm/min"
+    }, 
+    "LCD_TYPE": {
+      "offset": "0x0173", 
+      "tooltip": " character dimensions of your LCD, 0 16x4, 50 20x4, 51 24x4", 
+      "type": "B"
+    }, 
+    "MACHINE_NAME": {
+      "length": "16", 
+      "offset": "0x0020", 
+      "type": "s"
+    }, 
+    "MOOD_LIGHT_CUSTOM_BLUE": {
+      "offset": "0x0088", 
+      "type": "B"
+    }, 
+    "MOOD_LIGHT_CUSTOM_GREEN": {
+      "offset": "0x0087", 
+      "type": "B"
+    }, 
+    "MOOD_LIGHT_CUSTOM_RED": {
+      "offset": "0x0086", 
+      "type": "B"
+    }, 
+    "OVERRIDE_GCODE_TEMP": {
+      "constraints": "l,0,1", 
+      "offset": "0x00C5", 
+      "type": "B"
+    }, 
+    "PLATFORM_TEMP": {
+      "offset": "0x0082", 
+      "type": "B"
+    }, 
+    "STEPS_PER_MM_A": {
+      "offset": "0x00A3", 
+      "type": "q", 
+      "unit": "steps * 10000000000"
+    }, 
+    "STEPS_PER_MM_B": {
+      "offset": "0x00AB", 
+      "type": "q", 
+      "unit": "steps * 10000000000"
+    }, 
+    "STEPS_PER_MM_X": {
+      "offset": "0x008B", 
+      "type": "q", 
+      "unit": "steps * 10000000000"
+    }, 
+    "STEPS_PER_MM_Y": {
+      "offset": "0x0093", 
+      "type": "q", 
+      "unit": "steps * 10000000000"
+    }, 
+    "STEPS_PER_MM_Z": {
+      "offset": "0x009B", 
+      "type": "q", 
+      "unit": "steps * 10000000000"
+    }, 
+    "TOOL0_TEMP": {
+      "offset": "0x0080", 
+      "type": "B"
+    }, 
+    "TOOL1_TEMP": {
+      "offset": "0x0081", 
+      "type": "B"
+    }, 
+    "TOOLHEAD_OFFSET_SETTINGS": {
+      "offset": "0x01B0", 
+      "type": "iii", 
+      "unit": "steps"
+    }, 
+    "TOOL_COUNT": {
+      "offset": "0x01AE", 
+      "type": "B"
+    }
+  }
+}

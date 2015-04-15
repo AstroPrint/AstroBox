@@ -2,16 +2,20 @@
 __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask import request, make_response, jsonify
-
-from octoprint.server import printer, restricted_access, NO_CONTENT
-from octoprint.server.api import api
 import octoprint.util as util
 
+from flask import request, make_response, jsonify
+
+from octoprint.server import restricted_access, NO_CONTENT
+from octoprint.server.api import api
+
+from astroprint.printer.manager import printerManager
 
 @api.route("/job", methods=["POST"])
 @restricted_access
 def controlJob():
+	printer = printerManager()
+
 	if not printer.isOperational():
 		return make_response("Printer is not operational", 409)
 
@@ -49,7 +53,7 @@ def controlJob():
 
 @api.route("/job", methods=["GET"])
 def jobState():
-	currentData = printer.getCurrentData()
+	currentData = printerManager().getCurrentData()
 	return jsonify({
 		"job": currentData["job"],
 		"progress": currentData["progress"],

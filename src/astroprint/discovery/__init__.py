@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
 __copyright__ = "Copyright (C) 2015 3DaGoGo, Inc. - Released under terms of the AGPLv3 License"
 
 """

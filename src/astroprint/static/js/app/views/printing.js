@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -81,12 +81,16 @@
         var handle = this.$el.find('.temp-target');
         var handleWidth = handle.innerWidth();
 
-        if (target != handle.find('span.label').text()) {
-            this.setHandle(Math.min(Math.round(target), this.scale[1]));
+        if (target !== null) {
+            if (target != handle.find('span.label').text()) {
+                this.setHandle(Math.min(Math.round(target), this.scale[1]));
+            }
         }
 
-        this.$el.find('.temp-current').html(Math.round(actual)+'&deg;');
-        this.$el.find('.temp-curret-line').css({left: ( this._temp2px(actual) + handleWidth/2.0 )+'px'});
+        if (actual !== null) {
+            this.$el.find('.temp-current').html(Math.round(actual)+'&deg;');
+            this.$el.find('.temp-curret-line').css({left: ( this._temp2px(actual) + handleWidth/2.0 )+'px'});
+        }
     },
     _temp2px: function(temp) {
         var px = temp * this.containerDimensions.px4degree;

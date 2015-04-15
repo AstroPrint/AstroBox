@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -35,6 +35,8 @@ var PrinterConnectionView = SettingsPage.extend({
 
 		if (!this.settings) {
 			this.getInfo();
+		} else {
+			this.render();
 		}
 	},
 	getInfo: function()
@@ -44,12 +46,6 @@ var PrinterConnectionView = SettingsPage.extend({
 			if (data.serial) {
 				this.settings = data;
 				this.render(); // This removes the animate-spin from the link
-				this.delegateEvents({
-					'change #settings-baudrate': 'saveConnectionSettings',
-					'change #settings-serial-port': 'saveConnectionSettings',
-					'click a.retry-ports': 'retryPortsClicked',
-					'click .loading-button.test-connection button': 'testConnection'
-				});
 			} else {
 				noty({text: "No serial settings found.", timeout: 3000});
 			}
@@ -66,6 +62,13 @@ var PrinterConnectionView = SettingsPage.extend({
 		}));
 
 		this.printerStatusChanged(app.socketData, app.socketData.get('printer'));
+
+		this.delegateEvents({
+			'change #settings-baudrate': 'saveConnectionSettings',
+			'change #settings-serial-port': 'saveConnectionSettings',
+			'click a.retry-ports': 'retryPortsClicked',
+			'click .loading-button.test-connection button': 'testConnection'
+		});
 	},
 	retryPortsClicked: function(e)
 	{
@@ -79,7 +82,7 @@ var PrinterConnectionView = SettingsPage.extend({
 			connectionData[e.name] = e.value;
 		});
 
-		if (connectionData.baudrate && connectionData.port) {
+		if (connectionData.port) {
 			this.$('.loading-button.test-connection').addClass('loading');
 			this.$('.connection-status').removeClass('failed connected').addClass('connecting');
 	        $.ajax({
@@ -89,14 +92,15 @@ var PrinterConnectionView = SettingsPage.extend({
 	            contentType: "application/json; charset=UTF-8",
 	            data: JSON.stringify({
 		            "command": "connect",
+		            "driver": connectionData.driver,
 		            "port": connectionData.port,
-		            "baudrate": parseInt(connectionData.baudrate),
+		            "baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
 		            "autoconnect": true,
 		            "save": true
 		        })
 	        })
 			.fail(function(){
-				noty({text: "There was an error saving connection settings.", timeout: 3000});
+				noty({text: "There was an error testing connection settings.", timeout: 3000});
 			});
 		}
 	},
@@ -195,10 +199,12 @@ var PrinterProfileView = SettingsPage.extend({
 
 		this.settings.save(attrs, {
 			patch: true,
-			success: function() {
+			success: _.bind(function() {
 				noty({text: "Profile changes saved", timeout: 3000, type:"success"});
 				loadingBtn.removeClass('loading');
-			},
+				//Make sure we reload next time we load this tab
+				this.parent.subviews['printer-connection'].settings = null;
+			}, this),
 			error: function() {
 				noty({text: "Failed to save printer profile change", timeout: 3000});
 				loadingBtn.removeClass('loading');

@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 # singleton
@@ -29,6 +29,7 @@ from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 from astroprint.software import softwareManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.printer.manager import printerManager
 
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
@@ -37,11 +38,7 @@ LINE_CHECK_STRING = 'box'
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
-		#it needs to be imported here because on the main body 'printer' is None
-		from octoprint.server import printer
-
 		self._router = router
-		self._printer = printer
 		self._printerListener = None
 		self._lastReceived = 0
 		self._subscribers = 0
@@ -117,14 +114,15 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def received_message(self, m):
 		self._lastReceived = time()
 		msg = json.loads(str(m))
+		printer = printerManager()
 
 		if msg['type'] == 'auth':
 			self._router.processAuthenticate(msg['data'] if 'data' in msg else None)
 
 		elif msg['type'] == 'set_temp':
-			if self._printer.isOperational():
+			if printer.isOperational():
 				payload = msg['payload']
-				self._printer.setTemperature(payload['target'] or 0.0, payload['value'] or 0.0)
+				printer.setTemperature(payload['target'] or 0.0, payload['value'] or 0.0)
 
 		elif msg['type'] == 'update_subscribers':
 			self._subscribers += int(msg['data'])
@@ -143,15 +141,15 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 				if request == 'initial_state':
 					response = {
-						'printing': self._printer.isPrinting(),
-						'operational': self._printer.isOperational(),
-						'paused': self._printer.isPaused(),
-						'camera': self._printer.isCameraConnected(),
+						'printing': printer.isPrinting(),
+						'operational': printer.isOperational(),
+						'paused': printer.isPaused(),
+						'camera': printer.isCameraConnected(),
 						'printCapture': self._cameraManager.timelapseInfo,
 						'profile': self._profileManager.data
 					}
 				elif request == 'job_info':
-					response = self._printer._stateMonitor._jobData
+					response = printer._stateMonitor._jobData
 
 				elif request == 'printerCommand':
 					command = data['command']
@@ -159,10 +157,10 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 					response = {'success': True}
 					if command == 'pause' or command == 'resume':
-						self._printer.togglePausePrint();
+						printer.togglePausePrint();
 
 					elif command == 'cancel':
-						self._printer.cancelPrint();
+						printer.cancelPrint();
 
 					elif command == 'photo':
 						response['image_data'] = base64.b64encode(self._cameraManager.get_pic())
@@ -224,11 +222,11 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def registerEvents(self):
 		if not self._printerListener:
 			self._printerListener = PrinterListener(self)
-			self._printer.registerCallback(self._printerListener)
+			printerManager().registerCallback(self._printerListener)
 
 	def unregisterEvents(self):
 		if self._printerListener:
-			self._printer.unregisterCallback(self._printerListener)
+			printerManager().unregisterCallback(self._printerListener)
 			self._printerListener.cleanup()
 			self._printerListener = None
 
@@ -253,6 +251,8 @@ class AstroprintBoxRouter(object):
 		self.status = self.STATUS_DISCONNECTED
 		self.connected = False
 		self.authenticated = False
+
+		self._logger.info('This box has id %s' % self.boxId)
 
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)

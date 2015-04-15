@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -25,37 +25,47 @@ var ConnectionView = Backbone.View.extend({
             method: "GET",
             dataType: "json",
             success: function(response) {
-		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed') {
-		        	if (clicked && response.current.port == null) {
-        				app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
-        				noty({text: 'Enter Connection settings.', type:"information", timeout: 3000});
-		        		return;
-		        	}
-
+		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed' || response.current.state == 'Offline') {
 		        	if (response.current.state.substr(0,5) == 'Error') {
 		        		console.error("Printer connection had error: "+response.current.state);
 		        	}
 
-			        var data = {
-			            "command": "connect",
-			            "port": response.options.portPreference,
-			            "baudrate": response.options.baudratePreference,
-			            "autoconnect": true
-			        };
+		        	var port = response.options.portPreference;
 
-			        $.ajax({
-			            url: API_BASEURL + "connection",
-			            type: "POST",
-			            dataType: "json",
-			            contentType: "application/json; charset=UTF-8",
-			            data: JSON.stringify(data),
-			            error: function() {
-			            	self.setPrinterConnection('failed');
-			       		    if (clicked) {
-	            				noty({text: 'No Printer connected.', type:"alert", timeout: 3000});
-	            			}
-			            }
-			        });
+		        	if (response.options.ports && !_.has(response.options.ports, port)) {
+		        		port = _.keys(response.options.ports)[0]
+		        	}
+
+		        	if (port) {
+				        var data = {
+				            "command": "connect",
+				            "port": port,
+				            "baudrate": response.options.baudratePreference,
+				            "autoconnect": true
+				        };
+
+						self.setPrinterConnection('blink-animation');
+				        $.ajax({
+				            url: API_BASEURL + "connection",
+				            type: "POST",
+				            dataType: "json",
+				            contentType: "application/json; charset=UTF-8",
+				            data: JSON.stringify(data),
+				            error: function() {
+				            	self.setPrinterConnection('failed');
+				       		    if (clicked) {
+				       		    	app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
+	        						noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
+		            			}
+				            }
+				        });
+				    } else {
+		       		    if (clicked) {
+		       		    	app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
+    						noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
+            			}
+				    }
+				    
 			    } else if (response.current.state != 'Connecting') {
 			    	if (response.current.state == 'Printing' || response.current.state == 'Paused') {
 		        		app.showPrinting();

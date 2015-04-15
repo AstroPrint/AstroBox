@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
@@ -7,7 +7,7 @@ import logging
 from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
-from octoprint.printer import getConnectionOptions
+from astroprint.printer.manager import printerManager
 
 from octoprint.server import restricted_access, admin_permission, networkManager, softwareManager
 from octoprint.server.api import api
@@ -16,9 +16,12 @@ from octoprint.server.api import api
 def getSettings():
 	s = settings()
 
-	connectionOptions = getConnectionOptions()
+	pm = printerManager()
+
+	connectionOptions = pm.getConnectionOptions()
 
 	return jsonify({
+		"driver": pm.driverName,
 		"serial": {
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
@@ -146,7 +149,6 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'timelapse']) or s.getBaseFolder('timelapse'))
 	emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
-	emptyFolder(s.get(['folder', 'watched']) or s.getBaseFolder('watched'))
 
 	#replace config.yaml with config.factory
 	config_file = s._configfile

@@ -1,8 +1,6 @@
 # coding=utf-8
-from octoprint.filemanager.destinations import FileDestinations
-
 __author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask.ext.principal import identity_changed, Identity
@@ -22,18 +20,20 @@ import os
 import threading
 import logging
 from functools import wraps
-from watchdog.events import PatternMatchingEventHandler
 
-from octoprint.settings import settings
 #import octoprint.timelapse
 import octoprint.server
+import octoprint.util as util
+
+from octoprint.settings import settings
 from octoprint.events import Events
-from octoprint import gcodefiles
 
 from astroprint.boxrouter import boxrouterManager
+from astroprint.printfiles import FileDestinations
+from astroprint.printfiles.map import SUPPORTED_EXTENSIONS
+from astroprint.printer.manager import printerManager
 from astroprint.users import ApiUser
 
-import octoprint.util as util
 
 def restricted_access(func, apiEnabled=True):
 	"""
@@ -133,7 +133,7 @@ class PrinterStateConnection(SockJSConnection):
 			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE, 
 			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS]
 
-	def __init__(self, printer, gcodeManager, userManager, eventManager, session):
+	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
 
 		self._logger = logging.getLogger(__name__)
@@ -145,8 +145,6 @@ class PrinterStateConnection(SockJSConnection):
 		self._messageBacklog = []
 		self._messageBacklogMutex = threading.Lock()
 
-		self._printer = printer
-		self._gcodeManager = gcodeManager
 		self._userManager = userManager
 		self._eventManager = eventManager
 
@@ -164,8 +162,10 @@ class PrinterStateConnection(SockJSConnection):
 		self._emit("connected", {"apikey": octoprint.server.UI_API_KEY, "version": octoprint.server.VERSION})
 		self.sendEvent(Events.ASTROPRINT_STATUS, boxrouterManager().status)
 
-		self._printer.registerCallback(self)
-		self._gcodeManager.registerCallback(self)
+		printer = printerManager()
+
+		printer.registerCallback(self)
+		printer.fileManager.registerCallback(self)
 		#octoprint.timelapse.registerCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
@@ -176,8 +176,11 @@ class PrinterStateConnection(SockJSConnection):
 
 	def on_close(self):
 		self._logger.info("Client connection closed")
-		self._printer.unregisterCallback(self)
-		self._gcodeManager.unregisterCallback(self)
+
+		printer = printerManager()
+
+		printer.unregisterCallback(self)
+		printer.fileManager.unregisterCallback(self)
 		#octoprint.timelapse.unregisterCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_CLOSED)
@@ -210,7 +213,8 @@ class PrinterStateConnection(SockJSConnection):
 		self._emit("current", data)
 
 	def sendHistoryData(self, data):
-		self._emit("history", data)
+		pass
+		#self._emit("history", data)
 
 	def sendEvent(self, type, payload=None):
 		self._emit("event", {"type": type, "payload": payload})
@@ -496,78 +500,3 @@ def redirectToTornado(request, target):
 		fragment = requestUrl[requestUrl.rfind("?"):]
 		redirectUrl += fragment
 	return redirect(redirectUrl)
-
-
-class UploadCleanupWatchdogHandler(PatternMatchingEventHandler):
-	"""
-	Takes care of automatically deleting metadata entries for files that get deleted from the uploads folder
-	"""
-
-	patterns = map(lambda x: "*.%s" % x, gcodefiles.GCODE_EXTENSIONS)
-
-	def __init__(self, gcode_manager):
-		PatternMatchingEventHandler.__init__(self)
-		self._gcode_manager = gcode_manager
-
-	def on_deleted(self, event):
-		filename = self._gcode_manager._getBasicFilename(event.src_path)
-		if not filename:
-			return
-
-		self._gcode_manager.removeFileFromMetadata(filename)
-
-
-class GcodeWatchdogHandler(PatternMatchingEventHandler):
-	"""
-	Takes care of automatically "uploading" files that get added to the watched folder.
-	"""
-
-	patterns = map(lambda x: "*.%s" % x, gcodefiles.SUPPORTED_EXTENSIONS)
-
-	def __init__(self, gcodeManager, printer):
-		PatternMatchingEventHandler.__init__(self)
-
-		self._logger = logging.getLogger(__name__)
-
-		self._gcodeManager = gcodeManager
-		self._printer = printer
-
-	def _upload(self, path):
-		class WatchdogFileWrapper(object):
-
-			def __init__(self, path):
-				self._path = path
-				self.filename = os.path.basename(self._path)
-
-			def save(self, target):
-				util.safeRename(self._path, target)
-
-		fileWrapper = WatchdogFileWrapper(path)
-
-		# determine current job
-		currentFilename = None
-		currentOrigin = None
-		currentJob = self._printer.getCurrentJob()
-		if currentJob is not None and "file" in currentJob.keys():
-			currentJobFile = currentJob["file"]
-			if "name" in currentJobFile.keys() and "origin" in currentJobFile.keys():
-				currentFilename = currentJobFile["name"]
-				currentOrigin = currentJobFile["origin"]
-
-		# determine future filename of file to be uploaded, abort if it can't be uploaded
-		futureFilename = self._gcodeManager.getFutureFilename(fileWrapper)
-		if futureFilename is None or (not settings().getBoolean(["cura", "enabled"]) and not gcodefiles.isGcodeFileName(futureFilename)):
-			self._logger.warn("Could not add %s: Invalid file" % fileWrapper.filename)
-			return
-
-		# prohibit overwriting currently selected file while it's being printed
-		if futureFilename == currentFilename and not currentOrigin == FileDestinations.SDCARD and self._printer.isPrinting() or self._printer.isPaused():
-			self._logger.warn("Could not add %s: Trying to overwrite file that is currently being printed" % fileWrapper.filename)
-			return
-
-		self._gcodeManager.addFile(fileWrapper, FileDestinations.LOCAL)
-
-	def on_created(self, event):
-		self._upload(event.src_path)
-
-

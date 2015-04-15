@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@3dagogo.com)
+ *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -54,7 +54,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
             			print_file.set('local_filename', false);
             		}
 
-	            	noty({text: filename+" deleted form your "+PRODUCT_NAME, type:"success", timeout: 3000});
+	            	noty({text: filename+" deleted from your "+PRODUCT_NAME, type:"success", timeout: 3000});
 	            	this.print_file_view.render();
 	            	this.$el.foundation('reveal', 'close');
 	            }, this),
@@ -82,19 +82,35 @@ var PrintFileInfoDialog = Backbone.View.extend({
 var UploadView = Backbone.View.extend({
 	designUpload: null,
 	printUpload: null,
+	printFileTemplate: _.template( $("#printfile-upload-template").html() ),
+	progressBar: null,
+	buttonContainer: null,
 	initialize: function()
 	{
-		var progressBar = this.$el.find('.upload-progress');
-		var buttonContainer = this.$el.find('.upload-buttons');
+		this.progressBar = this.$('.upload-progress');
+		this.buttonContainer = this.$('.upload-buttons');
 
 		this.designUpload = new FileUploadDesign({
-			progressBar: progressBar,
-			buttonContainer: buttonContainer
+			progressBar: this.progressBar,
+			buttonContainer: this.buttonContainer
 		});
 
+		this.render();
+	},
+	render: function()
+	{
+		//Only the right button needs to be dynamic
+		var buttonContainer = this.$('.file-upload-button.print');
+		var profile = app.printerProfile.toJSON();
+
+		buttonContainer.empty();
+		buttonContainer.html(this.printFileTemplate({profile: profile}));
+
 		this.printUpload = new FileUploadPrint({
-			progressBar: progressBar,
-			buttonContainer: buttonContainer
+			el: '.file-upload-button.print .file-upload',
+			progressBar: this.progressBar,
+			buttonContainer: this.buttonContainer,
+			printerProfile: profile
 		});
 	}
 });
@@ -210,8 +226,16 @@ var FileUploadDesign = FileUploadBase.extend({
 });
 
 var FileUploadPrint = FileUploadBase.extend({
-	el: '.file-upload-button.print .file-upload',
-	acceptFileTypes: /(\.|\/)(gcode)$/i,
+	initialize: function(options) 
+	{
+		if (options.printerProfile.driver == 's3g') {
+			this.acceptFileTypes = /(\.|\/)(x3g)$/i;
+		} else {
+			this.acceptFileTypes = /(\.|\/)(gcode)$/i;
+		}
+
+		FileUploadBase.prototype.initialize.call(this, options);
+	},
 	onUploadDone: function(e, data) 
 	{
 		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
@@ -247,7 +271,7 @@ var PrintFileView = Backbone.View.extend({
 		this.$el.html(this.template({
         	p: print_file,
         	time_format: app.utils.timeFormat,
-        	size_format: app.utils.sizeFormat			
+        	size_format: app.utils.sizeFormat
 		}));
 		this.delegateEvents({
 			'click .left-section, .middle-section': 'infoClicked',
@@ -540,6 +564,8 @@ var HomeView = Backbone.View.extend({
 			forceSync: options.forceSync,
 			syncCompleted: options.syncCompleted
 		});
+
+		this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
 	},
 	refreshPrintFiles: function() 
 	{
@@ -559,5 +585,10 @@ var HomeView = Backbone.View.extend({
 	onShow: function()
 	{
 		this.printFilesListView.refresh(false);
+	},
+	onDriverChanged: function()
+	{
+		this.uploadView.render();
+		this.printFilesListView.refresh(true);
 	}
 });

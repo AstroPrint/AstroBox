@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 # singleton
@@ -24,6 +24,7 @@ class PrinterProfileManager(object):
 		self._logger = logging.getLogger(__name__)
 
 		self.data = {
+			'driver': "marlin",
 			'extruder_count': 1,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
@@ -55,7 +56,14 @@ class PrinterProfileManager(object):
 	def set(self, changes):
 		for k in changes:
 			if k in self.data:
-				self.data[k] = self._clean(k, changes[k])
+				if self.data[k] != changes[k]:
+					if k == 'driver':
+						#change printer object
+						from astroprint.printer.manager import printerManager 
+
+						printerManager(changes['driver']) 
+
+					self.data[k] = self._clean(k, changes[k])
 			else:
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 

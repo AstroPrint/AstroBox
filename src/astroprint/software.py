@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 # singleton
@@ -367,13 +367,13 @@ class SoftwareManager(object):
 	def restartServer(self):
 		if platform == "linux" or platform == "linux2":
 			from astroprint.boxrouter import boxrouterManager
-			from octoprint.server import printer
+			from astroprint.printer.manager import printerManager
 
 			#let's be nice about shutthing things down
 			br = boxrouterManager()
 
 			br.boxrouter_disconnect()
-			printer.disconnect()
+			printerManager().disconnect()
 
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
