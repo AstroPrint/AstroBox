@@ -16,6 +16,7 @@ import binascii
 import uuid
 import os
 import json
+import logging
 
 from urllib import quote_plus
 from os.path import splitext, split
@@ -68,6 +69,7 @@ class AstroPrintCloud(object):
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
 		self._print_file_store = None
 		self._sm = softwareManager()
+		self._logger = logging.getLogger(__name__)
 
 	def cloud_enabled(self):
 		s = settings()
