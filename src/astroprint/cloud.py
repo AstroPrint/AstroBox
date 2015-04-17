@@ -431,9 +431,9 @@ class AstroPrintCloud(object):
 		if self.cloud_enabled():
 			try:
 				if id:
-					r = requests.post( "%s/printjobs/%s" % (self.apiHost, id), data={
+					r = requests.post( "%s/printjobs/%s" % (self.apiHost, id), data=json.dumps({
 						'status': status
-					}, auth=self.hmacAuth )
+					}), auth=self.hmacAuth, headers={'Content-Type': 'application/json'} )
 
 				else:
 					#create a print job
@@ -449,7 +449,7 @@ class AstroPrintCloud(object):
 						self._logger.error('print_file_id and name are both missing in print_job')
 						return False
 
-					r = requests.post( "%s/printjobs" % self.apiHost, data= data, auth=self.hmacAuth )
+					r = requests.post( "%s/printjobs" % self.apiHost, data= json.dumps(data), auth=self.hmacAuth, headers={'Content-Type': 'application/json'} )
 
 				if r.status_code == 200:
 					return r.json()
