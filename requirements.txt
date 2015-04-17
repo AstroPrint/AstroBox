@@ -1,6 +1,6 @@
 flask>=0.10.1
 werkzeug>=0.9.6
-tornado>=4.0.2
+tornado>=4.1
 sockjs-tornado>=1.0.1
 PyYAML>=3.11
 Flask-Login>=0.2.11
