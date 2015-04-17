@@ -47,17 +47,23 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._profileManager = printerProfileManager()
 		self._logger = logging.getLogger(__name__)
 		self._lineCheck = None
+		self._error = False
+		self._condition = threading.Condition()
 		super(AstroprintBoxRouterClient, self).__init__(hostname)
 
 	def send(self, data):
-		try:
-			WebSocketClient.send(self, data)
+		with self._condition:
+			if not self.terminated:
+				try:
+					super(AstroprintBoxRouterClient, self).send(data)
 
-		except socket.error as e:
-			self._logger.error('Error raised during send: %s' % e)
+				except socket.error as e:
+					self._logger.error('Error raised during send: %s' % e)
 
-			#Something happened to the link. Let's try to reset it
-			self.close()
+					self._error = True
+
+					#Something happened to the link. Let's try to reset it
+					self.close()
 
 	def ponged(self, pong):
 		if str(pong) == LINE_CHECK_STRING:
@@ -103,11 +109,12 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self.outstandingPings = 0
 		self._lineCheckThread = threading.Thread(target=self.lineCheck)
 		self._lineCheckThread.daemon = True
+		self._error = False
 		self._lineCheckThread.start()
 
 	def closed(self, code, reason=None):
 		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
-		if self.server_terminated and self._router.connected:
+		if self._error or (self.server_terminated and self._router.connected):
 			self._router.close()
 			self._router._doRetry()
 

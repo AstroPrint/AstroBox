@@ -20,7 +20,6 @@ class StreamWriter(AbstractWriter):
         @param string file File object to interact with
         """
         super(StreamWriter, self).__init__(file, condition)
-        #self._log = logging.getLogger(self.__class__.__name__)
         self._log = logging.getLogger('SERIAL')
         self._log.debug('{"event":"begin_writing_to_stream", "stream":%s}',
                        str(self.file))
@@ -74,7 +73,6 @@ class StreamWriter(AbstractWriter):
                     self._log.error('{"event":"external_stop"}')
                     raise makerbot_driver.ExternalStopError
                 decoder = makerbot_driver.Encoder.PacketStreamDecoder()
-                #with self._condition:
                 self.file.write(packet)
                 self.file.flush()
 
