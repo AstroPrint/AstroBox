@@ -431,7 +431,7 @@ class AstroPrintCloud(object):
 		if self.cloud_enabled():
 			try:
 				if id:
-					r = requests.post( "%s/printjobs/%s" % (self.apiHost, id), data=json.dumps({
+					r = requests.put("%s/printjobs/%s" % (self.apiHost, id), data=json.dumps({
 						'status': status
 					}), auth=self.hmacAuth, headers={'Content-Type': 'application/json'} )
 
@@ -455,7 +455,7 @@ class AstroPrintCloud(object):
 					return r.json()
 
 				else:
-					self._logger.error("print_job request failed with statis: %d" % r.status_code)
+					self._logger.error("print_job request failed with status: %d" % r.status_code)
 
 			except Exception as e:
 				self._logger.error("Failed to send print_job request: %s" % e)
