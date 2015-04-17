@@ -425,6 +425,41 @@ class AstroPrintCloud(object):
 		else: 
 			return None
 
+	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started' ):
+		if self.cloud_enabled():
+			try:
+				if id:
+					r = requests.post( "%s/printjobs/%s" % (self.apiHost, id), data={
+						'status': status
+					}, auth=self.hmacAuth )
+
+				else:
+					#create a print job
+					data = {
+						'box_id': boxrouterManager().boxId
+					}
+
+					if print_file_id:
+						data['print_file_id'] = print_file_id
+					elif print_file_name:
+						data['name'] = print_file_name
+					else:
+						self._logger.error('print_file_id and name are both missing in print_job')
+						return False
+
+					r = requests.post( "%s/printjobs" % self.apiHost, data= data, auth=self.hmacAuth )
+
+				if r.status_code == 200:
+					return r.json()
+
+				else:
+					self._logger.error("print_job request failed with statis: %d" % r.status_code)
+
+			except Exception as e:
+				self._logger.error("Failed to send print_job request: %s" % e)
+
+		return False	
+
 	def _sync_print_file_store(self):
 		if self.cloud_enabled():
 			try:
