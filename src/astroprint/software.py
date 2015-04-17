@@ -355,12 +355,14 @@ class SoftwareManager(object):
 					return True
 
 				else:
-					self._logger.error('Error updating software release info: %d' % r.status_code)
+					self._logger.error('Invalid data returned by server:')
+					self._logger.error(data)
 
+			else:
+				self._logger.error('Error updating software release info. Server returned: %d' % r.status_code)
 
 		except Exception as e:
 			self._logger.error('Error updating software release info: %s' % e)
-			pass
 
 		return False
 
