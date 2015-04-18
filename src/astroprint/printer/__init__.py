@@ -207,15 +207,15 @@ class Printer(object):
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
-		cloudId = self._fileManager.getFileCloudId(filename)
-		renderedIimage = None
-		if cloudId:
-			if self._selectedFile:
-				self._selectedFile['cloudId'] = None
+			cloudId = self._fileManager.getFileCloudId(filename)
+			renderedIimage = None
+			if cloudId:
+				if self._selectedFile:
+					self._selectedFile['cloudId'] = cloudId
 
-			printFile = astroprintCloud().getPrintFile(cloudId)
-			if printFile:
-				renderedIimage = printFile['images']['square']
+				printFile = astroprintCloud().getPrintFile(cloudId)
+				if printFile:
+					renderedIimage = printFile['images']['square']
 
 		self._stateMonitor.setJobData({
 			"file": {
