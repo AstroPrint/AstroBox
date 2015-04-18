@@ -291,7 +291,7 @@ class Printer(object):
 		if self._selectedFile['cloudId']:
 			result = astroprintCloud().print_job(print_file_id= self._selectedFile['cloudId'])
 		else:
-			result = astroprintCloud().print_job(print_file_name= self._selectedFile['filename'])
+			result = astroprintCloud().print_job(print_file_name= os.path.basename(self._selectedFile['filename']))
 
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']
