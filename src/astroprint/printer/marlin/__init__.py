@@ -20,8 +20,6 @@ from astroprint.printer import Printer
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printfiles import FileDestinations
 
-from usbid.device import device_list
-
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
 
@@ -94,6 +92,8 @@ class PrinterMarlin(Printer):
 	def serialList(self):
 		ports = {}
 		if platform.startswith('linux'):
+			from usbid.device import device_list
+
 			for p in device_list():
 				if p.tty:
 					ports['/dev/%s' % p.tty] = p.nameProduct
