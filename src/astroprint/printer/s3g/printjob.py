@@ -12,7 +12,7 @@ from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString
 
 from makerbot_driver import GcodeAssembler
-from makerbot_driver.errors import BuildCancelledError, ProtocolError, ExternalStopError, PacketTooBigError, BufferOverflowError
+from makerbot_driver.errors import BuildCancelledError, ProtocolError, ExternalStopError, PacketTooBigError, BufferOverflowError, PacketLengthError
 from makerbot_driver.Gcode.errors import UnrecognizedCommandError
 
 class PrintJobS3G(threading.Thread):
@@ -249,7 +249,7 @@ class PrintJobS3G(threading.Thread):
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
-		except Exception:
+		except Exception as e:
 			self._errorValue = getExceptionString()
 			self._printer._changeState(self._printer.STATE_ERROR)
 			eventManager().fire(Events.ERROR, {"error": self._errorValue })
@@ -265,12 +265,23 @@ class PrintJobS3G(threading.Thread):
 				time.sleep(.2)
 
 			except PacketTooBigError:
-				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % line)
+				self._logger.warn('Printer responded with PacketTooBigError to (%s)' % ' '.join('0x{:02x}'.format(x) for x in data))
 				return False
 
 			except UnrecognizedCommandError:
-				self._logger.warn('The following GCode command was ignored: %s' % line)
+				self._logger.warn('The following command was ignored: %s' % ' '.join('0x{:02x}'.format(x) for x in data))
 				return False
+
+			except PacketLengthError as e:
+				import makerbot_driver 
+
+				if data[0] == makerbot_driver.constants.host_action_command_dict['BUILD_START_NOTIFICATION']:
+					#we put out a warning here and ignore. There's a bug in the version of GPX that ships with Simplify 3D that allows
+					#this command to go over the 32 bytes of max package
+					self._logger.warn('Build name too long. Skipping Build Start Notification -  "%s"' % data[3:])
+					return False
+
+				raise e
 
 	# ~~~ Slightly modified code for parsing from https://github.com/jetty840/ReplicatorG/blob/master/scripts/s3g-decompiler.py
 
