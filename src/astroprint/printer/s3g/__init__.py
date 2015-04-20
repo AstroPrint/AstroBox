@@ -528,8 +528,6 @@ class PrinterS3g(Printer):
 		if self._printJob and self._printJob.isAlive():
 			raise Exception("A Print Job is still running")
 
-		#self._currentLayer  = 0;
-
 		self._changeState(self.STATE_PRINTING)
 		eventManager().fire(Events.PRINT_STARTED, {
 			"file": self._currentFile['filename'],

@@ -361,7 +361,7 @@ class PrintJobS3G(threading.Thread):
 			self._currentZ = unpacked[2]
 			self._printer.mcZChange(float(unpacked[2])/float(self._printer._profile.values['axes']['Z']['steps_per_mm']))
 		elif self._currentZ != self._lastLayerHeight \
-			and (unpacked[3] != 0 or unpacked[4] != 0): #add check for extrusion to avoid counting missed layers
+			and (unpacked[3] < 0 or unpacked[4] < 0): #add check for extrusion to avoid counting visited layers
 			
 			if self._currentZ > self._lastLayerHeight:
 				self._currentLayer += 1
