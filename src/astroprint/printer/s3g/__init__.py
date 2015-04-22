@@ -177,13 +177,15 @@ class PrinterS3g(Printer):
 						self._profile.values['axes']['Y']['platform_length'] = axisLengths[1]
 						self._profile.values['axes']['Z']['platform_length'] = axisLengths[2]
 						self._profile.values['axes']['A']['platform_length'] = axisLengths[3]
-						self._profile.values['axes']['B']['platform_length'] = axisLengths[4]
 
 						self._profile.values['axes']['X']['steps_per_mm'] = stepsPerMM[0]/1000000.0
 						self._profile.values['axes']['Y']['steps_per_mm'] = stepsPerMM[1]/1000000.0
 						self._profile.values['axes']['Z']['steps_per_mm'] = stepsPerMM[2]/1000000.0
 						self._profile.values['axes']['A']['steps_per_mm'] = -stepsPerMM[3]/1000000.0
-						self._profile.values['axes']['B']['steps_per_mm'] = -stepsPerMM[4]/1000000.0
+
+						if "B" in self._profile.values['axes']:
+							self._profile.values['axes']['B']['steps_per_mm'] = -stepsPerMM[4]/1000000.0
+							self._profile.values['axes']['B']['platform_length'] = axisLengths[4]
 
 						self._firmwareVersion = version_info['Version']
 						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
