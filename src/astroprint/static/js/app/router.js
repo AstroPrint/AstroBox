@@ -6,12 +6,14 @@
 
 var AppRouter = Backbone.Router.extend({
 	homeView: null,
+	filesView: null,
 	controlView: null,
 	settingsView: null,
 	printingView: null,
 	routes: {
 		"": "home",
-		"file-info/:fileId": "fileInfo",
+		"files": "files",
+		"files/file-info/:fileId": "fileInfo",
 		"control": "control",
 		"printing": "printing",
 		"settings": "settings",
@@ -45,20 +47,28 @@ var AppRouter = Backbone.Router.extend({
 
 		this.selectView(this.homeView);
 	},
+	files: function() 
+	{
+		if (!this.filesView) {
+			this.filesView = new FilesView({forceSync: false});
+		}
+
+		this.selectView(this.filesView);
+	},
 	fileInfo: function(fileId)
 	{
-		if (!this.homeView) {
-			this.homeView = new HomeView({
+		if (!this.filesView) {
+			this.filesView = new FilesView({
 				forceSync: true,
 				syncCompleted: _.bind(function(success) {
 					if (success) {
-						this.homeView.fileInfo(fileId);
+						this.filesView.fileInfo(fileId);
 					}
 				}, this)
 			});
 		}
 
-		this.selectView(this.homeView);
+		this.selectView(this.filesView);
 		this.navigate('', {trigger: false, replace:true});
 	},
 	control: function()

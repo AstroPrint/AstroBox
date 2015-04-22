@@ -139,6 +139,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "b1887b423d2fd15c345e090320c91ca0",
+      "css": "th",
+      "code": 59397,
+      "src": "fontawesome"
+    },
+    {
       "uid": "43ab845088317bd348dee1d975700c48",
       "css": "ok-circled",
       "code": 59421,
@@ -148,12 +154,6 @@
       "uid": "0f4cae16f34ae243a6144c18a003f2d8",
       "css": "cancel-circled",
       "code": 59404,
-      "src": "fontawesome"
-    },
-    {
-      "uid": "d7271d490b71df4311e32cdacae8b331",
-      "css": "home",
-      "code": 59405,
       "src": "fontawesome"
     },
     {
@@ -253,34 +253,16 @@
       "src": "entypo"
     },
     {
-      "uid": "3a230e539a4f3b904debd04c6c155034",
-      "css": "help",
-      "code": 59426,
-      "src": "entypo"
-    },
-    {
       "uid": "c77fd2fd065b5fe16d6f2b41e190b266",
       "css": "pencil",
       "code": 59430,
       "src": "entypo"
     },
     {
-      "uid": "e0d15ef5945000f5f264acc35494002f",
-      "css": "basket",
-      "code": 59429,
-      "src": "typicons"
-    },
-    {
       "uid": "5c49851100aa021825b346d16d7f3abf",
       "css": "temperatire",
       "code": 59410,
       "src": "typicons"
-    },
-    {
-      "uid": "fc94b92194752796654c96c7b7dccebb",
-      "css": "cog",
-      "code": 59397,
-      "src": "iconic"
     },
     {
       "uid": "e6t4yvmv401e9gpo2anslq4uqy2iz692",
