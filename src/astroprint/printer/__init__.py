@@ -45,6 +45,7 @@ class Printer(object):
 	_printTimeLeft = None
 	_currentLayer = None
 	_fileManagerClass = None
+	_currentPrintJobId = None
 
 	def __init__(self):
 		self._profileManager = printerProfileManager()
@@ -179,7 +180,8 @@ class Printer(object):
 			self._selectedFile = {
 				"filename": filename,
 				"filesize": filesize,
-				"sd": sd
+				"sd": sd,
+				"cloudId": None
 			}
 		else:
 			self._selectedFile = None
@@ -205,12 +207,15 @@ class Printer(object):
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
-		cloudId = self._fileManager.getFileCloudId(filename)
-		renderedIimage = None
-		if cloudId:
-			printFile = astroprintCloud().getPrintFile(cloudId)
-			if printFile:
-				renderedIimage = printFile['images']['square']
+			cloudId = self._fileManager.getFileCloudId(filename)
+			renderedIimage = None
+			if cloudId:
+				if self._selectedFile:
+					self._selectedFile['cloudId'] = cloudId
+
+				printFile = astroprintCloud().getPrintFile(cloudId)
+				if printFile:
+					renderedIimage = printFile['images']['square']
 
 		self._stateMonitor.setJobData({
 			"file": {
@@ -282,6 +287,15 @@ class Printer(object):
 		self._setCurrentZ(None)
 		self._cameraManager.open_camera()
 
+		#tell astroprint that we started a print
+		if self._selectedFile['cloudId']:
+			result = astroprintCloud().print_job(print_file_id= self._selectedFile['cloudId'])
+		else:
+			result = astroprintCloud().print_job(print_file_name= os.path.basename(self._selectedFile['filename']))
+
+		if result and "id" in result:
+			self._currentPrintJobId = result['id']
+
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -292,6 +306,10 @@ class Printer(object):
 			return False
 
 		self._cameraManager.stop_timelapse()
+
+		if self._currentPrintJobId:
+			astroprintCloud().print_job(self._currentPrintJobId, status='failed')
+			self._currentPrintJobId = None
 
 		return True
 
@@ -313,6 +331,19 @@ class Printer(object):
 			self._cameraManager.pause_timelapse()
 
 	#~~~ Printer callbacks ~~~
+
+	def mcPrintjobDone(self):
+		#stop timelapse if there was one
+		self._cameraManager.stop_timelapse()
+		
+		#Not sure if this is the best way to get the layer count
+		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
+		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
+
+		if self._currentPrintJobId:
+			astroprintCloud().print_job(self._currentPrintJobId, status='success')
+			self._currentPrintJobId = None
+
 	def mcZChange(self, newZ):
 		"""
 		 Callback method for the comm object, called upon change of the z-layer.
@@ -354,14 +385,6 @@ class Printer(object):
 			estimatedTimeLeft = self._estimatedPrintTime / 60
 
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
-
-	def mcPrintjobDone(self):
-		#stop timelapse if there was one
-		self._cameraManager.stop_timelapse()
-		
-		#Not sure if this is the best way to get the layer count
-		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
