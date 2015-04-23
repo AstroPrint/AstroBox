@@ -151,10 +151,6 @@
 		<% } else { %>
 			· <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 		<% } %>
-		<div class="progress round tiny" style="display:none">
-			<div class="meter" style="width: 0%"></div>
-			<label>Downloading (<span></span> %)...</label>
-		</div>
 	</div>
 	<div class="small-2 large-1 columns right-section">
 		<div class="print-file-options">
@@ -169,6 +165,9 @@
 				<a href="#" class="download">
 					<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
 				</a>
+				<div class="download-progress" style="display:none">
+					<span class="bold">0<i>%</i></span>
+				</div>
 			<% } %>
 		</div>
 	</div>

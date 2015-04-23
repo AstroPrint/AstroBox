@@ -93,21 +93,25 @@
 				}
 			}
 
-			.progress {
-				position: relative;;
+			.print-file-options {
+				position: relative;
+				height: 67px;
 
-				margin-top: 10px;
-
-				label {
+				.download-progress {
 					position: absolute;
-					top: 2px;
-					left: 15px;
-					color: $secondary-color;
-					font-size: rem-calc(13);
-				}
+					top: 5px;
+					bottom: 0;
+					left: 0;
+					right: 5px;
 
-				.meter {
-					transition: width 1s;
+					span {
+						position: absolute;
+						top: 20px;
+						left: 0;
+						right: 0;
+						text-align: center;
+						font-size: rem-calc(12)
+					}
 				}
 			}
 

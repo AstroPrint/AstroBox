@@ -163,6 +163,7 @@ var PrintFileView = Backbone.View.extend({
 	print_file: null,
 	list: null,
 	printWhenDownloaded: false,
+	downloadProgress: null,
 	initialize: function(options)
 	{
 		this.list = options.list;
@@ -179,11 +180,13 @@ var PrintFileView = Backbone.View.extend({
 		}
 
 		this.$el.empty();
+		this.downloadProgress = null;
 		this.$el.html(this.template({
         	p: print_file,
         	time_format: app.utils.timeFormat,
         	size_format: app.utils.sizeFormat
 		}));
+
 		this.delegateEvents({
 			'click .left-section, .middle-section': 'infoClicked',
 			'click a.print': 'printClicked',
@@ -200,11 +203,22 @@ var PrintFileView = Backbone.View.extend({
 	{
 		if (evt) evt.preventDefault();
 
-		var options = this.$('.print-file-options');
-		var progress = this.$('.progress');
+		var options = this.$('.print-file-options a.download');
+		var progress = this.$('.print-file-options .download-progress');
 
 		options.hide();
 		progress.show();
+
+		if (this.downloadProgress === null) {
+			var progressContainer = progress.closest('.print-file-options');
+
+			this.downloadProgress = progress.circleProgress({
+		        value: 0,
+		        animation: false,
+		        size: progressContainer.innerWidth() - 25,
+		        fill: { color: 'black' }
+	    	});
+		}
 
         $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
 	        .fail(function(){
@@ -405,12 +419,15 @@ var PrintFilesListView = Backbone.View.extend({
 		var print_file_view = _.find(this.print_file_views, function(v) {
 			return v.print_file.get('id') == data.id;
 		});
-		var progress = print_file_view.$('.progress .meter');
-		var label = print_file_view.$('.progress label span');
+
+		var label = print_file_view.$('.download-progress span');
 
 		if (data.type == "progress") {
-			progress.css('width', data.progress+'%');
-			label.text(Math.floor(data.progress));
+			if (print_file_view.downloadProgress) {
+				print_file_view.downloadProgress.circleProgress({value: data.progress / 100.0});
+			}
+
+			label.html(Math.floor(data.progress) + '<i>%</i>');
 		} else if (data.type == "success") {
 			var print_file = print_file_view.print_file;
 
