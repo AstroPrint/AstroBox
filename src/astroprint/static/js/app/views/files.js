@@ -109,7 +109,7 @@ var FileUploadFiles = FileUploadCombined.extend({
 	},
 	failed: function(error)
 	{
-		noty({text: "There was an error uploading your file: "+ error.errorThrown, timeout: 3000});
+		noty({text: error, timeout: 3000});
 	},
 	success: function(data)
 	{
@@ -149,11 +149,12 @@ var UploadView = Backbone.View.extend({
 		if (app.printerProfile.get('driver') == 's3g') {
 			buttonContainer.find('.extensions').text('stl, x3g');
 			buttonContainer.find('input').attr('accept', '.stl, .x3g');
-
 		} else {
 			buttonContainer.find('.extensions').text('stl, gcode');
 			buttonContainer.find('input').attr('accept', '.stl, .gcode, .gco');
 		}
+
+		this.uploadBtn.refreshAccept();
 	}
 });
 

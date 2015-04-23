@@ -124,9 +124,15 @@ var FileUploadCombined = FileUploadBase.extend({
 	{
 		FileUploadBase.prototype.initialize.call(this, options);
 
+		this.refreshAccept();
+	},
+	refreshAccept: function()
+	{
 		if (app.printerProfile.get('driver') == 's3g') {
+			this.$el.attr('accept', '.stl, .x3g');
 			this.acceptFileTypes = /(\.|\/)(stl|x3g)$/i;
 		} else {
+			this.$el.attr('accept', '.stl, .gcode, .gco');
 			this.acceptFileTypes = /(\.|\/)(stl|gcode|gco)$/i;
 		}
 	},

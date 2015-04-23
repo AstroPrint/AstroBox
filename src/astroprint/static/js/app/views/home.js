@@ -13,6 +13,10 @@ var FileUploadDashboard = FileUploadCombined.extend({
 
 		this.container = this.$el.closest('.upload-btn');		
 	},
+	render: function()
+	{
+		this.refreshAccept();
+	},
 	started: function(data)
 	{
 		if (data.files && data.files.length > 0) {
@@ -65,8 +69,15 @@ var FileUploadDashboard = FileUploadCombined.extend({
 var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadBtn: null,
+	events: {
+		'show': 'onShow'
+	},
 	initialize: function()
 	{
 		this.uploadBtn = new FileUploadDashboard({el: "#home-view #app-container .upload-btn .file-upload"});
+	},
+	onShow: function()
+	{
+		this.uploadBtn.refreshAccept();
 	}
 });
