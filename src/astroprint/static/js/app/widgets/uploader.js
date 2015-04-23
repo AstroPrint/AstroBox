@@ -115,8 +115,6 @@ var FileUploadBase = Backbone.View.extend({
 });
 
 var FileUploadCombined = FileUploadBase.extend({
-	container: null,
-	circleProgress: null,
 	fileTypes: {
 		design: ['stl'],
 		print: ['x3g', 'gcode', 'gco']
@@ -124,21 +122,17 @@ var FileUploadCombined = FileUploadBase.extend({
 	currentFileType: null,
 	initialize: function(options)
 	{
-		FileUploadBase.prototype.initialize.apply(this, options);
+		FileUploadBase.prototype.initialize.call(this, options);
 
 		if (app.printerProfile.get('driver') == 's3g') {
 			this.acceptFileTypes = /(\.|\/)(stl|x3g)$/i;
 		} else {
 			this.acceptFileTypes = /(\.|\/)(stl|gcode|gco)$/i;
 		}
-
-		this.container = this.$el.closest('.upload-btn');		
 	},
 	started: function(data)
 	{
 		if (data.files && data.files.length > 0) {
-			this.container.addClass('uploading');
-
 			var fileName = data.files[0].name;
 			var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) );
 
@@ -170,38 +164,7 @@ var FileUploadCombined = FileUploadBase.extend({
 					this.uploadUrl = '/api/files/local';
 				break;
 			}
-
-			if (this.circleProgress === null) {
-				var progressContainer = this.container.find('.app-image');
-
-				this.circleProgress = this.container.find(".progress").circleProgress({
-			        value: 0,
-			        animation: false,
-			        size: progressContainer.innerWidth() - 12,
-			        fill: { color: 'white' }
-		    	});
-
-				$(window).bind('resize', _.bind(function() {
-					if (this.container.hasClass('uploading')) {
-						this.circleProgress.circleProgress({size: progressContainer.innerWidth() - 12});
-					}
-				}, this));
-			}
 		}
-	},
-	progress: function(progress)
-	{
-		this.container.find('.progress span').html(Math.round(progress)+'<i>%</i>');
-		this.circleProgress.circleProgress({value: progress / 100.0});
-	},
-	failed: function(error)
-	{
-		this.container.addClass('failed').removeClass('uploading');
-
-		setTimeout(_.bind(function(){
-			this.container.removeClass('failed');
-		}, this), 3000);
-		console.error(error);
 	},
 	success: function(data)
 	{
@@ -221,7 +184,6 @@ var FileUploadCombined = FileUploadBase.extend({
 				app.router.navigate('files', {trigger: true, replace:true});
 				app.router.filesView.refreshPrintFiles(true);
 				app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
-				this.container.removeClass('uploading');
 	    	break;
 	    }
 	}

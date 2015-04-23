@@ -79,9 +79,54 @@ var PrintFileInfoDialog = Backbone.View.extend({
 	}
 });
 
+var FileUploadFiles = FileUploadCombined.extend({
+	progressBar: null,
+	buttonContainer: null,
+	initialize: function(options)
+	{
+		this.progressBar = options.progressBar;
+		this.buttonContainer = options.buttonContainer;
+
+		FileUploadCombined.prototype.initialize.call(this, options);
+	},
+	started: function(data)
+	{
+		if (data.files && data.files.length > 0) {
+			this.buttonContainer.hide();
+			this.progressBar.show();
+			FileUploadCombined.prototype.started.call(this, data);
+		}
+	},
+	progress: function(progress, message)
+	{
+		var intPercent = Math.round(progress);
+
+		this.progressBar.find('.meter').css('width', intPercent+'%');
+		if (!message) {
+			message = "Uploading ("+intPercent+"%)";
+		}
+		this.progressBar.find('.progress-message span').text(message);
+	},
+	failed: function(error)
+	{
+		noty({text: "There was an error uploading your file: "+ error.errorThrown, timeout: 3000});
+	},
+	success: function(data)
+	{
+		FileUploadCombined.prototype.success.call(this, data);
+	},
+	always: function()
+	{
+		if (this.currentFileType == 'print') {
+			this.progressBar.hide();
+	        this.buttonContainer.show();
+	        this.progress(0);
+	    }
+	}
+});
+
 var UploadView = Backbone.View.extend({
 	uploadBtn: null,
-	printFileTemplate: _.template( $("#printfile-upload-template").html() ),
 	progressBar: null,
 	buttonContainer: null,
 	initialize: function()
@@ -89,18 +134,26 @@ var UploadView = Backbone.View.extend({
 		this.progressBar = this.$('.upload-progress');
 		this.buttonContainer = this.$('.upload-buttons');
 
-		//this.uploadBtn = new FileUploadCombined({el: " .upload-btn .file-upload"});
+		this.uploadBtn = new FileUploadFiles({
+			el: "#files-view .file-upload-view .file-upload",
+			progressBar: this.$('.upload-progress'),
+			buttonContainer: this.$('.file-upload-button')
+		});
 
 		this.render();
 	},
 	render: function()
 	{
-		//Only the right button needs to be dynamic
-		var buttonContainer = this.$('.file-upload-button.print');
-		var profile = app.printerProfile.toJSON();
+		var buttonContainer = this.$('.file-upload-button');
 
-		buttonContainer.empty();
-		buttonContainer.html(this.printFileTemplate({profile: profile}));
+		if (app.printerProfile.get('driver') == 's3g') {
+			buttonContainer.find('.extensions').text('stl, x3g');
+			buttonContainer.find('input').attr('accept', '.stl, .x3g');
+
+		} else {
+			buttonContainer.find('.extensions').text('stl, gcode');
+			buttonContainer.find('input').attr('accept', '.stl, .gcode, .gco');
+		}
 	}
 });
 
