@@ -6,9 +6,9 @@
 
 var HomeView = Backbone.View.extend({
 	el: '#home-view',
-	uploadView: null,
-	initialize: function(options) 
+	uploadBtn: null,
+	initialize: function()
 	{
-		this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
+		this.uploadBtn = new FileUploadCombined({el: "#home-view #app-container .upload-btn .file-upload"});
 	}
 });

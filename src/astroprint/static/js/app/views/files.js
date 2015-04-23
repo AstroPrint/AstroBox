@@ -80,8 +80,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
 });
 
 var UploadView = Backbone.View.extend({
-	designUpload: null,
-	printUpload: null,
+	uploadBtn: null,
 	printFileTemplate: _.template( $("#printfile-upload-template").html() ),
 	progressBar: null,
 	buttonContainer: null,
@@ -90,10 +89,7 @@ var UploadView = Backbone.View.extend({
 		this.progressBar = this.$('.upload-progress');
 		this.buttonContainer = this.$('.upload-buttons');
 
-		this.designUpload = new FileUploadDesign({
-			progressBar: this.progressBar,
-			buttonContainer: this.buttonContainer
-		});
+		//this.uploadBtn = new FileUploadCombined({el: " .upload-btn .file-upload"});
 
 		this.render();
 	},
@@ -105,145 +101,6 @@ var UploadView = Backbone.View.extend({
 
 		buttonContainer.empty();
 		buttonContainer.html(this.printFileTemplate({profile: profile}));
-
-		this.printUpload = new FileUploadPrint({
-			el: '.file-upload-button.print .file-upload',
-			progressBar: this.progressBar,
-			buttonContainer: this.buttonContainer,
-			printerProfile: profile
-		});
-	}
-});
-
-var FileUploadBase = Backbone.View.extend({
-	events: {
-		'fileuploadadd': 'onFileAdded',
-		'fileuploadsubmit': 'onFileSubmit',
-		'fileuploadprogress': 'onUploadProgress',
-		'fileuploadfail': 'onUploadFail',
-		'fileuploadalways': 'onUploadAlways',
-		'fileuploaddone': 'onUploadDone'	
-	},
-	progressBar: null,
-	acceptFileTypes: null,
-	buttonContainer: null,
-	initialize: function(options) 
-	{
-		this.progressBar = options.progressBar;
-		this.buttonContainer = options.buttonContainer;
-		this.$el.fileupload();
-	},
-	onFileAdded: function(e, data) 
-	{
-        var uploadErrors = [];
-        var acceptFileTypes = this.acceptFileTypes;
-        if(data.originalFiles[0]['name'].length && !acceptFileTypes.test(data.originalFiles[0]['name'])) {
-            uploadErrors.push('Not a valid file');
-        }
-        if(uploadErrors.length > 0) {
-        	noty({text: "There was an error uploading: " + uploadErrors.join("<br/>"),  timeout: 3000});
-        	return false;
-        } else {
-        	return true;
-        }
-	},
-	onFileSubmit: function(e, data) 
-	{
-	    if (data.files.length) {
-	    	this.buttonContainer.hide();
-	        this.progressBar.show();
-	        this._updateProgress(5);
-
-	        if (this.beforeSubmit(e, data)) {
-	        	$(e.currentTarget).fileupload('send', data);
-	        }
-	    }
-	    return false;
-	},
-	onUploadProgress: function(e, data) 
-	{
-        this._updateProgress(Math.max((data.loaded / data.total * 100) * 0.90, 5));
-	},
-	onUploadFail: function(e, data) 
-	{
-		noty({text: "There was an error uploading your file: "+ data.errorThrown, timeout: 3000});
-	},
-	onUploadAlways: function(e, data) {},
-	onUploadDone: function(e, data) {},
-	beforeSubmit: function(e, data) { return true; },
-	_updateProgress: function(percent, message)
-	{
-		var intPercent = Math.round(percent);
-
-		this.progressBar.find('.meter').css('width', intPercent+'%');
-		if (!message) {
-			message = "Uploading ("+intPercent+"%)";
-		}
-		this.progressBar.find('.progress-message span').text(message);
-	}
-});
-
-var FileUploadDesign = FileUploadBase.extend({
-	el: '.file-upload-button.design .file-upload',
-	acceptFileTypes: /(\.|\/)(stl|obj|amf)$/i,
-	beforeSubmit: function(e, data) 
-	{
-	    $.getJSON('/api/astroprint/upload-data?file='+encodeURIComponent(data.files[0].name), _.bind(function(response) {
-	        if (response.url && response.params) {
-	            data.formData = response.params;
-	            data.url = response.url;
-	            data.redirect = response.redirect;
-	        	$(e.currentTarget).fileupload('send', data);
-	        } else {
-	            this.progressBar.hide();
-				this.buttonContainer.show();
-
-	            noty({text: 'There was an error getting upload parameters.', timeout: 3000});
-	        }
-	    }, this)).fail(_.bind(function(xhr){
-	        this.progressBar.hide();
-	        this.buttonContainer.show();
-	        noty({text: 'There was an error getting upload parameters.', timeout: 3000});
-	    }, this));
-
-	    return false;
-	},
-	onUploadAlways: function(e, data) 
-	{
-        setTimeout(_.bind(function() {
-            this.progressBar.hide();
-           	this.buttonContainer.show();
-           	this._updateProgress(0);
-        }, this), 2000);
-	},
-	onUploadDone: function(e, data) 
-	{
-		this._updateProgress(95, 'Preparing to slice');
-        if (data.redirect) {
-            window.location.href = data.redirect;
-        }
-	}
-});
-
-var FileUploadPrint = FileUploadBase.extend({
-	initialize: function(options) 
-	{
-		if (options.printerProfile.driver == 's3g') {
-			this.acceptFileTypes = /(\.|\/)(x3g)$/i;
-		} else {
-			this.acceptFileTypes = /(\.|\/)(gcode)$/i;
-		}
-
-		FileUploadBase.prototype.initialize.call(this, options);
-	},
-	onUploadDone: function(e, data) 
-	{
-		noty({text: "File uploaded succesfully", type: 'success', timeout: 3000});
-		app.router.homeView.refreshPrintFiles(true);
-		app.router.homeView.printFilesListView.storage_control_view.selectStorage('local');
-        this.progressBar.hide();
-        this.buttonContainer.show();
-        this._updateProgress(0);
 	}
 });
 

@@ -12,9 +12,7 @@
 					<img src="/static/img/upload-icon.png" alt="file upload icon"/>
 					<div class="overlay">
 						<div class="contain"><h4 class="bold">Upload</h4></div>
-						{% if not show_welcome %}
-							<input class="file-upload" type="file" name="file" data-url="/ajax/designs/upload" accept=".stl">
-						{% endif %}
+						<input class="file-upload" type="file" name="file" data-url="/ajax/designs/upload" accept=".stl, .gcode, .gco">
 					</div>
 					<div class="progress">
 						<span class="bold">0<i>%</i></span>
