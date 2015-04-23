@@ -483,6 +483,9 @@ class PrintFilesManager(object):
 			"success": True
 		}
 
+		if "gcodeAnalysis" not in metadata:
+			metadata['gcodeAnalysis'] = {}
+
 		if printTime is not None:
 			metadata["prints"]["last"]["lastPrintTime"] = printTime
 			metadata["gcodeAnalysis"]["print_time"] = printTime
