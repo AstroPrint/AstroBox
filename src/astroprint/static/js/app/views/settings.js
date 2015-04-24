@@ -532,10 +532,31 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 var SoftwareAdvancedView = SettingsPage.extend({
 	el: '#software-advanced',
 	ResetConfirmDialog: null,
+	events: {
+		'click button.logs': 'doLogs'
+	},
 	initialize: function(params)
 	{
 		SettingsPage.prototype.initialize.apply(this, arguments);
 		this.ResetConfirmDialog = new ResetConfirmDialog();		
+	},
+	doLogs: function(e)
+	{
+		e.preventDefault();
+
+		var button = $(e.currentTarget).closest('.loading-button');
+		button.addClass('loading');
+
+		$.post(API_BASEURL + 'settings/software/logs')
+			.done(function(){
+				noty({text: "Logs sent to AstroPrint!", type: 'success', timeout: 3000});
+			})
+			.fail(function(){
+				noty({text: "There was a problem sending your logs.", timeout: 3000});
+			})
+			.always(function(){
+				button.removeClass('loading');
+			})
 	}
 });
 

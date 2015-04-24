@@ -194,3 +194,11 @@ def restartServer():
 		return jsonify();
 	else:
 		return ("There was an error trying to restart the server.", 400)
+
+@api.route("/settings/software/logs", methods=['POST'])
+@restricted_access
+def sendLogs():
+	if softwareManager.sendLogs():
+		return jsonify();
+	else:
+		return ("There was an error trying to send your logs.", 500)
