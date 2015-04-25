@@ -75,15 +75,15 @@ if platform != 'darwin':
 				self._completionCb()
 
 	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
-                def __init__(self, progressCb, completionCb):
-                        super(CacheUpdateFetchProgress, self).__init__()
+		def __init__(self, progressCb, completionCb):
+				super(CacheUpdateFetchProgress, self).__init__()
 
-                        self._progressCb = progressCb
-                        self._completionCb = completionCb
-                        self._logger = logging.getLogger(__name__)
-                        self._errors = False
-			self._lastCurrentReported = None
-			self._lastTotalReported = None
+				self._progressCb = progressCb
+				self._completionCb = completionCb
+				self._logger = logging.getLogger(__name__)
+				self._errors = False
+				self._lastCurrentReported = None
+				self._lastTotalReported = None
 
 		def pulse(self, owner):
 			if self.current_items != self._lastCurrentReported or self.total_items != self._lastTotalReported:
@@ -387,12 +387,58 @@ class SoftwareManager(object):
 
 		return True
 
+	def sendLogs(self, ticketNo=None, message=None):
+		import zipfile
+
+		from astroprint.boxrouter import boxrouterManager
+		from tempfile import gettempdir
+
+		try:
+			boxId = boxrouterManager().boxId
+
+			#Create the zip file
+			zipFilename = '%s/%s-logs.zip' % (gettempdir(), boxId)
+			zipf = zipfile.ZipFile(zipFilename, 'w')
+
+			for root, dirs, files in os.walk(self._settings.getBaseFolder("logs")):
+				for file in files:
+					zipf.write(os.path.join(root, file), file)
+
+			zipf.close()
+
+		except Exception as e:
+			self._logger.error('Error while zipping logs: %s' % e)
+			return False
+
+		zipf = open(zipFilename, 'rb')
+
+		#send the file to the server
+		r = requests.post(
+			'%s/astrobox/software/logs' % (self._settings.get(['cloudSlicer','apiHost'])),
+			data = { 'ticket': ticketNo, 'message': message, 'boxId': boxId},
+			files = {'file': (zipFilename, zipf)},
+			auth = self._checkAuth(),
+			headers = self._requestHeaders
+		)
+
+		zipf.close()
+
+		#remove the file
+		os.remove(zipFilename)
+
+		if r.status_code == 200:
+			return True
+		else:
+			self._logger.error('Error while sending logs: %d' % r.status_code)
+			return False
+
+
 	def _checkAuth(self):
 		if current_user and current_user.is_authenticated():
 			privateKey = current_user.privateKey
 			publicKey = current_user.publicKey
 
-			if self._settings.getBoolean(['software', 'useUnreleased']) and privateKey and publicKey:
+			if privateKey and publicKey:
 				from astroprint.cloud import HMACAuth
 
 				return HMACAuth(publicKey, privateKey)

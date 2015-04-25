@@ -158,22 +158,28 @@
 		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">Select a WiFi Network</h2>
 			<div class="modal-content"></div>
-			<button class="secondary radius" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+			<div class="modal-actions">
+				<button class="secondary radius" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
 		<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">WiFi Password</h2>
-			<p align="center">Enter the password for <span class="name bold"></span>.</p>
-			<form>
-				<input type="hidden" class="network-id-field" name="id"/>
-				<input type="password" class="network-password-field" name="password"/>
-			</form>
-			<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
-			<div class="loading-button">
-				<button class="radius success connect">Connect</button>
-				<span class="loading button success disabled radius">
-					<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
-				</span>
+			<div class="modal-content">
+				<p align="center">Enter the password for <span class="name bold"></span>.</p>
+				<form>
+					<input type="hidden" class="network-id-field" name="id"/>
+					<input type="password" class="network-password-field" name="password"/>
+				</form>
+			</div>
+			<div class="modal-actions">
+				<button class="secondary radius" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
+				<div class="loading-button">
+					<button class="radius success connect">Connect</button>
+					<span class="loading button success disabled radius">
+						<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
+					</span>
+				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
@@ -295,7 +301,7 @@
 		</div>
 		<script type="text/template" id="software-update-modal-content">
 			<h2 class="bold">
-				<% if (data.update_available && !data.is_current) { %> Update <span><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></span> <% } else { %> No Updates <% } %> Available.
+				<% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
 			</h2>
 			<% if (data.update_available) { %>
 				<div class="modal-content">
@@ -303,7 +309,8 @@
 					<% if (data.is_current) { %>
 						Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
 					<% } else { %>
-						Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
+						Version: <big class="bold"><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></big>
+						<br/>Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
 					<% } %>
 					<% if (data.release.force_setup) { %>
 						<br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
@@ -315,20 +322,24 @@
 					</p>
 				</div>
 			<% } %>
-			<button class="secondary radius<% if (data.update_available) { %> left<% } %> cancel">Cancel</button>
-			<% if (data.update_available) { %>
-				<div class="loading-button right">
-					<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
-					<span class="button disabled success radius loading">
-						<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
-					</span>
-				</div>
-			<% } %>
+			<div class="modal-actions">
+				<button class="secondary radius<% if (data.update_available) { %> left<% } %> cancel">Cancel</button>
+				<% if (data.update_available) { %>
+					<div class="loading-button right">
+						<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+						<span class="button disabled success radius loading">
+							<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
+						</span>
+					</div>
+				<% } %>
+			</div>
 		</script>
 
 		<div id="software-advanced" class="settings-page hide" align="center">
 			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
+			<button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button>
 		</div>
+
 		<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Are you sure?</h2>
 			<div class="modal-content">
@@ -338,11 +349,36 @@
 						<b>Write "RESET" to confirm</b>
 						<input type="text"/>
 					</label>
+				</p>
 			</div>
-			<button class="secondary radius left">Cancel</button>
-			<div class="loading-button right">
-				<button class="alert radius">Reset</button>
-				<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
+			<div class="modal-actions">
+				<button class="secondary radius left">Cancel</button>
+				<div class="loading-button right">
+					<button class="alert radius">Reset</button>
+					<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
+				</div>
+			</div>
+			<a class="close-reveal-modal">&#215;</a>
+		</div>
+		<div id="send-logs-modal" class="reveal-modal medium radius" data-reveal>
+			<h2 class="bold">Send logs to AstroPrint</h2>
+			<div class="modal-content">
+				<p>This sends us your device logs so that help you analyze your problem.</p>
+				<p>
+					<label>
+						Do you have a support ticket?
+						<input type="text" name="ticket"/>
+					</label>
+					<textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
+
+				</p>
+			</div>
+			<div class="modal-actions">
+				<button class="secondary radius left">Cancel</button>
+				<div class="loading-button right">
+					<button class="success radius">Send Logs</button>
+					<span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>

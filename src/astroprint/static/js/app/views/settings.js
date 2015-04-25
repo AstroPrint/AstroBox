@@ -531,12 +531,55 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 
 var SoftwareAdvancedView = SettingsPage.extend({
 	el: '#software-advanced',
-	ResetConfirmDialog: null,
+	resetConfirmDialog: null,
+	sendLogDialog: null,
 	initialize: function(params)
 	{
 		SettingsPage.prototype.initialize.apply(this, arguments);
-		this.ResetConfirmDialog = new ResetConfirmDialog();		
+		this.resetConfirmDialog = new ResetConfirmDialog();
+		this.sendLogDialog = new SendLogDialog();
 	}
+});
+
+var SendLogDialog = Backbone.View.extend({
+	el: '#send-logs-modal',
+	events: {
+		'click button.secondary': 'doClose',
+		'click button.success': 'doSend',
+		'open.fndtn.reveal': 'onOpen'
+	},
+	onOpen: function()
+	{
+		this.$('input').val('');
+		this.$('textarea').val('');
+	},
+	doClose: function()
+	{
+		this.$el.foundation('reveal', 'close');
+	},
+	doSend: function()
+	{
+		var button = this.$('.loading-button');
+
+		var data = {
+			ticket: this.$('input[name=ticket]').val(),
+			message: this.$('textarea[name=message]').val()
+		};
+
+		button.addClass('loading');
+
+		$.post(API_BASEURL + 'settings/software/logs', data)
+			.done(_.bind(function(){
+				noty({text: "Logs sent to AstroPrint!", type: 'success', timeout: 3000});
+				this.$el.foundation('reveal', 'close');
+			},this))
+			.fail(function(){
+				noty({text: "There was a problem sending your logs.", timeout: 3000});
+			})
+			.always(function(){
+				button.removeClass('loading');
+			});
+	}	
 });
 
 var ResetConfirmDialog = Backbone.View.extend({
@@ -548,7 +591,7 @@ var ResetConfirmDialog = Backbone.View.extend({
 	},
 	onOpen: function()
 	{
-		this.$el.find('input').val('');
+		this.$('input').val('');
 	},
 	doClose: function()
 	{
@@ -556,8 +599,8 @@ var ResetConfirmDialog = Backbone.View.extend({
 	},
 	doReset: function()
 	{
-		if (this.$el.find('input').val() == 'RESET') {
-			this.$el.find('.loading-button').addClass('loading');
+		if (this.$('input').val() == 'RESET') {
+			this.$('.loading-button').addClass('loading');
 			$.ajax({
 				url: API_BASEURL + 'settings/software/settings', 
 				type: 'DELETE',
@@ -568,7 +611,7 @@ var ResetConfirmDialog = Backbone.View.extend({
 					location.href = "";
 				},
 				complete: _.bind(function() {
-					this.$el.find('.loading-button').removeClass('loading');
+					this.$('.loading-button').removeClass('loading');
 				}, this)
 			})
 		} 
