@@ -161,25 +161,7 @@
 }
 
 #print-file-info {
-	padding: 0;
-
-	h2 {
-		width: 100%;
-		text-align: center;
-		background-color: $success-color;
-		color: white;
-		font-size: rem-calc(22);
-		padding: 15px 40px;
-		margin: 0;
-	}
-
-	.close-reveal-modal {
-		color: white;
-	}
-
-	.reveal-content {
-		padding: 20px 10px;
-
+	.modal-content {
 		.photo-container {
 			position: relative;
 			height: 0;
