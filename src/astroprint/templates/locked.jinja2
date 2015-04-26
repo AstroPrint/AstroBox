@@ -17,6 +17,7 @@
 				Enter your password for access:
 				<form id="login-form" action="/api/login" method="post">
 					<input type="hidden" name="user" value="{{username}}"/>
+					<input type="hidden" name="remember" value="true"/>
 					<input type="password" name="pass" class="radius"/>
 					<div class="loading-button expand">
 						<button class="button radius success"><b>Enter</b></button>

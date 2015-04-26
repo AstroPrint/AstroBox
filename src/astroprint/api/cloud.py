@@ -23,8 +23,7 @@ from astroprint.printer.manager import printerManager
 @api.route('/astroprint', methods=['DELETE'])
 @restricted_access
 def cloud_slicer_logout():
-	ap = astroprintCloud()
-	ap.signout()
+	astroprintCloud().signout()
 	return jsonify(SUCCESS)	
 
 @api.route('/astroprint/private-key', methods=['POST'])
@@ -33,8 +32,7 @@ def set_private_key():
 	password = request.values.get('password', None)
 
 	if email and password:
-		ap = astroprintCloud()
-		if ap.signin(email, password):
+		if astroprintCloud().signin(email, password):
 			return jsonify(SUCCESS)	
 
 	else:
@@ -48,9 +46,7 @@ def upload_data():
 	filePath = request.args.get('file', None)
 
 	if filePath:
-		slicer = astroprintCloud()
-
-		url, params, redirect_url = slicer.get_upload_info(filePath)
+		url, params, redirect_url = astroprintCloud().get_upload_info(filePath)
 		return jsonify(url=url, params=params, redirect=redirect_url)
 
 	abort(400)
@@ -58,9 +54,8 @@ def upload_data():
 @api.route("/astroprint/print-files", methods=["GET"])
 @restricted_access
 def designs():
-	slicer = astroprintCloud()
 	forceSyncCloud = request.args.get('forceSyncCloud')
-	cloud_files = json.loads(slicer.print_files(forceSyncCloud))
+	cloud_files = json.loads(astroprintCloud().print_files(forceSyncCloud))
 	local_files = list(printerManager().fileManager.getAllFileData())
 
 	if cloud_files:
@@ -120,7 +115,6 @@ def design_download(print_file_id):
 	if current_user is None or not current_user.is_authenticated() or not current_user.publicKey:
 		abort(401)
 
-	slicer = astroprintCloud()
 	em = eventManager()
 
 	def progressCb(progress):
@@ -159,7 +153,7 @@ def design_download(print_file_id):
 		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
 
-	if slicer.download_print_file(print_file_id, progressCb, successCb, errorCb):
+	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
 		return jsonify(SUCCESS)
 			
 	return abort(400)

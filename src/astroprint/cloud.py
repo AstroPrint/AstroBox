@@ -116,33 +116,42 @@ class AstroPrintCloud(object):
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
 			self.settings.save()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
-			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
-
 			boxrouterManager().boxrouter_connect()
+
+			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
 			_instance = None
 
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
 			return True
 
 		return False
 
-	def signout(self):
+	def remove_logged_user(self):
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
-		
-		logout_user()
 
 		#let the singleton be recreated again, so credentials and print_files are forgotten
 		global _instance
 		_instance = None
 
-		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
+
+	def signout(self):	
+		from flask import session
+
+		logout_user()
+
+		for key in ('identity.name', 'identity.auth_type'):
+			session.pop(key, None)
+
+		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+		self.remove_logged_user()
 
 	def get_upload_info(self, filePath):
 		path, filename = split(filePath)

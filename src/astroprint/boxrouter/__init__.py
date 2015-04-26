@@ -203,7 +203,15 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						response = {
 							'error': True,
 							'message': 'Frequency required'
-						}						
+						}
+
+				elif request == 'signoff':
+					from astroprint.cloud import astroprintCloud
+
+					self._logger.info('Remote signoff requested.')
+					threading.Timer(1, astroprintCloud().remove_logged_user).start()
+
+					response = {'success': True}				
 
 				else:
 					response = {
