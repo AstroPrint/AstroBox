@@ -1075,7 +1075,7 @@ class MachineCom(object):
 		if lineToResend is not None:
 			self._resendDelta = self._currentLine - lineToResend
 			if self._resendDelta > len(self._lastLines) or len(self._lastLines) == 0 or self._resendDelta <= 0:
-				self._errorValue = "Printer requested line %d but no sufficient history is available, can't resend" % lineToResend
+				self._errorValue = "Printer requested line %d but no sufficient history is available, can't resend [Delta: %d, History: %d]" % (lineToResend, self._resendDelta, len(self._lastLines))
 				self._logger.warn(self._errorValue)
 				if self.isPrinting():
 					# abort the print, there's nothing we can do to rescue it now
