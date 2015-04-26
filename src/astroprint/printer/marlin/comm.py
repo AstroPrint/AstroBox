@@ -937,7 +937,7 @@ class MachineCom(object):
 							self._handleResendRequest(line)
 
 			except:
-				self._logger.exception("Something crashed inside the serial connection loop, please report this in OctoPrint's bug tracker:")
+				self._logger.exception("Something crashed inside the serial connection loop, please report this to AstroPrint:")
 
 				errorMsg = "See astrobox.log for details"
 				self._log(errorMsg)
@@ -1079,8 +1079,10 @@ class MachineCom(object):
 				self._logger.warn(self._errorValue)
 				if self.isPrinting():
 					# abort the print, there's nothing we can do to rescue it now
+					self._callback.disableMotorsAndHeater()
 					self._changeState(self.STATE_ERROR)
 					eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
 				else:
 					# reset resend delta, we can't do anything about it
 					self._resendDelta = None

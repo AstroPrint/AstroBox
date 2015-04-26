@@ -67,6 +67,11 @@ class PrinterMarlin(Printer):
 
 		super(PrinterMarlin, self).rampdown()
 
+	def disableMotorsAndHeater(self):
+		self.setTemperature('bed', 5)
+		self.setTemperature('tool', 5)
+		self.commands(["M29", "M84", "M106 S0"]); #Motors Off, Fan off
+
 	#~~ callback handling
 
 	def _sendTriggerUpdateCallbacks(self, type):
@@ -265,10 +270,8 @@ class PrinterMarlin(Printer):
 		#self.home(['x','y'])
 		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
 
-		self.setTemperature('bed', 5)
-		self.setTemperature('tool', 5)
-
-		self.commands(["M29", "M84", "M106 S0"]); #Motors Off, Fan off
+		if disableMotorsAndHeater:
+			self.disableMotorsAndHeater()
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -320,8 +323,10 @@ class PrinterMarlin(Printer):
 			if self._selectedFile is not None:
 				if state == self._comm.STATE_OPERATIONAL:
 					self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+
 				elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
 					self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and state == self._comm.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
@@ -354,12 +359,10 @@ class PrinterMarlin(Printer):
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
+
 		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
 
-		self.setTemperature('bed', 5.0)
-		self.setTemperature('tool', 5.0)
-
-		self.commands(["M29", "M84", "M106 S0"]); #Motors off, Fan off
+		self.disableMotorsAndHeater(self)
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
