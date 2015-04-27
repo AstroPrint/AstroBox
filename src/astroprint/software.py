@@ -70,9 +70,8 @@ if platform != 'darwin':
 
 		def finish_update(self):
 			if not self._errors:
-				self._logger.info("Software Update completed succesfully")
 				self._progressCb(1.0, "Restarting. Please wait...")
-				time.sleep(0.5) #Give the message a change to get to the device
+				self._logger.info("Software Update completed succesfully")
 				self._completionCb()
 
 	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
