@@ -341,11 +341,14 @@ class SoftwareManager(object):
 						self.lastMessage = message
 
 					def completionCb(success):
-						self._updater = None
 						eventManager().fire(Events.SOFTWARE_UPDATE, {
 							'completed': True,
 							'success': success
 						})
+
+						self._updater.join()
+						self._updater = None
+
 						if success:
 							self.forceUpdateInfo = None
 							#schedule a restart

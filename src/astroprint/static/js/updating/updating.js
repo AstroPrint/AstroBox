@@ -43,6 +43,16 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         self._autoReconnectTrial = 0;
     },
     _onClose: function() {
+        if (this._autoReconnectTrial > 1) {
+            //We're going to assume that we missed the "completion" event and the box has started a restart.
+            //So reload after 7 secs
+
+            this.updateInfo(1, 'Restarting. Please wait...');
+            setTimeout(function() {
+                location.reload();
+            }, 7000);
+        }
+
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
             console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
@@ -62,24 +72,23 @@ var SoftwareUpdateProgress = Backbone.View.extend({
             var data = e.data['event'];
             var type = data["type"];
 
-            switch(type) {
-                case 'SoftwareUpdateEvent':
-                    var payload = data["payload"];
+            if (type == 'SoftwareUpdateEvent') {
+                var payload = data["payload"];
 
-                	if (payload.completed) {
-                		if (payload.success) {
-                            setTimeout(function() {
-                                location.reload();
-                            }, 7000);
-						} else {
-							//error case here
-							this.$el.find('.progress-info').addClass('hide');
-							this.$el.find('.error').removeClass('hide');
-                            this.$el.find('.info').addClass('hide');
-						}
-                	} else if (payload.message) {
-                        this.updateInfo(payload.progress, payload.message);
-                	}
+            	if (payload.completed) {
+            		if (payload.success) {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 7000);
+					} else {
+						//error case here
+						this.$el.find('.progress-info').addClass('hide');
+						this.$el.find('.error').removeClass('hide');
+                        this.$el.find('.info').addClass('hide');
+					}
+            	} else if (payload.message) {
+                    this.updateInfo(payload.progress, payload.message);
+            	}
            	}
         }
     },
