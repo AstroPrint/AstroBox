@@ -287,11 +287,15 @@ class Printer(object):
 		self._setCurrentZ(None)
 		self._cameraManager.open_camera()
 
-		#tell astroprint that we started a print
+		kwargs = {
+			'print_file_name': os.path.basename(self._selectedFile['filename'])
+		}
+
 		if self._selectedFile['cloudId']:
-			result = astroprintCloud().print_job(print_file_id= self._selectedFile['cloudId'])
-		else:
-			result = astroprintCloud().print_job(print_file_name= os.path.basename(self._selectedFile['filename']))
+			kwargs['print_file_id'] = self._selectedFile['cloudId']
+
+		#tell astroprint that we started a print
+		result = astroprintCloud().print_job(**kwargs)
 
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']

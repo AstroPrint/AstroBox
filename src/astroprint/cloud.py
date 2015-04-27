@@ -444,18 +444,23 @@ class AstroPrintCloud(object):
 						'box_id': boxrouterManager().boxId
 					}
 
-					if print_file_id:
-						data['print_file_id'] = print_file_id
-					elif print_file_name:
-						data['name'] = print_file_name
-					else:
+					if not print_file_id and not print_file_name:
 						self._logger.error('print_file_id and name are both missing in print_job')
 						return False
+
+					if print_file_id:
+						data['print_file_id'] = print_file_id
+					
+					if print_file_name:
+						data['name'] = print_file_name
 
 					r = requests.post( "%s/printjobs" % self.apiHost, data= json.dumps(data), auth=self.hmacAuth, headers={'Content-Type': 'application/json'} )
 
 				if r.status_code == 200:
 					return r.json()
+
+				if r.status_code == 400:
+					self._logger.error("Bad print_job request (400). Response: %s" % r.text)
 
 				else:
 					self._logger.error("print_job request failed with status: %d" % r.status_code)
