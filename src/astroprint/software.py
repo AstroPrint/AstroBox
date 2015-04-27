@@ -346,6 +346,8 @@ class SoftwareManager(object):
 						})
 						if success:
 							self.forceUpdateInfo = None
+							#schedule a restart
+							threading.Timer(0.5, self.restartServer).start()
 
 					self.lastCompletionPercent = None
 					self.lastMessage = None
@@ -370,12 +372,14 @@ class SoftwareManager(object):
 		if platform == "linux" or platform == "linux2":
 			from astroprint.boxrouter import boxrouterManager
 			from astroprint.printer.manager import printerManager
+			from astroprint.camera import cameraManager
 
 			#let's be nice about shutthing things down
 			br = boxrouterManager()
 
 			br.boxrouter_disconnect()
 			printerManager().disconnect()
+			cameraManager().close_camera()
 
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:

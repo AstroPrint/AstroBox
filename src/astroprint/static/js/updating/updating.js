@@ -68,13 +68,9 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 
                 	if (payload.completed) {
                 		if (payload.success) {
-                            $.ajax({
-                                type: 'POST',
-                                url: API_BASEURL + 'settings/software/restart'
-                            });
                             setTimeout(function() {
                                 location.href = '/';
-                            }, 6000);
+                            }, 7000);
 						} else {
 							//error case here
 							this.$el.find('.progress-info').addClass('hide');

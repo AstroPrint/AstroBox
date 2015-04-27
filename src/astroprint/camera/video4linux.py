@@ -63,15 +63,16 @@ class CameraV4LManager(CameraManager):
 		return False
 
 	def close_camera(self):
-		self._camera.release()
-		del(self._camera)
-		del(self._watermakMaskWeighted)
-		del(self._watermarkInverted)
-		del(self._infoArea)
-		self._camera = None
-		self._watermakMaskWeighted = None
-		self._watermarkInverted = None
-		self._infoArea = None
+		if self._camera:
+			self._camera.release()
+			del(self._camera)
+			del(self._watermakMaskWeighted)
+			del(self._watermarkInverted)
+			del(self._infoArea)
+			self._camera = None
+			self._watermakMaskWeighted = None
+			self._watermarkInverted = None
+			self._infoArea = None
 
 	def list_camera_info(self):
 		result = []
