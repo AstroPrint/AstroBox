@@ -341,16 +341,13 @@ class SoftwareManager(object):
 						self.lastMessage = message
 
 					def completionCb(success):
-						def sendFinalEvent():
+						def sendFinalEvent(success):
 							eventManager().fire(Events.SOFTWARE_UPDATE, {
 								'completed': True,
 								'success': success
 							})
 
-							#let's send this 3 times. Some devices lose this event
-							sendFinalEvent()
-							for i in range(1, 3):
-								threading.Timer(i * 0.2, sendFinalEvent).start()
+						threading.Timer(0.2, sendFinalEvent, [success]).start()
 
 						if success:
 							self.forceUpdateInfo = None
