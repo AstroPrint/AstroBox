@@ -511,7 +511,7 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 			}),
 			success: function() {
 				//reset the page to show updating progress
-				location.href = '/';
+				location.reload();
 			},
 			error: function(xhr) {
 				if (xhr.status == 400) {

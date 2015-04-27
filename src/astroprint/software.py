@@ -104,6 +104,8 @@ class SoftwareUpdater(threading.Thread):
 		self._logger = logging.getLogger(__name__)
 
 	def run(self):
+		#We need to give the UI a chance to update before starting so that the message can be sent...
+		time.sleep(2)
 		self._progressCb(0.02, "Downloading release...")
 		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
 
@@ -115,7 +117,7 @@ class SoftwareUpdater(threading.Thread):
 
 			self._logger.info('Downloading release.')
 			with os.fdopen(releaseHandle, "wb") as fd:
-				for chunk in r.iter_content(250000):
+				for chunk in r.iter_content(150000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
 					percent = round((downloaded_size / content_length), 2) * DOWNLOAD_PROGRESS_SPREAD
@@ -124,7 +126,7 @@ class SoftwareUpdater(threading.Thread):
 			self._logger.info('Release downloaded.')
 			if platform == "linux" or platform == "linux2":
 				self._progressCb(percent, "Installing release. Please be patient..." )
-				time.sleep(0.2) #give the message a chance to be sent
+				time.sleep(0.5) #give the message a chance to be sent
 
 				def completionCb(error = None):
 					if os.path.isfile(releasePath):

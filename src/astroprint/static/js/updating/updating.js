@@ -69,7 +69,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
                 	if (payload.completed) {
                 		if (payload.success) {
                             setTimeout(function() {
-                                location.href = '/';
+                                location.reload();
                             }, 7000);
 						} else {
 							//error case here
