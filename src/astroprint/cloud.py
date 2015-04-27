@@ -72,9 +72,7 @@ class AstroPrintCloud(object):
 		self._logger = logging.getLogger(__name__)
 
 	def cloud_enabled(self):
-		s = settings()
-
-		return s.get(['cloudSlicer', 'apiHost']) and u.privateKey and u.publicKey and self.hmacAuth
+		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
 
 	def signin(self, email, password):
 		from octoprint.server import userManager
