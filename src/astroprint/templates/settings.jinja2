@@ -4,26 +4,28 @@
 	</div>
 </div>
 
-<div class="row collapse">
-	<div class="hide-for-small-only medium-5 large-4 columns">
+<div class="row collapse container">
+	<div class="hide-for-small-only medium-5  large-4 columns">
 		<div id="settings-side-bar">
 			<ul class="side-nav">
 				<li class="heading bold">Printer</li>
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
-				<li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
-				<li class="divider"></li>
+				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+				<!--<li class="divider"></li>-->
 				<li class="heading bold">Internet</li>
 				<li class="internet-connection"><a href="#settings/internet-connection">Connection</a></li>
 				<li class="heading bold">Software</li>
 				<li class="software-update"><a href="#settings/software-update">Update</a></li>
-				<li class="software-advanced"><a href="#settings/software-advanced">Advanced</a><li>
+				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a><li>
 			</ul>
 		</div>
 	</div>
 	<div class="small-12 medium-7 large-8 columns">
-		<div id="printer-connection" class="settings-page">
-			<h1 class="bold show-for-small" align="center">Printer Connection</h1>
-			<form></form>
+		
+			<div class="show-for-small zebra">
+				<h1 class="bold" align="center">Printer Connection</h1>
+			</div>
+			<div id="printer-connection" class="settings-page">
 			<div class="row connection-status">
 				<div class="small-12">
 					<span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
@@ -31,6 +33,8 @@
 					<span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
 				</div>
 			</div>
+			<form></form>
+			
 		</div>
 
 		<script type="text/template" id="printer-connection-settings-page-template">
@@ -82,8 +86,8 @@
 			<% } %>
 		</script>
 
-		<div class="show-for-small">
-			<hr/>
+		<div class="show-for-small zebra">
+			
 			<h1 class="bold" align="center">Printer Profile</h1>
 		</div>
 		<div id="printer-profile" class="settings-page hide">
@@ -149,8 +153,8 @@
 			</script>
 		</div>
 
-		<div class="show-for-small">
-			<hr/>
+		<div class="show-for-small zebra">
+			
 			<h1 class="bold" align="center">Internet Connection</h1>
 		</div>
 		<div id="internet-connection" class="settings-page hide">
@@ -287,8 +291,8 @@
 			</table>
 		</script>
 
-		<div class="show-for-small">
-			<hr/>
+		<div class="show-for-small zebra software">
+			
 			<h1 class="bold" align="center">Software</h1>
 		</div>
 		<div id="software-update" class="settings-page hide" align="center">
