@@ -168,4 +168,15 @@
 			display: block;
 		}
 	}
+	.zebra h1 {
+		margin: 0;
+		margin-bottom: 1px;
+		padding: 5px 0;
+		border-bottom: 1px solid #ccc;
+	}
+	.zebra.software h1 {
+		margin: 0;
+		border: none;
+
+	}
 }
