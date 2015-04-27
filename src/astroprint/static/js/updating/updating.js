@@ -43,7 +43,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         self._autoReconnectTrial = 0;
     },
     _onClose: function() {
-        if (this._autoReconnectTrial > 1) {
+        /*if (this._autoReconnectTrial > 1) {
             //We're going to assume that we missed the "completion" event and the box has started a restart.
             //So reload after 7 secs
 
@@ -51,7 +51,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
             setTimeout(function() {
                 location.reload();
             }, 7000);
-        }
+        }*/
 
         if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
             var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
