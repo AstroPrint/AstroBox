@@ -21,6 +21,11 @@ def networkManager():
 
 			_instance = DebianNetworkManager()
 
+		elif driver == 'manual':
+			from astroprint.network.manual import ManualNetworkManager
+
+			_instance = ManualNetworkManager()
+
 		elif driver == 'MacDev':
 			from astroprint.network.mac_dev import MacDevNetworkManager
 
