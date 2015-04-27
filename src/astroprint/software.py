@@ -346,8 +346,7 @@ class SoftwareManager(object):
 							'success': success
 						})
 
-						self._updater.join()
-						self._updater = None
+						time.sleep(2) #wait 2 secs to see if the events gets to the client
 
 						if success:
 							self.forceUpdateInfo = None
