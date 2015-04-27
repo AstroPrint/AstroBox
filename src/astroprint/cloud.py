@@ -76,7 +76,7 @@ class AstroPrintCloud(object):
 
 	def signin(self, email, password):
 		from octoprint.server import userManager
-		from astroprint.network import networkManager
+		from astroprint.network.manager import networkManager
 
 		user = None
 		userLoggedIn = False

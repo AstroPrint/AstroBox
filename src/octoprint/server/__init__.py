@@ -42,7 +42,6 @@ Compress(app)
 userManager = None
 eventManager = None
 loginManager = None
-networkManager = None
 softwareManager = None
 
 principals = Principal(app)
@@ -62,6 +61,7 @@ import astroprint.users as users
 
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
@@ -73,7 +73,7 @@ VERSION = None
 @app.route('/astrobox/identify', methods=['GET'])
 def box_identify():
 	br = boxrouterManager()
-	nm = networkManager
+	nm = networkManager()
 
 	response = Response()
 
@@ -99,7 +99,7 @@ def index():
 			uiApiKey= UI_API_KEY,
 			version= VERSION,
 			variantData= variantManager().data,
-			astroboxName= networkManager.getHostname(),
+			astroboxName= networkManager().getHostname(),
 			settings=s
 		)
 
@@ -112,7 +112,7 @@ def index():
 			lastCompletionPercent= softwareManager.lastCompletionPercent,
 			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
-			astroboxName= networkManager.getHostname()
+			astroboxName= networkManager().getHostname()
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated() or current_user.get_id() != loggedUsername):
@@ -123,16 +123,17 @@ def index():
 			"locked.jinja2",
 			username= loggedUsername,
 			uiApiKey= UI_API_KEY,
-			astroboxName= networkManager.getHostname(),
+			astroboxName= networkManager().getHostname(),
 			variantData= variantManager().data
 		)
 
 	else:
 		pm = printerManager()
+		nm = networkManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
-		online = networkManager.isOnline()
+		online = nm.isOnline()
 		
 		return render_template(
 			"app.jinja2",
@@ -144,7 +145,7 @@ def index():
 			print_capture= cameraManager().timelapseInfo if printing or paused else None,
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
-			astroboxName= networkManager.getHostname(),
+			astroboxName= nm.getHostname(),
 			variantData= variantManager().data
 		)
 
@@ -223,7 +224,6 @@ class Server():
 		global userManager
 		global eventManager
 		global loginManager
-		global networkManager
 		global debug
 		global softwareManager
 		global VERSION
@@ -280,10 +280,7 @@ class Server():
 		if self._debug:
 			events.DebugEventListener()
 
-		from astroprint.network import networkManager as networkManagerLoader
-		networkManager = networkManagerLoader()
-
-		if networkManager.isOnline():
+		if networkManager().isOnline():
 			softwareManager.checkForcedUpdate()
 
 		if self._host is None:

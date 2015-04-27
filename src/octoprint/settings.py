@@ -163,6 +163,10 @@ default_settings = {
 		"hotspotDevice": None,
 		"hotspotOnlyOffline": True,
 	},
+	"network": {
+		"manager": "debianNetworkManager",
+		"interface": 'wlan0'
+	},
 	"software": {
 		"infoFile": None,
 		"variantFile": None,

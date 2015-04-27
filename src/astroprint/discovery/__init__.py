@@ -26,7 +26,7 @@ import time
 from octoprint.events import eventManager, Events
 
 from astroprint.variant import variantManager
-from astroprint.network import networkManager
+from astroprint.network.manager import networkManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.software import softwareManager
 

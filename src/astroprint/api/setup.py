@@ -13,10 +13,11 @@ from flask import make_response, request, jsonify
 from flask.ext.login import current_user
 
 from octoprint.settings import settings
-from octoprint.server import restricted_access, NO_CONTENT, networkManager
+from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
 from astroprint.cloud import astroprintCloud
+from astroprint.network.manager import networkManager
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
 
@@ -37,7 +38,7 @@ def not_setup_only(func):
 @api.route('/setup/name', methods=['GET'])
 @not_setup_only
 def get_name():
-	return jsonify(name = networkManager.getHostname())
+	return jsonify(name = networkManager().getHostname())
 
 @api.route('/setup/name', methods=['POST'])
 @not_setup_only
@@ -48,7 +49,7 @@ def save_name():
 		return make_response('Invalid Name', 400)
 	else:
 		if platform == "linux" or platform == "linux2":
-			if networkManager.setHostname(name):
+			if networkManager().setHostname(name):
 				return jsonify()
 			else:
 				return (500, "There was an error saving the hostname")
@@ -58,10 +59,12 @@ def save_name():
 @api.route('/setup/internet', methods=['GET'])
 @not_setup_only
 def check_internet():
-	if networkManager.isAstroprintReachable():
+	nm = networkManager()
+
+	if nm.isAstroprintReachable():
 		return jsonify(connected = True)
 	else:
-		networks = networkManager.getWifiNetworks()
+		networks = nm.getWifiNetworks()
 
 		if networks:
 			return jsonify(networks = networks, connected = False)
@@ -73,7 +76,7 @@ def check_internet():
 def connect_internet():
 	if "application/json" in request.headers["Content-Type"]:
 		data = request.json
-		result = networkManager.setWifiNetwork(data['id'], data['password'])
+		result = networkManager().setWifiNetwork(data['id'], data['password'])
 
 		if result:
 			return jsonify(result)

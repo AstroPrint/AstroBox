@@ -9,7 +9,7 @@ from flask import request, abort, jsonify, make_response
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 
-from octoprint.server import restricted_access, admin_permission, networkManager
+from octoprint.server import restricted_access, admin_permission
 from octoprint.server.api import api
 
 #~~ settings

@@ -2,23 +2,6 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-# singleton
-_instance = None
-
-def networkManager():
-	global _instance
-	if _instance is None:
-		if platform == "linux" or platform == "linux2":
-			from astroprint.network.debian import DebianNetworkManager
-			_instance = DebianNetworkManager()
-		elif platform == "darwin":
-			from astroprint.network.mac_dev import MacDevNetworkManager
-			_instance = MacDevNetworkManager()
-		else:
-			_instance = NetworkManager()
-
-	return _instance
-
 import socket, urllib2, subprocess
 
 from octoprint.settings import settings
@@ -57,9 +40,6 @@ class NetworkManager(object):
 		return None
 
 	def getWifiDevice(self):
-		return None
-
-	def hasWifiDevice(self):
 		return None
 
 	def isHotspotable(self):
