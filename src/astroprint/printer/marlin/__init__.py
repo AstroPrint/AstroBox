@@ -362,7 +362,7 @@ class PrinterMarlin(Printer):
 
 		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
 
-		self.disableMotorsAndHeater(self)
+		self.disableMotorsAndHeater()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
