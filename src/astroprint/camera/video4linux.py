@@ -24,13 +24,19 @@ class CameraV4LManager(CameraManager):
 
 
 	def open_camera(self):
-		if (self.isCameraAvailable()):
+		if self.isCameraAvailable():
 			return True
 
 		cameras = self.list_devices()
 
-		if cameras:			
-			self._camera = cv2.VideoCapture()
+		if cameras:	
+			try:		
+				self._camera = cv2.VideoCapture()
+
+			except Exception as e:
+				self._logger.error('Error creating VideoCapture object: %s' % e)
+				self._camera = None
+				return False
 
 			if not self._camera:
 				return False
@@ -65,12 +71,8 @@ class CameraV4LManager(CameraManager):
 	def close_camera(self):
 		if self._camera:
 			self._camera.release()
-			del(self._camera)
-			
-		del(self._watermakMaskWeighted)
-		del(self._watermarkInverted)
-		del(self._infoArea)
-		self._camera = None
+			self._camera = None
+
 		self._watermakMaskWeighted = None
 		self._watermarkInverted = None
 		self._infoArea = None
@@ -115,7 +117,7 @@ class CameraV4LManager(CameraManager):
 			return cv2.imwrite(filename, img)
 
 	def isCameraAvailable(self):
-		return self._camera != None
+		return self._camera != None and self._camera.isOpened()
 
 	def _snapshot_from_camera(self):
 		if not self._camera:
