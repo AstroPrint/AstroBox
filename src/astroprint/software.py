@@ -72,6 +72,7 @@ if platform != 'darwin':
 			if not self._errors:
 				self._logger.info("Software Update completed succesfully")
 				self._progressCb(1.0, "Restarting. Please wait...")
+				time.sleep(0.5) #Give the message a change to get to the device
 				self._completionCb()
 
 	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
@@ -349,7 +350,7 @@ class SoftwareManager(object):
 						if success:
 							self.forceUpdateInfo = None
 							#schedule a restart
-							threading.Timer(0.5, self.restartServer).start()
+							threading.Timer(1, self.restartServer).start()
 
 					self.lastCompletionPercent = None
 					self.lastMessage = None
