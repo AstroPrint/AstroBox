@@ -341,12 +341,12 @@ class SoftwareManager(object):
 						self.lastMessage = message
 
 					def completionCb(success):
+						time.sleep(2) #wait 2 secs to see if the events gets to the client
+
 						eventManager().fire(Events.SOFTWARE_UPDATE, {
 							'completed': True,
 							'success': success
 						})
-
-						time.sleep(2) #wait 2 secs to see if the events gets to the client
 
 						if success:
 							self.forceUpdateInfo = None
