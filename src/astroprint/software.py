@@ -101,6 +101,7 @@ class SoftwareUpdater(threading.Thread):
 		self._manager = manager
 		self._progressCb = progressCb
 		self._completionCb = completionCb
+		self._eventCondition = threading.Condition()
 		self._logger = logging.getLogger(__name__)
 
 	def run(self):
@@ -331,22 +332,22 @@ class SoftwareManager(object):
 
 				if data and 'download_url' in data and data['platform'] == self.data['platform']:
 					def progressCb(progress, message=None):
-						eventManager().fire(Events.SOFTWARE_UPDATE, {
-							'completed': False,
-							'progress': progress,
-							'message': message
-						})
+						with self._updater._eventCondition:
+							eventManager().fire(Events.SOFTWARE_UPDATE, {
+								'completed': False,
+								'progress': progress,
+								'message': message
+							})
 
 						self.lastCompletionPercent = progress
 						self.lastMessage = message
 
 					def completionCb(success):
-						time.sleep(2) #wait 2 secs to see if the events gets to the client
-
-						eventManager().fire(Events.SOFTWARE_UPDATE, {
-							'completed': True,
-							'success': success
-						})
+						with self._updater._eventCondition:
+							eventManager().fire(Events.SOFTWARE_UPDATE, {
+								'completed': True,
+								'success': success
+							})
 
 						if success:
 							self.forceUpdateInfo = None
