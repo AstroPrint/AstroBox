@@ -144,6 +144,7 @@ class PrinterStateConnection(SockJSConnection):
 		self._logBacklogMutex = threading.Lock()
 		self._messageBacklog = []
 		self._messageBacklogMutex = threading.Lock()
+		self._sockJsCondition = threading.Condition()
 
 		self._userManager = userManager
 		self._eventManager = eventManager
@@ -241,7 +242,8 @@ class PrinterStateConnection(SockJSConnection):
 		self.sendEvent(event, payload)
 
 	def _emit(self, type, payload):
-		self.send({type: payload})
+		with self._sockJsCondition:
+			self.send({type: payload})
 
 
 #~~ customized large response handler
