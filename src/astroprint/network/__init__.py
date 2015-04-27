@@ -42,9 +42,6 @@ class NetworkManager(object):
 	def getWifiDevice(self):
 		return None
 
-	def hasWifiDevice(self):
-		return None
-
 	def isHotspotable(self):
 		return None
 

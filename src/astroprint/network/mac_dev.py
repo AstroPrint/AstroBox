@@ -14,7 +14,8 @@ class MacDevNetworkManager(NetworkManagerBase):
 				'ip': '127.0.0.1:5000',
 				'secured': True
 			},
-			'wireless': None
+			'wireless': None,
+			'manual': None
 		}
 
 	def isOnline(self):

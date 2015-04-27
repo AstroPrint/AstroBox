@@ -186,14 +186,17 @@
 
 		<script type="text/template" id="internet-connection-settings-page-template">
 			<div class="connection">
-				<h3 class="bold">Wired Connection</h3>
-				<% if (settings.networks.wired) { %>	
+				<% if (settings.networks.wired) { %>
+					<h3 class="bold">Wired Connection</h3>
 					<i class="icon-exchange"></i> Connected.
 					<div class="ip-address">IP Address: <b><%= settings.networks.wired.ip %></b></div>
-				<% } else { %>
-					Not Connected.
 				<% } %>
 			</div>
+			<% if (settings.networks.manual) { %>
+				<h3 class="bold">Manually Configured</h3>
+				<div>Interface: <b><%= settings.networks.manual.interface %></b></div>			
+				<div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>	
+			<% } %>
 			<% if (settings.hasWifi) { %>
 				<div class="connection">
 					<h3 class="bold">Wireless Connection</h3>

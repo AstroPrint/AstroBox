@@ -180,7 +180,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		return None
 
 	def getActiveConnections(self):
-		activeConnections = { 'wired': None, 'wireless': None}
+		activeConnections = { 'wired': None, 'wireless': None, 'manual': None}
 
 		if self._nm.NetworkManager.State == self._nm.NM_STATE_CONNECTED_GLOBAL:
 			connections = self._nm.NetworkManager.ActiveConnections
