@@ -341,7 +341,7 @@ class SoftwareManager(object):
 						self.lastMessage = message
 
 					def completionCb(success):
-						def sendFinalEvent:
+						def sendFinalEvent():
 							eventManager().fire(Events.SOFTWARE_UPDATE, {
 								'completed': True,
 								'success': success
