@@ -24,7 +24,7 @@ from flask.ext.login import current_user
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
-from astroprint.network import networkManager
+from astroprint.network.manager import networkManager
 from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.camera import cameraManager
 from astroprint.software import softwareManager

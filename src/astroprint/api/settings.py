@@ -8,8 +8,9 @@ from flask import request, abort, jsonify, make_response
 
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
+from astroprint.network.manager import networkManager
 
-from octoprint.server import restricted_access, admin_permission, networkManager, softwareManager
+from octoprint.server import restricted_access, admin_permission, softwareManager
 from octoprint.server.api import api
 
 @api.route("/settings/printer", methods=["GET"])
@@ -49,7 +50,7 @@ def setSettings():
 @api.route("/settings/internet/wifi-networks", methods=["GET"])
 @restricted_access
 def getWifiNetworks():
-	networks = networkManager.getWifiNetworks()
+	networks = networkManager().getWifiNetworks()
 
 	if networks:
 		return jsonify(networks = networks)
@@ -59,14 +60,16 @@ def getWifiNetworks():
 @api.route("/settings/internet", methods=["GET"])
 @restricted_access
 def getInternetSettings():
-	isHotspotable = networkManager.isHotspotable()
+	nm = networkManager()
+
+	isHotspotable = nm.isHotspotable()
 
 	return jsonify({
-		'networks': networkManager.getActiveConnections(),
-		'hasWifi': bool(networkManager.getWifiDevice()),
+		'networks': nm.getActiveConnections(),
+		'hasWifi': bool(nm.getWifiDevice()),
 		'hotspot': {
-			'active': networkManager.isHotspotActive(),
-			'name': networkManager.getHostname(),
+			'active': nm.isHotspotActive(),
+			'name': nm.getHostname(),
 			'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
 		} if isHotspotable else False
 	})
@@ -76,7 +79,7 @@ def getInternetSettings():
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
 		data = request.json
-		result = networkManager.setWifiNetwork(data['id'], data['password'])
+		result = networkManager().setWifiNetwork(data['id'], data['password'])
 
 		if result:
 			return jsonify(result)
@@ -88,7 +91,7 @@ def setWifiNetwork():
 @api.route("/settings/internet/hotspot", methods=["POST"])
 @restricted_access
 def startWifiHotspot():
-	result = networkManager.startHotspot()
+	result = networkManager().startHotspot()
 
 	if result is True:
 		return jsonify()
@@ -112,7 +115,7 @@ def changeWifiHotspot():
 @api.route("/settings/internet/hotspot", methods=["DELETE"])
 @restricted_access
 def stopWifiHotspot():
-	result = networkManager.stopHotspot()
+	result = networkManager().stopHotspot()
 
 	if result is True:
 		return jsonify()
@@ -162,7 +165,7 @@ def resetFactorySettings():
 	s._config = {}
 	s.load(migrate=False)
 
-	networkManager.forgetWifiNetworks()
+	networkManager().forgetWifiNetworks()
 
 	#We should reboot the whole device
 	softwareManager.restartServer()
