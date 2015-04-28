@@ -550,12 +550,14 @@ var SendLogDialog = Backbone.View.extend({
 	},
 	onOpen: function()
 	{
-		this.$('input').val('');
-		this.$('textarea').val('');
+		this.$('input[name=ticket]').val('');
+		this.$('textarea[name=message]').val('');
 	},
 	doClose: function()
 	{
 		this.$el.foundation('reveal', 'close');
+		this.$('input[name=ticket]').val('');
+		this.$('textarea[name=message]').val('');
 	},
 	doSend: function()
 	{
@@ -572,6 +574,8 @@ var SendLogDialog = Backbone.View.extend({
 			.done(_.bind(function(){
 				noty({text: "Logs sent to AstroPrint!", type: 'success', timeout: 3000});
 				this.$el.foundation('reveal', 'close');
+				this.$('input[name=ticket]').val('');
+				this.$('textarea[name=message]').val('');
 			},this))
 			.fail(function(){
 				noty({text: "There was a problem sending your logs.", timeout: 3000});
