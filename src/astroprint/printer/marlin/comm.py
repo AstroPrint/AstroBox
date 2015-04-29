@@ -520,6 +520,9 @@ class MachineCom(object):
 		self.sendCommand("M20")
 
 	def initSdCard(self):
+		# we currently don't do anything with SD cards so avoid this for now
+		return
+
 		if not self.isOperational():
 			return
 		self.sendCommand("M21")
