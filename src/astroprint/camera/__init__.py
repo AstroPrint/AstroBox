@@ -74,22 +74,24 @@ class CameraManager(object):
 		self.open_camera()
 
 	def addPhotoToTimelapse(self, timelapseId):
-		#Build text
-		printerData = printerManager().getCurrentData()
-		text = "%d%% - Layer %s%s" % (
-			printerData['progress']['completion'], 
-			str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
-			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
-		)
+		#check if the timelapse is still active
+		if self.timelapseInfo:
+			#Build text
+			printerData = printerManager().getCurrentData()
+			text = "%d%% - Layer %s%s" % (
+				printerData['progress']['completion'], 
+				str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
+				"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
+			)
 
-		picBuf = self.get_pic(text=text)
+			picBuf = self.get_pic(text=text)
 
-		if picBuf:
-			picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
-			if picData:
-				self.timelapseInfo['last_photo'] = picData['url']
-				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
-				return True
+			if picBuf:
+				picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
+				if picData:
+					self.timelapseInfo['last_photo'] = picData['url']
+					self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+					return True
 
 		return False
 
