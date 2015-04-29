@@ -338,7 +338,7 @@ class Printer(object):
 
 	def mcPrintjobDone(self):
 		#stop timelapse if there was one
-		self._cameraManager.stop_timelapse()
+		self._cameraManager.stop_timelapse(True)
 		
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)

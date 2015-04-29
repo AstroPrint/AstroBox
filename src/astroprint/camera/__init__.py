@@ -74,24 +74,24 @@ class CameraManager(object):
 		self.open_camera()
 
 	def addPhotoToTimelapse(self, timelapseId):
-		#check if the timelapse is still active
-		if self.timelapseInfo:
-			#Build text
-			printerData = printerManager().getCurrentData()
-			text = "%d%% - Layer %s%s" % (
-				printerData['progress']['completion'], 
-				str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
-				"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
-			)
+		#Build text
+		printerData = printerManager().getCurrentData()
+		text = "%d%% - Layer %s%s" % (
+			printerData['progress']['completion'], 
+			str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
+			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
+		)
 
-			picBuf = self.get_pic(text=text)
+		picBuf = self.get_pic(text=text)
 
-			if picBuf:
-				picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
-				if picData:
-					self.timelapseInfo['last_photo'] = picData['url']
-					self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
-					return True
+		if picBuf:
+			picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
+			#we need to check again as it's possible that this was the last
+			#pic and the timelapse is closed.
+			if picData and self.timelapseInfo:
+				self.timelapseInfo['last_photo'] = picData['url']
+				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+				return True
 
 		return False
 
@@ -176,16 +176,19 @@ class CameraManager(object):
 
 		return False
 
-	def stop_timelapse(self):
+	def stop_timelapse(self, takeLastPhoto = False):
+		#unsubscribe from layer change events
+		self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
+		self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, None)
+
 		if self.timelapseWorker:
 			self.timelapseWorker.stop()
 			self.timelapseWorker = None
 
-		self.timelapseInfo = None
+		if takeLastPhoto and self.timelapseInfo:
+			self.addPhotoToTimelapse(self.timelapseInfo['id'])
 
-		#unsubscribe from layer change events
-		self._eventManager.unsubscribe(Events.LAYER_CHANGE, self._onLayerChange)
-		self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, None)
+		self.timelapseInfo = None
 
 		return True
 
