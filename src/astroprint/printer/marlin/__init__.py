@@ -356,12 +356,6 @@ class PrinterMarlin(Printer):
 
 	def mcPrintjobDone(self):
 		super(PrinterMarlin, self).mcPrintjobDone()
-
-		#don't send home command, some printers don't have stoppers.
-		#self.home(['x','y'])
-
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
-
 		self.disableMotorsAndHeater()
 
 	def mcFileTransferStarted(self, filename, filesize):
