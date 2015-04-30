@@ -547,8 +547,8 @@ class PrinterS3g(Printer):
 		if not super(PrinterS3g, self).cancelPrint():
 			return
 
-		self._printJob.cancel()
 		self._comm.abort_immediately()
+		self._printJob.cancel()
 
 	# ~~~ Internal Callbacks ~~~~
 

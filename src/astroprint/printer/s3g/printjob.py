@@ -234,7 +234,6 @@ class PrintJobS3G(threading.Thread):
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
 			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
-
 		except ExternalStopError:
 			self._logger.warn('External Stop detected')
 			self._printer._comm.writer.set_external_stop(False)
