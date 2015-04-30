@@ -354,9 +354,11 @@ var PrintingView = Backbone.View.extend({
             if (data && _.has(data, 'error')) {
                 console.error(data.error);
             } else {
-                app.socketData.set({printing: false, paused: false}); 
-            }         
-            loadingBtn.removeClass('loading'); 
+                app.socketData.set({printing: false, paused: false}, {silent: true});
+            }
+            setTimeout(function(){
+                loadingBtn.removeClass('loading'); 
+            }, 2000);
         }, this));
     },
     togglePausePrint: function(e) {

@@ -81,7 +81,7 @@ var AstroBoxApp = Backbone.View.extend({
 				print_capture: null
 			}, {silent: true});
 			this.$el.find('.tab-bar .left-small').show();
-			this.router.navigate("", {replace: true, trigger: true});
+			this.router.navigate("control", {replace: true, trigger: true});
 		}
 	},
 	onlineStatusChange: function(s, value)
