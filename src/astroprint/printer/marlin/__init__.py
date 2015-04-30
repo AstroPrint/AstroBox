@@ -70,7 +70,7 @@ class PrinterMarlin(Printer):
 	def disableMotorsAndHeater(self):
 		self.setTemperature('bed', 5)
 		self.setTemperature('tool', 5)
-		self.commands(["M29", "M84", "M106 S0"]); #Motors Off, Fan off
+		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 	#~~ callback handling
 
@@ -256,7 +256,7 @@ class PrinterMarlin(Printer):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterMarlin, self).cancelPrint():
+		if not super(PrinterMarlin, self).cancelPrint(disableMotorsAndHeater):
 			return
 
 		#flush the Queue
@@ -268,7 +268,7 @@ class PrinterMarlin(Printer):
 
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
@@ -360,7 +360,7 @@ class PrinterMarlin(Printer):
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
 
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 S1 F3000"]) # this replaces home
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
 
 		self.disableMotorsAndHeater()
 
