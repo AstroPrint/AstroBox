@@ -185,7 +185,20 @@ class PrintJobS3G(threading.Thread):
 			if self._canceled:
 				self._printer._comm.clear_buffer()
 
-			self._printer._comm.find_axes_maximums(['x', 'y'], 200, 10)
+			#Is possible to get a BufferOverflowError when succesfully completing a job
+			continueEndSequence = False
+			findAxesTries = 0
+			while not continueEndSequence:
+				try:
+					self._printer._comm.find_axes_maximums(['x', 'y'], 200, 10)
+					continueEndSequence = True
+
+				except BufferOverflowError:
+					if findAxesTries < 3:
+						time.sleep(.2)
+						findAxesTries += 1
+					else:
+						continueEndSequence = True
 
 			#find current z:
 			moveToPosition, endStopsStates = self._printer._comm.get_extended_position()
@@ -246,7 +259,7 @@ class PrintJobS3G(threading.Thread):
 			}
 			eventManager().fire(Events.PRINT_FAILED, payload)
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
-			self._printer._changeState(self._printer.STATE_OPERATIONAL)
+			self._printer._changeState(self._printer.STATE_OPERATIONAL)			
 
 		except Exception as e:
 			self._errorValue = getExceptionString()
