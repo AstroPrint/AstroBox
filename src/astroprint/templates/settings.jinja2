@@ -346,16 +346,17 @@
 			<h4 class="bold">Logs</h4>
 			<button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button><br/>
 			Size of logs directory: <span class="size bold"><%= size_format(data.sizeLogs) %></span> <button class="secondary radius tiny" data-reveal-id="delete-logs-modal">Clear</button>
-			<div class="row">
+			<div class="row serial-container">
 				<div class="small-2 large-1 columns">
 					<input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
 				</div>
 				<div class="small-10 large-11 columns">
 					<label for="serial-off">
 						<b>
-							Turn on serial logs. You should only use this while helping solve a 
-							communication problem with your printer. This generates a large amount of data.
+							Turn on serial logs. 
 						</b>
+						<i class="icon-attention"></i>You should only use this while helping solve a 
+							communication problem with your printer. This generates a large amount of data.
 					</label>
 				</div>
 			</div>
