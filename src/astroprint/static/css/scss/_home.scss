@@ -20,6 +20,9 @@
 
 		.serial-log & {
 			display: block;
+			background: #f9dede;
+			border: 1px solid $alert-color;
+			color: #222;
 		}
 	}
 
