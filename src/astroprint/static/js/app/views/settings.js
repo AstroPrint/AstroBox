@@ -336,7 +336,7 @@ var InternetConnectionView = SettingsPage.extend({
 		fail(function(){
 			noty({text: "There was an error saving hotspot option.", timeout: 3000});
 		})
-	},
+	}
 });
 
 var WiFiNetworkPasswordDialog = Backbone.View.extend({
@@ -531,13 +531,59 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 
 var SoftwareAdvancedView = SettingsPage.extend({
 	el: '#software-advanced',
+	template: _.template( $("#software-advanced-content-template").html() ),
 	resetConfirmDialog: null,
 	sendLogDialog: null,
+	clearLogDialog: null,
+	settings: null,
+	events: {
+		'change #serial-logs': 'serialLogChanged'
+	},
 	initialize: function(params)
 	{
 		SettingsPage.prototype.initialize.apply(this, arguments);
 		this.resetConfirmDialog = new ResetConfirmDialog();
 		this.sendLogDialog = new SendLogDialog();
+		this.clearLogDialog = new ClearLogsDialog({parent: this});
+	},
+	show: function()
+	{
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+
+		if (!this.settings) {
+			$.getJSON(API_BASEURL + 'settings/software/advanced', null, _.bind(function(data) {
+				this.settings = data;
+				this.render();
+			}, this))
+			.fail(function() {
+				noty({text: "There was an error getting software advanced settings.", timeout: 3000});
+			});
+		}
+	},
+	render: function()
+	{
+		this.$el.html(this.template({ 
+			data: this.settings,
+			size_format: app.utils.sizeFormat
+		}));		
+	},
+	serialLogChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+
+		$.ajax({
+			url: '/api/settings/software/logs/serial',
+			method: 'PUT',
+			data: JSON.stringify({
+				'active': target.is(':checked')
+			}),
+			contentType: 'application/json',
+			dataType: 'json'
+		}).
+		fail(function(){
+			noty({text: "There was an error changing serial logs.", timeout: 3000});
+		});
 	}
 });
 
@@ -584,6 +630,45 @@ var SendLogDialog = Backbone.View.extend({
 				button.removeClass('loading');
 			});
 	}	
+});
+
+var ClearLogsDialog = Backbone.View.extend({
+	el: '#delete-logs-modal',
+	events: {
+		'click button.secondary': 'doClose',
+		'click button.alert': 'doDelete',
+		'open.fndtn.reveal': 'onOpen'		
+	},
+	parent: null,
+	initialize: function(options)
+	{
+		this.parent = options.parent;
+	},
+	doClose: function()
+	{
+		this.$el.foundation('reveal', 'close');
+	},
+	doDelete: function()
+	{
+		this.$('.loading-button').addClass('loading');
+		$.ajax({
+			url: API_BASEURL + 'settings/software/logs', 
+			type: 'DELETE',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify({}),
+			success: _.bind(function() {
+				this.parent.$('.size').text('0 kB');
+				this.doClose()
+			}, this),
+			error: function(){
+				noty({text: "There was a problem clearing your logs.", timeout: 3000});
+			},
+			complete: _.bind(function() {
+				this.$('.loading-button').removeClass('loading');
+			}, this)
+		})
+	}
 });
 
 var ResetConfirmDialog = Backbone.View.extend({

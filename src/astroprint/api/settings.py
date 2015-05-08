@@ -3,6 +3,7 @@ __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
+import os
 
 from flask import request, abort, jsonify, make_response
 
@@ -122,6 +123,17 @@ def stopWifiHotspot():
 	else:
 		return (result, 500)
 
+@api.route("/settings/software/advanced", methods=["GET"])
+@restricted_access
+def getAdvancedSoftwareSettings():
+	s = settings()
+	logsDir = s.getBaseFolder("logs")
+
+	return jsonify(
+		serialActivated= s.getBoolean(['serial', 'log']), 
+		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
+	)
+
 @api.route("/settings/software/settings", methods=["DELETE"])
 @restricted_access
 def resetFactorySettings():
@@ -205,3 +217,25 @@ def sendLogs():
 		return jsonify();
 	else:
 		return ("There was an error trying to send your logs.", 500)
+
+@api.route("/settings/software/logs/serial", methods=['PUT'])
+@restricted_access
+def changeSerialLogs():
+	data = request.json
+
+	if data and 'active' in data:
+		s = settings()
+		s.setBoolean(['serial', 'log'], data['active'])
+		s.save()
+		return jsonify();
+	
+	else:
+		return ("Wrong data sent in.", 400)
+
+@api.route("/settings/software/logs", methods=['DELETE'])
+@restricted_access
+def clearLogs():
+	if softwareManager.clearLogs():
+		return jsonify();
+	else:
+		return ("There was an error trying to clear your logs.", 500)

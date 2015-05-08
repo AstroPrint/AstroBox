@@ -153,11 +153,9 @@
 		</div>
 
 		<div class="show-for-small zebra">
-			
 			<h1 class="bold" align="center">Internet Connection</h1>
 		</div>
-		<div id="internet-connection" class="settings-page hide">
-		</div>
+		<div id="internet-connection" class="settings-page hide"></div>
 		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">Select a WiFi Network</h2>
 			<div class="modal-content"></div>
@@ -291,7 +289,6 @@
 		</script>
 
 		<div class="show-for-small zebra software">
-			
 			<h1 class="bold" align="center">Software</h1>
 		</div>
 		<div id="software-update" class="settings-page hide" align="center">
@@ -341,10 +338,28 @@
 			</div>
 		</script>
 
-		<div id="software-advanced" class="settings-page hide" align="center">
+		<div id="software-advanced" class="settings-page hide" align="center"></div>
+		<script type="text/template" id="software-advanced-content-template">
+			<h4 class="bold">Factory Settings</h4>
 			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
-			<button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button>
-		</div>
+			<hr/>
+			<h4 class="bold">Logs</h4>
+			<button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button><br/>
+			Size of logs directory: <span class="size bold"><%= size_format(data.sizeLogs) %></span> <button class="secondary radius tiny" data-reveal-id="delete-logs-modal">Clear</button>
+			<div class="row">
+				<div class="small-2 large-1 columns">
+					<input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
+				</div>
+				<div class="small-10 large-11 columns">
+					<label for="serial-off">
+						<b>
+							Turn on serial logs. You should only use this while helping solve a 
+							communication problem with your printer. This generates a large amount of data.
+						</b>
+					</label>
+				</div>
+			</div>
+		</script>
 
 		<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Are you sure?</h2>
@@ -366,6 +381,7 @@
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
+
 		<div id="send-logs-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Send logs to AstroPrint</h2>
 			<div class="modal-content">
@@ -376,7 +392,6 @@
 						<input type="text" name="ticket" placeholder="(optional)"/>
 					</label>
 					<textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
-
 				</p>
 			</div>
 			<div class="modal-actions">
@@ -384,6 +399,27 @@
 				<div class="loading-button right">
 					<button class="success radius">Send Logs</button>
 					<span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+				</div>
+			</div>
+			<a class="close-reveal-modal">&#215;</a>
+		</div>
+
+		<div id="delete-logs-modal" class="reveal-modal medium radius" data-reveal>
+			<h2 class="bold">Delete AstroPrint logs</h2>
+			<div class="modal-content">
+				<p>
+					This will delete all your past AstroPrint logs. It will help save space but might 
+					prevent us from researching a past problem you might have had.
+				</p>
+				<p>
+					Are you sure you want to delete all logs?
+				</p>
+			</div>
+			<div class="modal-actions">
+				<button class="secondary radius left">Cancel</button>
+				<div class="loading-button right">
+					<button class="alert radius">Delete Logs</button>
+					<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
 				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
