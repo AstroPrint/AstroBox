@@ -79,6 +79,7 @@ class MachineCom(object):
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
+		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 
 		if port == None:
 			port = settings().get(["serial", "port"])
@@ -177,7 +178,7 @@ class MachineCom(object):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
+		self._serialLoggerEnabled and self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):
@@ -620,9 +621,9 @@ class MachineCom(object):
 		if not self._openSerial():
 			return
 
-		self._log("Connected to: %s, starting monitor" % self._serial)
+		self._serialLoggerEnabled and self._log("Connected to: %s, starting monitor" % self._serial)
 		if self._baudrate == 0:
-			self._log("Starting baud rate detection")
+			self._serialLoggerEnabled and self._log("Starting baud rate detection")
 			self._changeState(self.STATE_DETECT_BAUDRATE)
 		else:
 			self._changeState(self.STATE_CONNECTING)
@@ -822,7 +823,7 @@ class MachineCom(object):
 						elif self._baudrateDetectRetry > 0:
 							self._baudrateDetectRetry -= 1
 							self._serial.write('\n')
-							self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
+							self._serialLoggerEnabled and self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
 							self._sendCommand("M105")
 							self._testingBaudrate = True
 						else:
@@ -830,7 +831,7 @@ class MachineCom(object):
 							try:
 								self._serial.baudrate = baudrate
 								self._serial.timeout = settings().getFloat(["serial", "timeout", "detection"])
-								self._log("Trying baudrate: %d" % (baudrate))
+								self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
 								self._baudrateDetectRetry = 5
 								self._baudrateDetectTestOk = 0
 								timeout = getNewTimeout("communication")
@@ -838,11 +839,11 @@ class MachineCom(object):
 								self._sendCommand("M105")
 								self._testingBaudrate = True
 							except:
-								self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
+								self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
 					elif 'ok' in line and 'T:' in line:
 						self._baudrateDetectTestOk += 1
 						if self._baudrateDetectTestOk < 10:
-							self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
+							self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
 							self._sendCommand("M105")
 						else:
 							self._sendCommand("M999")
@@ -908,8 +909,11 @@ class MachineCom(object):
 				### Printing
 				elif self._state == self.STATE_PRINTING:
 					if line == "" and time.time() > timeout:
-						self._log("Communication timeout during printing, forcing a line")
-						line = 'ok'
+						self._serialLoggerEnabled and self._log("Read communication timeout during printing, listen again")
+						#we reset the timeout and try to listen again.
+						#we could be executing a long movement, a G29 command or some other thing longer than the timeout
+						timeout = getNewTimeout("communication")
+						continue
 
 					if self.isSdPrinting():
 						if time.time() > tempRequestTimeout and not self._heatingUp:
@@ -943,32 +947,32 @@ class MachineCom(object):
 				self._logger.exception("Something crashed inside the serial connection loop, please report this to AstroPrint:")
 
 				errorMsg = "See astrobox.log for details"
-				self._log(errorMsg)
+				self._serialLoggerEnabled and self._log(errorMsg)
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
-		self._log("Connection closed, closing down monitor")
+		self._serialLoggerEnabled and self._log("Connection closed, closing down monitor")
 
 	def _openSerial(self):
 		if self._port == 'AUTO':
 			self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
-			self._log("Serial port list: %s" % (str(self._callback.serialList())))
+			self._serialLoggerEnabled and self._log("Serial port list: %s" % (str(self._callback.serialList())))
 			for p in self._callback.serialList():
 				try:
-					self._log("Connecting to: %s" % (p))
+					self._serialLoggerEnabled and self._log("Connecting to: %s" % (p))
 					programmer.connect(p)
 					self._serial = programmer.leaveISP()
 					break
 				except ispBase.IspError as (e):
-					self._log("Error while connecting to %s: %s" % (p, str(e)))
+					self._serialLoggerEnabled and self._log("Error while connecting to %s: %s" % (p, str(e)))
 					pass
 				except:
-					self._log("Unexpected error while connecting to serial port: %s %s" % (p, getExceptionString()))
+					self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (p, getExceptionString()))
 				programmer.close()
 			if self._serial is None:
-				self._log("Failed to autodetect serial port")
+				self._serialLoggerEnabled and self._log("Failed to autodetect serial port")
 				self._errorValue = 'Failed to autodetect serial port.'
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
@@ -979,13 +983,13 @@ class MachineCom(object):
 		else:
 			self._changeState(self.STATE_OPEN_SERIAL)
 			try:
-				self._log("Connecting to: %s" % self._port)
+				self._serialLoggerEnabled and self._log("Connecting to: %s" % self._port)
 				if self._baudrate == 0:
 					self._serial = serial.Serial(str(self._port), 115200, timeout=0.1, writeTimeout=10000)
 				else:
 					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=settings().getFloat(["serial", "timeout", "connection"]), writeTimeout=10000)
 			except:
-				self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
+				self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
@@ -1019,17 +1023,21 @@ class MachineCom(object):
 	def _readline(self):
 		if self._serial == None:
 			return None
+
 		try:
 			ret = self._serial.readline()
+
 		except:
-			self._log("Unexpected error while reading serial port: %s" % (getExceptionString()))
+			self._serialLoggerEnabled and self._log("Unexpected error while reading serial port: %s" % (getExceptionString()))
 			self._errorValue = getExceptionString()
 			self.close(True)
 			return None
+
 		if ret == '':
-			#self._log("Recv: TIMEOUT")
+			self._serialLoggerEnabled and self._log("Recv: TIMEOUT")
 			return ''
-		self._log("Recv: %s" % sanitizeAscii(ret))
+
+		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
 		return ret
 
 	def _sendNext(self):
@@ -1144,21 +1152,29 @@ class MachineCom(object):
 		self._doSendWithoutChecksum(commandToSend)
 
 	def _doSendWithoutChecksum(self, cmd):
-		self._log("Send: %s" % cmd)
-		try:
-			self._serial.write(cmd + '\n')
-		except serial.SerialTimeoutException:
-			self._log("Serial timeout while writing to serial port, trying again.")
+		self._serialLoggerEnabled and self._log("Send: %s" % cmd)
+		retriesLeft = 5
+		while True:
 			try:
 				self._serial.write(cmd + '\n')
+				break
+
+			except serial.SerialTimeoutException:
+				retriesLeft -= 1
+
+				if retriesLeft == 0:
+					self._serialLoggerEnabled and self._log("No more retries left. Closing the connection")
+					self._errorValue = "Unable to send data"
+					self.close(True)
+					break
+				else:
+					self._serialLoggerEnabled and self._log("Serial Timeout while sending data. Retries left: %d" % retriesLeft)
+
 			except:
-				self._log("Unexpected error while writing serial port: %s" % (getExceptionString()))
+				self._serialLoggerEnabled and self._log("Unexpected error while writing serial port: %s" % (getExceptionString()))
 				self._errorValue = getExceptionString()
 				self.close(True)
-		except:
-			self._log("Unexpected error while writing serial port: %s" % (getExceptionString()))
-			self._errorValue = getExceptionString()
-			self.close(True)
+				break
 
 	def _gcode_T(self, cmd):
 		toolMatch = self._regex_paramTInt.search(cmd)
