@@ -146,7 +146,8 @@ def index():
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
 			astroboxName= nm.getHostname(),
-			variantData= variantManager().data
+			variantData= variantManager().data,
+			serialLogActive= s.getBoolean(['serial', 'log'])
 		)
 
 @app.route("/discovery.xml")

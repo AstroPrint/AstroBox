@@ -571,17 +571,25 @@ var SoftwareAdvancedView = SettingsPage.extend({
 	serialLogChanged: function(e)
 	{
 		var target = $(e.currentTarget);
+		var active = target.is(':checked');
 
 		$.ajax({
 			url: '/api/settings/software/logs/serial',
 			method: 'PUT',
 			data: JSON.stringify({
-				'active': target.is(':checked')
+				'active': active
 			}),
 			contentType: 'application/json',
 			dataType: 'json'
-		}).
-		fail(function(){
+		})
+		.done(function(){
+			if (active) {
+				$('#app').addClass('serial-log');
+			} else {
+				$('#app').removeClass('serial-log');
+			}
+		})
+		.fail(function(){
 			noty({text: "There was an error changing serial logs.", timeout: 3000});
 		});
 	}
