@@ -515,6 +515,9 @@ class MachineCom(object):
 		self.refreshSdFiles()
 
 	def refreshSdFiles(self):
+		# we currently don't do anything with SD cards so avoid this for now
+		return
+		
 		if not self.isOperational() or self.isBusy():
 			return
 		self.sendCommand("M20")
