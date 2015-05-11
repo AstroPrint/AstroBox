@@ -237,8 +237,7 @@ class PrinterMarlin(Printer):
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
-		while not commandQueue.empty():
-			commandQueue.get_nowait()
+		commandQueue.clear()
 
 		#self._comm._sendCommand("M112");
 

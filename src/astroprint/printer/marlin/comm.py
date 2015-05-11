@@ -12,7 +12,6 @@ import glob
 import time
 import re
 import threading
-import Queue as queue
 import logging
 import serial
 
@@ -27,7 +26,6 @@ from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, fil
 from octoprint.util.virtual import VirtualPrinter
 
 from astroprint.printfiles import FileDestinations
-#from astroprint.printerprofile import printerProfileManager
 
 try:
 	import _winreg
@@ -100,12 +98,11 @@ class MachineCom(object):
 		self._serial = None
 		self._baudrateDetectList = callbackObject.baudrateList()
 		self._baudrateDetectRetry = 0
-		#self._extruderCount = int(printerProfileManager().data['extruder_count'])
 		self._temperatureRequestExtruder = 0
 		self._temp = {}
 		self._bedTemp = None
 		self._heatingUp = None
-		self._commandQueue = queue.Queue()
+		self._commandQueue = deque()
 		self._currentZ = None
 		self._currentLayer = None
 		self._lastLayerHeight = None
@@ -341,7 +338,7 @@ class MachineCom(object):
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
 		if self.isPrinting():
-			self._commandQueue.put(cmd)
+			self._commandQueue.appendleft(cmd)
 		elif self.isOperational():
 			self._sendCommand(cmd)
 
@@ -639,6 +636,7 @@ class MachineCom(object):
 		startSeen = not settings().getBoolean(["feature", "waitForStartOnConnect"])
 		self._heatingUp = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
+		oksAfterHeatingUp = 3
 
 		while True:
 			try:
@@ -811,9 +809,12 @@ class MachineCom(object):
 				# 	elif "toggle" in pauseTriggers.keys() and pauseTriggers["toggle"].search(line) is not None:
 				# 		self.setPause(not self.isPaused())
 
-				if "ok" in line and self._heatingUp:
-					self._heatingUp = False
-					self._callback.mcHeatingUpUpdate(self._heatingUp)
+				if self._heatingUp and "ok" in line:
+					if oksAfterHeatingUp == 0:
+						self._heatingUp = False
+						self._callback.mcHeatingUpUpdate(self._heatingUp)
+					else:
+						oksAfterHeatingUp -= 1
 
 				### Baudrate detection
 				if self._state == self.STATE_DETECT_BAUDRATE:
@@ -882,13 +883,9 @@ class MachineCom(object):
 					if line == "" or "wait" in line:
 						if self._resendDelta is not None:
 							self._resendNextCommand()
-						elif not self._commandQueue.empty():
-							self._sendCommand(self._commandQueue.get())
+						elif len(self._commandQueue) > 0:
+							self._sendCommand(self._commandQueue.pop())
 						else:
-							#if self._extruderCount > 0:
-							#	self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
-							#	self.sendCommand("M105 T%d" % (self._temperatureRequestExtruder))
-							#else:
 							self.sendCommand("M105")
 						tempRequestTimeout = getNewTimeout("temperature")
 					# resend -> start resend procedure from requested line
@@ -929,19 +926,17 @@ class MachineCom(object):
 
 					# Even when printing request the temperature every 5 seconds.
 					if time.time() > tempRequestTimeout:# and not self.isStreaming():
-						#if self._extruderCount > 0:
-						#	self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
-						#	self._commandQueue.put("M105 T%d" % (self._temperatureRequestExtruder))
-						#else:
-						self._commandQueue.put("M105")
+						#It there's already a request for temps, don't add a new one....
+						if len(self._commandQueue) == 0 or "M105" not in self._commandQueue[-1]:
+							self._commandQueue.appendleft("M105")
 						
 						tempRequestTimeout = getNewTimeout("temperature")
 
 					if "ok" in line:
 						if self._resendDelta is not None:
 							self._resendNextCommand()
-						elif not self._commandQueue.empty(): # and not self.isStreaming():
-							self._sendCommand(self._commandQueue.get())
+						elif len(self._commandQueue) > 0:
+							self._sendCommand(self._commandQueue.pop())
 						else:
 							self._sendNext()
 					else:
