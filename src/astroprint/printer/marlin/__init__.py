@@ -262,6 +262,7 @@ class PrinterMarlin(Printer):
 			if self._selectedFile["sd"]:
 				payload["origin"] = FileDestinations.SDCARD
 			eventManager().fire(Events.PRINT_FAILED, payload)
+			self._selectedFile = None
 
 		self._comm.cancelPrint()
 
