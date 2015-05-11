@@ -374,6 +374,11 @@ class MachineCom(object):
 			# 		self._currentFile.setFilepos(0)
 			# 	self.sendCommand("M24")
 			# else:
+
+			#reset line counter
+			self._sendCommand("M110 N0")
+
+			#start sending gcode from file
 			self._sendNext()
 		except:
 			self._errorValue = getExceptionString()
@@ -1404,13 +1409,7 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 		self._filehandle = None
 
 		self._filesetMenuModehandle = None
-		self._lineCount = None
-		self._firstLine = None
 		self._currentTool = 0
-
-		self._regex_tempCommand = re.compile("M(104|109|140|190)")
-		self._regex_tempCommandTemperature = re.compile("S([-+]?\d*\.?\d*)")
-		self._regex_tempCommandTool = re.compile("T(\d+)")
 		self._regex_toolCommand = re.compile("^T(\d+)")
 
 		if not os.path.exists(self._filename) or not os.path.isfile(self._filename):
@@ -1422,8 +1421,7 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 		Opens the file for reading and determines the file size. Start time won't be recorded until 100 lines in
 		"""
 		self._filehandle = open(self._filename, "r")
-		self._lineCount = None
-		self._startTime = None
+		self._startTime = time.time()
 
 	def getNext(self):
 		"""
@@ -1431,12 +1429,6 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 		"""
 		if self._filehandle is None:
 			raise ValueError("File %s is not open for reading" % self._filename)
-
-		if self._lineCount is None:
-			self._lineCount = 0
-			return "M110 N0"
-
-		self._startTime = time.time()
 
 		try:
 			processedLine = None
@@ -1449,7 +1441,6 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 					self._filehandle.close()
 					self._filehandle = None
 				processedLine = self._processLine(line)
-			self._lineCount += 1
 			self._filepos = self._filehandle.tell()
 
 			return processedLine
