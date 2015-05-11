@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-	<div id="app" class="off-canvas-wrap {% if online -%} online {%- else -%} offline {%- endif %}" data-offcanvas>
+	<div id="app" class="off-canvas-wrap {% if online -%} online {%- else -%} offline {%- endif %} {%- if serialLogActive %} serial-log {%- endif %}" data-offcanvas>
 		<div class="inner-wrap">
 			<nav class="tab-bar">
 				<section class="left-small">

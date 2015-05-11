@@ -518,6 +518,7 @@ class MachineCom(object):
 		# if not self.isOperational() or self.isBusy():
 		# 	return
 		# self.sendCommand("M20")
+		# we currently don't do anything with SD cards so avoid this for now
 
 	def initSdCard(self):
 		# we currently don't do anything with SD cards so avoid this for now

@@ -14,6 +14,18 @@
 
 #app-container {
 	padding: 0;
+
+	.alert-box.serial-log {
+		display: none;
+
+		.serial-log & {
+			display: block;
+			background: #f9dede;
+			border: 1px solid $alert-color;
+			color: #222;
+		}
+	}
+
 	&.row {
 		max-width: rem-calc(1000);
 		margin: 0 auto;
@@ -22,13 +34,6 @@
 		font-size: rem-calc(18);
 		text-align: center;
 	}
-	// ul {
-	// 	list-style: none;
-	// 	li {
-	// 		float: left;
-	// 		padding: 0 rem-calc(10);
-	// 	}	
-	// }
 
 	.app-image {
 		position: relative;

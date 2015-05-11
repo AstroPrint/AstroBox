@@ -442,6 +442,24 @@ class SoftwareManager(object):
 			self._logger.error('Error while sending logs: %d' % r.status_code)
 			return False
 
+	def clearLogs(self):
+		activeLogFiles = ['astrobox.log', 'serial.log']
+
+		logsDir = self._settings.getBaseFolder("logs")
+
+		# first delete all old logs
+		for f in os.listdir(logsDir):
+			path = os.path.join(logsDir, f)
+			
+			if os.path.isfile(path) and f not in activeLogFiles:
+				os.unlink(path)
+
+		# then truncate the currently used one
+		for f in activeLogFiles:
+			with open(os.path.join(logsDir,f), 'w'):
+				pass
+
+		return True
 
 	def _checkAuth(self):
 		if current_user and current_user.is_authenticated():
