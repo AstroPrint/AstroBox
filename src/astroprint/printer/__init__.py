@@ -519,9 +519,6 @@ class Printer(object):
 	def setTemperature(self, type, value):
 		raise NotImplementedError()
 
-	def setTemperatureOffset(self, offsets={}):
-		raise NotImplementedError()
-
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):
 		self._ratelimit = ratelimit
