@@ -239,15 +239,6 @@ class PrinterMarlin(Printer):
 		commandQueue = self._comm._commandQueue
 		commandQueue.clear()
 
-		#self._comm._sendCommand("M112");
-
-		#don't send home command, some printers don't have stoppers.
-		#self.home(['x','y'])
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
-
-		if disableMotorsAndHeater:
-			self.disableMotorsAndHeater()
-
 		# reset progress, height, print time
 		self._setCurrentZ(None)
 		self._setProgressData(None, None, None, None, None)
@@ -265,6 +256,15 @@ class PrinterMarlin(Printer):
 			self._selectedFile = None
 
 		self._comm.cancelPrint()
+
+		#self._comm._sendCommand("M112");
+
+		#don't send home command, some printers don't have stoppers.
+		#self.home(['x','y'])
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
+
+		if disableMotorsAndHeater:
+			self.disableMotorsAndHeater()
 
 	#~~ state monitoring
 
