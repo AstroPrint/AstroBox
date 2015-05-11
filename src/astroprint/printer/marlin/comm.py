@@ -27,7 +27,7 @@ from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, fil
 from octoprint.util.virtual import VirtualPrinter
 
 from astroprint.printfiles import FileDestinations
-from astroprint.printerprofile import printerProfileManager
+#from astroprint.printerprofile import printerProfileManager
 
 try:
 	import _winreg
@@ -100,7 +100,7 @@ class MachineCom(object):
 		self._serial = None
 		self._baudrateDetectList = callbackObject.baudrateList()
 		self._baudrateDetectRetry = 0
-		self._extruderCount = int(printerProfileManager().data['extruder_count'])
+		#self._extruderCount = int(printerProfileManager().data['extruder_count'])
 		self._temperatureRequestExtruder = 0
 		self._temp = {}
 		self._bedTemp = None
@@ -423,14 +423,14 @@ class MachineCom(object):
 		self._callback.mcFileSelected(None, None, False)
 
 	def cancelPrint(self):
-		if not self.isOperational() or self.isStreaming():
+		if not self.isOperational():# or self.isStreaming():
 			return
 
 		self._changeState(self.STATE_OPERATIONAL)
 
-		if self.isSdFileSelected():
-			self.sendCommand("M25")    # pause print
-			self.sendCommand("M26 S0") # reset position in file to byte 0
+		#if self.isSdFileSelected():
+		#	self.sendCommand("M25")    # pause print
+		#	self.sendCommand("M26 S0") # reset position in file to byte 0
 
 		eventManager().fire(Events.PRINT_CANCELLED, {
 			"file": self._currentFile.getFilename(),
@@ -444,36 +444,39 @@ class MachineCom(object):
 
 		if not pause and self.isPaused():
 			self._changeState(self.STATE_PRINTING)
-			if self.isSdFileSelected():
-				self.sendCommand("M24")
-			else:
-				#restore position
-				if self._positionWhenPaused:
-					self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
-					#reset extrusion to what it was in case we did some extrusion while paused
-					self._sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
-					#We need to reset the Z axis first in case they lowered it
-					self._sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
-					#Get back to where you were before pausing
-					self._sendCommand("G1 X%.4f Y%.4f E%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1], self._positionWhenPaused[3] ))
-					#slow down the speed for the first movement
-					self._sendCommand("G1 F1000")
+			#if self.isSdFileSelected():
+			#	self.sendCommand("M24")
+			#else:
 
-				self._sendNext()
+			#restore position
+			if self._positionWhenPaused:
+				self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
+				#reset extrusion to what it was in case we did some extrusion while paused
+				self._sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
+				#We need to reset the Z axis first in case they lowered it
+				self._sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
+				#Get back to where you were before pausing
+				self._sendCommand("G1 X%.4f Y%.4f E%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1], self._positionWhenPaused[3] ))
+				#slow down the speed for the first movement
+				self._sendCommand("G1 F1000")
+
+			self._sendNext()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
 				"file": self._currentFile.getFilename(),
 				"filename": os.path.basename(self._currentFile.getFilename()),
 				"origin": self._currentFile.getFileLocation()
 			})
+
 		elif pause and self.isPrinting():
 			self._changeState(self.STATE_PAUSED)
-			if self.isSdFileSelected():
-				self.sendCommand("M25") # pause print
-			else:
-				self.sendCommand("M106 S0") #Stop fans
-				self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
-				#the head movement out of the way is done on the M114 reponse.
+			#if self.isSdFileSelected():
+			#	self.sendCommand("M25") # pause print
+			#else:
+
+			self.sendCommand("M106 S0") #Stop fans
+			self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
+			#the head movement out of the way is done on the M114 response.
 
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
@@ -882,11 +885,11 @@ class MachineCom(object):
 						elif not self._commandQueue.empty():
 							self._sendCommand(self._commandQueue.get())
 						else:
-							if self._extruderCount > 0:
-								self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
-								self.sendCommand("M105 T%d" % (self._temperatureRequestExtruder))
-							else:
-								self.sendCommand("M105")
+							#if self._extruderCount > 0:
+							#	self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
+							#	self.sendCommand("M105 T%d" % (self._temperatureRequestExtruder))
+							#else:
+							self.sendCommand("M105")
 						tempRequestTimeout = getNewTimeout("temperature")
 					# resend -> start resend procedure from requested line
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
@@ -926,11 +929,11 @@ class MachineCom(object):
 
 					# Even when printing request the temperature every 5 seconds.
 					if time.time() > tempRequestTimeout:# and not self.isStreaming():
-						if self._extruderCount > 0:
-							self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
-							self._commandQueue.put("M105 T%d" % (self._temperatureRequestExtruder))
-						else:
-							self._commandQueue.put("M105")
+						#if self._extruderCount > 0:
+						#	self._temperatureRequestExtruder = (self._temperatureRequestExtruder + 1) % self._extruderCount
+						#	self._commandQueue.put("M105 T%d" % (self._temperatureRequestExtruder))
+						#else:
+						self._commandQueue.put("M105")
 						
 						tempRequestTimeout = getNewTimeout("temperature")
 
@@ -1037,7 +1040,7 @@ class MachineCom(object):
 			return None
 
 		if ret == '':
-			self._serialLoggerEnabled and self._log("Recv: TIMEOUT")
+		#	self._serialLoggerEnabled and self._log("Recv: TIMEOUT")
 			return ''
 
 		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
@@ -1142,7 +1145,7 @@ class MachineCom(object):
 	def _doSendWithChecksum(self, cmd, lineNumber):
 		self._logger.debug("Sending cmd '%s' with lineNumber %r" % (cmd, lineNumber))
 
-		commandToSend = "N%d%s" % (lineNumber, cmd)
+		commandToSend = "N%d %s" % (lineNumber, cmd)
 		checksum = reduce(lambda x,y:x^y, map(ord, commandToSend))
 		commandToSend = "%s*%d" % (commandToSend, checksum)
 		self._doSend(commandToSend)
@@ -1274,6 +1277,7 @@ class MachineCom(object):
 		self._resendDelta = None
 
 		return None
+
 	def _gcode_M112(self, cmd): # It's an emergency what todo? Canceling the print should be the minimum
 		self.cancelPrint()
 		return cmd
