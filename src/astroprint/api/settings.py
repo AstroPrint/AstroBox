@@ -227,6 +227,9 @@ def changeSerialLogs():
 		s = settings()
 		s.setBoolean(['serial', 'log'], data['active'])
 		s.save()
+
+		printerManager().setSerialDebugLogging(data['active'])
+
 		return jsonify();
 	
 	else:
