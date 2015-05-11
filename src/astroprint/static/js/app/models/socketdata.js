@@ -148,6 +148,7 @@ var SocketData = Backbone.Model.extend({
                     if (!flags.paused) {
                         this.set('printing', flags.printing);
                     }
+
                     this.set('paused', flags.paused);
                     this.set('camera', flags.camera);
 

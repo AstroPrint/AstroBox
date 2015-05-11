@@ -354,7 +354,7 @@ var PrintingView = Backbone.View.extend({
             if (data && _.has(data, 'error')) {
                 console.error(data.error);
             } else {
-                app.socketData.set({printing: false, paused: false}, {silent: true});
+                app.socketData.set({printing: false, paused: false});
             }
             setTimeout(function(){
                 loadingBtn.removeClass('loading'); 
