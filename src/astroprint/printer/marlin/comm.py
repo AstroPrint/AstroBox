@@ -1436,6 +1436,8 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 			self._lineCount = 0
 			return "M110 N0"
 
+		self._startTime = time.time()
+
 		try:
 			processedLine = None
 			while processedLine is None:
@@ -1449,9 +1451,6 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 				processedLine = self._processLine(line)
 			self._lineCount += 1
 			self._filepos = self._filehandle.tell()
-
-			if self._lineCount >= 100 and self._startTime is None:
-				self._startTime = time.time()
 
 			return processedLine
 		except Exception as (e):
