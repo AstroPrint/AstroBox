@@ -351,8 +351,9 @@ class MachineCom(object):
 
 		try:
 			self._currentFile.start()
-			self._lastLayerHeight = 0.0;
-			self._currentLayer  = 0;
+			self._lastLayerHeight = 0.0
+			self._currentLayer  = 0
+			self._oksAfterHeatingUp = 3
 			#self._currentLayer = 1;
 			#sefl._lastLayerHeight;
 			#self._callback.mcLayerChange(self._tentativeLayer)
@@ -636,7 +637,6 @@ class MachineCom(object):
 		startSeen = not settings().getBoolean(["feature", "waitForStartOnConnect"])
 		self._heatingUp = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
-		oksAfterHeatingUp = 3
 
 		while True:
 			try:
@@ -810,11 +810,11 @@ class MachineCom(object):
 				# 		self.setPause(not self.isPaused())
 
 				if self._heatingUp and "ok" in line:
-					if oksAfterHeatingUp == 0:
+					if self._oksAfterHeatingUp == 0:
 						self._heatingUp = False
 						self._callback.mcHeatingUpUpdate(self._heatingUp)
 					else:
-						oksAfterHeatingUp -= 1
+						self._oksAfterHeatingUp -= 1
 
 				### Baudrate detection
 				if self._state == self.STATE_DETECT_BAUDRATE:
