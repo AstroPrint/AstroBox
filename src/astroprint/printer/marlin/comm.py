@@ -152,6 +152,7 @@ class MachineCom(object):
 
 		# multithreading locks as these functions can be called from different threads
 		self._sendingLock = threading.Lock()
+		self._calculateChecksumLock = threading.Lock()
 
 		# monitoring thread
 		self.thread = threading.Thread(target=self._monitor)
@@ -1103,7 +1104,7 @@ class MachineCom(object):
 
 	def _resendNextCommand(self):
 		self._logger.debug("Resending line %d, delta is %d, history log is %s items strong" % (self._currentLine - self._resendDelta, self._resendDelta, len(self._lastLines)))
-		cmd = self._lastLines[ -( self._resendDelta + 1) ]
+		cmd = self._lastLines[ -self._resendDelta ]
 		lineNumber = self._currentLine - self._resendDelta
 
 		self._doSendWithChecksum(cmd, lineNumber)
@@ -1140,10 +1141,11 @@ class MachineCom(object):
 	def _doSendWithChecksum(self, cmd, lineNumber):
 		self._logger.debug("Sending cmd '%s' with lineNumber %r" % (cmd, lineNumber))
 
-		commandToSend = "N%d %s" % (lineNumber, cmd)
-		checksum = reduce(lambda x,y:x^y, map(ord, commandToSend))
-		commandToSend = "%s*%d" % (commandToSend, checksum)
-		self._doSend(commandToSend)
+		with self._calculateChecksumLock:
+			commandToSend = "N%d %s" % (lineNumber, cmd)
+			checksum = reduce(lambda x,y:x^y, map(ord, commandToSend))
+			commandToSend = "%s*%d" % (commandToSend, checksum)
+			self._doSend(commandToSend)
 
 	def _doSend(self, cmd):
 		#make sure sends are done orderly
