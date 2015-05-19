@@ -937,7 +937,7 @@ class MachineCom(object):
 						if self._resendDelta is not None:
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
-							self._sendCommand(self._commandQueue.pop())
+							self._sendCommand(self._commandQueue.pop(), True)
 						else:
 							self._sendNext()
 					else:
