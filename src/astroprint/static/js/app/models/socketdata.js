@@ -61,6 +61,7 @@ var SocketData = Backbone.Model.extend({
         this._socket.onmessage = _.bind(this._onMessage, this);
 	},
    	reconnect: function() {
+        this._socket.close();
         delete this._socket;
         this.connect();
     },
@@ -74,7 +75,12 @@ var SocketData = Backbone.Model.extend({
 
         //Get some initials
     },
-    _onClose: function() {
+    _onClose: function(e) {
+        if (e.code == 1000) {
+            // it was us calling close
+            return;
+        }
+
     	this.connectionView.setServerConnection('failed');
     	this.connectionView.setPrinterConnection('failed');
         this.connectionView.setAstroprintConnection('failed');
@@ -142,6 +148,7 @@ var SocketData = Backbone.Model.extend({
                     if (!flags.paused) {
                         this.set('printing', flags.printing);
                     }
+
                     this.set('paused', flags.paused);
                     this.set('camera', flags.camera);
 

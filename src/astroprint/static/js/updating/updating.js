@@ -35,6 +35,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         this._socket.onmessage = _.bind(this._onMessage, this);
 	},
    	reconnect: function() {
+        this._socket.close();
         delete this._socket;
         this.connect();
     },
@@ -42,7 +43,12 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         self._autoReconnecting = false;
         self._autoReconnectTrial = 0;
     },
-    _onClose: function() {
+    _onClose: function(e) {
+        if (e.code == 1000) {
+            // it was us calling close
+            return;
+        }
+
         /*if (this._autoReconnectTrial > 1) {
             //We're going to assume that we missed the "completion" event and the box has started a restart.
             //So reload after 7 secs

@@ -193,30 +193,6 @@ class PrinterMarlin(Printer):
 		elif type == "bed":
 			self.command("M140 S%f" % min(value, self._profileManager.data.get('max_bed_temp')))
 
-	def setTemperatureOffset(self, offsets={}):
-		if self._comm is None:
-			return
-
-		tool, bed = self._comm.getOffsets()
-
-		validatedOffsets = {}
-
-		for key in offsets:
-			value = offsets[key]
-			if key == "bed":
-				bed = value
-				validatedOffsets[key] = value
-			elif key.startswith("tool"):
-				try:
-					toolNum = int(key[len("tool"):])
-					tool[toolNum] = value
-					validatedOffsets[key] = value
-				except ValueError:
-					pass
-
-		self._comm.setTemperatureOffset(tool, bed)
-		self._stateMonitor.setTempOffsets(validatedOffsets)
-
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterMarlin, self).selectFile(filename, sd, printAfterSelect):
 			return
@@ -261,17 +237,7 @@ class PrinterMarlin(Printer):
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
-		while not commandQueue.empty():
-			commandQueue.get_nowait()
-
-		#self._comm._sendCommand("M112");
-
-		#don't send home command, some printers don't have stoppers.
-		#self.home(['x','y'])
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
-
-		if disableMotorsAndHeater:
-			self.disableMotorsAndHeater()
+		commandQueue.clear()
 
 		# reset progress, height, print time
 		self._setCurrentZ(None)
@@ -287,8 +253,18 @@ class PrinterMarlin(Printer):
 			if self._selectedFile["sd"]:
 				payload["origin"] = FileDestinations.SDCARD
 			eventManager().fire(Events.PRINT_FAILED, payload)
+			self._selectedFile = None
 
 		self._comm.cancelPrint()
+
+		#self._comm._sendCommand("M112");
+
+		#don't send home command, some printers don't have stoppers.
+		#self.home(['x','y'])
+		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
+
+		if disableMotorsAndHeater:
+			self.disableMotorsAndHeater()
 
 	#~~ state monitoring
 
@@ -445,25 +421,17 @@ class PrinterMarlin(Printer):
 			return self._comm.getStateString()
 
 	def getCurrentTemperatures(self):
-		if self._comm is not None:
-			tempOffset, bedTempOffset = self._comm.getOffsets()
-		else:
-			tempOffset = {}
-			bedTempOffset = None
-
 		result = {}
 		if self._temp is not None:
 			for tool in self._temp.keys():
 				result["tool%d" % tool] = {
 					"actual": self._temp[tool][0],
-					"target": self._temp[tool][1],
-					"offset": tempOffset[tool] if tool in tempOffset.keys() and tempOffset[tool] is not None else 0
+					"target": self._temp[tool][1]
 					}
 		if self._bedTemp is not None:
 			result["bed"] = {
 				"actual": self._bedTemp[0],
-				"target": self._bedTemp[1],
-				"offset": bedTempOffset
+				"target": self._bedTemp[1]
 			}
 
 		return result
