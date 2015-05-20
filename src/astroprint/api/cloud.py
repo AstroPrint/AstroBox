@@ -16,6 +16,7 @@ from octoprint.events import eventManager, Events
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printfiles import FileDestinations
+from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.printer.manager import printerManager
 
 #~~ Cloud Slicer control
@@ -141,14 +142,23 @@ def design_download(print_file_id):
 			errorCb(destFile, "Couldn't save the file")
 
 	def errorCb(destFile, error):
-		em.fire(
-			Events.CLOUD_DOWNLOAD, 
-			{
-				"type": "error",
-				"id": print_file_id,
-				"reason": error
-			}
-		)
+		if error == 'cancelled':
+			em.fire(
+					Events.CLOUD_DOWNLOAD, 
+					{
+						"type": "cancelled",
+						"id": print_file_id
+					}
+				)
+		else:
+			em.fire(
+				Events.CLOUD_DOWNLOAD, 
+				{
+					"type": "error",
+					"id": print_file_id,
+					"reason": error
+				}
+			)
 		
 		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
@@ -157,3 +167,12 @@ def design_download(print_file_id):
 		return jsonify(SUCCESS)
 			
 	return abort(400)
+
+@api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["DELETE"])
+@restricted_access
+def cancel_design_download(print_file_id):
+	if downloadManager().cancelDownload(print_file_id):
+		return jsonify(SUCCESS)
+
+	else:
+		return abort(404)

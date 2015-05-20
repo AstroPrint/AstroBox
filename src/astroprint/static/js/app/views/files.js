@@ -190,7 +190,8 @@ var PrintFileView = Backbone.View.extend({
 		this.delegateEvents({
 			'click .left-section, .middle-section': 'infoClicked',
 			'click a.print': 'printClicked',
-			'click a.download': 'downloadClicked'
+			'click a.download': 'downloadClicked',
+			'click a.dw-cancel': 'cancelDownloadClicked'
 		});
 	},
 	infoClicked: function(evt) 
@@ -203,31 +204,22 @@ var PrintFileView = Backbone.View.extend({
 	{
 		if (evt) evt.preventDefault();
 
-		var options = this.$('.print-file-options a.download');
-		var progress = this.$('.print-file-options .download-progress');
-
-		options.hide();
-		progress.show();
-
-		if (this.downloadProgress === null) {
-			var progressContainer = progress.closest('.print-file-options');
-
-			this.downloadProgress = progress.circleProgress({
-		        value: 0,
-		        animation: false,
-		        size: progressContainer.innerWidth() - 25,
-		        fill: { color: 'black' }
-	    	});
-		}
-
         $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
 	        .fail(function(){
 	            noty({text: "Couldn't download the print file.", timeout: 3000});
 	        })
-	        .always(function(){
-	            options.show();
-				progress.hide();
-	        });
+	},
+	cancelDownloadClicked: function(evt)
+	{
+		evt.preventDefault();
+
+		$.ajax({
+			url: '/api/astroprint/print-files/'+this.print_file.get('id')+'/download',
+			method: 'DELETE'
+		})
+			.fail(function() {
+	            noty({text: "Unable to cancel download.", timeout: 3000});
+	        })
 	},
 	printClicked: function (evt)
 	{
@@ -420,30 +412,69 @@ var PrintFilesListView = Backbone.View.extend({
 			return v.print_file.get('id') == data.id;
 		});
 
-		var label = print_file_view.$('.download-progress span');
+		if (print_file_view) {
+			var progressContainer = print_file_view.$('.print-file-options');
 
-		if (data.type == "progress") {
-			if (print_file_view.downloadProgress) {
-				print_file_view.downloadProgress.circleProgress({value: data.progress / 100.0});
-			}
+			switch (data.type) {
+				case 'progress':
+				{
+					if (!progressContainer.hasClass('downloading')) {
+						progressContainer.addClass('downloading');
+					}
 
-			label.html(Math.floor(data.progress) + '<i>%</i>');
-		} else if (data.type == "success") {
-			var print_file = print_file_view.print_file;
+					if (!print_file_view.downloadProgress) {
+						var progress = progressContainer.find('.download-progress');
 
-			if (print_file) {
-				print_file.set('local_filename', data.filename);
-				print_file.set('print_time', data.print_time);
-				print_file.set('layer_count', data.layer_count);
+						print_file_view.downloadProgress = progress.circleProgress({
+					        value: 0,
+					        animation: false,
+					        size: progressContainer.innerWidth() - 25,
+					        fill: { color: 'black' }
+				    	});
+					} else {
+						print_file_view.downloadProgress.circleProgress({value: data.progress / 100.0});
+					}
 
-				print_file_view.render();
+					var label = print_file_view.$('.download-progress span');
 
-				if (print_file_view.printWhenDownloaded) {
-					print_file_view.printWhenDownloaded = false;
-					print_file_view.printClicked();
+					label.html(Math.floor(data.progress) + '<i>%</i>');
 				}
+				break;
+
+				case 'success':
+				{
+					var print_file = print_file_view.print_file;
+
+					if (print_file) {
+						print_file.set('local_filename', data.filename);
+						print_file.set('print_time', data.print_time);
+						print_file.set('layer_count', data.layer_count);
+
+						print_file_view.render();
+
+						if (print_file_view.printWhenDownloaded) {
+							print_file_view.printWhenDownloaded = false;
+							print_file_view.printClicked();
+						}
+					}
+				}
+				break;
+
+				case 'error':
+				{
+					progressContainer.removeClass('downloading');
+					noty({text: "Couldn't download the print file.", timeout: 3000});
+					console.error('Error downloading file: '+data.reason);
+				}
+				break;
+
+				case 'cancelled':
+				{
+					progressContainer.removeClass('downloading');
+				}
+				break;
 			}
-		} 
+		}
 	},
 	forceSync: function()
 	{

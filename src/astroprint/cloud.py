@@ -36,6 +36,7 @@ from octoprint.events import eventManager, Events
 from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
+from astroprint.printfiles.downloadmanager import downloadManager
 
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey):
@@ -327,7 +328,7 @@ class AstroPrintCloud(object):
 		return json.dumps(self._print_file_store)	
 
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
-		progressCb(2)
+		progressCb(1)
 
 		try:
 			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
@@ -338,37 +339,26 @@ class AstroPrintCloud(object):
 		destFile = None
 
 		if data and "download_url" in data and "name" in data and "info" in data:
-			progressCb(5)
+			progressCb(2)
 
 			destFile = printerManager().fileManager.getAbsolutePath(data['name'], mustExist=False)
 
 			if destFile:
-				r = requests.get(data["download_url"], stream=True)
+				downloadManager().startDownload({
+					'downloadUrl': data["download_url"],
+					'destFile': destFile,
+					'printFileId': print_file_id,
+					'printFileInfo': data['info'],
+					'progressCb': progressCb,
+					'successCb': successCb,
+					'errorCb': errorCb
+				})
 
-				if r.status_code == 200:
-					content_length = float(r.headers['Content-Length']);
-					downloaded_size = 0.0
+				return True
 
-
-					with open(destFile, 'wb') as fd:
-						for chunk in r.iter_content(524288): #0.5 MB
-							downloaded_size += len(chunk)
-							fd.write(chunk)
-							progressCb(5 + round((downloaded_size / content_length) * 95.0, 1))
-
-					fileInfo = {
-						'id': print_file_id,
-						'info': data["info"]
-					}
-
-					successCb(destFile, fileInfo)
-					return True;
-
-				else:
-					r.close()
-
-		errorCb(destFile, 'Unable to download file')
-		return False
+		else:
+			errorCb(destFile, 'Unable to download file')
+			return False
 
 	def getPrintFile(self, cloudId):
 		if not self._print_file_store:
