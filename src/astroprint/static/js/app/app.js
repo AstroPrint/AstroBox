@@ -73,6 +73,7 @@ var AstroBoxApp = Backbone.View.extend({
 	},
 	reportPrintingChange: function(s, value) {
 		if (value) {
+			this.$('.quick-nav').hide();
 			this.showPrinting();
 		} else {
 			//clear current printing data
@@ -80,9 +81,16 @@ var AstroBoxApp = Backbone.View.extend({
 				printing_progress: null,
 				print_capture: null
 			}, {silent: true});
-			this.$el.find('.tab-bar .left-small').show();
+			this.$('.tab-bar .left-small').show();
+			this.$('.quick-nav').show();
 			this.router.navigate("control", {replace: true, trigger: true});
 		}
+	},
+	selectQuickNav: function(tab)
+	{
+		var nav = this.$('.quick-nav');
+		nav.find('li.active').removeClass('active');
+		nav.find('li.'+tab).addClass('active');
 	},
 	onlineStatusChange: function(s, value)
 	{

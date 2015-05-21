@@ -46,6 +46,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.homeView);
+		app.selectQuickNav('dash');
 	},
 	files: function() 
 	{
@@ -54,6 +55,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.filesView);
+		app.selectQuickNav('files');
 	},
 	fileInfo: function(fileId)
 	{
@@ -81,6 +83,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.controlView);
+		app.selectQuickNav('control');
 	},
 	printing: function()
 	{
@@ -98,6 +101,7 @@ var AppRouter = Backbone.Router.extend({
 
 		this.selectView(this.settingsView);
 		this.settingsView.menu.changeActive(page || 'printer-connection');
+		app.selectQuickNav('settings');
 	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
