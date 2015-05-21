@@ -101,24 +101,6 @@ def printerToolCommand():
 		for tool in validated_values.keys():
 			pm.setTemperature(tool, validated_values[tool])
 
-	##~~ temperature offset
-	elif command == "offset":
-		offsets = data["offsets"]
-
-		# make sure the targets are valid, the values are numbers and in the range [-50, 50]
-		validated_values = {}
-		for tool, value in offsets.iteritems():
-			if re.match(validation_regex, tool) is None:
-				return make_response("Invalid target for setting temperature: %s" % tool, 400)
-			if not isinstance(value, (int, long, float)):
-				return make_response("Not a number for %s: %r" % (tool, value), 400)
-			if not -50 <= value <= 50:
-				return make_response("Offset %s not in range [-50, 50]: %f" % (tool, value), 400)
-			validated_values[tool] = value
-
-		# set the offsets
-		pm.setTemperatureOffset(validated_values)
-
 	##~~ extrusion
 	elif command == "extrude":
 		if pm.isPrinting():
@@ -174,19 +156,6 @@ def printerBedCommand():
 
 		# perform the actual temperature command
 		pm.setTemperature("bed", target)
-
-	##~~ temperature offset
-	elif command == "offset":
-		offset = data["offset"]
-
-		# make sure the offset is valid
-		if not isinstance(offset, (int, long, float)):
-			return make_response("Not a number: %r" % offset, 400)
-		if not -50 <= offset <= 50:
-			return make_response("Offset not in range [-50, 50]: %f" % offset, 400)
-
-		# set the offsets
-		pm.setTemperatureOffset({"bed": offset})
 
 	return NO_CONTENT
 

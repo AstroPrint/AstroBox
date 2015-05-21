@@ -234,6 +234,13 @@ class Printer(object):
 		self._layerCount = layerCount
 		self._estimatedPrintTime = estimatedPrintTime
 
+	def setSerialDebugLogging(self, active):
+		serialLogger = logging.getLogger("SERIAL")
+		if active:
+			serialLogger.setLevel(logging.DEBUG)
+		else:
+			serialLogger.setLevel(logging.CRITICAL)
+
 	def isOperational(self):
 		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
 
@@ -517,9 +524,6 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def setTemperature(self, type, value):
-		raise NotImplementedError()
-
-	def setTemperatureOffset(self, offsets={}):
 		raise NotImplementedError()
 
 class StateMonitor(object):

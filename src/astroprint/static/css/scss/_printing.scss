@@ -147,6 +147,10 @@
 					background: none;
 					color: #505050;
 				}
+
+				.no-user & {
+					display: none;
+				}
 			}
 
 			.button.loading {				

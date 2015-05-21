@@ -23,6 +23,7 @@ class PrintJobS3G(threading.Thread):
 
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger('SERIAL')
+		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 		self._printer = printer
 		self._file = currentFile
 		self._canceled = False
@@ -142,8 +143,7 @@ class PrintJobS3G(threading.Thread):
 							packet.append(ord(c))
 
 						if self.send_packet(packet):
-							if self._serialLogger.isEnabledFor(logging.DEBUG):
-								self._serialLogger.debug('{"event":"packet_sent", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in packet) )
+							self._serialLoggerEnabled and self._serialLogger.debug('{"event":"packet_sent", "data": "%s"}' % ' '.join('0x{:02x}'.format(x) for x in packet) )
 
 							now = time.time()
 							if now - lastProgressReport > self.UPDATE_INTERVAL_SECS:
