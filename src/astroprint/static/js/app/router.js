@@ -92,6 +92,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.printingView);
+		app.$('.quick-nav').hide();
 	},
 	settings: function(page)
 	{
