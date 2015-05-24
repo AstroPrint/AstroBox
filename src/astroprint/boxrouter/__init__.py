@@ -16,6 +16,7 @@ import threading
 import logging
 import base64
 import socket
+import os
 
 from time import sleep, time
 
@@ -211,7 +212,83 @@ class AstroprintBoxRouterClient(WebSocketClient):
 					self._logger.info('Remote signoff requested.')
 					threading.Timer(1, astroprintCloud().remove_logged_user).start()
 
-					response = {'success': True}				
+					response = {'success': True}
+
+				elif request == 'print_file':
+					from astroprint.cloud import astroprintCloud
+					from astroprint.printfiles import FileDestinations
+
+					print_file_id = data['printFileId']
+
+					em = eventManager()
+
+					def progressCb(progress):
+						em.fire(
+							Events.CLOUD_DOWNLOAD, {
+								"type": "progress",
+								"id": print_file_id,
+								"progress": progress
+							}
+						)
+
+					def successCb(destFile, fileInfo):
+						if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+							em.fire(
+								Events.CLOUD_DOWNLOAD, {
+									"type": "success",
+									"id": print_file_id,
+									"filename": printer.fileManager._getBasicFilename(destFile),
+									"info": fileInfo["info"]
+								}
+							)
+
+							if printer.selectFile(destFile, False, True):
+								self._printerListener._sendUpdate('print_file_download', {
+									'id': print_file_id,
+									'progress': 100,
+									'selected': True
+								})
+							
+							else:
+								self._printerListener._sendUpdate('print_file_download', {
+									'id': print_file_id,
+									'progress': 100,
+									'error': True,
+									'selected': False
+								})
+
+						else:
+							errorCb(destFile, "Couldn't save the file")
+
+					def errorCb(destFile, error):
+						if error == 'cancelled':
+							em.fire(
+									Events.CLOUD_DOWNLOAD, 
+									{
+										"type": "cancelled",
+										"id": print_file_id
+									}
+								)
+						else:
+							em.fire(
+								Events.CLOUD_DOWNLOAD, 
+								{
+									"type": "error",
+									"id": print_file_id,
+									"reason": error
+								}
+							)
+						
+						if destFile and os.path.exists(destFile):
+							os.remove(destFile)
+
+					if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
+						response = {'success': True}
+					else:
+						response = {
+							'error': True,
+							'message': 'Unable to start download process'
+						}
 
 				else:
 					response = {

@@ -17,17 +17,24 @@ class PrinterListener(object):
 			'temp_update': None,
 			'status_update': None,
 			'printing_progress': None,
-			'print_capture': None
+			'print_capture': None,
+			'print_file_download': None
 		}
 
+		em = eventManager()
+
 		#register for print_capture events
-		eventManager().subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
+		em.subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
+		em.subscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
 
 	def __del__(self):
 		self.cleanup()
 
 	def cleanup(self):
-		eventManager().unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
+		em = eventManager()
+
+		em.unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
+		em.unsubscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
 
 	def sendHistoryData(self, data):
 		pass
@@ -72,6 +79,22 @@ class PrinterListener(object):
 
 	def _onCaptureInfoChanged(self, event, payload):
 		self._sendUpdate('print_capture', payload)
+
+	def _onDownload(self, event, payload):
+		if 'error' in payload or 'cancelled' in payload:
+			self._sendUpdate('print_file_download', {
+				'id': payload['id'],
+				'error': True,
+				'message': payload['reason'] if 'reason' in payload else 'Download Cancelled',
+				'selected': False
+			})
+
+		else:
+			self._sendUpdate('print_file_download', {
+				'id': payload['id'],
+				'progress': 100 if payload['type'] == 'success' else payload['progress'],
+				'selected': False
+			})
 
 	def _sendUpdate(self, event, data):
 		if self._lastSent[event] != data:
