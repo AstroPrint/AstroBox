@@ -294,6 +294,19 @@ class AstroprintBoxRouterClient(WebSocketClient):
 							'message': 'Unable to start download process'
 						}
 
+				elif request == 'cancel_download':
+					from astroprint.printfiles.downloadmanager import downloadManager
+					
+					print_file_id = data['printFileId']
+
+					if downloadManager().cancelDownload(print_file_id):
+						response = {'success': True}
+					else:
+						response = {
+							'error': True,
+							'message': 'Unable to cancel download'						
+						}
+
 				else:
 					response = {
 						'error': True,
