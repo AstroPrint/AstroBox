@@ -154,7 +154,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						'paused': printer.isPaused(),
 						'camera': printer.isCameraConnected(),
 						'printCapture': self._cameraManager.timelapseInfo,
-						'profile': self._profileManager.data
+						'profile': self._profileManager.data,
+						'remotePrint': True
 					}
 				elif request == 'job_info':
 					response = printer._stateMonitor._jobData
