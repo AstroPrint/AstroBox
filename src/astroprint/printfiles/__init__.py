@@ -450,6 +450,14 @@ class PrintFilesManager(object):
 
 		return None
 
+	def getFileByCloudId(self, cloudId):
+		if cloudId:
+			for f in self._metadata.keys():
+				if self._metadata[f]['cloud_id'] == cloudId:
+					return f
+
+		return None
+
 	def getFileMetadata(self, filename):
 		filename = self._getBasicFilename(filename)
 		if filename in self._metadata.keys():

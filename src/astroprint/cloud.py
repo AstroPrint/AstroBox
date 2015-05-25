@@ -328,6 +328,16 @@ class AstroPrintCloud(object):
 		return json.dumps(self._print_file_store)	
 
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
+		fileManager = printerManager().fileManager
+
+		printFile = fileManager.getFileByCloudId(print_file_id)
+
+		if printFile:
+			self._logger.error('Print file %s is already on the box as %s' % (print_file_id, printFile))
+			successCb(printFile, True)
+			return True
+
+		#The file wasn't there so let's go get it
 		progressCb(1)
 
 		try:
@@ -341,7 +351,7 @@ class AstroPrintCloud(object):
 		if data and "download_url" in data and "name" in data and "info" in data:
 			progressCb(2)
 
-			destFile = printerManager().fileManager.getAbsolutePath(data['name'], mustExist=False)
+			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 
 			if destFile:
 				downloadManager().startDownload({
@@ -359,6 +369,7 @@ class AstroPrintCloud(object):
 		else:
 			errorCb(destFile, 'Unable to download file')
 			return False
+
 
 	def getPrintFile(self, cloudId):
 		if not self._print_file_store:

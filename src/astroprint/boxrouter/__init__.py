@@ -232,33 +232,35 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						)
 
 					def successCb(destFile, fileInfo):
-						if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-							em.fire(
-								Events.CLOUD_DOWNLOAD, {
-									"type": "success",
-									"id": print_file_id,
-									"filename": printer.fileManager._getBasicFilename(destFile),
-									"info": fileInfo["info"]
-								}
-							)
+						if fileInfo is not True:
+							if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+								em.fire(
+									Events.CLOUD_DOWNLOAD, {
+										"type": "success",
+										"id": print_file_id,
+										"filename": printer.fileManager._getBasicFilename(destFile),
+										"info": fileInfo["info"]
+									}
+								)
 
-							if printer.selectFile(destFile, False, True):
-								self._printerListener._sendUpdate('print_file_download', {
-									'id': print_file_id,
-									'progress': 100,
-									'selected': True
-								})
-							
 							else:
-								self._printerListener._sendUpdate('print_file_download', {
-									'id': print_file_id,
-									'progress': 100,
-									'error': True,
-									'selected': False
-								})
+								errorCb(destFile, "Couldn't save the file")
+								return
 
+						if printer.selectFile(destFile, False, True):
+							self._printerListener._sendUpdate('print_file_download', {
+								'id': print_file_id,
+								'progress': 100,
+								'selected': True
+							})
+						
 						else:
-							errorCb(destFile, "Couldn't save the file")
+							self._printerListener._sendUpdate('print_file_download', {
+								'id': print_file_id,
+								'progress': 100,
+								'error': True,
+								'selected': False
+							})
 
 					def errorCb(destFile, error):
 						if error == 'cancelled':
