@@ -81,20 +81,22 @@ class PrinterListener(object):
 		self._sendUpdate('print_capture', payload)
 
 	def _onDownload(self, event, payload):
-		if 'error' in payload or 'cancelled' in payload:
-			self._sendUpdate('print_file_download', {
-				'id': payload['id'],
-				'error': True,
-				'message': payload['reason'] if 'reason' in payload else 'Download Cancelled',
-				'selected': False
-			})
+		data = {
+			'id': payload['id'],
+			'selected': False
+		}
+
+		if payload['type'] == 'error':
+			data['error'] = True
+			data['message'] = payload['reason'] if 'reason' in payload else 'Problem downloading'
+
+		elif payload['type'] == 'cancelled':
+			data['cancelled'] = True
 
 		else:
-			self._sendUpdate('print_file_download', {
-				'id': payload['id'],
-				'progress': 100 if payload['type'] == 'success' else payload['progress'],
-				'selected': False
-			})
+			data['progress'] = 100 if payload['type'] == 'success' else payload['progress']
+
+		self._sendUpdate('print_file_download', data)
 
 	def _sendUpdate(self, event, data):
 		if self._lastSent[event] != data:

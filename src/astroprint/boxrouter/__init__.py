@@ -260,6 +260,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 								'id': print_file_id,
 								'progress': 100,
 								'error': True,
+								'message': 'Unable to start printing',
 								'selected': False
 							})
 
