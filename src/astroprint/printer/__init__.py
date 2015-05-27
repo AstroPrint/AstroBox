@@ -53,6 +53,7 @@ class Printer(object):
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
 		self._fileManager.registerCallback(self)
 		self._state = self.STATE_NONE
+		self._logger = logging.getLogger(__name__)
 
 		self._temp = {}
 		self._bedTemp = None
@@ -438,8 +439,7 @@ class Printer(object):
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not self.isConnected() or self.isBusy() or self.isStreaming():
-			print "connected %d, busy: %d, isStreaming: %d" % (self.isConnected(), self.isBusy(), self.isStreaming())
-			logging.info("Cannot load file: printer not connected or currently busy")
+			self._logger.info("Cannot load file: printer not connected or currently busy")
 			return False
 
 		self._printAfterSelect = printAfterSelect

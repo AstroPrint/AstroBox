@@ -128,18 +128,28 @@ def design_download(print_file_id):
 		)
 
 	def successCb(destFile, fileInfo):
-		if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+		if fileInfo is True:
+			#This means the files was already on the device
 			em.fire(
 				Events.CLOUD_DOWNLOAD, {
 					"type": "success",
-					"id": print_file_id,
-					"filename": printerManager().fileManager._getBasicFilename(destFile),
-					"info": fileInfo["info"]
+					"id": print_file_id
 				}
-			)
+			)			
 
 		else:
-			errorCb(destFile, "Couldn't save the file")
+			if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+				em.fire(
+					Events.CLOUD_DOWNLOAD, {
+						"type": "success",
+						"id": print_file_id,
+						"filename": printerManager().fileManager._getBasicFilename(destFile),
+						"info": fileInfo["info"]
+					}
+				)
+
+			else:
+				errorCb(destFile, "Couldn't save the file")
 
 	def errorCb(destFile, error):
 		if error == 'cancelled':
