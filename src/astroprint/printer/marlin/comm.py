@@ -398,12 +398,12 @@ class MachineCom(object):
 
 	def selectFile(self, filename, sd):
 		if self.isBusy():
-			return
+			return False
 
 		if sd:
 			if not self.isOperational():
 				# printer is not connected, can't use SD
-				return
+				return False
 			self.sendCommand("M23 %s" % filename)
 		else:
 			self._currentFile = PrintingGcodeFileInformation(filename)
@@ -413,13 +413,17 @@ class MachineCom(object):
 			})
 			self._callback.mcFileSelected(filename, self._currentFile.getFilesize(), False)
 
+		return True
+
 	def unselectFile(self):
 		if self.isBusy():
-			return
+			return False
 
 		self._currentFile = None
 		eventManager().fire(Events.FILE_DESELECTED)
 		self._callback.mcFileSelected(None, None, False)
+
+		return True
 
 	def cancelPrint(self):
 		if not self.isOperational():# or self.isStreaming():

@@ -195,15 +195,15 @@ class PrinterMarlin(Printer):
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterMarlin, self).selectFile(filename, sd, printAfterSelect):
-			return
+			return False
 
-		self._comm.selectFile(filename, sd)
+		return self._comm.selectFile(filename, sd)
 
 	def unselectFile(self):
 		if not super(PrinterMarlin, self).unselectFile():
-			return
+			return False
 
-		self._comm.unselectFile()
+		return self._comm.unselectFile()
 
 	def startPrint(self):
 		if not super(PrinterMarlin, self).startPrint():

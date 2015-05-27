@@ -463,7 +463,7 @@ class PrinterS3g(Printer):
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
-			return
+			return False
 
 		if sd:
 			raise('Printing from SD card is not supported for the S3G Driver')
@@ -491,6 +491,8 @@ class PrinterS3g(Printer):
 
 		if self._printAfterSelect:
 			self.startPrint()
+
+		return True
 
 	def unselectFile(self):
 		self._currentFile = None

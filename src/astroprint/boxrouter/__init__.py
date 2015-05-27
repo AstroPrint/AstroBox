@@ -248,7 +248,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 								errorCb(destFile, "Couldn't save the file")
 								return
 
-						if printer.selectFile(destFile, False, True):
+						abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
+						if printer.selectFile(abosluteFilename, False, True):
 							self._printerListener._sendUpdate('print_file_download', {
 								'id': print_file_id,
 								'progress': 100,
@@ -296,7 +297,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 				elif request == 'cancel_download':
 					from astroprint.printfiles.downloadmanager import downloadManager
-					
+
 					print_file_id = data['printFileId']
 
 					if downloadManager().cancelDownload(print_file_id):
