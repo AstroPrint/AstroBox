@@ -8,6 +8,7 @@ import sarge
 import os
 import threading
 import gobject
+import time
 
 gobject.threads_init()
 
@@ -70,8 +71,16 @@ class NetworkManagerEvents(threading.Thread):
 		return None		
 
 	def run(self):
-		gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
-		gobject.MainLoop().run()
+		while True:
+			gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
+
+			try:
+				gobject.MainLoop().run()
+
+			except DBusException as e:
+				gobject.idle_add(logger.info, 'Exception during NetworkManagerEvents: %s' % e)
+				gobject.MainLoop().quit()
+
 
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
@@ -264,10 +273,10 @@ class DebianNetworkManager(NetworkManagerBase):
 					else:
 						raise
 
-				import gobject
-				loop = gobject.MainLoop()
+				#import gobject
+				#loop = gobject.MainLoop()
 
-				result = {}
+				result = None
 
 				def connectionStateChange(new_state, old_state, reason):
 					if new_state == self._nm.NM_DEVICE_STATE_ACTIVATED:
@@ -276,16 +285,20 @@ class DebianNetworkManager(NetworkManagerBase):
 						result['name'] = accessPoint.Ssid
 						result['ip'] = wifiDevice.Ip4Address
 						result['secured'] = True if accessPoint.WpaFlags or accessPoint.RsnFlags else False
-						loop.quit()
+						#loop.quit()
 					elif new_state == self._nm.NM_DEVICE_STATE_FAILED:
 						connection.Delete()
 						result['message'] = "The connection could not be created"
-						loop.quit()
+						#loop.quit()
 
-				wifiDevice.connect_to_signal('StateChanged', connectionStateChange)
+				listener = wifiDevice.connect_to_signal('StateChanged', connectionStateChange)
 
-				loop.run()
+				#loop.run()
 
+				while result is None
+					time.sleep(0.2)
+
+				listener.remove()
 				return result
 
 		return None
