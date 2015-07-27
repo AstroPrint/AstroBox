@@ -81,6 +81,8 @@ class NetworkManagerEvents(threading.Thread):
 				gobject.idle_add(logger.info, 'Exception during NetworkManagerEvents: %s' % e)
 				gobject.MainLoop().quit()
 
+	def stop(self):
+		gobject.MainLoop().quit()
 
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
@@ -162,6 +164,9 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
+
+	def __del__(self):
+		self._eventListener.stop();
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())
@@ -279,6 +284,7 @@ class DebianNetworkManager(NetworkManagerBase):
 				result = None
 
 				def connectionStateChange(new_state, old_state, reason):
+					result = {}
 					if new_state == self._nm.NM_DEVICE_STATE_ACTIVATED:
 						result['id'] = accessPoint.HwAddress
 						result['signal'] = ord(accessPoint.Strength)
@@ -295,7 +301,8 @@ class DebianNetworkManager(NetworkManagerBase):
 
 				#loop.run()
 
-				while result is None
+				start = time.time()
+				while result is None or (time.time() - start) < 10: #10 secs timeout
 					time.sleep(0.2)
 
 				listener.remove()
