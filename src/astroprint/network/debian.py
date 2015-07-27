@@ -295,7 +295,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 				#loop.run()
 
-				while result is None
+				while result is None:
 					time.sleep(0.2)
 
 				listener.remove()
