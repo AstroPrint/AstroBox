@@ -359,7 +359,7 @@ var InternetConnectionView = SettingsPage.extend({
 				} else if (data.networks) {
 					var self = this;
 					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
-						el.active = self.settings.networks.wireless && self.settings.networks.wireless.id == el.id;
+						el.active = self.settings.networks.wireless && self.settings.networks.wireless.name == el.name;
 						return -el.signal
 					}));
 				}
