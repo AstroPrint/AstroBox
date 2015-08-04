@@ -8,6 +8,7 @@ import sarge
 import os
 import threading
 import gobject
+import time
 
 gobject.threads_init()
 
@@ -17,8 +18,6 @@ from dbus.mainloop.glib import DBusGMainLoop, threads_init
 DBusGMainLoop(set_as_default=True)
 
 import NetworkManager
-
-threads_init()
 
 from dbus.exceptions import DBusException
 
@@ -33,6 +32,11 @@ from os import remove, close
 from octoprint.server import eventManager
 from octoprint.events import Events
 
+def idle_add_decorator(func):
+    def callback(*args):
+        gobject.idle_add(func, *args)
+    return callback
+
 class NetworkManagerEvents(threading.Thread):
 	def __init__(self, manager):
 		super(NetworkManagerEvents, self).__init__()
@@ -41,20 +45,7 @@ class NetworkManagerEvents(threading.Thread):
 		self._online = None
 		self._currentIpv4Address = None
 		self._activeDevice = None
-
-		self._propertiesListener = NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
-		self._stateChangeListener = NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
-		self._devicePropertiesListener = None
-		self._monitorActivatingListener = None
-
-		logger.info('Looking for Active Connections...')
-		d = self.getActiveConnectionDevice()
-		if d:
-			self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-			self._currentIpv4Address = d.Ip4Address
-			self._activeDevice = d
-			self._online = True
-			logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
+		self._activatingConnection = None
 
 	def __del__(self):
 		self._propertiesListener.remove()
@@ -70,45 +61,115 @@ class NetworkManagerEvents(threading.Thread):
 		return None		
 
 	def run(self):
-		gobject.idle_add(logger.info, 'NetworkManagerEvents is listening for signals')
-		gobject.MainLoop().run()
+		self._stopped = False
+		self._loop = gobject.MainLoop()
 
+		self._propertiesListener = NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
+		self._stateChangeListener = NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
+		self._devicePropertiesListener = None
+		self._monitorActivatingListener = None
+
+		logger.info('Looking for Active Connections...')
+		d = self.getActiveConnectionDevice()
+		if d:
+			self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+			self._currentIpv4Address = d.Ip4Address
+			self._activeDevice = d
+			self._online = True
+			logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
+
+		while not self._stopped:
+			try:
+				self._loop.run()
+
+			except DBusException as e:
+				gobject.idle_add(logger.error, 'Exception during NetworkManagerEvents: %s' % e)
+				self._stopped = True
+				self._loop.quit()
+
+	def stop(self):
+		gobject.idle_add(logger.info, 'NetworkManagerEvents stopping.')
+		self._stopped = True
+		self._loop.quit()
+
+	@idle_add_decorator
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
 		#gobject.idle_add(logger.info, 'globalStateChanged, new(%s)' % NetworkManager.const('state', state))
+		#logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
 		if not self._online and state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
+	@idle_add_decorator
 	def propertiesChanged(self, properties):
-		if self._online:
-			if "ActiveConnections" in properties and len(properties['ActiveConnections']) == 0:
+		if "ActiveConnections" in properties: 
+			if len(properties['ActiveConnections']) == 0:
 				self._setOnline(False)
+				return
 
-		else:
-			if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
-				self._setOnline(True)
-
-			elif "ActiveConnections" in properties and len(properties['ActiveConnections']) > 0:
+			elif not self._monitorActivatingListener:
 				for c in properties['ActiveConnections']:
 					if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
 						if self._monitorActivatingListener:
 							self._monitorActivatingListener.remove()
 
-						self._monitorActivatingListener = c.connect_to_signal('PropertiesChanged', self.monitorActivatingConnection)
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 
-	def monitorActivatingConnection(self, properties):
-		if "State" in properties and properties['State'] == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+						self._monitorActivatingListener = c.Devices[0].connect_to_signal('StateChanged', self.monitorActivatingConnection)
+						self._activatingConnection = c.Connection
+						return
+
+		if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+			self._setOnline(True)
+
+	@idle_add_decorator
+	def monitorActivatingConnection(self, new_state, old_state, reason):
+		if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
 			if self._monitorActivatingListener:
 				self._monitorActivatingListener.remove()
 				self._monitorActivatingListener = None
 
+			d = self.getActiveConnectionDevice()
+			ap = d.SpecificDevice().ActiveAccessPoint
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+				'status': 'connected', 
+				'info': {
+					'signal': ord(ap.Strength),
+					'name': ap.Ssid,
+					'ip': d.Ip4Address
+				}
+			})
+
+			if (self._activatingConnection):
+				self._activatingConnection = None
+
 			self._setOnline(True)
 
+		elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
+			# we should probably remove the connection
+			if self._activatingConnection:
+				self._activatingConnection.Delete()
+				self._activatingConnection = None
+
+		elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
+			if self._monitorActivatingListener:
+				self._monitorActivatingListener.remove()
+				self._monitorActivatingListener = None
+
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
+
+			if (self._activatingConnection):
+				self._activatingConnection = None
+
+			self._setOnline(False)			
+
+	@idle_add_decorator
 	def activeDeviceConfigChanged(self, properties):
 		if "Options" in properties and "ip_address" in properties["Options"] and properties["Options"]["ip_address"] != self._currentIpv4Address:
 			self._currentIpv4Address = properties["Options"]["ip_address"]
 			self._setOnline(True)
-			gobject.idle_add(eventManager.fire, Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
+			eventManager.fire(Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
 
 	def _setOnline(self, value):
 		if value == self._online:
@@ -118,30 +179,30 @@ class NetworkManagerEvents(threading.Thread):
 			d = self.getActiveConnectionDevice()
 
 			if d:
-				if self._activeDevice:
-					self._currentIpv4Address = self._activeDevice.Ip4Address
-
 				self._activeDevice = d
 				if self._devicePropertiesListener:
 					self._devicePropertiesListener.remove()
 
+				if self._activeDevice:
+					self._currentIpv4Address = self._activeDevice.Ip4Address
+
 				self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-				gobject.idle_add(logger.info, 'Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
+				logger.info('Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
 				self._online = True
-				gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'online')
+				eventManager.fire(Events.NETWORK_STATUS, 'online')
 
 		else:
 			self._online = False
 			self._currentIpv4Address = None
-			gobject.idle_add(eventManager.fire, Events.NETWORK_STATUS, 'offline')
+			eventManager.fire(Events.NETWORK_STATUS, 'offline')
 			if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
-				gobject.idle_add(logger.info, 'AstroBox is offline. Starting hotspot...')
+				logger.info('AstroBox is offline. Starting hotspot...')
 				result = self._manager.startHotspot() 
 				if result is True:
-					gobject.idle_add(logger.info, 'Hostspot started.')
+					logger.info('Hostspot started')
 				else:
-					gobject.idle_add(logger.error, 'Failed to start hostspot: %s' % result)
+					logger.error('Failed to start hostspot: %s' % result)
 
 
 class DebianNetworkManager(NetworkManagerBase):
@@ -149,10 +210,16 @@ class DebianNetworkManager(NetworkManagerBase):
 		super(DebianNetworkManager, self).__init__()
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
+
+		threads_init()
 		self._eventListener.start()
+		logger.info('NetworkManagerEvents is listening for signals')
 
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
+
+	def __del__(self):
+		self._eventListener.stop();
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())
@@ -168,11 +235,15 @@ class DebianNetworkManager(NetworkManagerBase):
 				ssid = ap.Ssid
 
 				if ap.Ssid not in networks or signal > networks[ssid]['signal']:
+					wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
+					wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
+
 					networks[ssid] = {
 						'id': ap.HwAddress,
 						'signal': signal,
 						'name': ssid,
-						'secured': True if ap.WpaFlags or ap.RsnFlags else False
+						'secured': wpaSecured or wepSecured,
+						'wep': wepSecured
 					}
 
 			return [v for k,v in networks.iteritems()]
@@ -198,12 +269,17 @@ class DebianNetworkManager(NetworkManagerBase):
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
 							ap = c.SpecificObject
+							
+							wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
+							wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
+
 							activeConnections['wireless'] = {
 								'id': ap.HwAddress,
 								'signal': ord(ap.Strength),
 								'name': ap.Ssid,
 								'ip': d.Ip4Address,
-								'secured': True if ap.WpaFlags or ap.RsnFlags else False
+								'secured': wpaSecured or wepSecured,
+								'wep': wepSecured
 							}
 
 		return activeConnections
@@ -236,25 +312,38 @@ class DebianNetworkManager(NetworkManagerBase):
 			if accessPoint:
 				ssid = accessPoint.Ssid
 				connection = None
+				options = {}
 				for c in self._nm.Settings.ListConnections():
-					if c.GetSettings()['connection']['id'] == ssid:
+					currentOptions = c.GetSettings()
+					if currentOptions['connection']['id'] == ssid:
+						options = currentOptions
+						#these are empty and cause trouble when putting it back
+						if 'ipv6' in options:
+							del options['ipv6']
+
+						if 'ipv4' in options:
+							del options['ipv4']
+						
 						connection = c
 						break
 
-				try:
-					if connection:
-						self._nm.NetworkManager.ActivateConnection(connection, wifiDevice, "/")
+				if password:
+					if '802-11-wireless-security' in options:
+						options['802-11-wireless-security']['psk'] = password
+
 					else:
-						options = {
-							'connection': {
-								'id': ssid
-							}
+						options['802-11-wireless-security'] = {
+							'psk': password,
 						}
 
-						if password:
-							options['802-11-wireless-security'] = {
-								'psk': password
-							}
+				try:
+					if connection:
+						connection.Update(options)
+						self._nm.NetworkManager.ActivateConnection(connection, wifiDevice, accessPoint)
+					else:
+						options['connection'] = {
+							'id': ssid
+						}
 
 						(connection, activeConnection) = self._nm.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
 
@@ -264,29 +353,9 @@ class DebianNetworkManager(NetworkManagerBase):
 					else:
 						raise
 
-				import gobject
-				loop = gobject.MainLoop()
-
-				result = {}
-
-				def connectionStateChange(new_state, old_state, reason):
-					if new_state == self._nm.NM_DEVICE_STATE_ACTIVATED:
-						result['id'] = accessPoint.HwAddress
-						result['signal'] = ord(accessPoint.Strength)
-						result['name'] = accessPoint.Ssid
-						result['ip'] = wifiDevice.Ip4Address
-						result['secured'] = True if accessPoint.WpaFlags or accessPoint.RsnFlags else False
-						loop.quit()
-					elif new_state == self._nm.NM_DEVICE_STATE_FAILED:
-						connection.Delete()
-						result['message'] = "The connection could not be created"
-						loop.quit()
-
-				wifiDevice.connect_to_signal('StateChanged', connectionStateChange)
-
-				loop.run()
-
-				return result
+				return {
+					'name': ssid
+				}
 
 		return None
 

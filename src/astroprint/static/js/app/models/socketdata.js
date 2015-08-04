@@ -218,6 +218,10 @@ var SocketData = Backbone.Model.extend({
                             this.set('online', payload == 'online');
                             break;
 
+                        case 'InternetConnectingStatus':
+                            app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
+                            break;
+
                         default:
                             console.warn('Unkonwn event received: '+type);
                     }

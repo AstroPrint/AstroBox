@@ -252,6 +252,58 @@ var InternetConnectionView = SettingsPage.extend({
 			settings: this.settings
 		}));
 	},
+	connect: function(id, password) {
+		var promise = $.Deferred();
+
+		$.ajax({
+			url: API_BASEURL + 'settings/internet/active', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify({id: id, password: password})
+		})
+			.done(_.bind(function(data) {
+				if (data.name) {
+					app.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+						switch (connectionInfo.status) {
+							case 'disconnected':
+							case 'connecting':
+								//Do nothing. the failed case should report the error
+							break;
+
+							case 'connected':
+								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
+								this.settings.networks['wireless'] = connectionInfo.info;
+								this.render();
+								promise.resolve();
+							break;
+
+							case 'failed':
+								if (connectionInfo.reason == 'no_secrets') {
+									noty({text: "Invalid password for "+data.name+".", timeout: 3000});
+								} else {
+									noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+								}
+								promise.reject();
+								break;
+
+							default:
+								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+								promise.reject();
+						} 
+					}, this));
+				} else if (data.message) {
+					noty({text: data.message, timeout: 3000});
+					promise.reject()
+				}
+			}, this))
+			.fail(_.bind(function(){
+				noty({text: "There was an error saving setting.", timeout: 3000});
+				promise.reject();
+			}, this));
+
+		return promise;
+	},
 	startHotspotClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');
 
@@ -307,7 +359,7 @@ var InternetConnectionView = SettingsPage.extend({
 				} else if (data.networks) {
 					var self = this;
 					this.networksDlg.open(_.sortBy(_.uniq(_.sortBy(data.networks, function(el){return el.name}), true, function(el){return el.name}), function(el){
-						el.active = self.settings.networks.wireless && self.settings.networks.wireless.id == el.id;
+						el.active = self.settings.networks.wireless && self.settings.networks.wireless.name == el.name;
 						return -el.signal
 					}));
 				}
@@ -343,16 +395,23 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	el: '#wifi-network-password-modal',
 	events: {
 		'click button.connect': 'connectClicked',
-		'submit form': 'connectClicked'
+		'submit form': 'connect'
 	},
+	template: _.template($('#wifi-network-password-modal-template').html()),
 	parent: null,
 	initialize: function(params) {
 		this.parent = params.parent;
 	},
-	open: function(id, name) {
-		this.$el.find('.network-id-field').val(id);
-		this.$el.find('.name').text(name);
-		this.$el.foundation('reveal', 'open');
+	render: function(wifiInfo)
+	{
+		this.$el.html( this.template({wifi: wifiInfo}) );
+	},
+	open: function(wifiInfo) {
+		this.render(wifiInfo);
+		this.$el.foundation('reveal', 'open', {
+			close_on_background_click: false,
+			close_on_esc: false	
+		});
 		this.$el.one('opened', _.bind(function() {
 			this.$el.find('.network-password-field').focus();
 		}, this));
@@ -360,39 +419,36 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 	connectClicked: function(e) {
 		e.preventDefault();
 
-		var form = this.$el.find('form');
-
-		this.connect($(e.target), form.find('.network-id-field').val(), form.find('.network-password-field').val());
+		var form = this.$('form');
+		form.submit();
 	},
-	connect: function(btn, id, password) {
-		var loadingBtn = btn.closest('.loading-button');
-		var self = this;
-		loadingBtn.addClass('loading');
+	connect: function(e) {
+		e.preventDefault() 
+		var form = $(e.currentTarget);
 
-		$.ajax({
-			url: API_BASEURL + 'settings/internet/active', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify({id: id, password: password})
-		})
-		.done(function(data) {
-			if (data.name && data.signal && data.ip) {
-				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
-				self.$el.foundation('reveal', 'close');
-				self.parent.settings.networks['wireless'] = data
-				self.parent.render();
-			} else if (data.message) {
-				noty({text: data.message});
-			}
-		})
-		.fail(function(){
-			noty({text: "There was an error saving setting.", timeout: 3000});
-			self.$el.foundation('reveal', 'close');
-		})
-		.complete(function() {
-			loadingBtn.removeClass('loading');
-		});
+		var id = form.find('.network-id-field').val();
+		var password = form.find('.network-password-field').val();
+		var loadingBtn = this.$('button.connect').closest('.loading-button');
+		var cancelBtn = this.$('button.cancel');
+
+		loadingBtn.addClass('loading');
+		cancelBtn.hide();
+
+		this.parent.connect(id, password)
+			.done(_.bind(function(){
+				form.find('.network-password-field').val('');
+				this.$el.foundation('reveal', 'close');
+				loadingBtn.removeClass('loading');
+				cancelBtn.show();
+			}, this))
+			.fail(_.bind(function(message){
+				loadingBtn.removeClass('loading');
+				cancelBtn.show();
+				noty({text: message, timeout: 3000});
+				this.$el.foundation('reveal', 'close');
+			}, this));
+
+		return false;
 	}
 });
 
@@ -401,6 +457,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 	networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
 	passwordDlg: null,
 	parent: null,
+	networks: null,
 	initialize: function(params) {
 		this.parent = params.parent;
 	},
@@ -408,8 +465,10 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		var content = this.$el.find('.modal-content');
 		content.empty();
 
+		this.networks = networks;
+
 		content.html(this.networksTemplate({ 
-			networks: networks
+			networks: this.networks
 		}));
 
 		content.find('button').bind('click', _.bind(this.networkSelected, this));
@@ -425,10 +484,23 @@ var WiFiNetworksDialog = Backbone.View.extend({
 			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
 		}
 
-		if (button.data('secured') == '1') {
-			this.passwordDlg.open(button.data('id'), button.data('name'));
+		var network = this.networks[button.data('id')]
+
+		if (network.secured) {
+			this.passwordDlg.open(network);
 		} else {
-			this.passwordDlg.connect(button, button.data('id'), null);
+			var loadingBtn = button.closest('.loading-button');
+
+			loadingBtn.addClass('loading');
+
+			this.parent.connect(network.id, null)
+				.done(_.bind(function(){
+					this.$el.foundation('reveal', 'close');
+					loadingBtn.removeClass('loading');
+				}, this))
+				.fail(function(){
+					loadingBtn.removeClass('loading');
+				});
 		}
 	}
 });

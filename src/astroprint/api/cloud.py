@@ -14,7 +14,7 @@ from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 
-from astroprint.cloud import astroprintCloud
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.printer.manager import printerManager
@@ -33,8 +33,12 @@ def set_private_key():
 	password = request.values.get('password', None)
 
 	if email and password:
-		if astroprintCloud().signin(email, password):
-			return jsonify(SUCCESS)	
+		try:
+			if astroprintCloud().signin(email, password):
+				return jsonify(SUCCESS)	
+
+		except AstroPrintCloudNoConnectionException:
+			abort(503, "Your device is not connected to AstroPrint.com")
 
 	else:
 		abort(400)

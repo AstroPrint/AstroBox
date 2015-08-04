@@ -80,6 +80,7 @@ class Events(object):
 	LOCK_STATUS_CHANGED = "LockStatusChanged"
 	NETWORK_STATUS = "NetworkStatus"
 	NETWORK_IP_CHANGED = "NetworkIpChanged"
+	INTERNET_CONNECTING_STATUS = "InternetConnectingStatus"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
 

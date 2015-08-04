@@ -202,13 +202,17 @@ var StepInternet = StepView.extend({
 	{
 		var networkRow = $(e.currentTarget);
 
-		this.$el.find('.wifi-network-list li.selected').removeClass('selected');
+		this.$('.wifi-network-list li.selected').removeClass('selected');
 		networkRow.addClass('selected');
 
 		var network = this.networks[networkRow.data('id')];
 		if (network) {
-			this.$el.find('.settings-state button.connect').removeClass('disabled');
+			this.$('.settings-state button.connect').removeClass('disabled');
 		}
+
+		$('html,body').animate({
+          scrollTop: this.$('.settings-state button.connect').offset().top
+        }, 1000);
 	},
 	onConnectClicked: function()
 	{
@@ -222,7 +226,7 @@ var StepInternet = StepView.extend({
 					this.passwordDialog = new WiFiNetworkPasswordDialog({parent: this});
 				}
 
-				this.passwordDialog.open(network.id, network.name);
+				this.passwordDialog.open(network);
 			} else {
 				this.doConnect({id: network.id, password: null});
 			}
@@ -259,22 +263,48 @@ var StepInternet = StepView.extend({
 		})
 		.done(_.bind(function(data) {
 			if (data.name) {
-				noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
-				if (callback) callback(false);
-				this.$el.removeClass('settings');
-				this.$el.addClass('success');
+				setup_view.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+					switch (connectionInfo.status) {
+						case 'disconnected':
+						case 'connecting':
+							//Do nothing. the failed case should report the error
+						break;
+
+						case 'connected':
+							noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
+							loadingBtn.removeClass('loading');
+							if (callback) callback(false);
+							this.$el.removeClass('settings');
+							this.$el.addClass('success');
+						break;
+
+						case 'failed':
+							if (connectionInfo.reason == 'no_secrets') {
+								noty({text: "Invalid password for "+data.name+".", timeout: 3000});
+							} else {
+								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+							}
+							loadingBtn.removeClass('loading');
+							if (callback) callback(true);
+							break;
+
+						default:
+							noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+							loadingBtn.removeClass('loading');
+							if (callback) callback(true);
+					} 
+				}, this));
 			} else if (data.message) {
 				noty({text: data.message, timeout: 3000});
+				loadingBtn.removeClass('loading');
 				if (callback) callback(true);
 			}
 		}, this))
 		.fail(function(){
 			noty({text: "There was an error connecting.", timeout: 3000});
+			loadingBtn.removeClass('loading');
 			if (callback) callback(true);
 		})
-		.complete(function() {
-			loadingBtn.removeClass('loading');
-		});
 	}
 });
 
@@ -286,15 +316,22 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		'click a.cancel': 'cancelClicked'
 	},
 	parent: null,
+	template: _.template($('#wifi-network-password-modal-template').html()),
 	initialize: function(params) 
 	{
 		this.parent = params.parent;
 	},
-	open: function(id, name) 
+	render: function(wifiInfo)
 	{
-		this.$el.find('.network-id-field').val(id);
-		this.$el.find('.name').text(name);
-		this.$el.foundation('reveal', 'open');
+		this.$el.html( this.template({wifi: wifiInfo}) );
+	},
+	open: function(wifiInfo) 
+	{
+		this.render(wifiInfo)
+		this.$el.foundation('reveal', 'open', {
+			close_on_background_click: false,
+			close_on_esc: false
+		});
 		this.$el.one('opened', _.bind(function() {
 			this.$el.find('.network-password-field').focus();
 		}, this));
@@ -313,6 +350,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 				{id: form.find('.network-id-field').val(), password: password}, 
 				_.bind(function(error) { //callback
 					loadingBtn.removeClass('loading');
+					form.find('.network-password-field').val('');
 					if (!error) {
 						this.$el.foundation('reveal', 'close');
 					}
@@ -369,19 +407,19 @@ var StepAstroprint = StepView.extend({
 			method: 'post',
 			data: data,
 			success: _.bind(function() {
-				location.href = this.$el.find('.submit-action').attr('href');
+				location.href = this.$('.submit-action').attr('href');
 			}, this),
 			error: _.bind(function(xhr) {
-				if (xhr.status == 400 || xhr.status == 401) {
+				if (xhr.status == 400 || xhr.status == 401 || xhr.status == 503) {
 					message = xhr.responseText;
 				} else {
 					message = "There was an error logging you in";
 				}
 				noty({text: message, timeout: 3000});
-				this.$el.find('#email').focus();
+				this.$('#email').focus();
 			}, this),
 			complete: _.bind(function() {
-				this.$el.find('.loading-button').removeClass('loading');
+				this.$('.loading-button').removeClass('loading');
 			}, this)
 		});
 	},
@@ -591,6 +629,11 @@ var SetupView = Backbone.View.extend({
 	steps: null,
 	current_step: 'welcome',
 	router: null,
+	eventManager: null,
+	_socket: null,
+	_autoReconnecting: false,
+	_autoReconnectTrial: 0,
+	_autoReconnectTimeouts: [1, 1, 2, 2, 2, 3, 3, 5, 5, 10],
 	initialize: function()
 	{
 		this.steps = {
@@ -603,8 +646,49 @@ var SetupView = Backbone.View.extend({
 			'share': new StepShare({'setup_view': this})
 		};
 
+		this.eventManager = Backbone.Events;
 		this.router = new SetupRouter({'setup_view': this});
+		this.connect();
 	},
+	connect: function()
+	{
+        this._socket = new SockJS(SOCKJS_URI);
+        this._socket.onopen = _.bind(this._onConnect, this);
+        this._socket.onclose = _.bind(this._onClose, this);
+        this._socket.onmessage = _.bind(this._onMessage, this);
+	},
+   	reconnect: function() {
+        this._socket.close();
+        delete this._socket;
+        this.connect();
+    },
+   	_onConnect: function() {
+        self._autoReconnecting = false;
+        self._autoReconnectTrial = 0;
+    },
+    _onClose: function(e) {
+        if (e.code == 1000) {
+            // it was us calling close
+            return;
+        }
+
+        if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
+            var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
+            console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
+            setTimeout(_.bind(this.reconnect, this), timeout * 1000);
+            this._autoReconnectTrial++;
+        } 
+    },
+    _onMessage: function(e) {
+    	if (e.data && e.data['event']) {
+            var data = e.data['event'];
+            var type = data["type"];
+
+            if (type == 'InternetConnectingStatus') {
+            	this.eventManager.trigger('astrobox:InternetConnectingStatus', data["payload"]);
+           	}
+        }
+    },
 	setStep: function(step)
 	{
 		if (this.steps[step] != undefined) {
