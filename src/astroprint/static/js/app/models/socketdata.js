@@ -132,7 +132,7 @@ var SocketData = Backbone.Model.extend({
 	                	this.currentState = data.state.text;
                         var connectionClass = 'blink-animation';
                         var printerStatus = 'connecting';
-                        
+
 	                	if (flags.error) {
                             connectionClass = 'failed';
                             printerStatus = 'failed';
@@ -140,7 +140,7 @@ var SocketData = Backbone.Model.extend({
                             connectionClass = 'connected';
                             printerStatus = 'connected';
 	                	}
-                        
+
                         this.connectionView.setPrinterConnection(connectionClass);
                         this.set('printer', {status: printerStatus });
 	                }
@@ -221,6 +221,10 @@ var SocketData = Backbone.Model.extend({
                         case 'InternetConnectingStatus':
                             app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
                             break;
+
+												case "PrinterResponse":
+														app.eventManager.trigger('astrobox:PrinterResponse', payload);
+														break;
 
                         default:
                             console.warn('Unkonwn event received: '+type);

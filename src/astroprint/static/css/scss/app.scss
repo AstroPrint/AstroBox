@@ -34,10 +34,10 @@ body, html {
 
 	h1.title {
 		float: left;
-		
+
 		img {
 			height: 30px;
-		}	
+		}
 	}
 }
 
@@ -119,7 +119,7 @@ body, html {
 
 		&.connected {
 			color: $success-color;
-		}	
+		}
 
 		&.failed {
 			color: $alert-color;
@@ -225,10 +225,11 @@ body, html {
 
 @import
     "noty",
-    "widgets", 
+    "widgets",
     "control",
     "home",
     "files",
-    "settings", 
+    "settings",
     "turnoff",
-    "printing";
+    "printing",
+		"terminal";

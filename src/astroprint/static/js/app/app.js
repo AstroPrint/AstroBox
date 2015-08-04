@@ -7,7 +7,7 @@
 $.ajaxSetup({
     type: 'POST',
     cache: false,
-    headers: { 
+    headers: {
     	"X-Api-Key": UI_API_KEY
     }
 });
@@ -27,7 +27,7 @@ var AppMenu = Backbone.View.extend({
         $.ajax({
             url: API_BASEURL + "astroprint",
             type: "DELETE",
-            success: function() { 
+            success: function() {
             	location.reload();
             },
             complete: function() {
@@ -90,7 +90,9 @@ var AstroBoxApp = Backbone.View.extend({
 	{
 		var nav = this.$('.quick-nav');
 		nav.find('li.active').removeClass('active');
-		nav.find('li.'+tab).addClass('active');
+    if (tab) {
+		  nav.find('li.'+tab).addClass('active');
+    }
 	},
 	onlineStatusChange: function(s, value)
 	{

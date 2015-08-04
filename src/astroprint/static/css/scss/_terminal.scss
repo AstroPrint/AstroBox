@@ -1,0 +1,22 @@
+#terminal-view {
+  .output-container {
+    background: #fafafa;
+    height: 500px;
+    white-space: nowrap;
+    overflow: scroll;
+    margin: 20px 0;
+    padding: 10px;
+
+    .sent {
+      color: $success-color;
+    }
+
+    .received {
+      color: $primary-color;
+    }
+  }
+
+  button, .button {
+    height: 37px;
+  }
+}

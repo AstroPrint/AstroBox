@@ -74,7 +74,7 @@ class MachineCom(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	#STATE_TRANSFERING_FILE = 11
-	
+
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
@@ -192,7 +192,7 @@ class MachineCom(object):
 
 	def getState(self):
 		return self._state
-	
+
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
@@ -224,7 +224,7 @@ class MachineCom(object):
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
 		return "?%d?" % (self._state)
-	
+
 	def getShortErrorString(self):
 		if len(self._errorValue) < 50:
 			return self._errorValue
@@ -232,16 +232,16 @@ class MachineCom(object):
 
 	def getErrorString(self):
 		return self._errorValue
-	
+
 	def isClosedOrError(self):
 		return self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
 
 	def isError(self):
 		return self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR
-	
+
 	def isOperational(self):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED #or self._state == self.STATE_TRANSFERING_FILE
-	
+
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
 
@@ -291,13 +291,13 @@ class MachineCom(object):
 		progress = self._currentFile.getProgress()
 		if progress:
 			return printTimeTotal - printTime
-	
+
 		else:
 			return None
 
 	def getTemp(self):
 		return self._temp
-	
+
 	def getBedTemp(self):
 		return self._bedTemp
 
@@ -934,7 +934,7 @@ class MachineCom(object):
 						#It there's already a request for temps, don't add a new one....
 						if len(self._commandQueue) == 0 or "M105" not in self._commandQueue[-1]:
 							self._commandQueue.appendleft("M105")
-						
+
 						tempRequestTimeout = getNewTimeout("temperature")
 
 					if "ok" in line:
@@ -1044,6 +1044,7 @@ class MachineCom(object):
 			return ''
 
 		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
+		self._callback.broadcastResponses and self._callback.broadcastResponse(sanitizeAscii(ret))
 		return ret
 
 	def _sendNext(self):
@@ -1204,7 +1205,7 @@ class MachineCom(object):
 				self._callback.mcLayerChange(self._currentLayer)
 
 			self._lastLayerHeight = self._currentZ
-			
+
 
 		return cmd
 	_gcode_G1 = _gcode_G0

@@ -17,33 +17,33 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString
 
-from astroprint.printer import Printer 
+from astroprint.printer import Printer
 from astroprint.printer.s3g.printjob import PrintJobS3G
 from astroprint.printfiles.x3g import PrintFileManagerX3g
 from astroprint.printfiles import FileDestinations
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
+	allowTerminal = False
 
 	_fileManagerClass = PrintFileManagerX3g
 
 	CONNECT_MAX_RETRIES = 10
 	UPDATE_INTERVAL = 3 #secs
 
-	_comm = None
-	_profile = None
-	_gcodeParser = None
-	_port = None
-	_baudrate = None
-	_errorValue = ''
-	_botThread = None
-	_currentFile = None
-	_printJob = None
-	_heatingUp = False
-	_firmwareVersion = None
-	_selectedTool = 0
-
 	def __init__(self):
+		self._comm = None
+		self._profile = None
+		self._gcodeParser = None
+		self._port = None
+		self._baudrate = None
+		self._errorValue = ''
+		self._botThread = None
+		self._currentFile = None
+		self._printJob = None
+		self._heatingUp = False
+		self._firmwareVersion = None
+		self._selectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
@@ -54,7 +54,7 @@ class PrinterS3g(Printer):
 		if self._comm:
 			if self._comm.is_open():
 				self._comm.close()
-				
+
 			del self._comm
 
 	def isReady(self):
@@ -115,7 +115,7 @@ class PrinterS3g(Printer):
 		progress = self._currentFile['progress']
 		if progress:
 			return printTimeTotal - printTime
-	
+
 		else:
 			return None
 
@@ -144,7 +144,7 @@ class PrinterS3g(Printer):
 		import makerbot_driver.MachineFactory
 
 		s = settings()
-		
+
 		retries = self.CONNECT_MAX_RETRIES
 
 		try:
@@ -209,7 +209,7 @@ class PrinterS3g(Printer):
 
 					except makerbot_driver.errors.BuildCancelledError:
 						self._logger.info("Build cancelled detected. No problem")
-				
+
 
 			if retries >=0:
 				toolHeadCount = len(self._profile.values['tools'])
@@ -224,7 +224,7 @@ class PrinterS3g(Printer):
 
 					except makerbot_driver.BufferOverflowError:
 						pass
-						
+
 					except makerbot_driver.TransmissionError:
 						self._logger.error('Unfortunatelly an unrecoverable error occurred between the printer and the box')
 						self.disconnect()
@@ -251,7 +251,7 @@ class PrinterS3g(Printer):
 
 						print traceback.format_exc()
 						self._logger.warn(getExceptionString())
-					
+
 					time.sleep(self.UPDATE_INTERVAL)
 
 		except SerialException as e:

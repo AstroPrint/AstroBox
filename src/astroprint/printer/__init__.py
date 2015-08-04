@@ -35,19 +35,23 @@ class Printer(object):
 	STATE_TRANSFERING_FILE = 11
 
 	driverName = None
-	_fileManager = None
-	_comm = None
-	_selectedFile = None
-	_printAfterSelect = False
-	_currentZ = None
-	_progress = None
-	_printTime = None
-	_printTimeLeft = None
-	_currentLayer = None
+	allowTerminal = None
+	
 	_fileManagerClass = None
-	_currentPrintJobId = None
 
 	def __init__(self):
+		self.broadcastResponses = None
+
+		self._comm = None
+		self._selectedFile = None
+		self._printAfterSelect = False
+		self._currentZ = None
+		self._progress = None
+		self._printTime = None
+		self._printTimeLeft = None
+		self._currentLayer = None
+		self._currentPrintJobId = None
+
 		self._profileManager = printerProfileManager()
 
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
@@ -347,7 +351,7 @@ class Printer(object):
 	def mcPrintjobDone(self):
 		#stop timelapse if there was one
 		self._cameraManager.stop_timelapse(True)
-		
+
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
@@ -524,6 +528,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def setTemperature(self, type, value):
+		raise NotImplementedError()
+
+	def sendRawCommand(self, command):
 		raise NotImplementedError()
 
 class StateMonitor(object):

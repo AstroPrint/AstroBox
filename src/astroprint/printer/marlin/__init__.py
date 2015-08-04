@@ -16,12 +16,13 @@ import octoprint.util as util
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
-from astroprint.printer import Printer 
+from astroprint.printer import Printer
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printfiles import FileDestinations
 
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
+	allowTerminal = True
 
 	_fileManagerClass = PrintFileManagerGcode
 
@@ -60,7 +61,7 @@ class PrinterMarlin(Printer):
 		super(PrinterMarlin, self).__init__()
 
 	def rampdown(self):
-		if self._comm:	
+		if self._comm:
 			self._comm.close()
 			self._comm.thread.join()
 			self._comm = None
@@ -82,6 +83,13 @@ class PrinterMarlin(Printer):
 	def _sendFeedbackCommandOutput(self, name, output):
 		for callback in self._callbacks:
 			try: callback.sendFeedbackCommandOutput(name, output)
+			except: pass
+
+	#~~ callback from gcode received
+
+	def broadcastResponse(self, response):
+		for callback in self._callbacks:
+			try: callback.sendEvent('PrinterResponse', response)
 			except: pass
 
 	#~~ callback from gcodemanager
@@ -178,6 +186,9 @@ class PrinterMarlin(Printer):
 			self.command("T%d" % toolNum)
 		except ValueError:
 			pass
+
+	def sendRawCommand(self, command):
+		self.command(command);
 
 	def setTemperature(self, type, value):
 		if type.startswith("tool"):
