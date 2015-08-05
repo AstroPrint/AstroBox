@@ -388,9 +388,10 @@ def sendComm():
 		return make_response("No Printer connected", 404)
 
 	command = request.form.get('command')
+	sourceId = request.form.get('sourceId')
 
-	if command:
-		pm.sendRawCommand(command)
+	if command and sourceId:
+		pm.sendRawCommand(command, sourceId)
 		return NO_CONTENT
 
 	else:

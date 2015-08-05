@@ -36,7 +36,7 @@ class Printer(object):
 
 	driverName = None
 	allowTerminal = None
-	
+
 	_fileManagerClass = None
 
 	def __init__(self):
@@ -530,7 +530,7 @@ class Printer(object):
 	def setTemperature(self, type, value):
 		raise NotImplementedError()
 
-	def sendRawCommand(self, command):
+	def sendRawCommand(self, command, sourceId = None):
 		raise NotImplementedError()
 
 class StateMonitor(object):

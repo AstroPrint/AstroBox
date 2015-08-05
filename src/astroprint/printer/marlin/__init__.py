@@ -87,9 +87,12 @@ class PrinterMarlin(Printer):
 
 	#~~ callback from gcode received
 
-	def broadcastResponse(self, response):
+	def broadcastResponse(self, sourceId,  response):
 		for callback in self._callbacks:
-			try: callback.sendEvent('PrinterResponse', response)
+			try: callback.sendEvent('PrinterResponse', {
+				sourceId: sourceId,
+				response: response
+			})
 			except: pass
 
 	#~~ callback from gcodemanager
@@ -187,8 +190,8 @@ class PrinterMarlin(Printer):
 		except ValueError:
 			pass
 
-	def sendRawCommand(self, command):
-		self.command(command);
+	def sendRawCommand(self, command, sourceId = None):
+		self._comm.sendCommand(command, sourceId)
 
 	def setTemperature(self, type, value):
 		if type.startswith("tool"):

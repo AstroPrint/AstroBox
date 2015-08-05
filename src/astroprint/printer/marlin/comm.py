@@ -109,6 +109,7 @@ class MachineCom(object):
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentExtruder = 0
+		self._lastCommandSourceId = None
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
@@ -336,11 +337,14 @@ class MachineCom(object):
 
 		eventManager().fire(Events.DISCONNECTED)
 
-	def sendCommand(self, cmd):
+	def sendCommand(self, cmd, sourceId = None):
 		cmd = cmd.encode('ascii', 'replace')
 		if self.isPrinting():
 			self._commandQueue.appendleft(cmd)
 		elif self.isOperational():
+			if sourceId:
+				self._lastCommandSourceId = sourceId
+
 			self._sendCommand(cmd)
 
 	def startPrint(self):
@@ -1044,7 +1048,10 @@ class MachineCom(object):
 			return ''
 
 		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
-		self._callback.broadcastResponses and self._callback.broadcastResponse(sanitizeAscii(ret))
+		if self._callback.broadcastResponses and self._lastCommandSourceId:
+			self._callback.broadcastResponse(self._lastCommandSourceId, sanitizeAscii(ret))
+			self._lastCommandSourceId = None
+
 		return ret
 
 	def _sendNext(self):
