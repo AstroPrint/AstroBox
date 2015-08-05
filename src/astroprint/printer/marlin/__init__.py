@@ -90,8 +90,8 @@ class PrinterMarlin(Printer):
 	def broadcastResponse(self, sourceId,  response):
 		for callback in self._callbacks:
 			try: callback.sendEvent('PrinterResponse', {
-				sourceId: sourceId,
-				response: response
+				'sourceId': sourceId,
+				'response': response
 			})
 			except: pass
 
