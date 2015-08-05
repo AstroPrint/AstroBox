@@ -14,7 +14,7 @@ from octoprint.settings import settings, valid_boolean_trues
 from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
-from astroprint.printer.manager import printerManager 
+from astroprint.printer.manager import printerManager
 
 #~~ Printer
 
@@ -353,3 +353,46 @@ def _getTemperatureData(filter):
 
 	return filter(tempData)
 
+##~~ Comms
+
+@api.route("/printer/comm/listen", methods=["POST"])
+def startCommBradcasting():
+	pm = printerManager()
+
+	if not pm.allowTerminal:
+		return make_response("Driver does not support terminal access", 400)
+
+	pm.broadcastResponses = True
+
+	return NO_CONTENT
+
+@api.route("/printer/comm/listen", methods=["DELETE"])
+def stopCommBradcasting():
+	pm = printerManager()
+
+	if not pm.allowTerminal:
+		return make_response("Driver does not support terminal access", 400)
+
+	pm.broadcastResponses = False
+
+	return NO_CONTENT
+
+@api.route("/printer/comm/send", methods=["POST"])
+def sendComm():
+	pm = printerManager()
+
+	if not pm.allowTerminal:
+		return make_response("Driver does not support terminal access", 400)
+
+	if not pm.isOperational():
+		return make_response("No Printer connected", 404)
+
+	command = request.form.get('command')
+	sourceId = request.form.get('sourceId')
+
+	if command and sourceId:
+		pm.sendRawCommand(command, sourceId)
+		return NO_CONTENT
+
+	else:
+		return make_response("Command is missing", 400)

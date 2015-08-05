@@ -5,18 +5,18 @@ var FileUploadBase = Backbone.View.extend({
 		'fileuploadprogress': 'onUploadProgress',
 		'fileuploadfail': 'onUploadFail',
 		'fileuploadalways': 'onUploadAlways',
-		'fileuploaddone': 'onUploadDone'	
+		'fileuploaddone': 'onUploadDone'
 	},
 	acceptFileTypes: null,
 	signatureUrl: null,
 	signatureData: {},
 	uploadUrl: null,
 	uploadData: {},
-	initialize: function(options) 
+	initialize: function(options)
 	{
 		this.$el.fileupload();
 	},
-	beforeSubmit: function(e, data) 
+	beforeSubmit: function(e, data)
 	{
 		if (this.signatureUrl) {
 			this.progress(1.0);
@@ -53,7 +53,7 @@ var FileUploadBase = Backbone.View.extend({
 
 	    return false;
 	},
-	onFileAdded: function(e, data) 
+	onFileAdded: function(e, data)
 	{
 		if (!this.acceptFileTypes) {
 			console.error('acceptFileTypes not set');
@@ -73,7 +73,7 @@ var FileUploadBase = Backbone.View.extend({
         	return true;
         }
 	},
-	onFileSubmit: function(e, data) 
+	onFileSubmit: function(e, data)
 	{
 	    if (data.files.length) {
 	    	this.started(data);
@@ -90,19 +90,19 @@ var FileUploadBase = Backbone.View.extend({
 	    }
 	    return false;
 	},
-	onUploadProgress: function(e, data) 
+	onUploadProgress: function(e, data)
 	{
         this.progress(Math.max((data.loaded / data.total * 100.0) * 0.95, 2.0));
 	},
-	onUploadFail: function(e, data) 
+	onUploadFail: function(e, data)
 	{
 		this.failed("There was an error uploading your file: "+ data.errorThrown);
 	},
-	onUploadAlways: function(e, data) 
+	onUploadAlways: function(e, data)
 	{
         this.always();
 	},
-	onUploadDone: function(e, data) 
+	onUploadDone: function(e, data)
 	{
 		this.success(data);
 	},
@@ -140,7 +140,7 @@ var FileUploadCombined = FileUploadBase.extend({
 	{
 		if (data.files && data.files.length > 0) {
 			var fileName = data.files[0].name;
-			var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) );
+			var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
 			//Let's find out what type of file this is
 			this.currentFileType = _.findKey(this.fileTypes, function(v, k) {
@@ -152,7 +152,7 @@ var FileUploadCombined = FileUploadBase.extend({
 			if (this.currentFileType == undefined) {
 				this.currentFileType = null;
 				this.failed('File Type ['+fileExt+'] not supported');
-				return;				
+				return;
 			}
 
 			switch (this.currentFileType) {
@@ -177,19 +177,19 @@ var FileUploadCombined = FileUploadBase.extend({
 	    switch(this.currentFileType) {
 	    	case 'design':
 	    		this.progress(98);
-	    	   	if (data.redirect) {
-		            window.location.href = data.redirect;
-		        } else {
-		        	this.failed('Missing redirect url');
-		        }
+    	   	if (data.redirect) {
+	            window.location.href = data.redirect;
+	        } else {
+	        	this.failed('Missing redirect url');
+	        }
 	    	break;
 
 	    	case 'print':
 	    		this.progress(100);
 	    		noty({text: "File uploaded succesfully :)", type: 'success', timeout: 3000});
-				app.router.navigate('files', {trigger: true, replace:true});
-				app.router.filesView.refreshPrintFiles(true);
-				app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
+					app.router.navigate('files', {trigger: true, replace:true});
+					app.router.filesView.refreshPrintFiles(true);
+					app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
 	    	break;
 	    }
 	}

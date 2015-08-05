@@ -11,7 +11,7 @@ var FileUploadDashboard = FileUploadCombined.extend({
 	{
 		FileUploadCombined.prototype.initialize.call(this, options);
 
-		this.container = this.$el.closest('.upload-btn');		
+		this.container = this.$el.closest('.upload-btn');
 	},
 	render: function()
 	{
@@ -75,9 +75,19 @@ var HomeView = Backbone.View.extend({
 	initialize: function()
 	{
 		this.uploadBtn = new FileUploadDashboard({el: "#home-view #app-container .upload-btn .file-upload"});
+		this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
+		this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
 	},
 	onShow: function()
 	{
 		this.uploadBtn.refreshAccept();
+	},
+	onDriverChanged: function(model, newDriver)
+	{
+		if (newDriver == 'marlin') {
+			this.$("#app-container ul li.gcode-terminal-app-icon").removeClass('hide');
+		} else {
+			this.$("#app-container ul li.gcode-terminal-app-icon").addClass('hide');
+		}
 	}
 });

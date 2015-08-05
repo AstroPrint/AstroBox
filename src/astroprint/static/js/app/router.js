@@ -10,6 +10,7 @@ var AppRouter = Backbone.Router.extend({
 	controlView: null,
 	settingsView: null,
 	printingView: null,
+	terminalView: null,
 	routes: {
 		"": "home",
 		"files": "files",
@@ -18,6 +19,7 @@ var AppRouter = Backbone.Router.extend({
 		"printing": "printing",
 		"settings": "settings",
 		"settings/:page": "settings",
+		"gcode-terminal": "terminal",
 		"*notFound": "notFound"
 	},
 	turningOff: false,
@@ -25,12 +27,12 @@ var AppRouter = Backbone.Router.extend({
   		if (callback) {
   			is_paused = app.socketData.get('paused');
   			if (app.socketData.get('printing') || is_paused) {
-  				if 	(callback != this.printing && 
+  				if 	(callback != this.printing &&
   					(callback != this.control || !is_paused)
   				) {
   					this.navigate('printing', {trigger: true, replace:true});
   					return;
-  				} 
+  				}
   			} else if (callback == this.printing) {
   				this.navigate('', {trigger: true, replace:true});
   				return;
@@ -39,7 +41,7 @@ var AppRouter = Backbone.Router.extend({
   			callback.apply(this, args);
   		}
 	},
-	home: function() 
+	home: function()
 	{
 		if (!this.homeView) {
 			this.homeView = new HomeView({forceSync: false});
@@ -48,7 +50,7 @@ var AppRouter = Backbone.Router.extend({
 		this.selectView(this.homeView);
 		app.selectQuickNav('dash');
 	},
-	files: function() 
+	files: function()
 	{
 		if (!this.filesView) {
 			this.filesView = new FilesView({forceSync: false});
@@ -72,7 +74,7 @@ var AppRouter = Backbone.Router.extend({
 				forceSync: true,
 				syncCompleted: showDlg
 			});
-		} 
+		}
 
 		this.navigate('files', {trigger: true, replace:true});
 	},
@@ -104,6 +106,13 @@ var AppRouter = Backbone.Router.extend({
 		this.settingsView.menu.changeActive(page || 'printer-connection');
 		app.selectQuickNav('settings');
 	},
+	terminal: function() {
+		if (!this.terminalView) {
+			this.terminalView = new TerminalView();
+		}
+
+		this.selectView(this.terminalView);
+	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
 		var targetView = view.$el;
@@ -122,6 +131,8 @@ var AppRouter = Backbone.Router.extend({
 		if (view.$el.attr('id') == 'control-view') {
 			this.controlView.tempView.resetBars();
 		}
+
+		app.selectQuickNav();
 	},
 	notFound: function()
 	{
