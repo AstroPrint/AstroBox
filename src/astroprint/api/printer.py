@@ -362,7 +362,7 @@ def startCommBradcasting():
 	if not pm.allowTerminal:
 		return make_response("Driver does not support terminal access", 400)
 
-	pm.broadcastResponses = True
+	pm.broadcastTraffic = True
 
 	return NO_CONTENT
 
@@ -373,7 +373,7 @@ def stopCommBradcasting():
 	if not pm.allowTerminal:
 		return make_response("Driver does not support terminal access", 400)
 
-	pm.broadcastResponses = False
+	pm.broadcastTraffic = False
 
 	return NO_CONTENT
 

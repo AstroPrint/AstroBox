@@ -222,8 +222,8 @@ var SocketData = Backbone.Model.extend({
                             app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
                             break;
 
-												case "PrinterResponse":
-														app.eventManager.trigger('astrobox:PrinterResponse', payload);
+												case "PrinterTraffic":
+														app.eventManager.trigger('astrobox:PrinterTraffic', payload);
 														break;
 
                         default:

@@ -13,10 +13,10 @@ var TerminalView = Backbone.View.extend({
     this.outputView = new OutputView();
     this.sourceId = Math.floor((Math.random() * 100000)); //Generate a random sourceId
 
-    app.eventManager.on("astrobox:PrinterResponse", _.bind(function(data) {
-      if (data.sourceId == this.sourceId) {
-        this.outputView.add('received', data.response);
-      }
+    app.eventManager.on("astrobox:PrinterTraffic", _.bind(function(data) {
+      //if (data.sourceId == this.sourceId) {
+        this.outputView.add(data.direction, data.content);
+      //}
     }, this));
   },
   onClear: function(e)
@@ -45,7 +45,7 @@ var TerminalView = Backbone.View.extend({
         }
       })
         .done(_.bind(function(){
-          this.outputView.add('sent', command);
+          //this.outputView.add('sent', command);
         }, this))
         .fail(function(){
           loadingBtn.addClass('error');
@@ -84,11 +84,11 @@ var OutputView = Backbone.View.extend({
   add: function(type, text)
   {
     switch(type) {
-      case 'sent':
+      case 's': // sent to printer
         text = '<div class="sent bold"><i class="icon-angle-right"></i>'+text+'</div>';
       break;
 
-      case 'received':
+      case 'r': // received from printer
         text = '<div class="received"><i class="icon-angle-left"></i>'+text+'</div>';
       break;
     }

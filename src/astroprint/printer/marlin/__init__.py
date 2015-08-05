@@ -87,11 +87,12 @@ class PrinterMarlin(Printer):
 
 	#~~ callback from gcode received
 
-	def broadcastResponse(self, sourceId,  response):
+	def doTrafficBroadcast(self, sourceId, direction, content):
 		for callback in self._callbacks:
-			try: callback.sendEvent('PrinterResponse', {
+			try: callback.sendEvent('PrinterTraffic', {
 				'sourceId': sourceId,
-				'response': response
+				'direction': direction,
+				'content': content
 			})
 			except: pass
 

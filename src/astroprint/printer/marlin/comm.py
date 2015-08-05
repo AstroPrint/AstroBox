@@ -109,7 +109,7 @@ class MachineCom(object):
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentExtruder = 0
-		self._lastCommandSourceId = None
+		#self._lastCommandSourceId = None
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
@@ -342,8 +342,8 @@ class MachineCom(object):
 		if self.isPrinting():
 			self._commandQueue.appendleft(cmd)
 		elif self.isOperational():
-			if sourceId:
-				self._lastCommandSourceId = sourceId
+			#if sourceId:
+			#	self._lastCommandSourceId = sourceId
 
 			self._sendCommand(cmd)
 
@@ -1048,9 +1048,11 @@ class MachineCom(object):
 			return ''
 
 		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
-		if self._callback.broadcastResponses and self._lastCommandSourceId:
-			self._callback.broadcastResponse(self._lastCommandSourceId, sanitizeAscii(ret))
-			self._lastCommandSourceId = None
+
+		if self._callback.broadcastTraffic:# and self._lastCommandSourceId:
+			self._callback.doTrafficBroadcast(None, 'r', ret) #sanitizeAscii(ret))
+			#if ret.startswith('ok'):
+			#	self._lastCommandSourceId = None
 
 		return ret
 
@@ -1167,6 +1169,10 @@ class MachineCom(object):
 			while True:
 				try:
 					self._serial.write(cmd + '\n')
+
+					if self._callback.broadcastTraffic: # and self._lastCommandSourceId:
+						self._callback.doTrafficBroadcast(None, 's', cmd)
+
 					break
 
 				except serial.SerialTimeoutException:

@@ -40,7 +40,7 @@ class Printer(object):
 	_fileManagerClass = None
 
 	def __init__(self):
-		self.broadcastResponses = None
+		self.broadcastTraffic = None
 
 		self._comm = None
 		self._selectedFile = None
