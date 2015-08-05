@@ -26,12 +26,12 @@ var TerminalView = Backbone.View.extend({
   },
   onSend: function(e)
   {
-    e.preventDefault()
+    e.preventDefault();
+    var sendField = this.$('input');
+    var command = sendField.val();
 
-    if (this.sourceId) {
-      var sendField = this.$('input');
+    if (this.sourceId && command) {
       var loadingBtn = this.$('button.send').closest('.loading-button');
-      var command = sendField.val();
 
       loadingBtn.addClass('loading');
 
