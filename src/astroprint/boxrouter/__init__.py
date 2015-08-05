@@ -81,7 +81,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				self._router.close()
 				self._router._doRetry()
 				break
-			
+
 			if time() - self._lastReceived > timeout:
 				try:
 					self.send(PingControlMessage(data=LINE_CHECK_STRING))
@@ -191,7 +191,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 									'error': True,
 									'message': 'Error updating the print capture'
 								}
-								
+
 						else:
 							if self._cameraManager.start_timelapse(freq):
 								response = {'success': True}
@@ -255,7 +255,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 								'progress': 100,
 								'selected': True
 							})
-						
+
 						else:
 							self._printerListener._sendUpdate('print_file_download', {
 								'id': print_file_id,
@@ -268,7 +268,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 					def errorCb(destFile, error):
 						if error == 'cancelled':
 							em.fire(
-									Events.CLOUD_DOWNLOAD, 
+									Events.CLOUD_DOWNLOAD,
 									{
 										"type": "cancelled",
 										"id": print_file_id
@@ -276,14 +276,14 @@ class AstroprintBoxRouterClient(WebSocketClient):
 								)
 						else:
 							em.fire(
-								Events.CLOUD_DOWNLOAD, 
+								Events.CLOUD_DOWNLOAD,
 								{
 									"type": "error",
 									"id": print_file_id,
 									"reason": error
 								}
 							)
-						
+
 						if destFile and os.path.exists(destFile):
 							os.remove(destFile)
 
@@ -305,7 +305,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 					else:
 						response = {
 							'error': True,
-							'message': 'Unable to cancel download'						
+							'message': 'Unable to cancel download'
 						}
 
 				else:
@@ -321,8 +321,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				}))
 
 			except Exception as e:
-				message = 'Error sending [%s] response: %s' % (request, e) 
-				self._logger.error( message )	
+				message = 'Error sending [%s] response: %s' % (request, e)
+				self._logger.error( message )
 				self.send(json.dumps({
 					'type': 'req_response',
 					'reqId': reqId,
@@ -406,7 +406,7 @@ class AstroprintBoxRouter(object):
 
 		if not self.connected:
 			from octoprint.server import userManager
-			
+
 			loggedUser = self._settings.get(['cloudSlicer', 'loggedUser'])
 			if loggedUser and userManager:
 				user = userManager.findUser(loggedUser)
@@ -473,20 +473,22 @@ class AstroprintBoxRouter(object):
 		self._doRetry()
 
 
-	def _error(self, err):
-		self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
-		self.status = self.STATUS_ERROR
-		self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
-		self.close()
-		self._doRetry()
+	# def _error(self, err):
+	# 	self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
+	# 	self.status = self.STATUS_ERROR
+	# 	self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+	# 	self.close()
+	# 	self._doRetry()
 
 	def _doRetry(self, silent=True):
 		if self._retries < self.MAX_RETRIES:
-			self._retries += 1
-			sleep(self.START_WAIT_BETWEEN_RETRIES * self.WAIT_MULTIPLIER_BETWEEN_RETRIES * (self._retries - 1) )
-			self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
-			self._silentReconnect = silent
-			self.boxrouter_connect()
+			def retry():
+				self._retries += 1
+				self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
+				self._silentReconnect = silent
+				self.boxrouter_connect()
+
+			threading.Timer(self.START_WAIT_BETWEEN_RETRIES * self.WAIT_MULTIPLIER_BETWEEN_RETRIES * (self._retries - 1) , retry ).start()
 
 		else:
 			self._logger.info('No more retries. Giving up...')
@@ -499,7 +501,7 @@ class AstroprintBoxRouter(object):
 			if not nm.checkOnline() and nm.isHotspotActive() is False: #isHotspotActive will return None if not possible
 				#get the box hotspot up
 				self._logger.info('AstroBox is offline. Starting hotspot...')
-				result = nm.startHotspot() 
+				result = nm.startHotspot()
 				if result is True:
 					self._logger.info('Hostspot started.')
 				else:
