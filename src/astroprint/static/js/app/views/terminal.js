@@ -5,7 +5,8 @@ var TerminalView = Backbone.View.extend({
   events: {
     'submit form': 'onSend',
     'show': 'onShow',
-    'hide': 'onHide'
+    'hide': 'onHide',
+    'click button.clear': 'onClear'
   },
   initialize: function()
   {
@@ -97,6 +98,6 @@ var OutputView = Backbone.View.extend({
   },
   clear: function()
   {
-    this.$el.empty();
+    this.$el.html('');
   }
 });
