@@ -7,7 +7,6 @@
   .output-container {
     background: #fafafa;
     height: 500px;
-    white-space: nowrap;
     overflow: scroll;
     margin: 20px 0 0;
     padding: 10px 0;
@@ -16,10 +15,12 @@
 
     div {
         border-bottom: 1px solid #f2f2f2;
+        padding-left: 10px;
+        text-indent: -5px;
     }
 
     .sent {
-      color: lighten(#92278f, 30%);
+      color: lighten(#92278f, 25%);
       background: #fdfdfd;
       border-left: 10px solid $secondary-color;
 
