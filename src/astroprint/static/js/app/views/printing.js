@@ -66,7 +66,7 @@
         var label = container.find('label');
 
         var width = container.width();
-        var maxLeft = currentLabel.position().left - handle.innerWidth()*1.7;
+        var maxLeft = currentLabel.position().left - handle.innerWidth();
         var minLeft = label.innerWidth();
 
         this.containerDimensions = {
@@ -155,7 +155,7 @@ var PhotoView = Backbone.View.extend({
         if (this.print_capture) {
             freq = this.print_capture.freq;
         }
-        
+
         this.$('.timelapse select').val(freq);
     },
     onCameraChanged: function(s, value) {
@@ -214,8 +214,8 @@ var PhotoView = Backbone.View.extend({
             })
             .fail(function(){
                 noty({text: "There was an error adjusting your print capture.", timeout: 3000});
-            });         
-        }   
+            });
+        }
     }
 });
 
@@ -236,12 +236,12 @@ var PrintingView = Backbone.View.extend({
         this.nozzleBar = new TempBarHorizontalView({
             scale: [0, app.printerProfile.get('max_nozzle_temp')],
             el: this.$el.find('.temp-bar.nozzle'),
-            type: 'tool0' 
+            type: 'tool0'
         });
         this.bedBar = new TempBarHorizontalView({
             scale: [0, app.printerProfile.get('max_bed_temp')],
             el: this.$el.find('.temp-bar.bed'),
-            type: 'bed' 
+            type: 'bed'
         });
         this.photoView = new PhotoView({parent: this});
 
@@ -249,7 +249,7 @@ var PrintingView = Backbone.View.extend({
         this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
         this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
     },
-    render: function() 
+    render: function()
     {
         //Progress data
         var filenameNode = this.$('.progress .filename');
@@ -357,7 +357,7 @@ var PrintingView = Backbone.View.extend({
                 app.socketData.set({printing: false, paused: false});
             }
             setTimeout(function(){
-                loadingBtn.removeClass('loading'); 
+                loadingBtn.removeClass('loading');
             }, 2000);
         }, this));
     },
@@ -372,7 +372,7 @@ var PrintingView = Backbone.View.extend({
             } else {
                 app.socketData.set('paused', !wasPaused);
             }
-            loadingBtn.removeClass('loading'); 
+            loadingBtn.removeClass('loading');
         }, this));
     },
     showControlPage: function() {

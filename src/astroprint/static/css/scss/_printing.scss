@@ -101,7 +101,7 @@
 					margin-left: -2px;
 					margin-top: 1px;
 					display: block;
-					font-size: 30px					
+					font-size: 30px
 				}
 			}
 
@@ -153,7 +153,7 @@
 				}
 			}
 
-			.button.loading {				
+			.button.loading {
 				i {
 					display: inline-block;
 					font-size: 30px;
@@ -186,21 +186,22 @@
 
 			label {
 				color: white;
-				font-size: rem-calc(28);
+				font-size: rem-calc(20);
 				position: absolute;
-				top: 6px;
+				top: 12px;
 				left: 10px;
-				padding-right: 30px;
+				width: 75px;
 				display: inline-block;
 			}
 
 			.temp-current {
 				position: absolute;
-				top: 5px;
+				top: 12px;
 				right: 10px;
-				font-size: rem-calc(28);
+				font-size: rem-calc(20);
 				color: white;
-				padding-left: 25px;
+				width: 50px;
+				text-align: right;
 				display: inline-block;
 			}
 
@@ -235,6 +236,7 @@
 				}
 
 				input {
+					margin-top: 12px;
 					text-align: center;
 					display: inline-block;
 					background: transparent;
@@ -244,10 +246,10 @@
 					width: 55%;
 					box-shadow: none;
 
-					&::-webkit-inner-spin-button, 
-					&::-webkit-outer-spin-button { 
-					  -webkit-appearance: none; 
-					  margin: 0; 
+					&::-webkit-inner-spin-button,
+					&::-webkit-outer-spin-button {
+					  -webkit-appearance: none;
+					  margin: 0;
 					}
 				}
 
@@ -271,8 +273,8 @@
 					position: absolute;
 					top: -13px;
 					left: -5px;
-					-webkit-transform: rotate(90deg); 
-					-moz-transform: rotate(90deg); 
+					-webkit-transform: rotate(90deg);
+					-moz-transform: rotate(90deg);
 					transform: rotate(90deg);
 				}
 
@@ -281,7 +283,7 @@
 					bottom: -13px;
 					left: -5px;
 					-webkit-transform: rotate(90deg);
-					-moz-transform: rotate(90deg); 
+					-moz-transform: rotate(90deg);
 					transform: rotate(90deg);
 				}
 			}
@@ -313,6 +315,22 @@
 
 		button.pause-print {
 			display: none;
+		}
+	}
+}
+
+@media #{$medium-up} {
+	#printing-view .temperatures .temp-bar {
+		label {
+			top: 4px;
+			width: 110px;
+			font-size: rem-calc(28);
+		}
+
+		.temp-current {
+			top: 4px;
+			width: 100px;
+			font-size: rem-calc(28);
 		}
 	}
 }

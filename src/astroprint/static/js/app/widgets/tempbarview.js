@@ -58,7 +58,6 @@ var TempBarView = Backbone.View.extend({
     },
     onTouchEnd: function(e) {
         e.preventDefault();
-        e.stopPropagation();
 
        $(e.currentTarget).removeClass('moving');
 
@@ -86,7 +85,7 @@ var TempBarView = Backbone.View.extend({
             value = Math.min(Math.max(value, this.scale[0]), this.scale[1]);
             this._sendToolCommand('target', this.type, value);
             input.blur();
- 
+
             this.setHandle(value);
         }
     },
@@ -157,7 +156,7 @@ var TempBarView = Backbone.View.extend({
         if (isNaN(target)) {
             target = null;
         }
- 
+
         this.renderTemps(actual, target);
     },
 
