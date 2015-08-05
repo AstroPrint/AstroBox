@@ -134,7 +134,7 @@ def index():
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
 		online = nm.isOnline()
-		
+
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
@@ -217,7 +217,7 @@ class Server():
 		self._allowRoot = allowRoot
 		self._logConf = logConf
 
-		  
+
 	def run(self):
 		if not self._allowRoot:
 			self._checkForRoot()
@@ -289,7 +289,6 @@ class Server():
 		if self._port is None:
 			self._port = s.getInt(["server", "port"])
 
-		logger.info("Listening on http://%s:%d" % (self._host, self._port))
 		app.debug = self._debug
 
 		from octoprint.server.api import api
@@ -331,6 +330,8 @@ class Server():
 		])
 		self._server = HTTPServer(self._tornado_app)
 		self._server.listen(self._port, address=self._host)
+
+		logger.info("Listening on http://%s:%d" % (self._host, self._port))
 
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):
