@@ -1,18 +1,40 @@
 #terminal-view {
+
+    .title-heading {
+        margin-bottom: 0;
+    }
+
   .output-container {
     background: #fafafa;
     height: 500px;
     white-space: nowrap;
     overflow: scroll;
-    margin: 20px 0;
-    padding: 10px;
+    margin: 20px 0 0;
+    padding: 10px 0;
+    border: 1px solid #ccc;
+    @include radius($global-radius $global-radius 0 0);
+
+    div {
+        border-bottom: 1px solid #f2f2f2;
+    }
 
     .sent {
-      color: $success-color;
+      color: lighten(#92278f, 30%);
+      background: #fdfdfd;
+      border-left: 10px solid $secondary-color;
+
+      i {
+          color: lighten(#92278f, 30%);
+      }
     }
 
     .received {
-      color: $primary-color;
+      color: #505050;
+      border-left: 10px solid #ccc;
+
+      i {
+          color: #00bff3;
+      }
     }
   }
 

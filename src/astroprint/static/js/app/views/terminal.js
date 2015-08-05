@@ -84,11 +84,11 @@ var OutputView = Backbone.View.extend({
   {
     switch(type) {
       case 'sent':
-        text = '<div class="sent bold">'+text+'</div>';
+        text = '<div class="sent bold"><i class="icon-angle-right"></i>'+text+'</div>';
       break;
 
       case 'received':
-        text = '<div class="received">'+text+'</div>';
+        text = '<div class="received"><i class="icon-angle-left"></i>'+text+'</div>';
       break;
     }
 
