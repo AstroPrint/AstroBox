@@ -85,9 +85,9 @@ var HomeView = Backbone.View.extend({
 	onDriverChanged: function(model, newDriver)
 	{
 		if (newDriver == 'marlin') {
-			this.$("#app-container ul li.gcode-terminal-app-icon").show();
+			this.$("#app-container ul li.gcode-terminal-app-icon").removeClass('hide');
 		} else {
-			this.$("#app-container ul li.gcode-terminal-app-icon").hide();
+			this.$("#app-container ul li.gcode-terminal-app-icon").addClass('hide');
 		}
 	}
 });

@@ -26,6 +26,11 @@
 		}
 	}
 
+	[class*="block-grid-"] > li {
+		clear: none !important;
+		white-space: nowrap;
+	}
+
 	&.row {
 		max-width: rem-calc(1000);
 		margin: 0 auto;
@@ -33,6 +38,8 @@
 	h1 {
 		font-size: rem-calc(18);
 		text-align: center;
+		text-overflow: ellipsis;
+		overflow-x: hidden;
 	}
 
 	.app-image {
@@ -74,7 +81,7 @@
 			}
 	}
 
-	.no-touch & { 
+	.no-touch & {
 		li:hover .overlay {
 	       	opacity:1;
 	    }
@@ -115,7 +122,7 @@
 			font-size: rem-calc(45);
 			color: $alert-color;
 			text-align: center;
-			background: rgba(255,255,255,.8);	
+			background: rgba(255,255,255,.8);
 
 			i {
 				position: absolute;
