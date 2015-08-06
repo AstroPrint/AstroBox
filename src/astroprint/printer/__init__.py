@@ -531,7 +531,7 @@ class Printer(object):
 	def setTemperature(self, type, value):
 		raise NotImplementedError()
 
-	def sendRawCommand(self, command, sourceId = None):
+	def sendRawCommand(self, command):
 		raise NotImplementedError()
 
 class StateMonitor(object):

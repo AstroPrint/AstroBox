@@ -896,7 +896,7 @@ class MachineCom(object):
 							self._sendCommand(self._commandQueue.pop())
 						elif self._callback.doIdleTempReports and time.time() > tempRequestTimeout:
 							self.sendCommand("M105")
-						tempRequestTimeout = getNewTimeout("temperature")
+							tempRequestTimeout = getNewTimeout("temperature")
 					# resend -> start resend procedure from requested line
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						self._handleResendRequest(line)

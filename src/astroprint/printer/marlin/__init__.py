@@ -192,8 +192,8 @@ class PrinterMarlin(Printer):
 		except ValueError:
 			pass
 
-	def sendRawCommand(self, command, sourceId = None):
-		self._comm.sendCommand(command, sourceId)
+	def sendRawCommand(self, command):
+		self._comm.sendCommand(command)
 
 	def setTemperature(self, type, value):
 		if type.startswith("tool"):
