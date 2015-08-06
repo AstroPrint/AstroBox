@@ -65,6 +65,9 @@ class NetworkManagerEvents(threading.Thread):
 		self._devicePropertiesListener = None
 		self._monitorActivatingListener = None
 
+		if NetworkManager.NetworkManager.State == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+			self._setOnline(True)
+
 		logger.info('Looking for Active Connections...')
 		d = self.getActiveConnectionDevice()
 		if d:
@@ -85,7 +88,7 @@ class NetworkManagerEvents(threading.Thread):
 
 
 	def stop(self):
-		gobject.idle_add(logger.info, 'NetworkManagerEvents stopping.')
+		logger.info('NetworkManagerEvents stopping.')
 
 		if self._propertiesListener:
 			self._propertiesListener.remove()
