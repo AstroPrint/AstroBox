@@ -34,6 +34,17 @@
       i {
           color: lighten(#92278f, 30%);
       }
+
+      &.failed {
+        color: $alert-color;
+        i {
+          color: $alert-color;
+        }
+
+        border-left: 10px solid $alert-color;
+        background: lighten($alert-color, 35%);
+        border-bottom: 1px solid $alert-color;
+      }
     }
 
     .received {

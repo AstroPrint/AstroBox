@@ -894,7 +894,7 @@ class MachineCom(object):
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
 							self._sendCommand(self._commandQueue.pop())
-						else:
+						elif self._callback.doIdleTempReports and time.time() > tempRequestTimeout:
 							self.sendCommand("M105")
 						tempRequestTimeout = getNewTimeout("temperature")
 					# resend -> start resend procedure from requested line
@@ -1049,8 +1049,8 @@ class MachineCom(object):
 
 		self._serialLoggerEnabled and self._log("Recv: %s" % sanitizeAscii(ret))
 
-		if self._callback.broadcastTraffic:# and self._lastCommandSourceId:
-			self._callback.doTrafficBroadcast(None, 'r', ret) #sanitizeAscii(ret))
+		if self._callback.broadcastTraffic > 0:# and self._lastCommandSourceId:
+			self._callback.doTrafficBroadcast('r', ret) #sanitizeAscii(ret))
 			#if ret.startswith('ok'):
 			#	self._lastCommandSourceId = None
 
@@ -1170,8 +1170,8 @@ class MachineCom(object):
 				try:
 					self._serial.write(cmd + '\n')
 
-					if self._callback.broadcastTraffic: # and self._lastCommandSourceId:
-						self._callback.doTrafficBroadcast(None, 's', cmd)
+					if self._callback.broadcastTraffic > 0: # and self._lastCommandSourceId:
+						self._callback.doTrafficBroadcast('s', cmd)
 
 					break
 

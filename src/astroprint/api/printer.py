@@ -362,7 +362,10 @@ def startCommBradcasting():
 	if not pm.allowTerminal:
 		return make_response("Driver does not support terminal access", 400)
 
-	pm.broadcastTraffic = True
+	pm.broadcastTraffic += 1
+
+	#Stop doing temperature reports
+	pm.doIdleTempReports = False
 
 	return NO_CONTENT
 
@@ -373,7 +376,12 @@ def stopCommBradcasting():
 	if not pm.allowTerminal:
 		return make_response("Driver does not support terminal access", 400)
 
-	pm.broadcastTraffic = False
+	#Protect against negative values
+	pm.broadcastTraffic = max(0, pm.broadcastTraffic - 1)
+
+	if pm.broadcastTraffic == 0:
+		#Restore temperature reports
+		pm.doIdleTempReports = True
 
 	return NO_CONTENT
 

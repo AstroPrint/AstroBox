@@ -40,7 +40,8 @@ class Printer(object):
 	_fileManagerClass = None
 
 	def __init__(self):
-		self.broadcastTraffic = None
+		self.broadcastTraffic = 0 #Number of clients that wish to receive serial link traffic
+		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
 		self._comm = None
 		self._selectedFile = None

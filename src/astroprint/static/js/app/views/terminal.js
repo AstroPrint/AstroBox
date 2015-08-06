@@ -1,7 +1,7 @@
 var TerminalView = Backbone.View.extend({
   el: '#terminal-view',
   outputView: null,
-  sourceId: null,
+  //sourceId: null,
   events: {
     'submit form': 'onSend',
     'show': 'onShow',
@@ -11,7 +11,7 @@ var TerminalView = Backbone.View.extend({
   initialize: function()
   {
     this.outputView = new OutputView();
-    this.sourceId = Math.floor((Math.random() * 100000)); //Generate a random sourceId
+    //this.sourceId = Math.floor((Math.random() * 100000)); //Generate a random sourceId
 
     app.eventManager.on("astrobox:PrinterTraffic", _.bind(function(data) {
       //if (data.sourceId == this.sourceId) {
@@ -31,7 +31,7 @@ var TerminalView = Backbone.View.extend({
     var sendField = this.$('input');
     var command = sendField.val();
 
-    if (this.sourceId && command) {
+    if (/*this.sourceId &&*/ command) {
       var loadingBtn = this.$('button.send').closest('.loading-button');
 
       loadingBtn.addClass('loading');
@@ -40,20 +40,21 @@ var TerminalView = Backbone.View.extend({
         url: API_BASEURL + 'printer/comm/send',
         method: 'POST',
         data: {
-          sourceId: this.sourceId,
+          //sourceId: this.sourceId,
           command: command
         }
       })
-        .done(_.bind(function(){
-          //this.outputView.add('sent', command);
-        }, this))
-        .fail(function(){
+        //.done(_.bind(function(){
+        //  this.outputView.add('sent', command);
+        //}, this))
+        .fail(_.bind(function(){
           loadingBtn.addClass('error');
+          this.outputView.add('s', command, true);
 
           setTimeout(function(){
             loadingBtn.removeClass('error');
           }, 3000);
-        })
+        }, this))
         .always(function(){
           loadingBtn.removeClass('loading');
           sendField.val('');
@@ -81,11 +82,11 @@ var TerminalView = Backbone.View.extend({
 
 var OutputView = Backbone.View.extend({
   el: '#terminal-view .output-container',
-  add: function(type, text)
+  add: function(type, text, failed)
   {
     switch(type) {
       case 's': // sent to printer
-        text = '<div class="sent bold"><i class="icon-angle-right"></i>'+text+'</div>';
+        text = '<div class="sent bold'+(failed ? ' failed' : '')+'"><i class="icon-'+(failed ? 'attention' : 'angle-right')+'""></i>'+text+(failed ? ' <small>(failed to sent)</small>':'')+'</div>';
       break;
 
       case 'r': // received from printer
