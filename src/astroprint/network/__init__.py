@@ -33,6 +33,9 @@ class NetworkManager(object):
 
 		return False
 
+	def close(self):
+		return None
+
 	def conectionStatus(self):
 		return 'connected'
 

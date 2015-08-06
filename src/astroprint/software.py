@@ -379,13 +379,13 @@ class SoftwareManager(object):
 			from astroprint.boxrouter import boxrouterManager
 			from astroprint.printer.manager import printerManager
 			from astroprint.camera import cameraManager
+			from astroprint.network.manager import networkManager
 
 			#let's be nice about shutthing things down
-			br = boxrouterManager()
-
-			br.boxrouter_disconnect()
+			boxrouterManager().boxrouter_disconnect()
 			printerManager().disconnect()
 			cameraManager().close_camera()
+			networkManager().close()
 
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:

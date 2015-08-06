@@ -219,7 +219,12 @@ class DebianNetworkManager(NetworkManagerBase):
 			self.startHotspot()
 
 	def __del__(self):
-		self._eventListener.stop();
+		self._eventListener.stop()
+		self._eventListener = None
+
+	def close(self):
+		self._eventListener.stop()
+		self._eventListener = None
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())
@@ -269,18 +274,19 @@ class DebianNetworkManager(NetworkManagerBase):
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
 							ap = c.SpecificObject
-							
-							wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
-							wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
 
-							activeConnections['wireless'] = {
-								'id': ap.HwAddress,
-								'signal': ord(ap.Strength),
-								'name': ap.Ssid,
-								'ip': d.Ip4Address,
-								'secured': wpaSecured or wepSecured,
-								'wep': wepSecured
-							}
+							if type(ap) is NetworkManager.AccessPoint:						
+								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
+								wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
+
+								activeConnections['wireless'] = {
+									'id': ap.HwAddress,
+									'signal': ord(ap.Strength),
+									'name': ap.Ssid,
+									'ip': d.Ip4Address,
+									'secured': wpaSecured or wepSecured,
+									'wep': wepSecured
+								}
 
 		return activeConnections
 
