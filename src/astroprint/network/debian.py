@@ -47,10 +47,6 @@ class NetworkManagerEvents(threading.Thread):
 		self._activeDevice = None
 		self._activatingConnection = None
 
-	def __del__(self):
-		self._propertiesListener.remove()
-		self._stateChangeListener.remove()
-
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
@@ -58,7 +54,7 @@ class NetworkManagerEvents(threading.Thread):
 				d = c.Devices[0]
 				return d
 
-		return None		
+		return None
 
 	def run(self):
 		self._stopped = False
@@ -87,8 +83,26 @@ class NetworkManagerEvents(threading.Thread):
 				self._stopped = True
 				self._loop.quit()
 
+
 	def stop(self):
 		gobject.idle_add(logger.info, 'NetworkManagerEvents stopping.')
+
+		if self._propertiesListener:
+			self._propertiesListener.remove()
+			self._propertiesListener = None
+
+		if self._stateChangeListener:
+			self._stateChangeListener.remove()
+			self._stateChangeListener = None
+
+		if self._monitorActivatingListener:
+			self._monitorActivatingListener.remove()
+			self._monitorActivatingListener = None
+
+		if self._devicePropertiesListener:
+			self._devicePropertiesListener.remove()
+			self._devicePropertiesListener = None
+
 		self._stopped = True
 		self._loop.quit()
 
