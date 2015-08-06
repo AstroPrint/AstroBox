@@ -6,7 +6,8 @@ var TerminalView = Backbone.View.extend({
     'submit form': 'onSend',
     'show': 'onShow',
     'hide': 'onHide',
-    'click button.clear': 'onClear'
+    'click button.clear': 'onClear',
+    'click .alert-box.warning a': 'onDismissAlert'
   },
   initialize: function()
   {
@@ -77,6 +78,12 @@ var TerminalView = Backbone.View.extend({
       url: API_BASEURL + 'printer/comm/listen',
       method: 'DELETE'
     });
+  },
+  onDismissAlert: function(e)
+  {
+    e.preventDefault();
+
+    this.$('.alert-box.warning').remove();
   }
 });
 
