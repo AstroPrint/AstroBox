@@ -130,7 +130,7 @@ def getApiKey(request):
 
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
-			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE, 
+			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
 			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS]
 
 	def __init__(self, userManager, eventManager, session):
@@ -144,6 +144,7 @@ class PrinterStateConnection(SockJSConnection):
 		self._logBacklogMutex = threading.Lock()
 		self._messageBacklog = []
 		self._messageBacklogMutex = threading.Lock()
+		self._emitLock = threading.Lock()
 
 		self._userManager = userManager
 		self._eventManager = eventManager
@@ -216,6 +217,12 @@ class PrinterStateConnection(SockJSConnection):
 		pass
 		#self._emit("history", data)
 
+	def sendCommsData(self, direction, data):
+		self._emit('commsData', {
+			'direction': direction,
+			'data': data
+		})
+
 	def sendEvent(self, type, payload=None):
 		self._emit("event", {"type": type, "payload": payload})
 
@@ -241,7 +248,8 @@ class PrinterStateConnection(SockJSConnection):
 		self.sendEvent(event, payload)
 
 	def _emit(self, type, payload):
-		self.send({type: payload})
+		with self._emitLock:
+			self.send({type: payload})
 
 
 #~~ customized large response handler

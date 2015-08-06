@@ -222,16 +222,16 @@ var SocketData = Backbone.Model.extend({
                             app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
                             break;
 
-												case "PrinterTraffic":
-														app.eventManager.trigger('astrobox:PrinterTraffic', payload);
-														break;
-
                         default:
                             console.warn('Unkonwn event received: '+type);
                     }
 
                     break;
                 }
+
+								case 'commsData':
+									app.eventManager.trigger('astrobox:commsData', {direction: data.direction, data: data.data});
+								break;
             }
         }
     }

@@ -12,12 +12,9 @@ var TerminalView = Backbone.View.extend({
   initialize: function()
   {
     this.outputView = new OutputView();
-    //this.sourceId = Math.floor((Math.random() * 100000)); //Generate a random sourceId
 
-    app.eventManager.on("astrobox:PrinterTraffic", _.bind(function(data) {
-      //if (data.sourceId == this.sourceId) {
-        this.outputView.add(data.direction, data.content);
-      //}
+    app.eventManager.on("astrobox:commsData", _.bind(function(data) {
+      this.outputView.add(data.direction, data.data);
     }, this));
   },
   onClear: function(e)
@@ -32,7 +29,7 @@ var TerminalView = Backbone.View.extend({
     var sendField = this.$('input');
     var command = sendField.val();
 
-    if (/*this.sourceId &&*/ command) {
+    if (command) {
       var loadingBtn = this.$('button.send').closest('.loading-button');
 
       loadingBtn.addClass('loading');
@@ -41,13 +38,9 @@ var TerminalView = Backbone.View.extend({
         url: API_BASEURL + 'printer/comm/send',
         method: 'POST',
         data: {
-          //sourceId: this.sourceId,
           command: command
         }
       })
-        //.done(_.bind(function(){
-        //  this.outputView.add('sent', command);
-        //}, this))
         .fail(_.bind(function(){
           loadingBtn.addClass('error');
           this.outputView.add('s', command, true);
