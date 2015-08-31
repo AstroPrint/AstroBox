@@ -263,7 +263,15 @@ var StepInternet = StepView.extend({
 		})
 		.done(_.bind(function(data) {
 			if (data.name) {
-				setup_view.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+
+				var connectionCb = null;
+
+				//Start Timeout 
+				var connectionTimeout = setTimeout(function(){
+					connectionCb.call(this, {status: 'failed', reason: 'timeout'});
+				}, 70000); //1 minute
+
+				connectionCb = function(connectionInfo){
 					switch (connectionInfo.status) {
 						case 'disconnected':
 						case 'connecting':
@@ -271,14 +279,17 @@ var StepInternet = StepView.extend({
 						break;
 
 						case 'connected':
+							setup_view.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 							noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
 							loadingBtn.removeClass('loading');
 							if (callback) callback(false);
 							this.$el.removeClass('settings');
 							this.$el.addClass('success');
+							clearTimeout(connectionTimeout);
 						break;
 
 						case 'failed':
+							setup_view.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 							if (connectionInfo.reason == 'no_secrets') {
 								noty({text: "Invalid password for "+data.name+".", timeout: 3000});
 							} else {
@@ -286,14 +297,20 @@ var StepInternet = StepView.extend({
 							}
 							loadingBtn.removeClass('loading');
 							if (callback) callback(true);
+							clearTimeout(connectionTimeout);
 							break;
 
 						default:
+							setup_view.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 							noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
 							loadingBtn.removeClass('loading');
+							clearTimeout(connectionTimeout);
 							if (callback) callback(true);
 					} 
-				}, this));
+				};
+
+				setup_view.eventManager.on('astrobox:InternetConnectingStatus', connectionCb, this);
+
 			} else if (data.message) {
 				noty({text: data.message, timeout: 3000});
 				loadingBtn.removeClass('loading');

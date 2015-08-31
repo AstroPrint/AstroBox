@@ -133,6 +133,11 @@ class NetworkManagerEvents(threading.Thread):
 
 						self._activatingConnection = c.Connection
 						self._monitorActivatingListener = c.Devices[0].connect_to_signal('StateChanged', self.monitorActivatingConnection)
+
+						settings = c.Connection.GetSettings()
+						if settings:
+							logger.info('Activating Connection %s' % settings['connection']['id'])
+
 						return
 
 		if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
@@ -140,6 +145,7 @@ class NetworkManagerEvents(threading.Thread):
 
 	@idle_add_decorator
 	def monitorActivatingConnection(self, new_state, old_state, reason):
+		logger.info('Activating State Change %s -> %s' % (NetworkManager.const('device_state', old_state),NetworkManager.const('device_state', new_state)))
 		if self._activatingConnection:
 			if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
 				if self._monitorActivatingListener:
@@ -157,6 +163,7 @@ class NetworkManagerEvents(threading.Thread):
 					}
 				})
 
+				self._activatingConnection = None
 				self._setOnline(True)
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
@@ -172,10 +179,8 @@ class NetworkManagerEvents(threading.Thread):
 
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
-				self._setOnline(False)	
-
-			self._activatingConnection = None
-		
+				self._activatingConnection = None
+				self._setOnline(False)
 
 	@idle_add_decorator
 	def activeDeviceConfigChanged(self, properties):

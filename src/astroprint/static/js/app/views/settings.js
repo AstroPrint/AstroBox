@@ -264,7 +264,14 @@ var InternetConnectionView = SettingsPage.extend({
 		})
 			.done(_.bind(function(data) {
 				if (data.name) {
-					app.eventManager.on('astrobox:InternetConnectingStatus', _.bind(function(connectionInfo){
+					var connectionCb = null;
+
+					//Start Timeout 
+					var connectionTimeout = setTimeout(function(){
+						connectionCb.call(this, {status: 'failed', reason: 'timeout'});
+					}, 70000); //1 minute
+
+					connectionCb = function(connectionInfo){
 						switch (connectionInfo.status) {
 							case 'disconnected':
 							case 'connecting':
@@ -272,26 +279,34 @@ var InternetConnectionView = SettingsPage.extend({
 							break;
 
 							case 'connected':
+								app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
 								this.settings.networks['wireless'] = connectionInfo.info;
 								this.render();
 								promise.resolve();
+								clearTimeout(connectionTimeout);
 							break;
 
 							case 'failed':
+								app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 								if (connectionInfo.reason == 'no_secrets') {
-									noty({text: "Invalid password for "+data.name+".", timeout: 3000});
+									message = "Invalid password for "+data.name+".";
 								} else {
-									noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
+									message = "Unable to connect to "+data.name+".";
 								}
-								promise.reject();
+								promise.reject(message);
+								clearTimeout(connectionTimeout);
 								break;
 
 							default:
-								noty({text: "Unable to connect to "+data.name+".", timeout: 3000});
-								promise.reject();
+								app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
+								promise.reject("Unable to connect to "+data.name+".");
+								clearTimeout(connectionTimeout);
 						} 
-					}, this));
+					};
+
+					app.eventManager.on('astrobox:InternetConnectingStatus', connectionCb, this);
+
 				} else if (data.message) {
 					noty({text: data.message, timeout: 3000});
 					promise.reject()
@@ -498,7 +513,8 @@ var WiFiNetworksDialog = Backbone.View.extend({
 					this.$el.foundation('reveal', 'close');
 					loadingBtn.removeClass('loading');
 				}, this))
-				.fail(function(){
+				.fail(function(message){
+					noty({text: message, timeout: 3000});
 					loadingBtn.removeClass('loading');
 				});
 		}
