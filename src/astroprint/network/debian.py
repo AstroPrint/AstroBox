@@ -112,7 +112,6 @@ class NetworkManagerEvents(threading.Thread):
 	@idle_add_decorator
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
-		#gobject.idle_add(logger.info, 'globalStateChanged, new(%s)' % NetworkManager.const('state', state))
 		#logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
 		if not self._online and state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
@@ -163,7 +162,7 @@ class NetworkManagerEvents(threading.Thread):
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
 				# we should probably remove the connection
-				self._activatingConnection.Delete()
+				#self._activatingConnection.Delete()
 
 			elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
 				if self._monitorActivatingListener:
