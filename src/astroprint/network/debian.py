@@ -160,9 +160,10 @@ class NetworkManagerEvents(threading.Thread):
 				self._setOnline(True)
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
+				logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
 				# we should probably remove the connection
-				#self._activatingConnection.Delete()
+				self._activatingConnection.Delete()
 
 			elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
 				if self._monitorActivatingListener:
