@@ -46,6 +46,7 @@ class NetworkManagerEvents(threading.Thread):
 		self._currentIpv4Address = None
 		self._activeDevice = None
 		self._activatingConnection = None
+		self._setOnlineCondition = threading.Condition()
 
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
@@ -190,37 +191,38 @@ class NetworkManagerEvents(threading.Thread):
 			eventManager.fire(Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
 
 	def _setOnline(self, value):
-		if value == self._online:
-			return
+		with self._setOnlineCondition:
+			if value == self._online:
+				return
 
-		if value:
-			d = self.getActiveConnectionDevice()
+			if value:
+				d = self.getActiveConnectionDevice()
 
-			if d:
-				self._activeDevice = d
-				if self._devicePropertiesListener:
-					self._devicePropertiesListener.remove()
+				if d:
+					self._activeDevice = d
+					if self._devicePropertiesListener:
+						self._devicePropertiesListener.remove()
 
-				if self._activeDevice:
-					self._currentIpv4Address = self._activeDevice.Ip4Address
+					if self._activeDevice:
+						self._currentIpv4Address = self._activeDevice.Ip4Address
 
-				self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-				logger.info('Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
+					self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+					logger.info('Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
-				self._online = True
-				eventManager.fire(Events.NETWORK_STATUS, 'online')
+					self._online = True
+					eventManager.fire(Events.NETWORK_STATUS, 'online')
 
-		else:
-			self._online = False
-			self._currentIpv4Address = None
-			eventManager.fire(Events.NETWORK_STATUS, 'offline')
-			if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
-				logger.info('AstroBox is offline. Starting hotspot...')
-				result = self._manager.startHotspot() 
-				if result is True:
-					logger.info('Hostspot started')
-				else:
-					logger.error('Failed to start hostspot: %s' % result)
+			else:
+				self._online = False
+				self._currentIpv4Address = None
+				eventManager.fire(Events.NETWORK_STATUS, 'offline')
+				if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
+					logger.info('AstroBox is offline. Starting hotspot...')
+					result = self._manager.startHotspot() 
+					if result is True:
+						logger.info('Hostspot started')
+					else:
+						logger.error('Failed to start hostspot: %s' % result)
 
 
 class DebianNetworkManager(NetworkManagerBase):
