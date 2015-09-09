@@ -127,6 +127,9 @@ class DiscoveryManager(object):
 		Registers the AstroPrint instance as basic service with a presentation URL pointing to the web interface
 		"""
 
+		if self._ssdp_monitor_active:
+			return
+
 		time_since_last_unregister = time.time() - self._ssdp_last_unregister
 
 		if time_since_last_unregister < ( self._ssdp_notify_timeout + 1 ):
