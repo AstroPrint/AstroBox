@@ -186,7 +186,7 @@ var FileUploadCombined = FileUploadBase.extend({
 
 	    	case 'print':
 	    		this.progress(100);
-	    		noty({text: "File uploaded succesfully :)", type: 'success', timeout: 3000});
+	    		noty({text: "File uploaded successfully :)", type: 'success', timeout: 3000});
 					app.router.navigate('files', {trigger: true, replace:true});
 					app.router.filesView.refreshPrintFiles(true);
 					app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
