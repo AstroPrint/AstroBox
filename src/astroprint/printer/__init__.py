@@ -197,6 +197,7 @@ class Printer(object):
 		filament = None
 		layerCount = None
 		cloudId = None
+		renderedImage = None
 
 		if filename:
 			# Use a string for mtime because it could be float and the
@@ -214,14 +215,13 @@ class Printer(object):
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
 			cloudId = self._fileManager.getFileCloudId(filename)
-			renderedIimage = None
 			if cloudId:
 				if self._selectedFile:
 					self._selectedFile['cloudId'] = cloudId
 
 				printFile = astroprintCloud().getPrintFile(cloudId)
 				if printFile:
-					renderedIimage = printFile['images']['square']
+					renderedImage = printFile['images']['square']
 
 		self._stateMonitor.setJobData({
 			"file": {
@@ -230,7 +230,7 @@ class Printer(object):
 				"size": filesize,
 				"date": date,
 				"cloudId": cloudId,
-				"rendered_image": renderedIimage
+				"rendered_image": renderedImage
 			},
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
