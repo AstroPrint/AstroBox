@@ -151,7 +151,8 @@ var PrinterProfileView = SettingsPage.extend({
 		this.delegateEvents({
 			"invalid.fndtn.abide form": 'invalidForm',
 			"valid.fndtn.abide form": 'validForm',
-			"change input[name='heated_bed']": 'heatedBedChanged'
+			"change input[name='heated_bed']": 'heatedBedChanged',
+			"change select[name='driver']": 'driverChanged'
 		});
 	},
 	heatedBedChanged: function(e)
@@ -164,6 +165,17 @@ var PrinterProfileView = SettingsPage.extend({
 		} else {
 			wrapper.addClass('hide');
 		}
+	},
+	driverChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+		var wrapper = this.$('.input-wrapper.cancel-gcode');
+
+		if (target.val() == 's3g') {
+			wrapper.addClass('hide');
+		} else {
+			wrapper.removeClass('hide');
+		}		
 	},
 	invalidForm: function(e)
 	{
@@ -184,7 +196,7 @@ var PrinterProfileView = SettingsPage.extend({
 
 		loadingBtn.addClass('loading');
 
-		form.find('input, select').each(function(idx, elem) {
+		form.find('input, select, textarea').each(function(idx, elem) {
 			var value = null;
 			var elem = $(elem);
 

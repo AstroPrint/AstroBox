@@ -28,7 +28,8 @@ class PrinterProfileManager(object):
 			'extruder_count': 1,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
-			'heated_bed': True
+			'heated_bed': True,
+			'cancel_gcode': ['G28']
 		}
 
 		if not os.path.isfile(self._infoFile):

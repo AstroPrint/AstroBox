@@ -268,11 +268,10 @@ class PrinterMarlin(Printer):
 
 		self._comm.cancelPrint()
 
-		#self._comm._sendCommand("M112");
-
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
-		self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
+		#self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
+		self.commands(self._profileManager.data.get('cancel_gcode') or ['G28']);
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
