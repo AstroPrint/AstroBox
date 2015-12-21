@@ -109,6 +109,7 @@ class MachineCom(object):
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentExtruder = 0
+		self._oksAfterHeatingUp = 0
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
