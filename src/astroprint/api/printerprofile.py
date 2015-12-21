@@ -14,6 +14,9 @@ from astroprint.printerprofile import printerProfileManager
 def printer_profile_patch():
 	changes = request.json
 
+	if 'cancel_gcode' in changes:
+		changes['cancel_gcode'] = changes['cancel_gcode'].strip().split('\n');
+
 	ppm = printerProfileManager()
 	ppm.set(changes)
 	ppm.save()

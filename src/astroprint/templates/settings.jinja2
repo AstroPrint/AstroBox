@@ -141,6 +141,12 @@
 							        <div class="small-3 columns"><span class="postfix">&deg;C</div>
 							    </div>
 							</div>
+							<div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
+								<label for="cancel-gcode" class="bold">
+									Cancel GCODE
+								</label>
+								<textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28"><%=settings.cancel_gcode.join('\n')%></textarea>
+							</div>
 							<hr/>
 							<div class="loading-button">
 								<button class="success radius">Save Profile</button>
