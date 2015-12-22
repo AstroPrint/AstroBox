@@ -350,7 +350,7 @@ class Server():
 		except KeyboardInterrupt:
 			logger.info("Goodbye!")
 		except:
-			logger.fatal("Now that is embarrassing... Something really really went wrong here. Please report this including the stacktrace below in OctoPrint's bugtracker. Thanks!")
+			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
 		finally:
 			observer.stop()
@@ -388,7 +388,7 @@ class Server():
 					"level": "DEBUG",
 					"formatter": "simple",
 					"when": "D",
-					"backupCount": "1",
+					"backupCount": 5,
 					"filename": os.path.join(settings().getBaseFolder("logs"), "astrobox.log")
 				},
 				"serialFile": {
