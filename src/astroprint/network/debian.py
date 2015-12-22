@@ -66,17 +66,17 @@ class NetworkManagerEvents(threading.Thread):
 		self._devicePropertiesListener = None
 		self._monitorActivatingListener = None
 
+		logger.info('Looking for Active Connections...')
 		if NetworkManager.NetworkManager.State == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
-		logger.info('Looking for Active Connections...')
-		d = self.getActiveConnectionDevice()
-		if d:
-			self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-			self._currentIpv4Address = d.Ip4Address
-			self._activeDevice = d
-			self._online = True
-			logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
+		#d = self.getActiveConnectionDevice()
+		#if d:
+		#	self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+		#	self._currentIpv4Address = d.Ip4Address
+		#	self._activeDevice = d
+		#	self._online = True
+		#	logger.info('Active Connection found at %s (%s)' % (d.IpInterface, d.Ip4Address))
 
 		while not self._stopped:
 			try:
@@ -114,8 +114,10 @@ class NetworkManagerEvents(threading.Thread):
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
 		#logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
-		if not self._online and state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+		if state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
+		elif state != NetworkManager.NM_STATE_CONNECTING:
+			self._setOnline(False)
 
 	@idle_add_decorator
 	def propertiesChanged(self, properties):
@@ -207,7 +209,7 @@ class NetworkManagerEvents(threading.Thread):
 						self._currentIpv4Address = self._activeDevice.Ip4Address
 
 					self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-					logger.info('Active Connection changed to %s (%s)' % (d.IpInterface, self._currentIpv4Address))
+					logger.info('Active Connection is now %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
 					self._online = True
 					eventManager.fire(Events.NETWORK_STATUS, 'online')
