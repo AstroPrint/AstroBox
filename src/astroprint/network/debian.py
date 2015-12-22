@@ -230,6 +230,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		super(DebianNetworkManager, self).__init__()
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
+		self._startHotspotCondition = threading.Condition()
 
 		threads_init()
 		self._eventListener.start()
@@ -413,22 +414,23 @@ class DebianNetworkManager(NetworkManagerBase):
 		return None
 
 	def startHotspot(self):
-		if self.isHotspotActive():
-			return True
-
-		try:
-			p = sarge.run("service wifi_access_point start", stderr=sarge.Capture())
-			if p.returncode != 0:
-				returncode = p.returncode
-				stderr_text = p.stderr.text
-				logger.warn("Start hotspot failed with return code %i: %s" % (returncode, stderr_text))
-				return "Start hotspot failed with return code %i: %s" % (returncode, stderr_text)
-			else:
+		with self._startHotspotCondition:
+			if self.isHotspotActive():
 				return True
 
-		except Exception, e:
-			logger.warn("Start hotspot failed with return code: %s" % e)
-			return "Start hotspot failed with return code: %s" % e
+			try:
+				p = sarge.run("service wifi_access_point start", stderr=sarge.Capture())
+				if p.returncode != 0:
+					returncode = p.returncode
+					stderr_text = p.stderr.text
+					logger.warn("Start hotspot failed with return code %i: %s" % (returncode, stderr_text))
+					return "Start hotspot failed with return code %i: %s" % (returncode, stderr_text)
+				else:
+					return True
+
+			except Exception, e:
+				logger.warn("Start hotspot failed with return code: %s" % e)
+				return "Start hotspot failed with return code: %s" % e
 
 	def stopHotspot(self):
 		try:
