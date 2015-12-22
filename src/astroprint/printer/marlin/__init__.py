@@ -282,7 +282,7 @@ class PrinterMarlin(Printer):
 			if len(c) > 0:
 				cancelCommands.append(c)
 
-		self.commands(cancelCommands or ['G28']);
+		self.commands(cancelCommands or ['G28 X Y']);
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
