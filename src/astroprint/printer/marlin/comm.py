@@ -356,8 +356,8 @@ class MachineCom(object):
 			self._lastLayerHeight = 0.0
 			self._currentLayer  = 0
 			self._oksAfterHeatingUp = 3
-			#self._currentLayer = 1;
-			#sefl._lastLayerHeight;
+			#self._currentLayer = 1
+			#sefl._lastLayerHeight
 			#self._callback.mcLayerChange(self._tentativeLayer)
 
 			wasPaused = self.isPaused()

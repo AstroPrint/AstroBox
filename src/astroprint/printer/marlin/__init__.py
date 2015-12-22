@@ -271,7 +271,18 @@ class PrinterMarlin(Printer):
 		#don't send home command, some printers don't have stoppers.
 		#self.home(['x','y'])
 		#self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
-		self.commands(self._profileManager.data.get('cancel_gcode') or ['G28']);
+
+		#prepare cancel commands
+		cancelCommands = []
+		for c in self._profileManager.data.get('cancel_gcode'):
+			if ";" in c:
+				c = c[0:c.find(";")]
+
+			c = c.strip()
+			if len(c) > 0:
+				cancelCommands.push(c)
+
+		self.commands(cancelCommands or ['G28']);
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
