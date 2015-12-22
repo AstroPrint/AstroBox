@@ -280,7 +280,7 @@ class PrinterMarlin(Printer):
 
 			c = c.strip()
 			if len(c) > 0:
-				cancelCommands.push(c)
+				cancelCommands.append(c)
 
 		self.commands(cancelCommands or ['G28']);
 
