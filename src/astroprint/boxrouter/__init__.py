@@ -341,9 +341,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			self._printerListener = None
 
 class AstroprintBoxRouter(object):
-	MAX_RETRIES = 5
-	START_WAIT_BETWEEN_RETRIES = 5 #seconds
-	WAIT_MULTIPLIER_BETWEEN_RETRIES = 2
+	RETRY_SCHEDULE = [2, 2, 4, 10, 20, 30, 60, 120, 240, 480, 3600] #seconds to wait before retrying. When all exahusted it gives up
 
 	STATUS_DISCONNECTED = 'disconnected'
 	STATUS_CONNECTING = 'connecting'
@@ -355,6 +353,7 @@ class AstroprintBoxRouter(object):
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
 		self._retries = 0
+		self._retryTimer = None
 		self._boxId = None
 		self._ws = None
 		self._silentReconnect = False
@@ -378,6 +377,9 @@ class AstroprintBoxRouter(object):
 	def __del__(self):
 		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
+		if self._retryTimer:
+			self._retryTimer.cancel()
+			self._retryTimer = None
 
 	@property
 	def boxId(self):
@@ -417,15 +419,25 @@ class AstroprintBoxRouter(object):
 
 					if self._publicKey and self._privateKey:
 						self.status = self.STATUS_CONNECTING
-						self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+						self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 
 						try:
+							if self._retryTimer:
+								#This is in case the user tried to connect and there was a pending retry
+								self._retryTimer.cancel()
+								self._retryTimer = None
+								#If it fails, the retry sequence should restart
+								self._retries = 0
+
 							self._ws = AstroprintBoxRouterClient(self._address, self)
 							self._ws.connect()
 							self.connected = True
 
 						except Exception as e:
 							self._logger.error("Error connecting to boxrouter: %s" % e)
+							self.status = self.STATUS_ERROR
+							self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
+
 							self._doRetry(False) #This one should not be silent
 
 						return True
@@ -481,20 +493,24 @@ class AstroprintBoxRouter(object):
 	# 	self._doRetry()
 
 	def _doRetry(self, silent=True):
-		if self._retries < self.MAX_RETRIES:
+		if self._retries < len(self.RETRY_SCHEDULE):
 			def retry():
 				self._retries += 1
 				self._logger.info('Retrying boxrouter connection. Retry #%d' % self._retries)
 				self._silentReconnect = silent
+				self._retryTimer = None
 				self.boxrouter_connect()
 
-			threading.Timer(self.START_WAIT_BETWEEN_RETRIES * self.WAIT_MULTIPLIER_BETWEEN_RETRIES * (self._retries - 1) , retry ).start()
+			self._logger.info('Waiting %d secs before retrying...' % self.RETRY_SCHEDULE[self._retries])
+			self._retryTimer = threading.Timer(self.RETRY_SCHEDULE[self._retries] , retry )
+			self._retryTimer.start()
 
 		else:
 			self._logger.info('No more retries. Giving up...')
 			self.status = self.STATUS_DISCONNECTED
-			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 			self._retries = 0
+			self._retryTimer = None
 
 			#Are we offline?
 			nm = networkManager()
@@ -514,15 +530,16 @@ class AstroprintBoxRouter(object):
 			if 'error' in data:
 				self._logger.warn(data['message'] if 'message' in data else 'Unkonwn authentication error')
 				self.status = self.STATUS_ERROR
-				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 				self.close()
 
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
-				self.authenticated = True;
-				self._retries = 0;
+				self.authenticated = True
+				self._retries = 0
+				self._retryTimer = None
 				self.status = self.STATUS_CONNECTED
-				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 
 		else:
 			from octoprint.server import VERSION
