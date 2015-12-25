@@ -366,7 +366,7 @@ class AstroprintBoxRouter(object):
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
-		self._address = self._settings .get(['cloudSlicer','boxrouter'])
+		self._address = self._settings.get(['cloudSlicer','boxrouter'])
 
 		if self._address:
 			self.boxrouter_connect()
@@ -522,6 +522,11 @@ class AstroprintBoxRouter(object):
 					self._logger.info('Hostspot started.')
 				else:
 					self._logger.error('Failed to start hostspot: %s' % result)
+
+	def cancelRetry(self):
+		if self._retryTimer:
+			self._retryTimer.cancel()
+			self._retryTimer = None
 
 	def processAuthenticate(self, data):
 		if data:

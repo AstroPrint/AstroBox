@@ -348,6 +348,7 @@ class Server():
 		try:
 			IOLoop.instance().start()
 		except KeyboardInterrupt:
+			boxrouterManager().cancelRetry()
 			logger.info("Goodbye!")
 		except:
 			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
