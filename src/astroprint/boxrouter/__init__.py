@@ -17,6 +17,7 @@ import logging
 import base64
 import socket
 import os
+import weakref
 
 from time import sleep, time
 
@@ -39,7 +40,7 @@ LINE_CHECK_STRING = 'box'
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
-		self._router = router
+		self._weakRefRouter = weakref.ref(router)
 		self._printerListener = None
 		self._lastReceived = 0
 		self._subscribers = 0
@@ -51,6 +52,9 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._error = False
 		self._condition = threading.Condition()
 		super(AstroprintBoxRouterClient, self).__init__(hostname)
+
+	def __del__(self):
+		self.unregisterEvents()
 
 	def send(self, data):
 		with self._condition:
@@ -78,8 +82,10 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 			if self.outstandingPings > 0:
 				self._logger.error('The line seems to be down')
-				self._router.close()
-				self._router._doRetry()
+
+				router = self._weakRefRouter()
+				router.close()
+				router._doRetry()
 				break
 
 			if time() - self._lastReceived > timeout:
@@ -91,15 +97,18 @@ class AstroprintBoxRouterClient(WebSocketClient):
 					self._logger.error("Line Check failed to send")
 
 					#retry connection
-					self._router.close()
-					self._router._doRetry()
+					router = self._weakRefRouter()
+					router.close()
+					router._doRetry()
 
 		self._lineCheckThread = None
 
 	def terminate(self):
 		#This is code to fix an apparent error in ws4py
 		try:
+			self._th = None #If this is not freed, the socket can't be freed because of circular references
 			super(AstroprintBoxRouterClient, self).terminate()
+			
 		except AttributeError as e:
 			if self.stream is None:
 				self.environ = None
@@ -115,9 +124,11 @@ class AstroprintBoxRouterClient(WebSocketClient):
 
 	def closed(self, code, reason=None):
 		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
-		if self._error or (self.server_terminated and self._router.connected):
-			self._router.close()
-			self._router._doRetry()
+		router = self._weakRefRouter()
+
+		if self._error or (self.server_terminated and router and router.connected):
+			router.close()
+			router._doRetry()
 
 	def received_message(self, m):
 		self._lastReceived = time()
@@ -125,7 +136,8 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		printer = printerManager()
 
 		if msg['type'] == 'auth':
-			self._router.processAuthenticate(msg['data'] if 'data' in msg else None)
+			router = self._weakRefRouter()
+			router and router.processAuthenticate(msg['data'] if 'data' in msg else None)
 
 		elif msg['type'] == 'set_temp':
 			if printer.isOperational():
@@ -381,6 +393,8 @@ class AstroprintBoxRouter(object):
 			self._retryTimer.cancel()
 			self._retryTimer = None
 
+		self._logger.info('AstroprintBoxRouter.__del__')
+
 	@property
 	def boxId(self):
 		if not self._boxId:
@@ -429,6 +443,9 @@ class AstroprintBoxRouter(object):
 								#If it fails, the retry sequence should restart
 								self._retries = 0
 
+							if self._ws and not self._ws.terminated:
+								self._ws.terminate()
+
 							self._ws = AstroprintBoxRouterClient(self._address, self)
 							self._ws.connect()
 							self.connected = True
@@ -437,6 +454,9 @@ class AstroprintBoxRouter(object):
 							self._logger.error("Error connecting to boxrouter: %s" % e)
 							self.status = self.STATUS_ERROR
 							self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
+
+							self._ws.terminate()
+							self._ws = None
 
 							self._doRetry(False) #This one should not be silent
 
