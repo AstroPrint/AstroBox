@@ -386,14 +386,20 @@ class AstroprintBoxRouter(object):
 		else:
 			self._logger.error('cloudSlicer.boxrouter not present in config file')
 
-	def __del__(self):
-		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
-		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
+	def shutdown(self):
+		self._logger.info('Shutting down BoxRouter')
+
 		if self._retryTimer:
 			self._retryTimer.cancel()
 			self._retryTimer = None
 
-		self._logger.info('AstroprintBoxRouter.__del__')
+		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
+		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
+		self.boxrouter_disconnect()
+
+		#make sure we destroy the singleton
+		global _instance
+		_instance = None
 
 	@property
 	def boxId(self):

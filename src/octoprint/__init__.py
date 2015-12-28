@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import sys
-import atexit
 
 from octoprint.daemon import Daemon
 from octoprint.server import Server
@@ -74,12 +73,10 @@ def main():
 		elif "restart" == args.daemon:
 			daemon.restart()
 	else:
-		signal(SIGTERM, lambda signum, stack_frame: sys.exit(1)) #Handle "nice" kill commands
-		signal(SIGINT, lambda signum, stack_frame: sys.exit(1)) #Handle CTRL+C exits
+		signal(SIGTERM, lambda signum, stack_frame: sys.exit(1)) #Redirects "nice" kill commands to SystemExit exception
+		signal(SIGINT, lambda signum, stack_frame: sys.exit(1)) #Redirects CTRL+C to SystemExit exception
 
 		astrobox = Server(args.config, args.basedir, args.host, args.port, args.debug, args.allowRoot, args.logConf)
-
-		atexit.register(astrobox.cleanup)
 		
 		astrobox.run()
 

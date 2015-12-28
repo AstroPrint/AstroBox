@@ -295,7 +295,7 @@ class Server():
 
 		app.register_blueprint(api, url_prefix="/api")
 
-		self._boxrouter = boxrouterManager()
+		boxrouterManager() # Makes sure the singleton is created here. It doesn't need to be stored
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
 		self._discovery = DiscoveryManager()
@@ -347,11 +347,8 @@ class Server():
 
 		try:
 			IOLoop.instance().start()
-		#except KeyboardInterrupt:
 		except SystemExit:
-			pass #Controlled exit handled by the cleanup function
-		#	boxrouterManager().cancelRetry()
-		#	logger.info("Goodbye!")
+			self.cleanup()
 		except:
 			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
@@ -438,7 +435,7 @@ class Server():
 	def cleanup(self):
 		self._discovery.shutdown()
 		self._discovery = None
-		boxrouterManager().cancelRetry()
+		boxrouterManager().shutdown()
 		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":
