@@ -65,7 +65,7 @@ from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
-from astroprint.discovery import discoveryManager
+from astroprint.discovery import DiscoveryManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -298,7 +298,7 @@ class Server():
 		self._boxrouter = boxrouterManager()
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
-		self._discovery = discoveryManager()
+		self._discovery = DiscoveryManager()
 
 		def access_validation_factory(validator):
 			"""
@@ -347,9 +347,11 @@ class Server():
 
 		try:
 			IOLoop.instance().start()
-		except KeyboardInterrupt:
-			boxrouterManager().cancelRetry()
-			logger.info("Goodbye!")
+		#except KeyboardInterrupt:
+		except SystemExit:
+			pass #Controlled exit handled by the cleanup function
+		#	boxrouterManager().cancelRetry()
+		#	logger.info("Goodbye!")
 		except:
 			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
@@ -432,6 +434,12 @@ class Server():
 			# enable debug logging to serial.log
 			logging.getLogger("SERIAL").setLevel(logging.DEBUG)
 			logging.getLogger("SERIAL").debug("Enabling serial logging")
+
+	def cleanup(self):
+		self._discovery.shutdown()
+		self._discovery = None
+		boxrouterManager().cancelRetry()
+		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":
 	octoprint = Server()
