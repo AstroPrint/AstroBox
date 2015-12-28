@@ -45,7 +45,6 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._lastReceived = 0
 		self._subscribers = 0
 		self._silentReconnect = False
-		self._cameraManager = cameraManager()
 		self._profileManager = printerProfileManager()
 		self._logger = logging.getLogger(__name__)
 		self._lineCheck = None
@@ -165,7 +164,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						'operational': printer.isOperational(),
 						'paused': printer.isPaused(),
 						'camera': printer.isCameraConnected(),
-						'printCapture': self._cameraManager.timelapseInfo,
+						'printCapture': cameraManager().timelapseInfo,
 						'profile': self._profileManager.data,
 						'remotePrint': True
 					}
@@ -184,7 +183,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 						printer.cancelPrint();
 
 					elif command == 'photo':
-						response['image_data'] = base64.b64encode(self._cameraManager.get_pic())
+						response['image_data'] = base64.b64encode(cameraManager().get_pic())
 
 					else:
 						response = {
@@ -195,8 +194,10 @@ class AstroprintBoxRouterClient(WebSocketClient):
 				elif request == 'printCapture':
 					freq = data['freq']
 					if freq:
-						if self._cameraManager.timelapseInfo:
-							if self._cameraManager.update_timelapse(freq):
+						cm = cameraManager()
+
+						if cm.timelapseInfo:
+							if cm.update_timelapse(freq):
 								response = {'success': True}
 							else:
 								response = {
@@ -205,7 +206,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 								}
 
 						else:
-							if self._cameraManager.start_timelapse(freq):
+							if cm.start_timelapse(freq):
 								response = {'success': True}
 							else:
 								response = {

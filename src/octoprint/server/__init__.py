@@ -436,6 +436,7 @@ class Server():
 		self._discovery.shutdown()
 		self._discovery = None
 		boxrouterManager().shutdown()
+		cameraManager().shutdown()
 		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":

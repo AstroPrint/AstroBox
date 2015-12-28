@@ -17,11 +17,11 @@ class CameraV4LManager(CameraManager):
 		self._watermakMaskWeighted = None
 		self._watermarkInverted = None
 		self._infoArea = None		
-		self._logger = logging.getLogger(__name__)
 		self._camerasDir = '/sys/class/video4linux'
 
 		super(CameraV4LManager, self).__init__()
 
+		self._logger = logging.getLogger(__name__)
 
 	def open_camera(self):
 		if self.isCameraAvailable():
