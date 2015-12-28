@@ -35,3 +35,9 @@ def networkManager():
 			raise Exception('Invalid network manager: %s' % driver)
 
 	return _instance
+
+def networkManagerShutdown():
+	global _instance;
+
+	_instance.shutdown()
+	_instance = None

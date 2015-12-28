@@ -437,6 +437,10 @@ class Server():
 		self._discovery = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
+
+		from astroprint.network.manager import networkManagerShutdown
+		networkManagerShutdown()
+		
 		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":
