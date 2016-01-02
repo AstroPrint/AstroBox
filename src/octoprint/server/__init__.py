@@ -152,7 +152,7 @@ def index():
 
 @app.route("/discovery.xml")
 def discoveryXml():
-	response = flask.make_response( discoveryManager().getDiscoveryXmlContents() )
+	response = flask.make_response( DiscoveryManager().getDiscoveryXmlContents() )
 	response.headers['Content-Type'] = 'application/xml'
 	return response
 
