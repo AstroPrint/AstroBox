@@ -43,6 +43,7 @@ userManager = None
 eventManager = None
 loginManager = None
 softwareManager = None
+discoveryManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -152,7 +153,7 @@ def index():
 
 @app.route("/discovery.xml")
 def discoveryXml():
-	response = flask.make_response( DiscoveryManager().getDiscoveryXmlContents() )
+	response = flask.make_response( discoveryManager.getDiscoveryXmlContents() )
 	response.headers['Content-Type'] = 'application/xml'
 	return response
 
@@ -227,6 +228,7 @@ class Server():
 		global loginManager
 		global debug
 		global softwareManager
+		global discoveryManager
 		global VERSION
 
 		from tornado.wsgi import WSGIContainer
@@ -298,7 +300,7 @@ class Server():
 		boxrouterManager() # Makes sure the singleton is created here. It doesn't need to be stored
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
-		self._discovery = DiscoveryManager()
+		discoveryManager = DiscoveryManager()
 
 		def access_validation_factory(validator):
 			"""
@@ -433,8 +435,10 @@ class Server():
 			logging.getLogger("SERIAL").debug("Enabling serial logging")
 
 	def cleanup(self):
-		self._discovery.shutdown()
-		self._discovery = None
+		global discoveryManager
+		
+		discoveryManager.shutdown()
+		discoveryManager = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
 
