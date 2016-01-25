@@ -25,47 +25,47 @@ class CameraV4LManager(CameraManager):
 		self._logger = logging.getLogger(__name__)
 
 	def open_camera(self):
-		if self.isCameraAvailable():
-			return True
+		# if self.isCameraAvailable():
+		# 	return True
 
-		cameras = self.list_devices()
+		# cameras = self.list_devices()
 
-		if cameras:	
-			try:		
-				self._camera = cv2.VideoCapture()
+		# if cameras:	
+		# 	try:		
+		# 		self._camera = cv2.VideoCapture()
 
-			except Exception as e:
-				self._logger.error('Error creating VideoCapture object: %s' % e)
-				self._camera = None
-				return False
+		# 	except Exception as e:
+		# 		self._logger.error('Error creating VideoCapture object: %s' % e)
+		# 		self._camera = None
+		# 		return False
 
-			if not self._camera:
-				return False
+		# 	if not self._camera:
+		# 		return False
 
-			if self._camera.open(int(cameras[0].replace('video',''))):
-				try:
-					self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
-					self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
-				except Exception as e:
-					self._logger.error('Error setting camera frame to 800x448 size: %s' % e)
+		# 	if self._camera.open(int(cameras[0].replace('video',''))):
+		# 		try:
+		# 			self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 640)
+		# 			self._camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 480)
+		# 		except Exception as e:
+		# 			self._logger.error('Error setting camera frame to 800x448 size: %s' % e)
 
-				self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
-				self._infoAreaShape = self._infoArea.shape
+		# 		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
+		# 		self._infoAreaShape = self._infoArea.shape
 
-				#precalculated stuff
-				watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
-				watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
+		# 		#precalculated stuff
+		# 		watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
+		# 		watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
 				
-				self._watermarkShape = watermark.shape
+		# 		self._watermarkShape = watermark.shape
 				
-				watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
-				watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
-				self._watermakMaskWeighted = watermarkMask * watermark
-				self._watermarkInverted = 1.0 - watermarkMask
-				return True
+		# 		watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
+		# 		watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
+		# 		self._watermakMaskWeighted = watermarkMask * watermark
+		# 		self._watermarkInverted = 1.0 - watermarkMask
+		# 		return True
 
-			else:
-				self.close_camera()
+		# 	else:
+		# 		self.close_camera()
 			
 		return False
 
