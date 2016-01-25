@@ -191,6 +191,23 @@ class AstroprintBoxRouterClient(WebSocketClient):
 							'message': 'Printer command [%s] is not supported' % command
 						}
 
+				elif request == "cameraCommand":
+					command = data['command']
+					options = data['options']
+
+					response = {'success': True}
+					if command == 'start_video_stream':
+						cameraManager().start_video_stream()
+
+					elif command == 'stop_video_stream':
+						cameraManager().stop_video_stream()
+						
+					else:
+						response = {
+							'error': True,
+							'message': 'Camera command [%s] is no supported' % command
+						}
+
 				elif request == 'printCapture':
 					freq = data['freq']
 					if freq:

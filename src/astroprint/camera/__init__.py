@@ -230,6 +230,12 @@ class CameraManager(object):
 	def close_camera(self):
 		pass
 
+	def start_video_stream(self):
+		pass
+
+	def stop_video_stream(self):
+		pass
+
 	def list_camera_info(self):
 		pass
 

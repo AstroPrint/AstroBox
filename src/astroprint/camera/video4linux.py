@@ -16,7 +16,8 @@ class CameraV4LManager(CameraManager):
 		self._camera = None
 		self._watermakMaskWeighted = None
 		self._watermarkInverted = None
-		self._infoArea = None		
+		self._infoArea = None
+		self._streaming = None
 		self._camerasDir = '/sys/class/video4linux'
 
 		super(CameraV4LManager, self).__init__()
@@ -96,6 +97,18 @@ class CameraV4LManager(CameraManager):
 			return os.listdir(self._camerasDir)
 		else:
 			return []
+
+	def start_video_stream(self):
+		if not self._streaming:
+			self._streaming = True
+
+			#Add here code to start Janus + gStreamer
+
+	def stop_video_stream(self):
+		if self._streaming:
+			self._streaming = False
+
+			#Add here code to stop Janus + gStreamer
 
 	def get_pic(self, text=None):
 		img = self._snapshot_from_camera()
