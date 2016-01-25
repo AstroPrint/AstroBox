@@ -100,7 +100,7 @@ if os.name == 'nt':
     console = Console()
 
 elif os.name == 'posix':
-    import termios, sys, os
+    import termios, sys, os, atexit
     class Console(object):
         def __init__(self):
             self.fd = sys.stdin.fileno()
@@ -126,7 +126,9 @@ elif os.name == 'posix':
         console.cleanup()
 
     console.setup()
-    sys.exitfunc = cleanup_console      # terminal modes have to be restored on exit...
+
+    #sys.exitfunc = cleanup_console      # terminal modes have to be restored on exit...
+    atexit.register(cleanup_console)     # terminal modes have to be restored on exit...
 
 else:
     raise NotImplementedError("Sorry no implementation for your platform (%s) available." % sys.platform)

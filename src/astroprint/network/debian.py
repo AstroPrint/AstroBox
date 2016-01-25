@@ -241,13 +241,13 @@ class DebianNetworkManager(NetworkManagerBase):
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
 
-	def __del__(self):
-		self._eventListener.stop()
-		self._eventListener = None
-
 	def close(self):
 		self._eventListener.stop()
 		self._eventListener = None
+
+	def shutdown(self):
+		logging.info('Shutting Down DebianNetworkManager')
+		self.close();
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())

@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import os.path
 import glob
+import logging
 
 from random import randrange
 from astroprint.camera import CameraManager
@@ -12,6 +13,7 @@ class CameraMacManager(CameraManager):
 	def __init__(self):
 		super(CameraMacManager, self).__init__()
 
+		self._logger = logging.getLogger(__name__)
 		self._files = [f for f in glob.glob(os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'),"camera_test*.jpeg"))]
 
 	def open_camera(self):

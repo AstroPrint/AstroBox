@@ -20,6 +20,7 @@ def cameraManager():
 import threading
 import os.path
 import time
+import logging
 
 from sys import platform
 
@@ -72,6 +73,19 @@ class CameraManager(object):
 		self.timelapseWorker = None
 		self.timelapseInfo = None
 		self.open_camera()
+
+		self._logger = logging.getLogger(__name__)
+
+	def shutdown(self):
+		self._logger.info('Shutting Down CameraManager')
+		self.close_camera()
+
+		if self.timelapseWorker:
+			self.timelapseWorker.stop()
+			self.timelapseWorker = None
+
+		global _instance
+		_instance = None
 
 	def addPhotoToTimelapse(self, timelapseId):
 		#Build text

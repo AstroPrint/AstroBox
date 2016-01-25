@@ -1,13 +1,9 @@
 #!/usr/bin/env python
 import sys
+
 from octoprint.daemon import Daemon
 from octoprint.server import Server
-
-#~~ version
-
-#from ._version import get_versions
-#__version__ = get_versions()['version']
-#del get_versions
+from signal import signal, SIGTERM, SIGINT
 
 #~~ main class
 
@@ -33,7 +29,7 @@ def main():
 	parser = argparse.ArgumentParser(prog="run")
 
 	parser.add_argument("-v", "--version", action="store_true", dest="version",
-						help="Output OctoPrint's version and exit")
+						help="Output AstroBox's version and exit")
 
 	parser.add_argument("-d", "--debug", action="store_true", dest="debug",
 						help="Enable debug mode")
@@ -44,24 +40,24 @@ def main():
 						help="Specify the port on which to bind the server")
 
 	parser.add_argument("-c", "--config", action="store", dest="config",
-						help="Specify the config file to use. OctoPrint needs to have write access for the settings dialog to work. Defaults to ~/.octoprint/config.yaml")
+						help="Specify the config file to use. AstroBox needs to have write access for the settings dialog to work. Defaults to /etc/astrobox/config.yaml")
 	parser.add_argument("-b", "--basedir", action="store", dest="basedir",
-						help="Specify the basedir to use for uploads, timelapses etc. OctoPrint needs to have write access. Defaults to ~/.octoprint")
+						help="Specify the basedir to use for uploads, timelapses etc. AstroBox needs to have write access. Defaults to /etc/astrobox")
 	parser.add_argument("--logging", action="store", dest="logConf",
-						help="Specify the config file to use for configuring logging. Defaults to ~/.octoprint/logging.yaml")
+						help="Specify the config file to use for configuring logging. Defaults to /etc/astrobox/logging.yaml")
 
 	parser.add_argument("--daemon", action="store", type=str, choices=["start", "stop", "restart"],
-						help="Daemonize/control daemonized OctoPrint instance (only supported under Linux right now)")
-	parser.add_argument("--pid", action="store", type=str, dest="pidfile", default="/tmp/octoprint.pid",
-						help="Pidfile to use for daemonizing, defaults to /tmp/octoprint.pid")
+						help="Daemonize/control daemonized AstroBox instance (only supported under Linux right now)")
+	parser.add_argument("--pid", action="store", type=str, dest="pidfile", default="/tmp/astrobox.pid",
+						help="Pidfile to use for daemonizing, defaults to /tmp/astrobox.pid")
 
 	parser.add_argument("--iknowwhatimdoing", action="store_true", dest="allowRoot",
-						help="Allow OctoPrint to run as user root")
+						help="Allow AstroBox to run as user root")
 
 	args = parser.parse_args()
 
 	if args.version:
-		print "OctoPrint version %s" % __version__
+		print "AstroBox version %s" % __version__
 		sys.exit(0)
 
 	if args.daemon:
@@ -77,8 +73,12 @@ def main():
 		elif "restart" == args.daemon:
 			daemon.restart()
 	else:
-		octoprint = Server(args.config, args.basedir, args.host, args.port, args.debug, args.allowRoot, args.logConf)
-		octoprint.run()
+		signal(SIGTERM, lambda signum, stack_frame: sys.exit(1)) #Redirects "nice" kill commands to SystemExit exception
+		signal(SIGINT, lambda signum, stack_frame: sys.exit(1)) #Redirects CTRL+C to SystemExit exception
+
+		astrobox = Server(args.config, args.basedir, args.host, args.port, args.debug, args.allowRoot, args.logConf)
+		
+		astrobox.run()
 
 if __name__ == "__main__":
 	main()

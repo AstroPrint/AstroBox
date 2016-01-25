@@ -43,6 +43,7 @@ userManager = None
 eventManager = None
 loginManager = None
 softwareManager = None
+discoveryManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -65,7 +66,7 @@ from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
-from astroprint.discovery import discoveryManager
+from astroprint.discovery import DiscoveryManager
 
 UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 VERSION = None
@@ -152,7 +153,7 @@ def index():
 
 @app.route("/discovery.xml")
 def discoveryXml():
-	response = flask.make_response( discoveryManager().getDiscoveryXmlContents() )
+	response = flask.make_response( discoveryManager.getDiscoveryXmlContents() )
 	response.headers['Content-Type'] = 'application/xml'
 	return response
 
@@ -227,6 +228,7 @@ class Server():
 		global loginManager
 		global debug
 		global softwareManager
+		global discoveryManager
 		global VERSION
 
 		from tornado.wsgi import WSGIContainer
@@ -295,10 +297,10 @@ class Server():
 
 		app.register_blueprint(api, url_prefix="/api")
 
-		self._boxrouter = boxrouterManager()
+		boxrouterManager() # Makes sure the singleton is created here. It doesn't need to be stored
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
-		self._discovery = discoveryManager()
+		discoveryManager = DiscoveryManager()
 
 		def access_validation_factory(validator):
 			"""
@@ -347,8 +349,8 @@ class Server():
 
 		try:
 			IOLoop.instance().start()
-		except KeyboardInterrupt:
-			logger.info("Goodbye!")
+		except SystemExit:
+			self.cleanup()
 		except:
 			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
@@ -431,6 +433,19 @@ class Server():
 			# enable debug logging to serial.log
 			logging.getLogger("SERIAL").setLevel(logging.DEBUG)
 			logging.getLogger("SERIAL").debug("Enabling serial logging")
+
+	def cleanup(self):
+		global discoveryManager
+		
+		discoveryManager.shutdown()
+		discoveryManager = None
+		boxrouterManager().shutdown()
+		cameraManager().shutdown()
+
+		from astroprint.network.manager import networkManagerShutdown
+		networkManagerShutdown()
+		
+		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":
 	octoprint = Server()

@@ -19,6 +19,7 @@ from octoprint.events import eventManager, Events
 from astroprint.printer import Printer
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printfiles import FileDestinations
+from astroprint.camera import cameraManager
 
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
@@ -235,9 +236,9 @@ class PrinterMarlin(Printer):
 
 		#the functions already check if there's a timelapse in progress
 		if wasPaused:
-			self._cameraManager.resume_timelapse()
+			cameraManager().resume_timelapse()
 		else:
-			self._cameraManager.pause_timelapse()
+			cameraManager().pause_timelapse()
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
 		"""

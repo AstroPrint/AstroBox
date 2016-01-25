@@ -6,16 +6,6 @@ __copyright__ = "Copyright (C) 2015 3DaGoGo, Inc. - Released under terms of the 
 This is an adaptation of the Octoprint Discovery plugin: https://github.com/foosel/OctoPrint/blob/3d5fdf2a917833808f132212b76ad3c6c5768419/src/octoprint/plugins/discovery/__init__.py
 """
 
-# singleton
-_instance = None
-
-def discoveryManager():
-	global _instance
-	if _instance is None:
-		_instance = DiscoveryManager()
-
-	return _instance
-
 import logging
 import os
 import flask
@@ -56,9 +46,10 @@ class DiscoveryManager(object):
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 
 
-	# unregistering SSDP service upon shutdown
+	def shutdown(self):
+		# unregistering SSDP service upon shutdown
+		self.logger.info("Shutting down SSDP Service")
 
-	def __del__(self):
 		self._ssdp_unregister()
 		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 

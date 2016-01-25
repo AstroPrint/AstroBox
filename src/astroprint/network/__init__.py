@@ -33,6 +33,9 @@ class NetworkManager(object):
 
 		return False
 
+	def shutdown(self):
+		return None
+
 	def close(self):
 		return None
 

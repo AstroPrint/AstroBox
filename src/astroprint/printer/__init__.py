@@ -66,8 +66,6 @@ class Printer(object):
 
 		self._messages = deque([], 300)
 
-		self._cameraManager = cameraManager()
-
 		# callbacks
 		self._callbacks = []
 		#self._lastProgressReport = None
@@ -266,7 +264,7 @@ class Printer(object):
 		return self._state == self.STATE_PRINTING
 
 	def isCameraConnected(self):
-		return self._cameraManager.isCameraAvailable()
+		return cameraManager().isCameraAvailable()
 
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
@@ -298,7 +296,7 @@ class Printer(object):
 			return False
 
 		self._setCurrentZ(None)
-		self._cameraManager.open_camera()
+		cameraManager().open_camera()
 
 		kwargs = {
 			'print_file_name': os.path.basename(self._selectedFile['filename'])
@@ -322,7 +320,7 @@ class Printer(object):
 		if self._comm is None:
 			return False
 
-		self._cameraManager.stop_timelapse()
+		cameraManager().stop_timelapse()
 
 		if self._currentPrintJobId:
 			astroprintCloud().print_job(self._currentPrintJobId, status='failed')
@@ -343,15 +341,15 @@ class Printer(object):
 
 		#the functions already check if there's a timelapse in progress
 		if wasPaused:
-			self._cameraManager.resume_timelapse()
+			cameraManager().resume_timelapse()
 		else:
-			self._cameraManager.pause_timelapse()
+			cameraManager().pause_timelapse()
 
 	#~~~ Printer callbacks ~~~
 
 	def mcPrintjobDone(self):
 		#stop timelapse if there was one
-		self._cameraManager.stop_timelapse(True)
+		cameraManager().stop_timelapse(True)
 
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
