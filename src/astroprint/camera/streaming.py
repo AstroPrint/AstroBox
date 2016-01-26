@@ -1,10 +1,10 @@
 import astroprint.webrtc.janus
 
-class StreamingPlugin(janus.Plugin):
+class StreamingPlugin(astroprint.webrtc.janus.Plugin):
     name = 'janus.plugin.streaming'
 
 
-class WebRTC(object):
+class WebRtc(object):
 	def __init__(self):
 		self.streamingPlugin = StreamingPlugin();
 		self.session = None
@@ -12,11 +12,11 @@ class WebRTC(object):
 	def startJanus(self):
 		#Start janus command here
 
-		self.session = janus.Session('ws://127.0.0.1:8088', secret='astroprint_janus')
+		self.session = astroprint.webrtc.janus.Session('ws://127.0.0.1:8088', secret='astroprint_janus')
 		self.session.register_plugin(self.streamingPlugin);
 		self.session.connect();
 
-		self.sessionKa = janus.KeepAlive(self.session)
+		self.sessionKa = astroprint.webrtc.janus.KeepAlive(self.session)
     	self.sessionKa.daemon = True
     	self.sessionKa.start()
 

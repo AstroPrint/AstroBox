@@ -10,6 +10,7 @@ from astroprint.camera import cameraManager
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.camera.streaming import WebRtc
 
 class RequestHandler(object):
 	def __init__(self, printerListener):
@@ -39,8 +40,8 @@ class RequestHandler(object):
 	def cameraCommand(self, data):
 		return self._handleCommandGroup(CameraCommandHandler, data)
 
-	def iceCommand(self, data):
-		return self._handleCommandGroup(IceCommandHandler, data)
+	def p2pCommand(self, data):
+		return self._handleCommandGroup(P2PCommandHandler, data)
 
 	def printCapture(self, data):
 		freq = data['freq']
@@ -209,9 +210,15 @@ class CameraCommandHandler(object):
 	def stop_video_stream(self, data):
 		cameraManager().stop_video_stream()
 
-# Ice Command Group Handler
+# P2P Command Group Handler
 
-class IceCommandHandler(object):
+class P2PCommandHandler(object):
+
+	def start_connection(self, data):
+		pass
+
+	def stop_connection(self, data):
+		pass
 
 	def ice_candidate(self, data):
 		logging.info('ice_candidate')
