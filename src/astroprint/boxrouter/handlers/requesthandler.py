@@ -26,7 +26,7 @@ class RequestHandler(object):
 			'camera': printer.isCameraConnected(),
 			'printCapture': cameraManager().timelapseInfo,
 			'profile': printerProfileManager().data,
-			'remotePrint': True
+			'remotePrint': True,
 			'capabilities': ['remotePrint', 'videoStreaming']
 		}
 
@@ -172,7 +172,7 @@ class RequestHandler(object):
 		command = data['command']
 		options = data['options']
 
-		method  = getattr(handler, command)
+		method  = getattr(handler, command, None)
 		if method:
 			return method(options)
 
@@ -214,10 +214,10 @@ class CameraCommandHandler(object):
 class IceCommandHandler(object):
 
 	def ice_candidate(self, data):
-		self._logger.info('ice_candidate')
-		self._logger.info(data)
+		logging.info('ice_candidate')
+		logging.info(data)
 
 		return {
 			'success': True,
-			'res': options
+			'res': data
 		}

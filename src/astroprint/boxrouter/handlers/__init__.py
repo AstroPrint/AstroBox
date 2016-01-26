@@ -54,7 +54,7 @@ class BoxRouterMessageHandler(object):
 				request = msg['data']['type']
 				data = msg['data']['payload']
 
-				method  = getattr(handler, request)
+				method  = getattr(handler, request, None)
 				if method:
 					response = method(data)
 					if response is None:
