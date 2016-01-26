@@ -207,7 +207,22 @@ class AstroprintBoxRouterClient(WebSocketClient):
 							'error': True,
 							'message': 'Camera command [%s] is no supported' % command
 						}
-
+						
+				elif request == "iceCommand":
+					
+					command = data['command']
+					options = data['options']
+					
+					if command == "ice_candidate":
+						
+						req_text = options
+						response = {'success': True}
+						
+						self._logger.info('ice_candidate')
+						self._logger.info('texto recibido '+options)
+						
+						response['res'] = options
+						
 				elif request == 'printCapture':
 					freq = data['freq']
 					if freq:
