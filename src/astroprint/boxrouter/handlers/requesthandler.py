@@ -27,6 +27,7 @@ class RequestHandler(object):
 			'printCapture': cameraManager().timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True
+			'capabilities': ['remotePrint', 'videoStreaming']
 		}
 
 	def job_info(self, data):
