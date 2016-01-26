@@ -38,6 +38,9 @@ class RequestHandler(object):
 	def cameraCommand(self, data):
 		return self._handleCommandGroup(CameraCommandHandler, data)
 
+	def iceCommand(self, data):
+		return self._handleCommandGroup(IceCommandHandler, data)
+
 	def printCapture(self, data):
 		freq = data['freq']
 		if freq:
@@ -204,3 +207,16 @@ class CameraCommandHandler(object):
 
 	def stop_video_stream(self, data):
 		cameraManager().stop_video_stream()
+
+# Ice Command Group Handler
+
+class IceCommandHandler(object):
+
+	def ice_candidate(self, data):
+		self._logger.info('ice_candidate')
+		self._logger.info(data)
+
+		return {
+			'success': True,
+			'res': options
+		}
