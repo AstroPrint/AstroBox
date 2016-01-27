@@ -1,7 +1,7 @@
 import astroprint.webrtc.janus
 
 class StreamingPlugin(astroprint.webrtc.janus.Plugin):
-    name = 'janus.plugin.streaming'
+	name = 'janus.plugin.streaming'
 
 
 class WebRtc(object):
@@ -17,8 +17,8 @@ class WebRtc(object):
 		self.session.connect();
 
 		self.sessionKa = astroprint.webrtc.janus.KeepAlive(self.session)
-    	self.sessionKa.daemon = True
-    	self.sessionKa.start()
+		self.sessionKa.daemon = True
+		self.sessionKa.start()
 
 	def stopJanus(self):
 		#stop the keepalive worker
