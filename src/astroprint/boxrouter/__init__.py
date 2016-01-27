@@ -129,7 +129,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def received_message(self, m):
 		self._lastReceived = time()
 		msg = json.loads(str(m))
-
+		
 		method  = getattr(self._messageHandler, msg['type'], None)
 		if method:
 			response = method(msg)
