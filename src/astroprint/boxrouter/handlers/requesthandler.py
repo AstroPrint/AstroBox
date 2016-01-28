@@ -1,3 +1,7 @@
+# coding=utf-8
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+
 import os
 import logging
 import threading
@@ -10,7 +14,7 @@ from astroprint.camera import cameraManager
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
-from astroprint.camera.streaming import WebRtc
+from astroprint.webrtc import WebRtcManager
 
 class RequestHandler(object):
 	def __init__(self, printerListener):
@@ -215,16 +219,33 @@ class CameraCommandHandler(object):
 class P2PCommandHandler(object):
 
 	def start_connection(self, data):
-		pass
+		
+		sessionId = WebRtcManager().startPeerSession()
+
+		if sessionId:
+			return {
+				'success': True,
+				'sessionId': sessionId
+			}
+
+		else:
+			return {
+				'error': True,
+				'message': 'Unable to start a session'
+			}
+		
 
 	def stop_connection(self, data):
-		pass
+		WebRtcManager().closePeerSession(data['sessionId'])
 
 	def ice_candidate(self, data):
-		logging.info('ice_candidate')
 		logging.info(data)
 
-		return {
-			'success': True,
-			'res': data
-		}
+		if 'sessionId' in data:
+			candidate = data['candidate']
+
+			if candidate is None:
+				#this is the last one
+				WebRtcManager().tickleIceCandidate(data['sessionId'], None, None, None)
+			else:
+				WebRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])
