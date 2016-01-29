@@ -58,8 +58,38 @@ class WebRtc(object):
 
 			if len(self._connectedPeers.keys()) == 0:
 				self.stopJanus()
+				
+	def preparePlugin(self, sessionId):
+		
+		try:
+			peer = self._connectedPeers[sessionId]
+
+		except KeyError:
+			self._logger.warning('Peer with session [%s] is not found' % sessionId)
+			peer = None
+
+		if peer:
+			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})	
+			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':2})
+
+	def setSessionDescriptionAndStart(self, sessionId, data):
+		
+		try:
+			peer = self._connectedPeers[sessionId]
+			
+		except KeyError:
+			self._logger.warning('Peer with session [%s] is not found' % sessionId)
+			peer = None
+
+		if peer:
+			self._connectedPeers[sessionId].streamingPlugin.set_session_description(data['type'],data['sdp'])
+			#preparing state
+			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
+			#starting state
+
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
+		
 		try:
 			peer = self._connectedPeers[sessionId]
 
@@ -117,6 +147,14 @@ class ConnectionPeer(object):
 		@self.session.on_plugin_attached.connect
 		def receive_data(sender, **kw):
 			sem.release()
+	
+		@self.session.on_message.connect
+		def send_response(sender, **kw):
+			logging.info('MENSAJE RECIBIDO')
+			if kw['plugindata']:
+				logging.info('MENSAJE')
+				logging.info(kw[''])
+		
 		
 		self.session.register_plugin(self.streamingPlugin);
 		self.session.connect();

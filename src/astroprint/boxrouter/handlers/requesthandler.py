@@ -217,11 +217,11 @@ class CameraCommandHandler(object):
 # P2P Command Group Handler
 
 class P2PCommandHandler(object):
-
-	def start_connection(self, data):
+	
+	def init_connection(self, data):
 		
 		sessionId = WebRtcManager().startPeerSession()
-
+		
 		if sessionId:
 			return {
 				'success': True,
@@ -233,8 +233,19 @@ class P2PCommandHandler(object):
 				'error': True,
 				'message': 'Unable to start a session'
 			}
-		
 
+
+	def start_plugin(self, data):
+		
+		WebRtcManager().preparePlugin(data['sessionId'])
+	
+	def start_connection(self, data):
+
+		sessionId = data['sessionId']
+
+		WebRtcManager().setSessionDescriptionAndStart(sessionId,data['localDescription'])
+		
+		
 	def stop_connection(self, data):
 		WebRtcManager().closePeerSession(data['sessionId'])
 
