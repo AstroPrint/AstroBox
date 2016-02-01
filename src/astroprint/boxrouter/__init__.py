@@ -351,6 +351,13 @@ class AstroprintBoxRouter(object):
 			self._retryTimer.cancel()
 			self._retryTimer = None
 
+	def send(self, data):
+		if self._ws and self.connected:
+			self._ws.send(json.dumps(data))
+
+		else:
+			self._logger.error('Unable to send data: Socket not active')
+
 	def processAuthenticate(self, data):
 		if data:
 			self._silentReconnect = False

@@ -16,6 +16,7 @@ import threading
 import subprocess
 
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
+from astroprint.boxrouter import boxrouterManager
 
 class WebRtc(object):
 	def __init__(self):
@@ -138,6 +139,8 @@ class ConnectionPeer(object):
 		self.id = None
 		self.streamingPlugin = None
 
+		self.sendEventToPeer('hello', 'just saying hello')
+
 	def start(self):
 		
 		sem = threading.Semaphore(0)
@@ -180,3 +183,13 @@ class ConnectionPeer(object):
 		self.session.disconnect()
 		self.session = None
 		self.streamingPlugin = None
+
+	def sendEventToPeer(self, type, data):
+		boxrouterManager().send({
+			'type': 'send_event_to_client',
+			'data': {
+				'clientId': self.clientId,
+				'eventType': type,
+				'eventData': data
+			}
+		})
