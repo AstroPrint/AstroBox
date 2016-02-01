@@ -55,12 +55,13 @@ class BoxRouterMessageHandler(object):
 
 			try:
 				reqId = msg['reqId']
+				clientId = msg['clientId']
 				request = msg['data']['type']
 				data = msg['data']['payload']
 
 				method  = getattr(handler, request, None)
 				if method:
-					response = method(data)
+					response = method(data, clientId)
 					if response is None:
 						response = {'success': True}
 

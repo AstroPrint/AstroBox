@@ -21,7 +21,7 @@ class RequestHandler(object):
 		self._logger = logging.getLogger(__name__)
 		self._weakPrinterListener = weakref.ref(printerListener)
 
-	def initial_state(self, data):
+	def initial_state(self, data, clientId):
 		printer = printerManager()
 
 		return {
@@ -35,19 +35,19 @@ class RequestHandler(object):
 			'capabilities': ['remotePrint', 'videoStreaming']
 		}
 
-	def job_info(self, data):
+	def job_info(self, data, clientId):
 		return printerManager()._stateMonitor._jobData
 
-	def printerCommand(self, data):
-		return self._handleCommandGroup(PrinterCommandHandler, data)
+	def printerCommand(self, data, clientId):
+		return self._handleCommandGroup(PrinterCommandHandler, data, clientId)
 
-	def cameraCommand(self, data):
-		return self._handleCommandGroup(CameraCommandHandler, data)
+	def cameraCommand(self, data, clientId):
+		return self._handleCommandGroup(CameraCommandHandler, data, clientId)
 
-	def p2pCommand(self, data):
-		return self._handleCommandGroup(P2PCommandHandler, data)
+	def p2pCommand(self, data, clientId):
+		return self._handleCommandGroup(P2PCommandHandler, data, clientId)
 
-	def printCapture(self, data):
+	def printCapture(self, data, clientId):
 		freq = data['freq']
 		if freq:
 			cm = cameraManager()
@@ -72,11 +72,11 @@ class RequestHandler(object):
 				'message': 'Frequency required'
 			}
 
-	def signoff(self, data):
+	def signoff(self, data, clientId):
 		self._logger.info('Remote signoff requested.')
 		threading.Timer(1, astroprintCloud().remove_logged_user).start()
 
-	def print_file(self, data):
+	def print_file(self, data, clientId):
 		from astroprint.printfiles import FileDestinations
 
 		print_file_id = data['printFileId']
@@ -160,7 +160,7 @@ class RequestHandler(object):
 				'message': 'Unable to start download process'
 			}
 
-	def cancel_download(self, data):
+	def cancel_download(self, data, clientId):
 		from astroprint.printfiles.downloadmanager import downloadManager
 
 		print_file_id = data['printFileId']
@@ -171,7 +171,7 @@ class RequestHandler(object):
 				'message': 'Unable to cancel download'
 			}
 
-	def _handleCommandGroup(self, handlerClass, data):
+	def _handleCommandGroup(self, handlerClass, data, clientId):
 		handler = handlerClass()
 
 		command = data['command']
@@ -179,7 +179,7 @@ class RequestHandler(object):
 
 		method  = getattr(handler, command, None)
 		if method:
-			return method(options)
+			return method(options, clientId)
 
 		else:
 			return {
@@ -190,16 +190,16 @@ class RequestHandler(object):
 # Printer Command Group Handler
 
 class PrinterCommandHandler(object):
-	def pause(self, data):
+	def pause(self, data, clientId):
 		printerManager().togglePausePrint()
 
-	def resume(self, data):
+	def resume(self, data, clientId):
 		self.pause()
 
-	def cancel(self, data):
+	def cancel(self, data, clientId):
 		printerManager().cancelPrint()
 
-	def photo(self, data):
+	def photo(self, data, clientId):
 		return {
 			'success': True,
 			'image_data': base64.b64encode(cameraManager().get_pic())
@@ -208,20 +208,19 @@ class PrinterCommandHandler(object):
 # Camera Command Group Handler
 
 class CameraCommandHandler(object):
-	def start_video_stream(self, data):
+	def start_video_stream(self, data, clientId):
 		cameraManager().start_video_stream()
 
-	def stop_video_stream(self, data):
+	def stop_video_stream(self, data, clientId):
 		cameraManager().stop_video_stream()
 
 # P2P Command Group Handler
 
 class P2PCommandHandler(object):
 	
-	def init_connection(self, data):
-		
-		sessionId = WebRtcManager().startPeerSession()
-		
+	def init_connection(self, data, clientId):
+		sessionId = WebRtcManager().startPeerSession(clientId)
+	
 		if sessionId:
 			return {
 				'success': True,
@@ -234,24 +233,19 @@ class P2PCommandHandler(object):
 				'message': 'Unable to start a session'
 			}
 
-
-	def start_plugin(self, data):
-		
-		WebRtcManager().preparePlugin(data['sessionId'])
+	def start_plugin(self, data, clientId):
+		WebRtcManager().preparePlugin(clientId)
 	
-	def start_connection(self, data):
-
+	def start_connection(self, data, clientId):
 		sessionId = data['sessionId']
 
-		WebRtcManager().setSessionDescriptionAndStart(sessionId,data['localDescription'])
+		WebRtcManager().setSessionDescriptionAndStart(sessionId, data['localDescription'])
 		
 		
-	def stop_connection(self, data):
-		WebRtcManager().closePeerSession(data['sessionId'])
+	def stop_connection(self, data, clientId):
+		WebRtcManager().closePeerSession(clientId)
 
-	def ice_candidate(self, data):
-		logging.info(data)
-
+	def ice_candidate(self, data, clientId):
 		if 'sessionId' in data:
 			candidate = data['candidate']
 

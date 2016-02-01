@@ -24,12 +24,12 @@ class WebRtc(object):
 		self._peerCondition = threading.Condition()
 		self._process = None
 
-	def startPeerSession(self):
+	def startPeerSession(self, clientId):
 		with self._peerCondition:
 			if len(self._connectedPeers.keys()) == 0:
 				self.startJanus()
 
-			peer = ConnectionPeer()
+			peer = ConnectionPeer(clientId)
 
 			sessionId = peer.start()
 			if sessionId:
@@ -131,8 +131,9 @@ class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
 
 class ConnectionPeer(object):
-	def __init__(self):
+	def __init__(self, clientId):
 		self.session = None
+		self.clientId = clientId
 		self.sessionKa = None
 		self.id = None
 		self.streamingPlugin = None
