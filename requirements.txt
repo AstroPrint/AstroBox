@@ -20,3 +20,4 @@ netifaces
 ws4py==0.3.4
 usbid==1.0.3
 futures==3.0.4
+blinker==1.4

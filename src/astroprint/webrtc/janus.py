@@ -684,6 +684,8 @@ class Plugin(object):
         else:
             if req['janus'] == 'message' and self.sdp and not self.sdp_sent:
                 req['jsep'] = self.sdp
+            logging.info('IN_PLUGIN')
+            logging.info(req)
             f = self.session.send_message(req)
             if 'jsep' in req:
                 self.sdp_sent = True
