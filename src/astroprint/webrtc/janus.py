@@ -459,7 +459,7 @@ class Session(object):
         self.cxn.on_opened.disconnect(self._on_connection_opened)
         self.cxn.on_closed.connect(self._on_connection_closed)
         self.cxn.on_message.connect(self._on_connection_message)
-        self._disconnected.set_result(self)
+        #self._disconnected.set_result(self)
 
     def _on_connection_message(self, cxn, message):
         raw = message
@@ -684,8 +684,6 @@ class Plugin(object):
         else:
             if req['janus'] == 'message' and self.sdp and not self.sdp_sent:
                 req['jsep'] = self.sdp
-            logging.info('IN_PLUGIN')
-            logging.info(req)
             f = self.session.send_message(req)
             if 'jsep' in req:
                 self.sdp_sent = True

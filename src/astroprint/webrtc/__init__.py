@@ -1,4 +1,5 @@
 # coding=utf-8
+from signal import SIGKILL
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -15,6 +16,8 @@ import logging
 import threading
 import subprocess
 import json
+import os
+import signal
 
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
@@ -24,15 +27,17 @@ class WebRtc(object):
 		self._connectedPeers = {}
 		self._logger = logging.getLogger(__name__)
 		self._peerCondition = threading.Condition()
-		self._process = None
+		self._JanusProcess = None
+		self._GStreamerProcess = None
+		self._GStreamerProcessArgs = None
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
-			logging.info('STARTPEERSESSION')
 			if len(self._connectedPeers.keys()) == 0:
+				self.startGStreamer()
 				self.startJanus()
 
-			peer = ConnectionPeer(clientId)
+			peer = ConnectionPeer(clientId,self)
 
 			sessionId = peer.start()
 			if sessionId:
@@ -42,6 +47,7 @@ class WebRtc(object):
 			else:
 				#something went wrong, no session started. Do we still need Janus up?
 				if len(self._connectedPeers.keys()) == 0:
+					self.stopGStreamer()
 					self.stopJanus()
 
 				return None
@@ -56,196 +62,168 @@ class WebRtc(object):
 				peer = None
 
 			if peer:
+				self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'destroy'})
 				peer.close()
 				del self._connectedPeers[sessionId]
 
 			if len(self._connectedPeers.keys()) == 0:
+				self.stopGStreamer()
 				self.stopJanus()
-				
+
 	def preparePlugin(self, sessionId):
-		
+
 		try:
-			logging.info('PREPAREPLUGIN')
 			peer = self._connectedPeers[sessionId]
 
 		except KeyError:
-			logging.info('PREPAREPLUGIN ERROR')
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
 
 		if peer:
-			logging.info('PREPAREPLUGIN LIST AND 2')
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})	
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'switch','id':2})
+			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':2})
-			#self._connectedPeers[sessionId].streamingPlugin.set_session_description(data['type'],data['sdp'])
-			#preparing state
-			#self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
-			#self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'setup_media'})
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'enable','id':2})
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
-		
+
 		try:
 			peer = self._connectedPeers[sessionId]
-			
+
 		except KeyError:
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
 
 		if peer:
-			logging.info('SESSIONDESCRIPTION')
-			logging.info(data['type'])
-			logging.info(data['sdp'])
-			
-			#preparing state
-			
 			#starting state
 			self._connectedPeers[sessionId].streamingPlugin.set_session_description(data['type'],data['sdp'])
-			#self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'jsep'})
-			#self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'setup_media'})
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'switch','id':2})
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'jsep'})
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
 
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
-		logging.info('ENTRA EN tickleIceCandidate')
-		
-		"""try:
-			logging.info('TRY')
-			logging.info(self._connectedPeers[sessionId])
-			peer = self._connectedPeers[sessionId]
-
-		except KeyError:
-			logging.info('EXCP')
-			self._logger.warning('Peer with session [%s] is not found' % sessionId)
-			peer = None
-		
-		if peer:
-			"""
-		logging.info('ADD_ICE_CANDIDATE')
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
+
+	def startGStreamer(self):
+
+		self._GStreamerProcessArgs = ['gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005']
+
+		try:
+			self._GStreamerProcess = subprocess.Popen(
+		    	self._GStreamerProcessArgs,
+		    	 shell=True
+			)
+
+		except Exception, error:
+			self._logger.error("Error initiating GStreamer process: %s" % str(error))
+			self._GStreamerProcess = None
 
 	def startJanus(self):
 		#Start janus command here
-		
+
 		args = ['/opt/janus/bin/./janus']
 
 		try:
-			self._process = subprocess.Popen(
+			self._JanusProcess = subprocess.Popen(
 		    	args,
 		    	stdout=subprocess.PIPE
 			)
-		
+
 		except Exception, error:
 			self._logger.error("Error initiating janus process: %s" % str(error))
-			self._process = None
+			self._JanusProcess = None
 
-		if self._process:
+		if self._JanusProcess:
 			while True:
-				if 'HTTP/Janus sessions watchdog started' in self._process.stdout.readline():
+				if 'HTTP/Janus sessions watchdog started' in self._JanusProcess.stdout.readline():
 					import time
 					time.sleep(3)
 					break
-				
-				
 
 	def stopJanus(self):
-		self._process.kill()
+		self._JanusProcess.kill()
+
+	def stopGStreamer(self):
+		for line in os.popen('ps ax | grep gst | grep -v grep'):
+			fields = line.split()
+			pid = fields[0]
+			#os.kill(int(pid), signal.SIGKILL)
+			subprocess.Popen(
+		    	'kill -9 ' + pid, shell=True
+			)
 
 class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
 	id = '2'
 
 class ConnectionPeer(object):
-	def __init__(self, clientId):
+	def __init__(self, clientId,parent):
 		self.session = None
 		self.clientId = clientId
 		self.sessionKa = None
 		self.id = None
 		self.streamingPlugin = None
+		self._parent = parent
 
-	def recv_message(self):
-		logging.info('MENSAJE RECIBIDO')
-	
-	
 	#CONNECTION
 	def connection_on_opened(self,connection):
 		logging.info('CONNECTION ON OPENED')
-		
+
 	def connection_on_closed(self,connection,**kw):
 		logging.info('CONNECTION ON CLOSED')
-		
+
 	def connection_on_message(self,connection,message):
-		logging.info('CONNECTION ON MESSAGE')
-		logging.info(message)
-		self.sendEventToPeer('getSdp',json.loads(str(message)))
-		"""message = json.loads(str(message))
-		if 'plugindata' in message and 'jsep' in message:
-			logging.info(message)
-			#logging.info(kw['sdp'])
-			self.sendEventToPeer('getSdp', message)
-			#logging.info(kw['jsep'])
-		"""
+		#logging.info('CONNECTION ON MESSAGE')
+
+		messageToReturn = json.loads(str(message))
+
+		if 'janus' in messageToReturn and messageToReturn['janus'] == 'hangup':
+			self._parent.closePeerSession(messageToReturn['session_id'])
+		else:
+			self.sendEventToPeer('getSdp',messageToReturn)
+
 	#SESSION
 	def session_on_connected(self,session,**kw):
 		logging.info('SESSION ON OPENED')
+
 	def session_on_disconnected(self,session,**kw):
 		logging.info('SESSION ON CLOSED')
+
 	def session_on_message(self,session,**kw):
 		logging.info('SESSION ON MESSAGE')
-		logging.info(kw ['message'])
-		self.sendEventToPeer('getSdp',kw['message'])
-		
+
 	def session_on_plugin_attached(self,session,**kw):
 		logging.info('SESSION ON PLUGIN ATTACHED')
-		logging.info(kw)
-		#self.sendEventToPeer('getSdp', kw['plugin'])
 
 	def session_on_plugin_detached(self,session,**kw):
 		logging.info('SESSION ON PLUGIN DETACHED')
-	
-	
+
+
 	#PLUGIN
 	def streamingPlugin_on_message(self,plugin,**kw):
-		#if 'message' in kw:
-		#	logging.info(kw['message'])
-		#logging.info(kw['message'])
-		if 'sdp' in kw:
-			logging.info(kw['sdp'])
-			self.sendEventToPeer('getSdp',kw['sdp'])
-		
-	
+		logging.info('STREAMINGPLUGIN ON MESSAGE')
+
 	def streamingPlugin_on_attached(self,plugin,**kw):
 		logging.info('STREAMINGPLUGIN ON ATTACHED')
-	
+
 	def streamingPlugin_on_detached(self,plugin,**kw):
 		logging.info('STREAMINGPLUGIN ON DETACHED')
-	
+
 	def streamingPlugin_on_webrtcup(self,plugin,**kw):
 		logging.info('STREAMINGPLUGIN ON WEBRTCUP')
-		#logging.info(kw ['message'])
-		#self.sendEventToPeer('getSdp',kw['message'])
-	
+
 	def streamingPlugin_on_hangup(self,plugin,**kw):
 		logging.info('STREAMINGPLUGIN ON HANGUP')
-		logging.info(kw ['message'])
-		self.sendEventToPeer('getSdp',kw['message'])
-	
+
 	def start(self):
-		
+
 		sem = threading.Semaphore(0)
-		
+
 		self.streamingPlugin = StreamingPlugin()
 		self.session = Session('ws://127.0.0.1:8188', secret='d5faa25fe8e3438d826efb1cd3369a50')
-		
+
 		@self.session.on_plugin_attached.connect
 		def receive_data(sender, **kw):
-			logging.info('PLUGIN ENGANCHADO')
 			sem.release()
-		
-		
+
+
 		#CONNECTION
 		#self.session.cxn_cls
 		#
@@ -253,21 +231,21 @@ class ConnectionPeer(object):
 		#
 		# Signal fired when `Connection` has been established.
 	    #	on_opened = blinker.Signal()
-		self.session.cxn_cls.on_opened.connect(self.connection_on_opened)
-		
+		#self.session.cxn_cls.on_opened.connect(self.connection_on_opened)
+
 		#
 	    # Signal fired when `Connection` has been closed.
 	    #	on_closed = blinker.Signal()
-		self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
-		
+		#self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
+
 		#
 	    # Signal fired when `Connection` receives a message
 	    #	on_message = blinker.Signal()
 		self.session.cxn_cls.on_message.connect(self.connection_on_message)
-		
+
 	    ##
-		
-			    
+
+
 	    #SESSION
 	    #self.session
 	    #
@@ -275,31 +253,31 @@ class ConnectionPeer(object):
 	    #
 	    # Signal fired when `Session` has been connected.
 	    #	on_connected = blinker.Signal()
-		self.session.on_connected.connect(self.session_on_connected)
-		
+		#self.session.on_connected.connect(self.session_on_connected)
+
 		#
 		# Signal fired when `Session` has been disconnected.
 		#	on_disconnected = blinker.Signal()
-		self.session.on_disconnected.connect(self.session_on_disconnected)
-		
+		#self.session.on_disconnected.connect(self.session_on_disconnected)
+
 		#
 		# Signal fired when a `Session` level message is received.
 		#	on_message = blinker.Signal()
-		self.session.on_message.connect(self.session_on_message)
-	
+		#self.session.on_message.connect(self.session_on_message)
+
 		#
 		# Signal fired when a `Session` `Plugin` been attached.
 		#	on_plugin_attached = blinker.Signal()
-		self.session.on_plugin_attached.connect(self.session_on_plugin_attached)
+		#self.session.on_plugin_attached.connect(self.session_on_plugin_attached)
 
 		#
 		# Signal fired when a `Session` `Plugin` been detached.
 		#	on_plugin_detached = blinker.Signal()
-		self.session.on_plugin_detached.connect(self.session_on_plugin_detached)
-	
+		#self.session.on_plugin_detached.connect(self.session_on_plugin_detached)
+
 		##
-		
-		
+
+
 		#PLUGIN
 		#self.streamingPlugin
 		#
@@ -307,47 +285,40 @@ class ConnectionPeer(object):
 		#
 		# Signal fired when a `Plugin` is attached to a `Session`.
 		#	on_attached = blinker.Signal()
-		self.streamingPlugin.on_attached.connect(self.streamingPlugin_on_attached)
-		
+		#self.streamingPlugin.on_attached.connect(self.streamingPlugin_on_attached)
+
 		#
 		# Signal fired when a `Plugin` is attached to a `Session`.
 		#	on_detached = blinker.Signal()
-		self.streamingPlugin.on_detached.connect(self.streamingPlugin_on_detached)
-		
+		#self.streamingPlugin.on_detached.connect(self.streamingPlugin_on_detached)
+
 		#
 		# Signal fired when a `Plugin` receives a message.
 		#	on_message = blinker.Signal()
-		self.streamingPlugin.on_message.connect(self.streamingPlugin_on_message)
+		#self.streamingPlugin.on_message.connect(self.streamingPlugin_on_message)
 		#
-		
+
 		# Signal fired when webrtc for a `Plugin` has been setup.
 		#	on_webrtcup = blinker.Signal()
-		self.streamingPlugin.on_webrtcup.connect(self.streamingPlugin_on_webrtcup)
-		
-		
+		#self.streamingPlugin.on_webrtcup.connect(self.streamingPlugin_on_webrtcup)
+
+
 		#
 		# Signal fired when webrtc session for a `Plugin` has been torn down.
 		#	on_hangup = blinker.Signal()
-		self.streamingPlugin.on_hangup.connect(self.streamingPlugin_on_hangup)
-		
+		#self.streamingPlugin.on_hangup.connect(self.streamingPlugin_on_hangup)
+
 		##
-		
+
 		self.session.register_plugin(self.streamingPlugin);
 		self.session.connect();
-		
-		
+
+
 		self.sessionKa = KeepAlive(self.session)
 		self.sessionKa.daemon = True
 		self.sessionKa.start()
-		
-		"""
-		self.session.cxn.on_message.send(self.recv_message)
-		"""
-			
+
 		sem.acquire()
-
-
-		
 
 		return self.session.id
 
@@ -372,4 +343,3 @@ class ConnectionPeer(object):
 				'eventData': data
 			}
 		})
-		logging.info('MANDA')

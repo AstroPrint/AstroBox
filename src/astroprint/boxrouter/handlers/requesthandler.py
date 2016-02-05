@@ -234,35 +234,17 @@ class P2PCommandHandler(object):
 			}
 
 	def start_plugin(self, data, clientId):
-		logging.info('START_PLUGIN')
 		WebRtcManager().preparePlugin(data['sessionId'])
 	
 	def start_connection(self, data, clientId):
-		logging.info('START_CONNECTION')
-		logging.info(data)
-		logging.info(data['type'])
 		sessionId = data['sessionId']
-
 		WebRtcManager().setSessionDescriptionAndStart(sessionId, data)
 		
-		
-	def stop_connection(self, data, clientId):
-		WebRtcManager().closePeerSession(data['sessionId'])
+	def stop_connection(self, sessionId, clientId):
+		WebRtcManager().closePeerSession(sessionId)
 
 	def ice_candidate(self, data, clientId):
-		logging.info('ICE_CANDIDATE REQUEST')
 		if 'sessionId' in data:
 			candidate = data['candidate']
-			logging.info('CANDIDATE')
-			if candidate is None or candidate['candidate'] is None:
-				#this is the last one
-				logging.info('NONE')
-				#WebRtcManager().tickleIceCandidate(data['sessionId'], None, None, None)
-			else:
-				logging.info('DATA OK')
-				logging.info(data['sessionId'])
-				logging.info(candidate['candidate'])
-				logging.info(candidate['sdpMid'])
-				logging.info(candidate['sdpMLineIndex'])
-				logging.info('JUMP')
+			if candidate is not None or candidate['candidate'] is not None:
 				WebRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])
