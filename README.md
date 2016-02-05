@@ -11,3 +11,39 @@ Reporting bugs
 --------------
 
 Our issue tracker can be found [on Github](https://github.com/3dagogo/astrobox/issues).
+
+
+Installation instructions
+-------
+
+### Ubuntu
+
+* Download the source code for getting your working copy:
+
+  <pre>
+  git clone https://github.com/AstroPrint/AstroBox.git
+  </pre>
+
+* Execute the next line:
+
+  <pre>
+  sudo apt-get install haproxy isc-dhcp-server nscd network-manager avahi-daemon ntp python-pip python-dev python-gobject python-apt python-numpy python-opencv
+  </pre>
+  
+* Edit the file %Astrobox location%/local/config.yalm; this file must contains this information:
+  <pre>
+  cloudSlicer:
+    apiHost: http://api.astroprint.dev
+    boxrouter: ws://boxrouter.astroprint.dev:8085
+    loggedUser: rafa@astroprint.com
+  network:
+    manager: MacDev
+  server:
+    firstRun: false
+  </pre>
+
+* In %Astrobox location%, run this command:
+
+  <pre>
+    pip install -r requirements.txt
+  </pre>
