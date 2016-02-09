@@ -1,5 +1,4 @@
 # coding=utf-8
-from signal import SIGKILL
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -37,7 +36,7 @@ class WebRtc(object):
 				self.startGStreamer()
 				self.startJanus()
 
-			peer = ConnectionPeer(clientId,self)
+			peer = ConnectionPeer(clientId, self)
 
 			sessionId = peer.start()
 			if sessionId:
@@ -154,7 +153,7 @@ class StreamingPlugin(Plugin):
 	id = '2'
 
 class ConnectionPeer(object):
-	def __init__(self, clientId,parent):
+	def __init__(self, clientId, parent):
 		self.session = None
 		self.clientId = clientId
 		self.sessionKa = None
@@ -163,16 +162,19 @@ class ConnectionPeer(object):
 		self._parent = parent
 
 	#CONNECTION
-	def connection_on_opened(self,connection):
-		logging.info('CONNECTION ON OPENED')
+	#def connection_on_opened(self,connection):
+	#	logging.info('CONNECTION ON OPENED')
 
-	def connection_on_closed(self,connection,**kw):
-		logging.info('CONNECTION ON CLOSED')
+	#def connection_on_closed(self,connection,**kw):
+	#	logging.info('CONNECTION ON CLOSED')
 
 	def connection_on_message(self,connection,message):
 		#logging.info('CONNECTION ON MESSAGE')
 
 		messageToReturn = json.loads(str(message))
+
+		if 'session_id' in messageToReturn and messageToReturn['session_id'] != self.session.id:
+			return
 
 		if 'janus' in messageToReturn and messageToReturn['janus'] == 'hangup':
 			self._parent.closePeerSession(messageToReturn['session_id'])
@@ -180,37 +182,37 @@ class ConnectionPeer(object):
 			self.sendEventToPeer('getSdp',messageToReturn)
 
 	#SESSION
-	def session_on_connected(self,session,**kw):
-		logging.info('SESSION ON OPENED')
+	#def session_on_connected(self,session,**kw):
+	#	logging.info('SESSION ON OPENED')
 
-	def session_on_disconnected(self,session,**kw):
-		logging.info('SESSION ON CLOSED')
+	#def session_on_disconnected(self,session,**kw):
+	#	logging.info('SESSION ON CLOSED')
 
-	def session_on_message(self,session,**kw):
-		logging.info('SESSION ON MESSAGE')
+	#def session_on_message(self,session,**kw):
+	#	logging.info('SESSION ON MESSAGE')
 
-	def session_on_plugin_attached(self,session,**kw):
-		logging.info('SESSION ON PLUGIN ATTACHED')
+	#def session_on_plugin_attached(self,session,**kw):
+	#	logging.info('SESSION ON PLUGIN ATTACHED')
 
-	def session_on_plugin_detached(self,session,**kw):
-		logging.info('SESSION ON PLUGIN DETACHED')
+	#def session_on_plugin_detached(self,session,**kw):
+	#	logging.info('SESSION ON PLUGIN DETACHED')
 
 
 	#PLUGIN
-	def streamingPlugin_on_message(self,plugin,**kw):
-		logging.info('STREAMINGPLUGIN ON MESSAGE')
+	#def streamingPlugin_on_message(self,plugin,**kw):
+	#	logging.info('STREAMINGPLUGIN ON MESSAGE')
 
-	def streamingPlugin_on_attached(self,plugin,**kw):
-		logging.info('STREAMINGPLUGIN ON ATTACHED')
+	#def streamingPlugin_on_attached(self,plugin,**kw):
+	#	logging.info('STREAMINGPLUGIN ON ATTACHED')
 
-	def streamingPlugin_on_detached(self,plugin,**kw):
-		logging.info('STREAMINGPLUGIN ON DETACHED')
+	#def streamingPlugin_on_detached(self,plugin,**kw):
+	#	logging.info('STREAMINGPLUGIN ON DETACHED')
 
-	def streamingPlugin_on_webrtcup(self,plugin,**kw):
-		logging.info('STREAMINGPLUGIN ON WEBRTCUP')
+	#def streamingPlugin_on_webrtcup(self,plugin,**kw):
+	#	logging.info('STREAMINGPLUGIN ON WEBRTCUP')
 
-	def streamingPlugin_on_hangup(self,plugin,**kw):
-		logging.info('STREAMINGPLUGIN ON HANGUP')
+	#def streamingPlugin_on_hangup(self,plugin,**kw):
+	#	logging.info('STREAMINGPLUGIN ON HANGUP')
 
 	def start(self):
 
