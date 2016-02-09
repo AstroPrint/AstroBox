@@ -219,6 +219,7 @@ class CameraCommandHandler(object):
 class P2PCommandHandler(object):
 	
 	def init_connection(self, data, clientId):
+		logging.info('INIT_CONNECTION')
 		sessionId = WebRtcManager().startPeerSession(clientId)
 	
 		if sessionId:
@@ -234,16 +235,23 @@ class P2PCommandHandler(object):
 			}
 
 	def start_plugin(self, data, clientId):
+		logging.info('START_PLUGIN')
 		WebRtcManager().preparePlugin(data['sessionId'])
 	
 	def start_connection(self, data, clientId):
+		logging.info('START_CONNECTION')
+		logging.info('CLIENTID')
+		logging.info(clientId)
 		sessionId = data['sessionId']
+		logging.info('SESSIONID')
+		logging.info(sessionId)
 		WebRtcManager().setSessionDescriptionAndStart(sessionId, data)
 		
 	def stop_connection(self, sessionId, clientId):
 		WebRtcManager().closePeerSession(sessionId)
 
 	def ice_candidate(self, data, clientId):
+		logging.info('ICE_CANDIDATE')
 		if 'sessionId' in data:
 			candidate = data['candidate']
 			if candidate is not None or candidate['candidate'] is not None:

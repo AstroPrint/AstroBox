@@ -33,7 +33,7 @@ class WebRtc(object):
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
 			if len(self._connectedPeers.keys()) == 0:
-				self.startGStreamer()
+				#self.startGStreamer()
 				self.startJanus()
 
 			peer = ConnectionPeer(clientId, self)
@@ -64,44 +64,62 @@ class WebRtc(object):
 				self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'destroy'})
 				peer.close()
 				del self._connectedPeers[sessionId]
-
+				self.sendEventToPeer('stopConnection',None)
+			
 			if len(self._connectedPeers.keys()) == 0:
 				self.stopGStreamer()
 				self.stopJanus()
 
 	def preparePlugin(self, sessionId):
-
+		
+		logging.info('PREPARE_PLUGIN')
 		try:
+			logging.info('PREPARE_PLUGIN TRY')
 			peer = self._connectedPeers[sessionId]
 
 		except KeyError:
+			logging.info('PREPARE_PLUGIN ERROR')
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
+			self.sendEventToPeer('stopConnection',None)
 
 		if peer:
+			logging.info('PREPARE_PLUGIN LISTOING')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})
+			logging.info('PREPARE_PLUGIN LISTED')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':2})
+			logging.info('PREPARE_PLUGIN WATCHED 2')
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
 
 		try:
+			logging.info('TRY')
 			peer = self._connectedPeers[sessionId]
 
 		except KeyError:
+			logging.info('ERROR')
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
+			self.sendEventToPeer('stopConnection',None)
 
 		if peer:
 			#starting state
+			logging.info('SETTING_DESCRIPTION')
 			self._connectedPeers[sessionId].streamingPlugin.set_session_description(data['type'],data['sdp'])
+			logging.info('SET_DESCRIPTION')
+			logging.info('REQUEST_START ...')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
+			self.startGStreamer()
+			logging.info('REQUEST_START')
 
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
+		logging.info('TRICKLEICECANDIDATE')
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
 	def startGStreamer(self):
-
+		
+		logging.info('STARTGSTREAMER')
 		self._GStreamerProcessArgs = ['gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005']
 
 		try:
@@ -113,10 +131,11 @@ class WebRtc(object):
 		except Exception, error:
 			self._logger.error("Error initiating GStreamer process: %s" % str(error))
 			self._GStreamerProcess = None
+			self.sendEventToPeer('stopConnection',None)
 
 	def startJanus(self):
 		#Start janus command here
-
+		logging.info('START JANUS')
 		args = ['/opt/janus/bin/./janus']
 
 		try:
@@ -128,6 +147,7 @@ class WebRtc(object):
 		except Exception, error:
 			self._logger.error("Error initiating janus process: %s" % str(error))
 			self._JanusProcess = None
+			self.sendEventToPeer('stopConnection',None)
 
 		if self._JanusProcess:
 			while True:
@@ -137,7 +157,11 @@ class WebRtc(object):
 					break
 
 	def stopJanus(self):
-		self._JanusProcess.kill()
+		try:
+			self._JanusProcess.kill()
+		except Exception, error:
+			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
+			
 
 	def stopGStreamer(self):
 		for line in os.popen('ps ax | grep gst | grep -v grep'):
@@ -147,13 +171,27 @@ class WebRtc(object):
 			subprocess.Popen(
 		    	'kill -9 ' + pid, shell=True
 			)
+	
+	def sendEventToPeer(self, type, data=None):
+		
+		for key in self._connectedPeers.keys():
+			#'key=%s, value=%s' % (key, self._connectedPeers[key])
+			boxrouterManager().send({
+				'type': 'send_event_to_client',
+				'data': {
+					'clientId': self._connectedPeers[key].clientId,
+					'eventType': type,
+					'eventData': data
+				}
+			})
 
 class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
-	id = '2'
 
 class ConnectionPeer(object):
+
 	def __init__(self, clientId, parent):
+		logging.info('INIT CONNECTIONPEER')
 		self.session = None
 		self.clientId = clientId
 		self.sessionKa = None
@@ -178,7 +216,8 @@ class ConnectionPeer(object):
 
 		if 'janus' in messageToReturn and messageToReturn['janus'] == 'hangup':
 			self._parent.closePeerSession(messageToReturn['session_id'])
-		else:
+		elif 'jsep' in messageToReturn:
+		#else:
 			self.sendEventToPeer('getSdp',messageToReturn)
 
 	#SESSION
