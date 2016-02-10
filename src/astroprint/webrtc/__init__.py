@@ -17,6 +17,7 @@ import subprocess
 import json
 import os
 import signal
+import re
 
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
@@ -29,6 +30,7 @@ class WebRtc(object):
 		self._JanusProcess = None
 		self._GStreamerProcess = None
 		self._GStreamerProcessArgs = None
+		self.videoId = 2
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
@@ -87,7 +89,7 @@ class WebRtc(object):
 			logging.info('PREPARE_PLUGIN LISTOING')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})
 			logging.info('PREPARE_PLUGIN LISTED')
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':2})
+			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
 			logging.info('PREPARE_PLUGIN WATCHED 2')
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
@@ -109,7 +111,7 @@ class WebRtc(object):
 			logging.info('SET_DESCRIPTION')
 			logging.info('REQUEST_START ...')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
-			self.startGStreamer()
+			self.startGStreamer(self.videoId)
 			logging.info('REQUEST_START')
 
 
@@ -117,16 +119,56 @@ class WebRtc(object):
 		logging.info('TRICKLEICECANDIDATE')
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
-	def startGStreamer(self):
+	def findProcess(self, processId ):
+		ps= subprocess.Popen("ps -ef | grep "+processId, shell=True, stdout=subprocess.PIPE)
+		output = ps.stdout.read()
+		ps.stdout.close()
+		ps.wait()
+		logging.info('OUTPUT')
+		logging.info(output)
+		return output
+
+	def isProcessRunning(self, processId):
+		
+		nameProcess = processId
+		
+		lastChar = processId[len(processId)-1]
+		processId = processId[:-1]
+		processId = processId + '[' + lastChar + ']'
+		
+		output = self.findProcess( processId )
+		logging.info('output')
+		logging.info(output)
+		
+		logging.info('nameProcess')
+		logging.info(nameProcess)
+		
+		if nameProcess in output:
+			logging.info('SEARCH TRUE')
+			return True
+		else:
+			logging.info('SEARCH FALSE')
+			return False
+
+	def startGStreamer(self,id):
 		
 		logging.info('STARTGSTREAMER')
-		self._GStreamerProcessArgs = ['gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005']
+		
+		def switchVideo(videoId):
+			return {
+        		1 : 'gst-launch v4l2src device=/dev/video0 ! \'video/x-raw-yuv,width=640,height=480\' !  x264enc pass=qual quantizer=20 tune=zerolatency ! rtph264pay pt=96 ! udpsink host=127.0.0.1 port=8005',
+          		2 : 'gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005',
+    	}.get(videoId, 2) 
+		
+		#self._GStreamerProcessArgs = ['gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005']
+		self._GStreamerProcessArgs = switchVideo(id)
 
 		try:
-			self._GStreamerProcess = subprocess.Popen(
-		    	self._GStreamerProcessArgs,
-		    	 shell=True
-			)
+			if not self.isProcessRunning('gst'):
+				self._GStreamerProcess = subprocess.Popen(
+					self._GStreamerProcessArgs,
+		    	 	shell=True
+				)
 
 		except Exception, error:
 			self._logger.error("Error initiating GStreamer process: %s" % str(error))
@@ -158,19 +200,21 @@ class WebRtc(object):
 
 	def stopJanus(self):
 		try:
-			self._JanusProcess.kill()
+			if self._JanusProcess is not None:
+				self._JanusProcess.kill()
 		except Exception, error:
 			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
 			
 
 	def stopGStreamer(self):
-		for line in os.popen('ps ax | grep gst | grep -v grep'):
-			fields = line.split()
-			pid = fields[0]
-			#os.kill(int(pid), signal.SIGKILL)
-			subprocess.Popen(
-		    	'kill -9 ' + pid, shell=True
-			)
+		if self.isProcessRunning('gst'):
+			for line in os.popen('ps ax | grep gst | grep -v grep'):
+				fields = line.split()
+				pid = fields[0]
+				#os.kill(int(pid), signal.SIGKILL)
+				subprocess.Popen(
+					'kill -9 ' + pid, shell=True
+				)
 	
 	def sendEventToPeer(self, type, data=None):
 		
@@ -211,7 +255,7 @@ class ConnectionPeer(object):
 
 		messageToReturn = json.loads(str(message))
 
-		if 'session_id' in messageToReturn and messageToReturn['session_id'] != self.session.id:
+		if self.session is not None and 'session_id' in messageToReturn and messageToReturn['session_id'] != self.session.id:
 			return
 
 		if 'janus' in messageToReturn and messageToReturn['janus'] == 'hangup':
@@ -360,6 +404,9 @@ class ConnectionPeer(object):
 		self.sessionKa.start()
 
 		sem.acquire()
+		
+		logging.info('SELF.SESSION.ID')
+		logging.info(self.session.id)
 
 		return self.session.id
 
