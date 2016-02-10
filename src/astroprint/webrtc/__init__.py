@@ -40,7 +40,11 @@ class WebRtc(object):
 
 			peer = ConnectionPeer(clientId, self)
 
+			logging.info('SESSIONID ANTES')
+			
 			sessionId = peer.start()
+			
+			logging.info(sessionId)
 			if sessionId:
 				self._connectedPeers[sessionId] = peer
 				return sessionId
@@ -55,23 +59,32 @@ class WebRtc(object):
 
 	def closePeerSession(self, sessionId):
 		with self._peerCondition:
-			try:
-				peer = self._connectedPeers[sessionId]
-
-			except KeyError:
-				self._logger.warning('Session [%s] for peer not found' % sessionId)
-				peer = None
-
-			if peer:
-				self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'destroy'})
-				peer.close()
-				del self._connectedPeers[sessionId]
-				self.sendEventToPeer('stopConnection',None)
-			
-			if len(self._connectedPeers.keys()) == 0:
-				self.stopGStreamer()
-				self.stopJanus()
-
+			if len(self._connectedPeers.keys()) > 0:
+				logging.info(sessionId)
+				try:
+					logging.info('A')
+					logging.info(self._connectedPeers)
+					peer = self._connectedPeers[sessionId]
+					logging.info('B')
+				except KeyError:
+					logging.info('C')
+					self._logger.warning('Session [%s] for peer not found' % sessionId)
+					peer = None
+					logging.info('D')
+				logging.info('E')
+				if peer:
+					logging.info('F')
+					peer.streamingPlugin.send_message({'request':'destroy'})
+					peer.close()
+					self.sendEventToPeer('stopConnection',self._connectedPeers[sessionId])
+					del self._connectedPeers[sessionId]
+				logging.info('G')
+				if len(self._connectedPeers.keys()) == 0:
+					logging.info('H')
+					self.stopGStreamer()
+					self.stopJanus()
+				logging.info('I')
+				
 	def preparePlugin(self, sessionId):
 		
 		logging.info('PREPARE_PLUGIN')
@@ -83,11 +96,11 @@ class WebRtc(object):
 			logging.info('PREPARE_PLUGIN ERROR')
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
-			self.sendEventToPeer('stopConnection',None)
+			self.sendEventToPeers('stopConnection',None)
 
 		if peer:
 			logging.info('PREPARE_PLUGIN LISTOING')
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'list'})
+			peer.streamingPlugin.send_message({'request':'list'})
 			logging.info('PREPARE_PLUGIN LISTED')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
 			logging.info('PREPARE_PLUGIN WATCHED 2')
@@ -102,7 +115,7 @@ class WebRtc(object):
 			logging.info('ERROR')
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
-			self.sendEventToPeer('stopConnection',None)
+			self.sendEventToPeers('stopConnection')
 
 		if peer:
 			#starting state
@@ -173,7 +186,7 @@ class WebRtc(object):
 		except Exception, error:
 			self._logger.error("Error initiating GStreamer process: %s" % str(error))
 			self._GStreamerProcess = None
-			self.sendEventToPeer('stopConnection',None)
+			self.sendEventToPeers('stopConnection')
 
 	def startJanus(self):
 		#Start janus command here
@@ -189,7 +202,7 @@ class WebRtc(object):
 		except Exception, error:
 			self._logger.error("Error initiating janus process: %s" % str(error))
 			self._JanusProcess = None
-			self.sendEventToPeer('stopConnection',None)
+			self.sendEventToPeers('stopConnection')
 
 		if self._JanusProcess:
 			while True:
@@ -216,7 +229,7 @@ class WebRtc(object):
 					'kill -9 ' + pid, shell=True
 				)
 	
-	def sendEventToPeer(self, type, data=None):
+	def sendEventToPeers(self, type, data=None):
 		
 		for key in self._connectedPeers.keys():
 			#'key=%s, value=%s' % (key, self._connectedPeers[key])
@@ -228,6 +241,17 @@ class WebRtc(object):
 					'eventData': data
 				}
 			})
+			
+	def sendEventToPeer(self, type, data=None):
+		
+		boxrouterManager().send({
+			'type': 'send_event_to_client',
+			'data': {
+				'clientId': data.clientId,
+				'eventType': type,
+				'eventData': None
+			}
+		})
 
 class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
@@ -251,7 +275,7 @@ class ConnectionPeer(object):
 	#	logging.info('CONNECTION ON CLOSED')
 
 	def connection_on_message(self,connection,message):
-		#logging.info('CONNECTION ON MESSAGE')
+		logging.info('CONNECTION ON MESSAGE')
 
 		messageToReturn = json.loads(str(message))
 
