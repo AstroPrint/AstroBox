@@ -13,6 +13,8 @@
 				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
 				<li class="heading bold">Internet</li>
 				<li class="internet-connection"><a href="#settings/internet-connection">Connection</a></li>
+				<li class="heading bold">Camera</li>
+				<li class="video-stream"><a href="#settings/video-stream">Video Stream</a></li>
 				<li class="heading bold">Software</li>
 				<li class="software-update"><a href="#settings/software-update">Update</a></li>
 				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a><li>
@@ -312,6 +314,41 @@
 			<% }); %>
 			</table>
 		</script>
+
+		<div class="show-for-small zebra camera">
+			<h1 class="bold" align="center">Camera</h1>
+		</div>
+		<div id="video-stream" class="settings-page hide">
+			<script type="text/template" id="video-stream-settings-page-template">
+				<div class="row">
+					<div class="small-12">
+						<form data-abide="ajax">
+							<label for="video-stream-format" class="bold">
+								Video Encoding
+								<select id="video-stream-format" name="enconding">
+									<option value="h264" <%= settings.driver == 'h264' ? 'selected' : '' %>>H.264</option>
+									<option value="vp8" <%= settings.driver == 'vp8' ? 'selected' : '' %>> VP8</option>
+								</select>
+							</label>
+							<label for="video-stream-size" class="bold">
+								Video Size
+							</label>
+							<select id="video-stream-size" name="size">
+								<option value='640x480'>SD (640 x 480)</option>
+								<option value='1280x720'>HD 720p (1280 x 720)</option>
+								<option value='1920x1080'>HD 1080p (1920 x 1080)</option>
+							</select>
+							<hr/>
+							<div class="loading-button">
+								<button class="success radius">Save</button>
+								<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+							</div>
+						</form>
+					</div>
+				</div>
+			</script>
+		</div>
+
 
 		<div class="show-for-small zebra software">
 			<h1 class="bold" align="center">Software</h1>

@@ -533,6 +533,29 @@ var WiFiNetworksDialog = Backbone.View.extend({
 	}
 });
 
+/*************************
+* Camera - Video Stream
+**************************/
+
+var CameraVideoStreamView = SettingsPage.extend({
+	el: '#video-stream',
+	template: _.template( $("#video-stream-settings-page-template").html() ),
+	show: function() {
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+		this.render();
+	},
+	render: function() {
+		this.$el.html(this.template({ 
+			settings: {
+				
+			}
+		}));
+
+		this.$el.foundation();
+	}
+});
+
 /********************
 * Software - Update
 *********************/
@@ -843,6 +866,7 @@ var SettingsView = Backbone.View.extend({
 			'printer-connection': new PrinterConnectionView({parent: this}),
 			'printer-profile': new PrinterProfileView({parent: this}),
 			'internet-connection': new InternetConnectionView({parent: this}),
+			'video-stream': new CameraVideoStreamView({parent: this}),
 			'software-update': new SoftwareUpdateView({parent: this}),
 			'software-advanced': new SoftwareAdvancedView({parent: this})
 		};

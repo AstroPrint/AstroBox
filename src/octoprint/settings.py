@@ -46,19 +46,9 @@ default_settings = {
 		"baseUrl": "",
 		"scheme": ""
 	},
-	"webcam": {
-		"stream": None,
-		"snapshot": None,
-		"ffmpeg": None,
-		"bitrate": "5000k",
-		"watermark": True,
-		"flipH": False,
-		"flipV": False,
-		"timelapse": {
-			"type": "off",
-			"options": {},
-			"postRoll": 0
-		}
+	"camera": {
+		"encoding": "h264"
+		"size": "640x480"
 	},
 	"gcodeViewer": {
 		"enabled": True,
