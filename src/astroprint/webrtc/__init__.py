@@ -1,4 +1,5 @@
 # coding=utf-8
+from gst.video import VideoSink
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -19,6 +20,7 @@ import os
 import signal
 import re
 
+from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
 
@@ -30,7 +32,7 @@ class WebRtc(object):
 		self._JanusProcess = None
 		self._GStreamerProcess = None
 		self._GStreamerProcessArgs = None
-		self.videoId = 2
+		self.videoId = 1
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
@@ -102,6 +104,20 @@ class WebRtc(object):
 			logging.info('PREPARE_PLUGIN LISTOING')
 			peer.streamingPlugin.send_message({'request':'list'})
 			logging.info('PREPARE_PLUGIN LISTED')
+			
+			videoEncodingSelected = settings().get(["camera", "encoding"])
+			videoSizeSelected = settings().get(["camera", "size"])
+			videoFramerateSelected = settings().get(["camera", "framerate"])
+			
+			size = videoSizeSelected.split('x')
+			
+			if videoEncodingSelected == 'h264':
+				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=480 offset-y=450 overlay-width=150 overlay-height=29 ! videoconvert ! "video/x-raw,framerate=' + videoFramerateSelected + '/1,width=' + size[0] + ',height=' + size[1] + '" ! x264enc ! video/x-h264,profile=high ! rtph264pay pt=96 ! queue ! udpsink host=127.0.0.1 port=8004'
+				self.videoId = 1
+			else:#VP8
+				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=480 offset-y=450 overlay-width=150 overlay-height=29 ! videoconvert ! video/x-raw, framerate=' + videoFramerateSelected + '/1, width=' + size[0] + ', height=' + size[1] + ' ! vp8enc target-bitrate=500000 keyframe-max-dist=500 deadline=1 ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005'
+				self.videoId = 2
+			
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
 			logging.info('PREPARE_PLUGIN WATCHED 2')
 
@@ -124,7 +140,7 @@ class WebRtc(object):
 			logging.info('SET_DESCRIPTION')
 			logging.info('REQUEST_START ...')
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
-			self.startGStreamer(self.videoId)
+			self.startGStreamer()
 			logging.info('REQUEST_START')
 
 
@@ -163,19 +179,10 @@ class WebRtc(object):
 			logging.info('SEARCH FALSE')
 			return False
 
-	def startGStreamer(self,id):
+	def startGStreamer(self):
 		
 		logging.info('STARTGSTREAMER')
 		
-		def switchVideo(videoId):
-			return {
-        		1 : 'gst-launch v4l2src device=/dev/video0 ! \'video/x-raw-yuv,width=640,height=480\' !  x264enc pass=qual quantizer=20 tune=zerolatency ! rtph264pay pt=96 ! udpsink host=127.0.0.1 port=8005',
-          		2 : 'gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005',
-    	}.get(videoId, 2) 
-		
-		#self._GStreamerProcessArgs = ['gst-launch-0.10 v4l2src ! video/x-raw-yuv,width=640,height=480 ! vp8enc ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005']
-		self._GStreamerProcessArgs = switchVideo(id)
-
 		try:
 			if not self.isProcessRunning('gst'):
 				self._GStreamerProcess = subprocess.Popen(
