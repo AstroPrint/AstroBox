@@ -1,5 +1,4 @@
 # coding=utf-8
-from gst.video import VideoSink
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -112,7 +111,7 @@ class WebRtc(object):
 			size = videoSizeSelected.split('x')
 			
 			if videoEncodingSelected == 'h264':
-				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=480 offset-y=450 overlay-width=150 overlay-height=29 ! videoconvert ! "video/x-raw,framerate=' + videoFramerateSelected + '/1,width=' + size[0] + ',height=' + size[1] + '" ! x264enc ! video/x-h264,profile=high ! rtph264pay pt=96 ! queue ! udpsink host=127.0.0.1 port=8004'
+				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=480 offset-y=450 overlay-width=150 overlay-height=29 ! videoconvert ! "video/x-raw,framerate=' + videoFramerateSelected + '/1,width=' + size[0] + ',height=' + size[1] + '" ! omxh264enc ! video/x-h264,profile=high ! rtph264pay pt=96 ! queue ! udpsink host=127.0.0.1 port=8004'
 				self.videoId = 1
 			else:#VP8
 				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=480 offset-y=450 overlay-width=150 overlay-height=29 ! videoconvert ! video/x-raw, framerate=' + videoFramerateSelected + '/1, width=' + size[0] + ', height=' + size[1] + ' ! vp8enc target-bitrate=500000 keyframe-max-dist=500 deadline=1 ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005'
