@@ -47,8 +47,9 @@ default_settings = {
 		"scheme": ""
 	},
 	"camera": {
-		"encoding": "h264"
-		"size": "640x480"
+		"encoding": "h264",
+		"size": "640x480",
+		"framerate": "15"
 	},
 	"gcodeViewer": {
 		"enabled": True,

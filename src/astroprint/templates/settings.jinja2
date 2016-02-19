@@ -325,18 +325,26 @@
 						<form data-abide="ajax">
 							<label for="video-stream-format" class="bold">
 								Video Encoding
-								<select id="video-stream-format" name="enconding">
-									<option value="h264" <%= settings.driver == 'h264' ? 'selected' : '' %>>H.264</option>
-									<option value="vp8" <%= settings.driver == 'vp8' ? 'selected' : '' %>> VP8</option>
+								<select id="video-stream-format" name="encoding">
+									<option value="h264" <%= settings.encoding == 'h264' ? 'selected' : '' %>>H.264</option>
+									<option value="vp8" <%= settings.encoding == 'vp8' ? 'selected' : '' %>> VP8</option>
 								</select>
 							</label>
 							<label for="video-stream-size" class="bold">
 								Video Size
 							</label>
 							<select id="video-stream-size" name="size">
-								<option value='640x480'>SD (640 x 480)</option>
-								<option value='1280x720'>HD 720p (1280 x 720)</option>
-								<option value='1920x1080'>HD 1080p (1920 x 1080)</option>
+								<option value='640x480' <%= settings.size == '640x480' ? 'selected' : '' %>>Low (640 x 480)</option>
+								<option value='1280x720' <%= settings.size == '1280x720' ? 'selected' : '' %>>Medium (1280 x 720)</option>
+								<option value='1920x1080' <%= settings.size == '1920x1080' ? 'selected' : '' %>>High (1920 x 1080)</option>
+							</select>
+							<label for="video-stream-framerate" class="bold">
+								Frame Rate
+							</label>
+							<select id="video-stream-framerate" name="framerate">
+								<option value='5' <%= settings.framerate == '5' ? 'selected' : '' %>>5 fps</option>
+								<option value='10' <%= settings.framerate == '10' ? 'selected' : '' %>>10 fps</option>
+								<option value='15' <%= settings.framerate == '15' ? 'selected' : '' %>>15 fps</option>
 							</select>
 							<hr/>
 							<div class="loading-button">

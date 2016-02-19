@@ -123,6 +123,32 @@ def stopWifiHotspot():
 	else:
 		return (result, 500)
 
+@api.route("/settings/camera/streaming", methods=["GET", "POST"])
+@restricted_access
+def cameraStreamingeSettings():
+	s = settings()
+
+	if request.method == 'POST':
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
+
+			if "size" in data:
+				s.set(['camera', 'size'], data['size'])
+
+			if "encoding" in data:
+				s.set(['camera', 'encoding'], data['encoding'])
+
+			if "framerate" in data:
+				s.set(['camera', 'framerate'], data['framerate'])
+
+			s.save()
+
+	return jsonify(
+		encoding= s.get(['camera', 'encoding']), 
+		size= s.get(['camera', 'size']),
+		framerate= s.get(['camera', 'framerate'])
+	)	
+
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access
 def getAdvancedSoftwareSettings():

@@ -218,7 +218,7 @@ var PrinterProfileView = SettingsPage.extend({
 				this.parent.subviews['printer-connection'].settings = null;
 			}, this),
 			error: function() {
-				noty({text: "Failed to save printer profile change", timeout: 3000});
+				noty({text: "Failed to save printer profile changes", timeout: 3000});
 				loadingBtn.removeClass('loading');
 			}
 		});			
@@ -540,19 +540,87 @@ var WiFiNetworksDialog = Backbone.View.extend({
 var CameraVideoStreamView = SettingsPage.extend({
 	el: '#video-stream',
 	template: _.template( $("#video-stream-settings-page-template").html() ),
+	settings: null,
+	events: {
+		"invalid.fndtn.abide form": 'invalidForm',
+		"valid.fndtn.abide form": 'validForm'
+	},
 	show: function() {
 		//Call Super
 		SettingsPage.prototype.show.apply(this);
-		this.render();
+		if (!this.settings) {
+			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
+				this.settings = data;
+				this.render();
+			}, this))
+			.fail(function() {
+				noty({text: "There was an error getting Camera settings.", timeout: 3000});
+			});
+		} else {
+			this.render();
+		}
 	},
 	render: function() {
 		this.$el.html(this.template({ 
-			settings: {
-				
-			}
+			settings: this.settings
 		}));
 
 		this.$el.foundation();
+
+		this.delegateEvents(this.events);
+	},
+	invalidForm: function(e)
+	{
+	    if (e.namespace !== 'abide.fndtn') {
+	        return;
+	    }
+
+		noty({text: "Please check your errors", timeout: 3000});
+	},
+	validForm: function(e) {
+	    if (e.namespace !== 'abide.fndtn') {
+	        return;
+	    }
+
+	    var form = this.$('form');
+	    var loadingBtn = form.find('.loading-button');
+		var attrs = {};
+
+		loadingBtn.addClass('loading');
+
+		form.find('input, select, textarea').each(function(idx, elem) {
+			var value = null;
+			var elem = $(elem);
+
+			if (elem.is('input[type="radio"], input[type="checkbox"]')) {
+				value = elem.is(':checked');
+			} else {
+				value = elem.val();
+			}
+
+			attrs[elem.attr('name')] = value;
+		});
+
+		$.ajax({
+			url: API_BASEURL + 'settings/camera/streaming', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify(attrs)
+		})
+			.done(_.bind(function(data){
+				this.settings = data;
+				noty({text: "Camera changes saved", timeout: 3000, type:"success"});
+				//Make sure we reload next time we load this tab
+				this.render()
+				this.parent.subviews['video-stream'].settings = null;
+			},this))
+			.fail(function(){
+				noty({text: "There was a problem saving camera settings", timeout: 3000});
+			})
+			.always(function(){
+				loadingBtn.removeClass('loading');
+			});
 	}
 });
 
