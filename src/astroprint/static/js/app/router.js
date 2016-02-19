@@ -11,6 +11,7 @@ var AppRouter = Backbone.Router.extend({
 	settingsView: null,
 	printingView: null,
 	terminalView: null,
+	cameraView: null,
 	routes: {
 		"": "home",
 		"files": "files",
@@ -20,6 +21,7 @@ var AppRouter = Backbone.Router.extend({
 		"settings": "settings",
 		"settings/:page": "settings",
 		"gcode-terminal": "terminal",
+		"camera": "camera",
 		"*notFound": "notFound"
 	},
 	turningOff: false,
@@ -112,6 +114,13 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.terminalView);
+	},
+	camera: function() {
+		if (!this.cameraView) {
+			this.cameraView = new CameraView();
+		}
+
+		this.selectView(this.cameraView);
 	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
