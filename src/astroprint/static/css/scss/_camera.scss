@@ -1,0 +1,25 @@
+.camera-view {
+
+    .video-container {
+        min-height: 400px;
+        border: 1px solid $iron;
+        border-bottom: none;
+        background: $oil;
+        margin-top: 60px;
+        @include radius($global-radius $global-radius 0 0);
+    }
+
+    .buttons {
+        background: $ghost;
+        border: 1px solid $iron;
+        border-top: none;
+        padding: rem-calc(15);
+        margin-bottom: rem-calc(15);
+        @include radius(0 0 $global-radius $global-radius);
+
+        button, .button {
+            margin-bottom: 0;
+            width: 100%;
+        }
+    }
+}
