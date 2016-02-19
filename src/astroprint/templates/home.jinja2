@@ -42,15 +42,13 @@
 			</a>
 				<h1 class="bold">Control</h1>
 		</li>
-		{% if variantData['suppliesLink'] %}
 		<li>
-			<a href="{{variantData['suppliesLink']}}"><div class="app-image">
-				<img src="/static/img/supplies-icon.png" alt="supplies icon"/>
-				<div class="overlay"><div class="contain"><h4 class="bold">Visit</h4></div></div></div>
+			<a href="#camera"><div class="app-image">
+				<img src="/static/img/camera-icon.png" alt="camera icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
 			</a>
-				<h1 class="bold">Supplies</h1>
+				<h1 class="bold">Camera</h1>
 		</li>
-		{% endif %}
 		<li>
 			<a href="#settings"><div class="app-image">
 				<img src="/static/img/settings-icon.png" alt="settings icon"/>
@@ -72,5 +70,14 @@
 			</a>
 				<h1 class="bold">Support</h1>
 		</li>
+		{% if variantData['suppliesLink'] %}
+		<li>
+			<a href="{{variantData['suppliesLink']}}"><div class="app-image">
+				<img src="/static/img/supplies-icon.png" alt="supplies icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Visit</h4></div></div></div>
+			</a>
+				<h1 class="bold">Supplies</h1>
+		</li>
+		{% endif %}
 	</ul>
 </div>
