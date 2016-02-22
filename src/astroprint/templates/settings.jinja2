@@ -371,7 +371,7 @@
 				<% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
 			</h2>
 			<% if (data.update_available) { %>
-				<div class="modal-content">
+				<div class="modal-body">
 					<p>
 					<% if (data.is_current) { %>
 						Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
@@ -389,14 +389,22 @@
 					</p>
 				</div>
 			<% } %>
-			<div class="modal-actions">
-				<button class="secondary radius<% if (data.update_available) { %> left<% } %> cancel">Cancel</button>
+			<div class="modal-actions row">
 				<% if (data.update_available) { %>
-					<div class="loading-button right">
-						<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
-						<span class="button disabled success radius loading">
-							<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
-						</span>
+					<div class="small-12 medium-6 columns">
+						<button class="secondary radius cancel expand">Cancel</button>
+					</div>
+					<div class="small-12 medium-6 columns">
+						<div class="loading-button expand">
+							<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+							<span class="button disabled success radius loading">
+								<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
+							</span>
+						</div>
+					</div>
+				<% } else { %>
+					<div class="columns">
+						<button class="secondary radius cancel expand">Close</button>
 					</div>
 				<% } %>
 			</div>
@@ -432,7 +440,7 @@
 
 		<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Are you sure?</h2>
-			<div class="modal-content">
+			<div class="modal-body">
 				<p>This will delete all your settings and files from this {{variantData['productName']}}.</p>
 				<p>
 					<label for="confirmation">
@@ -441,11 +449,15 @@
 					</label>
 				</p>
 			</div>
-			<div class="modal-actions">
-				<button class="secondary radius left">Cancel</button>
-				<div class="loading-button right">
-					<button class="alert radius">Reset</button>
-					<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
+			<div class="modal-actions row">
+				<div class="small-12 medium-6 columns">
+					<button class="secondary radius expand">Cancel</button>
+				</div>
+				<div class="small-12 medium-6 columns">
+					<div class="loading-button expand">
+						<button class="alert radius">Reset</button>
+						<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
+					</div>
 				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
@@ -453,21 +465,25 @@
 
 		<div id="send-logs-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Send logs to AstroPrint</h2>
-			<div class="modal-content">
+			<div class="modal-body">
 				<p>This sends us your device logs so that help you analyze your problem.</p>
 				<p>
 					<label>
-						Do you have a support ticket?
+						Do you have a support ticket? If not, consider <a href="https://astroprint.zendesk.com" target="_support">creating one</a>.
 						<input type="text" name="ticket" placeholder="Enter support ticket # or leave empty"/>
 					</label>
 					<textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
 				</p>
 			</div>
-			<div class="modal-actions">
-				<button class="secondary radius left">Cancel</button>
-				<div class="loading-button right">
-					<button class="success radius">Send Logs</button>
-					<span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+			<div class="modal-actions row">
+				<div class="small-12 medium-6 columns">
+					<button class="secondary radius expand">Cancel</button>
+				</div>
+				<div class="small-12 medium-6 columns">
+					<div class="loading-button expand">
+						<button class="success radius">Send Logs</button>
+						<span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+					</div>
 				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
@@ -475,7 +491,7 @@
 
 		<div id="delete-logs-modal" class="reveal-modal medium radius" data-reveal>
 			<h2 class="bold">Delete AstroPrint logs</h2>
-			<div class="modal-content">
+			<div class="modal-body">
 				<p>
 					This will delete all your past AstroPrint logs. It will help save space but might 
 					prevent us from researching a past problem you might have had.
@@ -484,11 +500,15 @@
 					Are you sure you want to delete all logs?
 				</p>
 			</div>
-			<div class="modal-actions">
-				<button class="secondary radius left">Cancel</button>
-				<div class="loading-button right">
-					<button class="alert radius">Delete Logs</button>
-					<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+			<div class="modal-actions row">
+				<div class="small-12 medium-6 columns">
+					<button class="secondary radius expand">Cancel</button>
+				</div>
+				<div class="small-12 medium-6 columns">
+					<div class="loading-button expand">
+						<button class="alert radius">Delete Logs</button>
+						<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+					</div>
 				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
