@@ -27,7 +27,7 @@ var TerminalView = Backbone.View.extend({
   {
     e.preventDefault();
     var sendField = this.$('input');
-    var command = sendField.val();
+    var command = sendField.val().toUpperCase();
 
     if (command) {
       var loadingBtn = this.$('button.send').closest('.loading-button');
