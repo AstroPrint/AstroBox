@@ -8,11 +8,13 @@
 	<div class="hide-for-small-only medium-5  large-4 columns">
 		<div id="settings-side-bar">
 			<ul class="side-nav">
-				<li class="heading bold">Printer</li>
+				<li class="heading bold">3D Printer</li>
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
 				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
-				<li class="heading bold">Internet</li>
-				<li class="internet-connection"><a href="#settings/internet-connection">Connection</a></li>
+				<li class="heading bold">Network</li>
+				<li class="network-name"><a href="#settings/network-name">Name</a></li>
+				<li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
+				<li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
 				<li class="heading bold">Software</li>
 				<li class="software-update"><a href="#settings/software-update">Update</a></li>
 				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a><li>
@@ -21,10 +23,10 @@
 	</div>
 	<div class="small-12 medium-7 large-8 columns">
 		
-			<div class="show-for-small zebra">
-				<h1 class="bold" align="center">Printer Connection</h1>
-			</div>
-			<div id="printer-connection" class="settings-page">
+		<div class="show-for-small zebra">
+			<a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
+		</div>
+		<div id="printer-connection" class="settings-page">
 			<div class="row connection-status">
 				<div class="small-12">
 					<span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
@@ -33,7 +35,6 @@
 				</div>
 			</div>
 			<form></form>
-			
 		</div>
 
 		<script type="text/template" id="printer-connection-settings-page-template">
@@ -86,8 +87,7 @@
 		</script>
 
 		<div class="show-for-small zebra">
-			
-			<h1 class="bold" align="center">Printer Profile</h1>
+			<a href="#settings/printer-profile"><h1 class="bold" align="center">3D Printer Profile</h1></a>
 		</div>
 		<div id="printer-profile" class="settings-page hide">
 			<script type="text/template" id="printer-profile-settings-page-template">
@@ -115,12 +115,12 @@
 									Max. Nozzle Temperature
 								</label>
 								<div class="row collapse">
-							        <div class="small-9 columns">
-							        	<input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-							        	<small class="error">Invalid Nozzle Temperature.</small>
-							        </div>
-							        <div class="small-3 columns"><span class="postfix">&deg;C</div>
-							    </div>
+									<div class="small-9 columns">
+										<input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+										<small class="error">Invalid Nozzle Temperature.</small>
+									</div>
+									<div class="small-3 columns"><span class="postfix">&deg;C</div>
+								</div>
 							</div>
 							<label for="heated-bed" class="bold">
 								Heated Bed
@@ -134,12 +134,12 @@
 									Max. Bed Temperature
 								</label>
 								<div class="row collapse">
-							        <div class="small-9 columns">
-							        	<input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-							        	<small class="error">Invalid Bed Temperature.</small>
-							        </div>
-							        <div class="small-3 columns"><span class="postfix">&deg;C</div>
-							    </div>
+									<div class="small-9 columns">
+										<input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+										<small class="error">Invalid Bed Temperature.</small>
+									</div>
+									<div class="small-3 columns"><span class="postfix">&deg;C</div>
+								</div>
 							</div>
 							<div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
 								<label for="cancel-gcode" class="bold">
@@ -159,7 +159,39 @@
 		</div>
 
 		<div class="show-for-small zebra">
-			<h1 class="bold" align="center">Internet Connection</h1>
+			<a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
+		</div>
+		<div id="network-name" class="settings-page hide"></div>
+		<script type="text/template" id="network-name-settings-page-template">
+			<div class="row">
+				<div class="small-12">
+					<form data-abide="ajax">
+						<div class="input-wrapper">
+							<label for="network-name" class="bold">
+								Network Name
+							</label>	
+							<input id="network-name" name="name" type="text" value="<%= settings.name %>" required/>
+							<small class="error">Invalid Device Name.</small>
+						</div>
+						<p>
+							A few important things to remember:
+						</p>
+						<ul class="preview">
+							<li><i class="icon-signal"></i> Hotspot WiFi name: <span class="network-name bold"><%= settings.name %></span></li>
+							<li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
+						</ul>
+						<hr/>
+						<div class="loading-button">
+							<button class="success radius">Save</button>
+							<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+						</div>
+					</form>
+				</div>
+			</div>
+		</script>
+
+		<div class="show-for-small zebra">
+			<a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
 		</div>
 
 		<div id="internet-connection" class="settings-page hide"></div>
@@ -247,39 +279,6 @@
 					</div>
 				</div>
 			<% } %>
-
-			<% if (settings.hotspot && (settings.networks || !settings.hotspot.active)) { %>
-				<hr/>
-				<h3 class="bold">Local Hotspot</h3>
-				<div>
-					<% if (settings.hotspot.active) { %>
-						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
-						<div class="loading-button stop-hotspot">
-							<button class="radius">Stop hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
-							</span>
-						</div>
-					<% } else { %>
-						<div class="loading-button start-hotspot">
-							<button class="radius">Start hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
-							</span>
-						</div>
-					<% } %>
-					<div class="row hotspot-off">
-						<div class="small-2 large-1 columns">
-							<input id="hotspot-off" type="checkbox" <% if (settings.hotspot.hotspotOnlyOffline) { %> value="yes" checked <% } %>>
-						</div>
-						<div class="small-10 large-11 columns">
-							<label for="hotspot-off">
-								<b>Turn hotspot off when a known network is found in the future.</b>
-							</label>
-						</div>
-					</div>
-				</div>
-			<% } %>
 		</script>
 		<script type="text/template" id="wifi-network-modal-row">
 			<table>
@@ -313,8 +312,48 @@
 			</table>
 		</script>
 
-		<div class="show-for-small zebra software">
-			<h1 class="bold" align="center">Software</h1>
+		<div class="show-for-small zebra">
+			<a href="#settings/wifi-hotspot"><h1 class="bold" align="center">WiFi Hotspot</h1></a>
+		</div>
+		<div id="wifi-hotspot" class="settings-page hide"></div>
+		<script type="text/template" id="wifi-hotspot-settings-page-template">
+			<% if (settings.hotspot && (settings.networks || !settings.hotspot.active)) { %>
+				<h3 class="bold">Local Hotspot</h3>
+				<div>
+					<% if (settings.hotspot.active) { %>
+						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
+						<div class="loading-button stop-hotspot">
+							<button class="radius">Stop hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
+							</span>
+						</div>
+					<% } else { %>
+						<div class="loading-button start-hotspot">
+							<button class="radius">Start hotspot</button>
+							<span class="loading button disabled radius">
+								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
+							</span>
+						</div>
+					<% } %>
+					<div class="row hotspot-off">
+						<div class="small-2 large-1 columns">
+							<input id="hotspot-off" type="checkbox" <% if (settings.hotspot.hotspotOnlyOffline) { %> value="yes" checked <% } %>>
+						</div>
+						<div class="small-10 large-11 columns">
+							<label for="hotspot-off">
+								<b>Turn hotspot off when a known network is found in the future.</b>
+							</label>
+						</div>
+					</div>
+				</div>
+			<% } else { %>
+				Creating a Hotspot is not supported on this device.
+			<% } %>
+		</script>
+
+		<div class="show-for-small zebra">
+			<a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
 		</div>
 		<div id="software-update" class="settings-page hide" align="center">
 			<h4 align="center"><b>{{version}}</b> Installed.</h4>
@@ -362,6 +401,10 @@
 				<% } %>
 			</div>
 		</script>
+
+		<div class="show-for-small zebra software">
+			<a href="#settings/software-advanced"><h1 class="bold" align="center">Advanced Settings</h1></a>
+		</div>
 
 		<div id="software-advanced" class="settings-page hide" align="center"></div>
 		<script type="text/template" id="software-advanced-content-template">

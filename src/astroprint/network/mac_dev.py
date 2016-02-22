@@ -2,10 +2,15 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import logging
+
 from astroprint.network import NetworkManager as NetworkManagerBase
 
 class MacDevNetworkManager(NetworkManagerBase):
 	def getActiveConnections(self):
+		self.name = "astrobox-dev"
+		self.logger = logging.getLogger(__name__)
+
 		return {
 			'wired': {
 				'id': 'localhost',
@@ -30,4 +35,9 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return "Not supporded on Mac"
 
 	def getHostname(self):
-		return "astrobox-dev"
+		return self.name
+
+	def setHostname(self, name):
+		self.name = name
+		self.logger.info('Host name is set to %s ' % name)
+		return True
