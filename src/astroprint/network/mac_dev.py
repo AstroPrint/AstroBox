@@ -7,10 +7,12 @@ import logging
 from astroprint.network import NetworkManager as NetworkManagerBase
 
 class MacDevNetworkManager(NetworkManagerBase):
-	def getActiveConnections(self):
+	def __init__(self):
 		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
+		super(MacDevNetworkManager, self).__init__()
 
+	def getActiveConnections(self):
 		return {
 			'wired': {
 				'id': 'localhost',
