@@ -317,7 +317,9 @@
 		</div>
 		<div id="wifi-hotspot" class="settings-page hide"></div>
 		<script type="text/template" id="wifi-hotspot-settings-page-template">
-			<% if (settings.hotspot && (settings.networks || !settings.hotspot.active)) { %>
+			<% if (settings.hotspot === false) { %>
+				Creating a Hotspot is not supported on this device.
+			<% } else { %>
 				<h3 class="bold">Local Hotspot</h3>
 				<div>
 					<% if (settings.hotspot.active) { %>
@@ -347,8 +349,6 @@
 						</div>
 					</div>
 				</div>
-			<% } else { %>
-				Creating a Hotspot is not supported on this device.
 			<% } %>
 		</script>
 

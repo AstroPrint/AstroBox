@@ -561,7 +561,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 });
 
 /*************************
-* Network - Wifi 
+* Network - Wifi Hotspot
 **************************/
 
 var WifiHotspotView = SettingsPage.extend({
@@ -637,19 +637,23 @@ var WifiHotspotView = SettingsPage.extend({
 	hotspotOffChanged: function(e)
 	{
 		var target = $(e.currentTarget);
+		var checked = target.is(':checked');
 
 		$.ajax({
-			url: '/api/settings/internet/hotspot',
+			url: '/api/settings/network/hotspot',
 			method: 'PUT',
 			data: JSON.stringify({
-				'hotspotOnlyOffline': target.is(':checked')
+				'hotspotOnlyOffline': checked
 			}),
 			contentType: 'application/json',
 			dataType: 'json'
-		}).
-		fail(function(){
-			noty({text: "There was an error saving hotspot option.", timeout: 3000});
 		})
+			.done(_.bind(function(){
+				this.settings.hotspot.hotspotOnlyOffline = checked;
+			}, this))
+			.fail(function(){
+				noty({text: "There was an error saving hotspot option.", timeout: 3000});
+			});
 	}
 });
 
