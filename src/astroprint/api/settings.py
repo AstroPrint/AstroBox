@@ -14,13 +14,21 @@ from astroprint.network.manager import networkManager
 from octoprint.server import restricted_access, admin_permission, softwareManager
 from octoprint.server.api import api
 
-@api.route("/settings/printer", methods=["GET"])
-def getSettings():
+@api.route("/settings/printer", methods=["GET", "POST"])
+def handlePrinterSettings():
 	s = settings()
-
 	pm = printerManager()
-
 	connectionOptions = pm.getConnectionOptions()
+
+	if request.method == "POST":
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
+
+			if "serial" in data.keys():
+				if "port" in data["serial"].keys(): s.set(["serial", "port"], data["serial"]["port"])
+				if "baudrate" in data["serial"].keys(): s.setInt(["serial", "baudrate"], data["serial"]["baudrate"])
+
+			s.save()
 
 	return jsonify({
 		"driver": pm.driverName,
@@ -32,23 +40,23 @@ def getSettings():
 		}
 	})
 
-
-@api.route("/settings/printer", methods=["POST"])
+@api.route("/settings/network/name", methods=["GET", "POST"])
 @restricted_access
-def setSettings():
-	if "application/json" in request.headers["Content-Type"]:
-		data = request.json
-		s = settings()
+def handleNetworkName():
+	nm = networkManager()
 
-		if "serial" in data.keys():
-			if "port" in data["serial"].keys(): s.set(["serial", "port"], data["serial"]["port"])
-			if "baudrate" in data["serial"].keys(): s.setInt(["serial", "baudrate"], data["serial"]["baudrate"])
+	if request.method == "POST":
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
 
-		s.save()
+			nm.setHostname(data['name'])
 
-	return getSettings()
+		else:
+			return ("Invalid Request", 400)
 
-@api.route("/settings/internet/wifi-networks", methods=["GET"])
+	return jsonify(name=nm.getHostname())
+
+@api.route("/settings/network/wifi-networks", methods=["GET"])
 @restricted_access
 def getWifiNetworks():
 	networks = networkManager().getWifiNetworks()
@@ -58,24 +66,17 @@ def getWifiNetworks():
 	else:
 		return jsonify({'message': "Unable to get WiFi networks"})
 
-@api.route("/settings/internet", methods=["GET"])
+@api.route("/settings/network", methods=["GET"])
 @restricted_access
-def getInternetSettings():
+def getNetworkSettings():
 	nm = networkManager()
-
-	isHotspotable = nm.isHotspotable()
 
 	return jsonify({
 		'networks': nm.getActiveConnections(),
-		'hasWifi': bool(nm.getWifiDevice()),
-		'hotspot': {
-			'active': nm.isHotspotActive(),
-			'name': nm.getHostname(),
-			'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
-		} if isHotspotable else False
+		'hasWifi': bool(nm.getWifiDevice())
 	})
 
-@api.route("/settings/internet/active", methods=["POST"])
+@api.route("/settings/network/active", methods=["POST"])
 @restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
@@ -89,39 +90,47 @@ def setWifiNetwork():
 
 	return ("Invalid Request", 400)
 
-@api.route("/settings/internet/hotspot", methods=["POST"])
+@api.route("/settings/network/hotspot", methods=["GET", "POST", "PUT", "DELETE"])
 @restricted_access
-def startWifiHotspot():
-	result = networkManager().startHotspot()
+def handleWifiHotspot():
+	nm = networkManager()
 
-	if result is True:
-		return jsonify()
-	else:
-		return (result, 500)
+	if request.method == "GET":
+		return jsonify({
+			'hotspot': {
+				'active': nm.isHotspotActive(),
+				'name': nm.getHostname(),
+				'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
+			} if nm.isHotspotable() else False
+		})
 
-@api.route("/settings/internet/hotspot", methods=["PUT"])
-@restricted_access
-def changeWifiHotspot():
-	if "application/json" in request.headers["Content-Type"]:
-		data = request.json
+	elif request.method == "PUT":
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
 
-		if "hotspotOnlyOffline" in data:
-			s = settings()
-			s.setBoolean(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
-			s.save()
+			if "hotspotOnlyOffline" in data:
+				s = settings()
+				s.setBoolean(['wifi', 'hotspotOnlyOffline'], data["hotspotOnlyOffline"])
+				s.save()
+				return jsonify()
+
+		return ("Invalid Request", 400)
+
+	elif request.method == "DELETE":
+		result = networkManager().stopHotspot()
+
+		if result is True:
 			return jsonify()
+		else:
+			return (result, 500)
 
-	return ("Invalid Request", 400)
+	else: #POST
+		result = nm.startHotspot()
 
-@api.route("/settings/internet/hotspot", methods=["DELETE"])
-@restricted_access
-def stopWifiHotspot():
-	result = networkManager().stopHotspot()
-
-	if result is True:
-		return jsonify()
-	else:
-		return (result, 500)
+		if result is True:
+			return jsonify()
+		else:
+			return (result, 500)
 
 @api.route("/settings/camera/streaming", methods=["GET", "POST"])
 @restricted_access

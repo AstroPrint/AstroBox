@@ -97,9 +97,26 @@
 		<button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
 	</div>
 	<div class="small-12 medium-4 columns" align="center">
-		<div class="loading-button expand">
-			<button class="alert radius stop-print"><i class="icon-cancel-circled"></i> Cancel Print</button>
-			<span class="alert radius loading button disabled"><i class="icon-rocket-spinner animate-spin"></i> Cancelling...</span>
+		<button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel Print</button>
+	</div>
+</div>
+
+<div id="cancel-print-modal" class="reveal-modal medium radius" data-reveal align="center">
+	<h2 class="bold">Cancel current print job.</h2>
+	<div class="modal-body">
+		<p>This will stop the current print job. This action can't be recovered.</p>
+		<p>Are you sure?</p>
+	</div>
+	<div class="row">
+		<div class="small-12 medium-6 columns">
+			<button class="secondary radius no expand">No</button>
+		</div>
+		<div class="small-12 medium-6 columns">
+			<div class="loading-button expand">
+				<button class="alert radius yes">Yes, cancel it</button>
+				<span class="button loading radius alert"><i class="icon-rocket-spinner animate-spin"></i> Canceling...</span>
+			</div>
 		</div>
 	</div>
+	<a class="close-reveal-modal">&#215;</a>
 </div>

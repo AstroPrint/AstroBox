@@ -3,9 +3,11 @@
     border: 1px solid #ccc;
     @include radius($global-radius);
 }
+
 .zebra {
 	background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
 }
+
 #settings-side-bar {
 	background: white;
 	padding: 0 0 20px;
@@ -148,6 +150,24 @@
 	}
 }
 
+#network-name {
+	.preview {
+		color: #ccc;
+		font-size: rem-calc(16);
+		text-align: left;
+		padding-left: 10px;
+
+		li {
+			margin-bottom: 5px;
+			list-style: none;
+		}
+
+		span.bold, i {
+			color: $success-color;
+		}
+	}
+}
+
 #software-update-modal {
 	h2 span {
 		color: black;
@@ -186,15 +206,17 @@
 			display: block;
 		}
 	}
+
 	.zebra h1 {
 		margin: 0;
 		margin-bottom: 1px;
 		padding: 5px 0;
 		border-bottom: 1px solid #ccc;
+		font-size: rem-calc(18);
 	}
+
 	.zebra.software h1 {
 		margin: 0;
 		border: none;
-
 	}
 }

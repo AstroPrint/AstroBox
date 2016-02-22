@@ -1,15 +1,18 @@
 #terminal-view {
+  .title-heading {
+      margin-bottom: 0;
+  }
 
-    .title-heading {
-        margin-bottom: 0;
-    }
+  .terminal.warning {
+      margin: 20px 0 0;
+      border: 1px solid $alert-color;
+      background: #f9dede;
+      color: #222;
+  }
 
-    .terminal.warning {
-        margin: 20px 0 0;
-        border: 1px solid $alert-color;
-        background: #f9dede;
-        color: #222;
-    }
+  input[name='gcode'] {
+    text-transform: uppercase;
+  }
 
   .output-container {
     background: #fafafa;

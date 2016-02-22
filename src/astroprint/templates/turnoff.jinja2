@@ -7,10 +7,18 @@
 </div>
 
 <div id="turnoff-modal" class="reveal-modal medium radius" data-reveal align="center">
-	<h2>Turn {{variantData['productName']}} off.</h2>
-	<p>The Box will go into suspend mode. Any active print job will be stopped.</p>
-	<p>Are you sure?</p>
-	<button class="secondary radius">Cancel</button>
-	<button class="alert radius">Yes, turn it off</button>
+	<h2 class="bold">Turn {{variantData['productName']}} off.</h2>
+	<div class="modal-body">
+		<p>The Box will go into suspend mode. Any active print job will be stopped.</p>
+		<p>Are you sure?</p>
+	</div>
+	<div class="row">
+		<div class="small-12 medium-6 columns">
+			<button class="secondary radius expand">Cancel</button>
+		</div>
+		<div class="small-12 medium-6 columns">
+			<button class="alert radius expand">Yes, turn it off</button>
+		</div>
+	</div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>

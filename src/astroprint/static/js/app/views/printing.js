@@ -232,7 +232,10 @@ var PrintingView = Backbone.View.extend({
     photoView: null,
     printing_progress: null,
     paused: null,
+    cancelDialog: null,
     initialize: function() {
+        this.cancelDialog = new CancelPrintDialog({parent: this});
+
         this.nozzleBar = new TempBarHorizontalView({
             scale: [0, app.printerProfile.get('max_nozzle_temp')],
             el: this.$el.find('.temp-bar.nozzle'),
@@ -347,33 +350,21 @@ var PrintingView = Backbone.View.extend({
         this.photoView.render();
     },
     stopPrint: function(e) {
-        var loadingBtn = $(e.target).closest('.loading-button');
-
-        loadingBtn.addClass('loading');
-        this._jobCommand('cancel', _.bind(function(data){
-            if (data && _.has(data, 'error')) {
-                console.error(data.error);
-            } else {
-                app.socketData.set({printing: false, paused: false});
-            }
-            setTimeout(function(){
-                loadingBtn.removeClass('loading');
-            }, 2000);
-        }, this));
+        this.cancelDialog.open();
     },
     togglePausePrint: function(e) {
         var loadingBtn = $(e.target).closest('.loading-button');
         var wasPaused = app.socketData.get('paused');
 
         loadingBtn.addClass('loading');
-        this._jobCommand('pause', _.bind(function(data){
+        this._jobCommand('pause', function(data){
             if (data && _.has(data, 'error')) {
                 console.error(data.error);
             } else {
                 app.socketData.set('paused', !wasPaused);
             }
             loadingBtn.removeClass('loading');
-        }, this));
+        });
     },
     showControlPage: function() {
         app.router.navigate('control', {trigger: true, replace: true});
@@ -392,6 +383,43 @@ var PrintingView = Backbone.View.extend({
         }).
         fail(function(error) {
             if (callback) callback({error:error.responseText});
+        });
+    }
+});
+
+var CancelPrintDialog = Backbone.View.extend({
+    el: '#cancel-print-modal',
+    events: {
+        'click button.yes': 'cancelClicked',
+        'click button.no': 'close'
+    },
+    parent: null,
+    initialize: function(params) {
+        this.parent = params.parent;
+    },
+    open: function() {
+        this.$el.foundation('reveal', 'open');
+    },
+    close: function() {
+        this.$el.foundation('reveal', 'close');
+    },
+    cancelClicked: function(e) {
+        e.preventDefault();
+
+        var loadingBtn = $(e.target).closest('.loading-button');
+
+        loadingBtn.addClass('loading');
+        this.parent._jobCommand('cancel', function(data){
+            if (data && _.has(data, 'error')) {
+                noty({text: "There was an error canceling your job.", timeout: 3000});
+                loadingBtn.removeClass('loading');
+            } else {
+                app.socketData.set({printing: false, paused: false});
+                setTimeout(_.bind(function(){
+                    loadingBtn.removeClass('loading');
+                    this.close();
+                }, this), 2000);
+            }
         });
     }
 });

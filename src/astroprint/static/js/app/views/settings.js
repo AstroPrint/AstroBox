@@ -85,20 +85,20 @@ var PrinterConnectionView = SettingsPage.extend({
 		if (connectionData.port) {
 			this.$('.loading-button.test-connection').addClass('loading');
 			this.$('.connection-status').removeClass('failed connected').addClass('connecting');
-	        $.ajax({
-	            url: API_BASEURL + "connection",
-	            type: "POST",
-	            dataType: "json",
-	            contentType: "application/json; charset=UTF-8",
-	            data: JSON.stringify({
-		            "command": "connect",
-		            "driver": connectionData.driver,
-		            "port": connectionData.port,
-		            "baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
-		            "autoconnect": true,
-		            "save": true
-		        })
-	        })
+			$.ajax({
+				url: API_BASEURL + "connection",
+				type: "POST",
+				dataType: "json",
+				contentType: "application/json; charset=UTF-8",
+				data: JSON.stringify({
+					"command": "connect",
+					"driver": connectionData.driver,
+					"port": connectionData.port,
+					"baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
+					"autoconnect": true,
+					"save": true
+				})
+			})
 			.fail(function(){
 				noty({text: "There was an error testing connection settings.", timeout: 3000});
 			});
@@ -179,6 +179,179 @@ var PrinterProfileView = SettingsPage.extend({
 	},
 	invalidForm: function(e)
 	{
+		if (e.namespace !== 'abide.fndtn') {
+			return;
+		}
+
+		noty({text: "Please check your errors", timeout: 3000});
+	},
+	validForm: function(e) {
+		if (e.namespace !== 'abide.fndtn') {
+			return;
+		}
+
+		var form = this.$('form');
+		var loadingBtn = form.find('.loading-button');
+		var attrs = {};
+
+		loadingBtn.addClass('loading');
+
+		form.find('input, select, textarea').each(function(idx, elem) {
+			var value = null;
+			var elem = $(elem);
+
+			if (elem.is('input[type="radio"], input[type="checkbox"]')) {
+				value = elem.is(':checked');
+			} else {
+				value = elem.val();
+			}
+
+			attrs[elem.attr('name')] = value;
+		});
+
+		this.settings.save(attrs, {
+			patch: true,
+			success: _.bind(function() {
+				noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+				loadingBtn.removeClass('loading');
+				//Make sure we reload next time we load this tab
+				this.parent.subviews['printer-connection'].settings = null;
+			}, this),
+			error: function() {
+				noty({text: "Failed to save printer profile changes", timeout: 3000});
+				loadingBtn.removeClass('loading');
+			}
+		});
+	}
+});
+
+/*************************
+* Network - Network Name
+**************************/
+
+var NetworkNameView = SettingsPage.extend({
+	el: '#network-name',
+	template: _.template( $("#network-name-settings-page-template").html() ),
+	events: {
+		"invalid.fndtn.abide form": 'invalidForm',
+		"valid.fndtn.abide form": 'validForm',
+		"keyup #network-name": 'nameChanged'
+	},
+	show: function() {
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+
+		if (!this.settings) {
+			$.getJSON(API_BASEURL + 'settings/network/name', null, _.bind(function(data) {
+				this.settings = data;
+				this.render();
+			}, this))
+			.fail(function() {
+				noty({text: "There was an error getting current network name.", timeout: 3000});
+			});
+		}
+	},
+	render: function() {
+		this.$el.html(this.template({
+			settings: this.settings
+		}));
+
+		this.$el.foundation();
+		this.delegateEvents(this.events);
+	},
+	nameChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+		var changedElem = this.$('span.network-name');
+
+		changedElem.text(target.val());
+	},
+	invalidForm: function(e)
+	{
+		if (e.namespace !== 'abide.fndtn') {
+			return;
+		}
+
+		noty({text: "Please check your errors", timeout: 3000});
+	},
+	validForm: function(e) {
+		if (e.namespace !== 'abide.fndtn') {
+			return;
+		}
+
+		var form = this.$('form');
+		var loadingBtn = form.find('.loading-button');
+		var attrs = {};
+
+		loadingBtn.addClass('loading');
+
+		form.find('input').each(function(idx, elem) {
+			var elem = $(elem);
+			attrs[elem.attr('name')] = elem.val();
+		});
+
+
+		$.ajax({
+			url: API_BASEURL + 'settings/network/name', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify(attrs)
+		})
+			.done(_.bind(function(data) {
+				noty({text: "Network name changed. Use it next time you reboot", timeout: 3000, type:"success"});
+				//Make sure we reload next time we load this tab
+				this.settings = data
+				this.render();
+				this.parent.subviews['network-name'].settings = null;
+			}, this))
+			.fail(function() {
+				noty({text: "Failed to save network name", timeout: 3000});
+			})
+			.always(function(){
+				loadingBtn.removeClass('loading');
+			});
+	}
+});
+
+/*************************
+* Camera - Video Stream
+**************************/
+
+var CameraVideoStreamView = SettingsPage.extend({
+	el: '#video-stream',
+	template: _.template( $("#video-stream-settings-page-template").html() ),
+	settings: null,
+	events: {
+		"invalid.fndtn.abide form": 'invalidForm',
+		"valid.fndtn.abide form": 'validForm'
+	},
+	show: function() {
+		//Call Super
+		SettingsPage.prototype.show.apply(this);
+		if (!this.settings) {
+			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
+				this.settings = data;
+				this.render();
+			}, this))
+			.fail(function() {
+				noty({text: "There was an error getting Camera settings.", timeout: 3000});
+			});
+		} else {
+			this.render();
+		}
+	},
+	render: function() {
+		this.$el.html(this.template({ 
+			settings: this.settings
+		}));
+
+		this.$el.foundation();
+
+		this.delegateEvents(this.events);
+	},
+	invalidForm: function(e)
+	{
 	    if (e.namespace !== 'abide.fndtn') {
 	        return;
 	    }
@@ -209,24 +382,31 @@ var PrinterProfileView = SettingsPage.extend({
 			attrs[elem.attr('name')] = value;
 		});
 
-		this.settings.save(attrs, {
-			patch: true,
-			success: _.bind(function() {
-				noty({text: "Profile changes saved", timeout: 3000, type:"success"});
-				loadingBtn.removeClass('loading');
+		$.ajax({
+			url: API_BASEURL + 'settings/camera/streaming', 
+			type: 'POST',
+			contentType: 'application/json',
+			dataType: 'json',
+			data: JSON.stringify(attrs)
+		})
+			.done(_.bind(function(data){
+				this.settings = data;
+				noty({text: "Camera changes saved", timeout: 3000, type:"success"});
 				//Make sure we reload next time we load this tab
-				this.parent.subviews['printer-connection'].settings = null;
-			}, this),
-			error: function() {
-				noty({text: "Failed to save printer profile changes", timeout: 3000});
+				this.render()
+				this.parent.subviews['video-stream'].settings = null;
+			},this))
+			.fail(function(){
+				noty({text: "There was a problem saving camera settings", timeout: 3000});
+			})
+			.always(function(){
 				loadingBtn.removeClass('loading');
-			}
-		});			
+			});
 	}
 });
 
 /*************************
-* Internet - Connection
+* Network - Connection
 **************************/
 
 var InternetConnectionView = SettingsPage.extend({
@@ -235,10 +415,7 @@ var InternetConnectionView = SettingsPage.extend({
 	networksDlg: null,
 	settings: null,
 	events: {
-		'click .loading-button.start-hotspot button': 'startHotspotClicked',
-		'click .loading-button.stop-hotspot button': 'stopHotspotClicked',
-		'click .loading-button.list-networks button': 'listNetworksClicked',
-		'change .hotspot-off input': 'hotspotOffChanged'
+		'click .loading-button.list-networks button': 'listNetworksClicked'
 	},
 	initialize: function(params) {
 		SettingsPage.prototype.initialize.apply(this, arguments);
@@ -250,7 +427,7 @@ var InternetConnectionView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/internet', null, _.bind(function(data) {
+			$.getJSON(API_BASEURL + 'settings/network', null, _.bind(function(data) {
 				this.settings = data;
 				this.render();
 			}, this))
@@ -268,7 +445,7 @@ var InternetConnectionView = SettingsPage.extend({
 		var promise = $.Deferred();
 
 		$.ajax({
-			url: API_BASEURL + 'settings/internet/active', 
+			url: API_BASEURL + 'settings/network/active', 
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -331,55 +508,13 @@ var InternetConnectionView = SettingsPage.extend({
 
 		return promise;
 	},
-	startHotspotClicked: function(e) {
-		var el = $(e.target).closest('.loading-button');
-
-		el.addClass('loading');
-
-		$.ajax({
-			url: API_BASEURL + "settings/internet/hotspot",
-			type: "POST",
-			success: _.bind(function(data, code, xhr) {
-				noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
-				this.settings.hotspot.active = true;
-				this.render();
-			}, this),
-			error: function(xhr) {
-				noty({text: xhr.responseText, timeout:3000});
-			},
-			complete: function() {
-				el.removeClass('loading');
-			}
-		});
-	},
-	stopHotspotClicked: function(e) {
-		var el = $(e.target).closest('.loading-button');
-
-		el.addClass('loading');
-
-		$.ajax({
-			url: API_BASEURL + "settings/internet/hotspot",
-			type: "DELETE",
-			success: _.bind(function(data, code, xhr) {
-				noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
-				this.settings.hotspot.active = false;
-				this.render();
-			}, this),
-			error: function(xhr) {
-				noty({text: xhr.responseText, timeout:3000});
-			},
-			complete: function() {
-				el.removeClass('loading');
-			}
-		});
-	},
 	listNetworksClicked: function(e) {
 		var el = $(e.target).closest('.loading-button');
 
 		el.addClass('loading');
 
 		$.getJSON(
-			API_BASEURL + "settings/internet/wifi-networks",
+			API_BASEURL + "settings/network/wifi-networks",
 			_.bind(function(data) {
 				if (data.message) {
 					noty({text: data.message});
@@ -398,23 +533,6 @@ var InternetConnectionView = SettingsPage.extend({
 		complete(function(){
 			el.removeClass('loading');
 		});
-	},
-	hotspotOffChanged: function(e)
-	{
-		var target = $(e.currentTarget);
-
-		$.ajax({
-			url: '/api/settings/internet/hotspot',
-			method: 'PUT',
-			data: JSON.stringify({
-				'hotspotOnlyOffline': target.is(':checked')
-			}),
-			contentType: 'application/json',
-			dataType: 'json'
-		}).
-		fail(function(){
-			noty({text: "There was an error saving hotspot option.", timeout: 3000});
-		})
 	}
 });
 
@@ -534,92 +652,98 @@ var WiFiNetworksDialog = Backbone.View.extend({
 });
 
 /*************************
-* Camera - Video Stream
+* Network - Wifi Hotspot
 **************************/
 
-var CameraVideoStreamView = SettingsPage.extend({
-	el: '#video-stream',
-	template: _.template( $("#video-stream-settings-page-template").html() ),
+var WifiHotspotView = SettingsPage.extend({
+	el: '#wifi-hotspot',
+	template: _.template( $("#wifi-hotspot-settings-page-template").html() ),
 	settings: null,
 	events: {
-		"invalid.fndtn.abide form": 'invalidForm',
-		"valid.fndtn.abide form": 'validForm'
+		'click .loading-button.start-hotspot button': 'startHotspotClicked',
+		'click .loading-button.stop-hotspot button': 'stopHotspotClicked',
+		'change .hotspot-off input': 'hotspotOffChanged'
 	},
 	show: function() {
 		//Call Super
 		SettingsPage.prototype.show.apply(this);
+
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
+			$.getJSON(API_BASEURL + 'settings/network/hotspot', null, _.bind(function(data) {
 				this.settings = data;
 				this.render();
 			}, this))
 			.fail(function() {
-				noty({text: "There was an error getting Camera settings.", timeout: 3000});
+				noty({text: "There was an error getting WiFi Hotspot settings.", timeout: 3000});
 			});
-		} else {
-			this.render();
 		}
 	},
 	render: function() {
-		this.$el.html(this.template({ 
+		this.$el.html(this.template({
 			settings: this.settings
 		}));
-
-		this.$el.foundation();
-
-		this.delegateEvents(this.events);
 	},
-	invalidForm: function(e)
-	{
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
+	startHotspotClicked: function(e) {
+		var el = $(e.target).closest('.loading-button');
 
-		noty({text: "Please check your errors", timeout: 3000});
-	},
-	validForm: function(e) {
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
-
-	    var form = this.$('form');
-	    var loadingBtn = form.find('.loading-button');
-		var attrs = {};
-
-		loadingBtn.addClass('loading');
-
-		form.find('input, select, textarea').each(function(idx, elem) {
-			var value = null;
-			var elem = $(elem);
-
-			if (elem.is('input[type="radio"], input[type="checkbox"]')) {
-				value = elem.is(':checked');
-			} else {
-				value = elem.val();
-			}
-
-			attrs[elem.attr('name')] = value;
-		});
+		el.addClass('loading');
 
 		$.ajax({
-			url: API_BASEURL + 'settings/camera/streaming', 
-			type: 'POST',
+			url: API_BASEURL + "settings/network/hotspot",
+			type: "POST",
+			success: _.bind(function(data, code, xhr) {
+				noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
+				this.settings.hotspot.active = true;
+				this.render();
+			}, this),
+			error: function(xhr) {
+				noty({text: xhr.responseText, timeout:3000});
+			},
+			complete: function() {
+				el.removeClass('loading');
+			}
+		});
+	},
+	stopHotspotClicked: function(e) {
+		var el = $(e.target).closest('.loading-button');
+
+		el.addClass('loading');
+
+		$.ajax({
+			url: API_BASEURL + "settings/network/hotspot",
+			type: "DELETE",
+			success: _.bind(function(data, code, xhr) {
+				noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
+				this.settings.hotspot.active = false;
+				this.render();
+			}, this),
+			error: function(xhr) {
+				noty({text: xhr.responseText, timeout:3000});
+			},
+			complete: function() {
+				el.removeClass('loading');
+			}
+		});
+	},
+	hotspotOffChanged: function(e)
+	{
+		var target = $(e.currentTarget);
+		var checked = target.is(':checked');
+
+		$.ajax({
+			url: '/api/settings/network/hotspot',
+			method: 'PUT',
+			data: JSON.stringify({
+				'hotspotOnlyOffline': checked
+			}),
 			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify(attrs)
+			dataType: 'json'
 		})
-			.done(_.bind(function(data){
-				this.settings = data;
-				noty({text: "Camera changes saved", timeout: 3000, type:"success"});
-				//Make sure we reload next time we load this tab
-				this.render()
-				this.parent.subviews['video-stream'].settings = null;
-			},this))
+			.done(_.bind(function(){
+				this.settings.hotspot.hotspotOnlyOffline = checked;
+			}, this))
 			.fail(function(){
-				noty({text: "There was a problem saving camera settings", timeout: 3000});
-			})
-			.always(function(){
-				loadingBtn.removeClass('loading');
+				noty({text: "There was an error saving hotspot option.", timeout: 3000});
 			});
 	}
 });
@@ -933,8 +1057,10 @@ var SettingsView = Backbone.View.extend({
 		this.subviews = {
 			'printer-connection': new PrinterConnectionView({parent: this}),
 			'printer-profile': new PrinterProfileView({parent: this}),
+			'network-name': new NetworkNameView({parent: this}),
 			'internet-connection': new InternetConnectionView({parent: this}),
 			'video-stream': new CameraVideoStreamView({parent: this}),
+			'wifi-hotspot': new WifiHotspotView({parent: this}),
 			'software-update': new SoftwareUpdateView({parent: this}),
 			'software-advanced': new SoftwareAdvancedView({parent: this})
 		};
