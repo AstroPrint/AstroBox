@@ -7,6 +7,21 @@
         background: $oil;
         margin-top: 60px;
         @include radius($global-radius $global-radius 0 0);
+
+        .video-off, .no-detection {
+            text-align: center;
+            padding-top: 75px;
+        }
+
+        i {
+            font-size: rem-calc(100);
+            color: $base;
+        }
+
+        h3 {
+            color: $base;
+        }
+
     }
 
     .buttons {
