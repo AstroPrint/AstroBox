@@ -163,6 +163,14 @@ body, html {
 		margin: 0;
 	}
 
+	.modal-body {
+		margin: 10px $column-gutter;
+
+		p {
+			text-align: left;
+		}
+	}
+
 	.close-reveal-modal {
 		color: white;
 	}
