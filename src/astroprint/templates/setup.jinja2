@@ -128,24 +128,30 @@
 							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a> 
 							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
 						</p>
-						<center>
-							<a class="button secondary radius cancel" href="#internet">Cancel</a>
-						</center>
+						<div class="row">
+							<div class="small-12 medium-6 columns medium-centered">
+								<a class="button secondary radius cancel expand" href="#internet">Close</a>
+							</div>
+						</div>
 					<% } else { %>
 						<h2 class="bold" align="center">WiFi Password</h2>
 						<p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
 						<form>
 							<input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>"/>
 							<input type="password" class="network-password-field" name="password"/>
-							<center>
-								<div class="loading-button">
-									<a class="button secondary radius cancel" href="#internet">Cancel</a>
-									<input type="submit" class="button radius success connect" value="Connect"/>
-									<span class="loading button success disabled radius">
-										<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
-									</span>
+							<div class="row">
+								<div class="small-12 medium-6 columns">
+									<a class="button secondary radius cancel expand" href="#internet">Cancel</a>
 								</div>
-							</center>
+								<div class="small-12 medium-6 columns">
+									<div class="loading-button expand">
+										<input type="submit" class="button radius success connect" value="Connect"/>
+										<span class="loading button success disabled radius">
+											<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
+										</span>
+									</div>
+								</div>
+							</div>
 						</form>
 					<% } %>
 				</script>

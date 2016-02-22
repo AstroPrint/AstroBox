@@ -198,8 +198,10 @@
 		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
 			<h2 class="bold">Select a WiFi Network</h2>
 			<div class="modal-content"></div>
-			<div class="modal-actions">
-				<button class="secondary radius" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+			<div class="modal-actions row">
+				<div class="small-12 medium-6 medium-centered columns">
+					<button class="secondary radius expand" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+				</div>
 			</div>
 			<a class="close-reveal-modal">&#215;</a>
 		</div>
@@ -208,7 +210,7 @@
 			<script type="text/template" id="wifi-network-password-modal-template">
 				<% if (wifi.wep) { %>
 					<h2 class="bold" align="center">WEP Security Deprecated</h2>
-					<div class="modal-content">
+					<div class="modal-body">
 						<p>
 							The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
 						</p>
@@ -217,25 +219,31 @@
 							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
 						</p>
 					</div>
-					<div class="modal-actions" align="center">
-						<button class="secondary radius cancel" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
+					<div class="modal-actions row">
+						<div class="small-12 medium-6 medium-centered columns">
+							<button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Close</button>
+						</div<
 					</div>
 				<% } else { %>
 					<h2 class="bold" align="center">WiFi Password</h2>
-					<div class="modal-content">
+					<div class="modal-body">
 						<p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
 						<form>
 							<input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>">
 							<input type="password" class="network-password-field" name="password"/>
 						</form>
 					</div>
-					<div class="modal-actions" align="center">
-						<button class="secondary radius cancel" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
-						<div class="loading-button">
-							<button class="radius success connect">Connect</button>
-							<span class="loading button success disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
-							</span>
+					<div class="modal-actions row">
+						<div class="small-12 medium-6 columns">
+							<button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
+						</div>
+						<div class="small-12 medium-6 columns">
+							<div class="loading-button expand">
+								<button class="radius success connect">Connect</button>
+								<span class="loading button success disabled radius">
+									<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
+								</span>
+							</div>
 						</div>
 					</div>
 				<% } %>
