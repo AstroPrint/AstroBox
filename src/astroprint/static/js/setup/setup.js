@@ -102,7 +102,7 @@ var StepName = StepView.extend({
 	{
 		var name = $(e.target).val();
 
-		if (/^[A-Za-z0-9\-_]+$/.test(name)) {
+		if (/^[A-Za-z0-9\-]+$/.test(name)) {
 			this.render(name);
 		} else if (name) {
 			$(e.target).val( $(e.target).val().slice(0, -1) );

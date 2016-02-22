@@ -170,8 +170,8 @@
 							<label for="network-name" class="bold">
 								Network Name
 							</label>	
-							<input id="network-name" name="name" type="text" value="<%= settings.name %>" required/>
-							<small class="error">Invalid Device Name.</small>
+							<input id="network-name" name="name" type="text" value="<%= settings.name %>" required pattern="hostname" autocomplete="off"/>
+							<small class="error">Invalid Device Name. Use letters, numbers or - only.</small>
 						</div>
 						<p>
 							A few important things to remember:
