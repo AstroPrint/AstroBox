@@ -24,9 +24,11 @@ import logging
 
 from sys import platform
 
+from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
+from astroprint.camera.gstreamer_video import GstreamerVideo
 
 class TimelapseWorker(threading.Thread):
 	def __init__(self, manager, timelapseId, timelapseFreq):
@@ -75,6 +77,16 @@ class CameraManager(object):
 		self.open_camera()
 
 		self._logger = logging.getLogger(__name__)
+		
+		videoType = settings().get(["camera", "encoding"])
+		videoSize = settings().get(["camera", "size"])
+		videoFramerate = settings().get(["camera", "framerate"])
+		
+		print 'IIIINIT'
+		
+		self.gstreamerVideo = GstreamerVideo(videoType,videoSize,videoFramerate) 
+		
+		print self.gstreamerVideo
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')

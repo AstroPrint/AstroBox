@@ -22,6 +22,9 @@ import re
 from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
+from astroprint.util import processesUtil
+from astroprint.camera import cameraManager
+
 
 class WebRtc(object):
 	def __init__(self):
@@ -29,9 +32,12 @@ class WebRtc(object):
 		self._logger = logging.getLogger(__name__)
 		self._peerCondition = threading.Condition()
 		self._JanusProcess = None
-		self._GStreamerProcess = None
-		self._GStreamerProcessArgs = None
+		#self._GStreamerProcess = None
+		#self._GStreamerProcessArgs = None
 		self.videoId = 1
+		
+		#self._videoStream = None
+		
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
@@ -105,16 +111,13 @@ class WebRtc(object):
 			logging.info('PREPARE_PLUGIN LISTED')
 			
 			videoEncodingSelected = settings().get(["camera", "encoding"])
-			videoSizeSelected = settings().get(["camera", "size"])
-			videoFramerateSelected = settings().get(["camera", "framerate"])
-			
-			size = videoSizeSelected.split('x')
-			
+						
 			if videoEncodingSelected == 'h264':
-				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=' + str(int(size[0])-160) + ' offset-y=' + str(int(size[1])-30) + ' overlay-width=150 overlay-height=29 ! videoconvert ! "video/x-raw,framerate=' + videoFramerateSelected + '/1,width=' + size[0] + ',height=' + size[1] + '" ! omxh264enc ! video/x-h264,profile=high ! rtph264pay pt=96 ! queue ! udpsink host=127.0.0.1 port=8004'
+				
 				self.videoId = 1
+				
 			else:#VP8
-				self._GStreamerProcessArgs = 'gst-launch-1.0 v4l2src device=/dev/video0 ! videoconvert ! gdkpixbufoverlay location=/AstroBox/src/astroprint/static/img/astroprint_logo.png offset-x=' + str(int(size[0])-160) + ' offset-y=' + str(int(size[1])-30) + ' overlay-width=150 overlay-height=29 ! videoconvert ! video/x-raw, framerate=' + videoFramerateSelected + '/1, width=' + size[0] + ', height=' + size[1] + ' ! vp8enc target-bitrate=500000 keyframe-max-dist=500 deadline=1 ! rtpvp8pay pt=96 ! udpsink host=127.0.0.1 port=8005'
+				
 				self.videoId = 2
 			
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
@@ -147,51 +150,11 @@ class WebRtc(object):
 		logging.info('TRICKLEICECANDIDATE')
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
-	def findProcess(self, processId ):
-		ps= subprocess.Popen("ps -ef | grep "+processId, shell=True, stdout=subprocess.PIPE)
-		output = ps.stdout.read()
-		ps.stdout.close()
-		ps.wait()
-		logging.info('OUTPUT')
-		logging.info(output)
-		return output
-
-	def isProcessRunning(self, processId):
-		
-		nameProcess = processId
-		
-		lastChar = processId[len(processId)-1]
-		processId = processId[:-1]
-		processId = processId + '[' + lastChar + ']'
-		
-		output = self.findProcess( processId )
-		logging.info('output')
-		logging.info(output)
-		
-		logging.info('nameProcess')
-		logging.info(nameProcess)
-		
-		if nameProcess in output:
-			logging.info('SEARCH TRUE')
-			return True
-		else:
-			logging.info('SEARCH FALSE')
-			return False
-
 	def startGStreamer(self):
 		
-		logging.info('STARTGSTREAMER')
-		
-		try:
-			if not self.isProcessRunning('gst'):
-				self._GStreamerProcess = subprocess.Popen(
-					self._GStreamerProcessArgs,
-		    	 	shell=True
-				)
-
-		except Exception, error:
-			self._logger.error("Error initiating GStreamer process: %s" % str(error))
-			self._GStreamerProcess = None
+		if not cameraManager().gstreamerVideo.play_video():
+			print 'Managing Gstreamer error in WebRTC object'
+			self.stopJanus()
 			self.sendEventToPeers('stopConnection')
 
 	def startJanus(self):
@@ -218,6 +181,7 @@ class WebRtc(object):
 					break
 
 	def stopJanus(self):
+		
 		try:
 			if self._JanusProcess is not None:
 				self._JanusProcess.kill()
@@ -226,14 +190,8 @@ class WebRtc(object):
 			
 
 	def stopGStreamer(self):
-		if self.isProcessRunning('gst'):
-			for line in os.popen('ps ax | grep gst | grep -v grep'):
-				fields = line.split()
-				pid = fields[0]
-				#os.kill(int(pid), signal.SIGKILL)
-				subprocess.Popen(
-					'kill -9 ' + pid, shell=True
-				)
+		
+		cameraManager().gstreamerVideo.stop_video()
 	
 	def sendEventToPeers(self, type, data=None):
 		

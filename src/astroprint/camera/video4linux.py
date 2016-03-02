@@ -10,9 +10,12 @@ import os
 from octoprint.server import app
 
 from astroprint.camera import CameraManager
+from astroprint.util import processesUtil
 
 class CameraV4LManager(CameraManager):
+	
 	def __init__(self):
+	
 		self._camera = None
 		self._watermakMaskWeighted = None
 		self._watermarkInverted = None
@@ -111,8 +114,10 @@ class CameraV4LManager(CameraManager):
 			#Add here code to stop Janus + gStreamer
 
 	def get_pic(self, text=None):
-		img = self._snapshot_from_camera()
-
+		
+		self.gstreamerVideo.take_photo()
+		
+		"""
 		if img != None:
 			if text:
 				self._apply_watermark(img, text)
@@ -120,7 +125,8 @@ class CameraV4LManager(CameraManager):
 			return cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(img), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 75]).tostring()
 		else:
 			return None
-
+		"""
+		
 	def save_pic(self, filename, text=None):
 		img = self._snapshot_from_camera()
 		if img != None:
