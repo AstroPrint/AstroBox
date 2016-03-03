@@ -115,7 +115,7 @@ class CameraV4LManager(CameraManager):
 
 	def get_pic(self, text=None):
 		
-		self.gstreamerVideo.take_photo()
+		return self.gstreamerVideo.take_photo(text)
 		
 		"""
 		if img != None:

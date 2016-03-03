@@ -4,7 +4,7 @@ import subprocess
 
 class processesUtil():
         
-    def findProcess(self, processId ):
+    def findProcess(processId ):
         ps= subprocess.Popen("ps -ef | grep "+processId, shell=True, stdout=subprocess.PIPE)
         output = ps.stdout.read()
         ps.stdout.close()
@@ -13,7 +13,7 @@ class processesUtil():
         logging.info(output)
         return output
 
-    def isProcessRunning(self, processId):
+    def isProcessRunning(processId):
         
         nameProcess = processId
         
@@ -34,3 +34,12 @@ class processesUtil():
         else:
             logging.info('SEARCH FALSE')
             return False
+
+def numOfFilesInDir(nameOfDir,nameOfFile):
+	ps= subprocess.Popen("find " + nameOfDir + " -maxdepth 1 -name '" + nameOfFile + "' | wc -l", shell=True, stdout=subprocess.PIPE)
+        output = (int)(ps.stdout.read())
+        ps.stdout.close()
+        ps.wait()
+        logging.info('OUTPUT')
+        logging.info(output)
+        return output
