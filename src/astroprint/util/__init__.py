@@ -34,12 +34,3 @@ class processesUtil():
         else:
             logging.info('SEARCH FALSE')
             return False
-
-def numOfFilesInDir(nameOfDir,nameOfFile):
-	ps= subprocess.Popen("find " + nameOfDir + " -maxdepth 1 -name '" + nameOfFile + "' | wc -l", shell=True, stdout=subprocess.PIPE)
-        output = (int)(ps.stdout.read())
-        ps.stdout.close()
-        ps.wait()
-        logging.info('OUTPUT')
-        logging.info(output)
-        return output

@@ -1,9 +1,8 @@
 import gi
 import time
 import logging
+import os
 from octoprint.settings import settings
-import astroprint.util as processesUtil
-import subprocess
 
 gi.require_version('Gst','1.0')
 from gi.repository import GObject as gobject
@@ -184,7 +183,7 @@ class GstreamerVideo(object):
             self.pipeline.add(self.queuebin)
             self.pipeline.add(self.photo_logo)
             self.pipeline.add(self.photo_text)
-	    self.pipeline.add(videoscalejpeg)
+	    self.pipeline.add(self.videoscalejpeg)
 	    self.pipeline.add(self.jpeg_caps)
             self.pipeline.add(self.jpegenc)
            
@@ -258,9 +257,18 @@ class GstreamerVideo(object):
             return False
 
     def take_photo(self,textPhoto):
+
 	photo = self.take_photo_and_return(textPhoto)
-	subprocess.call(["rm", "/tmp/gstCapture.jpg"])        
+
+	try:
+		os.unlink('/tmp/gstCapture.jpg')
+
+	except:
+		pass
+
 	return photo
+
+		
 
     def take_photo_and_return(self,textPhoto):
         
@@ -307,8 +315,8 @@ class GstreamerVideo(object):
 		#############
 		##TAKING PHOTO
 		import time
-
-		while processesUtil.numOfFilesInDir('/tmp','gstCapture.jpg') <= 0:
+		
+		while not os.path.isfile('/tmp/gstCapture.jpg'):
 			time.sleep(0.1)
 		time.sleep(1)
 
@@ -417,8 +425,8 @@ class GstreamerVideo(object):
 
 		###
 		import time
-
-		while processesUtil.numOfFilesInDir('/tmp','gstCapture.jpg') <= 0:
+		
+		while not os.path.isfile('/tmp/gstCapture.jpg'):
 			time.sleep(0.1)
 		time.sleep(1)
 		###
