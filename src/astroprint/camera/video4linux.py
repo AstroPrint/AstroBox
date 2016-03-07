@@ -11,6 +11,7 @@ from octoprint.server import app
 
 from astroprint.camera import CameraManager
 from astroprint.util import processesUtil
+from astroprint.camera.gstreamer_video import GstreamerVideo
 
 class CameraV4LManager(CameraManager):
 	
@@ -24,6 +25,12 @@ class CameraV4LManager(CameraManager):
 		self._camerasDir = '/sys/class/video4linux'
 
 		super(CameraV4LManager, self).__init__()
+
+		print 'IIIINIT'
+		
+		self.gstreamerVideo = GstreamerVideo(videoType,videoSize,videoFramerate) 
+		
+		print self.gstreamerVideo
 
 		self._logger = logging.getLogger(__name__)
 
