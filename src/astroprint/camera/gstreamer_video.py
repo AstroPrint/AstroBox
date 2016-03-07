@@ -183,8 +183,8 @@ class GstreamerVideo(object):
             self.pipeline.add(self.queuebin)
             self.pipeline.add(self.photo_logo)
             self.pipeline.add(self.photo_text)
-	    self.pipeline.add(self.videoscalejpeg)
-	    self.pipeline.add(self.jpeg_caps)
+            self.pipeline.add(self.videoscalejpeg)
+            self.pipeline.add(self.jpeg_caps)
             self.pipeline.add(self.jpegenc)
            
             
