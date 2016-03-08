@@ -28,7 +28,7 @@ var CameraView = Backbone.View.extend({
   },
   startStreaming: function(e){
 	$.when( 
-		$.getJSON(API_BASEURL + 'settings/camera/streaming') ),
+		$.getJSON(API_BASEURL + 'settings/camera/streaming'),
 		$.ajax({
 			url: API_BASEURL + "camera/init-janus",
 			type: "POST",
