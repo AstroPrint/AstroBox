@@ -60,7 +60,6 @@ var CameraView = Backbone.View.extend({
 		  data: '',
 		  success: _.bind(function(r){
 			  this.localSessionId = r.sessionId;
-			  console.log('startStreaming');
 			  if(!this.$('#remotevideo').is(':visible')){
 				  this.$('.video-container .columns').hide();
 				  this.$('#remotevideo').show();
@@ -71,7 +70,7 @@ var CameraView = Backbone.View.extend({
 					this.started = true;
 					
 					if(!Janus.isWebrtcSupported()) {
-						console.log("No WebRTC support... ");
+						noty({text: "WebRTC is not supported in this browser... ", timeout: 3000});
 						return;
 					}
 					// Create session
@@ -107,8 +106,7 @@ var CameraView = Backbone.View.extend({
 										}
 									},
 									error: function(error) {
-										Janus.error("  -- Error attaching plugin... ", error);
-										console.log("Error attaching plugin... " + error);
+										noty({text: "Sorry... something where wrong. Try it, pleas.", timeout: 3000});
 									},
 									onmessage: function(msg, jsep) {
 										console.log(" ::: Got a message :::");
@@ -140,7 +138,7 @@ var CameraView = Backbone.View.extend({
 														streaming.send({"message": body, "jsep": jsep});
 													},
 													error: function(error) {
-														//Janus.error("WebRTC error:", error);
+														noty({text: "Sorry... something where wrong. Try it, pleas.", timeout: 3000});
 														console.log("WebRTC error... " + JSON.stringify(error));
 													}
 												});
@@ -164,7 +162,7 @@ var CameraView = Backbone.View.extend({
 						error: function(error) {
 							//Janus.error(error);
 							console.log(error, function() {
-								window.location.reload();
+								noty({text: "Sorry... something where wrong. Try it, pleas.", timeout: 3000});
 							});
 						},
 						destroyed: function() {

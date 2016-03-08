@@ -34,8 +34,7 @@ def update_timelapse():
 @api.route("/camera/startStreaming", methods=["POST"])
 @restricted_access
 def start_streaming():
-	print 'startStreaming'
-	print request
+	#Start session in Janus
 	response = P2PCommandHandler().init_connection(None,None)
 
 	print response
@@ -45,7 +44,7 @@ def start_streaming():
 @api.route("/camera/stopStreaming", methods=["POST"])
 @restricted_access
 def stop_streaming():
-	print 'stopStreaming'
+	#Stop session in Janus
 	data = request.json
 	
 	P2PCommandHandler().stop_connection(data,None)

@@ -219,7 +219,9 @@ class CameraCommandHandler(object):
 class P2PCommandHandler(object):
 	
 	def init_connection(self, data, clientId):
-		logging.info('INIT_CONNECTION')
+		#initialize the session on Janus
+		#if there is not any session before, Janus is stopped,
+		#so it will turn Janus on
 		sessionId = WebRtcManager().startPeerSession(clientId)
 	
 		if sessionId:
@@ -235,23 +237,22 @@ class P2PCommandHandler(object):
 			}
 
 	def start_plugin(self, data, clientId):
-		logging.info('START_PLUGIN')
+		#Manage the plugin and the type of video source: VP8 or H264
 		WebRtcManager().preparePlugin(data['sessionId'])
 	
 	def start_connection(self, data, clientId):
-		logging.info('START_CONNECTION')
-		logging.info('CLIENTID')
-		logging.info(clientId)
+		#Start Janus session and it starts to share video
 		sessionId = data['sessionId']
-		logging.info('SESSIONID')
-		logging.info(sessionId)
 		WebRtcManager().setSessionDescriptionAndStart(sessionId, data)
 		
 	def stop_connection(self, sessionId, clientId):
+		#Stop Janus session
+		#if this is the last (or unique) session in Janus,
+		#Janus will be stopped (of course, Gstreamer too) 
 		WebRtcManager().closePeerSession(sessionId)
 
 	def ice_candidate(self, data, clientId):
-		logging.info('ICE_CANDIDATE')
+		#Manage the ice candidate for communicating with Janus from client
 		if 'sessionId' in data:
 			candidate = data['candidate']
 			if candidate is not None or candidate['candidate'] is not None:

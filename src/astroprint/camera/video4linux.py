@@ -11,7 +11,7 @@ from octoprint.server import app
 
 from astroprint.camera import CameraManager
 from astroprint.util import processesUtil
-from astroprint.camera.gstreamer_video import GstreamerVideo
+from astroprint.camera.gstreamer import gstreamerManager
 
 class CameraV4LManager(CameraManager):
 	
@@ -25,16 +25,13 @@ class CameraV4LManager(CameraManager):
 		self._camerasDir = '/sys/class/video4linux'
 
 		super(CameraV4LManager, self).__init__()
-
-		print 'IIIINIT'
 		
-		self.gstreamerVideo = GstreamerVideo(videoType,videoSize,videoFramerate) 
-		
-		print self.gstreamerVideo
-
 		self._logger = logging.getLogger(__name__)
 
 	def open_camera(self):
+		#######
+		#OLD METHOD FOR GETTING STATIC IMAGES FROM PRINTER'S CAMERA
+		#######
 		# if self.isCameraAvailable():
 		# 	return True
 
@@ -76,7 +73,9 @@ class CameraV4LManager(CameraManager):
 
 		# 	else:
 		# 		self.close_camera()
-			
+		#########
+		#DEPRECATED
+		########
 		return False
 
 	def close_camera(self):
@@ -124,6 +123,9 @@ class CameraV4LManager(CameraManager):
 		
 		return self.gstreamerVideo.take_photo(text)
 		
+		######
+		#OLD METHOD FOR ENCODING IMAGES FROM PRINTER'S CAMERA
+		######
 		"""
 		if img != None:
 			if text:
@@ -133,6 +135,9 @@ class CameraV4LManager(CameraManager):
 		else:
 			return None
 		"""
+		######
+		#DEPRECATED
+		#####
 		
 	def save_pic(self, filename, text=None):
 		img = self._snapshot_from_camera()
