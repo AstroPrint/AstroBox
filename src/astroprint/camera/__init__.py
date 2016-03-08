@@ -9,8 +9,8 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			from astroprint.camera.video4linux import CameraV4LManager
-			_instance = CameraV4LManager()
+			from astroprint.camera.gstreamer import GStreamerManager
+			_instance = GStreamerManager()
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
@@ -28,7 +28,6 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
-from astroprint.camera.gstreamer import gstreamerManager
 
 class TimelapseWorker(threading.Thread):
 	def __init__(self, manager, timelapseId, timelapseFreq):
@@ -78,11 +77,10 @@ class CameraManager(object):
 
 		self._logger = logging.getLogger(__name__)
 		
-		videoType = settings().get(["camera", "encoding"])
-		videoSize = settings().get(["camera", "size"])
-		videoFramerate = settings().get(["camera", "framerate"])
+		self.videoType = settings().get(["camera", "encoding"])
+		self.videoSize = settings().get(["camera", "size"])
+		self.videoFramerate = settings().get(["camera", "framerate"])
 		
-		self.gstreamerVideo = gstreamerManager(videoType,videoSize,videoFramerate) 
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
@@ -231,6 +229,9 @@ class CameraManager(object):
 			return True
 
 		return False
+
+	def settingsChanged(self, cameraSettings):
+		pass
 
 	def open_camera(self):
 		return False

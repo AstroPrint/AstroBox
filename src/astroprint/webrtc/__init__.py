@@ -5,7 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 # singleton
 _instance = None
 
-def WebRtcManager():
+def webRtcManager():
 	global _instance
 	if _instance is None:
 		_instance = WebRtc()
@@ -127,7 +127,7 @@ class WebRtc(object):
 
 	def startGStreamer(self):
 		#Start Gstreamer
-		if not cameraManager().gstreamerVideo.play_video():
+		if not cameraManager().start_video_stream():
 			self._logger.error('Managing Gstreamer error in WebRTC object')
 			self.stopJanus()
 			self.sendEventToPeers('stopConnection')
@@ -164,8 +164,7 @@ class WebRtc(object):
 			
 
 	def stopGStreamer(self):
-		
-		cameraManager().gstreamerVideo.stop_video()
+		cameraManager().stop_video_stream()
 	
 	def sendEventToPeers(self, type, data=None):
 		

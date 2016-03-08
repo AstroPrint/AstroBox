@@ -1,46 +1,68 @@
 # coding=utf-8
-from Crypto.Util.number import size
 __author__ = "Rafael Luque <rafael@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
-
-# singleton
-_instance = None
-_videotype = None
-_size = None
-_framerate = None
-
-def gstreamerManager(videotype,size,framerate):
-    global _instance, _videotype, _size, _framerate
-    
-    if _instance is None or _videotype != videotype or _size != size or _framerate != framerate:
-        
-        _videotype = videotype
-        _size = size
-        _framerate = framerate
-        
-        _instance = GstreamerManager(videotype,size,framerate)
-
-    return _instance
 
 import gi
 import time
 import logging
 import os
+
 from octoprint.settings import settings
 
 gi.require_version('Gst','1.0')
 from gi.repository import GObject as gobject
 from gi.repository import Gst as gst
 
+from astroprint.camera import CameraManager
+from astroprint.webrtc import webRtcManager
+
 gobject.threads_init()
 gst.init(None)
 
-class GstreamerManager(object):
+class GStreamerManager(CameraManager):
+    def __init__(self):
+        super(GStreamerManager, self).__init__()
+        self._logger = logging.getLogger(__name__)
+
+    def open_camera(self):
+        try:
+            self.gstreamerVideo = GStreamer(self.videoType, self.videoSize, self.videoFramerate)
+        except:
+            self.gstreamerVideo = None
+
+        return self.gstreamerVideo is not None
+
+    def start_video_stream(self):
+        return self.gstreamerVideo.play_video()
+
+    def stop_video_stream(self):
+        return self.gstreamerVideo.stop_video()
+
+    def settingsChanged(self, cameraSettings):
+        pass
+
+    #def list_camera_info(self):
+    #    pass
+
+    #def list_devices(self):
+    #    pass
+
+    def get_pic(self, text=None):
+        if (self.gstreamerVideo):
+            return self.gstreamerVideo.take_photo(text)
+        
+    #def save_pic(self, filename, text=None):
+    #    pass
+
+    def isCameraAvailable(self):
+        return self.gstreamerVideo is not None
+
+class GStreamer(object):
     
     ##THIS OBJECT COMPOSE A GSTREAMER LAUNCH LINE
     #IT ABLES FOR DEVELOPPERS TO MANAGE, WITH GSTREAMER,
     #THE PRINTER'S CAMERA: GET PHOTO AND VIDEO FROM IT
-    def __init__(self,videotype,size,framerate):
+    def __init__(self, device, videotype, size, framerate):
         
         self._logger = logging.getLogger(__name__)
         
@@ -49,7 +71,7 @@ class GstreamerManager(object):
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
             self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
-            self.video_source.set_property("device", "/dev/video0")
+            self.video_source.set_property("device", '/dev/video0')
 
             #ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
             self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay','logo_overlay')
@@ -98,6 +120,7 @@ class GstreamerManager(object):
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
             self.reset_pipeline_gstreamer_state()
+            raise error
         
         
     def reset_pipeline_gstreamer_state(self):

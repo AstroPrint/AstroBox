@@ -14,7 +14,7 @@ from astroprint.camera import cameraManager
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
-from astroprint.webrtc import WebRtcManager
+from astroprint.webrtc import webRtcManager
 
 class RequestHandler(object):
 	def __init__(self, printerListener):
@@ -222,7 +222,7 @@ class P2PCommandHandler(object):
 		#initialize the session on Janus
 		#if there is not any session before, Janus is stopped,
 		#so it will turn Janus on
-		sessionId = WebRtcManager().startPeerSession(clientId)
+		sessionId = webRtcManager().startPeerSession(clientId)
 	
 		if sessionId:
 			return {
@@ -238,22 +238,22 @@ class P2PCommandHandler(object):
 
 	def start_plugin(self, data, clientId):
 		#Manage the plugin and the type of video source: VP8 or H264
-		WebRtcManager().preparePlugin(data['sessionId'])
+		webRtcManager().preparePlugin(data['sessionId'])
 	
 	def start_connection(self, data, clientId):
 		#Start Janus session and it starts to share video
 		sessionId = data['sessionId']
-		WebRtcManager().setSessionDescriptionAndStart(sessionId, data)
+		webRtcManager().setSessionDescriptionAndStart(sessionId, data)
 		
 	def stop_connection(self, sessionId, clientId):
 		#Stop Janus session
 		#if this is the last (or unique) session in Janus,
 		#Janus will be stopped (of course, Gstreamer too) 
-		WebRtcManager().closePeerSession(sessionId)
+		webRtcManager().closePeerSession(sessionId)
 
 	def ice_candidate(self, data, clientId):
 		#Manage the ice candidate for communicating with Janus from client
 		if 'sessionId' in data:
 			candidate = data['candidate']
 			if candidate is not None or candidate['candidate'] is not None:
-				WebRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])
+				webRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])

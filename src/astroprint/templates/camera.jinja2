@@ -13,8 +13,7 @@
 					</div>
 				</div>
 				<video id="remotevideo" class="cover-img-cont" autoplay="" style="display:none">    
-				    <source src="http://localhost:8004" type="video/ogg">
-				       You browser doesn't support element <code>video</code>.
+					You browser doesn't support element <code>video</code>.
 				</video>
 			</div>
 			<div class="row buttons">
@@ -27,10 +26,4 @@
 			</div>
 		</div>
 	</div>
-	
-	<script type="text/javascript">
-		selectedStream = ('<%=settings.encoding%>' == 'h264' ? 1 : 2 );
-		sizeVideo = '<%=settings.size%>';
-		janus = null;
-	</script>
 </script>

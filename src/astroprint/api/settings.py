@@ -10,6 +10,7 @@ from flask import request, abort, jsonify, make_response
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
+from astroprint.camera import cameraManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager
 from octoprint.server.api import api
@@ -151,6 +152,12 @@ def cameraStreamingeSettings():
 				s.set(['camera', 'framerate'], data['framerate'])
 
 			s.save()
+
+			cameraManager().settingsChanged({
+				'size': s.get(['camera', 'size']),
+				'encoding': s.get(['camera', 'encoding']),
+				'framerate': s.get(['camera', 'framerate'])
+			})
 
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']), 
