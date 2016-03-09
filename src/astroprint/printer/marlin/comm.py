@@ -947,7 +947,7 @@ class MachineCom(object):
 							self._sendNext()
 					else:
 						lineLower = line.lower()
-					 	if "resend" in lineLower or "rs" in lineLower:
+						if lineLower.startswith("resend") or lineLower.startswith("rs"):
 							self._handleResendRequest(line)
 
 			except:
