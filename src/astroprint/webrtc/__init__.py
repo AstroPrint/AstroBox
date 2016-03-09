@@ -18,6 +18,7 @@ import json
 import os
 import signal
 import re
+import time
 
 from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
@@ -62,7 +63,7 @@ class WebRtc(object):
 			if len(self._connectedPeers.keys()) > 0:
 
 				try:
-					logging.info(self._connectedPeers)
+					#logging.info(self._connectedPeers)
 					peer = self._connectedPeers[sessionId]
 				except KeyError:
 					self._logger.warning('Session [%s] for peer not found' % sessionId)
@@ -150,9 +151,9 @@ class WebRtc(object):
 		if self._JanusProcess:
 			while True:
 				if 'HTTP/Janus sessions watchdog started' in self._JanusProcess.stdout.readline():
-					import time
-					time.sleep(3)
 					break
+					
+				time.sleep(3)
 
 	def stopJanus(self):
 		
