@@ -1,29 +1,43 @@
 <script type="text/template" id="camera-watch-page-template">
-	<div class="row large-collapse">
-		<div class="small-12 columns title-heading">
-			<h1 class="bold">Camera</h1>
-		</div>
-	
-		<div class="camera-view">
-			<div class="row video-container">
-				<div class="small-12 columns">
-					<div class="video-off">
-						<i class="icon-camera"></i>
-						<h3 class="bold">Camera Stream Off</h3>
+	<div class="video">
+		<div class="row large-collapse">
+			<div class="small-12 columns title-heading">
+				<h1 class="bold">Camera</h1>
+			</div>
+		
+			<div class="camera-view">
+				<div class="row video-container">
+					<div class="small-12 columns">
+						<div class="video-off">
+							<i class="icon-camera"></i>
+							<h3 class="bold">Camera Stream Off</h3>
+						</div>
+						<div class="video-preparing">
+							<i class="icon-rocket-spinner animate-spin"></i>
+							<h3 class="bold">Preparing video...</h3>
+						</div>
+					</div>
+					<div id="videoScreen" class="video-on">
+						<video id="remotevideo" class="cover-img-cont" autoplay="">    
+							You browser doesn't support element <code>video</code>.
+						</video>
 					</div>
 				</div>
-				<video id="remotevideo" class="cover-img-cont" autoplay="" style="display:none">    
-					You browser doesn't support element <code>video</code>.
-				</video>
-			</div>
-			<div class="row buttons">
-				<div class="small-12 large-4 large-centered columns">
-					<button class="success radius bold"><i class="icon-play"></i>&nbsp;&nbsp;Start Streaming Video</button>
-				</div>
-				<div class="small-12 large-4 large-centered columns">
-					<button class="secondary radius bold"><i class="icon-stop"></i>&nbsp;&nbsp;Stop Streaming Video</button>
+				<div class="row buttons">
+					<div class="small-12 large-4 large-centered columns video-off">
+						<button class="success radius bold"><i class="icon-play"></i>&nbsp;&nbsp;Start Streaming Video</button>
+					</div>
+					<div class="small-12 large-4 large-centered columns video-on">
+						<button class="secondary radius bold"><i class="icon-stop"></i>&nbsp;&nbsp;Stop Streaming Video</button>
+					</div>
 				</div>
 			</div>
 		</div>
+	</div>
+	<div class="nowebrtc">
+		WebRTC is not supported on this browser
+	</div>
+	<div class="error">
+		Error with streaming
 	</div>
 </script>

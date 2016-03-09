@@ -19,6 +19,12 @@ var CameraView = Backbone.View.extend({
 	}});
 
 	this.render();
+	
+	if(Janus.isWebrtcSupported()) {
+		this.setState('ready');
+	} else {
+		this.setState('nowebrtc');
+	}
   },
   render: function() {
 	this.$el.html(this.template());
@@ -26,8 +32,13 @@ var CameraView = Backbone.View.extend({
   initJanus: function(){
 	this.sessionId = null;
   },
-  startStreaming: function(e){
-	$.when( 
+  setState: function(state)
+  {
+	this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)  
+  },
+  startStreaming: function(e){	  
+	  this.setState('preparing');
+	  $.when( 
 		$.getJSON(API_BASEURL + 'settings/camera/streaming'),
 		$.ajax({
 			url: API_BASEURL + "camera/init-janus",
@@ -38,23 +49,26 @@ var CameraView = Backbone.View.extend({
 		})
 	)
 		.done(_.bind(function(settings, session){
-			this.localSessionId = session.sessionId;
+			this.localSessionId = session[0].sesionId;
 
 			if(!this.$('#remotevideo').is(':visible')) {
-				this.$('.video-container .columns').hide();
-				this.$('#remotevideo').show();
-					
-				if(!Janus.isWebrtcSupported()) {
-					noty({text: "WebRTC is not supported in this browser... ", timeout: 3000});
-					return;
-				}
 
 				// Create session
 				var janus = new Janus({
 					server: this.serverUrl,
 					apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
 					success: _.bind(function() {
-
+						
+						$.ajax({
+							url: API_BASEURL + "camera/start-peer-session",
+							type: "POST",
+							dataType: "json",
+							contentType: "application/json; charset=UTF-8",
+							data: JSON.stringify({
+								clientId: new String(Math.random()*10000000000000000000)
+							})
+						}).done(_.bind(function(response){console.log(response);},this));
+						
 						var streamingPlugIn = null;
 						var selectedStream = settings.encoding == 'h264' ? 1 : 2;
 						var sizeVideo = settings.size;
@@ -104,18 +118,19 @@ var CameraView = Backbone.View.extend({
 											},
 											error: function(error) {
 												console.warn("WebRTC error... " + JSON.stringify(error));
+												this.setState('error');
 											}
 										});
 								}
 							}, this),
-							onremotestream: function(stream) {
+							onremotestream: _.bind(function(stream) {
 								console.log(" ::: Got a remote stream :::");
 								console.log(JSON.stringify(stream));
-								$("#remotevideo").bind("playing", function () {
-
-								});
+								$("#remotevideo").bind("playing",_.bind(function () {
+									this.setState('streaming');
+								},this));
 								attachMediaStream($('#remotevideo').get(0), stream);
-							},
+							},this),
 							oncleanup: function() {
 								Janus.log(" ::: Got a cleanup notification :::");
 							}
@@ -138,19 +153,23 @@ var CameraView = Backbone.View.extend({
   },
   stopStreaming: function(e){
 	  console.log('stopStreaming');
-	  if (this.sessionId) {
-		  this.$('#remotevideo').hide();
-		  this.$('.video-container .columns').show();
+	  if (this.localSessionId) {
 		  $.ajax({
-			url: API_BASEURL + "camera/stop-janus",
+			//url: API_BASEURL + "camera/stop-janus",
+			url: API_BASEURL + "camera/close-peer-session",
 			type: "POST",
 			dataType: "json",
 			contentType: "application/json; charset=UTF-8",
-			data: {
+			data: JSON.stringify({
 				sessionId: this.localSessionId
-			}
+			})
 		  })
+		  	.done(_.bind(function(){
+		  		this.setState('ready');
+		  	},this))
 		  	.always(_.bind(this.initJanus, this))
+		  	.fail(_.bind(function(){this.setState('error');},this))
       }	
+	
   }
 });

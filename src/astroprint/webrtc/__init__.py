@@ -19,10 +19,11 @@ import os
 import signal
 import re
 
+import astroprint.util as processesUtil
+
 from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
-from astroprint.util import processesUtil
 from astroprint.camera import cameraManager
 
 
@@ -146,6 +147,7 @@ class WebRtc(object):
 			self._logger.error("Error initiating janus process: %s" % str(error))
 			self._JanusProcess = None
 			self.sendEventToPeers('stopConnection')
+			return False
 
 		if self._JanusProcess:
 			while True:
@@ -153,14 +155,17 @@ class WebRtc(object):
 					import time
 					time.sleep(3)
 					break
+			return True
 
 	def stopJanus(self):
 		
 		try:
 			if self._JanusProcess is not None:
 				self._JanusProcess.kill()
+				return True
 		except Exception, error:
 			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
+			return False
 			
 
 	def stopGStreamer(self):
@@ -386,3 +391,51 @@ class ConnectionPeer(object):
 				'eventData': data
 			}
 		})
+		
+class LocalConnectionPeer(object):
+ 	
+ 	def __init__(self):
+ 		pass
+ 		
+ 	def startJanusSec(self):
+ 		
+ 		if not processesUtil.isProcessRunning('janus'):
+ 			if webRtcManager().startJanus():
+ 				return 1#Janus starts
+ 			else:
+ 				return 0#Janus can not start
+ 		else:
+ 			return 2#Janus was running before it
+ 			
+ 		
+ 	def stopJanusSec(self):
+ 		
+ 		if not processesUtil.isProcessRunning('janus'):
+ 			return 2#Janus was stopped before it
+ 		else: 			
+ 			if webRtcManager().stopJanus():
+ 				return 1#Janus stops
+ 			else:
+ 				return 0#Janus can not stop
+ 	
+	def startPeerSession(self, clientId):
+		with webRtcManager()._peerCondition:
+
+			peer = ConnectionPeer(clientId, self)
+			sessionId = peer.start()
+			
+			if sessionId:
+				webRtcManager()._connectedPeers[sessionId] = peer
+				return sessionId
+
+			else:
+				#something went wrong, no session started. Do we still need Janus up?
+				if len(webRtcManager()._connectedPeers.keys()) == 0:
+					self.stopGStreamer()
+					self.stopJanus()
+
+				return None
+			
+	def closePeerSession(self,sessionId):
+		
+		webRtcManager().closePeerSession(sessionId)
