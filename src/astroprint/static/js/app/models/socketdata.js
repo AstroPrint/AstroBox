@@ -133,7 +133,7 @@ var SocketData = Backbone.Model.extend({
                         var connectionClass = 'blink-animation';
                         var printerStatus = 'connecting';
 
-	                	if (flags.error) {
+	                	if (flags.closedOrError) {
                             connectionClass = 'failed';
                             printerStatus = 'failed';
 	                	} else if (flags.operational) {
