@@ -126,6 +126,12 @@ var CameraView = Backbone.View.extend({
 							onremotestream: _.bind(function(stream) {
 								console.log(" ::: Got a remote stream :::");
 								console.log(JSON.stringify(stream));
+								//Starts GStreamer
+								$.ajax({
+									//url: API_BASEURL + "camera/stop-janus",
+									url: API_BASEURL + "camera/start-streaming",
+									type: "POST"
+								}).fail(_.bind(function(){this.setState('error');},this));
 								$("#remotevideo").bind("playing",_.bind(function () {
 									this.setState('streaming');
 								},this));

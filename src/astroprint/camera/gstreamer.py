@@ -26,8 +26,9 @@ class GStreamerManager(CameraManager):
 
     def open_camera(self):
         try:
-            self.gstreamerVideo = GStreamer(self.videoType, self.videoSize, self.videoFramerate)
-        except:
+            self.gstreamerVideo = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
+
+        except Exception, error:
             self.gstreamerVideo = None
 
         return self.gstreamerVideo is not None
@@ -71,7 +72,8 @@ class GStreamer(object):
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
             self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
-            self.video_source.set_property("device", '/dev/video0')
+            self.video_source.set_property("device", '/dev/video'+str(device))
+
 
             #ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
             self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay','logo_overlay')
@@ -113,6 +115,7 @@ class GStreamer(object):
             #####################
             
             self.reset_pipeline_gstreamer_state()
+
             
         except Exception, error:
             

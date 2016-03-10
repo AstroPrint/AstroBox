@@ -64,3 +64,11 @@ def close_peer_session():
 	print data
 	LocalConnectionPeer().closePeerSession(data['sessionId'])
 	return jsonify(SUCCESS)
+
+@api.route("/camera/start-streaming",methods=["POST"])
+@restricted_access
+def start_streaming():
+	#open_camera
+	LocalConnectionPeer().startGstreamer()
+	
+	return jsonify(SUCCESS) 
