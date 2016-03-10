@@ -200,6 +200,15 @@
 	}
 }
 
+#software-advanced {
+	.apiKey {
+		-webkit-user-select: text;
+		-moz-user-select: text;
+		-ms-user-select: text;
+		user-select: text;
+	}
+}
+
 @media #{$small-only} {
 	#settings-view {
 		.settings-page.hide {
