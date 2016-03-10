@@ -421,15 +421,16 @@ class LocalConnectionPeer(object):
  	def startGstreamer(self):
 		#Start Gstreamer
 		cam = cameraManager()
-		print cam
-		if not cam.open_camera():
+		if cam.open_camera():
 			if not cam.start_video_stream():
+				print 'ERROR IN JANUS'
 				self._logger.error('Managing Gstreamer error in WebRTC object')
 				#Janus is forced to be closed
 				webRtcManager().stopJanus()
 				return False
 			return False
 		else:
+			print 'CAN NOT OPEN CAMERA'
 			return True
  	
 	def startPeerSession(self, clientId):

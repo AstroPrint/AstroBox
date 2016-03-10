@@ -26,10 +26,13 @@ class GStreamerManager(CameraManager):
 
     def open_camera(self):
         try:
+            print 'OPEN CAMERA'
             self.gstreamerVideo = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
 
         except Exception, error:
             self.gstreamerVideo = None
+
+        print 'TO RETURN ' + str(self.gstreamerVideo is not None)
 
         return self.gstreamerVideo is not None
 
@@ -68,6 +71,7 @@ class GStreamer(object):
         self._logger = logging.getLogger(__name__)
         
         try:
+            print 'INIT'
             #VIDEO SOURCE DESCRIPTION
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
@@ -115,14 +119,17 @@ class GStreamer(object):
             #####################
             
             self.reset_pipeline_gstreamer_state()
-
             
+            print 'END INIT'
+
+                    
         except Exception, error:
             
             self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
             self.reset_pipeline_gstreamer_state()
+            print 'INIT ERROR'
             raise error
         
         
@@ -200,7 +207,7 @@ class GStreamer(object):
     def play_video(self):
         #SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
         try:
-
+            print 'PLAY VIDEO'
             ###
             #GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS          
             self.videotype = settings().get(["camera", "encoding"])
