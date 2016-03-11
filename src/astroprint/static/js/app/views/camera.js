@@ -50,15 +50,15 @@ var CameraView = Backbone.View.extend({
 			})
 	)
 	.done(_.bind(function(settings, session){
-
+		console.log('-2');
 		if(!this.$('#remotevideo').is(':visible')) {
-			
+			console.log('-1');
 			// Create session
 			var janus = new Janus({
 				server: this.serverUrl,
 				apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
 				success: _.bind(function() {
-					
+					console.log('0');
 					$.ajax({
 						url: API_BASEURL + "camera/start-peer-session",
 						type: "POST",
@@ -68,7 +68,7 @@ var CameraView = Backbone.View.extend({
 							clientId: new String(Math.random()*10000000000000000000)
 						})
 					}).done(_.bind(function(response){
-
+						console.log('1');
 						this.localSessionId = response.sessionId;
 
 					
@@ -79,7 +79,7 @@ var CameraView = Backbone.View.extend({
 						//Attach to streaming plugin
 						janus.attach({
 							plugin: "janus.plugin.streaming",
-							success: _.bind(function(pluginHandle) {
+							success: function(pluginHandle) {
 								this.streamingPlugIn = pluginHandle;
 
 								this.streamingPlugin.oncleanup = function(){
@@ -97,11 +97,12 @@ var CameraView = Backbone.View.extend({
 				                    	this.setstate('ready');
 				                    },this))
 				                    .always(_.bind(this.initJanus, this))
-				                    .fail(_.bind(function(){this.setState('error');},this))};
+				                    .fail(_.bind(function(){this.setState('error');},this))
+				                };
 
-				                    var body = { "request": "watch", id: selectedStream };
-				                    this.streamingPlugIn.send({"message": body});
-							},this),
+				                var body = { "request": "watch", id: selectedStream };
+				                this.streamingPlugIn.send({"message": body});
+							},
 							error: function(error) {
 								console.error(error);
 								noty({text: "Error communicating with the WebRTC system.", timeout: 3000});
@@ -163,7 +164,7 @@ var CameraView = Backbone.View.extend({
 								Janus.log(" ::: Got a cleanup notification :::");
 							}
 						});
-				}, this))}),
+				}, this))},this),
 				error: function(error) {
 					if(!$('#camera-view').hasClass('ready')){
 						console.error(error);
@@ -175,7 +176,7 @@ var CameraView = Backbone.View.extend({
 				destroyed: _.bind(this.initJanus, this)
 				////
 			});
-		};
+		}
   	}),this)	
 	.fail(_.bind(function(error){
 		console.error(error);
