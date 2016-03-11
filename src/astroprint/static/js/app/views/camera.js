@@ -3,6 +3,7 @@ var CameraView = Backbone.View.extend({
   template: _.template( $("#camera-watch-page-template").html() ),
   serverUrl: null,
   localSessionId: null,
+  streamingPlugIn: null,
   events: {
 	'click .buttons .columns .success': 'startStreaming',
 	'click .buttons .columns .secondary': 'stopStreaming'
@@ -49,7 +50,6 @@ var CameraView = Backbone.View.extend({
 		})
 	)
 		.done(_.bind(function(settings, session){
-			this.localSessionId = session[0].sesionId;
 
 			if(!this.$('#remotevideo').is(':visible')) {
 
@@ -67,21 +67,41 @@ var CameraView = Backbone.View.extend({
 							data: JSON.stringify({
 								clientId: new String(Math.random()*10000000000000000000)
 							})
-						}).done(_.bind(function(response){console.log(response);},this));
+						}).done(_.bind(function(response){
+
+                                                        this.localSessionId = response.sessionId;
+
 						
-						var streamingPlugIn = null;
+                                                //var streamingPlugIn = null;
 						var selectedStream = settings.encoding == 'h264' ? 1 : 2;
 						var sizeVideo = settings.size;
 
 						// Attach to streaming plugin
 						janus.attach({
 							plugin: "janus.plugin.streaming",
-							success: function(pluginHandle) {
-								streamingPlugIn = pluginHandle;
+							success: _.bind(function(pluginHandle) {
+								this.streamingPlugIn = pluginHandle;
+
+								this.streamingPlugin.oncleanup = function(){
+								$.ajax({
+						                        //url: API_BASEURL + "camera/stop-janus",
+						                        url: API_BASEURL + "camera/close-peer-session",
+						                        type: "POST",
+						                        dataType: "json",
+						                        contentType: "application/json; charset=UTF-8",
+						                        data: JSON.stringify({
+						                                sessionId: this.localSessionId
+						                        })
+						                  })
+					                        .done(_.bind(function(){
+				        	                        this.setstate('ready');
+					                        },this))
+					                        .always(_.bind(this.initJanus, this))
+					                        .fail(_.bind(function(){this.setState('error');},this))};
 
 								var body = { "request": "watch", id: selectedStream };
-								streamingPlugIn.send({"message": body});
-							},
+								this.streamingPlugIn.send({"message": body});
+							},this),
 							error: function(error) {
 								console.error(error);
 								noty({text: "Error communicating with the WebRTC system.", timeout: 3000});
@@ -106,16 +126,16 @@ var CameraView = Backbone.View.extend({
 									console.log("Handling SDP as well...");
 									console.log(jsep);
 									// Answer
-									streamingPlugIn.createAnswer(
+									this.streamingPlugIn.createAnswer(
 										{
 											jsep: jsep,
 											media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
-											success: function(jsep) {
+											success: _.bind(function(jsep) {
 												console.log("Got SDP!");
 												console.log(jsep);
 												var body = { "request": "start" };
-												streamingPlugIn.send({"message": body, "jsep": jsep});
-											},
+												this.streamingPlugIn.send({"message": body, "jsep": jsep});
+											},this),
 											error: function(error) {
 												console.warn("WebRTC error... " + JSON.stringify(error));
 												this.setState('error');
@@ -131,8 +151,10 @@ var CameraView = Backbone.View.extend({
 									//url: API_BASEURL + "camera/stop-janus",
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
-								}).fail(_.bind(function(){this.setState('error');},this));
+								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
+                                                                console.log('PLAY');
 								$("#remotevideo").bind("playing",_.bind(function () {
+                                                                        console.log('STATE STREAMING');
 									this.setState('streaming');
 								},this));
 								attachMediaStream($('#remotevideo').get(0), stream);
@@ -143,9 +165,12 @@ var CameraView = Backbone.View.extend({
 						});
 					}, this),
 					error: function(error) {
-						console.error(error);
-						noty({text: "Unable to start the WebRTC session.", timeout: 3000});
-						//This is a fatal error. The application can't recover. We should probably show an error state in the app.
+						if(!$('#camera-view').hasClass('ready')){
+							console.error(error);
+							noty({text: "Unable to start the WebRTC session.", timeout: 3000});
+							//This is a fatal error. The application can't recover. We should probably show an error state in the app.
+							streamingState = 'stopped';
+						}
 					},
 					destroyed: _.bind(this.initJanus, this)
 				});
@@ -159,8 +184,14 @@ var CameraView = Backbone.View.extend({
   },
   stopStreaming: function(e){
 	  console.log('stopStreaming');
+          console.log(this.localSessionId);
 	  if (this.localSessionId) {
-		  $.ajax({
+		 console.log('ENTRA PARA CERRAR JANUS'); 
+		var body = { "request": "stop" };
+		this.streamingPlugIn.send({"message": body});
+		this.streamingPlugIn.hangup();
+
+                 /*$.ajax({
 			//url: API_BASEURL + "camera/stop-janus",
 			url: API_BASEURL + "camera/close-peer-session",
 			type: "POST",
@@ -174,7 +205,7 @@ var CameraView = Backbone.View.extend({
 		  		this.setState('ready');
 		  	},this))
 		  	.always(_.bind(this.initJanus, this))
-		  	.fail(_.bind(function(){this.setState('error');},this))
+		  	.fail(_.bind(function(){this.setState('error');},this))*/
       }	
 	
   }

@@ -27,7 +27,7 @@ class GStreamerManager(CameraManager):
     def open_camera(self):
         try:
             print 'OPEN CAMERA'
-            self.gstreamerVideo = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
+            self.gstreamerVideo = GStreamer(1,self.videoType, self.videoSize, self.videoFramerate)
 
         except Exception, error:
             self.gstreamerVideo = None
@@ -76,8 +76,11 @@ class GStreamer(object):
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
             self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
-            self.video_source.set_property("device", '/dev/video'+str(device))
+ 
+            print 'FONT VIDEO SELECTED ' + "device", '/dev/video'+str(device)
 
+            self.video_source.set_property("device", '/dev/video'+str(device))
+ 
 
             #ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
             self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay','logo_overlay')
@@ -236,7 +239,7 @@ class GStreamer(object):
             ###
     
             if self.videotype == 'h264':
-
+                print 'H264'
                 ###
                 #H264 VIDEO MODE SETUP
                 ###
@@ -254,7 +257,7 @@ class GStreamer(object):
                 ###
                 
             elif self.videotype == 'vp8':
-
+                print 'VP8'
                 ###
                 #VP8 VIDEO MODE STUP
                 ###
@@ -284,7 +287,7 @@ class GStreamer(object):
             
             if self.videotype == 'h264':
                 self.pipeline.add(enc_caps)
-                
+
             self.pipeline.add(videortppay)
             self.pipeline.add(udpsinkout)
             #ADDING PHOTO ELEMENTS TO PIPELINE
@@ -329,11 +332,15 @@ class GStreamer(object):
               
             #START PLAYING THE PIPELINE
             self.streamProcessState = 'PLAYING'
+            self.pipeline.set_state(gst.State.PLAYING)
+            print 'PLAY VIDEO END'
             
             return True
             
         except Exception, error:
             
+            print 'PLAY VIDEO EXCEPTION'
+
             self._logger.error("Error playing video with GStreamer: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)

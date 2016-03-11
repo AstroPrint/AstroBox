@@ -36,6 +36,8 @@ def init_janus():
 	#Start session in Janus
 	sessionId = LocalConnectionPeer().startJanusSec()
 
+        print sessionId
+
 	if sessionId:
 		return jsonify(sesionId= sessionId)
 
@@ -45,6 +47,7 @@ def init_janus():
 @restricted_access
 def stop_janus():
 	#Stop session in Janus
+	print 'STOP JANUS IN API'
 	LocalConnectionPeer().stopJanusSec()
 	return jsonify(SUCCESS)
 

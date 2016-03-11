@@ -63,6 +63,7 @@ class WebRtc(object):
 			if len(self._connectedPeers.keys()) > 0:
 
 				try:
+					print 'TRY CLOSEPEERSESSION'
 					logging.info(self._connectedPeers)
 					peer = self._connectedPeers[sessionId]
 				except KeyError:
@@ -70,12 +71,14 @@ class WebRtc(object):
 					peer = None
 
 				if peer:
+					print 'PEER'
 					peer.streamingPlugin.send_message({'request':'destroy'})
 					peer.close()
 					self.sendEventToPeer('stopConnection',self._connectedPeers[sessionId])
 					del self._connectedPeers[sessionId]
 
 				if len(self._connectedPeers.keys()) == 0:
+					print 'LAST SESSION'
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
@@ -399,7 +402,9 @@ class LocalConnectionPeer(object):
  		
  	def startJanusSec(self):
  		
- 		if not processesUtil.isProcessRunning('janus'):
+		if len(webRtcManager()._connectedPeers.keys()) == 0:
+
+ 		#if not processesUtil.isProcessRunning('janus'):
  			if webRtcManager().startJanus():
  				return 1#Janus starts
  			else:
@@ -411,11 +416,14 @@ class LocalConnectionPeer(object):
  	def stopJanusSec(self):
  		
  		if not processesUtil.isProcessRunning('janus'):
+			print 'JANUS IS STOPPED'
  			return 2#Janus was stopped before it
  		else: 			
  			if webRtcManager().stopJanus():
+				print 'STOP JANUS'
  				return 1#Janus stops
  			else:
+				print 'JANUS CAN NOT BE STOPPED'
  				return 0#Janus can not stop
  	
  	def startGstreamer(self):
@@ -440,6 +448,8 @@ class LocalConnectionPeer(object):
 			sessionId = peer.start()
 			
 			if sessionId:
+                                print 'SESSIONID ' +  str(sessionId)
+                                print 'CLIENTID' + str(clientId)
 				webRtcManager()._connectedPeers[sessionId] = peer
 				return sessionId
 
@@ -451,6 +461,12 @@ class LocalConnectionPeer(object):
 
 				return None
 			
+	def closePeerSessionBackup(self,sessionId):
+		print 'sessionId in closePeerSession'
+		print sessionId
+		webRtcManager().closePeerSession(sessionId)
+
 	def closePeerSession(self,sessionId):
-		
+		print 'sessionId in closePeerSession'
+		print sessionId
 		webRtcManager().closePeerSession(sessionId)
