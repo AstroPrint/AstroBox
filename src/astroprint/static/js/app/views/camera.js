@@ -85,7 +85,7 @@ var CameraView = Backbone.View.extend({
 								console.log(this.streamingPlugIn);
 								console.log(this);
 								
-								this.streamingPlugIn.oncleanup = function(){
+								this.streamingPlugIn.oncleanup = _.bind(function(){
 									$.ajax({
 										//url: API_BASEURL + "camera/stop-janus",
 					                    url: API_BASEURL + "camera/close-peer-session",
@@ -101,7 +101,7 @@ var CameraView = Backbone.View.extend({
 				                    },this))
 				                    .always(_.bind(this.initJanus, this))
 				                    .fail(_.bind(function(){this.setState('error');},this))
-				                };
+				                },);
 
 				                var body = { "request": "watch", id: selectedStream };
 				                this.streamingPlugIn.send({"message": body});
