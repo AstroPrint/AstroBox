@@ -31,7 +31,8 @@ var CameraView = Backbone.View.extend({
 	this.$el.html(this.template());
   },
   initJanus: function(){
-	this.sessionId = null;
+  	this.localSessionId = null;
+	this.streamingPlugIn = null;
   },
   setState: function(state)
   {
@@ -97,11 +98,12 @@ var CameraView = Backbone.View.extend({
 					                     })
 					                })
 				                    .done(_.bind(function(){
-				                    	this.setstate('ready');
+				                    	this.setState('ready');
+				                    	janus.sessionId = null;
 				                    },this))
 				                    .always(_.bind(this.initJanus, this))
 				                    .fail(_.bind(function(){this.setState('error');},this))
-				                },);
+				                },this);
 
 				                var body = { "request": "watch", id: selectedStream };
 				                this.streamingPlugIn.send({"message": body});
