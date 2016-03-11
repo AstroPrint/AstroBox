@@ -21,15 +21,21 @@ gst.init(None)
 
 class GStreamerManager(CameraManager):
     def __init__(self):
-        super(GStreamerManager, self).__init__()
         self._logger = logging.getLogger(__name__)
+        super(GStreamerManager, self).__init__()
 
     def open_camera(self):
         try:
             print 'OPEN CAMERA'
-            self.gstreamerVideo = GStreamer(1,self.videoType, self.videoSize, self.videoFramerate)
+	    print self.videoType
+	    print self.videoSize
+            print self.videoFramerate
+            self.gstreamerVideo = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
+	    print 'END OPEN CAMERA'
 
         except Exception, error:
+	    print 'EXCEPTIONED'
+            self._logger.error(error)
             self.gstreamerVideo = None
 
         print 'TO RETURN ' + str(self.gstreamerVideo is not None)
@@ -37,6 +43,8 @@ class GStreamerManager(CameraManager):
         return self.gstreamerVideo is not None
 
     def start_video_stream(self):
+	print 'START_VIDEO_STREAM'
+	print self.gstreamerVideo
         return self.gstreamerVideo.play_video()
 
     def stop_video_stream(self):
@@ -68,10 +76,16 @@ class GStreamer(object):
     #THE PRINTER'S CAMERA: GET PHOTO AND VIDEO FROM IT
     def __init__(self, device, videotype, size, framerate):
         
+	print 'IN INIT'
+	print videotype
+	print size
+	print framerate
+
         self._logger = logging.getLogger(__name__)
-        
+
         try:
             print 'INIT'
+
             #VIDEO SOURCE DESCRIPTION
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
@@ -121,6 +135,7 @@ class GStreamer(object):
             self.jpegenc = gst.ElementFactory.make('jpegenc','jpegenc')
             #####################
             
+	    print 'CALL RESET'
             self.reset_pipeline_gstreamer_state()
             
             print 'END INIT'
@@ -138,7 +153,7 @@ class GStreamer(object):
         
     def reset_pipeline_gstreamer_state(self):
         #SETS DEFAULT STATE FOR GSTREAMER OBJECT
-        
+
         try:
             ###
             #GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS
@@ -146,6 +161,11 @@ class GStreamer(object):
             self.size = settings().get(["camera", "size"]).split('x')
             self.framerate = settings().get(["camera", "framerate"])
             ###
+
+	    print 'IN RESET'
+            print self.videotype
+  	    print self.size
+     	    print self.framerate
 
             ###
             #CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
@@ -318,7 +338,7 @@ class GStreamer(object):
             ##TEE SOURCE H264
             tee_video_pad_video = self.tee.get_request_pad("src_%u")
             ##TEE SOURCE PHOTO
-            self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
+            #self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
             
             #TEE SINKING MANAGING
             ##VIDEO SINK QUEUE
@@ -425,7 +445,7 @@ class GStreamer(object):
                 ###
                 ##TAKING PHOTO
                 import time
-                #WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRS IMAGE TAKEN
+                #WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRST IMAGE TAKEN
                 while not os.path.isfile(tempImage):
                     time.sleep(0.1)
                 ##THEN, TAKES ANOTHER 5 PHOTOS PLUS
@@ -440,7 +460,7 @@ class GStreamer(object):
                 self.pipeline.remove(multifilesinkphoto)
 
             elif self.streamProcessState == 'PAUSED':
-                #IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING A NEW PIPELINE   
+                #IF VIDEO IS NOT PLAYING, IT HAS TO TAKE PHOTO USING A NEW PIPELINE   
                 video_source = gst.ElementFactory.make('v4l2src', 'video_source')
                 video_source.set_property("device", "/dev/video0")
                 

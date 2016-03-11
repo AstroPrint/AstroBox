@@ -73,13 +73,13 @@ class CameraManager(object):
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
-		self.open_camera()
 
-		self._logger = logging.getLogger(__name__)
-		
+		print 'SETUPPING SETTINGS'
+
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
+      		self.open_camera()
 		
 
 	def shutdown(self):

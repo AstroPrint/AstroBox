@@ -6,7 +6,8 @@ var CameraView = Backbone.View.extend({
   streamingPlugIn: null,
   events: {
 	'click .buttons .columns .success': 'startStreaming',
-	'click .buttons .columns .secondary': 'stopStreaming'
+	'click .buttons .columns .secondary': 'stopStreaming',
+	'hide':'onHide'
   },
   initialize: function(options)
   {
@@ -29,6 +30,9 @@ var CameraView = Backbone.View.extend({
   },
   render: function() {
 	this.$el.html(this.template());
+  },
+  onHide: function(){
+ 	this.stopStreaming();
   },
   initJanus: function(){
   	this.localSessionId = null;
