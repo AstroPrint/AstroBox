@@ -69,20 +69,23 @@ var CameraView = Backbone.View.extend({
 						})
 					}).done(_.bind(function(response){
 						console.log('1');
-						this.localSessionId = response.sessionId;
+						this.localSessionId = response.sessionId;},this));
 
 					
-                        //var streamingPlugIn = null;
+                        var streamingPlugIn = null;
 						var selectedStream = settings.encoding == 'h264' ? 1 : 2;
 						var sizeVideo = settings.size;
 
 						//Attach to streaming plugin
 						janus.attach({
 							plugin: "janus.plugin.streaming",
-							success: function(pluginHandle) {
+							success: _.bind(function(pluginHandle) {
 								this.streamingPlugIn = pluginHandle;
-
-								this.streamingPlugin.oncleanup = function(){
+								console.log('streamingPlugIn');
+								console.log(this.streamingPlugIn);
+								console.log(this);
+								
+								this.streamingPlugIn.oncleanup = function(){
 									$.ajax({
 										//url: API_BASEURL + "camera/stop-janus",
 					                    url: API_BASEURL + "camera/close-peer-session",
@@ -102,14 +105,17 @@ var CameraView = Backbone.View.extend({
 
 				                var body = { "request": "watch", id: selectedStream };
 				                this.streamingPlugIn.send({"message": body});
-							},
+							},this),
 							error: function(error) {
 								console.error(error);
 								noty({text: "Error communicating with the WebRTC system.", timeout: 3000});
 							},
 							onmessage: _.bind(function(msg, jsep) {
+								console.log(this);
 								console.log(" ::: Got a message :::");
 								console.log(JSON.stringify(msg));
+								console.log('streamingPlugIn on attach');
+								console.log(this.streamingPlugIn);
 								var result = msg["result"];
 									if(result !== null && result !== undefined) {
 										if(result["status"] !== undefined && result["status"] !== null) {
@@ -164,7 +170,7 @@ var CameraView = Backbone.View.extend({
 								Janus.log(" ::: Got a cleanup notification :::");
 							}
 						});
-				}, this))},this),
+				}, this),
 				error: function(error) {
 					if(!$('#camera-view').hasClass('ready')){
 						console.error(error);
@@ -177,7 +183,7 @@ var CameraView = Backbone.View.extend({
 				////
 			});
 		}
-  	}),this)	
+  	},this))	
 	.fail(_.bind(function(error){
 		console.error(error);
 		noty({text: "Unable to start the WebRTC system.", timeout: 3000});
