@@ -237,7 +237,8 @@ function Janus(gatewayCallbacks) {
 			timeout: 60000,	// FIXME
 			success: handleEvent,
 			error: function(XMLHttpRequest, textStatus, errorThrown) {
-				Janus.error(textStatus + ": " + errorThrown);
+				
+				//Janus.error(textStatus + ": " + errorThrown);
 				//~ clearTimeout(timeoutTimer);
 				retries++;
 				if(retries > 3) {
