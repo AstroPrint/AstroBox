@@ -49,6 +49,10 @@
 	    .video-on {
 	    	display:none;
 	    }
+
+	    #remotevideo {
+                width: 100%;
+	    }
 	}
 
 	&.nowebrtc .alert-box,
@@ -69,8 +73,8 @@
 		}
 
 		.video-on {
-    		display:none;
-    	}
+    			display:none;
+	    	}
 	}
 
     &.nowebrtc {

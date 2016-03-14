@@ -63,7 +63,6 @@ class WebRtc(object):
 			if len(self._connectedPeers.keys()) > 0:
 
 				try:
-					print 'TRY CLOSEPEERSESSION'
 					logging.info(self._connectedPeers)
 					peer = self._connectedPeers[sessionId]
 				except KeyError:
@@ -71,14 +70,12 @@ class WebRtc(object):
 					peer = None
 
 				if peer:
-					print 'PEER'
 					peer.streamingPlugin.send_message({'request':'destroy'})
 					peer.close()
 					self.sendEventToPeer('stopConnection',self._connectedPeers[sessionId])
 					del self._connectedPeers[sessionId]
 
 				if len(self._connectedPeers.keys()) == 0:
-					print 'LAST SESSION'
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
@@ -396,51 +393,33 @@ class ConnectionPeer(object):
 		})
 		
 class LocalConnectionPeer(object):
- 	
- 	def __init__(self):
- 		self._logger = logging.getLogger(__name__)
- 		
- 	def startJanusSec(self):
- 		
-		if len(webRtcManager()._connectedPeers.keys()) == 0:
+	
+	def __init__(self):
+		self._logger = logging.getLogger(__name__)
+		
+	def startJanusSec(self):
+		
+		if len(webRtcManager()._connectedPeers.keys()) <= 0:
+			if webRtcManager().startJanus():
+				return 1#Janus starts
+			else:
+				return 0#Janus can not start
+		else:
+			return 2#Janus was running before it
 
- 		#if not processesUtil.isProcessRunning('janus'):
- 			if webRtcManager().startJanus():
- 				return 1#Janus starts
- 			else:
- 				return 0#Janus can not start
- 		else:
- 			return 2#Janus was running before it
- 			
- 		
- 	def stopJanusSec(self):
- 		
- 		if not processesUtil.isProcessRunning('janus'):
-			print 'JANUS IS STOPPED'
- 			return 2#Janus was stopped before it
- 		else: 			
- 			if webRtcManager().stopJanus():
-				print 'STOP JANUS'
- 				return 1#Janus stops
- 			else:
-				print 'JANUS CAN NOT BE STOPPED'
- 				return 0#Janus can not stop
- 	
- 	def startGstreamer(self):
+	def startGstreamer(self):
 		#Start Gstreamer
 		cam = cameraManager()
 		if cam.open_camera():
 			if not cam.start_video_stream():
-				print 'ERROR IN JANUS'
 				self._logger.error('Managing Gstreamer error in WebRTC object')
 				#Janus is forced to be closed
 				webRtcManager().stopJanus()
 				return False
 			return False
 		else:
-			print 'CAN NOT OPEN CAMERA'
 			return True
- 	
+
 	def startPeerSession(self, clientId):
 		with webRtcManager()._peerCondition:
 
@@ -448,8 +427,6 @@ class LocalConnectionPeer(object):
 			sessionId = peer.start()
 			
 			if sessionId:
-                                print 'SESSIONID ' +  str(sessionId)
-                                print 'CLIENTID' + str(clientId)
 				webRtcManager()._connectedPeers[sessionId] = peer
 				return sessionId
 
@@ -460,13 +437,25 @@ class LocalConnectionPeer(object):
 					self.stopJanus()
 
 				return None
-			
-	def closePeerSessionBackup(self,sessionId):
-		print 'sessionId in closePeerSession'
-		print sessionId
-		webRtcManager().closePeerSession(sessionId)
 
-	def closePeerSession(self,sessionId):
-		print 'sessionId in closePeerSession'
-		print sessionId
-		webRtcManager().closePeerSession(sessionId)
+	def closePeerSession(self, sessionId):
+		with webRtcManager()._peerCondition:
+
+			if len(webRtcManager()._connectedPeers.keys()) > 0:
+
+				try:
+					logging.info(webRtcManager()._connectedPeers)
+					peer = webRtcManager()._connectedPeers[sessionId]
+				except KeyError:
+					webRtcManager()._logger.warning('Session [%s] for peer not found' % sessionId)
+					peer = None
+
+				if peer:
+					peer.streamingPlugin.send_message({'request':'destroy'})
+					peer.close()
+					del webRtcManager()._connectedPeers[sessionId]
+
+				if len(webRtcManager()._connectedPeers.keys()) == 0:
+					#last session
+					webRtcManager().stopGStreamer()
+					webRtcManager().stopJanus()

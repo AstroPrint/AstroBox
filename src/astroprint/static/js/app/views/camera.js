@@ -6,7 +6,8 @@ var CameraView = Backbone.View.extend({
   streamingPlugIn: null,
   events: {
 	'click .buttons .columns .success': 'startStreaming',
-	'click .buttons .columns .secondary': 'stopStreaming'
+	'click .buttons .columns .secondary': 'stopStreaming',
+	'hide':'onHide'
   },
   initialize: function(options)
   {
@@ -29,6 +30,9 @@ var CameraView = Backbone.View.extend({
   },
   render: function() {
 	this.$el.html(this.template());
+  },
+  onHide: function(){
+ 	this.stopStreaming();
   },
   initJanus: function(){
   	this.localSessionId = null;
@@ -73,8 +77,11 @@ var CameraView = Backbone.View.extend({
 						this.localSessionId = response.sessionId;},this));
 
 					
-                        var streamingPlugIn = null;
-						var selectedStream = settings.encoding == 'h264' ? 1 : 2;
+			                        var streamingPlugIn = null;
+						console.log('VERAS....')
+						console.log(settings.encoding);
+						var selectedStream = settings[0].encoding == 'h264' ? 1 : 2;
+						console.log(selectedStream);
 						var sizeVideo = settings.size;
 
 						//Attach to streaming plugin
@@ -95,7 +102,7 @@ var CameraView = Backbone.View.extend({
 					                    contentType: "application/json; charset=UTF-8",
 					                    data: JSON.stringify({
 					                    	sessionId: this.localSessionId
-					                     })
+					                    })
 					                })
 				                    .done(_.bind(function(){
 				                    	this.setState('ready');
@@ -145,10 +152,10 @@ var CameraView = Backbone.View.extend({
 												var body = { "request": "start" };
 												this.streamingPlugIn.send({"message": body, "jsep": jsep});
 											},this),
-											error: function(error) {
+											error: _.bind(function(error) {
 												console.warn("WebRTC error... " + JSON.stringify(error));
 												this.setState('error');
-											}
+											},this)
 										});
 									}
 							}, this),
@@ -161,10 +168,17 @@ var CameraView = Backbone.View.extend({
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
-                                console.log('PLAY');
+                                window.setTimeout(function(){
+                                	console.log('Timeout!!!');
+                                	if(!isPlaying){
+                                		console.log('Stop Janus caused by timeout!!!');
+                                		this.stopStreaming();
+                                	}
+                                },40000);
+                                var isPlaying = false;
                                 $("#remotevideo").bind("playing",_.bind(function () {
-                                	console.log('STATE STREAMING');
                                 	this.setState('streaming');
+                                	isPlaying = true;
                                 },this));
                                 attachMediaStream($('#remotevideo').get(0), stream);
 							},this),
@@ -182,7 +196,6 @@ var CameraView = Backbone.View.extend({
 					}
 				},
 				destroyed: _.bind(this.initJanus, this)
-				////
 			});
 		}
   	},this))	
@@ -193,29 +206,10 @@ var CameraView = Backbone.View.extend({
 	}, this));
   },
   stopStreaming: function(e){
-	  console.log('stopStreaming');
           console.log(this.localSessionId);
-	  if (this.localSessionId) {
-		 console.log('ENTRA PARA CERRAR JANUS'); 
+	  if (this.localSessionId) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
-		this.streamingPlugIn.hangup();
-
-                 /*$.ajax({
-			//url: API_BASEURL + "camera/stop-janus",
-			url: API_BASEURL + "camera/close-peer-session",
-			type: "POST",
-			dataType: "json",
-			contentType: "application/json; charset=UTF-8",
-			data: JSON.stringify({
-				sessionId: this.localSessionId
-			})
-		  })
-		  	.done(_.bind(function(){
-		  		this.setState('ready');
-		  	},this))
-		  	.always(_.bind(this.initJanus, this))
-		  	.fail(_.bind(function(){this.setState('error');},this))*/
       }	
 	
   }

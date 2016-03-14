@@ -29,27 +29,18 @@ def update_timelapse():
 		abort(400)
 
 	abort(500)
-	
+
 @api.route("/camera/init-janus", methods=["POST"])
 @restricted_access
 def init_janus():
 	#Start session in Janus
 	sessionId = LocalConnectionPeer().startJanusSec()
 
-        print sessionId
-
 	if sessionId:
 		return jsonify(sesionId= sessionId)
 
 	abort(500)
 
-@api.route("/camera/stop-janus", methods=["POST"])
-@restricted_access
-def stop_janus():
-	#Stop session in Janus
-	print 'STOP JANUS IN API'
-	LocalConnectionPeer().stopJanusSec()
-	return jsonify(SUCCESS)
 
 @api.route("/camera/start-peer-session", methods=["POST"])
 @restricted_access
@@ -59,14 +50,15 @@ def start_peer_session():
 	sessionId = LocalConnectionPeer().startPeerSession(data['clientId'])
 	return jsonify({"sessionId": sessionId})
 
+
 @api.route("/camera/close-peer-session", methods=["POST"])
 @restricted_access
 def close_peer_session():
 	#Close peer session
 	data = request.json
-	print data
 	LocalConnectionPeer().closePeerSession(data['sessionId'])
 	return jsonify(SUCCESS)
+
 
 @api.route("/camera/start-streaming",methods=["POST"])
 @restricted_access

@@ -14,7 +14,6 @@ from octoprint.server.api import api
 from astroprint.printer.manager import printerManager
 
 
-
 @api.route("/connection", methods=["GET"])
 def connectionState():
 	pm = printerManager()

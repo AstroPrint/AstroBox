@@ -21,23 +21,26 @@ gst.init(None)
 
 class GStreamerManager(CameraManager):
     def __init__(self):
-        super(GStreamerManager, self).__init__()
+        self.gstreamerVideo = None
         self._logger = logging.getLogger(__name__)
+        super(GStreamerManager, self).__init__()
 
     def open_camera(self):
         try:
-            print 'OPEN CAMERA'
-            self.gstreamerVideo = GStreamer(1,self.videoType, self.videoSize, self.videoFramerate)
+            if self.gstreamerVideo is None:
+                self.gstreamerVideo  = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
 
         except Exception, error:
+            self._logger.error(error)
             self.gstreamerVideo = None
-
-        print 'TO RETURN ' + str(self.gstreamerVideo is not None)
 
         return self.gstreamerVideo is not None
 
     def start_video_stream(self):
-        return self.gstreamerVideo.play_video()
+        if not self.isVideoStreaming():
+            return self.gstreamerVideo.play_video()
+        else:
+            return True
 
     def stop_video_stream(self):
         return self.gstreamerVideo.stop_video()
@@ -61,6 +64,12 @@ class GStreamerManager(CameraManager):
     def isCameraAvailable(self):
         return self.gstreamerVideo is not None
 
+    def isVideoStreaming(self):
+        return self.gstreamerVideo.streamProcessState == 'PLAYING'
+
+    def getVideoStreamingState(self):
+        return self.gstreamerVideo.streamProcessState
+
 class GStreamer(object):
     
     ##THIS OBJECT COMPOSE A GSTREAMER LAUNCH LINE
@@ -69,19 +78,16 @@ class GStreamer(object):
     def __init__(self, device, videotype, size, framerate):
         
         self._logger = logging.getLogger(__name__)
-        
+
         try:
-            print 'INIT'
+
             #VIDEO SOURCE DESCRIPTION
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
             self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
  
-            print 'FONT VIDEO SELECTED ' + "device", '/dev/video'+str(device)
-
             self.video_source.set_property("device", '/dev/video'+str(device))
  
-
             #ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
             self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay','logo_overlay')
             self.video_logo.set_property('location','/AstroBox/src/astroprint/static/img/astroprint_logo.png')
@@ -122,23 +128,18 @@ class GStreamer(object):
             #####################
             
             self.reset_pipeline_gstreamer_state()
-            
-            print 'END INIT'
-
-                    
+                                
         except Exception, error:
-            
             self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
             self.reset_pipeline_gstreamer_state()
-            print 'INIT ERROR'
             raise error
         
         
     def reset_pipeline_gstreamer_state(self):
         #SETS DEFAULT STATE FOR GSTREAMER OBJECT
-        
+
         try:
             ###
             #GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS
@@ -196,11 +197,10 @@ class GStreamer(object):
             
             #STREAM DEFAULT STATE
             self.streamProcessState = 'PAUSED'
-            
+
             return True
         
         except Exception, error:
-            
             self._logger.error("Error resetting GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
@@ -210,7 +210,6 @@ class GStreamer(object):
     def play_video(self):
         #SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
         try:
-            print 'PLAY VIDEO'
             ###
             #GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS          
             self.videotype = settings().get(["camera", "encoding"])
@@ -234,12 +233,11 @@ class GStreamer(object):
             
             ###
             #MODE FOR BROADCASTING VIDEO
-            udpsinkout = gst.ElementFactory.make('udpsink','appsink')
+            udpsinkout = gst.ElementFactory.make('udpsink','udpsinkvideo')
             udpsinkout.set_property('host','127.0.0.1')
             ###
     
             if self.videotype == 'h264':
-                print 'H264'
                 ###
                 #H264 VIDEO MODE SETUP
                 ###
@@ -257,7 +255,6 @@ class GStreamer(object):
                 ###
                 
             elif self.videotype == 'vp8':
-                print 'VP8'
                 ###
                 #VP8 VIDEO MODE STUP
                 ###
@@ -301,6 +298,10 @@ class GStreamer(object):
             
             ###
             #LINKING VIDEO ELEMENTS
+            self.video_source.link(self.video_logo)
+            self.video_logo.link(self.src_caps)
+            self.src_caps.link(self.tee)
+
             queueraw.link(encode)
             
             if self.videotype == 'h264':
@@ -333,7 +334,6 @@ class GStreamer(object):
             #START PLAYING THE PIPELINE
             self.streamProcessState = 'PLAYING'
             self.pipeline.set_state(gst.State.PLAYING)
-            print 'PLAY VIDEO END'
             
             return True
             
@@ -424,8 +424,7 @@ class GStreamer(object):
                 ###
                 ###
                 ##TAKING PHOTO
-                import time
-                #WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRS IMAGE TAKEN
+                #WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRST IMAGE TAKEN
                 while not os.path.isfile(tempImage):
                     time.sleep(0.1)
                 ##THEN, TAKES ANOTHER 5 PHOTOS PLUS
@@ -440,7 +439,7 @@ class GStreamer(object):
                 self.pipeline.remove(multifilesinkphoto)
 
             elif self.streamProcessState == 'PAUSED':
-                #IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING A NEW PIPELINE   
+                #IF VIDEO IS NOT PLAYING, IT HAS TO TAKE PHOTO USING A NEW PIPELINE   
                 video_source = gst.ElementFactory.make('v4l2src', 'video_source')
                 video_source.set_property("device", "/dev/video0")
                 
@@ -522,8 +521,6 @@ class GStreamer(object):
                 pipeline.set_state(gst.State.PLAYING)
 
                 #TAKING PHOTO
-                import time
-                
                 while not os.path.isfile(tempImage):
                     time.sleep(0.1)
                 time.sleep(1)
