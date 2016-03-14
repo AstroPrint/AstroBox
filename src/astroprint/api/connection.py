@@ -12,7 +12,6 @@ from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
-from astroprint.webrtc import webRtcManager
 
 
 @api.route("/connection", methods=["GET"])
@@ -39,11 +38,6 @@ def connectionCommand():
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response
-
-	camManager = webRtcManager()
-	print 'CONNECTION API'
-	camManager.stopGStreamer()
-	camManager.stopJanus()
 
 	pm = printerManager()
 

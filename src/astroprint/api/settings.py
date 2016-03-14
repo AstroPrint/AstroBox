@@ -11,6 +11,7 @@ from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.webrtc import webRtcManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager
 from octoprint.server.api import api
@@ -152,6 +153,11 @@ def cameraStreamingeSettings():
 				s.set(['camera', 'framerate'], data['framerate'])
 
 			s.save()
+
+
+			camManager = webRtcManager()
+			camManager.stopGStreamer()
+			camManager.stopJanus()
 
 			cameraManager().settingsChanged({
 				'size': s.get(['camera', 'size']),
