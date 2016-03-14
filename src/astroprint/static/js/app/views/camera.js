@@ -169,9 +169,16 @@ var CameraView = Backbone.View.extend({
 									type: "POST"
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
                                 console.log('PLAY');
+                                window.setTimeout(function(){
+                                	if(!isPlaying){
+                                		this.stopStreaming();
+                                	}
+                                },40000);
+                                var isPlaying = false;
                                 $("#remotevideo").bind("playing",_.bind(function () {
                                 	console.log('STATE STREAMING');
                                 	this.setState('streaming');
+                                	isPlaying = true;
                                 },this));
                                 attachMediaStream($('#remotevideo').get(0), stream);
 							},this),
