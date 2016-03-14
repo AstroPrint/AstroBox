@@ -58,6 +58,7 @@ class GStreamerManager(CameraManager):
 		return True
 
     def stop_video_stream(self):
+        print 'STOP VIDEO STREAM'
         return self.gstreamerVideo.stop_video()
 
     def settingsChanged(self, cameraSettings):
@@ -151,7 +152,7 @@ class GStreamer(object):
             self.jpegenc = gst.ElementFactory.make('jpegenc','jpegenc')
             #####################
             
-	    print 'CALL RESET'
+            print 'CALL RESET'
             self.reset_pipeline_gstreamer_state()
             
             print 'END INIT'
@@ -403,6 +404,7 @@ class GStreamer(object):
                 self.queuebin = None
                 self.pipeline.set_state(gst.State.PAUSED)
                 self.pipeline.set_state(gst.State.NULL)
+                print 'STOP VIDEO'
                 self.reset_pipeline_gstreamer_state()
             
             return True
@@ -412,6 +414,7 @@ class GStreamer(object):
             self._logger.error("Error stopping video with GStreamer: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
+            print 'EXCEPTION IN STOP_VIDEO'
             self.reset_pipeline_gstreamer_state()
             
             return False
@@ -588,6 +591,7 @@ class GStreamer(object):
             self._logger.error("Error taking photo with GStreamer: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
+            print 'TAKE PHOTO AND RETURN EXCEPTION RESET'
             self.reset_pipeline_gstreamer_state()
             
             return None

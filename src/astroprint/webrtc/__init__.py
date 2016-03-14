@@ -174,6 +174,7 @@ class WebRtc(object):
 			
 
 	def stopGStreamer(self):
+		print 'STOP GSTREAMER'
 		cameraManager().stop_video_stream()
 	
 	def sendEventToPeers(self, type, data=None):

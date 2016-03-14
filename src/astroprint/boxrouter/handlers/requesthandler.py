@@ -212,6 +212,7 @@ class CameraCommandHandler(object):
 		cameraManager().start_video_stream()
 
 	def stop_video_stream(self, data, clientId):
+		print 'CAMERACOMMANDHANDLER STOP VIDEO STREAM'
 		cameraManager().stop_video_stream()
 
 # P2P Command Group Handler
