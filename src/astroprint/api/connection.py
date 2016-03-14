@@ -12,12 +12,16 @@ from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
-
+from astroprint.webrtc import webRtcManager
 
 
 @api.route("/connection", methods=["GET"])
 def connectionState():
 	pm = printerManager()
+
+	camManager = webRtcManager()
+	camManager.stopGStreamer()
+	camManager.stopJanus()
 
 	state, port, baudrate = pm.getCurrentConnection()
 	current = {

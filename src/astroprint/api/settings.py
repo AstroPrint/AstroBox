@@ -159,6 +159,12 @@ def cameraStreamingeSettings():
 				'framerate': s.get(['camera', 'framerate'])
 			})
 
+	print 'SETTINGS'
+
+	print s.get(['camera', 'encoding']) 
+	print s.get(['camera', 'size'])
+	print s.get(['camera', 'framerate'])
+
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']), 
 		size= s.get(['camera', 'size']),

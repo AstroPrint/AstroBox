@@ -77,8 +77,11 @@ var CameraView = Backbone.View.extend({
 						this.localSessionId = response.sessionId;},this));
 
 					
-                        var streamingPlugIn = null;
-						var selectedStream = settings.encoding == 'h264' ? 1 : 2;
+			                        var streamingPlugIn = null;
+						console.log('VERAS....')
+						console.log(settings.encoding);
+						var selectedStream = settings[0].encoding == 'h264' ? 1 : 2;
+						console.log(selectedStream);
 						var sizeVideo = settings.size;
 
 						//Attach to streaming plugin
@@ -99,7 +102,7 @@ var CameraView = Backbone.View.extend({
 					                    contentType: "application/json; charset=UTF-8",
 					                    data: JSON.stringify({
 					                    	sessionId: this.localSessionId
-					                     })
+					                    })
 					                })
 				                    .done(_.bind(function(){
 				                    	this.setState('ready');
@@ -203,7 +206,7 @@ var CameraView = Backbone.View.extend({
 		 console.log('ENTRA PARA CERRAR JANUS'); 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
-		this.streamingPlugIn.hangup();
+		//this.streamingPlugIn.hangup();
 
                  /*$.ajax({
 			//url: API_BASEURL + "camera/stop-janus",

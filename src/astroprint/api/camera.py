@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import octoprint.util as util
 from flask import jsonify, request, abort
+import json
 from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 
@@ -65,6 +66,7 @@ def close_peer_session():
 	#Close peer session
 	data = request.json
 	print data
+	print data['sessionId']
 	LocalConnectionPeer().closePeerSession(data['sessionId'])
 	return jsonify(SUCCESS)
 

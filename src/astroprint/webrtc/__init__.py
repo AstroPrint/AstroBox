@@ -64,6 +64,8 @@ class WebRtc(object):
 
 				try:
 					print 'TRY CLOSEPEERSESSION'
+					print 'SESSION ID'
+					print sessionId
 					logging.info(self._connectedPeers)
 					peer = self._connectedPeers[sessionId]
 				except KeyError:
@@ -402,20 +404,23 @@ class LocalConnectionPeer(object):
  		
  	def startJanusSec(self):
  		
-		if len(webRtcManager()._connectedPeers.keys()) == 0:
+		if len(webRtcManager()._connectedPeers.keys()) <= 0:
 
  		#if not processesUtil.isProcessRunning('janus'):
  			if webRtcManager().startJanus():
+				print 'JANUS STARTS'
  				return 1#Janus starts
  			else:
+                                print 'JANUS CAN NOT START'
  				return 0#Janus can not start
  		else:
+			print 'JANUS WAS RUNNING BEFORE'
  			return 2#Janus was running before it
  			
  		
  	def stopJanusSec(self):
  		
- 		if not processesUtil.isProcessRunning('janus'):
+		if not processesUtil.isProcessRunning('janus'):
 			print 'JANUS IS STOPPED'
  			return 2#Janus was stopped before it
  		else: 			
@@ -466,7 +471,32 @@ class LocalConnectionPeer(object):
 		print sessionId
 		webRtcManager().closePeerSession(sessionId)
 
-	def closePeerSession(self,sessionId):
-		print 'sessionId in closePeerSession'
-		print sessionId
-		webRtcManager().closePeerSession(sessionId)
+
+	def closePeerSession(self, sessionId):
+		with webRtcManager()._peerCondition:
+
+			print 'sessionId in closePeerSession'
+			print sessionId
+			if len(webRtcManager()._connectedPeers.keys()) > 0:
+
+				try:
+					print 'TRY CLOSEPEERSESSION'
+					print 'SESSION ID'
+					print sessionId
+					logging.info(webRtcManager()._connectedPeers)
+					peer = webRtcManager()._connectedPeers[sessionId]
+				except KeyError:
+					webRtcManager()._logger.warning('Session [%s] for peer not found' % sessionId)
+					peer = None
+
+				if peer:
+					print 'PEER'
+					peer.streamingPlugin.send_message({'request':'destroy'})
+					peer.close()
+					del webRtcManager()._connectedPeers[sessionId]
+
+				if len(webRtcManager()._connectedPeers.keys()) == 0:
+					print 'LAST SESSION'
+					#last session
+					webRtcManager().stopGStreamer()
+					webRtcManager().stopJanus()

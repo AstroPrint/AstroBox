@@ -10,11 +10,12 @@ def cameraManager():
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
 			from astroprint.camera.gstreamer import GStreamerManager
+			print 'CREA NUEVO'
 			_instance = GStreamerManager()
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
-
+	print 'RETURN INSTANCE'
 	return _instance
 
 import threading

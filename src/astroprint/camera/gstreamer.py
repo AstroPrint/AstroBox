@@ -21,6 +21,7 @@ gst.init(None)
 
 class GStreamerManager(CameraManager):
     def __init__(self):
+	self.gstreamerVideo = None
         self._logger = logging.getLogger(__name__)
         super(GStreamerManager, self).__init__()
 
@@ -30,7 +31,10 @@ class GStreamerManager(CameraManager):
 	    print self.videoType
 	    print self.videoSize
             print self.videoFramerate
-            self.gstreamerVideo = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
+            
+	    if self.gstreamerVideo is None:
+		self.gstreamerVideo  = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
+
 	    print 'END OPEN CAMERA'
 
         except Exception, error:
@@ -45,7 +49,13 @@ class GStreamerManager(CameraManager):
     def start_video_stream(self):
 	print 'START_VIDEO_STREAM'
 	print self.gstreamerVideo
-        return self.gstreamerVideo.play_video()
+	print 'IS VIDEO STREAMING?'
+	print self.isVideoStreaming()
+	print self.getVideoStreamingState()
+	if not self.isVideoStreaming():
+	        return self.gstreamerVideo.play_video()
+	else:
+		return True
 
     def stop_video_stream(self):
         return self.gstreamerVideo.stop_video()
@@ -68,6 +78,12 @@ class GStreamerManager(CameraManager):
 
     def isCameraAvailable(self):
         return self.gstreamerVideo is not None
+
+    def isVideoStreaming(self):
+	return self.gstreamerVideo.streamProcessState == 'PLAYING'
+
+    def getVideoStreamingState(self):
+	return self.gstreamerVideo.streamProcessState
 
 class GStreamer(object):
     
@@ -142,12 +158,11 @@ class GStreamer(object):
 
                     
         except Exception, error:
-            
+            print 'INIT ERROR'            
             self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
             self.reset_pipeline_gstreamer_state()
-            print 'INIT ERROR'
             raise error
         
         
@@ -169,11 +184,11 @@ class GStreamer(object):
 
             ###
             #CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
-            self.video_logo.set_property('offset-x',int(self.size[0])-160)
-            self.video_logo.set_property('offset-y',int(self.size[1])-30)
-            camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
-            self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
-            self.src_caps.set_property("caps", camera1caps)
+            #self.video_logo.set_property('offset-x',int(self.size[0])-160)
+            #self.video_logo.set_property('offset-y',int(self.size[1])-30)
+            #camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+            #self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
+            #self.src_caps.set_property("caps", camera1caps)
             ###
 
             ###
@@ -190,37 +205,38 @@ class GStreamer(object):
             self.pipeline.set_property('name','tee-pipeline')
             #SOURCE, CONVERSIONS AND OUTPUTS (QUEUES) HAVE TO BE
             #ADDED TO PIPELINE
-            self.pipeline.add(self.video_source)
-            self.pipeline.add(self.video_logo)
-            self.pipeline.add(self.src_caps)
-            self.pipeline.add(self.tee)
+            #self.pipeline.add(self.video_source)
+            #self.pipeline.add(self.video_logo)
+            #self.pipeline.add(self.src_caps)
+            #self.pipeline.add(self.tee)
             ###
            
             ###
             #LINKS MAKE A GSTREAMER LINE, LIKE AN IMAGINE TRAIN
             #WICH WAGONS ARE LINKED IN LINE OR QUEUE
             ###
-            self.video_source.link(self.video_logo)
-            self.video_logo.link(self.src_caps)
-            self.src_caps.link(self.tee)
+            #self.video_source.link(self.video_logo)
+            #self.video_logo.link(self.src_caps)
+            #self.src_caps.link(self.tee)
             ###
             
             ###
             #OBJECTS FOR GETTING IMAGES FROM VIDEO SOURCE IN BINARY,
             #USED FOR GET PHOTOS
             ###
-            self.queuebin = None
-            self.tee_video_pad_bin = None        
-            self.queue_videobin_pad = None
+            #self.queuebin = None
+            #self.tee_video_pad_bin = None        
+            #self.queue_videobin_pad = None
             ###
             
             #STREAM DEFAULT STATE
             self.streamProcessState = 'PAUSED'
-            
+	    print 'PAUSA Y DEVUELVE'            
+
             return True
         
         except Exception, error:
-            
+            print 'ERROR IN RESET'
             self._logger.error("Error resetting GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
@@ -254,7 +270,7 @@ class GStreamer(object):
             
             ###
             #MODE FOR BROADCASTING VIDEO
-            udpsinkout = gst.ElementFactory.make('udpsink','appsink')
+            udpsinkout = gst.ElementFactory.make('udpsink','udpsinkvideo')
             udpsinkout.set_property('host','127.0.0.1')
             ###
     
@@ -297,8 +313,15 @@ class GStreamer(object):
             
             ###
             #QUEUE FOR TAKING PHOTOS    
-            self.queuebin = gst.ElementFactory.make('queue','queuebin')
+            #self.queuebin = gst.ElementFactory.make('queue','queuebin')
             ###
+
+
+            self.pipeline.add(self.video_source)
+            self.pipeline.add(self.video_logo)
+            self.pipeline.add(self.src_caps)
+            self.pipeline.add(self.tee)
+
             
             ###
             #ADDING VIDEO ELEMENTS TO PIPELINE
@@ -311,16 +334,20 @@ class GStreamer(object):
             self.pipeline.add(videortppay)
             self.pipeline.add(udpsinkout)
             #ADDING PHOTO ELEMENTS TO PIPELINE
-            self.pipeline.add(self.queuebin)
-            self.pipeline.add(self.photo_logo)
-            self.pipeline.add(self.photo_text)
-            self.pipeline.add(self.videoscalejpeg)
-            self.pipeline.add(self.jpeg_caps)
-            self.pipeline.add(self.jpegenc)
+            #self.pipeline.add(self.queuebin)
+            #self.pipeline.add(self.photo_logo)
+            #self.pipeline.add(self.photo_text)
+            #self.pipeline.add(self.videoscalejpeg)
+            #self.pipeline.add(self.jpeg_caps)
+            #self.pipeline.add(self.jpegenc)
             ####
             
             ###
             #LINKING VIDEO ELEMENTS
+            self.video_source.link(self.video_logo)
+            self.video_logo.link(self.src_caps)
+            self.src_caps.link(self.tee)
+
             queueraw.link(encode)
             
             if self.videotype == 'h264':
@@ -331,9 +358,9 @@ class GStreamer(object):
                 
             videortppay.link(udpsinkout)
             #LINKING PHOTO ELEMENTS
-            self.queuebin.link(self.photo_logo)
-            self.photo_logo.link(self.photo_text)
-            self.photo_text.link(self.jpegenc)
+            #self.queuebin.link(self.photo_logo)
+            #self.photo_logo.link(self.photo_text)
+            #self.photo_text.link(self.jpegenc)
             #TEE PADDING MANAGING
             ##TEE SOURCE H264
             tee_video_pad_video = self.tee.get_request_pad("src_%u")
@@ -344,11 +371,11 @@ class GStreamer(object):
             ##VIDEO SINK QUEUE
             queue_video_pad = queueraw.get_static_pad("sink")
             ##PHOTO SINK QUEUE
-            self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
+            #self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
     
             #TEE PAD LINK
             ##VIDEO PADDING        
-            gst.Pad.link(tee_video_pad_video,queue_video_pad)
+            print gst.Pad.link(tee_video_pad_video,queue_video_pad)
               
             #START PLAYING THE PIPELINE
             self.streamProcessState = 'PLAYING'
