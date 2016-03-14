@@ -152,10 +152,10 @@ var CameraView = Backbone.View.extend({
 												var body = { "request": "start" };
 												this.streamingPlugIn.send({"message": body, "jsep": jsep});
 											},this),
-											error: function(error) {
+											error: _.bind(function(error) {
 												console.warn("WebRTC error... " + JSON.stringify(error));
 												this.setState('error');
-											}
+											},this)
 										});
 									}
 							}, this),
@@ -170,7 +170,9 @@ var CameraView = Backbone.View.extend({
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
                                 console.log('PLAY');
                                 window.setTimeout(function(){
+					console.log('timeout');
                                 	if(!isPlaying){
+						console.log('stop Janus caused by timeout');
                                 		this.stopStreaming();
                                 	}
                                 },40000);
