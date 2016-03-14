@@ -19,11 +19,6 @@ from astroprint.webrtc import webRtcManager
 def connectionState():
 	pm = printerManager()
 
-	camManager = webRtcManager()
-	print 'CONNECTION API'
-	camManager.stopGStreamer()
-	camManager.stopJanus()
-
 	state, port, baudrate = pm.getCurrentConnection()
 	current = {
 		"state": state,
@@ -44,6 +39,11 @@ def connectionCommand():
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response
+
+	camManager = webRtcManager()
+	print 'CONNECTION API'
+	camManager.stopGStreamer()
+	camManager.stopJanus()
 
 	pm = printerManager()
 
