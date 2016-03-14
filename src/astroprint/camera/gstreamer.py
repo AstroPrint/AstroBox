@@ -21,44 +21,28 @@ gst.init(None)
 
 class GStreamerManager(CameraManager):
     def __init__(self):
-	self.gstreamerVideo = None
+        self.gstreamerVideo = None
         self._logger = logging.getLogger(__name__)
         super(GStreamerManager, self).__init__()
 
     def open_camera(self):
         try:
-            print 'OPEN CAMERA'
-	    print self.videoType
-	    print self.videoSize
-            print self.videoFramerate
-            
-	    if self.gstreamerVideo is None:
-		self.gstreamerVideo  = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
-
-	    print 'END OPEN CAMERA'
+            if self.gstreamerVideo is None:
+                self.gstreamerVideo  = GStreamer(0,self.videoType, self.videoSize, self.videoFramerate)
 
         except Exception, error:
-	    print 'EXCEPTIONED'
             self._logger.error(error)
             self.gstreamerVideo = None
-
-        print 'TO RETURN ' + str(self.gstreamerVideo is not None)
 
         return self.gstreamerVideo is not None
 
     def start_video_stream(self):
-	print 'START_VIDEO_STREAM'
-	print self.gstreamerVideo
-	print 'IS VIDEO STREAMING?'
-	print self.isVideoStreaming()
-	print self.getVideoStreamingState()
-	if not self.isVideoStreaming():
-	        return self.gstreamerVideo.play_video()
-	else:
-		return True
+        if not self.isVideoStreaming():
+            return self.gstreamerVideo.play_video()
+        else:
+            return True
 
     def stop_video_stream(self):
-        print 'STOP VIDEO STREAM'
         return self.gstreamerVideo.stop_video()
 
     def settingsChanged(self, cameraSettings):
@@ -81,10 +65,10 @@ class GStreamerManager(CameraManager):
         return self.gstreamerVideo is not None
 
     def isVideoStreaming(self):
-	return self.gstreamerVideo.streamProcessState == 'PLAYING'
+        return self.gstreamerVideo.streamProcessState == 'PLAYING'
 
     def getVideoStreamingState(self):
-	return self.gstreamerVideo.streamProcessState
+        return self.gstreamerVideo.streamProcessState
 
 class GStreamer(object):
     
@@ -93,26 +77,17 @@ class GStreamer(object):
     #THE PRINTER'S CAMERA: GET PHOTO AND VIDEO FROM IT
     def __init__(self, device, videotype, size, framerate):
         
-	print 'IN INIT'
-	print videotype
-	print size
-	print framerate
-
         self._logger = logging.getLogger(__name__)
 
         try:
-            print 'INIT'
 
             #VIDEO SOURCE DESCRIPTION
             ##DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
             ##(v4l2src: VIDEO FOR LINUX TO SOURCE)
             self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
  
-            print 'FONT VIDEO SELECTED ' + "device", '/dev/video'+str(device)
-
             self.video_source.set_property("device", '/dev/video'+str(device))
  
-
             #ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
             self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay','logo_overlay')
             self.video_logo.set_property('location','/AstroBox/src/astroprint/static/img/astroprint_logo.png')
@@ -152,14 +127,9 @@ class GStreamer(object):
             self.jpegenc = gst.ElementFactory.make('jpegenc','jpegenc')
             #####################
             
-            print 'CALL RESET'
             self.reset_pipeline_gstreamer_state()
-            
-            print 'END INIT'
-
-                    
+                                
         except Exception, error:
-            print 'INIT ERROR'            
             self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
@@ -178,18 +148,13 @@ class GStreamer(object):
             self.framerate = settings().get(["camera", "framerate"])
             ###
 
-	    print 'IN RESET'
-            print self.videotype
-  	    print self.size
-     	    print self.framerate
-
             ###
             #CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
-            #self.video_logo.set_property('offset-x',int(self.size[0])-160)
-            #self.video_logo.set_property('offset-y',int(self.size[1])-30)
-            #camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
-            #self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
-            #self.src_caps.set_property("caps", camera1caps)
+            self.video_logo.set_property('offset-x',int(self.size[0])-160)
+            self.video_logo.set_property('offset-y',int(self.size[1])-30)
+            camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+            self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
+            self.src_caps.set_property("caps", camera1caps)
             ###
 
             ###
@@ -206,38 +171,36 @@ class GStreamer(object):
             self.pipeline.set_property('name','tee-pipeline')
             #SOURCE, CONVERSIONS AND OUTPUTS (QUEUES) HAVE TO BE
             #ADDED TO PIPELINE
-            #self.pipeline.add(self.video_source)
-            #self.pipeline.add(self.video_logo)
-            #self.pipeline.add(self.src_caps)
-            #self.pipeline.add(self.tee)
+            self.pipeline.add(self.video_source)
+            self.pipeline.add(self.video_logo)
+            self.pipeline.add(self.src_caps)
+            self.pipeline.add(self.tee)
             ###
            
             ###
             #LINKS MAKE A GSTREAMER LINE, LIKE AN IMAGINE TRAIN
             #WICH WAGONS ARE LINKED IN LINE OR QUEUE
             ###
-            #self.video_source.link(self.video_logo)
-            #self.video_logo.link(self.src_caps)
-            #self.src_caps.link(self.tee)
+            self.video_source.link(self.video_logo)
+            self.video_logo.link(self.src_caps)
+            self.src_caps.link(self.tee)
             ###
             
             ###
             #OBJECTS FOR GETTING IMAGES FROM VIDEO SOURCE IN BINARY,
             #USED FOR GET PHOTOS
             ###
-            #self.queuebin = None
-            #self.tee_video_pad_bin = None        
-            #self.queue_videobin_pad = None
+            self.queuebin = None
+            self.tee_video_pad_bin = None        
+            self.queue_videobin_pad = None
             ###
             
             #STREAM DEFAULT STATE
             self.streamProcessState = 'PAUSED'
-	    print 'PAUSA Y DEVUELVE'            
 
             return True
         
         except Exception, error:
-            print 'ERROR IN RESET'
             self._logger.error("Error resetting GStreamer's video pipeline: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
@@ -247,7 +210,6 @@ class GStreamer(object):
     def play_video(self):
         #SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
         try:
-            print 'PLAY VIDEO'
             ###
             #GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS          
             self.videotype = settings().get(["camera", "encoding"])
@@ -276,7 +238,6 @@ class GStreamer(object):
             ###
     
             if self.videotype == 'h264':
-                print 'H264'
                 ###
                 #H264 VIDEO MODE SETUP
                 ###
@@ -294,7 +255,6 @@ class GStreamer(object):
                 ###
                 
             elif self.videotype == 'vp8':
-                print 'VP8'
                 ###
                 #VP8 VIDEO MODE STUP
                 ###
@@ -314,15 +274,8 @@ class GStreamer(object):
             
             ###
             #QUEUE FOR TAKING PHOTOS    
-            #self.queuebin = gst.ElementFactory.make('queue','queuebin')
+            self.queuebin = gst.ElementFactory.make('queue','queuebin')
             ###
-
-
-            self.pipeline.add(self.video_source)
-            self.pipeline.add(self.video_logo)
-            self.pipeline.add(self.src_caps)
-            self.pipeline.add(self.tee)
-
             
             ###
             #ADDING VIDEO ELEMENTS TO PIPELINE
@@ -335,12 +288,12 @@ class GStreamer(object):
             self.pipeline.add(videortppay)
             self.pipeline.add(udpsinkout)
             #ADDING PHOTO ELEMENTS TO PIPELINE
-            #self.pipeline.add(self.queuebin)
-            #self.pipeline.add(self.photo_logo)
-            #self.pipeline.add(self.photo_text)
-            #self.pipeline.add(self.videoscalejpeg)
-            #self.pipeline.add(self.jpeg_caps)
-            #self.pipeline.add(self.jpegenc)
+            self.pipeline.add(self.queuebin)
+            self.pipeline.add(self.photo_logo)
+            self.pipeline.add(self.photo_text)
+            self.pipeline.add(self.videoscalejpeg)
+            self.pipeline.add(self.jpeg_caps)
+            self.pipeline.add(self.jpegenc)
             ####
             
             ###
@@ -359,29 +312,28 @@ class GStreamer(object):
                 
             videortppay.link(udpsinkout)
             #LINKING PHOTO ELEMENTS
-            #self.queuebin.link(self.photo_logo)
-            #self.photo_logo.link(self.photo_text)
-            #self.photo_text.link(self.jpegenc)
+            self.queuebin.link(self.photo_logo)
+            self.photo_logo.link(self.photo_text)
+            self.photo_text.link(self.jpegenc)
             #TEE PADDING MANAGING
             ##TEE SOURCE H264
             tee_video_pad_video = self.tee.get_request_pad("src_%u")
             ##TEE SOURCE PHOTO
-            #self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
+            self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
             
             #TEE SINKING MANAGING
             ##VIDEO SINK QUEUE
             queue_video_pad = queueraw.get_static_pad("sink")
             ##PHOTO SINK QUEUE
-            #self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
+            self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
     
             #TEE PAD LINK
             ##VIDEO PADDING        
-            print gst.Pad.link(tee_video_pad_video,queue_video_pad)
+            gst.Pad.link(tee_video_pad_video,queue_video_pad)
               
             #START PLAYING THE PIPELINE
             self.streamProcessState = 'PLAYING'
             self.pipeline.set_state(gst.State.PLAYING)
-            print 'PLAY VIDEO END'
             
             return True
             
@@ -404,7 +356,6 @@ class GStreamer(object):
                 self.queuebin = None
                 self.pipeline.set_state(gst.State.PAUSED)
                 self.pipeline.set_state(gst.State.NULL)
-                print 'STOP VIDEO'
                 self.reset_pipeline_gstreamer_state()
             
             return True
@@ -414,7 +365,6 @@ class GStreamer(object):
             self._logger.error("Error stopping video with GStreamer: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
-            print 'EXCEPTION IN STOP_VIDEO'
             self.reset_pipeline_gstreamer_state()
             
             return False
@@ -474,7 +424,6 @@ class GStreamer(object):
                 ###
                 ###
                 ##TAKING PHOTO
-                import time
                 #WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRST IMAGE TAKEN
                 while not os.path.isfile(tempImage):
                     time.sleep(0.1)
@@ -572,8 +521,6 @@ class GStreamer(object):
                 pipeline.set_state(gst.State.PLAYING)
 
                 #TAKING PHOTO
-                import time
-                
                 while not os.path.isfile(tempImage):
                     time.sleep(0.1)
                 time.sleep(1)
@@ -591,7 +538,6 @@ class GStreamer(object):
             self._logger.error("Error taking photo with GStreamer: %s" % str(error))
             self.pipeline.set_state(gst.State.PAUSED)
             self.pipeline.set_state(gst.State.NULL)
-            print 'TAKE PHOTO AND RETURN EXCEPTION RESET'
             self.reset_pipeline_gstreamer_state()
             
             return None

@@ -168,17 +168,15 @@ var CameraView = Backbone.View.extend({
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
-                                console.log('PLAY');
                                 window.setTimeout(function(){
-					console.log('timeout');
+                                	console.log('Timeout!!!');
                                 	if(!isPlaying){
-						console.log('stop Janus caused by timeout');
+                                		console.log('Stop Janus caused by timeout!!!');
                                 		this.stopStreaming();
                                 	}
                                 },40000);
                                 var isPlaying = false;
                                 $("#remotevideo").bind("playing",_.bind(function () {
-                                	console.log('STATE STREAMING');
                                 	this.setState('streaming');
                                 	isPlaying = true;
                                 },this));
@@ -198,7 +196,6 @@ var CameraView = Backbone.View.extend({
 					}
 				},
 				destroyed: _.bind(this.initJanus, this)
-				////
 			});
 		}
   	},this))	
@@ -209,29 +206,10 @@ var CameraView = Backbone.View.extend({
 	}, this));
   },
   stopStreaming: function(e){
-	  console.log('stopStreaming');
           console.log(this.localSessionId);
-	  if (this.localSessionId) {
-		 console.log('ENTRA PARA CERRAR JANUS'); 
+	  if (this.localSessionId) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
-		//this.streamingPlugIn.hangup();
-
-                 /*$.ajax({
-			//url: API_BASEURL + "camera/stop-janus",
-			url: API_BASEURL + "camera/close-peer-session",
-			type: "POST",
-			dataType: "json",
-			contentType: "application/json; charset=UTF-8",
-			data: JSON.stringify({
-				sessionId: this.localSessionId
-			})
-		  })
-		  	.done(_.bind(function(){
-		  		this.setState('ready');
-		  	},this))
-		  	.always(_.bind(this.initJanus, this))
-		  	.fail(_.bind(function(){this.setState('error');},this))*/
       }	
 	
   }

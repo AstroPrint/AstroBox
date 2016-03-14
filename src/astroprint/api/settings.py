@@ -154,10 +154,12 @@ def cameraStreamingeSettings():
 
 			s.save()
 
-
+			##When a change in settup is saved, the camera must be shouted down
+			##(Janus included, of course)
 			camManager = webRtcManager()
 			camManager.stopGStreamer()
 			camManager.stopJanus()
+			##
 
 			cameraManager().settingsChanged({
 				'size': s.get(['camera', 'size']),

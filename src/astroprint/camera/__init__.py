@@ -10,12 +10,11 @@ def cameraManager():
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
 			from astroprint.camera.gstreamer import GStreamerManager
-			print 'CREA NUEVO'
 			_instance = GStreamerManager()
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
-	print 'RETURN INSTANCE'
+			
 	return _instance
 
 import threading
@@ -75,12 +74,10 @@ class CameraManager(object):
 		self.timelapseWorker = None
 		self.timelapseInfo = None
 
-		print 'SETUPPING SETTINGS'
-
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
-      		self.open_camera()
+		self.open_camera()
 		
 
 	def shutdown(self):
