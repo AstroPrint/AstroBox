@@ -1,13 +1,14 @@
 <script type="text/template" id="camera-watch-page-template">
+
 	<div class="video">
 		<div class="row large-collapse">
 			<div class="small-12 columns title-heading">
 				<h1 class="bold">Camera</h1>
 			</div>
-		
+
 			<div class="camera-view">
 				<div class="row video-container">
-					<div class="small-12 columns">
+					<div class="small-12 columns text-center">
 						<div class="video-off">
 							<i class="icon-camera"></i>
 							<h3 class="bold">Camera Stream Off</h3>
@@ -18,7 +19,7 @@
 						</div>
 					</div>
 					<div id="videoScreen" class="video-on">
-						<video id="remotevideo" class="cover-img-cont" autoplay="" width="968">    
+						<video id="remotevideo" class="cover-img-cont" autoplay="" width="968">
 							You browser doesn't support element <code>video</code>.
 						</video>
 					</div>
@@ -34,10 +35,42 @@
 			</div>
 		</div>
 	</div>
-	<div class="nowebrtc">
-		WebRTC is not supported on this browser
+	<div class="row nowebrtc alert-box radius">
+		<div class="large-3 large-centered columns show-for-large-up">
+			<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
+		</div>
+		<div class="small-12 columns text-center">
+			<b>Oops!</b>, Looks like Streaming Video is incompatible with your browser. Download one of these great browsers and you'll be streaming video of your 3D printer in no time!
+			<ul class="small-block-grid-1 large-block-grid-3 browser-links">
+				<li>
+					<a href="https://www.google.com/chrome/" class="bold" target="_blank">
+						<img src="static/img/chrome-icon.png"/><br>
+						<b>Chrome</b><br>
+					</a>
+				</li>
+				<li>
+					<a href="https://www.mozilla.org/en-US/firefox/new/" class="bold" target="_blank">
+						<img src="static/img/firefox-icon.png"/><br>
+						<b>Firefox</b><br>
+					</a>
+				</li>
+				<li>
+					<a href="http://www.opera.com/" class="bold" target="_blank">
+						<img src="static/img/opera-icon.png"/><br>
+						<b>Opera</b><br>
+					</a>
+				</li>
+			</ul>
+		</div>
+
 	</div>
-	<div class="error">
-		Error with streaming
+	<div class="row error alert-box radius">
+		<div class="small-12 large-9 columns">
+			<b>Oops!</b>, There is currently an error with Streaming Video.<br>
+			 <p><b>A few things to try:</b> Check the connection from your AstroBox to your camera, reboot your AstroBox, or return to your <a href="#" ><b>Dashboard</b></a> and try again later.</p>
+		</div>
+		<div class="large-3 columns show-for-large-up">
+			<img src="static/img/sadmonkey-2.png"/>
+		</div>
 	</div>
 </script>
