@@ -20,6 +20,7 @@ def connectionState():
 	pm = printerManager()
 
 	camManager = webRtcManager()
+	print 'CONNECTION API'
 	camManager.stopGStreamer()
 	camManager.stopJanus()
 

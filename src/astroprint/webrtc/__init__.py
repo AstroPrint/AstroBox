@@ -53,6 +53,7 @@ class WebRtc(object):
 			else:
 				#something went wrong, no session started. Do we still need Janus up?
 				if len(self._connectedPeers.keys()) == 0:
+					print '1'
 					self.stopGStreamer()
 					self.stopJanus()
 
@@ -462,6 +463,7 @@ class LocalConnectionPeer(object):
 			else:
 				#something went wrong, no session started. Do we still need Janus up?
 				if len(webRtcManager()._connectedPeers.keys()) == 0:
+					print '2'
 					self.stopGStreamer()
 					self.stopJanus()
 
