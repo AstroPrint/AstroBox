@@ -183,7 +183,10 @@ class NetworkManagerEvents(threading.Thread):
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
 				self._activatingConnection = None
-				self._setOnline(False)
+
+				#check the global connection status before setting it to false
+				if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+					self._setOnline(False)
 
 	@idle_add_decorator
 	def activeDeviceConfigChanged(self, properties):
