@@ -144,9 +144,10 @@ class SoftwareUpdater(threading.Thread):
 				pkg = apt.debfile.DebPackage(releasePath)
 				self._progressCb(START_SOURCES_UPDATE, "Checking software package. Please be patient..." )
 				pkg.check()
+				
+				cache = apt.Cache()
+				cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
 				if pkg.missing_deps:
-					cache = apt.Cache()
-					cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
 					cache.open()
 
 					with cache.actiongroup():

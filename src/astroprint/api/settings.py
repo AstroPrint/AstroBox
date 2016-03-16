@@ -13,7 +13,7 @@ from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
-from octoprint.server import restricted_access, admin_permission, softwareManager
+from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
 
 @api.route("/settings/printer", methods=["GET", "POST"])
@@ -186,6 +186,7 @@ def getAdvancedSoftwareSettings():
 	logsDir = s.getBaseFolder("logs")
 
 	return jsonify(
+		apiKey= UI_API_KEY,
 		serialActivated= s.getBoolean(['serial', 'log']), 
 		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
 	)

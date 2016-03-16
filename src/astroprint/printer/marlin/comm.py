@@ -644,6 +644,9 @@ class MachineCom(object):
 		self._heatingUp = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
 
+		if self._state == self.STATE_CONNECTING:
+			self._sendCommand("M105")
+
 		while True:
 			try:
 				line = self._readline()
@@ -872,6 +875,7 @@ class MachineCom(object):
 					if (line == "" or "wait" in line) and startSeen:
 						self._sendCommand("M105")
 					elif "start" in line:
+						timeout = getNewTimeout("communication")
 						startSeen = True
 					elif "ok" in line and startSeen:
 						self._changeState(self.STATE_OPERATIONAL)
