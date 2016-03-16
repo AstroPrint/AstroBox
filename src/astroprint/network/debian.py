@@ -156,15 +156,25 @@ class NetworkManagerEvents(threading.Thread):
 					self._monitorActivatingListener = None
 
 				d = self.getActiveConnectionDevice()
-				ap = d.SpecificDevice().ActiveAccessPoint
-				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-					'status': 'connected', 
-					'info': {
-						'signal': ord(ap.Strength),
-						'name': ap.Ssid,
-						'ip': d.Ip4Address
-					}
-				})
+				if d.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+						'status': 'connected', 
+						'info': {
+							'type': 'ethernet',
+							'ip': d.Ip4Address
+						}
+					})					
+				else:
+					ap = d.SpecificDevice().ActiveAccessPoint
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+						'status': 'connected', 
+						'info': {
+							'type': 'wifi',
+							'signal': ord(ap.Strength),
+							'name': ap.Ssid,
+							'ip': d.Ip4Address
+						}
+					})
 
 				self._activatingConnection = None
 				self._setOnline(True)
@@ -183,7 +193,10 @@ class NetworkManagerEvents(threading.Thread):
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
 				self._activatingConnection = None
-				self._setOnline(False)
+
+				#check the global connection status before setting it to false
+				if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+					self._setOnline(False)
 
 	@idle_add_decorator
 	def activeDeviceConfigChanged(self, properties):
