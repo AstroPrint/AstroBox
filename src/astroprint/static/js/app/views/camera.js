@@ -54,34 +54,25 @@ var CameraView = Backbone.View.extend({
 				data: ''
 			})
 	)
-	.done(_.bind(function(settings, session){
-		console.log('-2');
-		if(!this.$('#remotevideo').is(':visible')) {
-			console.log('-1');
+	.done(_.bind(function(settings, isJanusRunning){
+		if(!this.$('#remotevideo').is(':visible')) {			
 			// Create session
 			var janus = new Janus({
 				server: this.serverUrl,
 				apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
 				success: _.bind(function() {
-					console.log('0');
 					$.ajax({
 						url: API_BASEURL + "camera/start-peer-session",
 						type: "POST",
 						dataType: "json",
 						contentType: "application/json; charset=UTF-8",
-						data: JSON.stringify({
-							clientId: new String(Math.random()*10000000000000000000)
-						})
-					}).done(_.bind(function(response){
-						console.log('1');
-						this.localSessionId = response.sessionId;},this));
+						data: JSON.stringify()
+					}).done(_.bind(function(response) {
+						this.localSessionId = response.sessionId;
 
-					
-			                        var streamingPlugIn = null;
-						console.log('VERAS....')
-						console.log(settings.encoding);
+			            var streamingPlugIn = null;
 						var selectedStream = settings[0].encoding == 'h264' ? 1 : 2;
-						console.log(selectedStream);
+						console.log('Starting '+settings[0].encoding);
 						var sizeVideo = settings.size;
 
 						//Attach to streaming plugin
@@ -89,13 +80,13 @@ var CameraView = Backbone.View.extend({
 							plugin: "janus.plugin.streaming",
 							success: _.bind(function(pluginHandle) {
 								this.streamingPlugIn = pluginHandle;
-								console.log('streamingPlugIn');
-								console.log(this.streamingPlugIn);
-								console.log(this);
+								console.log('Janus Streaming PlugIn Created');
 								
 								this.streamingPlugIn.oncleanup = _.bind(function(){
+									var body = { "request": "destroy" };
+				                	this.streamingPlugIn.send({"message": body});
+
 									$.ajax({
-										//url: API_BASEURL + "camera/stop-janus",
 					                    url: API_BASEURL + "camera/close-peer-session",
 					                    type: "POST",
 					                    dataType: "json",
@@ -120,11 +111,8 @@ var CameraView = Backbone.View.extend({
 								noty({text: "Error communicating with the WebRTC system.", timeout: 3000});
 							},
 							onmessage: _.bind(function(msg, jsep) {
-								console.log(this);
-								console.log(" ::: Got a message :::");
-								console.log(JSON.stringify(msg));
-								console.log('streamingPlugIn on attach');
-								console.log(this.streamingPlugIn);
+								//console.log(" ::: Got a message :::");
+								//console.log(JSON.stringify(msg));
 								var result = msg["result"];
 									if(result !== null && result !== undefined) {
 										if(result["status"] !== undefined && result["status"] !== null) {
@@ -139,16 +127,12 @@ var CameraView = Backbone.View.extend({
 										return;
 									}
 									if(jsep !== undefined && jsep !== null) {
-										console.log("Handling SDP as well...");
-										console.log(jsep);
 										//Answer
 										this.streamingPlugIn.createAnswer(
 										{
 											jsep: jsep,
 											media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
 											success: _.bind(function(jsep) {
-												console.log("Got SDP!");
-												console.log(jsep);
 												var body = { "request": "start" };
 												this.streamingPlugIn.send({"message": body, "jsep": jsep});
 											},this),
@@ -160,32 +144,32 @@ var CameraView = Backbone.View.extend({
 									}
 							}, this),
 							onremotestream: _.bind(function(stream) {
-								console.log(" ::: Got a remote stream :::");
-								console.log(JSON.stringify(stream));
 								//Starts GStreamer
 								$.ajax({
 									//url: API_BASEURL + "camera/stop-janus",
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
-                                window.setTimeout(function(){
-                                	console.log('Timeout!!!');
-                                	if(!isPlaying){
-                                		console.log('Stop Janus caused by timeout!!!');
-                                		this.stopStreaming();
-                                	}
-                                },40000);
-                                var isPlaying = false;
-                                $("#remotevideo").bind("playing",_.bind(function () {
-                                	this.setState('streaming');
-                                	isPlaying = true;
-                                },this));
-                                attachMediaStream($('#remotevideo').get(0), stream);
+			                    window.setTimeout(function(){
+			                    	console.log('Timeout!!!');
+			                    	if(!isPlaying){
+			                    		console.log('Stop Janus caused by timeout!!!');
+			                    		this.stopStreaming();
+			                    	}
+			                    },40000);
+			                    var isPlaying = false;
+			                    $("#remotevideo").bind("playing",_.bind(function () {
+			                    	this.setState('streaming');
+			                    	isPlaying = true;
+			                    },this));
+			                    attachMediaStream($('#remotevideo').get(0), stream);
 							},this),
 							oncleanup: function() {
 								Janus.log(" ::: Got a cleanup notification :::");
 							}
 						});
+						},this)
+					);
 				}, this),
 				error: function(error) {
 					if(!$('#camera-view').hasClass('ready')){
@@ -197,6 +181,8 @@ var CameraView = Backbone.View.extend({
 				},
 				destroyed: _.bind(this.initJanus, this)
 			});
+
+
 		}
   	},this))	
 	.fail(_.bind(function(error){
@@ -206,7 +192,7 @@ var CameraView = Backbone.View.extend({
 	}, this));
   },
   stopStreaming: function(e){
-          console.log(this.localSessionId);
+      console.log(this.localSessionId);
 	  if (this.localSessionId) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});

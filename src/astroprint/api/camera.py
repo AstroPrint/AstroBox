@@ -8,7 +8,7 @@ from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 
 from astroprint.camera import cameraManager
-from astroprint.webrtc import LocalConnectionPeer, webRtcManager
+from astroprint.webrtc import webRtcManager
 
 @api.route("/camera/timelapse", methods=["POST"])
 @restricted_access
@@ -34,10 +34,8 @@ def update_timelapse():
 @restricted_access
 def init_janus():
 	#Start session in Janus
-	sessionId = LocalConnectionPeer().startJanusSec()
-
-	if sessionId:
-		return jsonify(sesionId= sessionId)
+	if webRtcManager().ensureJanusRunning():
+		return jsonify(SUCCESS)
 
 	abort(500)
 
@@ -46,8 +44,7 @@ def init_janus():
 @restricted_access
 def start_peer_session():
 	#Initialize the peer session
-	data = request.json
-	sessionId = LocalConnectionPeer().startPeerSession(data['clientId'])
+	sessionId = webRtcManager().startLocalSession()
 	return jsonify({"sessionId": sessionId})
 
 
@@ -56,7 +53,7 @@ def start_peer_session():
 def close_peer_session():
 	#Close peer session
 	data = request.json
-	LocalConnectionPeer().closePeerSession(data['sessionId'])
+	webRtcManager().closeLocalSession(data['sessionId'])
 	return jsonify(SUCCESS)
 
 
@@ -64,6 +61,6 @@ def close_peer_session():
 @restricted_access
 def start_streaming():
 	#open_camera
-	LocalConnectionPeer().startGstreamer()
+	webRtcManager().startGStreamer()
 	
 	return jsonify(SUCCESS) 

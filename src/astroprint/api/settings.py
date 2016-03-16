@@ -156,9 +156,8 @@ def cameraStreamingeSettings():
 
 			##When a change in settup is saved, the camera must be shouted down
 			##(Janus included, of course)
-			camManager = webRtcManager()
-			camManager.stopGStreamer()
-			camManager.stopJanus()
+			cameraManager.stop_video_stream()
+			webRtcManager().stopJanus()
 			##
 
 			cameraManager().settingsChanged({
@@ -166,12 +165,6 @@ def cameraStreamingeSettings():
 				'encoding': s.get(['camera', 'encoding']),
 				'framerate': s.get(['camera', 'framerate'])
 			})
-
-	print 'SETTINGS'
-
-	print s.get(['camera', 'encoding']) 
-	print s.get(['camera', 'size'])
-	print s.get(['camera', 'framerate'])
 
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']), 
