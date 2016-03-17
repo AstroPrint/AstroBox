@@ -196,10 +196,31 @@ class WebRtc(object):
 			return False
 
 		if self._JanusProcess:
-			while True:
-				if 'HTTP/Janus sessions watchdog started' in self._JanusProcess.stdout.readline():
-					time.sleep(3)
-					break
+			from requests import Session
+
+			session = Session()
+			response = None
+
+			tryingCounter = 0
+			while response is None:
+				try:
+					response = session.post(
+					    url='http://127.0.0.1:8088',
+					    data={
+						 "message":{ 
+						 	"request": 'info',
+         					 	"transaction": 'ready'
+						  	}
+					    } 
+					)
+					
+				except Exception, error:
+					#self._logger.warn('Waiting for Janus initialization')
+					tryingCounter += 1
+					
+					if tryingCounter >= 1000:
+						self._logger.error(error)
+						return False
 			return True
 
 	def stopJanus(self):
