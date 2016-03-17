@@ -203,6 +203,8 @@ class WebRtc(object):
 
 			tryingCounter = 0
 			while response is None:
+				time.sleep(0.3)
+
 				try:
 					response = session.post(
 					    url='http://127.0.0.1:8088',
@@ -218,9 +220,10 @@ class WebRtc(object):
 					#self._logger.warn('Waiting for Janus initialization')
 					tryingCounter += 1
 					
-					if tryingCounter >= 1000:
+					if tryingCounter >= 100:
 						self._logger.error(error)
 						return False
+
 			return True
 
 	def stopJanus(self):
@@ -458,70 +461,3 @@ class ConnectionPeer(object):
 				'eventData': data
 			}
 		})
-	
-	"""def __init__(self):
-		self._logger = logging.getLogger(__name__)
-		
-	def startJanusSec(self):
-		
-		if len(webRtcManager()._connectedPeers.keys()) <= 0:
-			if webRtcManager().startJanus():
-				return 1#Janus starts
-			else:
-				return 0#Janus can not start
-		else:
-			return 2#Janus was running before it
-
-	def startGstreamer(self):
-		#Start Gstreamer
-		cam = cameraManager()
-		if cam.open_camera():
-			if not cam.start_video_stream():
-				self._logger.error('Managing Gstreamer error in WebRTC object')
-				#Janus is forced to be closed
-				webRtcManager().stopJanus()
-				return False
-			return False
-		else:
-			return True
-
-	def startPeerSession(self, clientId):
-		with webRtcManager()._peerCondition:
-
-			peer = ConnectionPeer(clientId, self)
-			sessionId = peer.start()
-			
-			if sessionId:
-				webRtcManager()._connectedPeers[sessionId] = peer
-				return sessionId
-
-			else:
-				#something went wrong, no session started. Do we still need Janus up?
-				if len(webRtcManager()._connectedPeers.keys()) == 0:
-					self.stopGStreamer()
-					self.stopJanus()
-
-				return None
-
-	def closePeerSession(self, sessionId):
-		with webRtcManager()._peerCondition:
-
-			if len(webRtcManager()._connectedPeers.keys()) > 0:
-
-				try:
-					logging.info(webRtcManager()._connectedPeers)
-					peer = webRtcManager()._connectedPeers[sessionId]
-				except KeyError:
-					webRtcManager()._logger.warning('Session [%s] for peer not found' % sessionId)
-					peer = None
-
-				if peer:
-					peer.streamingPlugin.send_message({'request':'destroy'})
-					peer.close()
-					del webRtcManager()._connectedPeers[sessionId]
-
-				if len(webRtcManager()._connectedPeers.keys()) == 0:
-					#last session
-					webRtcManager().stopGStreamer()
-					webRtcManager().stopJanus()
-	"""
