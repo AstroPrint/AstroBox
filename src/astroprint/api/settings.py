@@ -156,7 +156,7 @@ def cameraStreamingeSettings():
 
 			##When a change in settup is saved, the camera must be shouted down
 			##(Janus included, of course)
-			cameraManager.stop_video_stream()
+			cameraManager().stop_video_stream()
 			webRtcManager().stopJanus()
 			##
 
