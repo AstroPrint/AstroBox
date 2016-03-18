@@ -243,16 +243,16 @@ class WebRtc(object):
 		cameraManager().stop_video_stream()
 	
 	def sendEventToPeers(self, type, data=None):
-		
 		for key in self._connectedPeers.keys():
-			boxrouterManager().send({
-				'type': 'send_event_to_client',
-				'data': {
-					'clientId': self._connectedPeers[key].clientId,
-					'eventType': type,
-					'eventData': data
-				}
-			})
+			if self._connectedPeers[key] != 'local':
+				boxrouterManager().send({
+					'type': 'send_event_to_client',
+					'data': {
+						'clientId': self._connectedPeers[key].clientId,
+						'eventType': type,
+						'eventData': data
+					}
+				})
 			
 	def sendEventToPeer(self, type, data=None):
 		boxrouterManager().send({
