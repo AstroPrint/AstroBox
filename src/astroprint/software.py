@@ -147,7 +147,7 @@ class SoftwareUpdater(threading.Thread):
 				cache.commit()
 
 				pkg = apt.debfile.DebPackage(releasePath)
-				self._progressCb(START_SOURCES_UPDATE, "Checking software package. Please be patient..." )
+				self._progressCb(START_DEPS_UPDATE, "Checking software package. Please be patient..." )
 
 				pkg.check()
 
@@ -159,7 +159,7 @@ class SoftwareUpdater(threading.Thread):
 							self._logger.info("Marking dependency [%s] to be installed." % dep)
 							cache[dep].mark_install()
 					
-					self._progressCb(START_DEPS_UPDATE, "Installing %d dependencies. This might take a while..." % len(pkg.missing_deps))
+					self._progressCb(START_DEPS_UPDATE + 0.01, "Installing %d dependencies. This might take a while..." % len(pkg.missing_deps))
 					try:
 						cache.commit()
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
