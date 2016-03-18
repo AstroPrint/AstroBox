@@ -232,6 +232,7 @@ class WebRtc(object):
 			if self._JanusProcess is not None:
 				self._JanusProcess.kill()
 				self.sendEventToPeers('stopConnection')
+				self._connectedPeers = {}
 				return True
 		except Exception, error:
 			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))

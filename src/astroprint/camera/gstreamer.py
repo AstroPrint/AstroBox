@@ -153,7 +153,8 @@ class GStreamer(object):
 			#CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
 			self.video_logo.set_property('offset-x',int(self.size[0])-160)
 			self.video_logo.set_property('offset-y',int(self.size[1])-30)
-			camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+			#camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+			camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
 			self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
 			self.src_caps.set_property("caps", camera1caps)
 			###
