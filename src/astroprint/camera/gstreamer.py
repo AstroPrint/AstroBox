@@ -130,6 +130,9 @@ class GStreamer(object):
 			###
 			self.jpegenc = gst.ElementFactory.make('jpegenc','jpegenc')
 			#####################
+
+			self.videoconvertjpeg = gst.ElementFactory.make('videoconvert','videoconvertjpeg')
+			self.videoratejpeg = gst.ElementFactory.make('videorate','videoratejpeg')
 			
 			self.reset_pipeline_gstreamer_state()
 								
@@ -297,6 +300,8 @@ class GStreamer(object):
 			self.pipeline.add(self.videoscalejpeg)
 			self.pipeline.add(self.jpeg_caps)
 			self.pipeline.add(self.jpegenc)
+			self.pipeline.add(self.videoconvertjpeg)
+			self.pipeline.add(self.videoratejpeg)
 			####
 			
 			###
@@ -314,10 +319,6 @@ class GStreamer(object):
 				encode.link(videortppay)
 				
 			videortppay.link(udpsinkout)
-			#LINKING PHOTO ELEMENTS
-			self.queuebin.link(self.photo_logo)
-			self.photo_logo.link(self.photo_text)
-			self.photo_text.link(self.jpegenc)
 			#TEE PADDING MANAGING
 			##TEE SOURCE H264
 			tee_video_pad_video = self.tee.get_request_pad("src_%u")
@@ -398,7 +399,7 @@ class GStreamer(object):
 			#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 			#A GOOD IMAGE FROM CAMERA
 			multifilesinkphoto = gst.ElementFactory.make('filesink','appsink')
-			multifilesinkphoto.set_property('location','/dev/stdout')
+			multifilesinkphoto.set_property('location', tempImage)
 			#IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
 			if self.streamProcessState == 'PLAYING':
 				#PREPARING PHOTO
@@ -408,24 +409,35 @@ class GStreamer(object):
 					self.photo_text.set_property('text',text)
 					#LINKING PHOTO ELEMENTS (INCLUDED TEXT)
 					self.queuebin.link(self.photo_logo)
-					self.photo_logo.link(self.videoscalejpeg)
-					self.videoscalejpeg.link(self.jpeg_caps)
+					self.photo_logo.link(self.videoconvertjpeg)
+					self.videoconvertjpeg.link(self.videoratejpeg)
+
+					self.videoratejpeg.link(self.jpeg_caps)
 					self.jpeg_caps.link(self.photo_text)
-					self.photo_text.link(self.jpgegenc)
+					self.photo_text.link(self.jpegenc)
 				else:
 					#LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-					self.queuebin.link(self.videoscalejpeg)
-					self.videoscalejpeg.link(self.jpeg_caps)
+					self.queuebin.link(self.videosconvertjpeg)
+					
+					self.videoconvertjpeg.link(self.videoscalejpeg)
+					self.videoscalejpeg.link(self.videoratejpeg)
+					self.videoratejpeg.link(self.jpeg_caps)
 					self.jpeg_caps.link(self.jpegenc)
 					
 				
 				self.pipeline.add(multifilesinkphoto)
 				self.jpegenc.link(multifilesinkphoto)
+
+				self.pipeline.set_state(gst.State.PAUSED)
+
 				
 				#PADDING (LINKING PARALLELY) VIDEO QUEUE TO PAD'S TEE FOR IT
-				gst.Pad.link(self.tee_video_pad_bin,self.queue_videobin_pad)
+				gst.Pad.link( self.tee_video_pad_bin, self.queue_videobin_pad )
 				###
 				###
+
+				self.pipeline.set_state(gst.State.PLAYING)
+
 				##TAKING PHOTO
 				#WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRST IMAGE TAKEN
 				while not os.path.isfile(tempImage):
@@ -458,9 +470,7 @@ class GStreamer(object):
 				camera1caps = gst.Caps.from_string('video/x-raw,width=640,height=480,framerate=5/1')
 				src_caps = gst.ElementFactory.make("capsfilter", "filter1")
 				src_caps.set_property("caps", camera1caps)
-				
-				tee = gst.ElementFactory.make('tee','tee')
-				
+								
 				queuebin = gst.ElementFactory.make('queue','queuebin')
 
 				filesinkbin= gst.ElementFactory.make('filesink','filesink')
@@ -498,7 +508,6 @@ class GStreamer(object):
 				pipeline.add(video_source)
 				pipeline.add(video_logo)
 				pipeline.add(src_caps)
-				pipeline.add(tee)
 				##
 				pipeline.add(queuebin)
 				if textPhoto is not None:
@@ -510,7 +519,7 @@ class GStreamer(object):
 				#LINKS
 				video_source.link(video_logo)
 				video_logo.link(src_caps)
-				src_caps.link(tee)
+				src_caps.link(queuebin)
 				
 				if textPhoto is not None:
 					queuebin.link(photo_logo)
@@ -531,10 +540,7 @@ class GStreamer(object):
 				
 				#PAUSING PIPELING AND CLOSING IT
 				pipeline.set_state(gst.State.PAUSED)
-				pipeline.set_state(gst.State.NULL)
-				
-				with open(tempImage,'r') as fin:
-					return fin.read()        
+				pipeline.set_state(gst.State.NULL)     
 
 		except Exception, error:
 			
@@ -544,6 +550,9 @@ class GStreamer(object):
 			self.reset_pipeline_gstreamer_state()
 			
 			return None
+
+		with open(tempImage,'r') as fin:
+			return fin.read()   
 		
 	def getStreamProcessState(self):
 		#RETURNS THE CURRENT STREAM STATE
