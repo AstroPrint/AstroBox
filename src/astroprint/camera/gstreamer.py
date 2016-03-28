@@ -279,11 +279,6 @@ class GStreamer(object):
 				###
 			
 			###
-			#QUEUE FOR TAKING PHOTOS    
-			self.queuebin = gst.ElementFactory.make('queue','queuebin')
-			###
-			
-			###
 			#ADDING VIDEO ELEMENTS TO PIPELINE
 			self.pipeline.add(queueraw)
 			self.pipeline.add(encode)
@@ -294,7 +289,6 @@ class GStreamer(object):
 			self.pipeline.add(videortppay)
 			self.pipeline.add(udpsinkout)
 			#ADDING PHOTO ELEMENTS TO PIPELINE
-			self.pipeline.add(self.queuebin)
 			self.pipeline.add(self.photo_logo)
 			self.pipeline.add(self.photo_text)
 			self.pipeline.add(self.videoscalejpeg)
@@ -322,14 +316,10 @@ class GStreamer(object):
 			#TEE PADDING MANAGING
 			##TEE SOURCE H264
 			tee_video_pad_video = self.tee.get_request_pad("src_%u")
-			##TEE SOURCE PHOTO
-			self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
 			
 			#TEE SINKING MANAGING
 			##VIDEO SINK QUEUE
 			queue_video_pad = queueraw.get_static_pad("sink")
-			##PHOTO SINK QUEUE
-			self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
 	
 			#TEE PAD LINK
 			##VIDEO PADDING        
@@ -351,17 +341,15 @@ class GStreamer(object):
 			self.reset_pipeline_gstreamer_state()
 			
 			return False
-		
+
 	def stop_video(self):
 		#STOPS THE VIDEO
 		try:
 		
-			if self.streamProcessState == 'PLAYING': 
-				self.queuebin = None
-				self.pipeline.set_state(gst.State.PAUSED)
+			if self.streamProcessState == 'PLAYING':
+				self.pipeline.set_state(gst.State.READY)
 				self.pipeline.set_state(gst.State.NULL)
 				self.reset_pipeline_gstreamer_state()
-			
 			return True
 				
 		except Exception, error:
@@ -398,10 +386,25 @@ class GStreamer(object):
 				self.photo_text.set_property('text',text)
 			#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 			#A GOOD IMAGE FROM CAMERA
-			multifilesinkphoto = gst.ElementFactory.make('filesink','appsink')
+			multifilesinkphoto = gst.ElementFactory.make('filesink','filesink')
 			multifilesinkphoto.set_property('location', tempImage)
 			#IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
 			if self.streamProcessState == 'PLAYING':
+
+				#QUEUE FOR TAKING PHOTOS    
+				self.queuebin = gst.ElementFactory.make('queue','queuebin')
+				###
+
+				#ADDING PHOTO QUEUE TO PIPELINE
+				self.pipeline.add(self.queuebin)
+				##
+
+				##TEE SOURCE PHOTO
+				self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
+
+				##PHOTO SINK QUEUE
+				self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
+
 				#PREPARING PHOTO
 				if textPhoto is not None:
 					#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
@@ -417,7 +420,7 @@ class GStreamer(object):
 					self.photo_text.link(self.jpegenc)
 				else:
 					#LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-					self.queuebin.link(self.videosconvertjpeg)
+					self.queuebin.link(self.videoconvertjpeg)
 					
 					self.videoconvertjpeg.link(self.videoscalejpeg)
 					self.videoscalejpeg.link(self.videoratejpeg)
@@ -429,11 +432,11 @@ class GStreamer(object):
 				self.jpegenc.link(multifilesinkphoto)
 
 				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
 
 				
 				#PADDING (LINKING PARALLELY) VIDEO QUEUE TO PAD'S TEE FOR IT
 				gst.Pad.link( self.tee_video_pad_bin, self.queue_videobin_pad )
-				###
 				###
 
 				self.pipeline.set_state(gst.State.PLAYING)
@@ -452,6 +455,11 @@ class GStreamer(object):
 				gst.Pad.unlink(self.tee_video_pad_bin,self.queue_videobin_pad)
 
 				self.pipeline.remove(multifilesinkphoto)
+
+
+				#REMOVING PHOTO ELEMENTS TO PIPELINE
+				self.pipeline.remove(self.queuebin)
+
 
 			elif self.streamProcessState == 'PAUSED':
 				#IF VIDEO IS NOT PLAYING, IT HAS TO TAKE PHOTO USING A NEW PIPELINE   
