@@ -58,7 +58,9 @@ class GStreamerManager(CameraManager):
 	#    pass
 
 	def get_pic(self, text=None):
+		print 'GET_PIC'
 		if (self.gstreamerVideo):
+			print 'GET_PIC INSIDE IF'
 			return self.gstreamerVideo.take_photo(text)
 		
 	#def save_pic(self, filename, text=None):
@@ -288,14 +290,15 @@ class GStreamer(object):
 
 			self.pipeline.add(videortppay)
 			self.pipeline.add(udpsinkout)
+			
 			#ADDING PHOTO ELEMENTS TO PIPELINE
-			self.pipeline.add(self.photo_logo)
-			self.pipeline.add(self.photo_text)
-			self.pipeline.add(self.videoscalejpeg)
-			self.pipeline.add(self.jpeg_caps)
-			self.pipeline.add(self.jpegenc)
-			self.pipeline.add(self.videoconvertjpeg)
-			self.pipeline.add(self.videoratejpeg)
+			#self.pipeline.add(self.photo_logo)
+			#self.pipeline.add(self.photo_text)
+			#self.pipeline.add(self.videoscalejpeg)
+			#self.pipeline.add(self.jpeg_caps)
+			#self.pipeline.add(self.jpegenc)
+			#self.pipeline.add(self.videoconvertjpeg)
+			#self.pipeline.add(self.videoratejpeg)
 			####
 			
 			###
@@ -345,7 +348,11 @@ class GStreamer(object):
 	def stop_video(self):
 		#STOPS THE VIDEO
 		try:
-		
+			print self.streamProcessState
+
+			while self.streamProcessState == 'TAKING_PHOTO':
+				time.sleep(0.1)
+
 			if self.streamProcessState == 'PLAYING':
 				self.pipeline.set_state(gst.State.READY)
 				self.pipeline.set_state(gst.State.NULL)
@@ -362,6 +369,7 @@ class GStreamer(object):
 			return False
 
 	def take_photo(self,textPhoto):
+		print 'TAKE PHOTO'
 		#TAKES A PHOTO USING GSTREAMER
 		photo = self.take_photo_and_return(textPhoto)
 		#THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
@@ -375,8 +383,10 @@ class GStreamer(object):
 		return photo
 
 	def take_photo_and_return(self,textPhoto):
+		print 'TAKE PHOTO AND RETURN'
 		#TAKES A PHOTO USING GSTREAMER
 		try:
+			
 			###
 			#IMAGE FOR SAVING PHOTO
 			tempImage = '/tmp/gstCapture.jpg'
@@ -391,12 +401,23 @@ class GStreamer(object):
 			#IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
 			if self.streamProcessState == 'PLAYING':
 
+				print 'VIDEO IS PLAYING'
+
+				self.streamProcessState = 'TAKING_PHOTO'
+
 				#QUEUE FOR TAKING PHOTOS    
 				self.queuebin = gst.ElementFactory.make('queue','queuebin')
 				###
 
 				#ADDING PHOTO QUEUE TO PIPELINE
 				self.pipeline.add(self.queuebin)
+				self.pipeline.add(self.photo_logo)
+				self.pipeline.add(self.photo_text)
+				self.pipeline.add(self.videoscalejpeg)
+				self.pipeline.add(self.jpeg_caps)
+				self.pipeline.add(self.jpegenc)
+				self.pipeline.add(self.videoconvertjpeg)
+				self.pipeline.add(self.videoratejpeg)
 				##
 
 				##TEE SOURCE PHOTO
@@ -434,19 +455,28 @@ class GStreamer(object):
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
 
+				changeOk = False
+				while not changeOk:
+					ret = self.pipeline.set_state(gst.State.NULL)
+					print ret
+					print (ret != gst.StateChangeReturn.FAILURE)
+					changeOk = (ret != gst.StateChangeReturn.FAILURE)
+				
 				
 				#PADDING (LINKING PARALLELY) VIDEO QUEUE TO PAD'S TEE FOR IT
 				gst.Pad.link( self.tee_video_pad_bin, self.queue_videobin_pad )
 				###
-
+				print 'BEFORE PLAYING'
 				self.pipeline.set_state(gst.State.PLAYING)
-
+				print 'AFTER PLAYING'
 				##TAKING PHOTO
 				#WAIT FOR BEING READY TO TAKE PHOTOS: IT WAITS FOR THE FIRST IMAGE TAKEN
 				while not os.path.isfile(tempImage):
 					time.sleep(0.1)
 				##THEN, TAKES ANOTHER 5 PHOTOS PLUS
 				time.sleep(1)
+
+				print 'BEHIND SLEEP'
 				#ALL PHOTOS ARE SAVED IN THE SAME FILE. LAST PHOTO IS GOOD
 				###
 				##DISCONNECTING PHOTO PIPE
@@ -459,6 +489,15 @@ class GStreamer(object):
 
 				#REMOVING PHOTO ELEMENTS TO PIPELINE
 				self.pipeline.remove(self.queuebin)
+				self.pipeline.remove(self.photo_logo)
+				self.pipeline.remove(self.photo_text)
+				self.pipeline.remove(self.videoscalejpeg)
+				self.pipeline.remove(self.jpeg_caps)
+				self.pipeline.remove(self.jpegenc)
+				self.pipeline.remove(self.videoconvertjpeg)
+				self.pipeline.remove(self.videoratejpeg)
+
+				self.streamProcessState = 'PLAYING'
 
 
 			elif self.streamProcessState == 'PAUSED':
@@ -565,3 +604,4 @@ class GStreamer(object):
 	def getStreamProcessState(self):
 		#RETURNS THE CURRENT STREAM STATE
 		return self.streamProcessState 
+
