@@ -238,6 +238,8 @@ class GStreamer(object):
 		#SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
 		try:
 			print 'PLAY_VIDEO'
+
+			self.streamProcessState = 'PREPARING_VIDEO'
 			###
 			#GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS          
 			self.videotype = settings().get(["camera", "encoding"])
@@ -513,6 +515,9 @@ class GStreamer(object):
 	
 	def take_photo(self,textPhoto):
 		print 'TAKE PHOTO'
+
+		while self.streamProcessState == 'PREPARING_VIDEO':
+			time.sleep(0.1)
 
 		self.sem = threading.Semaphore(0)
 
