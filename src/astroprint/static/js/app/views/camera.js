@@ -150,13 +150,14 @@ var CameraView = Backbone.View.extend({
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
 								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
-			                    window.setTimeout(function(){
+			                    window.setTimeout(_.bind(function(){
 			                    	console.log('Timeout!!!');
 			                    	if(!isPlaying){
 			                    		console.log('Stop Janus caused by timeout!!!');
-			                    		this.stopStreaming();
+			                    		//this.stopStreaming();
+							this.setState('error');
 			                    	}
-			                    },40000);
+			                    },this),40000);
 			                    var isPlaying = false;
 			                    $("#remotevideo").bind("playing",_.bind(function () {
 			                    	this.setState('streaming');
@@ -192,11 +193,10 @@ var CameraView = Backbone.View.extend({
 	}, this));
   },
   stopStreaming: function(e){
-      console.log(this.localSessionId);
-	  if (this.localSessionId) { 
+	if (this.localSessionId) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
-      }	
+	}	
 	
   }
 });
