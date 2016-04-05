@@ -548,22 +548,35 @@ class GStreamer(object):
 			print msg.src
 			if 'GstMultiFileSink' in msg.src.__class__.__name__: 
 
-				print 'image got'
+					print 'VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink'
 
-				if self.photoMode == 'NOT_TEXT':
+					print 'image got'
 
-					###text in photo
-					#self.queuebinNotText.set_state(gst.State.PAUSED)
-					self.queuebinNotText.set_state(gst.State.NULL)
-					#global info_id
-					##add probe for the source waiting for finish the source data flow
-					self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
-				else:
-					#self.queuebin.set_state(gst.State.PAUSED)
-					self.queuebin.set_state(gst.State.NULL)
-					#global info_id
-					##add probe for the source waiting for finish the source data flow
-					self.tee_video_pad_bin.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+
+					if self.photoMode == 'NOT_TEXT':
+						try:
+							###text in photo
+							#self.queuebinNotText.set_state(gst.State.PAUSED)
+							self.queuebinNotText.set_state(gst.State.NULL)
+							#global info_id
+							##add probe for the source waiting for finish the source data flow
+							self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+						except error:
+							print 'ERROR IN BUS MESSAGE: ' + error
+						
+					else:
+						try:
+							#self.queuebin.set_state(gst.State.PAUSED)
+							self.queuebin.set_state(gst.State.NULL)
+							#global info_id
+							##add probe for the source waiting for finish the source data flow
+							self.tee_video_pad_bin.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+	
+						except error:
+							print 'ERROR IN BUS MESSAGE: ' + error
+
+					print 'VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink END'
+
 
 		elif t == gst.MessageType.ERROR:
 			print msg.src
@@ -572,50 +585,79 @@ class GStreamer(object):
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 	
+		print 'VIDEO_BIN_PAD_PROBE_CALLBACK'
+
 		if self.photoMode == 'NOT_TEXT':
-			print pad
-			print user_data
-			gst.Pad.unlink(self.tee_video_pad_binNotText,self.queue_videobin_padNotText)
-			print 'info: ' + str(info.id)
+			try:
+				print pad
+				print user_data
+				gst.Pad.unlink(self.tee_video_pad_binNotText,self.queue_videobin_padNotText)
+				print 'info: ' + str(info.id)
 
-			self.tee_video_pad_binNotText.remove_probe(info.id)
+				self.tee_video_pad_binNotText.remove_probe(info.id)
 				
 
-			print self.streamProcessState
-			if self.streamProcessState == 'TAKING_PHOTO':
-				#print 'ENTRA'			
-				print self.queuebinNotText.set_state(gst.State.PAUSED)
-				print self.queuebinNotText.set_state(gst.State.NULL)
+				print self.streamProcessState
+				if self.streamProcessState == 'TAKING_PHOTO':
+					#print 'ENTRA'			
+					print self.queuebinNotText.set_state(gst.State.PAUSED)
+					print self.queuebinNotText.set_state(gst.State.NULL)
 
-				#print self.pipeline.set_state(gst.State.PAUSED)
-				#print self.pipeline.set_state(gst.State.NULL)
+					#print self.pipeline.set_state(gst.State.PAUSED)
+					#print self.pipeline.set_state(gst.State.NULL)
 				
-				#self.pipeline.set_state(gst.State.NULL)
-				#self.reset_pipeline_gstreamer_state()
-				#self.streamProcessState = 'PAUSED'				
+					#self.pipeline.set_state(gst.State.NULL)
+					#self.reset_pipeline_gstreamer_state()
+					#self.streamProcessState = 'PAUSED'
+			except:
+				print 'ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK:' + error
+				if self.streamProcessState == 'TAKING_PHOTO':
+					#print 'ENTRA'			
+					print self.queuebinNotText.set_state(gst.State.PAUSED)
+					print self.queuebinNotText.set_state(gst.State.NULL)
+				self.waitForPhoto.set()
+				return gst.PadProbeReturn.DROP
+
 		else:
-			print pad
-			print user_data
-			gst.Pad.unlink(self.tee_video_pad_bin,self.queue_videobin_pad)
-			print 'info: ' + str(info.id)
-			self.tee_video_pad_bin.remove_probe(info.id)
 
-			print self.streamProcessState
-			if self.streamProcessState == 'TAKING_PHOTO':
-				#print 'ENTRA'			
-				print self.queuebin.set_state(gst.State.PAUSED)
-				print self.queuebin.set_state(gst.State.NULL)
+			try:
+				print pad
+				print user_data
+				gst.Pad.unlink(self.tee_video_pad_bin,self.queue_videobin_pad)
+				print 'info: ' + str(info.id)
+				self.tee_video_pad_bin.remove_probe(info.id)
 
-				#print self.pipeline.set_state(gst.State.PAUSED)
-				#print self.pipeline.set_state(gst.State.NULL)
+				print self.streamProcessState
+				if self.streamProcessState == 'TAKING_PHOTO':
+					#print 'ENTRA'			
+					print self.queuebin.set_state(gst.State.PAUSED)
+					print self.queuebin.set_state(gst.State.NULL)
+	
+					#print self.pipeline.set_state(gst.State.PAUSED)
+					#print self.pipeline.set_state(gst.State.NULL)
 
-				#self.pipeline.set_state(gst.State.NULL)
-				#self.reset_pipeline_gstreamer_state()
-				#self.streamProcessState = 'PAUSED'				
+					#self.pipeline.set_state(gst.State.NULL)
+					#self.reset_pipeline_gstreamer_state()
+					#self.streamProcessState = 'PAUSED'				
+				self.waitForPhoto.set()
+				return gst.PadProbeReturn.DROP
 
+			except error:
+				print 'ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK:' + error
+
+				if self.streamProcessState == 'TAKING_PHOTO':
+					#print 'ENTRA'			
+					print self.queuebin.set_state(gst.State.PAUSED)
+					print self.queuebin.set_state(gst.State.NULL)
+
+				self.waitForPhoto.set()
+				return gst.PadProbeReturn.DROP
 
 		#self.sem.release()
 		self.waitForPhoto.set()
+
+		print 'VIDEO_BIN_PAD_PROBE_CALLBACK END'
+
 
 		return gst.PadProbeReturn.OK
 
@@ -642,10 +684,18 @@ class GStreamer(object):
 		photo = ''
 		try:
 			self.waitForPhoto.wait(7)
+
+			print 'WEAK UP WaitForPhoto'
 			
+
 			if self.streamProcessState == 'TAKING_PHOTO':
 
+				print 'PIPE TO PAUSED'
+
 				print self.pipeline.set_state(gst.State.PAUSED)
+
+				print 'PIPE TO NULL'
+
 				print self.pipeline.set_state(gst.State.NULL)
 
 				self.reset_pipeline_gstreamer_state()
@@ -654,6 +704,8 @@ class GStreamer(object):
 			#while photo is None:
 			#	time.sleep(1)
 			#	print 'ESPERANDO....'
+			print 'OPENING FILE'
+
 			with open('/tmp/gstCapture.jpg','r') as fin:
                         	photo = fin.read()
 			print 'ANTES'
@@ -664,16 +716,30 @@ class GStreamer(object):
 			self.waitForPhoto.clear()
 		except:
 
-			if self.photoMode == 'NOT_TEXT':
+			if self.streamProcessState == 'TAKING_PHOTO':
+
+				print 'PIPE TO PAUSED'
+
+				print self.pipeline.set_state(gst.State.PAUSED)
+
+				print 'PIPE TO NULL'
+
+				print self.pipeline.set_state(gst.State.NULL)
+
+				self.reset_pipeline_gstreamer_state()
+
+
+			"""if self.photoMode == 'NOT_TEXT':
 
 				print self.queuebinNotText.set_state(gst.State.PAUSED)
 				print self.queuebinNotText.set_state(gst.State.NULL)
 			else:
 				print self.queuebin.set_state(gst.State.PAUSED)
 				print self.queuebin.set_state(gst.State.NULL)
-
+			"""
 			print 'take_photo except'
-			pass
+			self.waitForPhoto.clear()
+			return ''
 
 		return photo
 
@@ -682,120 +748,146 @@ class GStreamer(object):
 		#TAKES A PHOTO USING GSTREAMER
 		try:	
 			print self.streamProcessState
-
-			if self.streamProcessState == 'PAUSED':
-
-				#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-				if textPhoto is None:
-					#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
-					#A GOOD IMAGE FROM CAMERA
-					self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink','multifilesikNotText')
-					self.multifilesinkphotoNotText.set_property('location', self.tempImage)
-					self.multifilesinkphotoNotText.set_property('max-files',1)
-					self.multifilesinkphotoNotText.set_property('post-messages',True)				
-
-
-					#QUEUE FOR TAKING PHOTOS    
-					self.queuebinNotText = gst.ElementFactory.make('queue','queuebinNotText')
-					###
-
-					#ADDING PHOTO QUEUE TO PIPELINE
-					self.pipeline.add(self.queuebinNotText)
-					self.pipeline.add(self.jpeg_capsNotText)
-					self.pipeline.add(self.jpegencNotText)
-					##
-				
-					#LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-					self.queuebinNotText.link(self.jpeg_capsNotText)
-					self.jpeg_capsNotText.link(self.jpegencNotText)
-					##########
-					
-					self.pipeline.add(self.multifilesinkphotoNotText)
-					#self.jpegenc.link(self.multifilesinkphoto)	
-					
-				else:
-
-
-					print textPhoto
-
-					#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
-					#A GOOD IMAGE FROM CAMERA
-					self.multifilesinkphoto = gst.ElementFactory.make('multifilesink','multifilesik')
-					self.multifilesinkphoto.set_property('location', self.tempImage)
-					self.multifilesinkphoto.set_property('max-files',1)
-					self.multifilesinkphoto.set_property('post-messages',True)				
-
-
-					#QUEUE FOR TAKING PHOTOS    
-					self.queuebin = gst.ElementFactory.make('queue','queuebin')
-					###
-
-					#ADDING PHOTO QUEUE TO PIPELINE
-					self.pipeline.add(self.queuebin)
-					self.pipeline.add(self.jpeg_caps)
-					self.pipeline.add(self.photo_logo)
-					self.pipeline.add(self.photo_text)
-					self.pipeline.add(self.jpegenc)
-					##
-				
+			try:
+				if self.streamProcessState == 'PAUSED':
+	
 					#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-					#text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
-					#self.photo_text.set_property('text',text)
-					#LINKING PHOTO ELEMENTS (INCLUDED TEXT)
-					self.queuebin.link(self.jpeg_caps)
-					self.jpeg_caps.link(self.photo_logo)
-					self.photo_logo.link(self.photo_text)
-					self.photo_text.link(self.jpegenc)
-
-					self.pipeline.add(self.multifilesinkphoto)
-					#self.jpegenc.link(self.multifilesinkphoto)	
+					if textPhoto is None:
+						#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
+						#A GOOD IMAGE FROM CAMERA
+						self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink','multifilesikNotText')
+						self.multifilesinkphotoNotText.set_property('location', self.tempImage)
+						self.multifilesinkphotoNotText.set_property('max-files',1)
+						self.multifilesinkphotoNotText.set_property('post-messages',True)				
 
 
+						#QUEUE FOR TAKING PHOTOS    
+						self.queuebinNotText = gst.ElementFactory.make('queue','queuebinNotText')
+						###
 
-				print self.streamProcessState
-			
-				self.streamProcessState = 'TAKING_PHOTO'
+						#ADDING PHOTO QUEUE TO PIPELINE
+						self.pipeline.add(self.queuebinNotText)
+						self.pipeline.add(self.jpeg_capsNotText)
+						self.pipeline.add(self.jpegencNotText)
+						##
 				
-				self.pipeline.set_state(gst.State.PLAYING)
+						#LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
+						self.queuebinNotText.link(self.jpeg_capsNotText)
+						self.jpeg_capsNotText.link(self.jpegencNotText)
+						##########
+					
+						self.pipeline.add(self.multifilesinkphotoNotText)
+						#self.jpegenc.link(self.multifilesinkphoto)	
+					
+					else:
+
+
+						print textPhoto
+
+						#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
+						#A GOOD IMAGE FROM CAMERA
+						self.multifilesinkphoto = gst.ElementFactory.make('multifilesink','multifilesik')
+						self.multifilesinkphoto.set_property('location', self.tempImage)
+						self.multifilesinkphoto.set_property('max-files',1)
+						self.multifilesinkphoto.set_property('post-messages',True)				
+
+
+						#QUEUE FOR TAKING PHOTOS    
+						self.queuebin = gst.ElementFactory.make('queue','queuebin')
+						###
+
+						#ADDING PHOTO QUEUE TO PIPELINE
+						self.pipeline.add(self.queuebin)
+						self.pipeline.add(self.jpeg_caps)
+						self.pipeline.add(self.photo_logo)
+						self.pipeline.add(self.photo_text)
+						self.pipeline.add(self.jpegenc)
+						##
+				
+						#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
+						#text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
+						#self.photo_text.set_property('text',text)
+						#LINKING PHOTO ELEMENTS (INCLUDED TEXT)
+						self.queuebin.link(self.jpeg_caps)
+						self.jpeg_caps.link(self.photo_logo)
+						self.photo_logo.link(self.photo_text)
+						self.photo_text.link(self.jpegenc)
+		
+						self.pipeline.add(self.multifilesinkphoto)
+						#self.jpegenc.link(self.multifilesinkphoto)	
+
+					print self.streamProcessState
+			
+					self.streamProcessState = 'TAKING_PHOTO'
+				
+					self.pipeline.set_state(gst.State.PLAYING)
+
+			except error:
+				print 'ERROR IN TAKE PHOTO AND RETURN WITH VIDEO PAUSED: ' + error
+
+				self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
+				self.reset_pipeline_gstreamer_state()
+
+				return None				
+
 
 			###############
 
 			if textPhoto is None:
+				try:
+					self.photoMode = 'NOT_TEXT'
 
-				self.photoMode = 'NOT_TEXT'
-
-				print 'PREPARING WITHOUT TEXT'
-				#self.pipeline.add(self.multifilesinkphoto)
-				self.jpegencNotText.link(self.multifilesinkphotoNotText)
+					print 'PREPARING WITHOUT TEXT'
+					#self.pipeline.add(self.multifilesinkphoto)
+					self.jpegencNotText.link(self.multifilesinkphotoNotText)
 
 
-				self.tee_video_pad_binNotText = self.tee.get_request_pad("src_%u")
-				self.queue_videobin_padNotText = self.queuebinNotText.get_static_pad("sink")	
+					self.tee_video_pad_binNotText = self.tee.get_request_pad("src_%u")
+					self.queue_videobin_padNotText = self.queuebinNotText.get_static_pad("sink")	
 
-				print gst.Pad.link(self.tee_video_pad_binNotText,self.queue_videobin_padNotText)
+					print gst.Pad.link(self.tee_video_pad_binNotText,self.queue_videobin_padNotText)
 
-				print self.queuebinNotText.set_state(gst.State.PLAYING)
+					print self.queuebinNotText.set_state(gst.State.PLAYING)
+
+				except error:
+					print 'ERROR IN TAKING PHOTO AND RETURN WITH TEXTPHOTO: ' + error
+					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+	                                self.pipeline.set_state(gst.State.PAUSED)
+        	                        self.pipeline.set_state(gst.State.NULL)
+                	                self.reset_pipeline_gstreamer_state()
 				
 			else:
 
-				#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-				text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
-				self.photo_text.set_property('text',text)
+				try:
 
-				self.photoMode = 'TEXT'
+					#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
+					text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
+					self.photo_text.set_property('text',text)
 
-				print 'PREPARING WITH TEXT'
+					self.photoMode = 'TEXT'
+
+					print 'PREPARING WITH TEXT'
 				
-				#self.pipeline.add(self.multifilesinkphoto)
-				self.jpegenc.link(self.multifilesinkphoto)	
+					#self.pipeline.add(self.multifilesinkphoto)
+					self.jpegenc.link(self.multifilesinkphoto)	
 
 
-				self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
-				self.queue_videobin_pad = self.queuebin.get_static_pad("sink")	
+					self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
+					self.queue_videobin_pad = self.queuebin.get_static_pad("sink")	
+	
+					print gst.Pad.link(self.tee_video_pad_bin,self.queue_videobin_pad)
 
-				print gst.Pad.link(self.tee_video_pad_bin,self.queue_videobin_pad)
+					print self.queuebin.set_state(gst.State.PLAYING)
 
-				print self.queuebin.set_state(gst.State.PLAYING)
+				except error:
+					print 'ERROR IN TAKING PHOTO AND RETURN WITHOUT TEXTPHOTO: ' + error
+					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+	                                self.pipeline.set_state(gst.State.PAUSED)
+        	                        self.pipeline.set_state(gst.State.NULL)
+                	                self.reset_pipeline_gstreamer_state()
+
 
 			#########
 			#time.sleep(1)
