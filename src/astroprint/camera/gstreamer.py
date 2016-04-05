@@ -622,6 +622,7 @@ class GStreamer(object):
 	def take_photo(self,textPhoto):
 		print 'TAKE PHOTO'
 
+		print textPhoto
 
 		self.waitForPhoto = threading.Event()
 		
@@ -641,7 +642,6 @@ class GStreamer(object):
 		photo = ''
 		try:
 			self.waitForPhoto.wait(7)
-			
 			
 			if self.streamProcessState == 'TAKING_PHOTO':
 
@@ -714,6 +714,10 @@ class GStreamer(object):
 					#self.jpegenc.link(self.multifilesinkphoto)	
 					
 				else:
+
+
+					print textPhoto
+
 					#CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 					#A GOOD IMAGE FROM CAMERA
 					self.multifilesinkphoto = gst.ElementFactory.make('multifilesink','multifilesik')
@@ -729,12 +733,14 @@ class GStreamer(object):
 					#ADDING PHOTO QUEUE TO PIPELINE
 					self.pipeline.add(self.queuebin)
 					self.pipeline.add(self.jpeg_caps)
+					self.pipeline.add(self.photo_logo)
+					self.pipeline.add(self.photo_text)
 					self.pipeline.add(self.jpegenc)
 					##
 				
 					#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-					text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
-					self.photo_text.set_property('text',text)
+					#text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
+					#self.photo_text.set_property('text',text)
 					#LINKING PHOTO ELEMENTS (INCLUDED TEXT)
 					self.queuebin.link(self.jpeg_caps)
 					self.jpeg_caps.link(self.photo_logo)
@@ -772,8 +778,14 @@ class GStreamer(object):
 				
 			else:
 
+				#SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
+				text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>" + textPhoto + "</span>"
+				self.photo_text.set_property('text',text)
+
 				self.photoMode = 'TEXT'
 
+				print 'PREPARING WITH TEXT'
+				
 				#self.pipeline.add(self.multifilesinkphoto)
 				self.jpegenc.link(self.multifilesinkphoto)	
 
