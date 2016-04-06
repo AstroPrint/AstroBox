@@ -54,9 +54,9 @@ class BoxRouterMessageHandler(object):
 			handler = RequestHandler(wsClient._printerListener)
 
 			try:
+				request = msg['data']['type']
 				reqId = msg['reqId']
 				clientId = msg['clientId']
-				request = msg['data']['type']
 				data = msg['data']['payload']
 
 				method  = getattr(handler, request, None)
