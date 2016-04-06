@@ -540,12 +540,12 @@ class GStreamer(object):
 
 	def bus_message(self,bus,msg):
 		t = msg.type
-		print msg
-		print t
+		#print msg
+		#print t
 		if t == gst.MessageType.ELEMENT:
-			print msg
-			print msg.type
-			print msg.src
+			#print msg
+			#print msg.type
+			#print msg.src
 			if 'GstMultiFileSink' in msg.src.__class__.__name__: 
 
 					print 'VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink'
@@ -629,7 +629,7 @@ class GStreamer(object):
 
 				print self.streamProcessState
 				if self.streamProcessState == 'TAKING_PHOTO':
-					#print 'ENTRA'			
+					print 'ENTRA2'			
 					print self.queuebin.set_state(gst.State.PAUSED)
 					print self.queuebin.set_state(gst.State.NULL)
 	
@@ -640,7 +640,7 @@ class GStreamer(object):
 					#self.reset_pipeline_gstreamer_state()
 					#self.streamProcessState = 'PAUSED'				
 				self.waitForPhoto.set()
-				return gst.PadProbeReturn.DROP
+				return gst.PadProbeReturn.OK
 
 			except error:
 				print 'ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK:' + error
