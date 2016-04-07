@@ -17,6 +17,8 @@ from gi.repository import Gst as gst
 from astroprint.camera import CameraManager
 from astroprint.webrtc import webRtcManager
 
+from blinker import signal
+
 gobject.threads_init()
 gst.init(None)
 
@@ -59,9 +61,9 @@ class GStreamerManager(CameraManager):
 	#    pass
 
 	def get_pic(self, text=None):
-		print 'GET_PIC'
+		self._logger.info("GET_PIC")
 		if (self.gstreamerVideo):
-			print 'GET_PIC INSIDE IF'
+			self._logger.info("GET_PIC INSIDE IF")
 			return self.gstreamerVideo.take_photo(text)
 		
 	#def save_pic(self, filename, text=None):
@@ -86,7 +88,7 @@ class GStreamer(object):
 		self._logger = logging.getLogger(__name__)
 
 		try:
-			print 'INIT'
+			self._logger.info("INIT")
 
 			self.pipeline = None
 			self.bus = None
@@ -103,7 +105,6 @@ class GStreamer(object):
 			self.video_logo.set_property('location','/AstroBox/src/astroprint/static/img/astroprint_logo.png')
 			self.video_logo.set_property('overlay-width',150)
 			self.video_logo.set_property('overlay-height',29)
-	
 			###
 			#CONFIGURATION FOR TAKING PHOTOS
 			####
@@ -174,7 +175,7 @@ class GStreamer(object):
 		#SETS DEFAULT STATE FOR GSTREAMER OBJECT
 
 		try:
-			print 'RESET PIPELINE'
+			self._logger.info("RESET PIPELINE")
 			###
 			#GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS
 			self.videotype = settings().get(["camera", "encoding"])
@@ -254,7 +255,7 @@ class GStreamer(object):
 	def play_video(self):
 		#SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
 		try:
-			print 'PLAY_VIDEO'
+			self._logger.info("PLAY_VIDEO")
 
 			self.streamProcessState = 'PREPARING_VIDEO'
 			###
@@ -366,7 +367,7 @@ class GStreamer(object):
 			self.multifilesinkphotoNotText.set_property('max-files',1)
 			self.multifilesinkphotoNotText.set_property('post-messages',True)
 			#IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
-			print 'VIDEO IS PLAYING'
+			self._logger.info("VIDEO IS PLAYING")
 
 
 			"""#QUEUE FOR TAKING PHOTOS    
@@ -419,7 +420,7 @@ class GStreamer(object):
 			self.multifilesinkphotoNotText.set_property('max-files',1)
 			self.multifilesinkphotoNotText.set_property('post-messages',True)
 			#IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
-			print 'VIDEO IS PLAYING'
+			self._logger.info("VIDEO IS PLAYING")
 
 
 			#QUEUE FOR TAKING PHOTOS    
@@ -481,7 +482,7 @@ class GStreamer(object):
 			self.pipeline.set_state(gst.State.PLAYING)
 			
 
-			print 'PLAYING'
+			self._logger.info("PLAYING")
 			#self.loop = gobject.MainLoop()
 			#print self.loop
 			#self.loop.run()
@@ -507,7 +508,7 @@ class GStreamer(object):
 			
 		except Exception, error:
 			
-			print 'PLAY VIDEO EXCEPTION'
+			self._logger.info("PLAY VIDEO EXCEPTION")
 
 			self._logger.error("Error playing video with GStreamer: %s" % str(error))
 			self.pipeline.set_state(gst.State.PAUSED)
@@ -548,9 +549,9 @@ class GStreamer(object):
 			#print msg.src
 			if 'GstMultiFileSink' in msg.src.__class__.__name__: 
 
-					print 'VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink'
+					self._logger.info("VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink")
 
-					print 'image got'
+					self._logger.info("image got")
 
 
 					if self.photoMode == 'NOT_TEXT':
@@ -562,7 +563,8 @@ class GStreamer(object):
 							##add probe for the source waiting for finish the source data flow
 							self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 						except error:
-							print 'ERROR IN BUS MESSAGE: ' + error
+							self._logger.info("ERROR IN BUS MESSAGE: %s",error)
+							self.fatalErrorManage(True,True)
 						
 					else:
 						try:
@@ -573,9 +575,10 @@ class GStreamer(object):
 							self.tee_video_pad_bin.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 	
 						except error:
-							print 'ERROR IN BUS MESSAGE: ' + error
+							self._logger.info("ERROR IN BUS MESSAGE: %s",error)
+							self.fatalErrorManage(True,True)
 
-					print 'VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink END'
+					self._logger.info("VIDEO_BIN_PAD_PROBE_CALLBACK GstMultiFileSink END")
 
 
 		elif t == gst.MessageType.ERROR:
@@ -585,21 +588,21 @@ class GStreamer(object):
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 	
-		print 'VIDEO_BIN_PAD_PROBE_CALLBACK'
+		self._logger.info("VIDEO_BIN_PAD_PROBE_CALLBACK")
 
 		if self.photoMode == 'NOT_TEXT':
 			try:
 				print pad
 				print user_data
 				gst.Pad.unlink(self.tee_video_pad_binNotText,self.queue_videobin_padNotText)
-				print 'info: ' + str(info.id)
+				self._logger.info("info: %s",str(info.id))
 
 				self.tee_video_pad_binNotText.remove_probe(info.id)
 				
 
 				print self.streamProcessState
 				if self.streamProcessState == 'TAKING_PHOTO':
-					#print 'ENTRA'			
+					#self._logger.info("ENTRA'			
 					print self.queuebinNotText.set_state(gst.State.PAUSED)
 					print self.queuebinNotText.set_state(gst.State.NULL)
 
@@ -610,12 +613,13 @@ class GStreamer(object):
 					#self.reset_pipeline_gstreamer_state()
 					#self.streamProcessState = 'PAUSED'
 			except:
-				print 'ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK:' + error
+				self._logger.info("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s",error)
 				if self.streamProcessState == 'TAKING_PHOTO':
-					#print 'ENTRA'			
+					#self._logger.info("ENTRA'			
 					print self.queuebinNotText.set_state(gst.State.PAUSED)
 					print self.queuebinNotText.set_state(gst.State.NULL)
 				self.waitForPhoto.set()
+				self.fatalErrorManage(True,True)
 				return gst.PadProbeReturn.DROP
 
 		else:
@@ -624,12 +628,12 @@ class GStreamer(object):
 				print pad
 				print user_data
 				gst.Pad.unlink(self.tee_video_pad_bin,self.queue_videobin_pad)
-				print 'info: ' + str(info.id)
+				self._logger.info("info: %s",str(info.id))
 				self.tee_video_pad_bin.remove_probe(info.id)
 
 				print self.streamProcessState
 				if self.streamProcessState == 'TAKING_PHOTO':
-					print 'ENTRA2'			
+					self._logger.info("ENTRA2")
 					print self.queuebin.set_state(gst.State.PAUSED)
 					print self.queuebin.set_state(gst.State.NULL)
 	
@@ -643,26 +647,27 @@ class GStreamer(object):
 				return gst.PadProbeReturn.OK
 
 			except error:
-				print 'ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK:' + error
+				self._logger.info("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s",error)
 
 				if self.streamProcessState == 'TAKING_PHOTO':
-					#print 'ENTRA'			
+					#self._logger.info("ENTRA'			
 					print self.queuebin.set_state(gst.State.PAUSED)
 					print self.queuebin.set_state(gst.State.NULL)
 
 				self.waitForPhoto.set()
+				self.fatalErrorManage(True,True)
 				return gst.PadProbeReturn.DROP
 
 		#self.sem.release()
 		self.waitForPhoto.set()
 
-		print 'VIDEO_BIN_PAD_PROBE_CALLBACK END'
+		self._logger.info("VIDEO_BIN_PAD_PROBE_CALLBACK END")
 
 
 		return gst.PadProbeReturn.OK
 
 	def take_photo(self,textPhoto):
-		print 'TAKE PHOTO'
+		self._logger.info("TAKE PHOTO")
 
 		print textPhoto
 
@@ -685,16 +690,16 @@ class GStreamer(object):
 		try:
 			self.waitForPhoto.wait(7)
 
-			print 'WEAK UP WaitForPhoto'
+			self._logger.info("WEAK UP WaitForPhoto")
 			
 
 			if self.streamProcessState == 'TAKING_PHOTO':
 
-				print 'PIPE TO PAUSED'
+				self._logger.info("PIPE TO PAUSED")
 
 				print self.pipeline.set_state(gst.State.PAUSED)
 
-				print 'PIPE TO NULL'
+				self._logger.info("PIPE TO NULL")
 
 				print self.pipeline.set_state(gst.State.NULL)
 
@@ -703,14 +708,14 @@ class GStreamer(object):
 			#self.sem.acquire()
 			#while photo is None:
 			#	time.sleep(1)
-			#	print 'ESPERANDO....'
-			print 'OPENING FILE'
+			#	self._logger.info("ESPERANDO....'
+			self._logger.info("OPENING FILE")
 
 			with open('/tmp/gstCapture.jpg','r') as fin:
                         	photo = fin.read()
-			print 'ANTES'
+			self._logger.info("ANTES")
 			os.unlink('/tmp/gstCapture.jpg')
-			print 'DESPUES'
+			self._logger.info("DESPUES")
 			
 			
 			self.waitForPhoto.clear()
@@ -718,11 +723,11 @@ class GStreamer(object):
 
 			if self.streamProcessState == 'TAKING_PHOTO':
 
-				print 'PIPE TO PAUSED'
+				self._logger.info("PIPE TO PAUSED")
 
 				print self.pipeline.set_state(gst.State.PAUSED)
 
-				print 'PIPE TO NULL'
+				self._logger.info("PIPE TO NULL")
 
 				print self.pipeline.set_state(gst.State.NULL)
 
@@ -737,14 +742,14 @@ class GStreamer(object):
 				print self.queuebin.set_state(gst.State.PAUSED)
 				print self.queuebin.set_state(gst.State.NULL)
 			"""
-			print 'take_photo except'
+			self._logger.info("take_photo except")
 			self.waitForPhoto.clear()
 			return ''
 
 		return photo
 
 	def take_photo_and_return(self,textPhoto):
-		print 'TAKE PHOTO AND RETURN'
+		self._logger.info("TAKE PHOTO AND RETURN")
 		#TAKES A PHOTO USING GSTREAMER
 		try:	
 			print self.streamProcessState
@@ -823,7 +828,7 @@ class GStreamer(object):
 					self.pipeline.set_state(gst.State.PLAYING)
 
 			except error:
-				print 'ERROR IN TAKE PHOTO AND RETURN WITH VIDEO PAUSED: ' + error
+				self._logger.info("ERROR IN TAKE PHOTO AND RETURN WITH VIDEO PAUSED: %s",error)
 
 				self._logger.error("Error taking photo with GStreamer: %s" % str(error))
 				self.pipeline.set_state(gst.State.PAUSED)
@@ -839,7 +844,7 @@ class GStreamer(object):
 				try:
 					self.photoMode = 'NOT_TEXT'
 
-					print 'PREPARING WITHOUT TEXT'
+					self._logger.info("PREPARING WITHOUT TEXT")
 					#self.pipeline.add(self.multifilesinkphoto)
 					self.jpegencNotText.link(self.multifilesinkphotoNotText)
 
@@ -852,7 +857,7 @@ class GStreamer(object):
 					print self.queuebinNotText.set_state(gst.State.PLAYING)
 
 				except error:
-					print 'ERROR IN TAKING PHOTO AND RETURN WITH TEXTPHOTO: ' + error
+					self._logger.info("ERROR IN TAKING PHOTO AND RETURN WITH TEXTPHOTO: %s",error)
 					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
 	                                self.pipeline.set_state(gst.State.PAUSED)
         	                        self.pipeline.set_state(gst.State.NULL)
@@ -868,7 +873,7 @@ class GStreamer(object):
 
 					self.photoMode = 'TEXT'
 
-					print 'PREPARING WITH TEXT'
+					self._logger.info("PREPARING WITH TEXT")
 				
 					#self.pipeline.add(self.multifilesinkphoto)
 					self.jpegenc.link(self.multifilesinkphoto)	
@@ -882,7 +887,7 @@ class GStreamer(object):
 					print self.queuebin.set_state(gst.State.PLAYING)
 
 				except error:
-					print 'ERROR IN TAKING PHOTO AND RETURN WITHOUT TEXTPHOTO: ' + error
+					self._logger.info("ERROR IN TAKING PHOTO AND RETURN WITHOUT TEXTPHOTO: %s",error)
 					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
 	                                self.pipeline.set_state(gst.State.PAUSED)
         	                        self.pipeline.set_state(gst.State.NULL)
@@ -907,4 +912,23 @@ class GStreamer(object):
 	def getStreamProcessState(self):
 		#RETURNS THE CURRENT STREAM STATE
 		return self.streamProcessState
+
+	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True):
+		
+		if NULLToQueuebinNotText and self.queuebinNotText:
+				self.queuebinNotText.set_state(gst.State.PAUSED)
+				self.queuebinNotText.set_state(gst.State.NULL)
+		
+		if NULLToQueuebin and self.queuebin:
+			self.queuebin.set_state(gst.State.PAUSED)
+			self.queuebin.set_state(gst.State.NULL)
+		
+		self.pipeline.set_state(gst.State.PAUSED)
+		self.pipeline.set_state(gst.State.NULL)
+		self.reset_pipeline_gstreamer_state()
+
+		self._logger.info('sending manage_fatal_error signal')
+
+		ready = signal('manage_fatal_error')
+		ready.send(self)
 

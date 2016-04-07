@@ -28,6 +28,8 @@ from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
 
+from blinker import signal
+
 
 class WebRtc(object):
 	def __init__(self):
@@ -36,6 +38,7 @@ class WebRtc(object):
 		self._peerCondition = threading.Condition()
 		self._JanusProcess = None
 		self.videoId = 1
+		initialized = signal('initialized')
 
 	def ensureJanusRunning(self):
 		if len(self._connectedPeers.keys()) <= 0:
@@ -126,7 +129,22 @@ class WebRtc(object):
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
-				
+
+	def closeAllSessions(self,sender):
+		
+		self._logger.info("Closing all streaming sessions")
+
+		for peer in self._connectedPeers:		
+		
+			if peer == "local":
+				peer.streamingPlugin.send_message({'request':'destroy'})
+				peer.close()
+				self.sendEventToPeer('stopConnection',peer)
+			
+			del peer
+
+		self.stopJanus()
+
 	def preparePlugin(self, sessionId):
 		
 		try:
@@ -223,6 +241,9 @@ class WebRtc(object):
 					if tryingCounter >= 100:
 						self._logger.error(error)
 						return False
+
+			ready = signal('manage_fatal_error')
+			ready.connect(self.closeAllSessions)
 
 			return True
 
