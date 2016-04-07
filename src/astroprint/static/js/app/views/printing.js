@@ -234,8 +234,6 @@ var PrintingView = Backbone.View.extend({
     paused: null,
     cancelDialog: null,
     initialize: function() {
-        this.cancelDialog = new CancelPrintDialog({parent: this});
-
         this.nozzleBar = new TempBarHorizontalView({
             scale: [0, app.printerProfile.get('max_nozzle_temp')],
             el: this.$el.find('.temp-bar.nozzle'),
@@ -350,6 +348,10 @@ var PrintingView = Backbone.View.extend({
         this.photoView.render();
     },
     stopPrint: function(e) {
+        if (!this.cancelDialog) {
+            this.cancelDialog = new CancelPrintDialog({parent: this});
+        }
+
         this.cancelDialog.open();
     },
     togglePausePrint: function(e) {
@@ -409,17 +411,17 @@ var CancelPrintDialog = Backbone.View.extend({
         var loadingBtn = $(e.target).closest('.loading-button');
 
         loadingBtn.addClass('loading');
-        this.parent._jobCommand('cancel', function(data){
+        this.parent._jobCommand('cancel', _.bind(function(data){
             if (data && _.has(data, 'error')) {
                 noty({text: "There was an error canceling your job.", timeout: 3000});
                 loadingBtn.removeClass('loading');
             } else {
-                app.socketData.set({printing: false, paused: false});
+                //app.socketData.set({printing: false, paused: false});
                 setTimeout(_.bind(function(){
                     loadingBtn.removeClass('loading');
                     this.close();
-                }, this), 2000);
+                }, this), 1000);
             }
-        });
+        }, this));
     }
 });
