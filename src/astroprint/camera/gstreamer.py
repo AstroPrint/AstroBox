@@ -742,7 +742,7 @@ class GStreamer(object):
 				print self.queuebin.set_state(gst.State.PAUSED)
 				print self.queuebin.set_state(gst.State.NULL)
 			"""
-			self._logger.info("take_photo except: " +  error)
+			self._logger.info("take_photo except: %s",error)
 			self.waitForPhoto.clear()
 			return ''
 
