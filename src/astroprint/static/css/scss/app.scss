@@ -2,24 +2,24 @@
 
 @import
 	"fonts",
-    "normalize",
-    "fontello",
-    "sprites",
-    "animations",
-    "foundation/settings",
-    "foundation/components/visibility",
-    "foundation/components/top-bar",
-    "foundation/components/alert-boxes",
-    "foundation/components/button-groups",
-    "foundation/components/forms",
-    "foundation/components/offcanvas",
-    "foundation/components/reveal",
-    "foundation/components/progress-bars",
-    "foundation/components/tables",
-    "foundation/components/panels",
-    "foundation/components/side-nav",
-    "foundation/components/switches",
-    "common-main";
+	"normalize",
+	"fontello",
+	"sprites",
+	"animations",
+	"foundation/settings",
+	"foundation/components/visibility",
+	"foundation/components/top-bar",
+	"foundation/components/alert-boxes",
+	"foundation/components/button-groups",
+	"foundation/components/forms",
+	"foundation/components/offcanvas",
+	"foundation/components/reveal",
+	"foundation/components/progress-bars",
+	"foundation/components/tables",
+	"foundation/components/panels",
+	"foundation/components/side-nav",
+	"foundation/components/switches",
+	"common-main";
 
 body, html {
 	height: 100%;
@@ -115,7 +115,7 @@ body, html {
 		font-size: rem-calc(20);
 		padding: 0 5px;
 		display: inline-block;
-        color: #505050;
+		color: #505050;
 
 		&.connected {
 			color: $success-color;
@@ -137,7 +137,7 @@ body, html {
 		display: inline-block;
 		height: 100%;
 		padding: 0px 8px;
-  		color: #ccc;
+		color: #ccc;
 
 		img {
 			height: 18px;
@@ -232,12 +232,13 @@ body, html {
 }
 
 @import
-    "noty",
-    "widgets",
-    "control",
-    "home",
-    "files",
-    "settings",
-    "turnoff",
-    "printing",
-		"terminal";
+	"noty",
+	"widgets",
+	"control",
+	"home",
+	"files",
+	"settings",
+	"turnoff",
+	"printing",
+	"terminal",
+	"unreachable";
