@@ -63,9 +63,11 @@ class GStreamerManager(CameraManager):
 
 	def get_pic(self, text=None):
 		self._logger.info("GET_PIC")
-		if (self.gstreamerVideo):
+		if self.gstreamerVideo:
 			self._logger.info("GET_PIC INSIDE IF")
 			return self.gstreamerVideo.take_photo(text)
+
+		return None
 		
 	#def save_pic(self, filename, text=None):
 	#    pass
@@ -685,7 +687,7 @@ class GStreamer(object):
 			#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
 
 			if not waitingState:
-				return ''
+				return None
 
 
 		#threading.wait(5000)
@@ -695,7 +697,7 @@ class GStreamer(object):
 		self.take_photo_and_return(textPhoto)
 		#THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
 		#FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
-		photo = ''
+		photo = None
 		try:
 			waitingState = self.waitForPhoto.wait(10)
 			#waitingState values:
@@ -733,7 +735,7 @@ class GStreamer(object):
 				self._logger.info("DESPUES")
 			
 			else:
-				return ''
+				return None
 
 			self.waitForPhoto.clear()
 		except Exception, error:
@@ -761,7 +763,7 @@ class GStreamer(object):
 			"""
 			self._logger.info("take_photo except: %s",error)
 			self.waitForPhoto.clear()
-			return ''
+			return None
 
 		return photo
 
