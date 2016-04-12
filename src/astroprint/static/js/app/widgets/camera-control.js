@@ -7,27 +7,38 @@ var CameraControlView = Backbone.View.extend({
 	'hide':'onHide'
   },
   settings: null,
+  cameraAvailable: null,
   ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
   initialize: function(parameters)
   {
-  	//video settings
-	if( !parameters || ! parameters.settings ){
-		
-		$.getJSON(API_BASEURL + 'settings/camera/streaming')
-		.done(_.bind(function(settings){
+	
+	$.post(API_BASEURL + 'camera/is-camera-available')
+	.done(_.bind(function(response){
 			
-			this.settings = settings;
-			
-			this.evalWebRtcAbleing();
+		this.cameraAvailable = response.isCameraAvailable;
 
-		},this));
+		if(this.cameraAvailable){
 
-	} else {
-		this.settings = parameters.settings;
-		this.evalWebRtcAbleing();
-	}
+			//video settings
+			if( !parameters || ! parameters.settings ){
+				
+				$.getJSON(API_BASEURL + 'settings/camera/streaming')
+				.done(_.bind(function(settings){
+					
+					this.settings = settings;
+					
+					this.evalWebRtcAbleing();
+
+				},this));
+
+			} else {
+				this.settings = parameters.settings;
+				this.evalWebRtcAbleing();
+			}
+		} else { this.render(); }
+	},this))
   },
   evalWebRtcAbleing: function(){
   	if(Janus.isWebrtcSupported()) {
@@ -65,6 +76,7 @@ var CameraControlView = Backbone.View.extend({
 			console.log('Janus Initialized')
 		}});
 	}
+	this.render();
   },
   onHide: function(){
  	this.stopStreaming();

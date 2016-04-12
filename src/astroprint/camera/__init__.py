@@ -9,8 +9,10 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
+			number_of_video_device = 0#/dev/video``0´´
+
 			from astroprint.camera.gstreamer import GStreamerManager
-			_instance = GStreamerManager()
+			_instance = GStreamerManager(number_of_video_device)
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
@@ -256,7 +258,14 @@ class CameraManager(object):
 		pass
 
 	def isCameraAvailable(self):
-		return False
+		
+		try:
+	
+			return os.path.exists("/dev/video" + str(self.number_of_video_device))
+			
+		except:
+			
+			return False
 
 	## private functions
 

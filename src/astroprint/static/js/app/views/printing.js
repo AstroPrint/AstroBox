@@ -116,25 +116,38 @@ var PhotoView = CameraControlView.extend({
 
         this.parent = options.parent;
 
-        //video settings
-        $.getJSON(API_BASEURL + 'settings/camera/streaming')
-        .done(_.bind(function(settings){
+        $.post(API_BASEURL + 'camera/is-camera-available')
+        .done(_.bind(function(response){
             
-            this.settings = settings;
+            this.cameraAvailable = response.isCameraAvailable;
 
-            this.evalWebRtcAbleing();
+            //video settings
+            $.getJSON(API_BASEURL + 'settings/camera/streaming')
+            .done(_.bind(function(settings){
+                
+                this.settings = settings;
 
-            this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
-            this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-            this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+                if(this.cameraAvailable){
 
-            this.onCameraChanged(app.socketData, app.socketData.get('camera'));
+                    this.evalWebRtcAbleing();
 
-            this.$el.html(this.template());
+                    this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+                    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+                    this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
 
-            this.print_capture = app.socketData.get('print_capture');
-            this.render();
+                    this.onCameraChanged(app.socketData, app.socketData.get('camera'));
 
+                    this.print_capture = app.socketData.get('print_capture');
+                } else {
+                    this.setState('nowebrtc');
+                    this.ableWebRtc = false
+                }
+
+                this.$el.html(this.template());
+
+                this.render();
+
+            },this));
         },this));
 
     },
@@ -151,8 +164,6 @@ var PhotoView = CameraControlView.extend({
         }
     },
     render: function() {
-        
-        console.log(this.ableWebRtc);
 
         if(!this.ableWebRtc){
 

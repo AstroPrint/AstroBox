@@ -1,5 +1,5 @@
 <script type="text/template" id="camera-watch-page-template">
-
+<% if(this.cameraAvailable) { %>
 	<div class="video">
 		<div class="row large-collapse">
 			<div class="small-12 columns title-heading">
@@ -73,4 +73,7 @@
 			<img src="static/img/sadmonkey-2.png"/>
 		</div>
 	</div>
+<% } else { %>
+	THERE IS NOT ANY CAMERA PLUGGED
+<% } %>
 </script>

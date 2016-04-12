@@ -23,7 +23,8 @@ gobject.threads_init()
 gst.init(None)
 
 class GStreamerManager(CameraManager):
-	def __init__(self):
+	def __init__(self,number_of_video_device):
+		self.number_of_video_device = number_of_video_device
 		self.gstreamerVideo = None
 		self._logger = logging.getLogger(__name__)
 		super(GStreamerManager, self).__init__()
@@ -31,7 +32,7 @@ class GStreamerManager(CameraManager):
 	def open_camera(self):
 		try:
 			if self.gstreamerVideo is None:
-				self.gstreamerVideo  = GStreamer(0)
+				self.gstreamerVideo  = GStreamer(self.number_of_video_device)
 
 		except Exception, error:
 			self._logger.error(error)
@@ -70,7 +71,9 @@ class GStreamerManager(CameraManager):
 	#    pass
 
 	def isCameraAvailable(self):
-		return self.gstreamerVideo is not None
+		parentCameraAvailable = super(GStreamerManager, self).isCameraAvailable()
+
+		return self.gstreamerVideo is not None and parentCameraAvailable
 
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'

@@ -10,6 +10,15 @@ from octoprint.server.api import api
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
+@api.route("/camera/is-camera-available", methods=["POST"])
+@restricted_access
+def isCameraAvailable():
+
+	cm = cameraManager()
+
+	return jsonify({"isCameraAvailable": cm.isCameraAvailable()})
+
+
 @api.route("/camera/timelapse", methods=["POST"])
 @restricted_access
 def update_timelapse():
