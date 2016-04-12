@@ -5,11 +5,11 @@
  */
 
 $.ajaxSetup({
-    type: 'POST',
-    cache: false,
-    headers: {
-    	"X-Api-Key": UI_API_KEY
-    }
+	type: 'POST',
+	cache: false,
+	headers: {
+		"X-Api-Key": UI_API_KEY
+	}
 });
 
 var AppMenu = Backbone.View.extend({
@@ -24,16 +24,16 @@ var AppMenu = Backbone.View.extend({
 		var spinIcon = el.find('.icon-rocket-spinner');
 
 		spinIcon.removeClass('hide');
-        $.ajax({
-            url: API_BASEURL + "astroprint",
-            type: "DELETE",
-            success: function() {
-            	location.reload();
-            },
-            complete: function() {
+		$.ajax({
+			url: API_BASEURL + "astroprint",
+			type: "DELETE",
+			success: function() {
+				location.reload();
+			},
+			complete: function() {
 				spinIcon.addClass('hide');
-            }
-        });
+			}
+		});
 	}
 });
 
@@ -45,6 +45,7 @@ var AstroBoxApp = Backbone.View.extend({
 	utils: null,
 	router: null,
 	connectionView: null,
+	unreachableView: null,
 	turnOffModal: null,
 	printerProfile: null,
 	events: {
@@ -55,17 +56,17 @@ var AstroBoxApp = Backbone.View.extend({
 		this.appMenu = new AppMenu();
 		this.utils = new Utils();
 		this.router = new AppRouter();
-		this.connectionView = new ConnectionView();
+		this.connectionView = new ConnectionView({socket: this.socketData});
 		this.turnOffModal = new TurnoffConfirmationModal();
 		this.printerProfile = new PrinterProfile(initial_printer_profile);
 
 		this.eventManager = Backbone.Events;
 
 		this.socketData.connectionView = this.connectionView;
-		this.connectionView.socketData = this.socketData;
 		this.socketData.connect();
 		this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
 		this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
+		this.listenTo(this.socketData, "change:box_reachable", this.onReachableChanged );
 	},
 	turnOffClicked: function()
 	{
@@ -90,9 +91,9 @@ var AstroBoxApp = Backbone.View.extend({
 	{
 		var nav = this.$('.quick-nav');
 		nav.find('li.active').removeClass('active');
-    if (tab) {
-		  nav.find('li.'+tab).addClass('active');
-    }
+		if (tab) {
+			nav.find('li.'+tab).addClass('active');
+		}
 	},
 	onlineStatusChange: function(s, value)
 	{
@@ -100,6 +101,18 @@ var AstroBoxApp = Backbone.View.extend({
 			this.$('#app').addClass('online').removeClass('offline');
 		} else {
 			this.$('#app').addClass('offline').removeClass('online');
+		}
+	},
+	onReachableChanged: function(s, value)
+	{
+		if (value != 'reachable') {
+			if (!this.unreachableView) {
+				this.unreachableView = new UnreachableView();
+			}
+
+			this.router.selectView(this.unreachableView);
+		} else if (this.unreachableView) {
+			this.unreachableView.hide();
 		}
 	},
 	showPrinting: function() {
@@ -112,11 +125,11 @@ app = new AstroBoxApp();
 
 $(document)
   .foundation({
-    abide : {
-      patterns: {
-        hostname: /^[A-Za-z0-9\-]+$/
-      }
-    }
+	abide : {
+	  patterns: {
+		hostname: /^[A-Za-z0-9\-]+$/
+	  }
+	}
   });
 
 //This code is for astroprint.com communication with astrobox webUI window
@@ -124,7 +137,7 @@ $(document)
 /*function receiveMessage(event)
 {
 	console.log(ASTROBOX_NAME);
-  	event.source.postMessage(ASTROBOX_NAME, event.origin);
+	event.source.postMessage(ASTROBOX_NAME, event.origin);
 }
 
 window.addEventListener("message", receiveMessage, false);*/

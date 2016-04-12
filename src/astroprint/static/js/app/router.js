@@ -126,22 +126,23 @@ var AppRouter = Backbone.Router.extend({
 		var currentView = app.$el.find('.app-view.active');
 		var targetView = view.$el;
 
+		targetView.removeClass('hide').addClass('active');
+
 		if (targetView.data('fullscreen')) {
 			$('#app').addClass('hide');
-		}
+		} else {
+			currentView.addClass('hide').removeClass('active');
 
-		currentView.addClass('hide').removeClass('active');
-		targetView.removeClass('hide').addClass('active');
+			if (targetView.attr('id') == 'control-view') {
+				this.controlView.tempView.resetBars();
+			}
+
+			app.selectQuickNav();
+		}
 
 		//fire events
 		currentView.trigger('hide');
 		targetView.trigger('show');
-
-		if (view.$el.attr('id') == 'control-view') {
-			this.controlView.tempView.resetBars();
-		}
-
-		app.selectQuickNav();
 	},
 	notFound: function()
 	{
