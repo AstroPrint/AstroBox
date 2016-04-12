@@ -17,80 +17,88 @@ var ConnectionView = Backbone.View.extend({
 	},
 	socketData: null,
 	tooltip: null,
-	connect: function(clicked) {
+	initialize: function(opts)
+	{
+		this.socketData = opts.socket;
+		this.listenTo(this.socketData, "change:box_reachable", this.onReachableChanged);
+	},
+	connect: function(clicked) 
+	{
 		var self = this;
 
-        $.ajax({
-            url: API_BASEURL + "connection",
-            method: "GET",
-            dataType: "json",
-            success: function(response) {
-		        if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed' || response.current.state == 'Offline') {
-		        	if (response.current.state.substr(0,5) == 'Error') {
-		        		console.error("Printer connection had error: "+response.current.state);
-		        	}
+		$.ajax({
+			url: API_BASEURL + "connection",
+			method: "GET",
+			dataType: "json",
+			success: function(response) {
+				if (response.current.state.substr(0,5) == 'Error' || response.current.state == 'Closed' || response.current.state == 'Offline') {
+					if (response.current.state.substr(0,5) == 'Error') {
+						console.error("Printer connection had error: "+response.current.state);
+					}
 
-		        	var port = response.options.portPreference;
+					var port = response.options.portPreference;
 
-		        	if (response.options.ports && !_.has(response.options.ports, port)) {
-		        		port = _.keys(response.options.ports)[0]
-		        	}
+					if (response.options.ports && !_.has(response.options.ports, port)) {
+						port = _.keys(response.options.ports)[0]
+					}
 
-		        	if (port) {
-				        var data = {
-				            "command": "connect",
-				            "port": port,
-				            "baudrate": response.options.baudratePreference,
-				            "autoconnect": true
-				        };
+					if (port) {
+						var data = {
+							"command": "connect",
+							"port": port,
+							"baudrate": response.options.baudratePreference,
+							"autoconnect": true
+						};
 
 						self.setPrinterConnection('blink-animation');
-				        $.ajax({
-				            url: API_BASEURL + "connection",
-				            type: "POST",
-				            dataType: "json",
-				            contentType: "application/json; charset=UTF-8",
-				            data: JSON.stringify(data),
-				            error: function() {
-				            	self.setPrinterConnection('failed');
-				       		    if (clicked) {
-				       		    	app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
-	        						noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
-		            			}
-				            }
-				        });
-				    } else {
-		       		    if (clicked) {
-		       		    	app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
-    						noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
-            			}
-				    }
-				    
-			    } else if (response.current.state != 'Connecting') {
-			    	if (response.current.state == 'Printing' || response.current.state == 'Paused') {
-		        		app.showPrinting();
-		        	}
+						$.ajax({
+							url: API_BASEURL + "connection",
+							type: "POST",
+							dataType: "json",
+							contentType: "application/json; charset=UTF-8",
+							data: JSON.stringify(data),
+							error: function() {
+								self.setPrinterConnection('failed');
+								if (clicked) {
+									app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
+									noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
+								}
+							}
+						});
+					} else {
+						if (clicked) {
+							app.router.navigate('settings/printer-connection', {trigger: true, replace: true});
+							noty({text: 'Check Connection Settings.', type:"information", timeout: 3000});
+						}
+					}
+					
+				} else if (response.current.state != 'Connecting') {
+					if (response.current.state == 'Printing' || response.current.state == 'Paused') {
+						app.showPrinting();
+					}
 
-		        	self.setPrinterConnection('connected');
-		        } else {
+					self.setPrinterConnection('connected');
+				} else {
 					self.setPrinterConnection('blink-animation');
-		        }
-            }
-        });
+				}
+			}
+		});
 	},
-	disconnect: function() {
-	    $.ajax({
-	        url: API_BASEURL + "connection",
-	        type: "POST",
-	        dataType: "json",
-	        contentType: "application/json; charset=UTF-8",
-	        data: JSON.stringify({"command": "disconnect"}),
-	        success: function(response) {
-	        	self.$el.removeClass('connected');
-	        }
-	    });	
+	disconnect: function() 
+	{
+		$.ajax({
+			url: API_BASEURL + "connection",
+			type: "POST",
+			dataType: "json",
+			contentType: "application/json; charset=UTF-8",
+			data: JSON.stringify({"command": "disconnect"}),
+			success: function(response) {
+				self.$el.removeClass('connected');
+			}
+		});	
 	},
-	setServerConnection: function(className) {
+	setServerConnection: function(className) 
+	{
 		var element = this.$el.find('i.server');
 		var titleText = '';
 
@@ -112,7 +120,8 @@ var ConnectionView = Backbone.View.extend({
 
 		element.data('title', titleText);
 	},
-	setPrinterConnection: function(className) {
+	setPrinterConnection: function(className) 
+	{
 		var element = this.$el.find('i.printer');
 		var titleText = '';
 
@@ -134,7 +143,8 @@ var ConnectionView = Backbone.View.extend({
 
 		element.data('title', titleText);
 	},
-	setAstroprintConnection: function(className) {
+	setAstroprintConnection: function(className) 
+	{
 		var element = this.$el.find('i.astroprint')
 		var titleText = '';
 
@@ -156,14 +166,16 @@ var ConnectionView = Backbone.View.extend({
 
 		element.data('title', titleText);
 	},
-	printerTapped: function(e) {
+	printerTapped: function(e) 
+	{
 		e.stopPropagation();
 
 		if ($(e.target).hasClass('failed')) {
 			this.connect(true);
 		}
 	},
-	serverTapped: function(e) {
+	serverTapped: function(e) 
+	{
 		e.stopPropagation();
 
 		if ($(e.target).hasClass('failed')) {
@@ -171,27 +183,45 @@ var ConnectionView = Backbone.View.extend({
 			this.connect();
 		}
 	},
-	astroprintTapped: function(e) {
+	astroprintTapped: function(e) 
+	{
 		e.stopPropagation();
 
 		var icon = $(e.target);
 		if (icon.hasClass('failed')) {
 			if (LOGGED_USER) {
 				icon.addClass('blink-animation');
-		        $.ajax({
-		            url: API_BASEURL + "boxrouter",
-		            method: "POST",
-		            dataType: "json",
-		            complete: function(response) {
-		            	icon.removeClass('blink-animation');
-		            }
-		        });
-		    } else {
-		    	$('#login-modal').foundation('reveal', 'open');
-		    }
+				$.ajax({
+					url: API_BASEURL + "boxrouter",
+					method: "POST",
+					dataType: "json",
+					complete: function(response) {
+						icon.removeClass('blink-animation');
+					}
+				});
+			} else {
+				$('#login-modal').foundation('reveal', 'open');
+			}
 		}
 	},
-	onMouseOver: function(e) {
+	onReachableChanged: function(s, value)
+	{
+		switch(value) {
+			case 'reachable':
+				this.setServerConnection('connected');
+			break;
+
+			case 'unreachable':
+				this.setServerConnection('failed');
+			break;
+
+			case 'checking':
+				this.setServerConnection('blink-animation');
+			break;
+		}
+	},
+	onMouseOver: function(e) 
+	{
 		if ($('html').hasClass('touch')) return;
 
 		var target = $(e.currentTarget);
@@ -217,7 +247,8 @@ var ConnectionView = Backbone.View.extend({
 
 		this.tooltip.find('.pip').css('border-color', 'transparent transparent '+target.css('color')+' transparent');
 	},
-	onMouseOut: function(e) {
+	onMouseOut: function(e) 
+	{
 		this.tooltip.addClass('hide');
 		this.tooltip.find('.text').html('');
 	}
