@@ -64,6 +64,7 @@ from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
@@ -441,6 +442,7 @@ class Server():
 		discoveryManager = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
+		webRtcManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()

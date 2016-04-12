@@ -9,6 +9,7 @@ import weakref
 import base64
 
 from octoprint.events import eventManager, Events
+from octoprint.settings import settings
 
 from astroprint.camera import cameraManager
 from astroprint.cloud import astroprintCloud
@@ -32,8 +33,18 @@ class RequestHandler(object):
 			'printCapture': cameraManager().timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': ['remotePrint', 'videoStreaming']
+			'capabilities': self.makeCapabilitiesArray()
 		}
+
+	def makeCapabilitiesArray(self):
+
+		videotype = settings().get(["camera", "encoding"])
+		
+		capabilitiesArray = ['remotePrint', 'videoStreaming']
+
+		capabilitiesArray += ['videoformat-' + videotype]
+
+		return capabilitiesArray
 
 	def job_info(self, data, clientId):
 		return printerManager()._stateMonitor._jobData

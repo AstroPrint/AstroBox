@@ -674,9 +674,15 @@ class GStreamer(object):
 		self.waitForPhoto = threading.Event()
 		
 		if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
-			self.waitForPhoto.wait(5)
+			waitingState = self.waitForPhoto.wait(5)
 			self.waitForPhoto.clear()
-		
+			
+			#waitingState values:
+			#  - True: exit before timeout. The device is able to take photo because video was stablished.
+			#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
+
+			if not waitingState:
+				return ''
 
 
 		#threading.wait(5000)
@@ -688,7 +694,10 @@ class GStreamer(object):
 		#FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
 		photo = ''
 		try:
-			self.waitForPhoto.wait(7)
+			waitingState = self.waitForPhoto.wait(10)
+			#waitingState values:
+			#  - True: exit before timeout
+			#  - False: timeout given
 
 			self._logger.info("WEAK UP WaitForPhoto")
 			
@@ -709,15 +718,20 @@ class GStreamer(object):
 			#while photo is None:
 			#	time.sleep(1)
 			#	self._logger.info("ESPERANDO....'
-			self._logger.info("OPENING FILE")
+			
+			if waitingState:
 
-			with open('/tmp/gstCapture.jpg','r') as fin:
-                        	photo = fin.read()
-			self._logger.info("ANTES")
-			os.unlink('/tmp/gstCapture.jpg')
-			self._logger.info("DESPUES")
+				self._logger.info("OPENING FILE")
+
+				with open('/tmp/gstCapture.jpg','r') as fin:
+					photo = fin.read()
+				self._logger.info("ANTES")
+				os.unlink('/tmp/gstCapture.jpg')
+				self._logger.info("DESPUES")
 			
-			
+			else:
+				return ''
+
 			self.waitForPhoto.clear()
 		except Exception, error:
 

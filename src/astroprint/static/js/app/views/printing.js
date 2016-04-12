@@ -102,45 +102,82 @@
     }
 });
 
-var PhotoView = Backbone.View.extend({
+var PhotoView = CameraControlView.extend({
     el: "#printing-view .camera-view",
+    template: _.template( this.$("#photo-printing-template").html()),
     events: {
-        'click button.take-pic': 'refreshPhoto',
+        'click button.take-pic': 'manageStreaming',
         'change .timelapse select': 'timelapseFreqChanged'
     },
     parent: null,
     print_capture: null,
     photoSeq: 0,
     initialize: function(options) {
+
         this.parent = options.parent;
 
-        this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
-        this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-        this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+        //video settings
+        $.getJSON(API_BASEURL + 'settings/camera/streaming')
+        .done(_.bind(function(settings){
+            
+            this.settings = settings;
 
-        this.onCameraChanged(app.socketData, app.socketData.get('camera'));
+            this.evalWebRtcAbleing();
+
+            this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+            this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+            this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+
+            this.onCameraChanged(app.socketData, app.socketData.get('camera'));
+
+            this.$el.html(this.template());
+
+            this.print_capture = app.socketData.get('print_capture');
+            this.render();
+
+        },this));
+
+    },
+    manageStreaming: function(e){
+
+        if(this.ableWebRtc){
+            if(this.state == "streaming"){
+                this.stopStreaming();
+            } else {
+                this.startStreaming();
+            }
+        } else {
+            this.refreshPhoto(e);
+        }
     },
     render: function() {
-        var imageNode = this.$('.camera-image');
+        
+        console.log(this.ableWebRtc);
 
-        //image
-        var imageUrl = null;
+        if(!this.ableWebRtc){
 
-        if (this.print_capture && this.print_capture.last_photo) {
-            imageUrl = this.print_capture.last_photo;
-        } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
-            imageUrl = this.parent.printing_progress.rendered_image;
-        }
+            var imageNode = this.$('.camera-image');
 
-        if (imageNode.attr('src') != imageUrl) {
-            imageNode.attr('src', imageUrl);
-        }
+            //image
+            var imageUrl = null;
 
-        //print capture button
-        if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
-            this.$('.timelapse .dot').addClass('blink-animation');
-        } else {
-            this.$('.timelapse .dot').removeClass('blink-animation');
+            if (this.print_capture && this.print_capture.last_photo) {
+                imageUrl = this.print_capture.last_photo;
+            } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
+                imageUrl = this.parent.printing_progress.rendered_image;
+            }
+
+            if (imageNode.attr('src') != imageUrl) {
+                imageNode.attr('src', imageUrl);
+            }
+
+            //print capture button
+            if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
+                this.$('.timelapse .dot').addClass('blink-animation');
+            } else {
+                this.$('.timelapse .dot').removeClass('blink-animation');
+            }
+
         }
 
         //overaly
@@ -157,6 +194,9 @@ var PhotoView = Backbone.View.extend({
         }
 
         this.$('.timelapse select').val(freq);
+
+
+        
     },
     onCameraChanged: function(s, value) {
         var cameraControls = this.$('.camera-controls');
@@ -198,7 +238,8 @@ var PhotoView = Backbone.View.extend({
             loadingBtn.removeClass('loading');
             $(this).attr('src', null);
         });
-        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+        img.attr('src',this.takePhoto('?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++));
+        //img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
     },
     timelapseFreqChanged: function(e) {
         var newFreq = $(e.target).val();
@@ -344,8 +385,8 @@ var PrintingView = Backbone.View.extend({
         this.paused = app.socketData.get('paused');
         this.render();
 
-        this.photoView.print_capture = app.socketData.get('print_capture');
-        this.photoView.render();
+        /*this.photoView.print_capture = app.socketData.get('print_capture');
+        this.photoView.render();*/
     },
     stopPrint: function(e) {
         if (!this.cancelDialog) {
@@ -412,6 +453,13 @@ var CancelPrintDialog = Backbone.View.extend({
 
         loadingBtn.addClass('loading');
         this.parent._jobCommand('cancel', _.bind(function(data){
+
+            if(this.parent.photoView.ableWebRtc){
+                if(this.parent.photoView.state == "streaming"){
+                    this.parent.photoView.stopStreaming();
+                }
+            }
+            
             if (data && _.has(data, 'error')) {
                 noty({text: "There was an error canceling your job.", timeout: 3000});
                 loadingBtn.removeClass('loading');

@@ -58,6 +58,10 @@ class WebRtc(object):
 		else:
 			return True	
 
+	def shutdown(self):
+		self._logger.info('Shutting Down WebRtcManager')
+		self.stopJanus()
+
 	def startLocalSession(self):
 		with self._peerCondition:
 			sessionId = uuid.uuid4().hex
