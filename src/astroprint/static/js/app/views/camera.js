@@ -13,7 +13,7 @@ var CameraView = CameraControlView.extend({
 	  this.$el.html(this.template());
   },
   onShow: function(){
-    this.$el.html(this.template());
+    this.render();
   },
   onHide: function(){
  	  this.stopStreaming();
