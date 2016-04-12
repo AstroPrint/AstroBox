@@ -116,24 +116,36 @@ var AppRouter = Backbone.Router.extend({
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');
 		var targetView = view.$el;
+		var targetId = targetView.attr('id');
 
 		targetView.removeClass('hide').addClass('active');
+		targetView.trigger('show');
 
 		if (targetView.data('fullscreen')) {
 			$('#app').addClass('hide');
-		} else {
-			currentView.addClass('hide').removeClass('active');
 
-			if (targetView.attr('id') == 'control-view') {
-				this.controlView.tempView.resetBars();
+			currentView.each(function(idx, el) {
+				var $el = $(el);
+
+				if ($el.attr('id') != targetId && $el.data('fullscreen')) {
+					//If we have another fullscreen view, hide it
+					$el.addClass('hide').removeClass('active');
+				}
+			});
+
+			currentView.trigger('hide');
+		} else {
+			if (currentView.attr('id') != targetId) {
+				currentView.addClass('hide').removeClass('active');
+				currentView.trigger('hide');
+
+				if (targetId == 'control-view') {
+					this.controlView.tempView.resetBars();
+				}
 			}
 
 			app.selectQuickNav();
 		}
-
-		//fire events
-		currentView.trigger('hide');
-		targetView.trigger('show');
 	},
 	notFound: function()
 	{
