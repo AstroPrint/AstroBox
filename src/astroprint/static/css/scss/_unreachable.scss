@@ -1,3 +1,29 @@
 #unreachable-view {
-	
+	height: 100%;
+
+	.row {
+		height: 100%;
+	}
+
+	.panel {
+		position: relative;
+	    top: 40%;
+		-ms-transform: translateY(-40%);
+		-webkit-transform: translateY(-40%);
+	    transform: translateY(-40%);
+
+		img {
+			max-width: 175px;
+			margin: rem-calc(20);
+		}
+
+		h3 {
+			margin-bottom: rem-calc(15);
+		}
+
+		.box-name {
+			color: $alert-color;
+			text-transform: uppercase;
+		}
+	}
 }
