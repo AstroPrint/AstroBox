@@ -11,6 +11,16 @@ var CameraControlView = Backbone.View.extend({
   ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
+  cameraModeByValue: function(value){
+  	/* Values matches by options:
+    * - True: video mode
+    * - False: photo mode
+    */
+  	mode = value?'video':'photo';
+
+  	return mode;
+  },
+  cameraMode: 'video',//['video','photo']
   initialize: function(parameters)
   {
 	
@@ -48,8 +58,13 @@ var CameraControlView = Backbone.View.extend({
 		){
 			//BROWSER IS NOT FIREFOX
 			//AND VIDEO IS NOT VP8
-			this.setState('nowebrtc');
+			
+			//this.setState('nowebrtc');
+			//this.ableWebRtc = false;
+			
+			this.$('#camera-mode-slider').hide();
 			this.ableWebRtc = false;
+			
 			////////////////////////
 		} else {
 			this.setState('ready'); 
@@ -62,10 +77,11 @@ var CameraControlView = Backbone.View.extend({
 
 	if( !this.ableWebRtc){
 		this.initJanus = null;
-		this.startStreaming = null;
-		this.stopStreaming = null;
-		this.onHide = function(){return true};
-		this.setState('nowebrtc');
+		this.startStreaming = function(){ this.setState('nowebrtc'); };
+		this.stopStreaming = function(){ return true; };
+		this.onHide = function(){ return true; };
+		//this.setState('nowebrtc');
+		this.cameraMode = 'photo';
 	} else {
 		this.serverUrl = "http://" + window.location.hostname + ":8088/janus";
 		startStreaming = this.startStreaming;
@@ -81,9 +97,40 @@ var CameraControlView = Backbone.View.extend({
   onHide: function(){
  	this.stopStreaming();
   },
-  takePhoto: function(JSONtext) {
+  buttonEvent: function(e,text){
+  	if(this.cameraMode == 'video'){
+  		if(this.state == 'streaming'){
+  			this.stopStreaming();
+  		} else {
+  			this.startStreaming();
+  		}
+  	} else { //photo
+  		this.takePhoto(text);
+  	}
+  },
+  takePhoto: function(text) {
 
-  	return '/camera/snapshot' + (JSONtext?JSONtext:"");
+  	$('.icon-3d-object').hide();
+
+  	this.$('.loading-button').addClass('loading');
+
+  	setTimeout(_.bind(function(){
+
+	  	var queryParams = [
+	  		"timestamp=" + (Date.now() / 1000)
+	  	];
+
+	  	if (text) {
+	  		queryParams.push("text="+encodeURIComponent(text));
+	  	}
+
+	  	this.$('.camera-image').attr('src', '/camera/snapshot?' + queryParams.join("&"));
+
+	  	
+		this.$('.camera-image').load(_.bind(function() {
+	    	this.$('.loading-button').removeClass('loading');
+		},this));
+  	},this),100);
 
   },
   initJanus: function(){

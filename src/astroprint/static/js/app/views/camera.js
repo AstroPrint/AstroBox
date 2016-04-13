@@ -5,17 +5,33 @@ var CameraView = CameraControlView.extend({
   events: {
 	   'hide':'onHide',
      'show':'onShow',
-     'click .buttons .columns .success': 'startStreaming',
-     'click .buttons .columns .secondary': 'stopStreaming'
+     'click .buttons .columns .success': 'buttonEvent',
+     'click .buttons .columns .secondary': 'buttonEvent',
+     'click .buttons .columns .photo': 'buttonEvent',
+     "change input[name='camera-mode']": 'cameraModeChanged',
   },
   subviews: null,
   render: function() {
 	  this.$el.html(this.template());
   },
+  cameraModeChanged: function(e){
+    if(this.cameraMode == 'video'){
+      this.stopStreaming();
+    }
+    var target = $(e.currentTarget);
+    this.cameraMode = this.cameraModeByValue(target.is(':checked'));
+    this.render();
+  },
   onShow: function(){
     this.initialize();
   },
   onHide: function(){
- 	  this.stopStreaming();
+    if(this.cameraMode == 'video'){
+ 	    if(this.state == 'streaming'){
+        this.stopStreaming();
+      }
+    } else { 
+      this.$('.camera-image').removeAttr('src');
+    }
   }
 });

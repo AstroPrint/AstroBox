@@ -7,6 +7,7 @@
 			</div>
 
 			<div class="camera-view">
+				<% if(this.cameraMode == 'video') { %>
 				<div class="row video-container">
 					<div class="small-12 columns text-center">
 						<div class="video-off">
@@ -24,12 +25,42 @@
 						</video>
 					</div>
 				</div>
-				<div class="row buttons">
-					<div class="small-12 large-4 large-centered columns video-off">
-						<button class="success radius bold"><i class="icon-play"></i>&nbsp;&nbsp;Start Streaming Video</button>
+				<% } else { %>
+					<div class="row video-container">
+						<div class="small-12 columns text-center">
+							<div class="video-off">
+								<i class="icon-3d-object"></i>
+								<img class="camera-image" width="100%"/>
+							</div>
+						</div>
 					</div>
-					<div class="small-12 large-4 large-centered columns video-on">
-						<button class="secondary radius bold"><i class="icon-stop"></i>&nbsp;&nbsp;Stop Streaming Video</button>
+				<% } %>
+				<div class="row buttons">
+					<% if(this.cameraMode == 'video') { %>
+						<div class="small-12 large-4 large-centered columns video-off">
+							<button class="success radius bold"><i class="icon-play"></i>&nbsp;&nbsp;Start Streaming Video</button>
+						</div>
+						<div class="small-12 large-4 large-centered columns video-on">
+							<button class="secondary radius bold"><i class="icon-stop"></i>&nbsp;&nbsp;Stop Streaming Video</button>
+						</div>
+					<% } else { %>
+						<div class="small-12 large-4 large-centered columns video-off">
+							<div class="loading-button">
+								<button class="photo radius bold"><i class="icon-camera"></i>&nbsp;&nbsp;Take photo</button>
+								<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> Taking photo...</span>
+							</div>
+						</div>
+					<% } %>
+					<div id="camera-mode-slider" style="float:right">
+						<label for="camera-mode" class="bold">
+							CAMERA MODE
+						</label>
+						<div class="switch radius">
+							PHOTO
+							<input id="camera-mode" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
+							<label for="camera-mode"></label>
+							VIDEO
+						</div>
 					</div>
 				</div>
 			</div>

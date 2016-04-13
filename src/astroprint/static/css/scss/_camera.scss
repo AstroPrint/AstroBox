@@ -50,6 +50,10 @@
 	    	display:none;
 	    }
 
+	    #camera-mode-slider{
+	    	display:block;
+	    }
+
 	    #remotevideo {
                 width: 100%;
 	    }
@@ -73,14 +77,22 @@
 		}
 
 		.video-on {
-    			display:none;
-	    	}
+    		display:none;
+	    }
+
+	    #camera-mode-slider{
+	    	display:none;
+	    }
 	}
 
     &.nowebrtc {
     	div.video {
     		display:none;
     	}
+
+    	div#camera-mode-slider{
+	    	display:block;
+	    }
 
 		div.nowebrtc {
 			display: block;
@@ -151,6 +163,10 @@
     	.video-on {
     		display:block
     	}
+
+    	#camera-mode-slider{
+	    	display:block;
+	    }
     }
 }
 
