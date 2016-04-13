@@ -106,11 +106,18 @@ var AstroBoxApp = Backbone.View.extend({
 	onReachableChanged: function(s, value)
 	{
 		if (value != 'reachable') {
-			if (!this.unreachableView) {
-				this.unreachableView = new UnreachableView();
-			}
+			//We need to wrap it in a setTimeout becuase otherwise it
+			//flashes on FireFox when changing pages
+			setTimeout(_.bind(function(){
+				//Is it still unreachable?
+				if (this.socketData.get('box_reachable') == 'unreachable') {
+					if (!this.unreachableView) {
+						this.unreachableView = new UnreachableView();
+					}
 
-			this.router.selectView(this.unreachableView);
+					this.router.selectView(this.unreachableView);
+				}
+			},this), 1000);
 		} else if (this.unreachableView) {
 			this.unreachableView.hide();
 		}
