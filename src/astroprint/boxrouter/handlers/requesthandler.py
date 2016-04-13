@@ -20,7 +20,7 @@ from astroprint.webrtc import webRtcManager
 class RequestHandler(object):
 	def __init__(self, printerListener):
 		self._logger = logging.getLogger(__name__)
-		self._weakPrinterListener = weakref.ref(printerListener)
+		self._weakPrinterListener = weakref.ref(printerListener) if printerListener else None
 
 	def initial_state(self, data, clientId):
 		printer = printerManager()
@@ -121,27 +121,28 @@ class RequestHandler(object):
 					return
 
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
-			if printer.selectFile(abosluteFilename, False, True):
-				pl = self._weakPrinterListener()
+			if self._weakPrinterListener:
+				if printer.selectFile(abosluteFilename, False, True):
+					pl = self._weakPrinterListener()
 
-				if pl:
-					pl._sendUpdate('print_file_download', {
-						'id': print_file_id,
-						'progress': 100,
-						'selected': True
-					})
+					if pl:
+						pl._sendUpdate('print_file_download', {
+							'id': print_file_id,
+							'progress': 100,
+							'selected': True
+						})
 
-			else:
-				pl = self._weakPrinterListener()
+				else:
+					pl = self._weakPrinterListener()
 
-				if pl:
-					pl._sendUpdate('print_file_download', {
-						'id': print_file_id,
-						'progress': 100,
-						'error': True,
-						'message': 'Unable to start printing',
-						'selected': False
-					})
+					if pl:
+						pl._sendUpdate('print_file_download', {
+							'id': print_file_id,
+							'progress': 100,
+							'error': True,
+							'message': 'Unable to start printing',
+							'selected': False
+						})
 
 		def errorCb(destFile, error):
 			if error == 'cancelled':
