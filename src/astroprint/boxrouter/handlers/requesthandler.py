@@ -7,6 +7,7 @@ import logging
 import threading
 import weakref
 import base64
+import json
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -18,9 +19,9 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.webrtc import webRtcManager
 
 class RequestHandler(object):
-	def __init__(self, printerListener):
+	def __init__(self, wsClient):
 		self._logger = logging.getLogger(__name__)
-		self._weakPrinterListener = weakref.ref(printerListener) if printerListener else None
+		self._wsClient = wsClient
 
 	def initial_state(self, data, clientId):
 		printer = printerManager()
@@ -121,28 +122,29 @@ class RequestHandler(object):
 					return
 
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
-			if self._weakPrinterListener:
-				if printer.selectFile(abosluteFilename, False, True):
-					pl = self._weakPrinterListener()
+			if printer.selectFile(abosluteFilename, False, True):
+				eventData = {
+					'id': print_file_id,
+					'progress': 100,
+					'selected': True
+				}
 
-					if pl:
-						pl._sendUpdate('print_file_download', {
-							'id': print_file_id,
-							'progress': 100,
-							'selected': True
-						})
+			else:
+				eventData = {
+					'id': print_file_id,
+					'progress': 100,
+					'error': True,
+					'message': 'Unable to start printing',
+					'selected': False
+				}
 
-				else:
-					pl = self._weakPrinterListener()
-
-					if pl:
-						pl._sendUpdate('print_file_download', {
-							'id': print_file_id,
-							'progress': 100,
-							'error': True,
-							'message': 'Unable to start printing',
-							'selected': False
-						})
+			self._wsClient.send(json.dumps({
+				'type': 'send_event',
+				'data': {
+					'eventType': 'print_file_download',
+					'eventData': eventData
+				}
+			}))
 
 		def errorCb(destFile, error):
 			if error == 'cancelled':

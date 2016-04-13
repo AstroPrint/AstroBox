@@ -51,7 +51,7 @@ class BoxRouterMessageHandler(object):
 		wsClient = self._weakWs()
 
 		if wsClient:
-			handler = RequestHandler(wsClient._printerListener)
+			handler = RequestHandler(wsClient)
 
 			try:
 				request = msg['data']['type']
