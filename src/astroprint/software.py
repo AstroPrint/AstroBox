@@ -208,7 +208,8 @@ class SoftwareManager(object):
 				"major": 0,
 				"minor": 0,
 				"build": u'0',
-				"date": None
+				"date": None,
+				"commit": None
 			},
 			"variant": {
 				"id": None,
@@ -246,6 +247,10 @@ class SoftwareManager(object):
 			self.data['version']['major'], 
 			self.data['version']['minor'], 
 			self.data['version']['build'])
+
+	@property
+	def commit(self):
+		return self.data['version']['commit']
 
 	@property
 	def platform(self):

@@ -364,7 +364,12 @@
 			<a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
 		</div>
 		<div id="software-update" class="settings-page hide" align="center">
-			<h4 align="center"><b>{{version}}</b> Installed.</h4>
+			<h4 align="center">
+				<b>{{version}}</b> Installed.<br/>
+				{% if commit %}
+				<small>({{commit}})</small>
+				{% endif %}
+			</h4>
 			<div class="loading-button check">
 				<button class="success radius">Check for updates</button>
 				<span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>

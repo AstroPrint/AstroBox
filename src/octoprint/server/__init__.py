@@ -99,6 +99,7 @@ def index():
 			debug= debug,
 			uiApiKey= UI_API_KEY,
 			version= VERSION,
+			commit= swManager().commit,
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
 			settings=s
@@ -140,6 +141,7 @@ def index():
 			"app.jinja2",
 			user_email= loggedUsername,
 			version= VERSION,
+			commit= swManager().commit,
 			printing= printing,
 			paused= paused,
 			online= online,
