@@ -16,6 +16,7 @@ var CameraView = CameraControlView.extend({
   },
   onShow: function(){
     this.initialize();
+    this.$el.removeClass('nowebrtc error');
   },
   onHide: function(){
     if(this.cameraMode == 'video'){

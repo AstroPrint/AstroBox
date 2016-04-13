@@ -55,7 +55,7 @@
 	    }
 
 	    #remotevideo {
-                width: 100%;
+            width: 100%;
 	    }
 	}
 
@@ -86,7 +86,7 @@
 	}
 
     &.nowebrtc {
-    	div.video {
+    	div.image-container {
     		display:none;
     	}
 
@@ -137,7 +137,7 @@
     }
 
     &.error {
-    	div.video {
+    	div.image-container {
     		display:none;
     	}
 
@@ -172,7 +172,6 @@
 
 @media #{$large-up} {
 	#camera-view {
-
 		&.nowebrtc {
 			div.nowebrtc {
 				margin-top: 100px;

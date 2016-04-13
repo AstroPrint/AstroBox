@@ -100,6 +100,7 @@ var CameraControlView = Backbone.View.extend({
   cameraModeChanged: function(e){
     if(this.cameraMode == 'video'){
       this.stopStreaming();
+      this.$el.removeClass('nowebrtc error');
     }
     var target = $(e.currentTarget);
     this.cameraMode = this.cameraModeByValue(target.is(':checked'));
