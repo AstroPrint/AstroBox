@@ -351,18 +351,25 @@ class SoftwareManager(object):
 						self.lastMessage = message
 
 					def completionCb(success):
-						def sendFinalEvent(success):
-							eventManager().fire(Events.SOFTWARE_UPDATE, {
-								'completed': True,
-								'success': success
-							})
-
-						threading.Timer(0.2, sendFinalEvent, [success]).start()
+						eventManager().fire(Events.SOFTWARE_UPDATE, {
+							'completed': True,
+							'success': success
+						})
 
 						if success:
 							self.forceUpdateInfo = None
 							#schedule a restart
-							threading.Timer(1, self.restartServer).start()
+
+							def tryRestart():
+								if not self.restartServer():
+									eventManager().fire(Events.SOFTWARE_UPDATE, {
+										'completed': True,
+										'progress': 1,
+										'success': False,
+										'message': 'Unable to restart'
+									})
+
+							threading.Timer(1, tryRestart).start()
 
 
 					self.lastCompletionPercent = None
@@ -400,10 +407,11 @@ class SoftwareManager(object):
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
 				if a['action'] == 'astrobox-restart':
-					subprocess.call(a['command'].split(' '))
+					#Call to Popen will start the restart command but return inmediately before it completes
+					subprocess.Popen(a['command'].split(' '))
 					return True
 
-			subprocess.call(['restart', 'astrobox'])
+			return False
 
 		return True
 
