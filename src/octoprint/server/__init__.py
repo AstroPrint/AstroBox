@@ -262,7 +262,7 @@ class Server():
 		softwareManager = swManager()
 		VERSION = softwareManager.versionString
 
-		logger.info("Starting AstroBox (%s)" % VERSION)
+		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
 
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])
