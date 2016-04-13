@@ -97,6 +97,14 @@ var CameraControlView = Backbone.View.extend({
   onHide: function(){
  	this.stopStreaming();
   },
+  cameraModeChanged: function(e){
+    if(this.cameraMode == 'video'){
+      this.stopStreaming();
+    }
+    var target = $(e.currentTarget);
+    this.cameraMode = this.cameraModeByValue(target.is(':checked'));
+    this.render();
+  },
   buttonEvent: function(e,text){
   	if(this.cameraMode == 'video'){
   		if(this.state == 'streaming'){
@@ -130,6 +138,13 @@ var CameraControlView = Backbone.View.extend({
 		this.$('.camera-image').load(_.bind(function() {
 	    	this.$('.loading-button').removeClass('loading');
 		},this));
+
+		this.$('.camera-image').error(_.bind(function() {//NOT TESTED YET
+	    	this.$('.loading-button').removeClass('loading');
+	    	this.$('.camera-image').removeAttr('src');
+	    	$('.icon-3d-object').show();
+		},this));
+
   	},this),100);
 
   },

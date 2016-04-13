@@ -14,14 +14,6 @@ var CameraView = CameraControlView.extend({
   render: function() {
 	  this.$el.html(this.template());
   },
-  cameraModeChanged: function(e){
-    if(this.cameraMode == 'video'){
-      this.stopStreaming();
-    }
-    var target = $(e.currentTarget);
-    this.cameraMode = this.cameraModeByValue(target.is(':checked'));
-    this.render();
-  },
   onShow: function(){
     this.initialize();
   },

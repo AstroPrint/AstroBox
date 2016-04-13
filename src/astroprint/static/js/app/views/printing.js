@@ -106,12 +106,34 @@ var PhotoView = CameraControlView.extend({
     el: "#printing-view .camera-view",
     template: _.template( this.$("#photo-printing-template").html()),
     events: {
-        'click button.take-pic': 'manageStreaming',
-        'change .timelapse select': 'timelapseFreqChanged'
+        'click button.take-pic': 'buttonEvent',
+        'change .timelapse select': 'timelapseFreqChanged',
+        "change input[name='camera-mode']": 'cameraModeChanged'
     },
     parent: null,
     print_capture: null,
     photoSeq: 0,
+    cameraModeChanged: function(e){
+        if(this.cameraMode == 'video'){
+          this.stopStreaming();
+        }
+        var target = $(e.currentTarget);
+        this.cameraMode = this.cameraModeByValue(target.is(':checked'));
+        var selectedFreqValue = this.$('#freqSelector').val();
+        this.render();
+        this.$('#freqSelector').val(selectedFreqValue);
+    },
+    buttonEvent: function(e){
+        if(this.cameraMode == 'video'){
+            if(this.state == 'streaming'){
+                this.stopStreaming();
+            } else {
+                this.startStreaming();
+            }
+        } else { //photo
+            this.refreshPhoto(e);
+        }
+    },
     initialize: function(options) {
 
         this.parent = options.parent;
@@ -141,9 +163,11 @@ var PhotoView = CameraControlView.extend({
                 } else {
                     this.setState('nowebrtc');
                     this.ableWebRtc = false
+                    cameraModeChanged = null;
+                    this.buttonEvent = function(e){ this.refreshPhoto(e); };
+                    this.startStreaming = null;
+                    this.stopStreaming = null;
                 }
-
-                this.$el.html(this.template());
 
                 this.render();
 
@@ -151,19 +175,9 @@ var PhotoView = CameraControlView.extend({
         },this));
 
     },
-    manageStreaming: function(e){
-
-        if(this.ableWebRtc){
-            if(this.state == "streaming"){
-                this.stopStreaming();
-            } else {
-                this.startStreaming();
-            }
-        } else {
-            this.refreshPhoto(e);
-        }
-    },
     render: function() {
+
+        this.$el.html(this.template());
 
         if(!this.ableWebRtc){
 
@@ -205,9 +219,6 @@ var PhotoView = CameraControlView.extend({
         }
 
         this.$('.timelapse select').val(freq);
-
-
-        
     },
     onCameraChanged: function(s, value) {
         var cameraControls = this.$('.camera-controls');
