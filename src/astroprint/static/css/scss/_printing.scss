@@ -161,6 +161,47 @@
 					margin-top: 16px;
 				}
 			}
+
+			.camera-mode {
+				padding: 0 rem-calc(10) 0 0;
+
+				p {
+					color: $charcoal;
+					margin: 0;
+
+					i {
+						font-size: rem-calc(16);
+						margin: 0 4px 0 5px;
+						text-shadow: -1px 0 1px $white;
+
+						&.icon-picture-1 {
+							margin-left: 0;
+						}
+					}
+				}
+
+
+				.switch input + label {
+					display: block;
+					width: 65px;
+					height: 28px;
+					border: 1px solid #ccc;
+					background: $steel;
+
+					&:after {
+						height: 20px;
+						top: rem-calc(3);
+						left: rem-calc(3);
+					}
+				}
+
+				.switch input:checked + label {
+
+					&:after {
+						left: rem-calc(36);
+					}
+				}
+			}
 		}
 	}
 
@@ -326,11 +367,10 @@
 
 	.camera-view {
 	    .video-container {
-	        min-height: 240px;
+	        min-height: 220px;
 	        border: 1px solid $iron;
 	        border-bottom: none;
 	        background: $oil;
-	        margin-top: rem-calc(60);
 	        @include radius($global-radius $global-radius 0 0);
 
 	        .video-off,
@@ -341,12 +381,14 @@
 	        }
 
 	        i {
-	            font-size: rem-calc(100);
+	            font-size: rem-calc(80);
+				line-height: 1;
 	            color: $base;
 	        }
 
-	        h3 {
+	        h3, h4 {
 	            color: $base;
+				margin: 0;
 	        }
 
 	    }
@@ -372,7 +414,7 @@
 	    			display:none;
 		    	}
 		}
-		
+
 		&.error {
 	    	div.video {
 	    		display:none;

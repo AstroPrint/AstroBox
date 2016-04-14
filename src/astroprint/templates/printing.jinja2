@@ -13,8 +13,8 @@
 							<div class="video-container">
 								<div class="small-12 columns text-center">
 									<div class="video-off">
-										<i class="icon-camera"></i>
-										<h3 class="bold">Camera Stream Off</h3>
+										<i class="icon-videocam-1"></i>
+										<h4 class="bold">Camera Stream Off</h4>
 									</div>
 									<div class="video-preparing">
 										<i class="icon-rocket-spinner animate-spin"></i>
@@ -59,21 +59,20 @@
 									<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
 								</div>
 							</div>
-							<% if(this.ableWebRtc){ %>
-								<div id="camera-mode-slider" style="float:right">
-									<label for="camera-mode" class="bold">
-										CAMERA MODE
-									</label>
-									<div class="switch radius">
-										PHOTO
-										<input id="camera-mode" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
-										<label for="camera-mode"></label>
-										VIDEO
+							<div class="small-4 columns">
+								<% if(this.ableWebRtc){ %>
+									<div id="camera-mode-slider" class="camera-mode" align="right">
+										<p>
+											<i class="icon-picture-1"></i>
+											<i class="icon-videocam-1"></i>
+										</p>
+										<div class="switch radius">
+											<input id="camera-mode" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
+											<label for="camera-mode"></label>
+										</div>
 									</div>
-								</div>
-							<% } %>
-
-							<div class="small-4 columns"></div>
+								<% } %>
+							</div>
 						</div>
 					</div>
 				<% } else { %>
