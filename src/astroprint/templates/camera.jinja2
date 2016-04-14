@@ -1,11 +1,12 @@
 <script type="text/template" id="camera-watch-page-template">
+	<div class="row large-collapse">
+		<div class="small-12 columns title-heading">
+			<h1 class="bold">Camera</h1>
+		</div>
+	</div>
 <% if(this.cameraAvailable) { %>
-	<div class="video">
-		<div class="row large-collapse">
-			<div class="small-12 columns title-heading">
-				<h1 class="bold">Camera</h1>
-			</div>
-
+	<div class="row large-collapse">
+		<div class="video">
 			<div class="camera-view">
 				<div class="row nowebrtc alert-box radius">
 					<div class="large-3 large-centered columns show-for-large-up">
@@ -49,12 +50,12 @@
 						<div class="row video-container">
 							<div class="small-12 columns text-center">
 								<div class="video-off">
-									<i class="icon-camera"></i>
-									<h3 class="bold">Camera Stream Off</h3>
+									<i class="icon-videocam-1"></i>
+									<h3 class="bold">Video Stream Off</h3>
 								</div>
 								<div class="video-preparing">
 									<i class="icon-rocket-spinner animate-spin"></i>
-									<h3 class="bold">Preparing video...</h3>
+									<h3 class="bold">Preparing Video...</h3>
 								</div>
 							</div>
 							<div id="videoScreen" class="video-on">
@@ -74,38 +75,38 @@
 						</div>
 					<% } %>
 				</div>
-				<div class="row buttons">
+				<div class="row buttons text-center">
+					<div class="small-12 large-3 columns show-for-large-up">&nbsp;</div>
 					<% if(this.cameraMode == 'video') { %>
-						<div class="small-12 large-4 large-centered columns video-off">
-							<button class="success radius bold"><i class="icon-play"></i>&nbsp;&nbsp;Start Streaming Video</button>
+						<div class="small-8 large-6 columns video-off">
+							<button class="success radius bold"><i class="icon-videocam-1"></i><span class="hide-for-small">Start Streaming Video</span></button>
 						</div>
-						<div class="small-12 large-4 large-centered columns video-on">
-							<button class="secondary radius bold"><i class="icon-stop"></i>&nbsp;&nbsp;Stop Streaming Video</button>
+						<div class="small-8 large-6 columns video-on">
+							<button class="secondary radius bold"><i class="icon-stop"></i><span class="hide-for-small">Stop Streaming Video</span></button>
 						</div>
 					<% } else { %>
-						<div class="small-12 large-4 large-centered columns video-off">
+						<div class="small-8 large-6 columns video-off">
 							<div class="loading-button">
-								<button class="photo radius bold"><i class="icon-camera"></i>&nbsp;&nbsp;Take photo</button>
+								<button class="photo radius bold"><i class="icon-camera"></i><span class="hide-for-small">Take Photo</span></button>
 								<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> Taking photo...</span>
 							</div>
 						</div>
 					<% } %>
-					<div id="camera-mode-slider" style="float:right">
-						<label for="camera-mode" class="bold">
-							CAMERA MODE
-						</label>
+					<div id="camera-mode-slider" class="small-4 large-3 columns camera-mode" align="right">
+						<p>
+							<i class="icon-picture-1"></i>
+							<i class="icon-videocam-1"></i>
+						</p>
 						<div class="switch radius">
-							PHOTO
 							<input id="camera-mode" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
 							<label for="camera-mode"></label>
-							VIDEO
 						</div>
 					</div>
 				</div>
-			</div>
+			</div>		
 		</div>
 	</div>
 <% } else { %>
-	THERE IS NOT ANY CAMERA PLUGGED
+	No Camera Detected
 <% } %>
 </script>
