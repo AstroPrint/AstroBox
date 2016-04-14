@@ -8,7 +8,7 @@ var CameraView = CameraControlView.extend({
      'click .buttons .columns .success': 'buttonEvent',
      'click .buttons .columns .secondary': 'buttonEvent',
      'click .buttons .columns .photo': 'buttonEvent',
-     "change input[name='camera-mode']": 'cameraModeChanged',
+     "change input[name='camera-mode']": 'cameraModeChanged'
   },
   subviews: null,
   render: function() {

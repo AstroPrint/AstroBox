@@ -123,17 +123,6 @@ var PhotoView = CameraControlView.extend({
         this.render();
         this.$('#freqSelector').val(selectedFreqValue);
     },
-    buttonEvent: function(e){
-        if(this.cameraMode == 'video'){
-            if(this.state == 'streaming'){
-                this.stopStreaming();
-            } else {
-                this.startStreaming();
-            }
-        } else { //photo
-            this.refreshPhoto(e);
-        }
-    },
     initialize: function(options) {
 
         this.parent = options.parent;
@@ -233,14 +222,19 @@ var PhotoView = CameraControlView.extend({
         }
     },
     onPrintCaptureChanged: function(s, value) {
-        this.print_capture = value;
-        this.render();
+    	if(this.cameraMode == 'photo'){
+	        this.print_capture = value;
+	        //this.render();
+	        var img = this.$('.camera-image');
+	        img.attr('src',value.last_photo);
+    	}
     },
     onPrintingProgressChanged: function(s, value) {
-        if (!this.$('.camera-image').attr('src') && value && value.rendered_image) {
+        if (this.cameraMode == 'photo' && !this.$('.camera-image').attr('src') && value && value.rendered_image) {
             //This allows the change to propagate
             setTimeout(_.bind(function(){
-                this.render();
+                //this.render();
+            	img.attr('src',value.last_photo);
             },this), 1);
         }
     },
@@ -250,18 +244,26 @@ var PhotoView = CameraControlView.extend({
 
         loadingBtn.addClass('loading');
 
-        var text = Math.floor(printing_progress.percent)+'% - Layer '+(printing_progress.current_layer ? printing_progress.current_layer : '1')+( printing_progress.layer_count ? '/'+printing_progress.layer_count : '');
-        var img = this.$('.camera-image');
-
-        img.one('load', function() {
-            loadingBtn.removeClass('loading');
-        });
-        img.one('error', function() {
-            loadingBtn.removeClass('loading');
-            $(this).attr('src', null);
-        });
-        img.attr('src',this.takePhoto('?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++));
-        //img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+        /*var text = Math.floor(printing_progress.percent)+'% - Layer '+(printing_progress.current_layer ? printing_progress.current_layer : '1')+( printing_progress.layer_count ? '/'+printing_progress.layer_count : '');
+        
+        var photo = this.takePhoto('?text='+text+'&seq='+this.photoSeq++);
+        */
+        if(this.cameraMode == 'photo'){
+        
+	        var img = this.$('.camera-image');
+	
+	        img.one('load', function() {
+	            loadingBtn.removeClass('loading');
+	        });
+	        img.one('error', function() {
+	            loadingBtn.removeClass('loading');
+	            $(this).attr('src', null);
+	        });
+	        
+	        
+	        //img.attr('src',photo);
+	        img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+        }
     },
     timelapseFreqChanged: function(e) {
         var newFreq = $(e.target).val();

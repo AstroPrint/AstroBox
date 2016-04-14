@@ -492,9 +492,6 @@ class GStreamer(object):
 			#print self.loop
 			#self.loop.run()
 
-
-			"""self.streamProcessState = 'TAKING_PHOTO'
-			Â"""
 			self.pipeline.add(self.multifilesinkphotoNotText)
 			self.jpegencNotText.link(self.multifilesinkphotoNotText)
 			
@@ -761,7 +758,7 @@ class GStreamer(object):
 				print self.queuebin.set_state(gst.State.PAUSED)
 				print self.queuebin.set_state(gst.State.NULL)
 			"""
-			self._logger.info("take_photo except: %s",error)
+			self._logger.info("take_photo except:  %s" % str(error))
 			self.waitForPhoto.clear()
 			return None
 
