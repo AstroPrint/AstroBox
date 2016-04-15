@@ -214,10 +214,17 @@ class PrinterCommandHandler(object):
 		printerManager().cancelPrint()
 
 	def photo(self, data, clientId):
-		return {
-			'success': True,
-			'image_data': base64.b64encode(cameraManager().get_pic())
-		}
+		pic = cameraManager().get_pic()
+		if pic is not None:
+			return {
+				'success': True,
+				'image_data': base64.b64encode(pic)
+			}
+		else:
+			return {
+				'success': False,
+				'image_data': ''
+			}
 
 # Camera Command Group Handler
 
