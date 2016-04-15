@@ -564,7 +564,7 @@ class GStreamer(object):
 							# global info_id
 							# #add probe for the source waiting for finish the source data flow
 							self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
-						except error:
+						except Exception, error:
 							self._logger.info("ERROR IN BUS MESSAGE: %s", error)
 							self.fatalErrorManage(True, True)
 						
@@ -576,7 +576,7 @@ class GStreamer(object):
 							# #add probe for the source waiting for finish the source data flow
 							self.tee_video_pad_bin.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 	
-						except error:
+						except Exception, error:
 							self._logger.info("ERROR IN BUS MESSAGE: %s", error)
 							self.fatalErrorManage(True, True)
 
@@ -584,9 +584,10 @@ class GStreamer(object):
 
 
 		elif t == gst.MessageType.ERROR:
-			self._logger.info(msg.src)
-			self._logger.info(msg)
-			self._logger.info(msg.type)
+			busError = msg.parse_error()
+			self._logger.error("gstreamer bus message error (%s): %s" % busError)
+			print self.pipeline.set_state(gst.State.PAUSED)
+			print self.pipeline.set_state(gst.State.NULL)
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 	
@@ -648,7 +649,7 @@ class GStreamer(object):
 				self.waitForPhoto.set()
 				return gst.PadProbeReturn.OK
 
-			except error:
+			except Exception, error:
 				self._logger.info("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s", error)
 
 				if self.streamProcessState == 'TAKING_PHOTO':
@@ -735,7 +736,7 @@ class GStreamer(object):
 				return None
 
 			self.waitForPhoto.clear()
-		except error:
+		except Exception, error:
 
 			if self.streamProcessState == 'TAKING_PHOTO':
 
@@ -807,7 +808,7 @@ class GStreamer(object):
 
 						# CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 						# A GOOD IMAGE FROM CAMERA
-						self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesik')
+						self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
 						self.multifilesinkphoto.set_property('location', self.tempImage)
 						self.multifilesinkphoto.set_property('max-files', 1)
 						self.multifilesinkphoto.set_property('post-messages', True)				
@@ -843,7 +844,7 @@ class GStreamer(object):
 				
 					self.pipeline.set_state(gst.State.PLAYING)
 
-			except error:
+			except Exception, error:
 				self._logger.info("ERROR IN TAKE PHOTO AND RETURN WITH VIDEO PAUSED: %s" % str(error))
 
 				self._logger.error("Error taking photo with GStreamer: %s" % str(error))
@@ -872,7 +873,7 @@ class GStreamer(object):
 
 					print self.queuebinNotText.set_state(gst.State.PLAYING)
 
-				except error:
+				except Exception, error:
 					self._logger.error("ERROR IN TAKING PHOTO AND RETURN WITH TEXTPHOTO: %s" % str(error))
 					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
 	                                self.pipeline.set_state(gst.State.PAUSED)
@@ -902,7 +903,7 @@ class GStreamer(object):
 
 					print self.queuebin.set_state(gst.State.PLAYING)
 
-				except error:
+				except Exception, error:
 					self._logger.info("ERROR IN TAKING PHOTO AND RETURN WITHOUT TEXTPHOTO: %s" % str(error))
 					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
 	                                self.pipeline.set_state(gst.State.PAUSED)
