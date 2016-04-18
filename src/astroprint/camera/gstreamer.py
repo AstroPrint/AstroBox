@@ -135,8 +135,8 @@ class GStreamer(object):
 			####
 			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
 			# THE SAME SIZE
-			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480,framerate=15/1')
-			# camerajpegcaps = gst.Caps.from_string('image/jpeg,framerate=30/1,width=640,height=480')
+			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480')
+			#camerajpegcaps = gst.Caps.from_string('image/jpeg')
 			self.jpeg_capsNotText = gst.ElementFactory.make("capsfilter", "filterjpegNotText")
 			self.jpeg_capsNotText.set_property("caps", camerajpegcaps)
 			# ##
@@ -274,7 +274,7 @@ class GStreamer(object):
 			# SETS ASTROPRINT'S LOGO IN VIDEO DEPENDING THE SIZE OF IT
 			self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 			self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
-			camera1caps = gst.Caps.from_string('video/x-raw,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+			camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
 			self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
 			self.src_caps.set_property("caps", camera1caps)
 			# ##
@@ -371,6 +371,7 @@ class GStreamer(object):
 			self.multifilesinkphotoNotText.set_property('location', self.tempImage)
 			self.multifilesinkphotoNotText.set_property('max-files', 1)
 			self.multifilesinkphotoNotText.set_property('post-messages', True)
+			self.multifilesinkphotoNotText.set_property('async', True)
 			# IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
 			self._logger.info("VIDEO IS PLAYING")
 
@@ -420,10 +421,12 @@ class GStreamer(object):
 			self.multifilesinkphoto.set_property('location', self.tempImage)
 			self.multifilesinkphoto.set_property('max-files', 1)
 			self.multifilesinkphoto.set_property('post-messages', True)
+			self.multifilesinkphoto.set_property('async', True)
 			self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
 			self.multifilesinkphotoNotText.set_property('location', self.tempImage)
 			self.multifilesinkphotoNotText.set_property('max-files', 1)
 			self.multifilesinkphotoNotText.set_property('post-messages', True)
+			self.multifilesinkphotoNotText.set_property('async', True)
 			# IF VIDEO IS PLAYING, IT HAS TO TAKE PHOTO USING ANOTHER INTRUCTION            
 			self._logger.info("VIDEO IS PLAYING")
 
@@ -437,12 +440,13 @@ class GStreamer(object):
 
 			# ADDING PHOTO QUEUE TO PIPELINE
 			self.pipeline.add(self.queuebin)
+			self.pipeline.add(self.photo_logo)
+			self.pipeline.add(self.photo_text)
 			self.pipeline.add(self.jpeg_caps)
 			self.pipeline.add(self.jpegenc)
 			# ADDING PHOTO QUEUE (without text) TO PIPELINE
 			self.pipeline.add(self.queuebinNotText)
-			self.pipeline.add(self.photo_logo)
-			self.pipeline.add(self.photo_text)
+			
 			self.pipeline.add(self.jpeg_capsNotText)
 			self.pipeline.add(self.jpegencNotText)
 			# #
@@ -543,8 +547,8 @@ class GStreamer(object):
 
 	def bus_message(self, bus, msg):
 		t = msg.type
-		# print msg
-		# print t
+		print msg
+	 	print t
 		if t == gst.MessageType.ELEMENT:
 			# print msg
 			# print msg.type
