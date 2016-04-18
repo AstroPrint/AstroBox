@@ -11,7 +11,7 @@ netaddr==0.7.12
 watchdog==0.8.3
 sarge
 requests==2.9
-requests-toolbelt==0.6
+requests-toolbelt==0.6.0
 flask-compress==1.0.2
 scss==0.8.73
 closure==20140110
