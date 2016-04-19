@@ -5,6 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import os.path
 import glob
 import logging
+import threading
 
 from random import randrange
 from astroprint.camera import CameraManager
@@ -19,18 +20,20 @@ class CameraMacManager(CameraManager):
 	def open_camera(self):
 		return True
 
+	def get_pic_async(self, done, text=None):
+		threading.Timer(20, self._doGetPicAsync,[done, text]).start()
+
 	def get_pic(self, text=None):
 		fileCount = len(self._files)
+		image = None
 
 		if fileCount:
 			imageFile = self._files[randrange(fileCount)]
 			with open(imageFile, "r") as f:
 				image = f.read()
 
-			return image
-
-		else:
-			return None
-
 	def isCameraAvailable(self):
 		return True
+
+	def _doGetPicAsync(self, done, text):
+		done(self.get_pic(text))

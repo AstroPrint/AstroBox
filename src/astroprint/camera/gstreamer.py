@@ -61,6 +61,8 @@ class GStreamerManager(CameraManager):
 	# def list_devices(self):
 	#    pass
 
+	# There are cases where we want the pic to be synchronous
+	# so we leave this version too
 	def get_pic(self, text=None):
 		self._logger.info("GET_PIC")
 		if self.gstreamerVideo:
@@ -68,6 +70,12 @@ class GStreamerManager(CameraManager):
 			return self.gstreamerVideo.take_photo(text)
 
 		return None
+
+	def get_pic_async(self, done, text=None):
+		# This is just a placeholder
+		# we need to pass done around and call it with
+		# the image info when ready
+		done(self.get_pic(text))
 		
 	# def save_pic(self, filename, text=None):
 	#    pass

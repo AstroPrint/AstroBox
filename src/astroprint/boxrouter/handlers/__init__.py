@@ -52,6 +52,7 @@ class BoxRouterMessageHandler(object):
 
 		if wsClient:
 			handler = RequestHandler(wsClient)
+			response = None
 
 			try:
 				request = msg['data']['type']
@@ -61,9 +62,17 @@ class BoxRouterMessageHandler(object):
 
 				method  = getattr(handler, request, None)
 				if method:
-					response = method(data, clientId)
-					if response is None:
-						response = {'success': True}
+					def sendResponse(result):
+						if result is None:
+							result = {'success': True}
+
+						wsClient.send(json.dumps({
+							'type': 'req_response',
+							'reqId': reqId,
+							'data': result
+						}))
+
+					method(data, clientId, sendResponse)
 
 				else:
 					response = {
@@ -71,17 +80,20 @@ class BoxRouterMessageHandler(object):
 						'message': 'This Box does not recognize the request type [%s]' % request
 					}
 
+			except Exception as e:
+				message = 'Error sending [%s] response: %s' % (request, e)
+				self._logger.error( message )
+				response = {'error': True, 'message': message }
+
+			if response:
 				wsClient.send(json.dumps({
 					'type': 'req_response',
 					'reqId': reqId,
 					'data': response
 				}))
 
-			except Exception as e:
-				message = 'Error sending [%s] response: %s' % (request, e)
-				self._logger.error( message )
-				wsClient.send(json.dumps({
-					'type': 'req_response',
-					'reqId': reqId,
-					'data': {'error': True, 'message': message }
-				}))
+			#else:
+				# this means that the handler is asynchronous 
+				# and will respond when done
+				# we should probably have a timeout here too 
+				# even though there's already one at the boxrouter		

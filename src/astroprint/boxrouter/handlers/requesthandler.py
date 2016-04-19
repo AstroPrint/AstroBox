@@ -23,10 +23,10 @@ class RequestHandler(object):
 		self._logger = logging.getLogger(__name__)
 		self._wsClient = wsClient
 
-	def initial_state(self, data, clientId):
+	def initial_state(self, data, clientId, done):
 		printer = printerManager()
 
-		return {
+		done({
 			'printing': printer.isPrinting(),
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
@@ -34,61 +34,56 @@ class RequestHandler(object):
 			'printCapture': cameraManager().timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': self.makeCapabilitiesArray()
-		}
+			'capabilities': self._makeCapabilitiesArray()
+		})
 
-	def makeCapabilitiesArray(self):
+	def job_info(self, data, clientId, done):
+		done(printerManager()._stateMonitor._jobData)
 
-		videotype = settings().get(["camera", "encoding"])
-		
-		capabilitiesArray = ['remotePrint', 'videoStreaming']
+	def printerCommand(self, data, clientId, done):
+		self._handleCommandGroup(PrinterCommandHandler, data, clientId, done)
 
-		capabilitiesArray += ['videoformat-' + videotype]
+	def cameraCommand(self, data, clientId, done):
+		self._handleCommandGroup(CameraCommandHandler, data, clientId, done)
 
-		return capabilitiesArray
+	def p2pCommand(self, data, clientId, done):
+		self._handleCommandGroup(P2PCommandHandler, data, clientId, done)
 
-	def job_info(self, data, clientId):
-		return printerManager()._stateMonitor._jobData
-
-	def printerCommand(self, data, clientId):
-		return self._handleCommandGroup(PrinterCommandHandler, data, clientId)
-
-	def cameraCommand(self, data, clientId):
-		return self._handleCommandGroup(CameraCommandHandler, data, clientId)
-
-	def p2pCommand(self, data, clientId):
-		return self._handleCommandGroup(P2PCommandHandler, data, clientId)
-
-	def printCapture(self, data, clientId):
+	def printCapture(self, data, clientId, done):
 		freq = data['freq']
 		if freq:
 			cm = cameraManager()
 
 			if cm.timelapseInfo:
 				if not cm.update_timelapse(freq):
-					return {
+					done({
 						'error': True,
 						'message': 'Error updating the print capture'
-					}
+					})
+					return
 
 			else:
 				if not cm.start_timelapse(freq):
-					return {
+					done({
 						'error': True,
 						'message': 'Error creating the print capture'
-					}
-
+					})
+					return
 		else:
-			return {
+			done({
 				'error': True,
 				'message': 'Frequency required'
-			}
+			})
+			return
 
-	def signoff(self, data, clientId):
+		done(None)
+
+	def signoff(self, data, clientId, done):
 		self._logger.info('Remote signoff requested.')
 		threading.Timer(1, astroprintCloud().remove_logged_user).start()
+		done(None)
 
-	def print_file(self, data, clientId):
+	def print_file(self, data, clientId, done):
 		from astroprint.printfiles import FileDestinations
 
 		print_file_id = data['printFileId']
@@ -119,6 +114,7 @@ class RequestHandler(object):
 
 				else:
 					errorCb(destFile, "Couldn't save the file")
+					done(None)
 					return
 
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
@@ -169,23 +165,29 @@ class RequestHandler(object):
 				os.remove(destFile)
 
 		if not astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
-			return {
+			done({
 				'error': True,
 				'message': 'Unable to start download process'
-			}
+			})
+			return
 
-	def cancel_download(self, data, clientId):
+		done(None)
+
+	def cancel_download(self, data, clientId, done):
 		from astroprint.printfiles.downloadmanager import downloadManager
 
 		print_file_id = data['printFileId']
 
 		if not downloadManager().cancelDownload(print_file_id):
-			return {
+			done({
 				'error': True,
 				'message': 'Unable to cancel download'
-			}
+			})
+			return
 
-	def _handleCommandGroup(self, handlerClass, data, clientId):
+		done(None)
+
+	def _handleCommandGroup(self, handlerClass, data, clientId, done):
 		handler = handlerClass()
 
 		command = data['command']
@@ -193,88 +195,109 @@ class RequestHandler(object):
 
 		method  = getattr(handler, command, None)
 		if method:
-			return method(options, clientId)
+			#return method(options, clientId)
+			method(options, clientId, done)
 
 		else:
-			return {
+			done({
 				'error': True,
 				'message': '%s::%s is not supported' % (handlerClass, command)
-			}
+			})
+
+	def _makeCapabilitiesArray(self):
+		videotype = settings().get(["camera", "encoding"])
+		capabilitiesArray = ['remotePrint', 'videoStreaming']
+		capabilitiesArray += ['videoformat-' + videotype]
+		return capabilitiesArray
 
 # Printer Command Group Handler
 
 class PrinterCommandHandler(object):
-	def pause(self, data, clientId):
+	def pause(self, data, clientId, done):
 		printerManager().togglePausePrint()
+		done(None)
 
-	def resume(self, data, clientId):
+	def resume(self, data, clientId, done):
 		self.pause()
+		done(None)
 
-	def cancel(self, data, clientId):
+	def cancel(self, data, clientId, done):
 		printerManager().cancelPrint()
+		done(None)
 
-	def photo(self, data, clientId):
-		pic = cameraManager().get_pic()
-		if pic is not None:
-			return {
-				'success': True,
-				'image_data': base64.b64encode(pic)
-			}
-		else:
-			return {
-				'success': False,
-				'image_data': ''
-			}
+	def photo(self, data, clientId, done):
+		
+		def doneWithPhoto(pic):
+			if pic is not None:
+				done({
+					'success': True,
+					'image_data': base64.b64encode(pic)
+				})
+			else:
+				done({
+					'success': False,
+					'image_data': ''
+				})		
+
+		cameraManager().get_pic_async(doneWithPhoto)
+
 
 # Camera Command Group Handler
 
 class CameraCommandHandler(object):
-	def start_video_stream(self, data, clientId):
+	def start_video_stream(self, data, clientId, done):
 		cameraManager().start_video_stream()
+		done(None)
 
-	def stop_video_stream(self, data, clientId):
+	def stop_video_stream(self, data, clientId, done):
 		cameraManager().stop_video_stream()
+		done(None)
 
 # P2P Command Group Handler
 
 class P2PCommandHandler(object):
 	
-	def init_connection(self, data, clientId):
+	def init_connection(self, data, clientId, done):
 		#initialize the session on Janus
 		#if there is not any session before, Janus is stopped,
 		#so it will turn Janus on
 		sessionId = webRtcManager().startPeerSession(clientId)
 	
 		if sessionId:
-			return {
+			done({
 				'success': True,
 				'sessionId': sessionId
-			}
+			})
 
 		else:
-			return {
+			done({
 				'error': True,
 				'message': 'Unable to start a session'
-			}
+			})
 
-	def start_plugin(self, data, clientId):
+	def start_plugin(self, data, clientId, done):
 		#Manage the plugin and the type of video source: VP8 or H264
 		webRtcManager().preparePlugin(data['sessionId'])
+		done(None)
 	
-	def start_connection(self, data, clientId):
+	def start_connection(self, data, clientId, done):
 		#Start Janus session and it starts to share video
 		sessionId = data['sessionId']
 		webRtcManager().setSessionDescriptionAndStart(sessionId, data)
+		done(None)
 		
-	def stop_connection(self, sessionId, clientId):
+	def stop_connection(self, sessionId, clientId, done):
 		#Stop Janus session
 		#if this is the last (or unique) session in Janus,
 		#Janus will be stopped (of course, Gstreamer too) 
 		webRtcManager().closePeerSession(sessionId)
+		done(None)
 
-	def ice_candidate(self, data, clientId):
+	def ice_candidate(self, data, clientId, done):
 		#Manage the ice candidate for communicating with Janus from client
 		if 'sessionId' in data:
 			candidate = data['candidate']
 			if candidate is not None or candidate['candidate'] is not None:
 				webRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])
+
+		done(None)

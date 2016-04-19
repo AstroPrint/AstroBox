@@ -253,7 +253,10 @@ class CameraManager(object):
 
 	def get_pic(self, text=None):
 		pass
-		
+
+	def get_pic_async(self, done, text=None):
+		pass
+
 	def save_pic(self, filename, text=None):
 		pass
 
