@@ -108,7 +108,8 @@ var PhotoView = CameraControlView.extend({
     events: {
         'click button.take-pic': 'buttonEvent',
         'change .timelapse select': 'timelapseFreqChanged',
-        "change input[name='camera-mode']": 'cameraModeChanged'
+        "change input[name='camera-mode']": 'cameraModeChanged',
+        'show': 'onShow'
     },
     parent: null,
     print_capture: null,
@@ -168,9 +169,26 @@ var PhotoView = CameraControlView.extend({
 
         this.$el.html(this.template());
 
+        var imageNode = this.$('.camera-image');
+
+        /////////////////////
+        //image
+        var imageUrl = null;
+
+        if (this.print_capture && this.print_capture.last_photo) {
+            imageUrl = this.print_capture.last_photo;
+        } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
+            imageUrl = this.parent.printing_progress.rendered_image;
+        }
+
+        if (imageNode.attr('src') != imageUrl) {
+            imageNode.attr('src', imageUrl);
+        }
+        ////////////////////
+
         if(!this.ableWebRtc){
 
-            var imageNode = this.$('.camera-image');
+            /*var imageNode = this.$('.camera-image');
 
             //image
             var imageUrl = null;
@@ -183,7 +201,7 @@ var PhotoView = CameraControlView.extend({
 
             if (imageNode.attr('src') != imageUrl) {
                 imageNode.attr('src', imageUrl);
-            }
+            }*/
 
             //print capture button
             if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
@@ -225,8 +243,10 @@ var PhotoView = CameraControlView.extend({
     	if(this.cameraMode == 'photo'){
 	        this.print_capture = value;
 	        //this.render();
-	        var img = this.$('.camera-image');
-	        img.attr('src',value.last_photo);
+            if(value && value.last_photo){
+	           var img = this.$('.camera-image');
+	           img.attr('src',value.last_photo);
+           }
     	}
     },
     onPrintingProgressChanged: function(s, value) {
@@ -234,7 +254,10 @@ var PhotoView = CameraControlView.extend({
             //This allows the change to propagate
             setTimeout(_.bind(function(){
                 //this.render();
-            	img.attr('src',value.last_photo);
+                if(value && value.last_photo){
+                    var img = this.$('.camera-image');
+            	   img.attr('src',value.last_photo);
+                }
             },this), 1);
         }
     },
@@ -408,6 +431,7 @@ var PrintingView = Backbone.View.extend({
         this.printing_progress = app.socketData.get('printing_progress');
         this.paused = app.socketData.get('paused');
         this.render();
+        this.photoView.render();
 
         /*this.photoView.print_capture = app.socketData.get('print_capture');
         this.photoView.render();*/
@@ -478,11 +502,7 @@ var CancelPrintDialog = Backbone.View.extend({
         loadingBtn.addClass('loading');
         this.parent._jobCommand('cancel', _.bind(function(data){
 
-            if(this.parent.photoView.ableWebRtc){
-                if(this.parent.photoView.state == "streaming"){
-                    this.parent.photoView.stopStreaming();
-                }
-            }
+            this.parent.photoView.onHide();
             
             if (data && _.has(data, 'error')) {
                 noty({text: "There was an error canceling your job.", timeout: 3000});

@@ -131,14 +131,6 @@ class GStreamer(object):
 			self.photo_text.set_property('halignment', 'left')
 			self.photo_text.set_property('xpad', 35)
 
-			# photo without text
-			####
-			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
-			# THE SAME SIZE
-			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480')
-			#camerajpegcaps = gst.Caps.from_string('image/jpeg')
-			self.jpeg_capsNotText = gst.ElementFactory.make("capsfilter", "filterjpegNotText")
-			self.jpeg_capsNotText.set_property("caps", camerajpegcaps)
 			# ##
 			# JPEG ENCODING COMMAND
 			# ##
@@ -146,13 +138,6 @@ class GStreamer(object):
 			self.multifilesinkphotoNotText = None
 			#####################
 
-			# photo with text
-			####
-			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
-			# THE SAME SIZE
-			self.jpeg_caps = gst.ElementFactory.make("capsfilter", "filterjpeg")
-			self.jpeg_caps.set_property("caps", camerajpegcaps)
-			# ##
 			# JPEG ENCODING COMMAND
 			# ##
 			self.jpegenc = gst.ElementFactory.make('jpegenc', 'jpegenc')
@@ -198,6 +183,21 @@ class GStreamer(object):
 			self.src_caps.set_property("caps", camera1caps)
 			# ##
 
+			# photo without text
+			####
+			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
+			# THE SAME SIZE
+			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480,framerate=' + self.framerate + '/1')
+			#camerajpegcaps = gst.Caps.from_string('image/jpeg')
+			self.jpeg_capsNotText = gst.ElementFactory.make("capsfilter", "filterjpegNotText")
+			self.jpeg_capsNotText.set_property("caps", camerajpegcaps)
+			# photo with text
+			####
+			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
+			# THE SAME SIZE
+			self.jpeg_caps = gst.ElementFactory.make("capsfilter", "filterjpeg")
+			self.jpeg_caps.set_property("caps", camerajpegcaps)
+			# ##
 			# ##
 			# TEE COMMAND IN GSTREAMER ABLES TO JOIN NEW OUTPUT
 			# QUEUES TO THE SAME SOURCE 
@@ -267,7 +267,7 @@ class GStreamer(object):
 			# GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS          
 			self.videotype = settings().get(["camera", "encoding"])
 			self.size = settings().get(["camera", "size"]).split('x')
-			self.frameratee = settings().get(["camera", "framerate"])
+			self.framerate = settings().get(["camera", "framerate"])
 			# ##
 			
 			# ##
@@ -547,8 +547,8 @@ class GStreamer(object):
 
 	def bus_message(self, bus, msg):
 		t = msg.type
-		print msg
-	 	print t
+		#print msg
+	 	#print t
 		if t == gst.MessageType.ELEMENT:
 			# print msg
 			# print msg.type
@@ -590,8 +590,8 @@ class GStreamer(object):
 		elif t == gst.MessageType.ERROR:
 			busError = msg.parse_error()
 			self._logger.error("gstreamer bus message error (%s): %s" % busError)
-			print self.pipeline.set_state(gst.State.PAUSED)
-			print self.pipeline.set_state(gst.State.NULL)
+			#print self.pipeline.set_state(gst.State.PAUSED)
+			#print self.pipeline.set_state(gst.State.NULL)
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 	
@@ -673,10 +673,11 @@ class GStreamer(object):
 
 		return gst.PadProbeReturn.OK
 
-	def take_photo(self, textPhoto):
+	def take_photo(self, textPhoto, tryingTimes=0):
 		self._logger.info("TAKE PHOTO")
 
 		print textPhoto
+		self._logger.info("tryingTimes " + str(tryingTimes))
 
 		self.waitForPhoto = threading.Event()
 		
@@ -725,7 +726,7 @@ class GStreamer(object):
 			# while photo is None:
 			# 	time.sleep(1)
 			# 	self._logger.info("ESPERANDO....'
-			
+			self.waitForPhoto.clear()
 			if waitingState:
 
 				self._logger.info("OPENING FILE")
@@ -737,11 +738,15 @@ class GStreamer(object):
 				self._logger.info("DESPUES")
 			
 			else:
-				return None
+				if tryingTimes == 3:
+					return None
+				else:
+					return self.take_photo(textPhoto,tryingTimes+1)
 
-			self.waitForPhoto.clear()
 		except Exception, error:
-
+			
+			self.waitForPhoto.clear()
+			
 			if self.streamProcessState == 'TAKING_PHOTO':
 
 				self._logger.info("PIPE TO PAUSED")
@@ -847,6 +852,7 @@ class GStreamer(object):
 					self.streamProcessState = 'TAKING_PHOTO'
 				
 					self.pipeline.set_state(gst.State.PLAYING)
+
 
 			except Exception, error:
 				self._logger.info("ERROR IN TAKE PHOTO AND RETURN WITH VIDEO PAUSED: %s" % str(error))

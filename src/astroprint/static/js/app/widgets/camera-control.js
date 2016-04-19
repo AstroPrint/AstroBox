@@ -95,7 +95,9 @@ var CameraControlView = Backbone.View.extend({
 	this.render();
   },
   onHide: function(){
- 	this.stopStreaming();
+ 	if(this.state == 'streaming' || this.state == 'streaming'){
+        this.stopStreaming();
+    }
   },
   cameraModeChanged: function(e){
     if(this.cameraMode == 'video'){
@@ -107,6 +109,9 @@ var CameraControlView = Backbone.View.extend({
     this.render();
   },
   buttonEvent: function(e,text){
+
+  	this.$('.loading-button').addClass('loading');
+  	
   	if(this.cameraMode == 'video'){
   		if(this.state == 'streaming'){
   			this.stopStreaming();
@@ -242,8 +247,7 @@ var CameraControlView = Backbone.View.extend({
 									}
 									if(jsep !== undefined && jsep !== null) {
 										//Answer
-										this.streamingPlugIn.createAnswer(
-										{
+										this.streamingPlugIn.createAnswer({
 											jsep: jsep,
 											media: { audioSend: false, videoSend: false },	// We want recvonly audio/video
 											success: _.bind(function(jsep) {
@@ -262,21 +266,31 @@ var CameraControlView = Backbone.View.extend({
 								$.ajax({
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
-								}).fail(_.bind(function(){console.log('ERROR');this.setState('error');},this));
-			                    window.setTimeout(_.bind(function(){
-			                    	console.log('Timeout!!!');
-			                    	if(!isPlaying){
-			                    		console.log('Stop Janus caused by timeout!!!');
-			                    		this.stopStreaming();
-							this.setState('error');
-			                    	}
-			                    },this),40000);
-			                    var isPlaying = false;
-			                    $("#remotevideo").bind("playing",_.bind(function () {
-			                    	this.setState('streaming');
-			                    	isPlaying = true;
-			                    },this));
-			                    attachMediaStream($('#remotevideo').get(0), stream);
+								}).fail(_.bind(function(){
+									console.log('ERROR');
+									this.setState('error');
+								},this));
+
+		                    	window.setTimeout(_.bind(function(){
+		                    		if(!isPlaying){
+		                    			console.log('Timeout!!!');
+		                    			console.log('Stop Janus caused by timeout!!!');
+		                    			this.stopStreaming();
+										this.setState('error');
+										this.$('.loading-button').removeClass('loading');
+		                    		}
+		                    	},this),40000);
+		                    	
+		                    	var isPlaying = false;
+		                    	
+		                    	$("#remotevideo").bind("playing",_.bind(function () {
+		                    		this.setState('streaming');
+		                    		isPlaying = true;
+		                    		this.$('.loading-button').removeClass('loading');
+		                    	},this));
+		                    	
+		                    	attachMediaStream($('#remotevideo').get(0), stream);
+
 							},this),
 							oncleanup: function() {
 								Janus.log(" ::: Got a cleanup notification :::");
@@ -295,8 +309,6 @@ var CameraControlView = Backbone.View.extend({
 				},this),
 				destroyed: _.bind(this.initJanus, this)
 			});
-
-
 		}
   	},this))	
 	.fail(_.bind(function(error){
