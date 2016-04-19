@@ -21,7 +21,7 @@ class CameraMacManager(CameraManager):
 		return True
 
 	def get_pic_async(self, done, text=None):
-		threading.Timer(20, self._doGetPicAsync,[done, text]).start()
+		threading.Timer(3, self._doGetPicAsync,[done, text]).start()
 
 	def get_pic(self, text=None):
 		fileCount = len(self._files)
@@ -31,6 +31,8 @@ class CameraMacManager(CameraManager):
 			imageFile = self._files[randrange(fileCount)]
 			with open(imageFile, "r") as f:
 				image = f.read()
+
+		return image
 
 	def isCameraAvailable(self):
 		return True
