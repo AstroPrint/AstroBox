@@ -106,6 +106,7 @@ class GStreamer(object):
 			self.pipeline = None
 			self.bus = None
 			self.loop = None
+			self.bus_managed = True
 			# VIDEO SOURCE DESCRIPTION
 			# #DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
 			# #(v4l2src: VIDEO FOR LINUX TO SOURCE)
@@ -567,6 +568,8 @@ class GStreamer(object):
 
 					self._logger.info("image got")
 
+					self.bus_managed = True
+
 
 					if self.photoMode == 'NOT_TEXT':
 						try:
@@ -710,7 +713,7 @@ class GStreamer(object):
 		# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
 		photo = None
 		try:
-			waitingState = self.waitForPhoto.wait(10)
+			waitingState = self.waitForPhoto.wait(3)
 			# waitingState values:
 			#  - True: exit before timeout
 			#  - False: timeout given
@@ -746,10 +749,21 @@ class GStreamer(object):
 				self._logger.info("DESPUES")
 			
 			else:
-				if tryingTimes == 3:
-					return None
+				if not self.bus_managed:
+
+					if self.streamProcessState == 'PLAYING':
+						self.stop_video()
+						self.reset_pipeline_gstreamer_state()
+						self.play_video()
+					self.bus_managed = True
+					return self.take_photo(textPhoto,tryingTimes)
+
 				else:
-					return self.take_photo(textPhoto,tryingTimes+1)
+
+					if tryingTimes == 3:
+						return None
+					else:
+						return self.take_photo(textPhoto,tryingTimes+1)
 
 		except Exception, error:
 			
@@ -931,6 +945,8 @@ class GStreamer(object):
 
 			#########
 			# time.sleep(1)
+
+			self.bus_managed = False
 
 			return None
 
