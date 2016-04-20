@@ -459,11 +459,13 @@ class AstroprintBoxRouter(object):
 
 						except Exception as e:
 							self._logger.error("Error connecting to boxrouter: %s" % e)
+							self.connected = False
 							self.status = self.STATUS_ERROR
 							self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 
-							self._ws.terminate()
-							self._ws = None
+							if self._ws:
+								self._ws.terminate()
+								self._ws = None
 
 							self._doRetry(False) #This one should not be silent
 
@@ -511,7 +513,6 @@ class AstroprintBoxRouter(object):
 		self.close()
 		self._doRetry()
 
-
 	# def _error(self, err):
 	# 	self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
 	# 	self.status = self.STATUS_ERROR
@@ -528,9 +529,10 @@ class AstroprintBoxRouter(object):
 				self._retryTimer = None
 				self.boxrouter_connect()
 
-			self._logger.info('Waiting %d secs before retrying...' % self.RETRY_SCHEDULE[self._retries])
-			self._retryTimer = threading.Timer(self.RETRY_SCHEDULE[self._retries] , retry )
-			self._retryTimer.start()
+			if not self._retryTimer:
+				self._logger.info('Waiting %d secs before retrying...' % self.RETRY_SCHEDULE[self._retries])
+				self._retryTimer = threading.Timer(self.RETRY_SCHEDULE[self._retries] , retry )
+				self._retryTimer.start()
 
 		else:
 			self._logger.info('No more retries. Giving up...')
