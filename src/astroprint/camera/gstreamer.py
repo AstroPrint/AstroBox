@@ -726,7 +726,7 @@ class GStreamer(object):
 		# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
 		photo = None
 		try:
-			waitingState = self.waitForPhoto.wait(3)
+			waitingState = self.waitForPhoto.wait(tryingTimes*3+5)
 			# waitingState values:
 			#  - True: exit before timeout
 			#  - False: timeout given
