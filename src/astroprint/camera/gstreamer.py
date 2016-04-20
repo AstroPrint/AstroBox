@@ -764,16 +764,18 @@ class GStreamer(object):
 			else:
 				if not self.bus_managed:
 
+					self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+
 					if self.streamProcessState == 'PLAYING':
 						self.stop_video()
 						self.reset_pipeline_gstreamer_state()
 						self.play_video()
 					self.bus_managed = True
-					return self.take_photo(textPhoto,tryingTimes)
+					return self.take_photo(textPhoto,tryingTimes+1)
 
 				else:
 
-					if tryingTimes == 3:
+					if tryingTimes >= 3:
 						return None
 					else:
 						return self.take_photo(textPhoto,tryingTimes+1)
