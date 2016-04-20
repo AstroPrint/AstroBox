@@ -26,6 +26,7 @@ class GStreamerManager(CameraManager):
 	def __init__(self, number_of_video_device):
 		self.number_of_video_device = number_of_video_device
 		self.gstreamerVideo = None
+		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
 		super(GStreamerManager, self).__init__()
 
@@ -75,7 +76,14 @@ class GStreamerManager(CameraManager):
 		# This is just a placeholder
 		# we need to pass done around and call it with
 		# the image info when ready
-		done(self.get_pic(text))
+		if not self.gstreamerVideo:
+			done(None)
+			return
+
+		if not self.asyncPhotoTaker:
+			self.asyncPhotoTaker = AsyncPhotoTaker(self.gstreamerVideo.take_photo)
+
+		self.asyncPhotoTaker.take_photo(done, text)
 		
 	# def save_pic(self, filename, text=None):
 	#    pass
@@ -90,6 +98,10 @@ class GStreamerManager(CameraManager):
 
 	def getVideoStreamingState(self):
 		return self.gstreamerVideo.streamProcessState
+
+	def close_camera(self):
+		if self.asyncPhotoTaker:
+			self.asyncPhotoTaker.stop()
 
 class GStreamer(object):
 	
@@ -107,6 +119,7 @@ class GStreamer(object):
 			self.bus = None
 			self.loop = None
 			self.bus_managed = True
+
 			# VIDEO SOURCE DESCRIPTION
 			# #DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
 			# #(v4l2src: VIDEO FOR LINUX TO SOURCE)
@@ -982,4 +995,41 @@ class GStreamer(object):
 
 		ready = signal('manage_fatal_error')
 		ready.send(self)
+
+
+class AsyncPhotoTaker(threading.Thread):
+	def __init__(self, take_photo_function):
+		#def take_photo(self, textPhoto, tryingTimes=0)
+		super(AsyncPhotoTaker, self).__init__()
+		
+		self.threadAlive = True
+
+		self.take_photo_function = take_photo_function
+
+		self.sem = threading.Semaphore(0)
+		self.doneFunc = None
+		self.text = None
+		self.start()
+		#self.sem.acquire()
+		#self.sem.release()
+
+	def run(self):
+		while self.threadAlive:
+			self.sem.acquire()
+			if not self.threadAlive:
+				return
+
+			if self.doneFunc:
+				self.doneFunc(self.take_photo_function(self.text))
+				self.doneFunc = None
+				self.text = None
+
+	def take_photo(self, done, text):
+		self.doneFunc = done
+		self.text = text
+		self.sem.release()
+
+	def stop(self):
+		self.threadAlive = False
+		self.sem.release()
 
