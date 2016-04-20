@@ -209,7 +209,7 @@ class GStreamer(object):
 			####
 			# SCALING COMMANDS TO SCALE VIDEO SOURCE FOR GETTING PHOTOS ALWAYS WITH
 			# THE SAME SIZE
-			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480,framerate=' + self.framerate + '/1')
+			camerajpegcaps = gst.Caps.from_string('video/x-raw,width=640,height=480,framerate=' + self.framerate + '/1')			
 			#camerajpegcaps = gst.Caps.from_string('image/jpeg')
 			self.jpeg_capsNotText = gst.ElementFactory.make("capsfilter", "filterjpegNotText")
 			self.jpeg_capsNotText.set_property("caps", camerajpegcaps)
@@ -762,23 +762,32 @@ class GStreamer(object):
 				self._logger.info("DESPUES")
 			
 			else:
+				if tryingTimes >= 3:
+						if self.streamProcessState != 'PAUSED':#coming from fatal error from bus...
+							stateBeforeError = self.streamProcessState
+							self.stop_video()
+							self.reset_pipeline_gstreamer_state()
+							if stateBeforeError == 'PLAYING':
+								self.play_video()
+						return None
+
 				if not self.bus_managed:
 
-					self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+					self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Resetting pipeline...')
 
 					if self.streamProcessState == 'PLAYING':
 						self.stop_video()
 						self.reset_pipeline_gstreamer_state()
 						self.play_video()
 					self.bus_managed = True
+					if tryingTimes == 2:
+						self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+
 					return self.take_photo(textPhoto,tryingTimes+1)
 
 				else:
 
-					if tryingTimes >= 3:
-						return None
-					else:
-						return self.take_photo(textPhoto,tryingTimes+1)
+					return self.take_photo(textPhoto,tryingTimes+1)
 
 		except Exception, error:
 			
