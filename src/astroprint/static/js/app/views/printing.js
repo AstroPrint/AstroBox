@@ -313,7 +313,8 @@ var PrintingView = Backbone.View.extend({
         'click button.stop-print': 'stopPrint',
         'click button.pause-print': 'togglePausePrint',
         'click button.controls': 'showControlPage',
-        'show': 'show'
+        'show': 'show',
+        'hide': 'onHide'
     },
     nozzleBar: null,
     bedBar: null,
@@ -435,6 +436,10 @@ var PrintingView = Backbone.View.extend({
 
         /*this.photoView.print_capture = app.socketData.get('print_capture');
         this.photoView.render();*/
+    },
+    onHide: function()
+    {
+        this.photoView.trigger('hide');
     },
     stopPrint: function(e) {
         if (!this.cancelDialog) {
