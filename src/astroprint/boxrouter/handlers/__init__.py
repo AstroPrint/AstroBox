@@ -96,4 +96,10 @@ class BoxRouterMessageHandler(object):
 				# this means that the handler is asynchronous 
 				# and will respond when done
 				# we should probably have a timeout here too 
-				# even though there's already one at the boxrouter		
+				# even though there's already one at the boxrouter	
+
+	def response_from_client(self, msg):
+		router = self._weakRefBoxRouter()
+
+		if router:
+			router.completeClientRequest(msg['reqId'], msg['data'])

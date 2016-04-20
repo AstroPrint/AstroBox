@@ -124,7 +124,7 @@ class WebRtc(object):
 				if peer:
 					peer.streamingPlugin.send_message({'request':'destroy'})
 					peer.close()
-					self.sendEventToPeer('stopConnection',self._connectedPeers[sessionId])
+					self.sendEventToPeer(self._connectedPeers[sessionId], 'stopConnection')
 					del self._connectedPeers[sessionId]
 
 				self._logger.info("There are %d peers left.", len(self._connectedPeers))
@@ -143,7 +143,7 @@ class WebRtc(object):
 			if peer == "local":
 				peer.streamingPlugin.send_message({'request':'destroy'})
 				peer.close()
-				self.sendEventToPeer('stopConnection',peer)
+				self.sendEventToPeer(peer, 'stopConnection')
 			
 			del peer
 
@@ -157,7 +157,7 @@ class WebRtc(object):
 		except KeyError:
 			self._logger.warning('Peer with session [%s] is not found' % sessionId)
 			peer = None
-			self.sendEventToPeers('stopConnection',None)
+			self.sendEventToPeers('stopConnection')
 
 		if peer:
 			peer.streamingPlugin.send_message({'request':'list'})
@@ -270,24 +270,10 @@ class WebRtc(object):
 	def sendEventToPeers(self, type, data=None):
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
-				boxrouterManager().send({
-					'type': 'send_event_to_client',
-					'data': {
-						'clientId': self._connectedPeers[key].clientId,
-						'eventType': type,
-						'eventData': data
-					}
-				})
+				self.sendEventToPeer(self._connectedPeers[key], type, data)
 			
-	def sendEventToPeer(self, type, data=None):
-		boxrouterManager().send({
-			'type': 'send_event_to_client',
-			'data': {
-				'clientId': data.clientId,
-				'eventType': type,
-				'eventData': None
-			}
-		})
+	def sendEventToPeer(self, peer, type, data=None):
+		boxrouterManager().sendEventToClient(peer.clientId, type, data)
 
 class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
@@ -478,12 +464,6 @@ class ConnectionPeer(object):
 		self.session = None
 		self.streamingPlugin = None
 
-	def sendEventToPeer(self, type, data):
-		boxrouterManager().send({
-			'type': 'send_event_to_client',
-			'data': {
-				'clientId': self.clientId,
-				'eventType': type,
-				'eventData': data
-			}
-		})
+	def sendEventToPeer(self, type, data= None):
+		boxrouterManager().sendEventToClient(self.clientId, type, data)
+

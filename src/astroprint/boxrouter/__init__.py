@@ -17,6 +17,7 @@ import logging
 import socket
 import os
 import weakref
+import uuid
 
 from time import sleep, time
 
@@ -162,6 +163,7 @@ class AstroprintBoxRouter(object):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
+		self._pendingClientRequests = {}
 		self._retries = 0
 		self._retryTimer = None
 		self._boxId = None
@@ -193,6 +195,7 @@ class AstroprintBoxRouter(object):
 
 		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
+		self._pendingClientRequests = None
 		self.boxrouter_disconnect()
 
 		#make sure we destroy the singleton
@@ -307,7 +310,6 @@ class AstroprintBoxRouter(object):
 		self.close()
 		self._doRetry()
 
-
 	# def _error(self, err):
 	# 	self._logger.error('Unkonwn error in the connection with AstroPrint service: %s' % err)
 	# 	self.status = self.STATUS_ERROR
@@ -351,12 +353,53 @@ class AstroprintBoxRouter(object):
 			self._retryTimer.cancel()
 			self._retryTimer = None
 
+	def completeClientRequest(self, reqId, data):
+		if reqId in self._pendingClientRequests:
+			cb = self._pendingClientRequests[reqId]['callback']
+			del self._pendingClientRequests[reqId]
+
+			if cb:
+				cb(data)
+
+		else:
+			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId);
+
+	def sendRequestToClient(self, clientId, type, data, timeout, respCallback):
+		reqId = uuid.uuid4().hex
+
+		if self.send({
+			'type': 'request_to_client',
+			'data': {
+				'clientId': clientId,
+				'timeout': timeout,
+				'reqId': reqId,
+				'type': type,
+				'payload': data
+			}
+		}):
+			self._pendingClientRequests[reqId] = {
+				'callback': respCallback,
+				'timeout': timeout
+			}
+
+	def sendEventToClient(self, clientId, type, data):
+		self.send({
+			'type': 'send_event_to_client',
+			'data': {
+				'clientId': clientId,
+				'eventType': type,
+				'eventData': data
+			}
+		})		
+
 	def send(self, data):
 		if self._ws and self.connected:
 			self._ws.send(json.dumps(data))
+			return True
 
 		else:
 			self._logger.error('Unable to send data: Socket not active')
+			return False
 
 	def processAuthenticate(self, data):
 		if data:
