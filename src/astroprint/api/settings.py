@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 import os
+import time
 
 from flask import request, abort, jsonify, make_response
 
@@ -147,8 +148,6 @@ def getAdvancedSoftwareSettings():
 @api.route("/settings/software/settings", methods=["DELETE"])
 @restricted_access
 def resetFactorySettings():
-	import os
-
 	from astroprint.cloud import astroprintCloud
 
 	logger = logging.getLogger(__name__)
@@ -200,6 +199,9 @@ def checkSoftwareVersion():
 	softwareInfo = softwareManager.checkSoftwareVersion()
 
 	if softwareInfo:
+		s = settings()
+		s.set(["software", "lastCheck"], time.time())
+		s.save()
 		return jsonify(softwareInfo);
 	else:
 		return ("There was an error checking for new software.", 400)

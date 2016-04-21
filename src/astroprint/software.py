@@ -192,7 +192,9 @@ class SoftwareUpdater(threading.Thread):
 			self._manager._logger.error('Error performing software update info: %d' % r.status_code)
 			r.close()
 
-class SoftwareManager(object):	
+class SoftwareManager(object):
+	softwareCheckInterval = 86400 #1 day
+
 	def __init__(self):
 		self._settings = settings()
 		self._updater = None
@@ -274,6 +276,10 @@ class SoftwareManager(object):
 			return self._updater.vData
 		else:
 			return False
+
+	@property
+	def shouldCheckForNew(self):
+		return self._settings.get(["software", "lastCheck"]) < ( time.time() - self.softwareCheckInterval )
 
 	def checkForcedUpdate(self):
 		latestInfo = self.checkSoftwareVersion()
