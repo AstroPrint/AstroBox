@@ -568,9 +568,11 @@ class GStreamer(object):
 			return False
 
 	def bus_message(self, bus, msg):
+		print 'UUUEEEE'
 		t = msg.type
-		#print msg
-	 	#print t
+		print msg
+	 	print t
+	 	print msg.src.__class__.__name__
 		if t == gst.MessageType.ELEMENT:
 			# print msg
 			# print msg.type
