@@ -8,12 +8,12 @@
 	<div class="alert-box warning serial-log radius">
 		Your serial log is <b>enabled</b>. This will produce a large amount of data - <a href="#settings/software-advanced">Disable here</a>
 	</div>
-	{#% if checkSoftware %#}
-		<div class="alert-box alert new-release radius ">
+	{% if checkSoftware %}
+		<div class="alert-box alert new-release radius hide">
 			<i class="icon-download-cloud"></i> <b>New software version</b> <span class="version-label"></span> is available for download - <a href="#" class="check button success radius">More info</a>
 			<a href="#" class="close">&times;</a>
 		</div>
-	{#% endif %#}
+	{% endif %}
 	<ul class="small-block-grid-3 large-block-grid-6">
 		<li>
 			<span class="upload-btn expand">
