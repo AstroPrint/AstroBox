@@ -70,13 +70,20 @@ var HomeView = Backbone.View.extend({
 	el: '#home-view',
 	uploadBtn: null,
 	events: {
-		'show': 'onShow'
+		'show': 'onShow',
+		'click .new-release a.check': 'onReleaseInfoClicked',
+		'click .new-release a.close': 'onCloseReleaseInfoClicked'
 	},
 	initialize: function()
 	{
 		this.uploadBtn = new FileUploadDashboard({el: "#home-view #app-container .upload-btn .file-upload"});
 		this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
 		this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
+
+		this.listenTo(app.socketData, 'new_sw_release', _.bind(function(data){
+			this.$('.new-release .version-label').text(data.release.major+'.'+data.release.minor+'('+data.release.build+')');
+			this.$('.new-release').removeClass('hide');			
+		}, this));
 	},
 	onShow: function()
 	{
@@ -89,5 +96,19 @@ var HomeView = Backbone.View.extend({
 		} else {
 			this.$("#app-container ul li.gcode-terminal-app-icon").addClass('hide');
 		}
+	},
+	onReleaseInfoClicked: function(e)
+	{
+		e.preventDefault();
+		if (!app.router.settingsView) {
+			app.router.settingsView = new SettingsView();
+		}
+
+		app.router.settingsView.subviews['software-update'].onCheckClicked(e);
+	},
+	onCloseReleaseInfoClicked: function(e)
+	{
+		e.preventDefault();
+		this.$('.new-release').remove()
 	}
 });

@@ -93,15 +93,18 @@ def index():
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
 
 	if (s.getBoolean(["server", "firstRun"])):
+		swm = swManager()
+
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
 			"setup.jinja2",
 			debug= debug,
 			uiApiKey= UI_API_KEY,
 			version= VERSION,
-			commit= swManager().commit,
+			commit= swm.commit,
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
+			checkSoftware= swm.shouldCheckForNew,
 			settings=s
 		)
 
@@ -132,6 +135,7 @@ def index():
 	else:
 		pm = printerManager()
 		nm = networkManager()
+		swm = swManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
@@ -141,7 +145,7 @@ def index():
 			"app.jinja2",
 			user_email= loggedUsername,
 			version= VERSION,
-			commit= swManager().commit,
+			commit= swm.commit,
 			printing= printing,
 			paused= paused,
 			online= online,
@@ -150,6 +154,7 @@ def index():
 			uiApiKey= UI_API_KEY,
 			astroboxName= nm.getHostname(),
 			variantData= variantManager().data,
+			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log'])
 		)
 
