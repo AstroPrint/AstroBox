@@ -42,6 +42,42 @@ if platform != 'darwin':
 	import apt.progress.base
 	import apt_pkg
 
+	class DepsDownloadProgress(apt.progress.base.AcquireProgress):
+		def __init__(self):
+			super(DepsDownloadProgress, self).__init__()
+			self._logger = logging.getLogger(__name__)
+
+		def pulse(self, owner):
+			self._logger.info( "Fetching depedencies progress [ %.2f %% ]" % ( ( float(self.current_items) / float(self.total_items) ) * 100 ) )
+			return True
+
+		def done(self, item):
+			#super(DepsDownloadProgress, self).done(item)
+			self._logger.info("[%s] fetched" % item.shortdesc)
+
+		def fail(self, item):
+			super(DepsDownloadProgress, self).fail(item)
+			self._logger.error("Error fetching dependency [%s]" % item.shortdesc)
+
+
+	class DepsInstallProgress(apt.progress.base.InstallProgress):
+		def __init__(self):
+			super(DepsInstallProgress, self).__init__()
+			self._logger = logging.getLogger(__name__)
+
+		def start_update(self):
+			self._logger.info("Dependency installation started")
+
+		def error(self, pkg, message):
+			self._logger.error("Error during dependency [%s] installation: %s" % (pkg, message))
+
+		def status_change(self, pkg, percent, status):
+			self._logger.info("Dependency installation progress [%.2f %%] - %s" % (percent, status))
+
+		def finish_update(self):
+			self._logger.info("Finished installing dependencies")
+
+
 	class UpdateProgress(apt.progress.base.InstallProgress):
 		def __init__(self, progressCb, completionCb):
 			super(UpdateProgress, self).__init__()
@@ -141,15 +177,21 @@ class SoftwareUpdater(threading.Thread):
 
 						self._completionCb(True)
 
-				cache = apt.Cache()
-				cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
-				cache.open()
-				cache.commit()
+				try:
+					cache = apt.Cache()
+					cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
+					cache.open()
+					cache.commit()
 
-				pkg = apt.debfile.DebPackage(releasePath)
-				self._progressCb(START_DEPS_UPDATE, "Checking software package. Please be patient..." )
+					pkg = apt.debfile.DebPackage(releasePath)
+					self._progressCb(START_DEPS_UPDATE, "Checking software package. Please be patient..." )
 
-				pkg.check()
+					pkg.check()
+
+				except Exception as e:
+					self._logger.error('There was a problem with update package: \n	%s' % e)
+					completionCb(True)
+					return					
 
 				if pkg.missing_deps:
 					cache.open()
@@ -161,7 +203,7 @@ class SoftwareUpdater(threading.Thread):
 					
 					self._progressCb(START_DEPS_UPDATE + 0.01, "Installing %d dependencies. This might take a while..." % len(pkg.missing_deps))
 					try:
-						cache.commit()
+						cache.commit(DepsDownloadProgress(), DepsInstallProgress())
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
 
 					except Exception as e:
