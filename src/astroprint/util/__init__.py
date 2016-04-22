@@ -1,6 +1,8 @@
-
-import logging
 import subprocess
+import time
+from threading import Thread as thread
+
+
 
 def findProcess(processId ):
     ps= subprocess.Popen("ps -ef | grep "+processId, shell=True, stdout=subprocess.PIPE)
@@ -23,3 +25,22 @@ def isProcessRunning(processId):
         return True
     else:
         return False
+
+class interval(thread):
+        def __init__(self,period, callback,params=None):
+                self.time = period
+                self.originalCallback = callback
+                self.params = params or []
+                self.isRunning = None
+                thread.__init__(self)
+                self.daemon = True
+
+        def run(self):
+                self.isRunning = True
+                while self.isRunning:
+                        time.sleep(self.time)
+                        if self.isRunning:
+                                self.originalCallback(*self.params)
+
+        def cancel(self):
+                self.isRunning = False

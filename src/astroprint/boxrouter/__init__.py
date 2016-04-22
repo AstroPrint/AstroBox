@@ -358,16 +358,17 @@ class AstroprintBoxRouter(object):
 
 	def completeClientRequest(self, reqId, data):
 		if reqId in self._pendingClientRequests:
-			cb = self._pendingClientRequests[reqId]['callback']
+			req = self._pendingClientRequests[reqId]
 			del self._pendingClientRequests[reqId]
 
-			if cb:
-				cb(data)
+			if req["callback"]:
+				args = req["args"] or []
+				req["callback"](*([data] + args))
 
 		else:
 			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId);
 
-	def sendRequestToClient(self, clientId, type, data, timeout, respCallback):
+	def sendRequestToClient(self, clientId, type, data, timeout, respCallback, args=None):
 		reqId = uuid.uuid4().hex
 
 		if self.send({
@@ -382,6 +383,7 @@ class AstroprintBoxRouter(object):
 		}):
 			self._pendingClientRequests[reqId] = {
 				'callback': respCallback,
+				'args': args,
 				'timeout': timeout
 			}
 

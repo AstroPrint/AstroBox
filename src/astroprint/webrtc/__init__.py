@@ -27,6 +27,7 @@ from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
 from astroprint.camera import cameraManager
+from astroprint.util import interval
 
 from blinker import signal
 
@@ -39,6 +40,7 @@ class WebRtc(object):
 		self._JanusProcess = None
 		self.videoId = 1
 		initialized = signal('initialized')
+		self.peersDeadDetacher = None
 
 	def ensureJanusRunning(self):
 		if len(self._connectedPeers.keys()) <= 0:
@@ -195,6 +197,25 @@ class WebRtc(object):
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
+	def pongCallback(self, data, key):
+		
+		if 'pong' != data:
+			if 'error' in data:
+				self._logger.error('Webrtc client lost: %s. Automatic peer session closing...',data['error'])
+			self.closePeerSession(key)
+
+		#print request.values
+		#print request.values['data']
+		#if request.values['data']
+
+	def pingPongRounder(self,params=None):
+		print self._connectedPeers
+		for key in self._connectedPeers.keys():
+			if self._connectedPeers[key] != 'local':
+				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
+				print self._connectedPeers[key]
+				boxrouterManager().sendRequestToClient(self._connectedPeers[key].clientId, 'ping',None,10, self.pongCallback, [key])
+
 	def startGStreamer(self):
 		#Start Gstreamer
 		if not cameraManager().start_video_stream():
@@ -249,6 +270,10 @@ class WebRtc(object):
 			ready = signal('manage_fatal_error')
 			ready.connect(self.closeAllSessions)
 
+			#START TIMER FOR LOST PEERS
+			self.peersDeadDetacher = interval(30.0,self.pingPongRounder,None)
+			self.peersDeadDetacher.start()
+
 			return True
 
 	def stopJanus(self):
@@ -258,6 +283,10 @@ class WebRtc(object):
 				self._JanusProcess.kill()
 				self.sendEventToPeers('stopConnection')
 				self._connectedPeers = {}
+
+				#STOP TIMER FOR LOST PEERS
+				self.peersDeadDetacher.cancel()
+				
 				return True
 		except Exception, error:
 			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
