@@ -231,6 +231,34 @@ body, html {
 	}
 }
 
+.alert-box {
+	&.new-release {
+		border: 3px dashed $alert-color;
+		background: $ghost;
+		color: $charcoal;
+		font-size: 22px;
+
+		i {
+			color: $success-color;
+		}
+
+		a.check {
+			height: initial;
+		    padding: 5px 15px;
+		    margin: 0;
+		    font-size: 14px;
+		    vertical-align: middle;
+		}
+
+		a.close {
+			font-size: 50px;
+			padding-top:0;
+			top: 30px;
+			right: 0;
+		}
+	}
+}
+
 @import
 	"noty",
 	"widgets",

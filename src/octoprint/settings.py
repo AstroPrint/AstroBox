@@ -161,7 +161,8 @@ default_settings = {
 	"software": {
 		"infoFile": None,
 		"variantFile": None,
-		"useUnreleased": False
+		"useUnreleased": False,
+		"lastCheck": None
 	}
 }
 
