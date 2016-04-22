@@ -119,6 +119,7 @@ class GStreamer(object):
 			self.bus = None
 			self.loop = None
 			self.bus_managed = True
+			self.takingPhotoCondition = threading.Condition()
 
 			# VIDEO SOURCE DESCRIPTION
 			# #DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
@@ -669,10 +670,19 @@ class GStreamer(object):
 
 
 		elif t == gst.MessageType.ERROR:
-			busError = msg.parse_error()
+			
+			busError, detail = msg.parse_error()
 			self._logger.error("gstreamer bus message error (%s): %s" % busError)
-			#print self.pipeline.set_state(gst.State.PAUSED)
-			#print self.pipeline.set_state(gst.State.NULL)
+
+			if 'Internal data flow error.' in str(busError):
+				self.fatalErrorManage(True,True,str(busError)+' Please, change the camera resolution and try it again')
+			
+			"""
+			(2529): gst_v4l2_object_set_format (): /GstPipeline:tee-pipeline/GstV4l2Src:video_source:
+			Tried to capture at 1280x720, but device returned size 640x480
+			2016-04-22 13:06:35,876 - astroprint.camera.gstreamer - ERROR - gstreamer bus message error (Internal data flow error.): gstbasesrc.c(2865): gst_base_src_loop (): /GstPipeline:tee-pipeline/GstV4l2Src:video_source:
+			streaming task paused, reason not-negotiated (-4)
+			"""
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 
@@ -765,133 +775,136 @@ class GStreamer(object):
 			return gst.PadProbeReturn.DROP
 
 	def take_photo(self, textPhoto, tryingTimes=0):
-		self._logger.info("TAKE PHOTO")
+		with self.takingPhotoCondition:
 
-		print textPhoto
-		self._logger.info("tryingTimes " + str(tryingTimes))
 
-		self.waitForPhoto = threading.Event()
-		
-		if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
-			waitingState = self.waitForPhoto.wait(5)
-			self.waitForPhoto.clear()
+			self._logger.info("TAKE PHOTO")
+
+			print textPhoto
+			self._logger.info("tryingTimes " + str(tryingTimes))
+
+			self.waitForPhoto = threading.Event()
 			
-			# waitingState values:
-			#  - True: exit before timeout. The device is able to take photo because video was stablished.
-			#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
+			if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
+				waitingState = self.waitForPhoto.wait(5)
+				self.waitForPhoto.clear()
+				
+				# waitingState values:
+				#  - True: exit before timeout. The device is able to take photo because video was stablished.
+				#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
 
-			if not waitingState:
-				return None
+				if not waitingState:
+					return None
 
 
-		# threading.wait(5000)
-		# self.sem = threading.Semaphore(0)
+			# threading.wait(5000)
+			# self.sem = threading.Semaphore(0)
 
-		# TAKES A PHOTO USING GSTREAMER
-		self.take_photo_and_return(textPhoto)
-		# THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
-		# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
-		photo = None
-		try:
-			waitingState = self.waitForPhoto.wait(tryingTimes*3+7)
-			# waitingState values:
-			#  - True: exit before timeout
-			#  - False: timeout given
+			# TAKES A PHOTO USING GSTREAMER
+			self.take_photo_and_return(textPhoto)
+			# THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
+			# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
+			photo = None
+			try:
+				waitingState = self.waitForPhoto.wait(tryingTimes*3+7)
+				# waitingState values:
+				#  - True: exit before timeout
+				#  - False: timeout given
 
-			self._logger.info("WEAK UP WaitForPhoto")
-			
+				self._logger.info("WEAK UP WaitForPhoto")
+				
 
-			if self.streamProcessState == 'TAKING_PHOTO':
+				if self.streamProcessState == 'TAKING_PHOTO':
 
-				self._logger.info("PIPE TO PAUSED")
+					self._logger.info("PIPE TO PAUSED")
 
-				print self.pipeline.set_state(gst.State.PAUSED)
+					print self.pipeline.set_state(gst.State.PAUSED)
 
-				self._logger.info("PIPE TO NULL")
+					self._logger.info("PIPE TO NULL")
 
-				print self.pipeline.set_state(gst.State.NULL)
+					print self.pipeline.set_state(gst.State.NULL)
 
-				self.reset_pipeline_gstreamer_state()
+					self.reset_pipeline_gstreamer_state()
 
-			# self.sem.acquire()
-			# while photo is None:
-			# 	time.sleep(1)
-			# 	self._logger.info("ESPERANDO....'
-			#self.waitForPhoto.clear()
+				# self.sem.acquire()
+				# while photo is None:
+				# 	time.sleep(1)
+				# 	self._logger.info("ESPERANDO....'
+				#self.waitForPhoto.clear()
 
-			if waitingState:
-				try:
-					self._logger.info("waitingState TRUE")
+				if waitingState:
+					try:
+						self._logger.info("waitingState TRUE")
 
-					self._logger.info("OPENING FILE")
+						self._logger.info("OPENING FILE")
 
-					with open('/tmp/gstCapture.jpg', 'r') as fin:
-						photo = fin.read()
-					self._logger.info("ANTES")
-					os.unlink('/tmp/gstCapture.jpg')
-					self._logger.info("DESPUES")
-				except:
-					self._logger.error('Error while opening photo file: recomposing photo maker process...')
-			else:
-				self._logger.info("waitingState")
-				print waitingState
-				if tryingTimes >= 3:
-						if self.streamProcessState != 'PAUSED':#coming from fatal error from bus...
-							stateBeforeError = self.streamProcessState
+						with open('/tmp/gstCapture.jpg', 'r') as fin:
+							photo = fin.read()
+						self._logger.info("ANTES")
+						os.unlink('/tmp/gstCapture.jpg')
+						self._logger.info("DESPUES")
+					except:
+						self._logger.error('Error while opening photo file: recomposing photo maker process...')
+				else:
+					self._logger.info("waitingState")
+					print waitingState
+					if tryingTimes >= 3:
+							if self.streamProcessState != 'PAUSED':#coming from fatal error from bus...
+								stateBeforeError = self.streamProcessState
+								self.stop_video()
+								self.reset_pipeline_gstreamer_state()
+								if stateBeforeError == 'PLAYING':
+									self.play_video()
+							return None
+
+					if not self.bus_managed:
+
+						self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Resetting pipeline...')
+
+						if self.streamProcessState == 'PLAYING':
 							self.stop_video()
 							self.reset_pipeline_gstreamer_state()
-							if stateBeforeError == 'PLAYING':
-								self.play_video()
-						return None
+							self.play_video()
+						self.bus_managed = True
+						if tryingTimes == 2:
+							self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
 
-				if not self.bus_managed:
+						return self.take_photo(textPhoto,tryingTimes+1)
 
-					self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Resetting pipeline...')
+					else:
 
-					if self.streamProcessState == 'PLAYING':
-						self.stop_video()
-						self.reset_pipeline_gstreamer_state()
-						self.play_video()
-					self.bus_managed = True
-					if tryingTimes == 2:
-						self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+						return self.take_photo(textPhoto,tryingTimes+1)
 
-					return self.take_photo(textPhoto,tryingTimes+1)
+			except Exception, error:
+				
+				self.waitForPhoto.clear()
+				
+				if self.streamProcessState == 'TAKING_PHOTO':
 
+					self._logger.info("PIPE TO PAUSED")
+
+					print self.pipeline.set_state(gst.State.PAUSED)
+
+					self._logger.info("PIPE TO NULL")
+
+					print self.pipeline.set_state(gst.State.NULL)
+
+					self.reset_pipeline_gstreamer_state()
+
+
+				"""if self.photoMode == 'NOT_TEXT':
+
+					print self.queuebinNotText.set_state(gst.State.PAUSED)
+					print self.queuebinNotText.set_state(gst.State.NULL)
 				else:
+					print self.queuebin.set_state(gst.State.PAUSED)
+					print self.queuebin.set_state(gst.State.NULL)
+				"""
+				self._logger.error("take_photo except:  %s" % str(error))
+				self.waitForPhoto.clear()
+				return None
 
-					return self.take_photo(textPhoto,tryingTimes+1)
-
-		except Exception, error:
-			
-			self.waitForPhoto.clear()
-			
-			if self.streamProcessState == 'TAKING_PHOTO':
-
-				self._logger.info("PIPE TO PAUSED")
-
-				print self.pipeline.set_state(gst.State.PAUSED)
-
-				self._logger.info("PIPE TO NULL")
-
-				print self.pipeline.set_state(gst.State.NULL)
-
-				self.reset_pipeline_gstreamer_state()
-
-
-			"""if self.photoMode == 'NOT_TEXT':
-
-				print self.queuebinNotText.set_state(gst.State.PAUSED)
-				print self.queuebinNotText.set_state(gst.State.NULL)
-			else:
-				print self.queuebin.set_state(gst.State.PAUSED)
-				print self.queuebin.set_state(gst.State.NULL)
-			"""
-			self._logger.error("take_photo except:  %s" % str(error))
-			self.waitForPhoto.clear()
-			return None
-
-		return photo
+			return photo
 
 	def take_photo_and_return(self, textPhoto):
 		self._logger.info("TAKE PHOTO AND RETURN")
@@ -1094,7 +1107,9 @@ class GStreamer(object):
 		# RETURNS THE CURRENT STREAM STATE
 		return self.streamProcessState
 
-	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True):
+	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True, Message=None):
+
+		print 'fatal'
 		
 		if NULLToQueuebinNotText and self.queuebinNotText:
 				self.queuebinNotText.set_state(gst.State.PAUSED)
@@ -1111,7 +1126,7 @@ class GStreamer(object):
 		self._logger.info('sending manage_fatal_error signal')
 
 		ready = signal('manage_fatal_error')
-		ready.send(self)
+		ready.send('cameraError',message=Message)
 
 
 class AsyncPhotoTaker(threading.Thread):

@@ -136,18 +136,17 @@ class WebRtc(object):
 					self.stopGStreamer()
 					self.stopJanus()
 
-	def closeAllSessions(self,sender):
+	def closeAllSessions(self,sender,message):
 		
 		self._logger.info("Closing all streaming sessions")
 
-		for peer in self._connectedPeers:		
-		
-			if peer == "local":
-				peer.streamingPlugin.send_message({'request':'destroy'})
-				peer.close()
-				self.sendEventToPeer(peer, 'stopConnection')
-			
-			del peer
+		for key in self._connectedPeers.keys():
+			if self._connectedPeers[key] != 'local':
+				if message:
+					self.sendEventToPeer(self._connectedPeers[key], sender, message)
+				self.closePeerSession(key)				
+			else:
+				self.closeLocalSession(key)
 
 		self.stopJanus()
 
