@@ -369,7 +369,7 @@ var InternetConnectionView = SettingsPage.extend({
 						connectionCb.call(this, {status: 'failed', reason: 'timeout'});
 					}, 70000); //1 minute
 
-					connectionCb = function(connectionInfo){
+					connectionCb = function(connectionInfo){						
 						switch (connectionInfo.status) {
 							case 'disconnected':
 							case 'connecting':
@@ -378,8 +378,8 @@ var InternetConnectionView = SettingsPage.extend({
 
 							case 'connected':
 								app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
-								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+connectionInfo.info.name+".", type: "success", timeout: 3000});
-								this.settings.networks['wireless'] = connectionInfo.info;
+								noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
+								this.settings.networks['wireless'] = data;
 								this.render();
 								promise.resolve();
 								clearTimeout(connectionTimeout);
