@@ -170,7 +170,7 @@ class NetworkManagerEvents(threading.Thread):
 						'status': 'connected', 
 						'info': {
 							'type': 'wifi',
-							'signal': ord(ap.Strength),
+							'signal': ap.Strength,
 							'name': ap.Ssid,
 							'ip': d.Ip4Address
 						}
@@ -272,7 +272,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		if wifiDevice:
 			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
-				signal = ord(ap.Strength)
+				signal = ap.Strength
 				ssid = ap.Ssid
 
 				if ap.Ssid not in networks or signal > networks[ssid]['signal']:
@@ -317,7 +317,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 								activeConnections['wireless'] = {
 									'id': ap.HwAddress,
-									'signal': ord(ap.Strength),
+									'signal': ap.Strength,
 									'name': ap.Ssid,
 									'ip': d.Ip4Address,
 									'secured': wpaSecured or wepSecured,
@@ -329,7 +329,8 @@ class DebianNetworkManager(NetworkManagerBase):
 	def getWifiDevice(self):
 		devices = self._nm.NetworkManager.GetDevices()
 		for d in devices:
-			if d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+			# Return the first MANAGED device that's a WiFi
+			if d.Managed and d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 				return d
 
 		return False
@@ -396,7 +397,12 @@ class DebianNetworkManager(NetworkManagerBase):
 						raise
 
 				return {
-					'name': ssid
+					'name': ssid,
+					'id': accessPoint.HwAddress,
+					'signal': accessPoint.Strength,
+					'ip': wifiDevice.Ip4Address,
+					'secured': password is not None,
+					'wep': False
 				}
 
 		return None
