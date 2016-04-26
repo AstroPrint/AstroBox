@@ -28,8 +28,8 @@ from octoprint.events import Events
 
 def idle_add_decorator(func):
     def callback(*args):
-        GObject.idle_add(func, *args)
-        #func(*args)
+        #GObject.idle_add(func, *args)
+        func(*args)
     return callback
 
 class NetworkManagerEvents(threading.Thread):
@@ -62,7 +62,7 @@ class NetworkManagerEvents(threading.Thread):
 		self._monitorActivatingListener = None
 
 		connectionState = NetworkManager.NetworkManager.State
-		GObject.idle_add(logger.info, 'Network Manager reports state: *[%s]*' % NetworkManager.const('state', connectionState))
+		logger.info('Network Manager reports state: *[%s]*' % NetworkManager.const('state', connectionState))
 		if connectionState == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
@@ -84,8 +84,8 @@ class NetworkManagerEvents(threading.Thread):
 				astrobox.stop()
 
 			except DBusException as e:
-				GObject.idle_add(logger.error, 'Exception during NetworkManagerEvents: %s' % e)
-				#logger.error('Exception during NetworkManagerEvents: %s' % e)
+				#GObject.idle_add(logger.error, 'Exception during NetworkManagerEvents: %s' % e)
+				logger.error('Exception during NetworkManagerEvents: %s' % e)
 
 			finally:
 				self.stop()
@@ -209,7 +209,6 @@ class NetworkManagerEvents(threading.Thread):
 			self._setOnline(True)
 			eventManager.fire(Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
 
-	@idle_add_decorator
 	def _setOnline(self, value):
 		with self._setOnlineCondition:
 			if value == self._online:
