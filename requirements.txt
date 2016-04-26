@@ -15,7 +15,7 @@ requests-toolbelt==0.6.0
 flask-compress==1.0.2
 scss==0.8.73
 closure==20140110
-python-networkmanager==0.9.12
+python-networkmanager==1.0.1
 netifaces
 ws4py==0.3.4
 usbid==1.0.3
