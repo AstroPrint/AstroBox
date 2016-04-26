@@ -12,7 +12,6 @@ from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 gi.require_version('Gst', '1.0')
-from gi.repository import GObject as gobject
 from gi.repository import Gst as gst
 
 from astroprint.camera import CameraManager
@@ -20,7 +19,6 @@ from astroprint.webrtc import webRtcManager
 
 from blinker import signal
 
-gobject.threads_init()
 gst.init(None)
 
 class GStreamerManager(CameraManager):

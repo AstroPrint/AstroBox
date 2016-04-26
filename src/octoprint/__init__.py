@@ -23,8 +23,6 @@ class Main(Daemon):
 
 	def run(self):
 		startServer(self._configfile, self._basedir, self._host, self._port, self._debug, self._allowRoot)
-		#astrobox = Server(self._configfile, self._basedir, self._host, self._port, self._debug, self._allowRoot)
-		#astrobox.run()
 
 def main():
 	import argparse
