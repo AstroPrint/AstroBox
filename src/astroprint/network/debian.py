@@ -61,8 +61,9 @@ class NetworkManagerEvents(threading.Thread):
 		self._devicePropertiesListener = None
 		self._monitorActivatingListener = None
 
-		logger.info('Looking for Active Connections...')
-		if NetworkManager.NetworkManager.State == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+		connectionState = NetworkManager.NetworkManager.State
+		logger.info('Network Manager reports state: *[%s]*' % NetworkManager.const('state', connectionState))
+		if connectionState == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
 		#d = self.getActiveConnectionDevice()
@@ -310,7 +311,8 @@ class DebianNetworkManager(NetworkManagerBase):
 
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
-							ap = c.SpecificObject
+
+							ap = d.SpecificDevice().ActiveAccessPoint
 
 							if type(ap) is NetworkManager.AccessPoint:						
 								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
