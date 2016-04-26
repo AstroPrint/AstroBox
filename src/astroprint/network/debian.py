@@ -310,7 +310,8 @@ class DebianNetworkManager(NetworkManagerBase):
 
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
-							ap = c.SpecificObject
+
+							ap = d.SpecificDevice().ActiveAccessPoint
 
 							if type(ap) is NetworkManager.AccessPoint:						
 								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
