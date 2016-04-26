@@ -224,7 +224,12 @@ class Server():
 		self._debug = debug
 		self._allowRoot = allowRoot
 		self._logConf = logConf
+		self._ioLoop = None
 
+	def stop(self):
+		if self._ioLoop:
+			self._ioLoop.stop()
+			self._ioLoop = None
 
 	def run(self):
 		if not self._allowRoot:
@@ -270,6 +275,13 @@ class Server():
 
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])
+
+		#Start some of the managers here to make sure there are no thread collisions
+		from astroprint.network.manager import networkManager
+		from astroprint.boxrouter import boxrouterManager
+
+		boxrouterManager()
+		networkManager()
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
@@ -355,15 +367,22 @@ class Server():
 		observer.start()
 
 		try:
-			IOLoop.instance().start()
+			self._ioLoop = IOLoop.instance()
+			self._ioLoop.start()
+
 		except SystemExit:
-			self.cleanup()
+			pass
+
 		except:
 			logger.fatal("Please report this including the stacktrace below in AstroPrint's bugtracker. Thanks!")
 			logger.exception("Stacktrace follows:")
+
 		finally:
 			observer.stop()
+			self.cleanup()
+
 		observer.join()
+		logger.info('Good Bye!')
 
 	def _createSocketConnection(self, session):
 		global userManager, eventManager
@@ -451,8 +470,6 @@ class Server():
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()
-		
-		logging.getLogger(__name__).info("Goodbye!")
 
 if __name__ == "__main__":
 	octoprint = Server()
