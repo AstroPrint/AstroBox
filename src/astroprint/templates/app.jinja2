@@ -100,7 +100,8 @@
 			printing: {% if printing -%} true {%- else -%} false {%- endif %},
 			paused: {% if paused -%} true {%- else -%} false {%- endif %},
 			print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %},
-			online: {% if online -%} true {%- else -%} false {%- endif %}
+			online: {% if online -%} true {%- else -%} false {%- endif %},
+			checkSoftware: {% if checkSoftware -%} true {%- else -%} false {%- endif %}
 		};
 		var initial_printer_profile = {{ printer_profile | tojson | safe }};
 	</script>

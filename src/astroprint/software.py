@@ -28,19 +28,58 @@ from flask.ext.login import current_user
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
-DOWNLOAD_PROGRESS_SPREAD = 0.2
-START_SOURCES_UPDATE = DOWNLOAD_PROGRESS_SPREAD + 0.05
-SOURCES_UPDATE_SPREAD = 0.2
-START_DEPS_UPDATE = START_SOURCES_UPDATE + SOURCES_UPDATE_SPREAD
-DEPS_UPDATE_SPREAD = 0.3
-START_REL_UPDATE = START_DEPS_UPDATE + DEPS_UPDATE_SPREAD
-REL_UPDATE_SPREAD = 0.25
-
-
 if platform != 'darwin':
 	import apt.debfile
 	import apt.progress.base
 	import apt_pkg
+
+	class DepsDownloadProgress(apt.progress.base.AcquireProgress):
+		def __init__(self, progressCb, completionCb):
+			super(DepsDownloadProgress, self).__init__()
+
+			self._progressCb = progressCb
+			self._completionCb = completionCb
+			self._logger = logging.getLogger(__name__)
+
+		def pulse(self, owner):
+			#self._logger.info( "Fetching depedencies progress [ %.2f %% ]" % ( ( float(self.current_items) / float(self.total_items) ) * 100 ) )
+			self._progressCb("deps_download", ( float(self.current_items) / float(self.total_items) ) )
+			return True
+
+		def done(self, item):
+			#super(DepsDownloadProgress, self).done(item)
+			self._logger.info("[%s] fetched" % item.shortdesc)
+
+		def fail(self, item):
+			super(DepsDownloadProgress, self).fail(item)
+			self._logger.error("Error fetching dependency [%s]" % item.shortdesc)
+			self._completionCb(False)
+
+
+	class DepsInstallProgress(apt.progress.base.InstallProgress):
+		def __init__(self, progressCb, completionCb):
+			super(DepsInstallProgress, self).__init__()
+
+			self._progressCb = progressCb
+			self._completionCb = completionCb
+			self._logger = logging.getLogger(__name__)
+
+		def start_update(self):
+			self._logger.info("Dependency installation started")
+			self._progressCb("deps_install", 0.0 )
+
+		def error(self, pkg, message):
+			self._logger.error("Error during dependency [%s] installation: %s" % (pkg, message))
+			self._completionCb(False)
+
+		def status_change(self, pkg, percent, status):
+			#self._logger.info("Dependency installation progress [%.2f %%] - %s" % (percent, status))
+			self._progressCb("deps_install", ( percent / 100 ) )
+
+		def finish_update(self):
+			self._logger.info("Finished installing dependencies")
+			self._progressCb("deps_install", 1.0 )
+
 
 	class UpdateProgress(apt.progress.base.InstallProgress):
 		def __init__(self, progressCb, completionCb):
@@ -53,7 +92,7 @@ if platform != 'darwin':
 
 		def start_update(self):
 			self._logger.info("Software Update started")
-			self._progressCb(START_REL_UPDATE, "Upgrading software...")
+			self._progressCb("release_install", 0.2)
 
 		def error(self, pkg, message):
 			self._logger.error("Error during install [%s]" % message)
@@ -62,15 +101,15 @@ if platform != 'darwin':
 
 		def processing(self, pkg, stage):
 			if stage == 'upgrade':
-				self._progressCb(START_REL_UPDATE + (0.15 * REL_UPDATE_SPREAD), "Upgrading software...")
+				self._progressCb("release_install", 0.5)
 			elif stage == 'configure':
-				self._progressCb(START_REL_UPDATE + (0.3 * REL_UPDATE_SPREAD), "Configuring...")
+				self._progressCb("release_configure", 0.5)
 			elif stage == 'trigproc':
-				self._progressCb(START_REL_UPDATE + (0.55 * REL_UPDATE_SPREAD), "Finalizing...")
+				self._progressCb("release_finalize", 0.0)
 
 		def finish_update(self):
 			if not self._errors:
-				self._progressCb(1.0, "Restarting. Please wait...")
+				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
 				self._logger.info("Software Update completed succesfully")
 				self._completionCb()
 
@@ -87,7 +126,7 @@ if platform != 'darwin':
 
 		def pulse(self, owner):
 			if self.current_items != self._lastCurrentReported or self.total_items != self._lastTotalReported:
-				self._progressCb(START_SOURCES_UPDATE + (SOURCES_UPDATE_SPREAD * self.current_items/self.total_items), "Updating Package Sources...") 
+				self._progressCb("sources_update", float(self.current_items) / float(self.total_items)) 
 				self._logger.info("Update progress item %d of %d" % (self.current_items, self.total_items))
 				self._lastCurrentReported = self.current_items
 				self._lastTotalReported = self.total_items
@@ -105,8 +144,8 @@ class SoftwareUpdater(threading.Thread):
 
 	def run(self):
 		#We need to give the UI a chance to update before starting so that the message can be sent...
+		self._progressCb("download", 0.0, "Starting download...")
 		time.sleep(2)
-		self._progressCb(0.02, "Downloading release...")
 		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
 
 		if r.status_code == 200:
@@ -120,12 +159,11 @@ class SoftwareUpdater(threading.Thread):
 				for chunk in r.iter_content(150000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					percent = round((downloaded_size / content_length), 2) * DOWNLOAD_PROGRESS_SPREAD
-					self._progressCb(percent, "Downloading release...")
+					self._progressCb("download", round((downloaded_size / content_length), 2))
 
 			self._logger.info('Release downloaded.')
 			if platform == "linux" or platform == "linux2":
-				self._progressCb(percent, "Installing release. Please be patient..." )
+				self._progressCb("download", 1.0 , "Release downloaded. Preparing...")
 				time.sleep(0.5) #give the message a chance to be sent
 
 				def completionCb(error = None):
@@ -141,15 +179,21 @@ class SoftwareUpdater(threading.Thread):
 
 						self._completionCb(True)
 
-				cache = apt.Cache()
-				cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
-				cache.open()
-				cache.commit()
+				try:
+					cache = apt.Cache()
+					cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
+					cache.open()
+					cache.commit()
 
-				pkg = apt.debfile.DebPackage(releasePath)
-				self._progressCb(START_DEPS_UPDATE, "Checking software package. Please be patient..." )
+					pkg = apt.debfile.DebPackage(releasePath)
+					self._progressCb("deps_download", 0.0, "Checking software package. Please be patient..." )
 
-				pkg.check()
+					pkg.check()
+
+				except Exception as e:
+					self._logger.error('There was a problem with update package: \n	%s' % e)
+					completionCb(True)
+					return					
 
 				if pkg.missing_deps:
 					cache.open()
@@ -159,9 +203,9 @@ class SoftwareUpdater(threading.Thread):
 							self._logger.info("Marking dependency [%s] to be installed." % dep)
 							cache[dep].mark_install()
 					
-					self._progressCb(START_DEPS_UPDATE + 0.01, "Installing %d dependencies. This might take a while..." % len(pkg.missing_deps))
+					self._progressCb("deps_download", 0.0)
 					try:
-						cache.commit()
+						cache.commit(DepsDownloadProgress(self._progressCb, completionCb), DepsInstallProgress(self._progressCb, completionCb))
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
 
 					except Exception as e:
@@ -169,7 +213,7 @@ class SoftwareUpdater(threading.Thread):
 						completionCb(True)
 						return
 
-					self._progressCb(START_REL_UPDATE, "Installing dependencies. Almost done...")
+					self._progressCb("release_install", 0.0)
 
 				pkg.install(UpdateProgress(self._progressCb, completionCb))
 
@@ -177,7 +221,7 @@ class SoftwareUpdater(threading.Thread):
 				i=0.0
 				while i<10:
 					percent = i/10.0
-					self._progressCb(START_REL_UPDATE + (percent * REL_UPDATE_SPREAD), "Installation Progress Sim (%d%%)" % (percent * 100) )
+					self._progressCb("release_install", percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
 					time.sleep(1)
 					i+=1
 
@@ -192,7 +236,20 @@ class SoftwareUpdater(threading.Thread):
 			self._manager._logger.error('Error performing software update info: %d' % r.status_code)
 			r.close()
 
-class SoftwareManager(object):	
+class SoftwareManager(object):
+	# Download Phase			start 	end		message
+	updatePhaseProgressInfo = {
+		"download": 			(0.0,	0.2,	"Downloading release..."),
+		"sources_update": 		(0.21,	0.4,	"Updating dependency list..."),
+		"deps_download": 		(0.41,	0.6,	"Downloading dependencies..."),
+		"deps_install": 		(0.61,	0.75,	"Installing dependencies..."),
+		"release_install": 		(0.76,	0.85,	"Upgrading software..."),
+		"release_configure": 	(0.86,	0.95,	"Configuring..."),
+		"release_finalize": 	(0.96,	1.0,	"Finalizing")
+	}
+
+	softwareCheckInterval = 86400 #1 day
+
 	def __init__(self):
 		self._settings = settings()
 		self._updater = None
@@ -275,6 +332,10 @@ class SoftwareManager(object):
 		else:
 			return False
 
+	@property
+	def shouldCheckForNew(self):
+		return self._settings.get(["software", "lastCheck"]) < ( time.time() - self.softwareCheckInterval )
+
 	def checkForcedUpdate(self):
 		latestInfo = self.checkSoftwareVersion()
 		if latestInfo and latestInfo['update_available'] and latestInfo['release']['forced'] and not latestInfo['is_current']:
@@ -340,15 +401,21 @@ class SoftwareManager(object):
 				data = r.json()
 
 				if data and 'download_url' in data and data['platform'] == self.data['platform']:
-					def progressCb(progress, message=None):
-						eventManager().fire(Events.SOFTWARE_UPDATE, {
-							'completed': False,
-							'progress': progress,
-							'message': message
-						})
+					def progressCb(phase, progress, message=None):
+						phaseData = self.updatePhaseProgressInfo[phase]
+						spread = phaseData[1] - phaseData[0]
+						globalProgress = phaseData[0] + progress * spread
+						message = message or phaseData[2]
 
-						self.lastCompletionPercent = progress
-						self.lastMessage = message
+						if phaseData:
+							eventManager().fire(Events.SOFTWARE_UPDATE, {
+								'completed': False,
+								'progress': globalProgress,
+								'message': message
+							})
+
+							self.lastCompletionPercent = globalProgress
+							self.lastMessage = message
 
 					def completionCb(success):
 						eventManager().fire(Events.SOFTWARE_UPDATE, {

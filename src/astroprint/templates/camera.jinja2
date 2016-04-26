@@ -6,8 +6,10 @@
 	</div>
 <% if(this.cameraAvailable) {
 	if(this.videoStreamingError){ %>
-	<div>
-		<%= this.videoStreamingError %>
+	<div class="panel text-center radius">
+		<i class="icon-camera"></i>
+		<h3 class="bold">No Camera Detected</h3>
+		<p><%= this.videoStreamingError %></p>
 	</div>
 <% 	} else { %>
 		<div class="row large-collapse">
@@ -113,8 +115,10 @@
 		</div>
 	<% } %>
 <% } else { %>
-	<div>
-		No Camera Detected
+	<div class="panel text-center radius">
+		<i class="icon-camera"></i>
+		<h3 class="bold">No Camera Detected</h3>
+		<p>Attach a USB camera that supports linux and add the ability to monitor you prints. Take time lapse photos, snap a photo, or stream live video to check up on your print. If you connect to AstroPrint.com you get the added benefit of checking up on your print anywhere you have internet access.</p>
 	</div>
 <% } %>
 </script>

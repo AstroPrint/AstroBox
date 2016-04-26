@@ -5,6 +5,18 @@
 		display:none;
 	}
 
+	.panel {
+
+		i {
+			color: #a5a5a5;
+			font-size: rem-calc(50);
+		}
+
+		h3, p {
+			color: $charcoal;
+		}
+	}
+
 	.camera-view {
 		background: $oil;
 		border: 1px solid $iron;

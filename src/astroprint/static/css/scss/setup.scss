@@ -17,10 +17,17 @@
 
 $setup-heading-nub-size: 15px;
 
+#version-label {
+	text-align: center;
+	color: #666;
+	font-size: rem-calc(13);
+	margin-bottom: 50px;
+}
+
 #setup-view {
 	.step {
 		background-color: white;
-		margin: 50px 0;
+		margin: 50px 0 10px 0;
 		@include radius($global-radius);
 		overflow: hidden;
 		max-width: 460px;

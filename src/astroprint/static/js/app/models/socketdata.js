@@ -46,6 +46,18 @@ var SocketData = Backbone.Model.extend({
 		this.set('paused', initial_states.paused);
 		this.set('online', initial_states.online);
 		this.set('print_capture', initial_states.print_capture);
+
+		//See if we need to check for sofware version
+		if (initial_states.checkSoftware && initial_states.online) {
+			$.get(API_BASEURL + 'settings/software/check')
+				.done(_.bind(function(data){
+					if (data.update_available && !data.is_current) {
+						this.trigger('new_sw_release', data);
+						//this.$('.new-release .version-label').text(data.release.major+'.'+data.release.minor+'('+data.release.build+')');
+						//this.$('.new-release').removeClass('hide');
+					}
+				}, this));
+		}
 	},
 	connect: function()
 	{
