@@ -10,6 +10,16 @@ from octoprint.server.api import api
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
+@api.route("/camera/is-resolution-supported", methods=["POST"])
+@restricted_access
+def isResolutionSupported():
+
+	cm = cameraManager()
+	size = request.values['size']
+
+	return jsonify({"isResolutionSupported": cm.isResolutionSupported(size)})
+
+
 @api.route("/camera/is-camera-available", methods=["POST"])
 @restricted_access
 def isCameraAvailable():

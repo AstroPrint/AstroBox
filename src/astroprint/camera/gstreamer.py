@@ -8,6 +8,7 @@ import logging
 import os
 import threading
 
+from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 gi.require_version('Gst', '1.0')
@@ -672,7 +673,7 @@ class GStreamer(object):
 		elif t == gst.MessageType.ERROR:
 			
 			busError, detail = msg.parse_error()
-			self._logger.error("gstreamer bus message error (%s): %s" % busError)
+			self._logger.error("gstreamer bus message error: %s" % busError)
 
 			if 'Internal data flow error.' in str(busError):
 				self.fatalErrorManage(True,True,str(busError)+' Please, change the camera resolution and try it again')
@@ -1109,7 +1110,7 @@ class GStreamer(object):
 
 	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True, Message=None):
 
-		print 'fatal'
+		self._logger.error('Gstreamer fatal error managing')
 		
 		if NULLToQueuebinNotText and self.queuebinNotText:
 				self.queuebinNotText.set_state(gst.State.PAUSED)
@@ -1125,8 +1126,14 @@ class GStreamer(object):
 
 		self._logger.info('sending manage_fatal_error signal')
 
+		#signaling for remote peers
 		ready = signal('manage_fatal_error')
 		ready.send('cameraError',message=Message)
+
+		#event for local peers
+		eventManager().fire(Events.GSTREAMER_EVENT, {
+			'message': Message or 'Fatal error occurred in video streaming'
+		})
 
 
 class AsyncPhotoTaker(threading.Thread):

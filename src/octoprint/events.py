@@ -84,6 +84,9 @@ class Events(object):
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
 
+	#Webrtc and local video peer managing
+	GSTREAMER_EVENT = "GstreamerEvent"
+
 def eventManager():
 	global _instance
 	if _instance is None:

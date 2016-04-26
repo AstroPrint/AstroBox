@@ -11,6 +11,23 @@ var CameraControlView = Backbone.View.extend({
   ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
+  _socket: null,
+  videoStreamingEvent: null,
+  videoStreamingError: null,
+  manageVideoStreamingEvent: function(value){//override this for managing this error
+  	this.videoStreamingError = value.message;
+  	console.error(value.message);
+  },
+  _onVideoStreamingError: function(e){
+  	if (e.data && e.data['event']) {
+	    var data = e.data['event'];
+	    var type = data["type"];
+
+	    if (type == 'GstreamerFatalErrorManage') {
+	        this.manageVideoStreaming(data["message"]);
+	   	}
+	}
+  },
   cameraModeByValue: function(value){
   	/* Values matches by options:
     * - True: video mode
@@ -23,6 +40,7 @@ var CameraControlView = Backbone.View.extend({
   cameraMode: 'video',//['video','photo']
   initialize: function(parameters)
   {
+  	this.videoStreamingError = null;
 	
 	$.post(API_BASEURL + 'camera/is-camera-available')
 	.done(_.bind(function(response){
@@ -30,6 +48,8 @@ var CameraControlView = Backbone.View.extend({
 		this.cameraAvailable = response.isCameraAvailable;
 
 		if(this.cameraAvailable){
+
+			app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
 			//video settings
 			if( !parameters || ! parameters.settings ){
@@ -300,12 +320,14 @@ var CameraControlView = Backbone.View.extend({
 					);
 				}, this),
 				error: _.bind(function(error) {
-					if(!this.$el.hasClass('ready')){
-						console.error(error);
-						noty({text: "Unable to start the WebRTC session.", timeout: 3000});
-						//This is a fatal error. The application can't recover. We should probably show an error state in the app.
-						streamingState = 'stopped';
-					}
+					if(!this.$el.hasClass('ready') 
+						&& !this.videoStreamingError //prevent if internal gstreamer error is showing
+						){
+							console.error(error);
+							noty({text: "Unable to start the WebRTC session.", timeout: 3000});
+							//This is a fatal error. The application can't recover. We should probably show an error state in the app.
+							streamingState = 'stopped';
+						}
 				},this),
 				destroyed: _.bind(this.initJanus, this)
 			});

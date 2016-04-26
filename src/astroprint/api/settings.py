@@ -152,6 +152,8 @@ def cameraStreamingeSettings():
 			if "framerate" in data:
 				s.set(['camera', 'framerate'], data['framerate'])
 
+			if "format" in data:
+				s.set(['camera', 'format'], data['format'])
 			s.save()
 
 			##When a change in settup is saved, the camera must be shouted down
@@ -163,13 +165,15 @@ def cameraStreamingeSettings():
 			cameraManager().settingsChanged({
 				'size': s.get(['camera', 'size']),
 				'encoding': s.get(['camera', 'encoding']),
-				'framerate': s.get(['camera', 'framerate'])
+				'framerate': s.get(['camera', 'framerate']),
+				'format': s.get(['camera', 'format'])
 			})
 
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']), 
 		size= s.get(['camera', 'size']),
-		framerate= s.get(['camera', 'framerate'])
+		framerate= s.get(['camera', 'framerate']),
+		format= s.get(['camera','format'])
 	)	
 
 @api.route("/settings/software/advanced", methods=["GET"])

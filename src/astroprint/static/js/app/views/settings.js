@@ -322,17 +322,47 @@ var CameraVideoStreamView = SettingsPage.extend({
 	el: '#video-stream',
 	template: _.template( $("#video-stream-settings-page-template").html() ),
 	settings: null,
+	settingsSizeDefault: '640x480',
 	events: {
 		"invalid.fndtn.abide form": 'invalidForm',
 		"valid.fndtn.abide form": 'validForm'
 	},
 	show: function() {
+		
+		var form = this.$('form');
+		var loadingBtn = form.find('.loading-button');
+
 		//Call Super
 		SettingsPage.prototype.show.apply(this);
 		if (!this.settings) {
 			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
-				this.settings = data;
-				this.render();
+
+				$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+				.done(_.bind(function(response){
+					if(response.isResolutionSupported){
+						this.settings = data;
+						this.render();
+					} else {
+						//setting default settings
+						this.settings = this.settingsSizeDefault;
+						//saving new settings <- default settings
+						$.ajax({
+							url: API_BASEURL + 'settings/camera/streaming', 
+							type: 'POST',
+							contentType: 'application/json',
+							dataType: 'json',
+							data: JSON.stringify(this.settings)
+						});
+						this.render();
+					}
+					
+				},this))
+				.fail(function() {
+					noty({text: "There was an error getting Camera settings.", timeout: 3000});
+				})
+				.always(_.bind(function(){
+					loadingBtn.removeClass('loading');
+				},this));
 			}, this))
 			.fail(function() {
 				noty({text: "There was an error getting Camera settings.", timeout: 3000});
@@ -382,26 +412,39 @@ var CameraVideoStreamView = SettingsPage.extend({
 			attrs[elem.attr('name')] = value;
 		});
 
-		$.ajax({
-			url: API_BASEURL + 'settings/camera/streaming', 
-			type: 'POST',
-			contentType: 'application/json',
-			dataType: 'json',
-			data: JSON.stringify(attrs)
+		$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: attrs.size })
+		.done(_.bind(function(response){
+			if(response.isResolutionSupported){
+				$.ajax({
+					url: API_BASEURL + 'settings/camera/streaming', 
+					type: 'POST',
+					contentType: 'application/json',
+					dataType: 'json',
+					data: JSON.stringify(attrs)
+				})
+				.done(_.bind(function(data){
+					this.settings = data;
+					noty({text: "Camera changes saved", timeout: 3000, type:"success"});
+					//Make sure we reload next time we load this tab
+					this.render();
+					this.parent.subviews['video-stream'].settings = null;
+				},this))
+				.fail(function(){
+					noty({text: "There was a problem saving camera settings", timeout: 3000});
+				})
+				.always(_.bind(function(){
+					loadingBtn.removeClass('loading');
+				},this));
+			} else {
+				noty({text: "There was a problem saving camera settings: selected resolution is not supported by connected camera", timeout: 3000});
+			}
+		},this))
+		.fail(function(){
+			noty({text: "There was a problem saving camera settings", timeout: 3000});
 		})
-			.done(_.bind(function(data){
-				this.settings = data;
-				noty({text: "Camera changes saved", timeout: 3000, type:"success"});
-				//Make sure we reload next time we load this tab
-				this.render()
-				this.parent.subviews['video-stream'].settings = null;
-			},this))
-			.fail(function(){
-				noty({text: "There was a problem saving camera settings", timeout: 3000});
-			})
-			.always(function(){
-				loadingBtn.removeClass('loading');
-			});
+		.always(_.bind(function(){
+			loadingBtn.removeClass('loading');
+		},this));
 	}
 });
 

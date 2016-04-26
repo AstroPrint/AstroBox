@@ -124,6 +124,11 @@ var PhotoView = CameraControlView.extend({
         this.render();
         this.$('#freqSelector').val(selectedFreqValue);
     },
+    manageVideoStreamingEvent: function(value){
+        this.onHide();//re-used function
+        this.videoStreamingError = value.message;
+        this.render();
+    },
     initialize: function(options) {
 
         this.parent = options.parent;
@@ -140,6 +145,8 @@ var PhotoView = CameraControlView.extend({
                 this.settings = settings;
 
                 if(this.cameraAvailable){
+
+                    app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
                     this.evalWebRtcAbleing();
 

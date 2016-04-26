@@ -222,6 +222,10 @@ var SocketData = Backbone.Model.extend({
 							app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
 							break;
 
+						case 'GstreamerEvent':
+							app.eventManager.trigger('astrobox:videoStreamingEvent',payload);
+							break;
+
 						default:
 							console.warn('Unkonwn event received: '+type);
 					}
