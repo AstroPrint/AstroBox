@@ -1,11 +1,17 @@
-#turnoff-view {
+#turnoff-view,
+#reboot-view {
 	padding-top: 100px;
 
-	.icon-off {
+	.icon-off,
+	.icon-refresh {
 		display: inline-block;
 		font-size: rem-calc(90);
 		color: $alert-color;
 		margin-bottom: 30px;
+	}
+
+	.icon-refresh {
+		color: #ccc;
 	}
 
 	.done {

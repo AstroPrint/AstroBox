@@ -49,7 +49,8 @@ var AstroBoxApp = Backbone.View.extend({
 	turnOffModal: null,
 	printerProfile: null,
 	events: {
-		'click button.turn-off': 'turnOffClicked'
+		'click button.turn-off': 'turnOffClicked',
+		'click button.reboot': 'rebootClicked'
 	},
 	initialize: function() {
 		this.socketData = new SocketData();
@@ -57,7 +58,6 @@ var AstroBoxApp = Backbone.View.extend({
 		this.utils = new Utils();
 		this.router = new AppRouter();
 		this.connectionView = new ConnectionView({socket: this.socketData});
-		this.turnOffModal = new TurnoffConfirmationModal();
 		this.printerProfile = new PrinterProfile(initial_printer_profile);
 
 		this.eventManager = Backbone.Events;
@@ -70,7 +70,19 @@ var AstroBoxApp = Backbone.View.extend({
 	},
 	turnOffClicked: function()
 	{
+		if (!this.turnOffModal) {
+			this.turnOffModal = new TurnoffConfirmationModal();
+		}
+
 		this.turnOffModal.open();
+	},
+	rebootClicked: function()
+	{
+		if (!this.rebootModal) {
+			this.rebootModal = new RebootConfirmationModal();
+		}
+		
+		this.rebootModal.open();
 	},
 	reportPrintingChange: function(s, value) {
 		if (value) {
