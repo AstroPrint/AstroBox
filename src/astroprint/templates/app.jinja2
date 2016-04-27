@@ -47,8 +47,13 @@
 						<li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-rocket-spinner animate-spin hide"></i></a></li>
 					{% endif %}
 				</ul>
-				<div class="turn-off-area" align="center">
-					<button class="alert tiny radius turn-off"><i class="icon-off"></i> Turn {{variantData['productName']}} Off</button>
+				<div class="turn-off-area row">
+					<div class="small-6 columns">
+						<button class="alert tiny radius turn-off"><i class="icon-off"></i><br/>Shutdown</button>
+					</div>
+					<div class="small-6 columns">
+						<button class="secondary tiny radius reboot"><i class="icon-refresh"></i> Restart</button>
+					</div>
 				</div>
 				<div class="copy" align="center">Powered by <a href="https://www.astroprint.com">AstroPrint&reg;</a><br/>{{version}}</div>
 			</aside>
@@ -82,6 +87,7 @@
 	{%- if not user_email -%} {% include 'login.jinja2' %} {%- endif -%}
 
 	<div id="turnoff-view" class="app-view hide" data-fullscreen="1"> {%- include 'turnoff.jinja2' -%} </div>
+	<div id="reboot-view" class="app-view hide" data-fullscreen="1"> {%- include 'reboot.jinja2' -%} </div>
 	<div id="unreachable-view" class="app-view hide" data-fullscreen="1"> {%- include 'unreachable.jinja2' -%} </div>
 {% endblock %}
 
@@ -114,7 +120,7 @@
 		"js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/printerprofile.js",
 		"js/app/widgets/tempbarview.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
 		"js/app/views/home.js", "js/app/views/files.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js", 
-		"js/app/views/turnoff.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js",
+		"js/app/views/turnoff.js", , "js/app/views/reboot.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js",
 		"js/app/router.js",
 		"js/app/app.js" -%}
 			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
