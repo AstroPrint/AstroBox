@@ -39,11 +39,10 @@ var RebootView = Backbone.View.extend({
             success: _.bind(function() {
 				setTimeout(_.bind(function() {
 					this.$el.addClass('done');
-					this.$el.find('.icon-off').removeClass('blink-animation');
-				}, this), 6000);
+				}, this), 3000);
             }, this),
             error: _.bind(function() {
-            	this.$el.find('.icon-off').removeClass('blink-animation');
+            	this.$el.find('.icon-refresh').removeClass('animate-spin');
             	noty({text: "There was an error starting reboot sequence.", timeout: 5000});
             }, this)
         });
