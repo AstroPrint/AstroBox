@@ -103,6 +103,10 @@ class Printer(object):
 	def fileManager(self):
 		return self._fileManager
 
+	@property
+	def currentPrintJobId(self):
+		return self._currentPrintJobId
+
 	def rampdown(self):
 		self.disconnect()
 		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
