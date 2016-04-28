@@ -14,6 +14,7 @@ var CameraControlView = Backbone.View.extend({
   _socket: null,
   videoStreamingEvent: null,
   videoStreamingError: null,
+  browserNotVisibleManager : null,
   manageVideoStreamingEvent: function(value){//override this for managing this error
   	this.videoStreamingError = value.message;
   	console.error(value.message);
@@ -307,6 +308,26 @@ var CameraControlView = Backbone.View.extend({
 		                    		this.setState('streaming');
 		                    		isPlaying = true;
 		                    		this.$('.loading-button').removeClass('loading');
+
+									document.addEventListener("visibilitychange", _.bind(function() {
+										if(document.hidden || document.visibilityState != 'visible'){
+									  		this.browserNotVisibleManager = setInterval(_.bind(function(){
+									  			if(document.hidden || document.visibilityState != 'visible'){
+										  			this.stopStreaming();
+										  			clearInterval(this.browserNotVisibleManager);
+										  			this.browserNotVisibleManager = 'waiting';
+									  			}
+									  		},this), 15000);
+									  	} else {
+									  		if(this.browserNotVisibleManager == 'waiting'){
+									  			document.removeEventListener("visibilitychange",function(){});
+									  			this.browserNotVisibleManager = null;
+									  			this.startStreaming();
+									  		}
+									  	}
+
+									},this), false);
+
 		                    	},this));
 		                    	
 		                    	attachMediaStream($('#remotevideo').get(0), stream);
@@ -327,6 +348,7 @@ var CameraControlView = Backbone.View.extend({
 							noty({text: "Unable to start the WebRTC session.", timeout: 3000});
 							//This is a fatal error. The application can't recover. We should probably show an error state in the app.
 							streamingState = 'stopped';
+							this.setState('error');
 						}
 				},this),
 				destroyed: _.bind(this.initJanus, this)

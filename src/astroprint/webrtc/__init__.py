@@ -208,7 +208,7 @@ class WebRtc(object):
 		#if request.values['data']
 
 	def pingPongRounder(self,params=None):
-		print self._connectedPeers
+		
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
