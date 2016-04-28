@@ -762,8 +762,6 @@ class GStreamer(object):
 	def take_photo(self, textPhoto, tryingTimes=0):
 		with self.takingPhotoCondition:
 
-			textPhoto = 'ABCDEFGHIJK  LÑKJ'
-
 			self.waitForPhoto = threading.Event()
 			
 			if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
