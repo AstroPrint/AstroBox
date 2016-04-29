@@ -399,10 +399,16 @@ class AstroPrintCloud(object):
 	def startPrintCapture(self, filename):
 		data = {'name': filename}
 
-		print_file_id = printerManager().fileManager.getFileCloudId(filename)
+		pm = printerManager()
+
+		print_file_id = pm.fileManager.getFileCloudId(filename)
+		print_job_id = pm.currentPrintJobId
 
 		if print_file_id:
 			data['print_file_id'] = print_file_id
+
+		if print_job_id:
+			data['print_job_id'] = print_job_id
 
 		try:
 			r = requests.post( 
