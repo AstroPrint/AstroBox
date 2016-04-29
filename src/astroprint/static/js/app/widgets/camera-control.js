@@ -118,6 +118,8 @@ var CameraControlView = Backbone.View.extend({
   onHide: function(){
  	if(this.state == 'streaming' || this.state == 'streaming'){
         this.stopStreaming();
+    } else {
+    	this.$('.camera-image').removeAttr('src');
     }
   },
   cameraModeChanged: function(e){
