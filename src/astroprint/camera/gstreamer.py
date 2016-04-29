@@ -696,7 +696,7 @@ class GStreamer(object):
 			self._logger.error("gstreamer bus message error: %s" % busError)
 
 			if 'Internal data flow error.' in str(busError):
-				self.fatalErrorManage(True,True,str(busError)+'. Did you selected a correct "Video Format" and resolution in settings? Please, change the camera resolution and/or video format, and try it again')
+				self.fatalErrorManage(True,True,str(busError)+' Did you selected a correct "Video Format" and resolution in settings? Please, change the camera resolution and/or video format, and try it again')
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 
@@ -899,14 +899,16 @@ class GStreamer(object):
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.pipeline.add(self.x264decNotText)
 							self.pipeline.add(self.x264parseNotText)
+							
 						self.pipeline.add(self.jpegencNotText)						
 						##
-				
+						
 						# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.queuebinNotText.link(self.x264parseNotText)
 							self.x264parseNotText.link(self.x264decNotText)
-							self.x264decNotText.link(self.jpegencNotText)
+							self.x264decNotText.link(self.video_logo)
+							self.video_logo.link(self.jpegencNotText)
 						else:
 							self.queuebinNotText.link(self.jpegencNotText)
 						##########
@@ -943,7 +945,8 @@ class GStreamer(object):
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.queuebin.link(self.x264parse)
 							self.x264parse.link(self.x264dec)
-							self.x264dec.link(self.photo_logo)
+							self.x264dec.link(self.video_logo)
+							self.video_logo.link(self.photo_logo)
 							self.photo_logo.link(self.photo_text)
 							self.photo_text.link(self.jpegenc)
 						else:

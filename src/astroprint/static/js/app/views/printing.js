@@ -446,7 +446,7 @@ var PrintingView = Backbone.View.extend({
     },
     onHide: function()
     {
-        this.photoView.trigger('hide');
+        this.photoView.trigger('message:hide');
     },
     stopPrint: function(e) {
         if (!this.cancelDialog) {
