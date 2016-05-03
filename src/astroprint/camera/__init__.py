@@ -12,7 +12,6 @@ def cameraManager():
 			number_of_video_device = 0#/dev/video``0´´
 
 			from astroprint.camera.gstreamer import GStreamerManager
-			print 'GStreamerManager'
 			_instance = GStreamerManager(number_of_video_device)
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
