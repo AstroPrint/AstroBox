@@ -261,14 +261,15 @@ class CameraManager(object):
 		pass
 
 	def isCameraAvailable(self):
-		
 		try:
-	
 			return os.path.exists("/dev/video" + str(self.number_of_video_device))
 			
 		except:
 			
 			return False
+
+	def isResolutionSupported(self, resolution):
+		pass
 
 	## private functions
 

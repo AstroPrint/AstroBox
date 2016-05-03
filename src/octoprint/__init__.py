@@ -5,6 +5,8 @@ from octoprint.daemon import Daemon
 from octoprint.server import Server
 from signal import signal, SIGTERM, SIGINT
 
+astrobox = None
+
 #~~ main class
 
 class Main(Daemon):
@@ -20,8 +22,7 @@ class Main(Daemon):
 		self._logConf = logConf
 
 	def run(self):
-		octoprint = Server(self._configfile, self._basedir, self._host, self._port, self._debug, self._allowRoot)
-		octoprint.run()
+		startServer(self._configfile, self._basedir, self._host, self._port, self._debug, self._allowRoot)
 
 def main():
 	import argparse
@@ -73,12 +74,30 @@ def main():
 		elif "restart" == args.daemon:
 			daemon.restart()
 	else:
-		signal(SIGTERM, lambda signum, stack_frame: sys.exit(1)) #Redirects "nice" kill commands to SystemExit exception
-		signal(SIGINT, lambda signum, stack_frame: sys.exit(1)) #Redirects CTRL+C to SystemExit exception
+		startServer(args.config, args.basedir, args.host, args.port, args.debug, args.allowRoot, args.logConf)
 
-		astrobox = Server(args.config, args.basedir, args.host, args.port, args.debug, args.allowRoot, args.logConf)
-		
-		astrobox.run()
+def startServer(configfile, basedir, host, port, debug, allowRoot, logConf = None):
+	signal(SIGTERM, lambda signum, stack_frame: sys.exit(1)) #Redirects "nice" kill commands to SystemExit exception
+	signal(SIGINT, lambda signum, stack_frame: sys.exit(1)) #Redirects CTRL+C to SystemExit exception
+
+	global astrobox
+
+	astrobox = Server(configfile, basedir, host, port, debug, allowRoot, logConf)
+	
+	try:
+		from gi.repository import GObject
+		from dbus.mainloop.glib import DBusGMainLoop, threads_init
+
+		DBusGMainLoop(set_as_default=True)
+
+		GObject.threads_init()
+		threads_init()
+
+	except ImportError:
+		pass
+
+	astrobox.run()	
+
 
 if __name__ == "__main__":
 	main()

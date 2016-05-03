@@ -49,7 +49,8 @@ default_settings = {
 	"camera": {
 		"encoding": "h264",
 		"size": "640x480",
-		"framerate": "15"
+		"framerate": "15",
+		"format": "x-raw"
 	},
 	"gcodeViewer": {
 		"enabled": True,

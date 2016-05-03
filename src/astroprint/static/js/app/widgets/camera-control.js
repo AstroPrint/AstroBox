@@ -11,6 +11,24 @@ var CameraControlView = Backbone.View.extend({
   ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
+  _socket: null,
+  videoStreamingEvent: null,
+  videoStreamingError: null,
+  browserNotVisibleManager : null,
+  manageVideoStreamingEvent: function(value){//override this for managing this error
+  	this.videoStreamingError = value.message;
+  	console.error(value.message);
+  },
+  _onVideoStreamingError: function(e){
+  	if (e.data && e.data['event']) {
+	    var data = e.data['event'];
+	    var type = data["type"];
+
+	    if (type == 'GstreamerFatalErrorManage') {
+	        this.manageVideoStreaming(data["message"]);
+	   	}
+	}
+  },
   cameraModeByValue: function(value){
   	/* Values matches by options:
     * - True: video mode
@@ -23,6 +41,7 @@ var CameraControlView = Backbone.View.extend({
   cameraMode: 'video',//['video','photo']
   initialize: function(parameters)
   {
+  	this.videoStreamingError = null;
 	
 	$.post(API_BASEURL + 'camera/is-camera-available')
 	.done(_.bind(function(response){
@@ -31,22 +50,39 @@ var CameraControlView = Backbone.View.extend({
 
 		if(this.cameraAvailable){
 
-			//video settings
-			if( !parameters || ! parameters.settings ){
-				
-				$.getJSON(API_BASEURL + 'settings/camera/streaming')
-				.done(_.bind(function(settings){
-					
-					this.settings = settings;
-					
-					this.evalWebRtcAbleing();
+			$.post(API_BASEURL + 'camera/is-camera-able')
+			.done(_.bind(function(response){
 
-				},this));
+				this.isCameraAble = response.isCameraAble;
 
-			} else {
-				this.settings = parameters.settings;
-				this.evalWebRtcAbleing();
-			}
+					if(this.isCameraAble){
+						//video settings
+						if( !parameters || ! parameters.settings ){
+							
+							$.getJSON(API_BASEURL + 'settings/camera/streaming')
+							.done(_.bind(function(settings){
+								
+								this.settings = settings;
+								
+								this.evalWebRtcAbleing();
+
+							},this));
+
+						} else {
+							this.settings = parameters.settings;
+							this.evalWebRtcAbleing();
+						}
+					} else {
+						this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+						this.render();
+					}
+			},this))
+			.fail(_.bind(function(response){
+				console.error(msg["error"]);
+				noty({text: "Unable to communicate with the camera.", timeout: 3000});
+				this.stopStreaming();
+				this.setState('error');
+			},this));
 		} else { this.render(); }
 	},this))
   },
@@ -97,6 +133,8 @@ var CameraControlView = Backbone.View.extend({
   onHide: function(){
  	if(this.state == 'streaming' || this.state == 'streaming'){
         this.stopStreaming();
+    } else {
+    	this.$('.camera-image').removeAttr('src');
     }
   },
   cameraModeChanged: function(e){
@@ -287,6 +325,26 @@ var CameraControlView = Backbone.View.extend({
 		                    		this.setState('streaming');
 		                    		isPlaying = true;
 		                    		this.$('.loading-button').removeClass('loading');
+
+									document.addEventListener("visibilitychange", _.bind(function() {
+										if(document.hidden || document.visibilityState != 'visible'){
+									  		this.browserNotVisibleManager = setInterval(_.bind(function(){
+									  			if(document.hidden || document.visibilityState != 'visible'){
+										  			this.stopStreaming();
+										  			clearInterval(this.browserNotVisibleManager);
+										  			this.browserNotVisibleManager = 'waiting';
+									  			}
+									  		},this), 15000);
+									  	} else {
+									  		if(this.browserNotVisibleManager == 'waiting'){
+									  			document.removeEventListener("visibilitychange",function(){});
+									  			this.browserNotVisibleManager = null;
+									  			this.startStreaming();
+									  		}
+									  	}
+
+									},this), false);
+
 		                    	},this));
 		                    	
 		                    	attachMediaStream($('#remotevideo').get(0), stream);
@@ -300,12 +358,15 @@ var CameraControlView = Backbone.View.extend({
 					);
 				}, this),
 				error: _.bind(function(error) {
-					if(!this.$el.hasClass('ready')){
-						console.error(error);
-						noty({text: "Unable to start the WebRTC session.", timeout: 3000});
-						//This is a fatal error. The application can't recover. We should probably show an error state in the app.
-						streamingState = 'stopped';
-					}
+					if(!this.$el.hasClass('ready') 
+						&& !this.videoStreamingError //prevent if internal gstreamer error is showing
+						){
+							console.error(error);
+							noty({text: "Unable to start the WebRTC session.", timeout: 3000});
+							//This is a fatal error. The application can't recover. We should probably show an error state in the app.
+							streamingState = 'stopped';
+							this.setState('error');
+						}
 				},this),
 				destroyed: _.bind(this.initJanus, this)
 			});

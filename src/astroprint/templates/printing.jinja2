@@ -2,7 +2,7 @@
 	<h2 class="bold" align="center">Printing</h2>
 		<div class="small-12 large-4 columns camera-view" align="center">
 			<script type="text/template" id="photo-printing-template">
-				<% if(this.cameraAvailable) { %>
+				<% if(this.cameraAvailable && !this.videoStreamingError){ %>
 					<% if(!this.ableWebRtc) { %>
 						<div class="camera-container">
 							<i class="icon-3d-object"></i>
@@ -76,11 +76,17 @@
 							</div>
 						</div>
 					</div>
-				<% } else { %>
-					<div class="camera-container">
-						<i class="icon-3d-object"></i>
-						<img class="camera-image" width="100%"/>
-					</div>
+				<% } else { 
+					if(this.videoStreamingError) { %>
+						<div>
+							<%= this.videoStreamingError %>
+						</div>
+					<% } else { %>
+						<div class="camera-container">
+							<i class="icon-3d-object"></i>
+							<img class="camera-image" width="100%"/>
+						</div>
+					<% } %>
 				<% } %>
 			</script>
 		</div>

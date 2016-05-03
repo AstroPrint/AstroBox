@@ -26,5 +26,11 @@ var CameraView = CameraControlView.extend({
     } else { 
       this.$('.camera-image').removeAttr('src');
     }
+  },
+  manageVideoStreamingEvent: function(value){
+    this.onHide();//re-used function
+    this.videoStreamingError = value.message;
+    this.render();
+
   }
 });

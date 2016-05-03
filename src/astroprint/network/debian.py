@@ -7,15 +7,9 @@ import netifaces
 import sarge
 import os
 import threading
-import gobject
 import time
 
-gobject.threads_init()
-
-#This needs to happen before importing NetworkManager
-from dbus.mainloop.glib import DBusGMainLoop, threads_init
-
-DBusGMainLoop(set_as_default=True)
+from gi.repository import GObject, GLib
 
 import NetworkManager
 
@@ -34,7 +28,8 @@ from octoprint.events import Events
 
 def idle_add_decorator(func):
     def callback(*args):
-        gobject.idle_add(func, *args)
+        #GObject.idle_add(func, *args)
+        func(*args)
     return callback
 
 class NetworkManagerEvents(threading.Thread):
@@ -59,15 +54,16 @@ class NetworkManagerEvents(threading.Thread):
 
 	def run(self):
 		self._stopped = False
-		self._loop = gobject.MainLoop()
+		self._loop = GLib.MainLoop()
 
 		self._propertiesListener = NetworkManager.NetworkManager.connect_to_signal('PropertiesChanged', self.propertiesChanged)
 		self._stateChangeListener = NetworkManager.NetworkManager.connect_to_signal('StateChanged', self.globalStateChanged)
 		self._devicePropertiesListener = None
 		self._monitorActivatingListener = None
 
-		logger.info('Looking for Active Connections...')
-		if NetworkManager.NetworkManager.State == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+		connectionState = NetworkManager.NetworkManager.State
+		logger.info('Network Manager reports state: *[%s]*' % NetworkManager.const('state', connectionState))
+		if connectionState == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
 		#d = self.getActiveConnectionDevice()
@@ -82,33 +78,41 @@ class NetworkManagerEvents(threading.Thread):
 			try:
 				self._loop.run()
 
+			except KeyboardInterrupt:
+				#kill the main process too
+				from octoprint import astrobox
+				astrobox.stop()
+
 			except DBusException as e:
-				gobject.idle_add(logger.error, 'Exception during NetworkManagerEvents: %s' % e)
-				self._stopped = True
-				self._loop.quit()
+				#GObject.idle_add(logger.error, 'Exception during NetworkManagerEvents: %s' % e)
+				logger.error('Exception during NetworkManagerEvents: %s' % e)
+
+			finally:
+				self.stop()
 
 
 	def stop(self):
-		logger.info('NetworkManagerEvents stopping.')
+		if not self._stopped:
+			logger.info('NetworkManagerEvents stopping.')
 
-		if self._propertiesListener:
-			self._propertiesListener.remove()
-			self._propertiesListener = None
+			if self._propertiesListener:
+				self._propertiesListener.remove()
+				self._propertiesListener = None
 
-		if self._stateChangeListener:
-			self._stateChangeListener.remove()
-			self._stateChangeListener = None
+			if self._stateChangeListener:
+				self._stateChangeListener.remove()
+				self._stateChangeListener = None
 
-		if self._monitorActivatingListener:
-			self._monitorActivatingListener.remove()
-			self._monitorActivatingListener = None
+			if self._monitorActivatingListener:
+				self._monitorActivatingListener.remove()
+				self._monitorActivatingListener = None
 
-		if self._devicePropertiesListener:
-			self._devicePropertiesListener.remove()
-			self._devicePropertiesListener = None
+			if self._devicePropertiesListener:
+				self._devicePropertiesListener.remove()
+				self._devicePropertiesListener = None
 
-		self._stopped = True
-		self._loop.quit()
+			self._stopped = True
+			self._loop.quit()
 
 	@idle_add_decorator
 	def globalStateChanged(self, state):
@@ -170,7 +174,7 @@ class NetworkManagerEvents(threading.Thread):
 						'status': 'connected', 
 						'info': {
 							'type': 'wifi',
-							'signal': ord(ap.Strength),
+							'signal': ap.Strength,
 							'name': ap.Ssid,
 							'ip': d.Ip4Address
 						}
@@ -246,8 +250,6 @@ class DebianNetworkManager(NetworkManagerBase):
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
-
-		threads_init()
 		self._eventListener.start()
 		logger.info('NetworkManagerEvents is listening for signals')
 
@@ -259,7 +261,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		self._eventListener = None
 
 	def shutdown(self):
-		logging.info('Shutting Down DebianNetworkManager')
+		logger.info('Shutting Down DebianNetworkManager')
 		self.close();
 
 	def conectionStatus(self):
@@ -272,7 +274,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		if wifiDevice:
 			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
-				signal = ord(ap.Strength)
+				signal = ap.Strength
 				ssid = ap.Ssid
 
 				if ap.Ssid not in networks or signal > networks[ssid]['signal']:
@@ -309,7 +311,8 @@ class DebianNetworkManager(NetworkManagerBase):
 
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
-							ap = c.SpecificObject
+
+							ap = d.SpecificDevice().ActiveAccessPoint
 
 							if type(ap) is NetworkManager.AccessPoint:						
 								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
@@ -317,7 +320,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 								activeConnections['wireless'] = {
 									'id': ap.HwAddress,
-									'signal': ord(ap.Strength),
+									'signal': ap.Strength,
 									'name': ap.Ssid,
 									'ip': d.Ip4Address,
 									'secured': wpaSecured or wepSecured,
@@ -329,7 +332,8 @@ class DebianNetworkManager(NetworkManagerBase):
 	def getWifiDevice(self):
 		devices = self._nm.NetworkManager.GetDevices()
 		for d in devices:
-			if d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+			# Return the first MANAGED device that's a WiFi
+			if d.Managed and d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 				return d
 
 		return False
@@ -396,7 +400,12 @@ class DebianNetworkManager(NetworkManagerBase):
 						raise
 
 				return {
-					'name': ssid
+					'name': ssid,
+					'id': accessPoint.HwAddress,
+					'signal': accessPoint.Strength,
+					'ip': wifiDevice.Ip4Address,
+					'secured': password is not None,
+					'wep': False
 				}
 
 		return None
