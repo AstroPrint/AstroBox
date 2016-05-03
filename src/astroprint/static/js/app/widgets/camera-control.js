@@ -78,7 +78,6 @@ var CameraControlView = Backbone.View.extend({
 					}
 			},this))
 			.fail(_.bind(function(response){
-				console.error(msg["error"]);
 				noty({text: "Unable to communicate with the camera.", timeout: 3000});
 				this.stopStreaming();
 				this.setState('error');
