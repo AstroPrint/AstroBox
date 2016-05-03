@@ -37,5 +37,8 @@ class CameraMacManager(CameraManager):
 	def isCameraAvailable(self):
 		return True
 
+	def isCameraAble(self):
+		return True
+
 	def _doGetPicAsync(self, done, text):
 		done(self.get_pic(text))
