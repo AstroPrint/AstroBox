@@ -26,10 +26,6 @@ var CameraView = CameraControlView.extend({
     } else { 
       this.$('.camera-image').removeAttr('src');
     }
-    if(this.videoStreamingError){
-      this.videoStreamingError = null;
-      this.render();
-    }
   },
   manageVideoStreamingEvent: function(value){
     this.onHide();//re-used function

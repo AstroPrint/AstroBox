@@ -30,18 +30,21 @@ class GStreamerManager(CameraManager):
 		self.gstreamerVideo = None
 		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
+		self.supported_formats = None
 		super(GStreamerManager, self).__init__()
-
+		
 	def open_camera(self):
 		try:
 			if self.gstreamerVideo is None:
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
+				self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
+
 		except Exception, error:
 			self._logger.error(error)
 			self.gstreamerVideo = None
 
-		return self.gstreamerVideo is not None
+		return not self.gstreamerVideo is None
 
 	def start_video_stream(self):
 		if self.gstreamerVideo:
@@ -90,6 +93,7 @@ class GStreamerManager(CameraManager):
 	#    pass
 
 	def isCameraAvailable(self):
+
 		parentCameraAvailable = super(GStreamerManager, self).isCameraAvailable()
 
 		return self.gstreamerVideo is not None and parentCameraAvailable
@@ -105,11 +109,10 @@ class GStreamerManager(CameraManager):
 			self.asyncPhotoTaker.stop()
 
 	def isResolutionSupported(self, resolution):
-		supported_formats = self._get_supported_resolutions(self.number_of_video_device)
-		
+
 		resolutions = []
 
-		for supported_format in supported_formats:
+		for supported_format in self.supported_formats:
 		    if supported_format.get('pixelformat') == 'YUYV':
 		        resolutions = supported_format.get('resolutions')
 
@@ -121,6 +124,10 @@ class GStreamerManager(CameraManager):
 			resolution += [long(element)]
 
 		return resolution in resolutions
+
+	def isCameraAble(self):
+
+		return self.supported_formats is not None
 
 	def _get_pixel_formats(self,device, maxformats=5):
 	    """Query the camera to see what pixel formats it supports.  A list of
@@ -172,51 +179,61 @@ class GStreamerManager(CameraManager):
 		return YUYV and 640x480 which seems to be a safe default. Per the v4l2
 		spec the ioctl used here is experimental but seems to be well supported.
 		"""
+		try:
 
-		if '/dev/video' not in str(device):
-			device = '/dev/video' + str(device)
+			if '/dev/video' not in str(device):
+				device = '/dev/video' + str(device)
 
-		supported_formats = self._get_pixel_formats(device)
-		if not supported_formats:
-			resolution = {}
-			resolution['description'] = "YUYV"
-			resolution['pixelformat'] = "YUYV"
-			resolution['resolutions'] = [[640, 480]]
-			resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
-			supported_formats.append(resolution)
+			supported_formats = self._get_pixel_formats(device)
+
+			if not supported_formats:
+				resolution = {}
+				resolution['description'] = "YUYV"
+				resolution['pixelformat'] = "YUYV"
+				resolution['resolutions'] = [[640, 480]]
+				resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
+				supported_formats.append(resolution)
+				return supported_formats
+
+			for supported_format in supported_formats:
+			    resolutions = []
+			    framesize = v4l2.v4l2_frmsizeenum()
+			    framesize.index = 0
+			    framesize.pixel_format = supported_format['pixelformat_int']
+			    with open(device, 'r') as vd:
+			        try:
+			            while fcntl.ioctl(vd,v4l2.VIDIOC_ENUM_FRAMESIZES,framesize) == 0:
+					if framesize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
+			                    resolutions.append([framesize.discrete.width,
+			                        framesize.discrete.height])
+			                # for continuous and stepwise, let's just use min and
+			                # max they use the same structure and only return
+			                # one result
+			                elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
+			                     framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
+			                    resolutions.append([framesize.stepwise.min_width,
+			                        framesize.stepwise.min_height])
+			                    resolutions.append([framesize.stepwise.max_width,
+			                        framesize.stepwise.max_height])
+			                    break
+			                framesize.index = framesize.index + 1
+			        except IOError as e:
+			            # EINVAL is the ioctl's way of telling us that there are no
+			            # more formats, so we ignore it
+			            if e.errno != errno.EINVAL:
+			                print("Unable to determine supported framesizes "\
+			                      "(resolutions), this may be a driver issue.")
+			                return supported_formats
+			    supported_format['resolutions'] = resolutions
+
 			return supported_formats
+		except Exception:
+			self.cameraAble = False
+			self._logger.info('Camera error: it is not posible to get the camera capabilities')
+			#self.gstreamerVideo.fatalErrorManage('Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...')
 
-		for supported_format in supported_formats:
-		    resolutions = []
-		    framesize = v4l2.v4l2_frmsizeenum()
-		    framesize.index = 0
-		    framesize.pixel_format = supported_format['pixelformat_int']
-		    with open(device, 'r') as vd:
-		        try:
-		            while fcntl.ioctl(vd,v4l2.VIDIOC_ENUM_FRAMESIZES,framesize) == 0:
-				if framesize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
-		                    resolutions.append([framesize.discrete.width,
-		                        framesize.discrete.height])
-		                # for continuous and stepwise, let's just use min and
-		                # max they use the same structure and only return
-		                # one result
-		                elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
-		                     framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
-		                    resolutions.append([framesize.stepwise.min_width,
-		                        framesize.stepwise.min_height])
-		                    resolutions.append([framesize.stepwise.max_width,
-		                        framesize.stepwise.max_height])
-		                    break
-		                framesize.index = framesize.index + 1
-		        except IOError as e:
-		            # EINVAL is the ioctl's way of telling us that there are no
-		            # more formats, so we ignore it
-		            if e.errno != errno.EINVAL:
-		                print("Unable to determine supported framesizes "\
-		                      "(resolutions), this may be a driver issue.")
-		                return supported_formats
-		    supported_format['resolutions'] = resolutions
-		return supported_formats
+			self.supported_format = None
+			return None
 
 class GStreamer(object):
 	
@@ -899,7 +916,7 @@ class GStreamer(object):
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.pipeline.add(self.x264decNotText)
 							self.pipeline.add(self.x264parseNotText)
-							
+
 						self.pipeline.add(self.jpegencNotText)						
 						##
 						

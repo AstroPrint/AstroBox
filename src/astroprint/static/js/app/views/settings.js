@@ -336,33 +336,48 @@ var CameraVideoStreamView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 		if (!this.settings) {
 			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
-
-				$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+				$.post(API_BASEURL + 'camera/is-camera-able')
 				.done(_.bind(function(response){
-					if(response.isResolutionSupported){
-						this.settings = data;
-						this.render();
+
+					this.isCameraAble = response.isCameraAble;
+
+					if(this.isCameraAble){
+
+						$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+						.done(_.bind(function(response){
+							if(response.isResolutionSupported){
+								this.settings = data;
+								this.render();
+							} else {
+								//setting default settings
+								this.settings = this.settingsSizeDefault;
+								//saving new settings <- default settings
+								$.ajax({
+									url: API_BASEURL + 'settings/camera/streaming', 
+									type: 'POST',
+									contentType: 'application/json',
+									dataType: 'json',
+									data: JSON.stringify(this.settings)
+								});
+								this.render();
+							}
+							
+						},this))
+						.fail(function() {
+							noty({text: "There was an error getting Camera settings.", timeout: 3000});
+						})
+						.always(_.bind(function(){
+							loadingBtn.removeClass('loading');
+						},this));
 					} else {
-						//setting default settings
-						this.settings = this.settingsSizeDefault;
-						//saving new settings <- default settings
-						$.ajax({
-							url: API_BASEURL + 'settings/camera/streaming', 
-							type: 'POST',
-							contentType: 'application/json',
-							dataType: 'json',
-							data: JSON.stringify(this.settings)
-						});
+						this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
 						this.render();
 					}
-					
 				},this))
-				.fail(function() {
-					noty({text: "There was an error getting Camera settings.", timeout: 3000});
-				})
-				.always(_.bind(function(){
-					loadingBtn.removeClass('loading');
-				},this));
+				.fail(_.bind(function(){
+					this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
+					this.render();
+				},this))
 			}, this))
 			.fail(function() {
 				noty({text: "There was an error getting Camera settings.", timeout: 3000});

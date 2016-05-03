@@ -138,37 +138,59 @@ var PhotoView = CameraControlView.extend({
             
             this.cameraAvailable = response.isCameraAvailable;
 
-            //video settings
-            $.getJSON(API_BASEURL + 'settings/camera/streaming')
-            .done(_.bind(function(settings){
-                
-                this.settings = settings;
+            if(this.cameraAvailable){
 
-                if(this.cameraAvailable){
+                $.post(API_BASEURL + 'camera/is-camera-able')
+                .done(_.bind(function(response){
 
-                    app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
+                    this.isCameraAble = response.isCameraAble;
 
-                    this.evalWebRtcAbleing();
+                        if(this.isCameraAble){
 
-                    this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
-                    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-                    this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
 
-                    this.onCameraChanged(app.socketData, app.socketData.get('camera'));
+                            //video settings
+                            $.getJSON(API_BASEURL + 'settings/camera/streaming')
+                            .done(_.bind(function(settings){
+                                
+                                this.settings = settings;
 
-                    this.print_capture = app.socketData.get('print_capture');
-                } else {
-                    this.setState('nowebrtc');
-                    this.ableWebRtc = false
-                    cameraModeChanged = null;
-                    this.buttonEvent = function(e){ this.refreshPhoto(e); };
-                    this.startStreaming = null;
-                    this.stopStreaming = null;
-                }
+                                if(this.cameraAvailable){
 
-                this.render();
+                                    app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
-            },this));
+                                    this.evalWebRtcAbleing();
+
+                                    this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
+                                    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+                                    this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
+
+                                    this.onCameraChanged(app.socketData, app.socketData.get('camera'));
+
+                                    this.print_capture = app.socketData.get('print_capture');
+                                } else {
+                                    this.setState('nowebrtc');
+                                    this.ableWebRtc = false
+                                    cameraModeChanged = null;
+                                    this.buttonEvent = function(e){ this.refreshPhoto(e); };
+                                    this.startStreaming = null;
+                                    this.stopStreaming = null;
+                                }
+
+                                this.render();
+
+                            },this));
+                        } else {
+                            this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+                            this.render();
+                        }
+                },this))
+                .fail(_.bind(function(response){
+                    console.error(msg["error"]);
+                    noty({text: "Unable to communicate with the camera.", timeout: 3000});
+                    this.stopStreaming();
+                    this.setState('error');
+                },this));
+            }
         },this));
 
     },

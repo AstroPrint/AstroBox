@@ -50,24 +50,39 @@ var CameraControlView = Backbone.View.extend({
 
 		if(this.cameraAvailable){
 
-			app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
+			$.post(API_BASEURL + 'camera/is-camera-able')
+			.done(_.bind(function(response){
 
-			//video settings
-			if( !parameters || ! parameters.settings ){
-				
-				$.getJSON(API_BASEURL + 'settings/camera/streaming')
-				.done(_.bind(function(settings){
-					
-					this.settings = settings;
-					
-					this.evalWebRtcAbleing();
+				this.isCameraAble = response.isCameraAble;
 
-				},this));
+					if(this.isCameraAble){
+						//video settings
+						if( !parameters || ! parameters.settings ){
+							
+							$.getJSON(API_BASEURL + 'settings/camera/streaming')
+							.done(_.bind(function(settings){
+								
+								this.settings = settings;
+								
+								this.evalWebRtcAbleing();
 
-			} else {
-				this.settings = parameters.settings;
-				this.evalWebRtcAbleing();
-			}
+							},this));
+
+						} else {
+							this.settings = parameters.settings;
+							this.evalWebRtcAbleing();
+						}
+					} else {
+						this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+						this.render();
+					}
+			},this))
+			.fail(_.bind(function(response){
+				console.error(msg["error"]);
+				noty({text: "Unable to communicate with the camera.", timeout: 3000});
+				this.stopStreaming();
+				this.setState('error');
+			},this));
 		} else { this.render(); }
 	},this))
   },
