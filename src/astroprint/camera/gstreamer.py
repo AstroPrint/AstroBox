@@ -230,7 +230,7 @@ class GStreamerManager(CameraManager):
 		except Exception:
 			self.cameraAble = False
 			self._logger.info('Camera error: it is not posible to get the camera capabilities')
-			#self.gstreamerVideo.fatalErrorManage('Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...')
+			self.gstreamerVideo.fatalErrorManage(True,True,'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...',False,True)
 
 			self.supported_format = None
 			return None
@@ -693,7 +693,7 @@ class GStreamer(object):
 							self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 						except Exception, error:
 							self._logger.error("ERROR IN BUS MESSAGE: %s", error)
-							self.fatalErrorManage(True, True)
+							self.fatalErrorManage(True, True, None, True, True)
 						
 					else:
 						try:
@@ -701,7 +701,7 @@ class GStreamer(object):
 	
 						except Exception, error:
 							self._logger.error("ERROR IN BUS MESSAGE: %s", error)
-							self.fatalErrorManage(True, True)
+							self.fatalErrorManage(True, True, None, True, True)
 
 		elif t == gst.MessageType.ERROR:
 			
@@ -713,7 +713,8 @@ class GStreamer(object):
 			self._logger.error("gstreamer bus message error: %s" % busError)
 
 			if 'Internal data flow error.' in str(busError):
-				self.fatalErrorManage(True,True,str(busError)+' Did you selected a correct "Video Format" and resolution in settings? Please, change the camera resolution and/or video format, and try it again')
+				message = str(busError)+' Did you selected a correct "Video Format" and resolution in settings? Please, change the camera resolution and/or video format, and try it again'
+				self.fatalErrorManage(True,True,message, True, True)
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 
@@ -739,7 +740,7 @@ class GStreamer(object):
 						self.queuebinNotText.set_state(gst.State.NULL)
 					
 					self.waitForPhoto.set()
-					self.fatalErrorManage(True, True)
+					self.fatalErrorManage(True, True, None, True, True)
 				
 					return gst.PadProbeReturn.DROP
 
@@ -764,7 +765,7 @@ class GStreamer(object):
 						self.queuebin.set_state(gst.State.NULL)
 
 					self.waitForPhoto.set()
-					self.fatalErrorManage(True, True)
+					self.fatalErrorManage(True, True, None, True, True)
 					
 					return gst.PadProbeReturn.DROP
 
@@ -1053,7 +1054,7 @@ class GStreamer(object):
 		# RETURNS THE CURRENT STREAM STATE
 		return self.streamProcessState
 
-	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True, Message=None):
+	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True, Message=None, SendToLocal=True, SendToRemote=True):
 
 		self._logger.error('Gstreamer fatal error managing')
 		
@@ -1069,14 +1070,17 @@ class GStreamer(object):
 		self.pipeline.set_state(gst.State.NULL)
 		self.reset_pipeline_gstreamer_state()
 
-		#signaling for remote peers
-		ready = signal('manage_fatal_error')
-		ready.send('cameraError',message=Message)
+		if SendToRemote:
+			#signaling for remote peers
+			manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
+			manage_fatal_error_webrtc.send('cameraError',message=Message)
 
-		#event for local peers
-		eventManager().fire(Events.GSTREAMER_EVENT, {
-			'message': Message or 'Fatal error occurred in video streaming'
-		})
+
+		if SendToLocal:
+			#event for local peers
+			eventManager().fire(Events.GSTREAMER_EVENT, {
+				'message': Message or 'Fatal error occurred in video streaming'
+			})
 
 
 class AsyncPhotoTaker(threading.Thread):

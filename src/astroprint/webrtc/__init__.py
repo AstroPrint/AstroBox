@@ -135,6 +135,8 @@ class WebRtc(object):
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
+					ready = signal('manage_fatal_error_webrtc')
+					ready.disconnect(self.closeAllSessions)
 
 	def closeAllSessions(self,sender,message):
 		

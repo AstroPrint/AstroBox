@@ -373,7 +373,6 @@ var CameraControlView = Backbone.View.extend({
 		}
   	},this))	
 	.fail(_.bind(function(error){
-		console.error(error);
 		noty({text: "Unable to start the WebRTC system.", timeout: 3000});
 		this.initJanus();
 	}, this));
