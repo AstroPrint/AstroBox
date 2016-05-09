@@ -215,21 +215,25 @@ class NetworkManagerEvents(threading.Thread):
 				return
 
 			if value:
-				d = self.getActiveConnectionDevice()
+				try:
+					d = self.getActiveConnectionDevice()
 
-				if d:
-					self._activeDevice = d
-					if self._devicePropertiesListener:
-						self._devicePropertiesListener.remove()
+					if d:
+						self._activeDevice = d
+						if self._devicePropertiesListener:
+							self._devicePropertiesListener.remove()
 
-					if self._activeDevice:
-						self._currentIpv4Address = self._activeDevice.Ip4Address
+						if self._activeDevice:
+							self._currentIpv4Address = self._activeDevice.Ip4Address
 
-					self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
-					logger.info('Active Connection is now %s (%s)' % (d.IpInterface, self._currentIpv4Address))
+						self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+						logger.info('Active Connection is now %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
-					self._online = True
-					eventManager.fire(Events.NETWORK_STATUS, 'online')
+						self._online = True
+						eventManager.fire(Events.NETWORK_STATUS, 'online')
+
+				except Exception as e:
+					logger.error(e, exc_info=1)
 
 			else:
 				self._online = False

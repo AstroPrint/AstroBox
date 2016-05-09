@@ -149,7 +149,7 @@ $(document)
 		hostname: /^[A-Za-z0-9\-]+$/
 	  }
 	}
-  });
+});
 
 //This code is for astroprint.com communication with astrobox webUI window
 //It doesn't really work now, so we comment it out for now
