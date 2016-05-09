@@ -407,7 +407,7 @@ class DebianNetworkManager(NetworkManagerBase):
 					'name': ssid,
 					'id': accessPoint.HwAddress,
 					'signal': accessPoint.Strength,
-					'ip': wifiDevice.Ip4Address,
+					'ip': wifiDevice.Ip4Address if wifiDevice.Ip4Address != '0.0.0.0' else None,
 					'secured': password is not None,
 					'wep': False
 				}

@@ -331,7 +331,7 @@
 							<i class="icon-wifi-signal-high"></i>
 						<% } %>
 						Connected to <b><%= settings.networks.wireless.name %></b>.
-						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip %></b></div>
+						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
 					<% } else { %>
 						Not Connected.
 					<% } %>
