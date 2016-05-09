@@ -170,21 +170,21 @@
 						<div class="small-12">
 							<form data-abide="ajax">
 								<label for="video-stream-format" class="bold">
-									Video Encoding
+									Video Stream Encoding
 									<select id="video-stream-format" name="encoding">
 										<option value="h264" <%= settings.encoding == 'h264' ? 'selected' : '' %>>H.264</option>
 										<option value="vp8" <%= settings.encoding == 'vp8' ? 'selected' : '' %>> VP8</option>
 									</select>
 								</label>
 								<label for="video-stream-size" class="bold">
-									Video Resolution
+									Video Stream Resolution
 								</label>
 								<select id="video-stream-size" name="size">
 									<option value='640x480' <%= settings.size == '640x480' ? 'selected' : '' %>>Low (640 x 480)</option>
 									<option value='1280x720' <%= settings.size == '1280x720' ? 'selected' : '' %>>High (1280 x 720)</option>
 								</select>
 								<label for="video-stream-framerate" class="bold">
-									Frame Rate
+									Video Stream Frame Rate
 								</label>
 								<select id="video-stream-framerate" name="framerate">
 									<option value='5' <%= settings.framerate == '5' ? 'selected' : '' %>>5 fps</option>
@@ -192,11 +192,11 @@
 									<option value='15' <%= settings.framerate == '15' ? 'selected' : '' %>>15 fps</option>
 								</select>
 								<label for="video-stream-framerate" class="bold">
-									Video Format
+									Camera Output Format
 								</label>
 								<select id="video-stream-format" name="format">
-									<option value='x-raw' <%= settings.format == 'x-raw' ? 'selected' : '' %>>x-raw</option>
-									<option value='x-h264' <%= settings.format == 'x-h264' ? 'selected' : '' %>>x-h264</option>
+									<option value='x-raw' <%= settings.format == 'x-raw' ? 'selected' : '' %>>Raw Video</option>
+									<option value='x-h264' <%= settings.format == 'x-h264' ? 'selected' : '' %>>H.264 Encoded</option>
 								</select>
 								<hr/>
 								<div class="loading-button">
