@@ -35,7 +35,10 @@ class GStreamerManager(V4L2Manager):
 
 		super(GStreamerManager, self).__init__(videoDevice)
 
-		self.reScan()
+		#WARNING
+		##self.reScan()
+		#In super constructor, open_camera is called,
+		#so self.reScan() is called too (2 times in initializing)
 
 	def isCameraConnected(self):
 		return super(GStreamerManager, self).isCameraConnected() and self.gstreamerVideo is not None
