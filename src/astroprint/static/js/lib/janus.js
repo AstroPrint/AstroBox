@@ -698,7 +698,7 @@ function Janus(gatewayCallbacks) {
 						oncleanup : callbacks.oncleanup,
 						ondetached : callbacks.ondetached,
 						hangup : function() { cleanupWebrtc(handleId); },
-						detach : function(callbacks) { destroyHandle(handleId, callbacks); },
+						detach : function(callbacks) { destroyHandle(handleId, callbacks); }
 					}
 				pluginHandles[handleId] = pluginHandle;
 				callbacks.success(pluginHandle);

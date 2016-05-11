@@ -597,7 +597,7 @@ if (navigator.mozGetUserMedia) {
         })[0].substr(12),
         password: lines.filter(function(line) {
           return line.indexOf('a=ice-pwd:') === 0;
-        })[0].substr(10),
+        })[0].substr(10)
       };
       return iceParameters;
     };

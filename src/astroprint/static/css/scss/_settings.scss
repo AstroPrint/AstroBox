@@ -122,6 +122,18 @@
 	}
 }
 
+#wifi-hotspot {
+    .icon-attention {
+        color: $alert-color;
+        font-size: rem-calc(36);
+    }
+    .no-hotspot {
+        h4 {
+            color: $steel;
+        }
+    }    
+}
+
 #internet-connection {
 	i {
 		color: $success-color;
@@ -136,7 +148,7 @@
 		}
 
 		.loading-button {
-			margin-top: 10px; 
+			margin-top: 10px;
 		}
 	}
 
@@ -171,7 +183,7 @@
 #software-update-modal {
 	h2 span {
 		color: black;
-	} 
+	}
 }
 
 #software-update {
