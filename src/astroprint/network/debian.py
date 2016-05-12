@@ -46,9 +46,13 @@ class NetworkManagerEvents(threading.Thread):
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
-			if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
-				d = c.Devices[0]
-				return d
+			try:
+				if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
+					d = c.Devices[0]
+					return d
+			except:
+				#ignore errors, some connections are stale and give dbus exceptions
+				pass
 
 		return None
 
@@ -117,7 +121,7 @@ class NetworkManagerEvents(threading.Thread):
 	@idle_add_decorator
 	def globalStateChanged(self, state):
 		#uncomment for debugging only
-		#logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
+		logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
 		if state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 		elif state != NetworkManager.NM_STATE_CONNECTING:
@@ -126,11 +130,12 @@ class NetworkManagerEvents(threading.Thread):
 	@idle_add_decorator
 	def propertiesChanged(self, properties):
 		if "ActiveConnections" in properties: 
-			if len(properties['ActiveConnections']) == 0:
-				self._setOnline(False)
-				return
+			#if len(properties['ActiveConnections']) == 0:
+			#	self._setOnline(False)
+			#	return
 
-			elif not self._monitorActivatingListener:
+			#elif not self._monitorActivatingListener:
+			if not self._monitorActivatingListener:
 				for c in properties['ActiveConnections']:
 					if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
 						if self._monitorActivatingListener:
@@ -181,7 +186,7 @@ class NetworkManagerEvents(threading.Thread):
 					})
 
 				self._activatingConnection = None
-				self._setOnline(True)
+				#self._setOnline(True)
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
 				logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )
@@ -199,14 +204,14 @@ class NetworkManagerEvents(threading.Thread):
 				self._activatingConnection = None
 
 				#check the global connection status before setting it to false
-				if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
-					self._setOnline(False)
+				#if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+				#	self._setOnline(False)
 
 	@idle_add_decorator
 	def activeDeviceConfigChanged(self, properties):
 		if "Options" in properties and "ip_address" in properties["Options"] and properties["Options"]["ip_address"] != self._currentIpv4Address:
 			self._currentIpv4Address = properties["Options"]["ip_address"]
-			self._setOnline(True)
+			#self._setOnline(True)
 			eventManager.fire(Events.NETWORK_IP_CHANGED, self._currentIpv4Address)
 
 	def _setOnline(self, value):
