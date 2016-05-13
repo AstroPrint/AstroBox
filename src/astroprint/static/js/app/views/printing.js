@@ -133,28 +133,23 @@ var PhotoView = CameraControlView.extend({
 
         this.parent = options.parent;
 
-        $.post(API_BASEURL + 'camera/is-camera-available')
+        $.getJSON(API_BASEURL + 'camera/connected')
         .done(_.bind(function(response){
             
-            this.cameraAvailable = response.isCameraAvailable;
+            var cameraConnected = response.isCameraConnected;
 
-            if(this.cameraAvailable){
+            if(cameraConnected){
 
-                $.post(API_BASEURL + 'camera/is-camera-able')
+                $.getJSON(API_BASEURL + 'camera/has-properties')
                 .done(_.bind(function(response){
-
-                    this.isCameraAble = response.isCameraAble;
-
-                        if(this.isCameraAble){
-
-
+                        if(response.hasCameraProperties){
                             //video settings
                             $.getJSON(API_BASEURL + 'settings/camera/streaming')
                             .done(_.bind(function(settings){
                                 
                                 this.settings = settings;
 
-                                if(this.cameraAvailable){
+                                if(cameraConnected){
 
                                     app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 

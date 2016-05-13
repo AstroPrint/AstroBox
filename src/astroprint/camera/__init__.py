@@ -79,8 +79,8 @@ class CameraManager(object):
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
+		self.cameraName = None
 		self.open_camera()
-		
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
@@ -127,7 +127,7 @@ class CameraManager(object):
 		if not selectedFile:
 			return False
 
-		if not self.isCameraAvailable():
+		if not self.isCameraConnected():
 			if not self.open_camera():
 				return False
 
@@ -260,13 +260,13 @@ class CameraManager(object):
 	def save_pic(self, filename, text=None):
 		pass
 
-	def isCameraAvailable(self):
-		try:
-			return os.path.exists("/dev/video" + str(self.number_of_video_device))
-			
-		except:
-			
-			return False
+	#Whether a camera device exists in the platform
+	def isCameraConnected(self):
+		return False
+
+	#Whether the camera properties have been read
+	def hasCameraProperties(self):
+		return False
 
 	def isResolutionSupported(self, resolution):
 		pass

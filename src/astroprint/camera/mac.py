@@ -16,6 +16,7 @@ class CameraMacManager(CameraManager):
 
 		self._logger = logging.getLogger(__name__)
 		self._files = [f for f in glob.glob(os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'),"camera_test*.jpeg"))]
+		self.cameraName = 'Test Camera'
 
 	def open_camera(self):
 		return True
@@ -34,11 +35,11 @@ class CameraMacManager(CameraManager):
 
 		return image
 
-	def isCameraAvailable(self):
-		return True
+	def isCameraConnected(self):
+		return False
 
-	def isCameraAble(self):
-		return True
+	def hasCameraProperties(self):
+		return False
 
 	def _doGetPicAsync(self, done, text):
 		done(self.get_pic(text))

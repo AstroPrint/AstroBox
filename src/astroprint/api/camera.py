@@ -10,39 +10,35 @@ from octoprint.server.api import api
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
-@api.route("/camera/refresh-plugged-camera", methods=["POST"])
+@api.route("/camera/refresh-plugged", methods=["POST"])
 @restricted_access
 def refreshPluggedCamera():
-
 	cm = cameraManager()
 
 	return jsonify({"isCameraPlugged": cm.open_camera()})
 
-@api.route("/camera/is-camera-able", methods=["POST"])
+@api.route("/camera/has-properties", methods=["GET"])
 @restricted_access
-def isCameraAble():
-
+def hasCameraProperties():
 	cm = cameraManager()
 
-	return jsonify({"isCameraAble": cm.isCameraAble()})
+	return jsonify({"hasCameraProperties": cm.hasCameraProperties()})
 
-@api.route("/camera/is-resolution-supported", methods=["POST"])
+@api.route("/camera/is-resolution-supported", methods=["GET"])
 @restricted_access
 def isResolutionSupported():
-
 	cm = cameraManager()
 	size = request.values['size']
 
 	return jsonify({"isResolutionSupported": cm.isResolutionSupported(size)})
 
 
-@api.route("/camera/is-camera-available", methods=["POST"])
+@api.route("/camera/connected", methods=["GET"])
 @restricted_access
-def isCameraAvailable():
-
+def isCameraConnected():
 	cm = cameraManager()
 
-	return jsonify({"isCameraAvailable": cm.isCameraAvailable(), "cameraName": cm.cameraName})
+	return jsonify({"isCameraConnected": cm.isCameraConnected(), "cameraName": cm.cameraName})
 
 
 @api.route("/camera/timelapse", methods=["POST"])
@@ -74,23 +70,19 @@ def init_janus():
 
 	abort(500)
 
-
-@api.route("/camera/start-peer-session", methods=["POST"])
+@api.route("/camera/peer-session", methods=["POST", "DELETE"])
 @restricted_access
-def start_peer_session():
-	#Initialize the peer session
-	sessionId = webRtcManager().startLocalSession()
-	return jsonify({"sessionId": sessionId})
+def peer_session():
+	if request.method == 'POST':
+		#Initialize the peer session
+		sessionId = webRtcManager().startLocalSession()
+		return jsonify({"sessionId": sessionId})
 
-
-@api.route("/camera/close-peer-session", methods=["POST"])
-@restricted_access
-def close_peer_session():
-	#Close peer session
-	data = request.json
-	webRtcManager().closeLocalSession(data['sessionId'])
-	return jsonify(SUCCESS)
-
+	elif request.method == 'DELETE':
+		#Close peer session
+		data = request.json
+		webRtcManager().closeLocalSession(data['sessionId'])
+		return jsonify(SUCCESS)
 
 @api.route("/camera/start-streaming",methods=["POST"])
 @restricted_access

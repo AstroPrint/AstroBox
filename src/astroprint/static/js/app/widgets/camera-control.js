@@ -7,7 +7,6 @@ var CameraControlView = Backbone.View.extend({
 	'hide':'onHide'
   },
   settings: null,
-  cameraAvailable: null,
   ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
@@ -43,19 +42,14 @@ var CameraControlView = Backbone.View.extend({
   {
   	this.videoStreamingError = null;
 	
-	$.post(API_BASEURL + 'camera/is-camera-available')
+	$.getJSON(API_BASEURL + 'camera/connected')
 	.done(_.bind(function(response){
 			
-		this.cameraAvailable = response.isCameraAvailable;
+		if(response.isCameraConnected){
 
-		if(this.cameraAvailable){
-
-			$.post(API_BASEURL + 'camera/is-camera-able')
+			$.getJSON(API_BASEURL + 'camera/has-properties')
 			.done(_.bind(function(response){
-
-				this.isCameraAble = response.isCameraAble;
-
-					if(this.isCameraAble){
+					if(response.hasCameraProperties){
 						//video settings
 						if( !parameters || ! parameters.settings ){
 							
@@ -218,7 +212,7 @@ var CameraControlView = Backbone.View.extend({
 				apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
 				success: _.bind(function() {
 					$.ajax({
-						url: API_BASEURL + "camera/start-peer-session",
+						url: API_BASEURL + "camera/peer-session",
 						type: "POST",
 						dataType: "json",
 						contentType: "application/json; charset=UTF-8",
@@ -243,8 +237,8 @@ var CameraControlView = Backbone.View.extend({
 				                	this.streamingPlugIn.send({"message": body});
 
 									$.ajax({
-					                    url: API_BASEURL + "camera/close-peer-session",
-					                    type: "POST",
+					                    url: API_BASEURL + "camera/peer-session",
+					                    type: "DELETE",
 					                    dataType: "json",
 					                    contentType: "application/json; charset=UTF-8",
 					                    data: JSON.stringify({

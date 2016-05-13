@@ -338,22 +338,19 @@ var CameraVideoStreamView = SettingsPage.extend({
 		SettingsPage.prototype.show.apply(this);
 		if (!this.settings) {
 
-			$.post(API_BASEURL + 'camera/is-camera-available')
+			$.getJSON(API_BASEURL + 'camera/connected')
 			.done(_.bind(function(response){
 
-				if(response.isCameraAvailable){
+				if(response.isCameraConnected){
 
 					this.cameraName = response.cameraName;
 
 					$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
-						$.post(API_BASEURL + 'camera/is-camera-able')
+						$.getJSON(API_BASEURL + 'camera/has-properties')
 						.done(_.bind(function(response){
+							if(response.hasCameraProperties){
 
-							this.isCameraAble = response.isCameraAble;
-
-							if(this.isCameraAble){
-
-								$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+								$.getJSON(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
 								.done(_.bind(function(response){
 									if(response.isResolutionSupported){
 										this.videoSettingsError = null;
@@ -408,7 +405,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 	refreshPluggedCamera: function(){
 		this.$('#buttonRefresh').addClass('loading');
 
-		$.post(API_BASEURL + 'camera/refresh-plugged-camera')
+		$.post(API_BASEURL + 'camera/refresh-plugged')
 		.done(_.bind(function(response){
 
 			if(response.isCameraPlugged){
@@ -465,7 +462,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 			attrs[elem.attr('name')] = value;
 		});
 
-		$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: attrs.size })
+		$.getJSON(API_BASEURL + 'camera/is-resolution-supported',{ size: attrs.size })
 		.done(_.bind(function(response){
 			if(response.isResolutionSupported){
 				$.ajax({

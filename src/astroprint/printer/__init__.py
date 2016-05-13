@@ -267,7 +267,7 @@ class Printer(object):
 		return self._state == self.STATE_PRINTING
 
 	def isCameraConnected(self):
-		return cameraManager().isCameraAvailable()
+		return cameraManager().isCameraConnected()
 
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ

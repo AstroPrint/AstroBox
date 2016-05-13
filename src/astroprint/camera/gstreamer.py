@@ -31,13 +31,12 @@ class GStreamerManager(CameraManager):
 		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
 		self.supported_formats = None
-		self.cameraName = None
 
 		super(GStreamerManager, self).__init__()
 		
 	def open_camera(self):
 		try:
-			if self.isCameraAvailable():
+			if self.isCameraConnected():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
 				self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
@@ -107,11 +106,11 @@ class GStreamerManager(CameraManager):
 	# def save_pic(self, filename, text=None):
 	#    pass
 
-	def isCameraAvailable(self):
-
-		parentCameraAvailable = super(GStreamerManager, self).isCameraAvailable()
-
-		return parentCameraAvailable
+	def isCameraConnected(self):
+		try:
+			return os.path.exists("/dev/video" + str(self.number_of_video_device))
+		except:
+			return False
 
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'
@@ -140,8 +139,7 @@ class GStreamerManager(CameraManager):
 
 		return resolution in resolutions
 
-	def isCameraAble(self):
-
+	def hasCameraProperties(self):
 		return self.supported_formats is not None
 
 	def _get_pixel_formats(self,device, maxformats=5):
