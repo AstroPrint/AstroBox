@@ -54,35 +54,31 @@
 					</div>
 					<div class="image-container">
 						<% if(this.cameraMode == 'video') { %>
-							<div class="row video-container">
-								<div class="small-12 columns text-center">
-									<div class="video-off">
-										<i class="icon-videocam-1"></i>
-										<h3 class="bold">Video Stream Off</h3>
-									</div>
-									<div class="video-preparing">
-										<i class="icon-rocket-spinner animate-spin"></i>
-										<h3 class="bold">Preparing Video...</h3>
-									</div>
+							<div class="row video-container text-center">
+								<div class="video-off">
+									<i class="icon-videocam-1"></i>
+									<h3 class="bold">Video Stream Off</h3>
 								</div>
-								<div id="videoScreen" class="video-on">
-									<video id="remotevideo" class="cover-img-cont" autoplay="" width="968">
+								<div class="video-preparing">
+									<i class="icon-rocket-spinner animate-spin"></i>
+									<h3 class="bold">Preparing Video...</h3>
+								</div>
+								<div id="videoScreen" class="video-on text-center">
+									<video id="remotevideo" class="cover-img-cont" autoplay="">
 										You browser doesn't support element <code>video</code>.
 									</video>
 								</div>
 							</div>
 						<% } else { %>
 							<div class="row video-container">
-								<div class="small-12 columns text-center">
-									<div class="video-off">
+									<div class="video-off text-center">
 										<i class="icon-3d-object"></i>
-										<img class="camera-image" width="100%"/>
+										<img class="camera-image"/>
 									</div>
-								</div>
 							</div>
 						<% } %>
 					</div>
-					<div class="row buttons text-center">
+					<div class="row collapse buttons text-center">
 						<div class="small-12 large-3 columns show-for-large-up">&nbsp;</div>
 						<% if(this.cameraMode == 'video') { %>
 							<div class="small-8 large-6 columns video-off">
@@ -95,7 +91,7 @@
 							<div class="small-8 large-6 columns video-off">
 								<div class="loading-button">
 									<button class="photo radius bold"><i class="icon-camera"></i><span class="hide-for-small">Take Photo</span></button>
-									<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> Taking photo...</span>
+									<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> <span class="hide-for-small">Taking photo...</span></span>
 								</div>
 							</div>
 						<% } %>
@@ -110,7 +106,7 @@
 							</div>
 						</div>
 					</div>
-				</div>		
+				</div>
 			</div>
 		</div>
 	<% } %>

@@ -121,6 +121,7 @@ var AppRouter = Backbone.Router.extend({
 		}
 
 		this.selectView(this.cameraView);
+		app.selectQuickNav('camera');
 	},
 	selectView: function(view) {
 		var currentView = app.$el.find('.app-view.active');

@@ -5,6 +5,8 @@
 	"normalize",
 	"fontello",
 	"sprites",
+	"variables",
+	"mixins",
 	"animations",
 	"foundation/settings",
 	"foundation/components/visibility",
@@ -106,6 +108,15 @@ body, html {
 	border-top: 1px solid #ccc;
 	-webkit-transform: scale3d(1,1,1);
 	padding-bottom: 40px;
+
+	position: absolute;
+	top: 50px;
+	bottom: 0;
+	width: 100%;
+
+	> .row, .app-view, #view-container {
+		height: 100%;
+	}
 }
 
 #connection-view {

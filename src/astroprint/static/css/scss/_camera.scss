@@ -22,9 +22,22 @@
 		border: 1px solid $iron;
 		margin-bottom: rem-calc(15);
 		@include radius($global-radius);
+		position: absolute;
+		width: 100%;
+		top: 55px;
+		bottom: 0;
+
+		.image-container {
+			height: 100%;
+			padding-bottom: 83px;
+		}
+
+		.camera-image {
+			max-width: 100%;
+		}
 
 	    .video-container {
-	        min-height: 400px;
+	        height: 100%;
 	        border-bottom: none;
 	        @include radius($global-radius $global-radius 0 0);
 
@@ -32,7 +45,7 @@
 			.no-detection,
 			.video-preparing {
 	            text-align: center;
-	            padding-top: rem-calc(75);
+	            @include vertical-align;
 	        }
 
 	        i {
@@ -49,6 +62,9 @@
 	    .buttons {
 	        background: $ghost;
 	        padding: rem-calc(15);
+			position: absolute;
+			width: 100%;
+			bottom: 0;
 	        @include radius(0 0 $global-radius $global-radius);
 
 	        button, .button, .loading-button {
@@ -106,7 +122,8 @@
 	    }
 
 	    #remotevideo {
-            width: 100%;
+            max-width: 100%;
+			padding: 2px;
 	    }
 	}
 
@@ -218,7 +235,17 @@
 	    }
     }
 }
-
+@media #{$small-only} {
+	#camera-view {
+		.camera-view {
+			.buttons {
+				button, .button, .loading-button {
+					float: left;
+				}
+			}
+		}
+	}
+}
 @media #{$large-up} {
 	#camera-view {
 		&.nowebrtc {

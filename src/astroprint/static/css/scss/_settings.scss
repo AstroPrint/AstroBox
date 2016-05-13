@@ -2,6 +2,7 @@
     background: #fff;
     border: 1px solid #ccc;
     @include radius($global-radius);
+    margin-bottom: 55px!important;
 }
 
 .zebra {
@@ -10,7 +11,7 @@
 
 #settings-side-bar {
 	background: white;
-	padding: 0 0 20px;
+	padding: 0;
 	height: 100%;
 	margin: 0;
 	border-right: 1px solid #ccc;
@@ -28,6 +29,7 @@
 
 			a {
 				color: $success-color;
+                padding: 0 10px;
 			}
 
 			&.heading {
@@ -131,7 +133,7 @@
         h4 {
             color: $steel;
         }
-    }    
+    }
 }
 
 #internet-connection {

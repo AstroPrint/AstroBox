@@ -71,11 +71,12 @@
 				</div>
 			</div>
 			<div class="row quick-nav">
-				<div class="small-10 large-5 small-centered columns">
-					<ul class="small-block-grid-4 columns text-center">
+				<div class="small-12 large-6 small-centered columns">
+					<ul class="small-block-grid-5 columns text-center">
 						<li class="dash"><a href="#" title="Dashboard"><i class="icon-th"></i></a></li>
 						<li class="files"><a href="#files" title="File Manager"><i class="icon-folder"></i></a></li>
 						<li class="control"><a href="#control" title="Control Panel"><i class="icon-move"></i></a></li>
+						<li class="camera"><a href="#camera" title="Camera"><i class="icon-videocam-1"></i></a></li>
 						<li class="settings"><a href="#settings" title="Settings"><i class="icon-cog"></i></a></li>
 					</ul>
 				</div>
@@ -113,13 +114,13 @@
 	</script>
 	{% assets filters="closure_js", output="js/gen/app.js",
 		"js/lib/jquery.js", "js/lib/jquery.ui.widget.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/modernizr.js",
-		"js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js", 
-		"js/lib/foundation/foundation.abide.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js", 
+		"js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js",
+		"js/lib/foundation/foundation.abide.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
 		"js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
 		"js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js",
 		"js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/printerprofile.js",
 		"js/app/widgets/tempbarview.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
-		"js/app/views/home.js", "js/app/views/files.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js", 
+		"js/app/views/home.js", "js/app/views/files.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js",
 		"js/app/views/turnoff.js", "js/app/views/reboot.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js",
 		"js/app/router.js",
 		"js/app/app.js" -%}
