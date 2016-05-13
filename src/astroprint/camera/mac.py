@@ -36,10 +36,10 @@ class CameraMacManager(CameraManager):
 		return image
 
 	def isCameraConnected(self):
-		return False
+		return True
 
 	def hasCameraProperties(self):
-		return False
+		return True
 
 	def _doGetPicAsync(self, done, text):
 		done(self.get_pic(text))

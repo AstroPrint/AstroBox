@@ -367,25 +367,25 @@ var CameraVideoStreamView = SettingsPage.extend({
 											dataType: 'json',
 											data: JSON.stringify(this.settings)
 										});
-										noty({text: "Previous resolution selected is not able with this camera. Set default value", timeout: 3000});
+										noty({text: "Your camera doesn't not support the current resolution, please lower it", timeout: 3000});
 										this.videoSettingsError = null;
 										this.render();
 									}
 									
 								},this))
 								.fail(function() {
-									noty({text: "There was an error getting Camera settings.", timeout: 3000});
+									noty({text: "There was an error reading your camera settings.", timeout: 3000});
 								})
 								.always(_.bind(function(){
 									loadingBtn.removeClass('loading');
 								},this));
 							} else {
-								this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
+								this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...'; 
 								this.render();
 							}
 						},this))
 						.fail(_.bind(function(){
-							this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
+							this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...'; 
 							this.render();
 						},this))
 					}, this))
@@ -393,8 +393,8 @@ var CameraVideoStreamView = SettingsPage.extend({
 						noty({text: "There was an error getting Camera settings.", timeout: 3000});
 					});
 				} else {
-					this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
-					this.cameraName = 'No camera plugged'; 
+					this.videoSettingsError = null; 
+					this.cameraName = null; 
 					this.render();
 				}
 			},this));
@@ -486,7 +486,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 					loadingBtn.removeClass('loading');
 				},this));
 			} else {
-				noty({text: "There was a problem saving camera settings: selected resolution is not supported by connected camera", timeout: 3000});
+				noty({text: "The resolution is not supported by your camera", timeout: 3000});
 			}
 		},this))
 		.fail(function(){

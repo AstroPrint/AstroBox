@@ -165,59 +165,71 @@
 		</div>
 		<div id="video-stream" class="settings-page hide">
 			<script type="text/template" id="video-stream-settings-page-template">
-				<div><label><%= this.cameraName %></label>
-					<div id="buttonRefresh" class="loading-button still">
-	                    <div class="still-camera">
-						    <button class="success round spin">Scan for plugged camera</i></button>
-						    <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-	                    </div>
-					</div>
-				</div>
-				<% if(!this.videoSettingsError) { %>
-					<div class="row">
-						<div class="small-12">
-							<form data-abide="ajax">
-								<label for="video-stream-format" class="bold">
-									Video Stream Encoding
-									<select id="video-stream-format" name="encoding">
-										<option value="h264" <%= settings.encoding == 'h264' ? 'selected' : '' %>>H.264</option>
-										<option value="vp8" <%= settings.encoding == 'vp8' ? 'selected' : '' %>> VP8</option>
-									</select>
-								</label>
-								<label for="video-stream-size" class="bold">
-									Video Stream Resolution
-								</label>
-								<select id="video-stream-size" name="size">
-									<option value='640x480' <%= settings.size == '640x480' ? 'selected' : '' %>>Low (640 x 480)</option>
-									<option value='1280x720' <%= settings.size == '1280x720' ? 'selected' : '' %>>High (1280 x 720)</option>
-								</select>
-								<label for="video-stream-framerate" class="bold">
-									Video Stream Frame Rate
-								</label>
-								<select id="video-stream-framerate" name="framerate">
-									<option value='5' <%= settings.framerate == '5' ? 'selected' : '' %>>5 fps</option>
-									<option value='10' <%= settings.framerate == '10' ? 'selected' : '' %>>10 fps</option>
-									<option value='15' <%= settings.framerate == '15' ? 'selected' : '' %>>15 fps</option>
-								</select>
-								<label for="video-stream-framerate" class="bold">
-									Camera Output Format
-								</label>
-								<select id="video-stream-format" name="format">
-									<option value='x-raw' <%= settings.format == 'x-raw' ? 'selected' : '' %>>Raw Video</option>
-									<option value='x-h264' <%= settings.format == 'x-h264' ? 'selected' : '' %>>H.264 Encoded</option>
-								</select>
-								<hr/>
-								<div class="loading-button">
-									<button class="success radius">Save</button>
-									<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-								</div>
-							</form>
+				<% if (this.cameraName) { %>
+					<div><label><%= this.cameraName %></label>
+						<div id="buttonRefresh" class="loading-button still">
+		                    <div class="still-camera">
+							    <button class="success round spin">Re-scan for plugged camera</i></button>
+							    <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+		                    </div>
 						</div>
 					</div>
+					<% if(!this.videoSettingsError) { %>
+						<div class="row">
+							<div class="small-12">
+								<form data-abide="ajax">
+									<label for="video-stream-format" class="bold">
+										Video Stream Encoding
+										<select id="video-stream-format" name="encoding">
+											<option value="h264" <%= settings.encoding == 'h264' ? 'selected' : '' %>>H.264</option>
+											<option value="vp8" <%= settings.encoding == 'vp8' ? 'selected' : '' %>> VP8</option>
+										</select>
+									</label>
+									<label for="video-stream-size" class="bold">
+										Video Stream Resolution
+									</label>
+									<select id="video-stream-size" name="size">
+										<option value='640x480' <%= settings.size == '640x480' ? 'selected' : '' %>>Low (640 x 480)</option>
+										<option value='1280x720' <%= settings.size == '1280x720' ? 'selected' : '' %>>High (1280 x 720)</option>
+									</select>
+									<label for="video-stream-framerate" class="bold">
+										Video Stream Frame Rate
+									</label>
+									<select id="video-stream-framerate" name="framerate">
+										<option value='5' <%= settings.framerate == '5' ? 'selected' : '' %>>5 fps</option>
+										<option value='10' <%= settings.framerate == '10' ? 'selected' : '' %>>10 fps</option>
+										<option value='15' <%= settings.framerate == '15' ? 'selected' : '' %>>15 fps</option>
+									</select>
+									<label for="video-stream-framerate" class="bold">
+										Camera Output Format
+									</label>
+									<select id="video-stream-format" name="format">
+										<option value='x-raw' <%= settings.format == 'x-raw' ? 'selected' : '' %>>Raw Video</option>
+										<option value='x-h264' <%= settings.format == 'x-h264' ? 'selected' : '' %>>H.264 Encoded</option>
+									</select>
+									<hr/>
+									<div class="loading-button">
+										<button class="success radius">Save</button>
+										<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+									</div>
+								</form>
+							</div>
+						</div>
+					<% } else { %>
+						<div align="center">
+							<i class="icon-attention"></i><br/>
+							<%= this.videoSettingsError %>
+						</div>
+					<% } %>
 				<% } else { %>
-					<div>
-						<%= this.videoSettingsError %>
-					</div>
+					<div><label>No Camera Found</label>
+						<div id="buttonRefresh" class="loading-button still">
+		                    <div class="still-camera">
+							    <button class="success round spin">Scan for cameras</i></button>
+							    <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+		                    </div>
+						</div>
+					</div>					
 				<% } %>
 			</script>
 		</div>
