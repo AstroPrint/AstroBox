@@ -12,7 +12,6 @@ from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
-from astroprint.webrtc import webRtcManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
@@ -155,13 +154,8 @@ def cameraStreamingeSettings():
 
 			if "format" in data:
 				s.set(['camera', 'format'], data['format'])
+			
 			s.save()
-
-			##When a change in settup is saved, the camera must be shouted down
-			##(Janus included, of course)
-			cameraManager().stop_video_stream()
-			webRtcManager().stopJanus()
-			##
 
 			cameraManager().settingsChanged({
 				'size': s.get(['camera', 'size']),

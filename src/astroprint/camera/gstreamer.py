@@ -31,6 +31,7 @@ class GStreamerManager(CameraManager):
 		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
 		self.supported_formats = None
+
 		super(GStreamerManager, self).__init__()
 		
 	def open_camera(self):
@@ -56,10 +57,23 @@ class GStreamerManager(CameraManager):
 			return False
 
 	def stop_video_stream(self):
-		return self.gstreamerVideo.stop_video()
+		if self.gstreamerVideo:
+			return self.gstreamerVideo.stop_video()
+		else:
+			return False
 
 	def settingsChanged(self, cameraSettings):
-		pass
+		##When a change in settup is saved, the camera must be shouted down
+		##(Janus included, of course)
+		self.stop_video_stream()
+		webRtcManager().stopJanus()
+		##
+
+		if self.gstreamerVideo:
+			self.gstreamerVideo.videotype = cameraSettings["encoding"]
+			self.gstreamerVideo.size = cameraSettings["size"].split('x')
+			self.gstreamerVideo.framerate = cameraSettings["framerate"]
+			self.gstreamerVideo.format = cameraSettings["format"]
 
 	# def list_camera_info(self):
 	#    pass
@@ -245,7 +259,12 @@ class GStreamer(object):
 		self._logger = logging.getLogger(__name__)
 
 		try:
-			self._logger.info("INIT")
+			self._logger.info("Initializing Gstreamer")
+
+			self.videotype = settings().get(["camera", "encoding"])
+			self.size = settings().get(["camera", "size"]).split('x')
+			self.framerate = settings().get(["camera", "framerate"])
+			self.format = settings().get(["camera", "format"])
 
 			self.pipeline = None
 			self.bus = None
@@ -311,15 +330,6 @@ class GStreamer(object):
 		# SETS DEFAULT STATE FOR GSTREAMER OBJECT
 
 		try:
-			
-			# ##
-			# GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS
-			self.videotype = settings().get(["camera", "encoding"])
-			self.size = settings().get(["camera", "size"]).split('x')
-			self.framerate = settings().get(["camera", "framerate"])
-			self.format = settings().get(["camera", "format"])
-			# ##
-
 			# ##
 			# CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
 			self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
@@ -443,13 +453,6 @@ class GStreamer(object):
 						waitingForVideo = False
 
 				self.streamProcessState = 'PREPARING_VIDEO'
-				# ##
-				# GET VIDEO PARAMS CONFIGURATED IN ASTROBOX SETTINGS
-				self.videotype = settings().get(["camera", "encoding"])
-				self.size = settings().get(["camera", "size"]).split('x')
-				self.framerate = settings().get(["camera", "framerate"])
-				self.format = settings().get(["camera", "format"])
-				# ##
 
 				# ##
 				# CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
@@ -633,9 +636,6 @@ class GStreamer(object):
 				return True
 				
 			except Exception, error:
-				
-				self._logger.info("PLAY VIDEO EXCEPTION")
-
 				self._logger.error("Error playing video with GStreamer: %s" % str(error))
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
