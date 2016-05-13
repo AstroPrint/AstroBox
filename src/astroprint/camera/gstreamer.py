@@ -31,12 +31,13 @@ class GStreamerManager(CameraManager):
 		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
 		self.supported_formats = None
+		self.cameraName = None
 
 		super(GStreamerManager, self).__init__()
 		
 	def open_camera(self):
 		try:
-			if self.gstreamerVideo is None:
+			if self.isCameraAvailable():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
 				self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
@@ -110,7 +111,7 @@ class GStreamerManager(CameraManager):
 
 		parentCameraAvailable = super(GStreamerManager, self).isCameraAvailable()
 
-		return self.gstreamerVideo is not None and parentCameraAvailable
+		return parentCameraAvailable
 
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'
@@ -216,21 +217,24 @@ class GStreamerManager(CameraManager):
 			    framesize.pixel_format = supported_format['pixelformat_int']
 			    with open(device, 'r') as vd:
 			        try:
-			            while fcntl.ioctl(vd,v4l2.VIDIOC_ENUM_FRAMESIZES,framesize) == 0:
-					if framesize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
-			                    resolutions.append([framesize.discrete.width,
-			                        framesize.discrete.height])
-			                # for continuous and stepwise, let's just use min and
-			                # max they use the same structure and only return
-			                # one result
-			                elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
-			                     framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
-			                    resolutions.append([framesize.stepwise.min_width,
-			                        framesize.stepwise.min_height])
-			                    resolutions.append([framesize.stepwise.max_width,
-			                        framesize.stepwise.max_height])
-			                    break
-			                framesize.index = framesize.index + 1
+						cp = v4l2.v4l2_capability()
+						fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
+						self.cameraName = cp.card
+
+						while fcntl.ioctl(vd,v4l2.VIDIOC_ENUM_FRAMESIZES,framesize) == 0:
+							if framesize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
+								resolutions.append([framesize.discrete.width,
+								framesize.discrete.height])
+								# for continuous and stepwise, let's just use min and
+								# max they use the same structure and only return
+								# one result
+							elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
+								resolutions.append([framesize.stepwise.min_width,
+								framesize.stepwise.min_height])
+								resolutions.append([framesize.stepwise.max_width,
+								framesize.stepwise.max_height])
+								break
+							framesize.index = framesize.index + 1
 			        except IOError as e:
 			            # EINVAL is the ioctl's way of telling us that there are no
 			            # more formats, so we ignore it

@@ -10,6 +10,14 @@ from octoprint.server.api import api
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
+@api.route("/camera/refresh-plugged-camera", methods=["POST"])
+@restricted_access
+def refreshPluggedCamera():
+
+	cm = cameraManager()
+
+	return jsonify({"isCameraPlugged": cm.open_camera()})
+
 @api.route("/camera/is-camera-able", methods=["POST"])
 @restricted_access
 def isCameraAble():
@@ -34,7 +42,7 @@ def isCameraAvailable():
 
 	cm = cameraManager()
 
-	return jsonify({"isCameraAvailable": cm.isCameraAvailable()})
+	return jsonify({"isCameraAvailable": cm.isCameraAvailable(), "cameraName": cm.cameraName})
 
 
 @api.route("/camera/timelapse", methods=["POST"])

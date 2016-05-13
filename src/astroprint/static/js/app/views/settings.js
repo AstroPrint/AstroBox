@@ -323,9 +323,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 	template: _.template( $("#video-stream-settings-page-template").html() ),
 	settings: null,
 	settingsSizeDefault: '640x480',
+	cameraName: 'No camera plugged',
 	events: {
 		"invalid.fndtn.abide form": 'invalidForm',
-		"valid.fndtn.abide form": 'validForm'
+		"valid.fndtn.abide form": 'validForm',
+		"click #buttonRefresh": "refreshPluggedCamera"
 	},
 	show: function() {
 		
@@ -335,58 +337,94 @@ var CameraVideoStreamView = SettingsPage.extend({
 		//Call Super
 		SettingsPage.prototype.show.apply(this);
 		if (!this.settings) {
-			$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
-				$.post(API_BASEURL + 'camera/is-camera-able')
-				.done(_.bind(function(response){
 
-					this.isCameraAble = response.isCameraAble;
+			$.post(API_BASEURL + 'camera/is-camera-available')
+			.done(_.bind(function(response){
 
-					if(this.isCameraAble){
+				if(response.isCameraAvailable){
 
-						$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+					this.cameraName = response.cameraName;
+
+					$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
+						$.post(API_BASEURL + 'camera/is-camera-able')
 						.done(_.bind(function(response){
-							if(response.isResolutionSupported){
-								this.settings = data;
-								this.render();
+
+							this.isCameraAble = response.isCameraAble;
+
+							if(this.isCameraAble){
+
+								$.post(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+								.done(_.bind(function(response){
+									if(response.isResolutionSupported){
+										this.videoSettingsError = null;
+										this.settings = data;
+										this.render();
+									} else {
+										//setting default settings
+										this.settings = this.settingsSizeDefault;
+										//saving new settings <- default settings
+										$.ajax({
+											url: API_BASEURL + 'settings/camera/streaming', 
+											type: 'POST',
+											contentType: 'application/json',
+											dataType: 'json',
+											data: JSON.stringify(this.settings)
+										});
+										noty({text: "Previous resolution selected is not able with this camera. Set default value", timeout: 3000});
+										this.videoSettingsError = null;
+										this.render();
+									}
+									
+								},this))
+								.fail(function() {
+									noty({text: "There was an error getting Camera settings.", timeout: 3000});
+								})
+								.always(_.bind(function(){
+									loadingBtn.removeClass('loading');
+								},this));
 							} else {
-								//setting default settings
-								this.settings = this.settingsSizeDefault;
-								//saving new settings <- default settings
-								$.ajax({
-									url: API_BASEURL + 'settings/camera/streaming', 
-									type: 'POST',
-									contentType: 'application/json',
-									dataType: 'json',
-									data: JSON.stringify(this.settings)
-								});
+								this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
 								this.render();
 							}
-							
 						},this))
-						.fail(function() {
-							noty({text: "There was an error getting Camera settings.", timeout: 3000});
-						})
-						.always(_.bind(function(){
-							loadingBtn.removeClass('loading');
-						},this));
-					} else {
-						this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
-						this.render();
-					}
-				},this))
-				.fail(_.bind(function(){
+						.fail(_.bind(function(){
+							this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
+							this.render();
+						},this))
+					}, this))
+					.fail(function() {
+						noty({text: "There was an error getting Camera settings.", timeout: 3000});
+					});
+				} else {
 					this.videoSettingsError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...'; 
+					this.cameraName = 'No camera plugged'; 
 					this.render();
-				},this))
-			}, this))
-			.fail(function() {
-				noty({text: "There was an error getting Camera settings.", timeout: 3000});
-			});
+				}
+			},this));
 		} else {
 			this.render();
 		}
 	},
+	refreshPluggedCamera: function(){
+		this.$('#buttonRefresh').addClass('loading');
+
+		$.post(API_BASEURL + 'camera/refresh-plugged-camera')
+		.done(_.bind(function(response){
+
+			if(response.isCameraPlugged){
+				this.settings = null;
+				this.cameraName = ''; 
+				this.show();
+			} else {
+				this.cameraName = 'No camera plugged'; 
+				this.render();
+			}
+
+			this.$('#buttonRefresh').removeClass('loading');
+		},this));
+	},
 	render: function() {
+
 		this.$el.html(this.template({ 
 			settings: this.settings
 		}));
