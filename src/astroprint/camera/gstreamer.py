@@ -175,8 +175,8 @@ class GStreamerManager(CameraManager):
 	        # EINVAL is the ioctl's way of telling us that there are no
 	        # more formats, so we ignore it
 	        if e.errno != errno.EINVAL:
-	            print("Unable to determine Pixel Formats, this may be a "\
-	                    "driver issue.")
+	        	self._logger.error("Unable to determine Pixel Formats, this may be a driver issue.") 
+
 	        return supported_formats
 	    return supported_formats
 
@@ -234,9 +234,8 @@ class GStreamerManager(CameraManager):
 			        except IOError as e:
 			            # EINVAL is the ioctl's way of telling us that there are no
 			            # more formats, so we ignore it
-			            if e.errno != errno.EINVAL:
-			                print("Unable to determine supported framesizes "\
-			                      "(resolutions), this may be a driver issue.")
+			            if e.errno != errno.EINVAL: 
+			                self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.") 
 			                return supported_formats
 			    supported_format['resolutions'] = resolutions
 
@@ -488,7 +487,6 @@ class GStreamer(object):
 					else:
 						h264parse = gst.ElementFactory.make('h264parse',None)
 
-
 					# VIDEO PAY FOR H264 BEING SHARED IN UDP PACKAGES
 					videortppay = gst.ElementFactory.make('rtph264pay', 'rtph264pay')
 					videortppay.set_property('pt', 96)
@@ -636,7 +634,7 @@ class GStreamer(object):
 				return True
 				
 			except Exception, error:
-				self._logger.error("Error playing video with GStreamer: %s" % str(error))
+				self._logger.error("Error playing video with GStreamer: %s" % str(error), exc_info = True)
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
 				self.reset_pipeline_gstreamer_state()
@@ -706,9 +704,6 @@ class GStreamer(object):
 		elif t == gst.MessageType.ERROR:
 			
 			busError, detail = msg.parse_error()
-
-			print busError
-			print detail
 
 			self._logger.error("gstreamer bus message error: %s" % busError)
 
@@ -882,7 +877,7 @@ class GStreamer(object):
 
 					self.reset_pipeline_gstreamer_state()
 
-				self._logger.error("take_photo except:  %s" % str(error))
+				self._logger.error("take_photo except:  %s" % str(error), exc_info = True)
 				self.waitForPhoto.clear()
 	
 				return None
@@ -979,7 +974,7 @@ class GStreamer(object):
 
 			except Exception, error:
 				
-				self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+				self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
 				self.reset_pipeline_gstreamer_state()
@@ -1004,7 +999,7 @@ class GStreamer(object):
 
 				except Exception, error:
 					
-					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+					self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
 					self.pipeline.set_state(gst.State.PAUSED)
 					self.pipeline.set_state(gst.State.NULL)
 					self.reset_pipeline_gstreamer_state()
@@ -1030,7 +1025,7 @@ class GStreamer(object):
 
 				except Exception, error:
 					
-					self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+					self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
 					self.pipeline.set_state(gst.State.PAUSED)
 					self.pipeline.set_state(gst.State.NULL)
 					self.reset_pipeline_gstreamer_state()
@@ -1041,7 +1036,7 @@ class GStreamer(object):
 
 		except Exception, error:
 			
-			self._logger.error("Error taking photo with GStreamer: %s" % str(error))
+			self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
 			self.pipeline.set_state(gst.State.PAUSED)
 			self.pipeline.set_state(gst.State.NULL)
 			self.reset_pipeline_gstreamer_state()
