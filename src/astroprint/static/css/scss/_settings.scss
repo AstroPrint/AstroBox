@@ -182,6 +182,32 @@
 	}
 }
 
+#video-stream {
+
+    label {
+        margin-bottom: 10px;
+    }
+
+    .error-message {
+        border: 3px dashed $base;
+        background: #efefef;
+        padding: 15px;
+        @include radius($global-radius);
+
+        p {
+            color: $steel;
+            &:last-child {
+                margin: 0;
+            }
+        }
+    }
+
+    .icon-attention{
+        font-size: 36px;
+        color: $red;
+    }
+}
+
 #software-update-modal {
 	h2 span {
 		color: black;

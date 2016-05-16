@@ -166,11 +166,12 @@
 		<div id="video-stream" class="settings-page hide">
 			<script type="text/template" id="video-stream-settings-page-template">
 				<% if (this.cameraName) { %>
-					<div><label><%= this.cameraName %></label>
+					<div class="text-center">
+						<label class="bold"><%= this.cameraName %></label>
 						<div id="buttonRefresh" class="loading-button still">
 		                    <div class="still-camera">
-							    <button class="success round spin">Re-scan for plugged camera</i></button>
-							    <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+							    <button class="success radius spin">Re-scan for plugged camera</i></button>
+							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
 		                    </div>
 						</div>
 					</div>
@@ -216,20 +217,22 @@
 							</div>
 						</div>
 					<% } else { %>
-						<div align="center">
+						<div class="error-message" align="center">
 							<i class="icon-attention"></i><br/>
-							<%= this.videoSettingsError %>
+							<p class="bold"><%= this.videoSettingsError %></p>
 						</div>
 					<% } %>
 				<% } else { %>
-					<div><label>No Camera Found</label>
+					<div class="text-center no-camera">
+						<i class="icon-attention"></i>
+						<label class="bold">No Camera Found</label>
 						<div id="buttonRefresh" class="loading-button still">
 		                    <div class="still-camera">
-							    <button class="success round spin">Scan for cameras</i></button>
-							    <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+							    <button class="success radius spin">Scan for cameras</i></button>
+							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
 		                    </div>
 						</div>
-					</div>					
+					</div>
 				<% } %>
 			</script>
 		</div>

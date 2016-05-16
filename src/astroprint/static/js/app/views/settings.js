@@ -55,9 +55,9 @@ var PrinterConnectionView = SettingsPage.extend({
 			this.$('a.retry-ports i').removeClass('animate-spin');
 		})
 	},
-	render: function() 
+	render: function()
 	{
-		this.$('form').html(this.template({ 
+		this.$('form').html(this.template({
 			settings: this.settings
 		}));
 
@@ -140,7 +140,7 @@ var PrinterProfileView = SettingsPage.extend({
 		this.render();
 	},
 	render: function() {
-		this.$el.html(this.template({ 
+		this.$el.html(this.template({
 			settings: this.settings.toJSON()
 		}));
 
@@ -175,7 +175,7 @@ var PrinterProfileView = SettingsPage.extend({
 			wrapper.addClass('hide');
 		} else {
 			wrapper.removeClass('hide');
-		}		
+		}
 	},
 	invalidForm: function(e)
 	{
@@ -292,7 +292,7 @@ var NetworkNameView = SettingsPage.extend({
 
 
 		$.ajax({
-			url: API_BASEURL + 'settings/network/name', 
+			url: API_BASEURL + 'settings/network/name',
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -330,7 +330,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		"click #buttonRefresh": "refreshPluggedCamera"
 	},
 	show: function() {
-		
+
 		var form = this.$('form');
 		var loadingBtn = form.find('.loading-button');
 
@@ -361,17 +361,17 @@ var CameraVideoStreamView = SettingsPage.extend({
 										this.settings = this.settingsSizeDefault;
 										//saving new settings <- default settings
 										$.ajax({
-											url: API_BASEURL + 'settings/camera/streaming', 
+											url: API_BASEURL + 'settings/camera/streaming',
 											type: 'POST',
 											contentType: 'application/json',
 											dataType: 'json',
 											data: JSON.stringify(this.settings)
 										});
-										noty({text: "Your camera doesn't not support the current resolution, please lower it", timeout: 3000});
+										noty({text: "Your camera does not support the current resolution, please lower it", timeout: 3000});
 										this.videoSettingsError = null;
 										this.render();
 									}
-									
+
 								},this))
 								.fail(function() {
 									noty({text: "There was an error reading your camera settings.", timeout: 3000});
@@ -380,12 +380,12 @@ var CameraVideoStreamView = SettingsPage.extend({
 									loadingBtn.removeClass('loading');
 								},this));
 							} else {
-								this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...'; 
+								this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...';
 								this.render();
 							}
 						},this))
 						.fail(_.bind(function(){
-							this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...'; 
+							this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...';
 							this.render();
 						},this))
 					}, this))
@@ -393,8 +393,8 @@ var CameraVideoStreamView = SettingsPage.extend({
 						noty({text: "There was an error getting Camera settings.", timeout: 3000});
 					});
 				} else {
-					this.videoSettingsError = null; 
-					this.cameraName = null; 
+					this.videoSettingsError = null;
+					this.cameraName = null;
 					this.render();
 				}
 			},this));
@@ -410,10 +410,10 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 			if(response.isCameraPlugged){
 				this.settings = null;
-				this.cameraName = ''; 
+				this.cameraName = '';
 				this.show();
 			} else {
-				this.cameraName = 'No camera plugged'; 
+				this.cameraName = 'No camera plugged';
 				this.render();
 			}
 
@@ -422,7 +422,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 	},
 	render: function() {
 
-		this.$el.html(this.template({ 
+		this.$el.html(this.template({
 			settings: this.settings
 		}));
 
@@ -466,7 +466,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		.done(_.bind(function(response){
 			if(response.isResolutionSupported){
 				$.ajax({
-					url: API_BASEURL + 'settings/camera/streaming', 
+					url: API_BASEURL + 'settings/camera/streaming',
 					type: 'POST',
 					contentType: 'application/json',
 					dataType: 'json',
@@ -530,7 +530,7 @@ var InternetConnectionView = SettingsPage.extend({
 		}
 	},
 	render: function() {
-		this.$el.html(this.template({ 
+		this.$el.html(this.template({
 			settings: this.settings
 		}));
 	},
@@ -538,7 +538,7 @@ var InternetConnectionView = SettingsPage.extend({
 		var promise = $.Deferred();
 
 		$.ajax({
-			url: API_BASEURL + 'settings/network/active', 
+			url: API_BASEURL + 'settings/network/active',
 			type: 'POST',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -548,12 +548,12 @@ var InternetConnectionView = SettingsPage.extend({
 				if (data.name) {
 					var connectionCb = null;
 
-					//Start Timeout 
+					//Start Timeout
 					var connectionTimeout = setTimeout(function(){
 						connectionCb.call(this, {status: 'failed', reason: 'timeout'});
 					}, 70000); //1 minute
 
-					connectionCb = function(connectionInfo){						
+					connectionCb = function(connectionInfo){
 						switch (connectionInfo.status) {
 							case 'disconnected':
 							case 'connecting':
@@ -584,7 +584,7 @@ var InternetConnectionView = SettingsPage.extend({
 								app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
 								promise.reject("Unable to connect to "+data.name+".");
 								clearTimeout(connectionTimeout);
-						} 
+						}
 					};
 
 					app.eventManager.on('astrobox:InternetConnectingStatus', connectionCb, this);
@@ -648,7 +648,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		this.render(wifiInfo);
 		this.$el.foundation('reveal', 'open', {
 			close_on_background_click: false,
-			close_on_esc: false	
+			close_on_esc: false
 		});
 		this.$el.one('opened', _.bind(function() {
 			this.$el.find('.network-password-field').focus();
@@ -661,7 +661,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 		form.submit();
 	},
 	connect: function(e) {
-		e.preventDefault() 
+		e.preventDefault()
 		var form = $(e.currentTarget);
 
 		var id = form.find('.network-id-field').val();
@@ -705,7 +705,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 
 		this.networks = networks;
 
-		content.html(this.networksTemplate({ 
+		content.html(this.networksTemplate({
 			networks: this.networks
 		}));
 
@@ -717,7 +717,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 		e.preventDefault();
 
 		var button = $(e.target);
-	
+
 		if (!this.passwordDlg) {
 			this.passwordDlg = new WiFiNetworkPasswordDialog({parent: this.parent});
 		}
@@ -856,7 +856,7 @@ var SoftwareUpdateView = SettingsPage.extend({
 		var loadingBtn = this.$el.find('.loading-button.check');
 		loadingBtn.addClass('loading');
 		$.ajax({
-			url: API_BASEURL + 'settings/software/check', 
+			url: API_BASEURL + 'settings/software/check',
 			type: 'GET',
 			dataType: 'json',
 			success: _.bind(function(data) {
@@ -910,7 +910,7 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 		var loadingBtn = this.$el.find('.loading-button');
 		loadingBtn.addClass('loading');
 		$.ajax({
-			url: API_BASEURL + 'settings/software/update', 
+			url: API_BASEURL + 'settings/software/update',
 			type: 'POST',
 			dataType: 'json',
 			contentType: 'application/json',
@@ -971,10 +971,10 @@ var SoftwareAdvancedView = SettingsPage.extend({
 	},
 	render: function()
 	{
-		this.$el.html(this.template({ 
+		this.$el.html(this.template({
 			data: this.settings,
 			size_format: app.utils.sizeFormat
-		}));		
+		}));
 	},
 	serialLogChanged: function(e)
 	{
@@ -1045,7 +1045,7 @@ var SendLogDialog = Backbone.View.extend({
 			.always(function(){
 				button.removeClass('loading');
 			});
-	}	
+	}
 });
 
 var ClearLogsDialog = Backbone.View.extend({
@@ -1053,7 +1053,7 @@ var ClearLogsDialog = Backbone.View.extend({
 	events: {
 		'click button.secondary': 'doClose',
 		'click button.alert': 'doDelete',
-		'open.fndtn.reveal': 'onOpen'		
+		'open.fndtn.reveal': 'onOpen'
 	},
 	parent: null,
 	initialize: function(options)
@@ -1068,7 +1068,7 @@ var ClearLogsDialog = Backbone.View.extend({
 	{
 		this.$('.loading-button').addClass('loading');
 		$.ajax({
-			url: API_BASEURL + 'settings/software/logs', 
+			url: API_BASEURL + 'settings/software/logs',
 			type: 'DELETE',
 			contentType: 'application/json',
 			dataType: 'json',
@@ -1107,7 +1107,7 @@ var ResetConfirmDialog = Backbone.View.extend({
 		if (this.$('input').val() == 'RESET') {
 			this.$('.loading-button').addClass('loading');
 			$.ajax({
-				url: API_BASEURL + 'settings/software/settings', 
+				url: API_BASEURL + 'settings/software/settings',
 				type: 'DELETE',
 				contentType: 'application/json',
 				dataType: 'json',
@@ -1119,7 +1119,7 @@ var ResetConfirmDialog = Backbone.View.extend({
 					this.$('.loading-button').removeClass('loading');
 				}, this)
 			})
-		} 
+		}
 	}
 });
 
