@@ -188,6 +188,10 @@
         margin-bottom: 10px;
     }
 
+    button, .button {
+        margin-bottom: 0;
+    }
+
     .error-message {
         border: 3px dashed $base;
         background: #efefef;
