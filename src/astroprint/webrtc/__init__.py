@@ -205,16 +205,11 @@ class WebRtc(object):
 				self._logger.error('Webrtc client lost: %s. Automatic peer session closing...',data['error'])
 			self.closePeerSession(key)
 
-		#print request.values
-		#print request.values['data']
-		#if request.values['data']
-
 	def pingPongRounder(self,params=None):
 		
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
-				print self._connectedPeers[key]
 				boxrouterManager().sendRequestToClient(self._connectedPeers[key].clientId, 'ping',None,10, self.pongCallback, [key])
 
 	def startGStreamer(self):

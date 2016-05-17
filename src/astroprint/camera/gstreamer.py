@@ -39,10 +39,11 @@ class GStreamerManager(CameraManager):
 			if self.isCameraConnected():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
-				self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
+				if self.gstreamerVideo:
+					self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
 
 		except Exception, error:
-			self._logger.error(error)
+			self._logger.error(error, exc_info=True)
 			self.gstreamerVideo = None
 
 		return not self.gstreamerVideo is None
@@ -242,11 +243,10 @@ class GStreamerManager(CameraManager):
 			    supported_format['resolutions'] = resolutions
 
 			return supported_formats
-		except Exception:
-			self.cameraAble = False
-			self._logger.info('Camera error: it is not posible to get the camera capabilities')
-			self.gstreamerVideo.fatalErrorManage(True,True,'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...',False,True)
 
+		except Exception:
+			self._logger.info('Camera error: it is not posible to get the camera capabilities', exc_info=True)
+			self.gstreamerVideo.fatalErrorManage(True,True,'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...',False,True)
 			self.supported_format = None
 			return None
 
@@ -429,7 +429,7 @@ class GStreamer(object):
 			return True
 		
 		except Exception, error:
-			self._logger.error("Error resetting GStreamer's video pipeline: %s" % str(error))
+			self._logger.error("Error resetting GStreamer's video pipeline: %s" % str(error), exc_info=True)
 			if self.pipeline:
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
@@ -669,7 +669,7 @@ class GStreamer(object):
 				
 		except Exception, error:
 			
-			self._logger.error("Error stopping video with GStreamer: %s" % str(error))
+			self._logger.error("Error stopping video with GStreamer: %s" % str(error), exc_info=True)
 			self.pipeline.set_state(gst.State.PAUSED)
 			self.pipeline.set_state(gst.State.NULL)
 			self.reset_pipeline_gstreamer_state()
