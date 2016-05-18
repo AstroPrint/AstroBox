@@ -20,16 +20,10 @@
 	.camera-view {
 		background: $oil;
 		border: 1px solid $iron;
-		margin-bottom: rem-calc(15);
 		@include radius($global-radius);
-		position: absolute;
-		width: 100%;
-		top: 55px;
-		bottom: 0;
 
 		.image-container {
 			height: 100%;
-			padding-bottom: 83px;
 		}
 
 		.camera-image {
@@ -46,8 +40,11 @@
 			.no-detection,
 			.video-preparing {
 	            text-align: center;
-	            @include vertical-align;
 	        }
+			.pad {
+				display: block;
+				padding: 15% 0;
+			}
 
 	        i {
 	            font-size: rem-calc(100);
@@ -62,10 +59,7 @@
 
 	    .buttons {
 	        background: $ghost;
-	        padding: rem-calc(15);
-			position: absolute;
-			width: 100%;
-			bottom: 0;
+	        padding: rem-calc(10);
 	        @include radius(0 0 $global-radius $global-radius);
 
 	        button, .button, .loading-button {
@@ -125,6 +119,8 @@
 	    #remotevideo {
             max-width: 100%;
 			padding: 2px;
+			margin-bottom: -7px;
+			max-height: 550px;
 	    }
 	}
 
