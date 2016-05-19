@@ -7,32 +7,31 @@ import time
 import logging
 import os
 import threading
-import v4l2
-import errno
-import fcntl
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
-gi.require_version('Gst', '1.0')
+try:
+	gi.require_version('Gst', '1.0')
+except ValueError:
+	raise ImportError
+	
 from gi.repository import Gst as gst
 
-from astroprint.camera import CameraManager
+from astroprint.camera.v4l2 import V4L2Manager
 from astroprint.webrtc import webRtcManager
 
 from blinker import signal
 
 gst.init(None)
 
-class GStreamerManager(CameraManager):
-	def __init__(self, number_of_video_device):
-		self.number_of_video_device = number_of_video_device
+class GStreamerManager(V4L2Manager):
+	def __init__(self, videoDevice):
 		self.gstreamerVideo = None
 		self.asyncPhotoTaker = None
 		self._logger = logging.getLogger(__name__)
-		self.supported_formats = None
 
-		super(GStreamerManager, self).__init__()
+		super(GStreamerManager, self).__init__(videoDevice)
 
 	def settingsStructure(self):
 		return {
@@ -61,7 +60,7 @@ class GStreamerManager(CameraManager):
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
 				if self.gstreamerVideo:
-					self.supported_formats = self._get_supported_resolutions(self.number_of_video_device)
+					self.supported_formats = self._getSupportedResolutions()
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -128,12 +127,6 @@ class GStreamerManager(CameraManager):
 	# def save_pic(self, filename, text=None):
 	#    pass
 
-	def isCameraConnected(self):
-		try:
-			return os.path.exists("/dev/video" + str(self.number_of_video_device))
-		except:
-			return False
-
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'
 
@@ -144,132 +137,10 @@ class GStreamerManager(CameraManager):
 		if self.asyncPhotoTaker:
 			self.asyncPhotoTaker.stop()
 
-	def isResolutionSupported(self, resolution):
+	## From V4L2Manager
+	def _broadcastFataError(self, msg):
+		self.gstreamerVideo.fatalErrorManage(True, True, msg, False, True)
 
-		resolutions = []
-
-		for supported_format in self.supported_formats:
-		    if supported_format.get('pixelformat') == 'YUYV':
-		        resolutions = supported_format.get('resolutions')
-
-		arrResolution = resolution.split('x')
-		
-		resolution = []
-		
-		for element in arrResolution:
-			resolution += [long(element)]
-
-		return resolution in resolutions
-
-	def hasCameraProperties(self):
-		return self.supported_formats is not None
-
-	def _get_pixel_formats(self,device, maxformats=5):
-	    """Query the camera to see what pixel formats it supports.  A list of
-	    dicts is returned consisting of format and description.  The caller
-	    should check whether this camera supports VIDEO_CAPTURE before
-	    calling this function.
-	    """
-	    if '/dev/video' not in str(device):
-	    	device = '/dev/video' + str(device)
-
-	    supported_formats = []
-	    fmt = v4l2.v4l2_fmtdesc()
-	    fmt.index = 0
-	    fmt.type = v4l2.V4L2_CAP_VIDEO_CAPTURE
-	    try:
-	        while fmt.index < maxformats:
-	            with open(device, 'r') as vd:
-	                if fcntl.ioctl(vd, v4l2.VIDIOC_ENUM_FMT, fmt) == 0:
-	                    pixelformat = {}
-	                    # save the int type for re-use later
-	                    pixelformat['pixelformat_int'] = fmt.pixelformat
-	                    pixelformat['pixelformat'] = "%s%s%s%s" % \
-	                        (chr(fmt.pixelformat & 0xFF),
-	                        chr((fmt.pixelformat >> 8) & 0xFF),
-	                        chr((fmt.pixelformat >> 16) & 0xFF),
-	                        chr((fmt.pixelformat >> 24) & 0xFF))
-	                    pixelformat['description'] = fmt.description.decode()
-	                    supported_formats.append(pixelformat)
-	            fmt.index = fmt.index + 1
-	    except IOError as e:
-	        # EINVAL is the ioctl's way of telling us that there are no
-	        # more formats, so we ignore it
-	        if e.errno != errno.EINVAL:
-	        	self._logger.error("Unable to determine Pixel Formats, this may be a driver issue.") 
-
-	        return supported_formats
-	    return supported_formats
-
-	def _get_supported_resolutions(self, device):
-
-		"""Query the camera for supported resolutions for a given pixel_format.
-		Data is returned in a list of dictionaries with supported pixel
-		formats as the following example shows:
-		resolution['pixelformat'] = "YUYV"
-		resolution['description'] = "(YUV 4:2:2 (YUYV))"
-		resolution['resolutions'] = [[width, height], [640, 480], [1280, 720] ]
-
-		If we are unable to gather any information from the driver, then we
-		return YUYV and 640x480 which seems to be a safe default. Per the v4l2
-		spec the ioctl used here is experimental but seems to be well supported.
-		"""
-		try:
-
-			if '/dev/video' not in str(device):
-				device = '/dev/video' + str(device)
-
-			supported_formats = self._get_pixel_formats(device)
-
-			if not supported_formats:
-				resolution = {}
-				resolution['description'] = "YUYV"
-				resolution['pixelformat'] = "YUYV"
-				resolution['resolutions'] = [[640, 480]]
-				resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
-				supported_formats.append(resolution)
-				return supported_formats
-
-			for supported_format in supported_formats:
-			    resolutions = []
-			    framesize = v4l2.v4l2_frmsizeenum()
-			    framesize.index = 0
-			    framesize.pixel_format = supported_format['pixelformat_int']
-			    with open(device, 'r') as vd:
-			        try:
-						cp = v4l2.v4l2_capability()
-						fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
-						self.cameraName = cp.card
-
-						while fcntl.ioctl(vd,v4l2.VIDIOC_ENUM_FRAMESIZES,framesize) == 0:
-							if framesize.type == v4l2.V4L2_FRMSIZE_TYPE_DISCRETE:
-								resolutions.append([framesize.discrete.width,
-								framesize.discrete.height])
-								# for continuous and stepwise, let's just use min and
-								# max they use the same structure and only return
-								# one result
-							elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
-								resolutions.append([framesize.stepwise.min_width,
-								framesize.stepwise.min_height])
-								resolutions.append([framesize.stepwise.max_width,
-								framesize.stepwise.max_height])
-								break
-							framesize.index = framesize.index + 1
-			        except IOError as e:
-			            # EINVAL is the ioctl's way of telling us that there are no
-			            # more formats, so we ignore it
-			            if e.errno != errno.EINVAL: 
-			                self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.") 
-			                return supported_formats
-			    supported_format['resolutions'] = resolutions
-
-			return supported_formats
-
-		except Exception:
-			self._logger.info('Camera error: it is not posible to get the camera capabilities', exc_info=True)
-			self.gstreamerVideo.fatalErrorManage(True,True,'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...',False,True)
-			self.supported_format = None
-			return None
 
 class GStreamer(object):
 	

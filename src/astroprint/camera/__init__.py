@@ -17,16 +17,16 @@ def cameraManager():
 
 			if manager == 'gstreamer':
 				try:
-					from astroprint.camera.gstreamer import GStreamerManager
+					from astroprint.camera.v4l2.gstreamer import GStreamerManager
 					_instance = GStreamerManager(number_of_video_device)
 
-				except ImportError:
+				except ImportError, ValueError:
 					_instance = None
 
 			#another manager was selected or the gstreamer library is not present on this 
 			#system, in that case we pick a ffmpejg manager
 			if _instance is None:
-				from astroprint.camera.ffmpeg import FfmpegManager
+				from astroprint.camera.v4l2.ffmpeg import FfmpegManager
 				_instance = FfmpegManager(number_of_video_device)
 
 		elif platform == "darwin":

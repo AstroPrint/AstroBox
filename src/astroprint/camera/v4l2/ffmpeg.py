@@ -2,17 +2,16 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-
 import logging
 
-from astroprint.camera import CameraManager
+from astroprint.camera.v4l2 import V4L2Manager
 
-class FfmpegManager(CameraManager):
+class FfmpegManager(V4L2Manager):
 	def __init__(self, videoDevice):
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('FFMPEG Camera Manager initialized')
 
-		super(FfmpegManager, self).__init__()
+		super(FfmpegManager, self).__init__(videoDevice)
 
 	def settingsStructure(self):
 		return {
@@ -34,6 +33,15 @@ class FfmpegManager(CameraManager):
 		pass
 
 	def open_camera(self):
+		try:
+			if self.isCameraConnected():
+				self.supported_formats = self._getSupportedResolutions()
+
+			return True
+
+		except Exception, error:
+			self._logger.error(error, exc_info=True)
+
 		return False
 
 	def close_camera(self):
@@ -58,15 +66,4 @@ class FfmpegManager(CameraManager):
 		pass
 
 	def save_pic(self, filename, text=None):
-		pass
-
-	#Whether a camera device exists in the platform
-	def isCameraConnected(self):
-		return False
-
-	#Whether the camera properties have been read
-	def hasCameraProperties(self):
-		return False
-
-	def isResolutionSupported(self, resolution):
 		pass

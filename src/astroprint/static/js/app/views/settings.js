@@ -315,7 +315,7 @@ var NetworkNameView = SettingsPage.extend({
 });
 
 /*************************
-* Camera - Video Stream
+* Camera - Image/Video
 **************************/
 
 var CameraVideoStreamView = SettingsPage.extend({
@@ -414,7 +414,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 				this.cameraName = '';
 				this.show();
 			} else {
-				this.cameraName = 'No camera plugged';
+				this.cameraName = false;
 				this.render();
 			}
 
@@ -477,7 +477,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 					noty({text: "Camera changes saved", timeout: 3000, type:"success"});
 					//Make sure we reload next time we load this tab
 					this.render();
-					this.parent.subviews['video-stream'].settings = null;
+					//this.parent.subviews['video-stream'].settings = null;
 				},this))
 				.fail(function(){
 					noty({text: "There was a problem saving camera settings", timeout: 3000});

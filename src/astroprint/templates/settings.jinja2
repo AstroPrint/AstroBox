@@ -196,7 +196,7 @@
 										</label>
 										<select id="video-stream-size" name="size">
 											<% _.each(settings.structure.frameSizes, function(v) { %>
-												<option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
 											<% }) %>
 										</select>
 									<% } %>
