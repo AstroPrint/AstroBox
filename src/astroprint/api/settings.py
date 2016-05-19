@@ -134,10 +134,11 @@ def handleWifiHotspot():
 		else:
 			return (result, 500)
 
-@api.route("/settings/camera/streaming", methods=["GET", "POST"])
+@api.route("/settings/camera", methods=["GET", "POST"])
 @restricted_access
-def cameraStreamingeSettings():
+def cameraSettings():
 	s = settings()
+	cm = cameraManager()
 
 	if request.method == 'POST':
 		if "application/json" in request.headers["Content-Type"]:
@@ -157,7 +158,7 @@ def cameraStreamingeSettings():
 			
 			s.save()
 
-			cameraManager().settingsChanged({
+			cm.settingsChanged({
 				'size': s.get(['camera', 'size']),
 				'encoding': s.get(['camera', 'encoding']),
 				'framerate': s.get(['camera', 'framerate']),
@@ -168,7 +169,8 @@ def cameraStreamingeSettings():
 		encoding= s.get(['camera', 'encoding']), 
 		size= s.get(['camera', 'size']),
 		framerate= s.get(['camera', 'framerate']),
-		format= s.get(['camera','format'])
+		format= s.get(['camera','format']),
+		structure= cm.settingsStructure()
 	)	
 
 @api.route("/settings/software/advanced", methods=["GET"])

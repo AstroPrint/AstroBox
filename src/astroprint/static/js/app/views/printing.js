@@ -144,7 +144,7 @@ var PhotoView = CameraControlView.extend({
                 .done(_.bind(function(response){
                         if(response.hasCameraProperties){
                             //video settings
-                            $.getJSON(API_BASEURL + 'settings/camera/streaming')
+                            $.getJSON(API_BASEURL + 'settings/camera')
                             .done(_.bind(function(settings){
                                 
                                 this.settings = settings;

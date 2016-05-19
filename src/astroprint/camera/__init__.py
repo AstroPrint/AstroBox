@@ -2,6 +2,8 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+from octoprint.settings import settings
+
 # singleton
 _instance = None
 
@@ -11,8 +13,22 @@ def cameraManager():
 		if platform == "linux" or platform == "linux2":
 			number_of_video_device = 0#/dev/video``0´´
 
-			from astroprint.camera.gstreamer import GStreamerManager
-			_instance = GStreamerManager(number_of_video_device)
+			manager = settings().get(['camera', 'manager'])
+
+			if manager == 'gstreamer':
+				try:
+					from astroprint.camera.gstreamer import GStreamerManager
+					_instance = GStreamerManager(number_of_video_device)
+
+				except ImportError:
+					_instance = None
+
+			#another manager was selected or the gstreamer library is not present on this 
+			#system, in that case we pick a ffmpejg manager
+			if _instance is None:
+				from astroprint.camera.ffmpeg import FfmpegManager
+				_instance = FfmpegManager(number_of_video_device)
+
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
@@ -26,7 +42,6 @@ import logging
 
 from sys import platform
 
-from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
@@ -259,6 +274,9 @@ class CameraManager(object):
 
 	def save_pic(self, filename, text=None):
 		pass
+
+	def settingsStructure(self):
+		return {}
 
 	#Whether a camera device exists in the platform
 	def isCameraConnected(self):

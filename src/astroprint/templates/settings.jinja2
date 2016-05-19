@@ -12,7 +12,7 @@
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
 				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
 				<li class="heading bold">Camera</li>
-				<li class="video-stream"><a href="#settings/video-stream">Video Stream</a></li>
+				<li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
 				<li class="heading bold">Network</li>
 				<li class="network-name"><a href="#settings/network-name">Name</a></li>
 				<li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
@@ -161,7 +161,7 @@
 		</div>
 
 		<div class="show-for-small zebra camera">
-			<a href="#settings/video-stream"><h1 class="bold" align="center">Video Stream</h1></a>
+			<a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
 		</div>
 		<div id="video-stream" class="settings-page hide">
 			<script type="text/template" id="video-stream-settings-page-template">
@@ -180,35 +180,46 @@
 						<div class="row">
 							<div class="small-12">
 								<form data-abide="ajax">
-									<label for="video-stream-format" class="bold">
-										Video Stream Encoding
-										<select id="video-stream-format" name="encoding">
-											<option value="h264" <%= settings.encoding == 'h264' ? 'selected' : '' %>>H.264</option>
-											<option value="vp8" <%= settings.encoding == 'vp8' ? 'selected' : '' %>> VP8</option>
+									<% if (settings.structure.videoEncoding.length > 1) { %>
+										<label for="video-stream-format" class="bold">
+											Video Stream Encoding
+											<select id="video-stream-format" name="encoding">
+												<% _.each(settings.structure.videoEncoding, function(v) { %>
+													<option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% }) %>
+											</select>
+										</label>
+									<% } %>
+									<% if (settings.structure.frameSizes.length > 1) { %>
+										<label for="video-stream-size" class="bold">
+											Image Resolution
+										</label>
+										<select id="video-stream-size" name="size">
+											<% _.each(settings.structure.frameSizes, function(v) { %>
+												<option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+											<% }) %>
 										</select>
-									</label>
-									<label for="video-stream-size" class="bold">
-										Video Stream Resolution
-									</label>
-									<select id="video-stream-size" name="size">
-										<option value='640x480' <%= settings.size == '640x480' ? 'selected' : '' %>>Low (640 x 480)</option>
-										<option value='1280x720' <%= settings.size == '1280x720' ? 'selected' : '' %>>High (1280 x 720)</option>
-									</select>
-									<label for="video-stream-framerate" class="bold">
-										Video Stream Frame Rate
-									</label>
-									<select id="video-stream-framerate" name="framerate">
-										<option value='5' <%= settings.framerate == '5' ? 'selected' : '' %>>5 fps</option>
-										<option value='10' <%= settings.framerate == '10' ? 'selected' : '' %>>10 fps</option>
-										<option value='15' <%= settings.framerate == '15' ? 'selected' : '' %>>15 fps</option>
-									</select>
-									<label for="video-stream-framerate" class="bold">
-										Camera Output Format
-									</label>
-									<select id="video-stream-format" name="format">
-										<option value='x-raw' <%= settings.format == 'x-raw' ? 'selected' : '' %>>Raw Video</option>
-										<option value='x-h264' <%= settings.format == 'x-h264' ? 'selected' : '' %>>H.264 Encoded</option>
-									</select>
+									<% } %>
+									<% if (settings.structure.fps.length > 1) { %>
+										<label for="video-stream-framerate" class="bold">
+											Video Stream Frame Rate
+										</label>
+										<select id="video-stream-framerate" name="framerate">
+											<% _.each(settings.structure.fps, function(v) { %>
+												<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+											<% }) %>
+										</select>
+									<% } %>
+									<% if (settings.structure.cameraOutput.length > 1) { %>
+										<label for="video-stream-framerate" class="bold">
+											Camera Output Format
+										</label>
+										<select id="video-stream-format" name="format">
+											<% _.each(settings.structure.cameraOutput, function(v) { %>
+												<option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
+											<% }) %>
+										</select>
+									<% } %>
 									<hr/>
 									<div class="loading-button">
 										<button class="success radius">Save</button>

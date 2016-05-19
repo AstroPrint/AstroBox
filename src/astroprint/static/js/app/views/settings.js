@@ -345,7 +345,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 					this.cameraName = response.cameraName;
 
-					$.getJSON(API_BASEURL + 'settings/camera/streaming', null, _.bind(function(data) {
+					$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
+						this.settings = data;
+
 						$.getJSON(API_BASEURL + 'camera/has-properties')
 						.done(_.bind(function(response){
 							if(response.hasCameraProperties){
@@ -354,20 +356,19 @@ var CameraVideoStreamView = SettingsPage.extend({
 								.done(_.bind(function(response){
 									if(response.isResolutionSupported){
 										this.videoSettingsError = null;
-										this.settings = data;
 										this.render();
 									} else {
 										//setting default settings
-										this.settings = this.settingsSizeDefault;
+										this.settings.size = this.settingsSizeDefault;
 										//saving new settings <- default settings
 										$.ajax({
-											url: API_BASEURL + 'settings/camera/streaming',
+											url: API_BASEURL + 'settings/camera',
 											type: 'POST',
 											contentType: 'application/json',
 											dataType: 'json',
 											data: JSON.stringify(this.settings)
 										});
-										noty({text: "Your camera does not support the current resolution, please lower it", timeout: 3000});
+										noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
 										this.videoSettingsError = null;
 										this.render();
 									}
@@ -421,7 +422,6 @@ var CameraVideoStreamView = SettingsPage.extend({
 		},this));
 	},
 	render: function() {
-
 		this.$el.html(this.template({
 			settings: this.settings
 		}));
@@ -466,7 +466,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		.done(_.bind(function(response){
 			if(response.isResolutionSupported){
 				$.ajax({
-					url: API_BASEURL + 'settings/camera/streaming',
+					url: API_BASEURL + 'settings/camera',
 					type: 'POST',
 					contentType: 'application/json',
 					dataType: 'json',

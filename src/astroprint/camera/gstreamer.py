@@ -33,6 +33,27 @@ class GStreamerManager(CameraManager):
 		self.supported_formats = None
 
 		super(GStreamerManager, self).__init__()
+
+	def settingsStructure(self):
+		return {
+			'videoEncoding': [
+				{'value': 'h264', 'label': 'H.264'},
+				{'value': 'vp8', 'label': 'VP8'}
+			],
+			'frameSizes': [
+				{'value': '640x480', 'label': 'Low (640 x 480)'},
+				{'value': '1280x720', 'label': 'High (1280 x 720)'}
+			],
+			'fps': [
+				{'value': '5', 'label': '5 fps'},
+				{'value': '10', 'label': '10 fps'},
+				{'value': '15', 'label': '15 fps'}
+			],
+			'cameraOutput': [
+				{'value': 'x-raw', 'label': 'Raw Video'},
+				{'value': 'x-h264', 'label': 'H.264 Encoded'}
+			]
+		}
 		
 	def open_camera(self):
 		try:

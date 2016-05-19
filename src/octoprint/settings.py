@@ -47,6 +47,7 @@ default_settings = {
 		"scheme": ""
 	},
 	"camera": {
+		"manager": "gstreamer",
 		"encoding": "h264",
 		"size": "640x480",
 		"framerate": "15",
