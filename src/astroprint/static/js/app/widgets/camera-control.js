@@ -1,4 +1,164 @@
 var CameraControlView = Backbone.View.extend({
+	cameraMode: 'video',//['video','photo']
+	state: null,
+	cameraAvailable: false,
+	initCamera: function(settings)
+	{
+		this.videoStreamingError = null;
+		
+		$.getJSON(API_BASEURL + 'camera/connected')
+		.done(_.bind(function(response){
+				
+			if(response.isCameraConnected){
+
+				$.getJSON(API_BASEURL + 'camera/has-properties')
+				.done(_.bind(function(response){
+						if(response.hasCameraProperties){
+							this.cameraAvailable = true;
+							//video settings
+							if( settings ){
+								this.settings = settings;
+								this.cameraInitialized();
+
+							} else {
+								$.getJSON(API_BASEURL + 'settings/camera')
+								.done(_.bind(function(settings){
+									
+									this.settings = settings;
+									this.cameraInitialized();
+
+								},this));
+							}
+
+							this.render();
+						} else {
+							this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+							this.render();
+						}
+				},this))
+				.fail(_.bind(function(response){
+					noty({text: "Unable to communicate with the camera.", timeout: 3000});
+					this.stopStreaming();
+					this.setState('error');
+				},this));
+			} else { 
+				this.render(); 
+			}
+		},this))
+	},
+	buttonEvent: function(e, text)
+	{
+		this.$('.loading-button').addClass('loading');
+		
+		if(this.cameraMode == 'video'){
+			if(this.state == 'streaming'){
+				this.stopStreaming();
+			} else {
+				this.startStreaming();
+			}
+		} else { //photo
+			this.takePhoto(text);
+		}
+	},
+	render: function() 
+	{
+		this.$el.html(this.template());
+	},
+	cameraModeChanged: function(e)
+	{
+		e.preventDefault();
+
+		if(this.cameraMode == 'video'){
+			this.stopStreaming();
+			this.$el.removeClass('nowebrtc error');
+		}
+		this.cameraMode = this.cameraModeByValue($(e.currentTarget).is(':checked'));
+		this.render();
+	},
+	cameraModeByValue: function(value)
+	{
+		/* Values matches by options:
+		* - True: video mode
+		* - False: photo mode
+		*/
+		return value ? 'video' : 'photo';
+	},
+	onShow: function()
+	{
+		this.initCamera();
+		this.$el.removeClass('nowebrtc error');
+	},
+	onHide: function()
+	{
+		if(this.cameraMode == 'video'){
+			if(this.state == 'streaming'){
+				this.stopStreaming();
+			}
+		} else { 
+			this.$('.camera-image').removeAttr('src');
+		}
+	},
+	setState: function(state)
+	{
+		this.state = state;
+		this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)  
+	},
+	takePhoto: function(text) 
+	{
+		$('.icon-3d-object').hide();
+
+		this.$('.loading-button').addClass('loading');
+
+		setTimeout(_.bind(function(){
+			var queryParams = [
+				"timestamp=" + (Date.now() / 1000)
+			];
+
+			if (text) {
+				queryParams.push("text="+encodeURIComponent(text));
+			}
+
+			this.$('.camera-image').attr('src', '/camera/snapshot?' + queryParams.join("&"));
+
+			
+			this.$('.camera-image').load(_.bind(function() {
+				this.$('.loading-button').removeClass('loading');
+			},this));
+
+			this.$('.camera-image').error(_.bind(function() {//NOT TESTED YET
+				this.$('.loading-button').removeClass('loading');
+				this.$('.camera-image').removeAttr('src');
+				$('.icon-3d-object').show();
+			},this));
+
+		},this),100);
+	},
+
+	//Implement these
+	cameraInitialized: function(){},
+	startStreaming: function(e){},
+	stopStreaming: function(e){}
+});
+
+var CameraControlViewMJPEG = CameraControlView.extend({
+	cameraInitialized: function()
+	{
+		console.log('cameraInitialized');
+	},
+	startStreaming: function(e)
+	{
+		this.setState('preparing');
+		setTimeout(_.bind(function(){
+			this.setState('streaming');
+		}, this), 3000);
+	},
+	stopStreaming: function(e)
+	{
+		this.setState('ready'); 
+	}
+});
+
+var CameraControlViewWebRTC = CameraControlView.extend({
   el: null,
   serverUrl: null,
   localSessionId: null,
@@ -14,73 +174,27 @@ var CameraControlView = Backbone.View.extend({
   videoStreamingEvent: null,
   videoStreamingError: null,
   browserNotVisibleManager : null,
-  manageVideoStreamingEvent: function(value){//override this for managing this error
-  	this.videoStreamingError = value.message;
-  	console.error(value.message);
+  manageVideoStreamingEvent: function(value)
+  {//override this for managing this error
+	this.videoStreamingError = value.message;
+	console.error(value.message);
   },
-  _onVideoStreamingError: function(e){
-  	if (e.data && e.data['event']) {
-	    var data = e.data['event'];
-	    var type = data["type"];
+  _onVideoStreamingError: function(e)
+  {
+	if (e.data && e.data['event']) {
+		var data = e.data['event'];
+		var type = data["type"];
 
-	    if (type == 'GstreamerFatalErrorManage') {
-	        this.manageVideoStreaming(data["message"]);
-	   	}
+		if (type == 'GstreamerFatalErrorManage') {
+			this.manageVideoStreaming(data["message"]);
+		}
 	}
   },
-  cameraModeByValue: function(value){
-  	/* Values matches by options:
-    * - True: video mode
-    * - False: photo mode
-    */
-  	mode = value?'video':'photo';
-
-  	return mode;
-  },
-  cameraMode: 'video',//['video','photo']
-  initialize: function(parameters)
+  cameraInitialized: function()
   {
-  	this.videoStreamingError = null;
-	
-	$.getJSON(API_BASEURL + 'camera/connected')
-	.done(_.bind(function(response){
-			
-		if(response.isCameraConnected){
+	//Evaluate if we are able to do WebRTC
 
-			$.getJSON(API_BASEURL + 'camera/has-properties')
-			.done(_.bind(function(response){
-					if(response.hasCameraProperties){
-						//video settings
-						if( !parameters || ! parameters.settings ){
-							
-							$.getJSON(API_BASEURL + 'settings/camera')
-							.done(_.bind(function(settings){
-								
-								this.settings = settings;
-								
-								this.evalWebRtcAbleing();
-
-							},this));
-
-						} else {
-							this.settings = parameters.settings;
-							this.evalWebRtcAbleing();
-						}
-					} else {
-						this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
-						this.render();
-					}
-			},this))
-			.fail(_.bind(function(response){
-				noty({text: "Unable to communicate with the camera.", timeout: 3000});
-				this.stopStreaming();
-				this.setState('error');
-			},this));
-		} else { this.render(); }
-	},this))
-  },
-  evalWebRtcAbleing: function(){
-  	if(Janus.isWebrtcSupported()) {
+	if(Janus.isWebrtcSupported()) {
 		if(!(navigator.mozGetUserMedia) 
 				&&
 			!(this.settings.encoding == 'vp8')
@@ -123,79 +237,14 @@ var CameraControlView = Backbone.View.extend({
 	}
 	this.render();
   },
-  onHide: function(){
- 	if(this.state == 'streaming' || this.state == 'streaming'){
-        this.stopStreaming();
-    } else {
-    	this.$('.camera-image').removeAttr('src');
-    }
-  },
-  cameraModeChanged: function(e){
-    if(this.cameraMode == 'video'){
-      this.stopStreaming();
-      this.$el.removeClass('nowebrtc error');
-    }
-    var target = $(e.currentTarget);
-    this.cameraMode = this.cameraModeByValue(target.is(':checked'));
-    this.render();
-  },
-  buttonEvent: function(e,text){
-
-  	this.$('.loading-button').addClass('loading');
-  	
-  	if(this.cameraMode == 'video'){
-  		if(this.state == 'streaming'){
-  			this.stopStreaming();
-  		} else {
-  			this.startStreaming();
-  		}
-  	} else { //photo
-  		this.takePhoto(text);
-  	}
-  },
-  takePhoto: function(text) {
-
-  	$('.icon-3d-object').hide();
-
-  	this.$('.loading-button').addClass('loading');
-
-  	setTimeout(_.bind(function(){
-
-	  	var queryParams = [
-	  		"timestamp=" + (Date.now() / 1000)
-	  	];
-
-	  	if (text) {
-	  		queryParams.push("text="+encodeURIComponent(text));
-	  	}
-
-	  	this.$('.camera-image').attr('src', '/camera/snapshot?' + queryParams.join("&"));
-
-	  	
-		this.$('.camera-image').load(_.bind(function() {
-	    	this.$('.loading-button').removeClass('loading');
-		},this));
-
-		this.$('.camera-image').error(_.bind(function() {//NOT TESTED YET
-	    	this.$('.loading-button').removeClass('loading');
-	    	this.$('.camera-image').removeAttr('src');
-	    	$('.icon-3d-object').show();
-		},this));
-
-  	},this),100);
-
-  },
-  initJanus: function(){
-  	this.localSessionId = null;
+  initJanus: function()
+  {
+	this.localSessionId = null;
 	this.streamingPlugIn = null;
   },
-  setState: function(state)
-  {
-  	this.state = state;
-	this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)  
-  },
-  startStreaming: function(e){	  
-  	
+  startStreaming: function(e)
+  {	  
+	
 	this.setState('preparing');
 	$.ajax({
 			url: API_BASEURL + "camera/init-janus",
@@ -220,7 +269,7 @@ var CameraControlView = Backbone.View.extend({
 					}).done(_.bind(function(response) {
 						this.localSessionId = response.sessionId;
 
-			            var streamingPlugIn = null;
+						var streamingPlugIn = null;
 						var selectedStream = this.settings.encoding == 'h264' ? 1 : 2;
 						console.log('Starting ' + this.settings.encoding);
 						var sizeVideo = this.settings.size;
@@ -234,27 +283,27 @@ var CameraControlView = Backbone.View.extend({
 								
 								this.streamingPlugIn.oncleanup = _.bind(function(){
 									var body = { "request": "destroy" };
-				                	this.streamingPlugIn.send({"message": body});
+									this.streamingPlugIn.send({"message": body});
 
 									$.ajax({
-					                    url: API_BASEURL + "camera/peer-session",
-					                    type: "DELETE",
-					                    dataType: "json",
-					                    contentType: "application/json; charset=UTF-8",
-					                    data: JSON.stringify({
-					                    	sessionId: this.localSessionId
-					                    })
-					                })
-				                    .done(_.bind(function(){
-				                    	this.setState('ready');
-				                    	janus.sessionId = null;
-				                    },this))
-				                    .always(_.bind(this.initJanus, this))
-				                    .fail(_.bind(function(){this.setState('error');},this))
-				                },this);
+										url: API_BASEURL + "camera/peer-session",
+										type: "DELETE",
+										dataType: "json",
+										contentType: "application/json; charset=UTF-8",
+										data: JSON.stringify({
+											sessionId: this.localSessionId
+										})
+									})
+									.done(_.bind(function(){
+										this.setState('ready');
+										janus.sessionId = null;
+									},this))
+									.always(_.bind(this.initJanus, this))
+									.fail(_.bind(function(){this.setState('error');},this))
+								},this);
 
-				                var body = { "request": "watch", id: selectedStream };
-				                this.streamingPlugIn.send({"message": body});
+								var body = { "request": "watch", id: selectedStream };
+								this.streamingPlugIn.send({"message": body});
 							},this),
 							error: function(error) {
 								console.error(error);
@@ -302,45 +351,45 @@ var CameraControlView = Backbone.View.extend({
 									this.setState('error');
 								},this));
 
-		                    	window.setTimeout(_.bind(function(){
-		                    		if(!isPlaying){
-		                    			console.log('Timeout!!!');
-		                    			console.log('Stop Janus caused by timeout!!!');
-		                    			this.stopStreaming();
+								window.setTimeout(_.bind(function(){
+									if(!isPlaying){
+										console.log('Timeout!!!');
+										console.log('Stop Janus caused by timeout!!!');
+										this.stopStreaming();
 										this.setState('error');
 										this.$('.loading-button').removeClass('loading');
-		                    		}
-		                    	},this),40000);
-		                    	
-		                    	var isPlaying = false;
-		                    	
-		                    	$("#remotevideo").bind("playing",_.bind(function () {
-		                    		this.setState('streaming');
-		                    		isPlaying = true;
-		                    		this.$('.loading-button').removeClass('loading');
+									}
+								},this),40000);
+								
+								var isPlaying = false;
+								
+								$("#remotevideo").bind("playing",_.bind(function () {
+									this.setState('streaming');
+									isPlaying = true;
+									this.$('.loading-button').removeClass('loading');
 
 									document.addEventListener("visibilitychange", _.bind(function() {
 										if(document.hidden || document.visibilityState != 'visible'){
-									  		this.browserNotVisibleManager = setInterval(_.bind(function(){
-									  			if(document.hidden || document.visibilityState != 'visible'){
-										  			this.stopStreaming();
-										  			clearInterval(this.browserNotVisibleManager);
-										  			this.browserNotVisibleManager = 'waiting';
-									  			}
-									  		},this), 15000);
-									  	} else {
-									  		if(this.browserNotVisibleManager == 'waiting'){
-									  			document.removeEventListener("visibilitychange",function(){});
-									  			this.browserNotVisibleManager = null;
-									  			this.startStreaming();
-									  		}
-									  	}
+											this.browserNotVisibleManager = setInterval(_.bind(function(){
+												if(document.hidden || document.visibilityState != 'visible'){
+													this.stopStreaming();
+													clearInterval(this.browserNotVisibleManager);
+													this.browserNotVisibleManager = 'waiting';
+												}
+											},this), 15000);
+										} else {
+											if(this.browserNotVisibleManager == 'waiting'){
+												document.removeEventListener("visibilitychange",function(){});
+												this.browserNotVisibleManager = null;
+												this.startStreaming();
+											}
+										}
 
 									},this), false);
 
-		                    	},this));
-		                    	
-		                    	attachMediaStream($('#remotevideo').get(0), stream);
+								},this));
+								
+								attachMediaStream($('#remotevideo').get(0), stream);
 
 							},this),
 							oncleanup: function() {
@@ -364,17 +413,17 @@ var CameraControlView = Backbone.View.extend({
 				destroyed: _.bind(this.initJanus, this)
 			});
 		}
-  	},this))	
+	},this))	
 	.fail(_.bind(function(error){
 		noty({text: "Unable to start the WebRTC system.", timeout: 3000});
 		this.initJanus();
 	}, this));
   },
-  stopStreaming: function(e){
+  stopStreaming: function(e)
+  {
 	if (this.localSessionId) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
 	}	
-	
   }
 });

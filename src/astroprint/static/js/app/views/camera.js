@@ -1,4 +1,4 @@
-var CameraView = CameraControlView.extend({
+var CameraView = CameraControlViewMJPEG.extend({
   el: '#camera-view',
   template: _.template( $("#camera-watch-page-template").html() ),
   serverUrl: null,
@@ -10,27 +10,10 @@ var CameraView = CameraControlView.extend({
      'click .buttons .columns .photo': 'buttonEvent',
      "change input[name='camera-mode']": 'cameraModeChanged'
   },
-  subviews: null,
-  render: function() {
-	  this.$el.html(this.template());
-  },
-  onShow: function(){
-    this.initialize();
-    this.$el.removeClass('nowebrtc error');
-  },
-  onHide: function(){
-    if(this.cameraMode == 'video'){
- 	    if(this.state == 'streaming'){
-        this.stopStreaming();
-      }
-    } else { 
-      this.$('.camera-image').removeAttr('src');
-    }
-  },
-  manageVideoStreamingEvent: function(value){
+  manageVideoStreamingEvent: function(value)
+  {
     this.onHide();//re-used function
     this.videoStreamingError = value.message;
     this.render();
-
   }
 });

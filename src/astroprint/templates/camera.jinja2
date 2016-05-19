@@ -4,14 +4,14 @@
 			<h1 class="bold">Camera</h1>
 		</div>
 	</div>
-<% if(this.cameraAvailable) {
-	if(this.videoStreamingError){ %>
-	<div class="panel text-center radius">
-		<i class="icon-camera"></i>
-		<h3 class="bold">No Camera Detected</h3>
-		<p><%= this.videoStreamingError %></p>
-	</div>
-<% 	} else { %>
+<% if(this.cameraAvailable) { %>
+	<% if(this.videoStreamingError){ %>
+		<div class="panel text-center radius">
+			<i class="icon-camera"></i>
+			<h3 class="bold">No Camera Detected</h3>
+			<p><%= this.videoStreamingError %></p>
+		</div>
+	<% } else { %>
 		<div class="row large-collapse">
 			<div class="video">
 				<div class="camera-view">
