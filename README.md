@@ -32,7 +32,7 @@ Installation instructions
 
     $ sudo apt-get install rubygems oracle-java8-jdk
     $ sudo gem install sass 
-    $ pip install -r requirements.txt
+    $ sudo pip install -r requirements.txt
   </pre>
 
 * You can run the box from source like this:
