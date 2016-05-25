@@ -8,8 +8,12 @@ import time
 import os
 import threading
 import uuid
+import cv2.cv
+import numpy as np
 
 from sarge import Command
+
+from octoprint.server import app
 
 from astroprint.camera.v4l2 import V4L2Manager
 
@@ -141,6 +145,21 @@ class MJPEGStreamer(object):
 		self._videoRunning = False
 		self._process = None
 
+
+		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
+		self._infoAreaShape = self._infoArea.shape
+
+		#precalculated stuff
+		watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
+		watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
+		
+		self._watermarkShape = watermark.shape
+		
+		watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
+		watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
+		self._watermakMaskWeighted = watermarkMask * watermark
+		self._watermarkInverted = 1.0 - watermarkMask
+
 	def startVideo(self):
 		if not self._process:
 			command = [
@@ -185,6 +204,11 @@ class MJPEGStreamer(object):
 		except urllib2.URLError:
 			pass
 
+		if image and text:
+			decodedImage = cv2.imdecode(np.fromstring(image, np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
+			self._apply_watermark(decodedImage, text)
+			image = cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(decodedImage), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 80]).tostring()
+
 		if stopAfterPhoto:
 			self.stopVideo()
 
@@ -193,4 +217,16 @@ class MJPEGStreamer(object):
 
 		else:
 			return image
+
+	def _apply_watermark(self, img, text):
+			if text and img != None:
+				imgPortion = img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5]
+				img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5] = (self._watermarkInverted * imgPortion) + self._watermakMaskWeighted
+
+				img[:self._infoAreaShape[0], :self._infoAreaShape[1]] = self._infoArea
+				cv2.putText(img, text, (30,17), cv2.FONT_HERSHEY_PLAIN, 1.0, (81,82,241), thickness=1)
+
+				return True
+
+			return False
 			
