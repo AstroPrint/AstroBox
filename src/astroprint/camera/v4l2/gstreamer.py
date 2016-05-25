@@ -84,6 +84,8 @@ class GStreamerManager(V4L2Manager):
 			return False
 
 	def settingsChanged(self, cameraSettings):
+		super(MjpegManager, self).settingsChanged(cameraSettings)
+
 		##When a change in settup is saved, the camera must be shouted down
 		##(Janus included, of course)
 		self.stop_video_stream()
@@ -105,7 +107,6 @@ class GStreamerManager(V4L2Manager):
 	# There are cases where we want the pic to be synchronous
 	# so we leave this version too
 	def get_pic(self, text=None):
-
 		if self.gstreamerVideo:
 			return self.gstreamerVideo.take_photo(text)
 
@@ -142,6 +143,10 @@ class GStreamerManager(V4L2Manager):
 
 	def closeLocalVideoSession(self, sessionId):
 		return webRtcManager().closeLocalSession(sessionId)
+
+	@property
+	def capabilities(self):
+		return ['videoStreaming', 'videoformat-' + self._settings['videotype']]
 
 	## From V4L2Manager
 	def _broadcastFataError(self, msg):

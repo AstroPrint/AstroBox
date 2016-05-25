@@ -86,6 +86,15 @@ class TimelapseWorker(threading.Thread):
 
 class CameraManager(object):
 	def __init__(self):
+
+		s = settings()
+
+		self._settings = {
+			'size': s.get(["camera", "size"]),
+			'framerate': s.get(["camera", "framerate"]),
+			'format': s.get(["camera", "format"])
+		}
+
 		self._eventManager = eventManager()
 
 		self.timelapseWorker = None
@@ -246,7 +255,7 @@ class CameraManager(object):
 		return False
 
 	def settingsChanged(self, cameraSettings):
-		pass
+		self._settings = cameraSettings
 
 	def open_camera(self):
 		return False
@@ -296,6 +305,10 @@ class CameraManager(object):
 	# closes a client session on the camera manager, when no more sessions stop streaming. Returns True on success
 	def closeLocalVideoSession(self, sessionId):
 		pass
+
+	@property
+	def capabilities(self):
+		return []
 
 	## private functions
 

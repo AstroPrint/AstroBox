@@ -13,24 +13,13 @@ from sarge import Command
 
 from astroprint.camera.v4l2 import V4L2Manager
 
-from octoprint.settings import settings
-
 class MjpegManager(V4L2Manager):
 	def __init__(self, videoDevice):
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('MPJEG Camera Manager initialized')
 		self._videoDevice = videoDevice
-		self._settings = None
 		self._isStreaming = False
 		self._localClients = []
-
-		s = settings()
-
-		self._settings = {
-			'size': s.get(["camera", "size"]),
-			'framerate': s.get(["camera", "framerate"]),
-			'format': s.get(["camera", "format"])
-		}
 
 		super(MjpegManager, self).__init__(videoDevice)
 
@@ -51,8 +40,9 @@ class MjpegManager(V4L2Manager):
 		}
 
 	def settingsChanged(self, cameraSettings):
+		super(MjpegManager, self).settingsChanged(cameraSettings)
+
 		self.stop_video_stream()
-		self._settings = cameraSettings
 		self._localClients = []
 		self._streamer = None
 		self.open_camera()
@@ -189,7 +179,7 @@ class MJPEGStreamer(object):
 
 		try:
 			time.sleep(0.5) # we need to give the camera some time to stabilize the image
-			response = urllib2.urlopen('http://localhost:%d?action=snapshot' % self._httpPort)
+			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()
 
 		except urllib2.URLError:

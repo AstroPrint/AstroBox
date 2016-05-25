@@ -25,16 +25,17 @@ class RequestHandler(object):
 
 	def initial_state(self, data, clientId, done):
 		printer = printerManager()
+		cm = cameraManager()
 
 		done({
 			'printing': printer.isPrinting(),
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
 			'camera': printer.isCameraConnected(),
-			'printCapture': cameraManager().timelapseInfo,
+			'printCapture': cm.timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': self._makeCapabilitiesArray()
+			'capabilities': ['remotePrint'] + cm.capabilities
 		})
 
 	def job_info(self, data, clientId, done):
@@ -203,12 +204,6 @@ class RequestHandler(object):
 				'error': True,
 				'message': '%s::%s is not supported' % (handlerClass, command)
 			})
-
-	def _makeCapabilitiesArray(self):
-		videotype = settings().get(["camera", "encoding"])
-		capabilitiesArray = ['remotePrint', 'videoStreaming']
-		capabilitiesArray += ['videoformat-' + videotype]
-		return capabilitiesArray
 
 # Printer Command Group Handler
 
