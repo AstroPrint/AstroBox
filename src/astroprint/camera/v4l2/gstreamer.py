@@ -146,7 +146,7 @@ class GStreamerManager(V4L2Manager):
 
 	@property
 	def capabilities(self):
-		return ['videoStreaming', 'videoformat-' + self._settings['videotype']]
+		return ['videoStreaming', 'videoformat-' + self._settings['encoding']]
 
 	## From V4L2Manager
 	def _broadcastFataError(self, msg):

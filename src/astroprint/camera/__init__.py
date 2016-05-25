@@ -90,6 +90,7 @@ class CameraManager(object):
 		s = settings()
 
 		self._settings = {
+			'encoding': s.get(["camera", "encoding"]),
 			'size': s.get(["camera", "size"]),
 			'framerate': s.get(["camera", "framerate"]),
 			'format': s.get(["camera", "format"])
