@@ -27,7 +27,8 @@ class MjpegManager(V4L2Manager):
 
 		super(MjpegManager, self).__init__(videoDevice)
 
-	def settingsStructure(self):
+	@property
+	def _desiredSettings(self):
 		return {
 			'videoEncoding': [],
 			'frameSizes': [
@@ -198,7 +199,7 @@ class MJPEGStreamer(object):
 
 		try:
 			if self._format == 'x-raw':
-				time.sleep(1.2) # we need to give the camera some time to stabilize the image
+				time.sleep(1.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
 
 			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()

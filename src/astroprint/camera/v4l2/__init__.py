@@ -123,6 +123,10 @@ class V4L2Manager(CameraManager):
 	def _broadcastFataError(self, msg):
 		pass
 
+	@property
+	def _desiredSettings(self):
+		return {}
+
 	# from CameraManager
 
 	def isCameraConnected(self):
@@ -140,12 +144,25 @@ class V4L2Manager(CameraManager):
 		for supported_format in self.supported_formats:
 		    if supported_format.get('pixelformat') == 'YUYV':
 		        resolutions = supported_format.get('resolutions')
+		        break
 
-		arrResolution = resolution.split('x')
+		resolution = [long(e) for e in resolution.split('x')]
 		
-		resolution = []
-		
-		for element in arrResolution:
-			resolution += [long(element)]
-
 		return resolution in resolutions
+
+	def settingsStructure(self):
+		desired = self._desiredSettings
+
+		pixelformats = [x['pixelformat'] for x in self.supported_formats]
+
+		for r in desired['frameSizes']:
+			if not self.isResolutionSupported(r['value']):
+				desired['frameSizes'].remove(r)
+
+		for o in desired['cameraOutput']:
+			if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
+				(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) or \
+				(o['value'] == 'x-h264' and 'H264' not in pixelformats):
+					desired['cameraOutput'].remove(o)
+
+		return desired

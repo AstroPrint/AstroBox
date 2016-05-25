@@ -209,6 +209,11 @@
         font-size: 36px;
         color: $red;
     }
+
+    div.field-value {
+    	margin-bottom: 20px;
+    	margin-top: -10px;
+    }
 }
 
 #software-update-modal {
