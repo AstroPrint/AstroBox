@@ -1,6 +1,7 @@
 var CameraControlView = Backbone.View.extend({
 	cameraMode: 'video',//['video','photo']
 	state: null,
+	localSessionId: null,
 	cameraAvailable: false,
 	initCamera: function(settings)
 	{
@@ -141,6 +142,7 @@ var CameraControlView = Backbone.View.extend({
 });
 
 var CameraControlViewMJPEG = CameraControlView.extend({
+	managerName: 'mjpeg',
 	cameraInitialized: function()
 	{
 		console.log('cameraInitialized');
@@ -148,21 +150,39 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 	startStreaming: function(e)
 	{
 		this.setState('preparing');
-		setTimeout(_.bind(function(){
-			this.setState('streaming');
-		}, this), 3000);
+		$.ajax({
+			url: API_BASEURL + 'camera/peer-session',
+			method: 'POST',
+			type: 'json'
+		})
+			.done(_.bind(function(r){
+				this.localSessionId = r.sessionId;
+				this.$('#video-stream').attr('src', '/webcam/?action=stream');
+				this.setState('streaming');
+			}, this));
 	},
 	stopStreaming: function(e)
 	{
-		this.setState('ready'); 
+		$.ajax({
+			url: API_BASEURL + 'camera/peer-session',
+			method: 'DELETE',
+			type: 'json',
+			contentType: 'application/json',
+			data: JSON.stringify({
+				sessionId: this.localSessionId
+			})
+		})
+			.done(_.bind(function(){
+				this.setState('ready');
+			}, this));
 	}
 });
 
 var CameraControlViewWebRTC = CameraControlView.extend({
   el: null,
   serverUrl: null,
-  localSessionId: null,
   streamingPlugIn: null,
+  managerName: 'webrtc',
   events: {
 	'hide':'onHide'
   },

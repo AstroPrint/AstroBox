@@ -64,9 +64,13 @@
 									<h3 class="bold">Preparing Video...</h3>
 								</div>
 								<div id="videoScreen" class="video-on text-center">
-									<video id="remotevideo" class="cover-img-cont" autoplay="">
-										You browser doesn't support element <code>video</code>.
-									</video>
+									<% if (this.managerName == "mjpeg") { %>
+										<img id="video-stream" class="cover-img-cont"/>
+									<% } else { %>
+										<video id="remotevideo" class="cover-img-cont" autoplay="">
+											You browser doesn't support element <code>video</code>.
+										</video>
+									<% } %>
 								</div>
 							</div>
 						<% } else { %>

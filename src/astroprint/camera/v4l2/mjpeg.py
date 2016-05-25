@@ -113,6 +113,16 @@ class MjpegManager(V4L2Manager):
 	def isVideoStreaming(self):
 		return self._isStreaming;
 
+	def startLocalVideoSession(self):
+		if self._streamer:
+			self._streamer.startVideo()
+			return "1234"
+
+	def closeLocalVideoSession(self, sessionId):
+		if self._streamer:
+			self._streamer.stopVideo();
+			return True
+
 
 class MJPEGStreamer(object):
 	_httpPort = 8085
@@ -162,6 +172,7 @@ class MJPEGStreamer(object):
 			stopAfterPhoto = True
 
 		try:
+			time.sleep(0.5) # we need to give the camera some time to stabilize the image
 			response = urllib2.urlopen('http://localhost:%d?action=snapshot' % self._httpPort)
 			image = response.read()
 
