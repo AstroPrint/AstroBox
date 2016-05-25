@@ -1,4 +1,7 @@
-var CameraViewBase = CameraControlViewMJPEG
+var CameraViewBase = {
+  mjpeg: CameraControlViewMJPEG,
+  gstreamer: CameraControlViewWebRTC
+}[CAMERA_MANAGER];
 
 var CameraView = CameraViewBase.extend({
   el: '#camera-view',

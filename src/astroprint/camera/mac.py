@@ -11,6 +11,8 @@ from random import randrange
 from astroprint.camera import CameraManager
 
 class CameraMacManager(CameraManager):
+	name = 'mac'
+
 	def __init__(self):
 		super(CameraMacManager, self).__init__()
 

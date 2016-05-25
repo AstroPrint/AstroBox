@@ -18,6 +18,8 @@ from octoprint.server import app
 from astroprint.camera.v4l2 import V4L2Manager
 
 class MjpegManager(V4L2Manager):
+	name = 'mjpeg'
+
 	def __init__(self, videoDevice):
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('MPJEG Camera Manager initialized')

@@ -137,6 +137,7 @@ def index():
 		pm = printerManager()
 		nm = networkManager()
 		swm = swManager()
+		cm = cameraManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
@@ -150,13 +151,14 @@ def index():
 			printing= printing,
 			paused= paused,
 			online= online,
-			print_capture= cameraManager().timelapseInfo if printing or paused else None,
+			print_capture= cm.timelapseInfo if printing or paused else None,
 			printer_profile= printerProfileManager().data,
 			uiApiKey= UI_API_KEY,
 			astroboxName= nm.getHostname(),
 			variantData= variantManager().data,
 			checkSoftware= swm.shouldCheckForNew,
-			serialLogActive= s.getBoolean(['serial', 'log'])
+			serialLogActive= s.getBoolean(['serial', 'log']),
+			cameraManager= cm.name
 		)
 
 @app.route("/discovery.xml")

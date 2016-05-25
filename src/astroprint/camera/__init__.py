@@ -89,6 +89,8 @@ class TimelapseWorker(threading.Thread):
 		return not self._resumeFromPause.isSet()
 
 class CameraManager(object):
+	name = None
+
 	def __init__(self):
 
 		s = settings()

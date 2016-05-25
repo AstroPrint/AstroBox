@@ -26,6 +26,8 @@ from blinker import signal
 gst.init(None)
 
 class GStreamerManager(V4L2Manager):
+	name = 'gstreamer'
+
 	def __init__(self, videoDevice):
 		self.gstreamerVideo = None
 		self.asyncPhotoTaker = None
