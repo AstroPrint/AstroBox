@@ -1,6 +1,7 @@
 var CameraControlView = Backbone.View.extend({
 	cameraMode: 'video',//['video','photo']
 	state: null,
+	canStream: false,
 	cameraAvailable: false,
 	browserNotVisibleManager: null,
 	initCamera: function(settings)
@@ -47,18 +48,16 @@ var CameraControlView = Backbone.View.extend({
 			}
 		},this))
 	},
-	buttonEvent: function(e, text)
-	{
-		this.$('.loading-button').addClass('loading');
-		
+	buttonEvent: function()
+	{		
 		if(this.cameraMode == 'video'){
 			if(this.state == 'streaming'){
-				this.stopStreaming();
+				return this.stopStreaming();
 			} else {
-				this.startStreaming();
+				return this.startStreaming();
 			}
 		} else { //photo
-			this.takePhoto(text);
+			return this.takePhoto();
 		}
 	},
 	render: function() 
@@ -104,41 +103,29 @@ var CameraControlView = Backbone.View.extend({
 		this.state = state;
 		this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)  
 	},
-	takePhoto: function(text) 
+	takePhoto: function() 
 	{
-		$('.icon-3d-object').hide();
+		var promise = $.Deferred();
 
-		this.$('.loading-button').addClass('loading');
+		photoCont = this.getPhotoContainer();
 
-		setTimeout(_.bind(function(){
-			var queryParams = [
-				"timestamp=" + (Date.now() / 1000)
-			];
+		photoCont.attr('src', '/camera/snapshot?timestamp=' + (Date.now() / 1000));
 
-			if (text) {
-				queryParams.push("text="+encodeURIComponent(text));
-			}
+		photoCont.on('load',function() {
+			photoCont.off('load');
+			promise.resolve();
+		});
 
-			this.$('.camera-image').attr('src', '/camera/snapshot?' + queryParams.join("&"));
+		photoCont.on('error', function() {
+			photoCont.removeAttr('src');
+			photoCont.off('error');
+			promise.reject();
+		});
 
-			this.$('.camera-image').on('load', _.bind(function() {
-				this.$('.loading-button').removeClass('loading');
-				this.$('.camera-image').off('load');
-			},this));
-
-			this.$('.camera-image').on('error', _.bind(function() {
-				this.$('.loading-button').removeClass('loading');
-				this.$('.camera-image').removeAttr('src');
-				$('.icon-3d-object').show();
-				noty({text: "Error capturing photo.", timeout: 3000});
-				this.$('.camera-image').off('error');
-			},this));
-
-		},this),100);
+		return promise;
 	},
 	activateWindowHideListener: function()
 	{
-
 		var onVisibilityChange = _.bind(function() {
 			if(document.hidden || document.visibilityState != 'visible'){
 				this.browserNotVisibleManager = setInterval(_.bind(function(){
@@ -162,19 +149,22 @@ var CameraControlView = Backbone.View.extend({
 
 	//Implement these
 	cameraInitialized: function(){},
-	startStreaming: function(e){},
-	stopStreaming: function(e){}
+	startStreaming: function(){}, // return a promise
+	stopStreaming: function(){}, // return a promise
+
+	getPhotoContainer: function(){},
+	getVideoContainer: function(){}
 });
 
 var CameraControlViewMJPEG = CameraControlView.extend({
 	managerName: 'mjpeg',
-	cameraInitialized: function()
+	canStream: true,
+	startStreaming: function()
 	{
-		console.log('cameraInitialized');
-	},
-	startStreaming: function(e)
-	{
+		var promise = $.Deferred();
+
 		this.setState('preparing');
+
 		$.ajax({
 			url: API_BASEURL + 'camera/peer-session',
 			method: 'POST',
@@ -186,23 +176,29 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 		})
 			.done(_.bind(function(r){
 				this.streaming = true;
-				this.$('#video-stream').attr('src', '/webcam/?action=stream');
+				var videoCont = this.getVideoContainer();
+				videoCont.attr('src', '/webcam/?action=stream');
 
-				this.$('#video-stream').on('load', _.bind(function() {
+				videoCont.on('load', _.bind(function() {
 					this.setState('streaming');
 					this.activateWindowHideListener();
-					this.$('#video-stream').off('load');
+					videoCont.off('load');
+					promise.resolve();
 				},this));
 
-				this.$('#video-stream').on('error', _.bind(function() {
-					noty({text: "Error starting video.", timeout: 3000});
+				videoCont.on('error', _.bind(function() {
 					this.setState('error');
-					this.$('#video-stream').off('error');
+					videoCont.off('error');
+					promie.reject()
 				},this));
 			}, this));
+
+		return promise;
 	},
-	stopStreaming: function(e)
+	stopStreaming: function()
 	{
+		var promise = $.Deferred();
+
 		$.ajax({
 			url: API_BASEURL + 'camera/peer-session',
 			method: 'DELETE',
@@ -214,7 +210,13 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 		})
 			.done(_.bind(function(){
 				this.setState('ready');
-			}, this));
+				promise.resolve();
+			}, this))
+			.fail(function(){
+				promise.reject();
+			});
+
+		return promise;
 	}
 });
 
@@ -228,7 +230,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 	'hide':'onHide'
   },
   settings: null,
-  ableWebRtc: null,//['ready','nowebrtc']
   print_capture: null,
   photoSeq: 0,
   _socket: null,
@@ -263,22 +264,22 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 			//AND VIDEO IS NOT VP8
 			
 			//this.setState('nowebrtc');
-			//this.ableWebRtc = false;
+			//this.canStream = false;
 			
 			this.$('#camera-mode-slider').hide();
-			this.ableWebRtc = false;
+			this.canStream = false;
 			
 			////////////////////////
 		} else {
 			this.setState('ready'); 
-			this.ableWebRtc = true;
+			this.canStream = true;
 		}
 	} else {
 		this.setState('nowebrtc');
-		this.ableWebRtc = false;
+		this.canStream = false;
 	}
 
-	if( !this.ableWebRtc){
+	if( !this.canStream){
 		this.initJanus = null;
 		this.startStreaming = function(){ this.setState('nowebrtc'); };
 		this.stopStreaming = function(){ return true; };
@@ -302,19 +303,22 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   	this.streaming = false;
 	this.streamingPlugIn = null;
   },
-  startStreaming: function(e)
-  {	  
-	
+  startStreaming: function()
+  {
+	var promise = $.Deferred();
+
+	var videoCont = this.getVideoContainer();
+
 	this.setState('preparing');
 	$.ajax({
-			url: API_BASEURL + "camera/init-janus",
-			type: "POST",
-			dataType: "json",
-			contentType: "application/json; charset=UTF-8",
-			data: ''
+		url: API_BASEURL + "camera/init-janus",
+		type: "POST",
+		dataType: "json",
+		contentType: "application/json; charset=UTF-8",
+		data: ''
 	})
 	.done(_.bind(function(isJanusRunning){
-		if(!this.$('#remotevideo').is(':visible')) {			
+		if(!videoCont.is(':visible')) {			
 			// Create session
 			var janus = new Janus({
 				server: this.serverUrl,
@@ -334,7 +338,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
 						var streamingPlugIn = null;
 						var selectedStream = this.settings.encoding == 'h264' ? 1 : 2;
-						console.log('Starting ' + this.settings.encoding);
 						var sizeVideo = this.settings.size;
 
 						//Attach to streaming plugin
@@ -342,7 +345,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 							plugin: "janus.plugin.streaming",
 							success: _.bind(function(pluginHandle) {
 								this.streamingPlugIn = pluginHandle;
-								console.log('Janus Streaming PlugIn Created');
 								
 								this.streamingPlugIn.oncleanup = _.bind(function(){
 									var body = { "request": "destroy" };
@@ -410,32 +412,30 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 									url: API_BASEURL + "camera/start-streaming",
 									type: "POST"
 								}).fail(_.bind(function(){
-									console.log('ERROR');
 									this.setState('error');
 								},this));
 
 								window.setTimeout(_.bind(function(){
 									if(!isPlaying){
-										console.log('Timeout!!!');
-										console.log('Stop Janus caused by timeout!!!');
 										this.stopStreaming();
 										this.setState('error');
-										this.$('.loading-button').removeClass('loading');
+										promise.reject();
 									}
 								},this),40000);
 								
 								var isPlaying = false;
-								
-								$("#remotevideo").bind("playing",_.bind(function () {
+
+								onPlaying = _.bind(function () {
 									this.setState('streaming');
 									isPlaying = true;
-									this.$('.loading-button').removeClass('loading');
-
 									this.activateWindowHideListener();
-
-								},this));
+									videoCont.off('playing', onPlaying);
+									promise.resolve();
+								}, this);
 								
-								attachMediaStream($('#remotevideo').get(0), stream);
+								videoCont.on("playing", onPlaying);
+								
+								attachMediaStream(videoCont.get(0), stream);
 
 							},this),
 							oncleanup: function() {
@@ -455,21 +455,35 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 							streamingState = 'stopped';
 							this.setState('error');
 						}
+
+					promise.resolve();
 				},this),
 				destroyed: _.bind(this.initJanus, this)
 			});
 		}
+
+		promise.resolve(); //We didn't start it but it wasn't visible anyway
 	},this))	
 	.fail(_.bind(function(error){
 		noty({text: "Unable to start the WebRTC system.", timeout: 3000});
 		this.initJanus();
+		promise.resolve();
 	}, this));
+
+	return promise;
   },
-  stopStreaming: function(e)
+  stopStreaming: function()
   {
 	if (this.streaming) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
-	}	
+	}
+
+	return $.Deferred().resolve();
   }
 });
+
+var CameraViewBase = {
+  mjpeg: CameraControlViewMJPEG,
+  gstreamer: CameraControlViewWebRTC
+}[CAMERA_MANAGER];
