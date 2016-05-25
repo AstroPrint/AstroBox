@@ -197,7 +197,9 @@ class MJPEGStreamer(object):
 			stopAfterPhoto = True
 
 		try:
-			time.sleep(0.5) # we need to give the camera some time to stabilize the image
+			if self._format == 'x-raw':
+				time.sleep(1.2) # we need to give the camera some time to stabilize the image
+
 			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()
 
