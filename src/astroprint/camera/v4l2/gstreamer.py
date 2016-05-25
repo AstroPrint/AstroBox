@@ -137,12 +137,11 @@ class GStreamerManager(V4L2Manager):
 		if self.asyncPhotoTaker:
 			self.asyncPhotoTaker.stop()
 
-	def startLocalVideoSession(self):
-		return webRtcManager().startLocalSession()
+	def startLocalVideoSession(self, sessionId):
+		return webRtcManager().startLocalSession(sessionId)
 
 	def closeLocalVideoSession(self, sessionId):
-		webRtcManager().closeLocalSession(sessionId)
-		return True
+		return webRtcManager().closeLocalSession(sessionId)
 
 	## From V4L2Manager
 	def _broadcastFataError(self, msg):

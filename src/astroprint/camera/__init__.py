@@ -289,8 +289,8 @@ class CameraManager(object):
 	def isResolutionSupported(self, resolution):
 		pass
 
-	# starts a client session on the camera manager, returns a session Id, start streaming if first session
-	def startLocalVideoSession(self):
+	# starts a client session on the camera manager, starts streaming if first session. Returns True on succcess
+	def startLocalVideoSession(self, sessionId):
 		pass
 
 	# closes a client session on the camera manager, when no more sessions stop streaming. Returns True on success

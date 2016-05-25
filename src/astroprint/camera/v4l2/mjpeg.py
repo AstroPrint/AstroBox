@@ -7,6 +7,7 @@ import urllib2
 import time
 import os
 import threading
+import uuid
 
 from sarge import Command
 
@@ -21,6 +22,7 @@ class MjpegManager(V4L2Manager):
 		self._videoDevice = videoDevice
 		self._settings = None
 		self._isStreaming = False
+		self._localClients = []
 
 		s = settings()
 
@@ -51,6 +53,7 @@ class MjpegManager(V4L2Manager):
 	def settingsChanged(self, cameraSettings):
 		self.stop_video_stream()
 		self._settings = cameraSettings
+		self._localClients = []
 		self._streamer = None
 		self.open_camera()
 
@@ -71,6 +74,7 @@ class MjpegManager(V4L2Manager):
 
 	def close_camera(self):
 		self.stop_video_stream()
+		self._localClients = []
 		self._streamer = None
 
 	def start_video_stream(self):
@@ -113,14 +117,21 @@ class MjpegManager(V4L2Manager):
 	def isVideoStreaming(self):
 		return self._isStreaming;
 
-	def startLocalVideoSession(self):
+	def startLocalVideoSession(self, sessionId):
 		if self._streamer:
-			self._streamer.startVideo()
-			return "1234"
+			if len(self._localClients) == 0:
+				self._streamer.startVideo()
+
+			self._localClients.append(sessionId)
+			return True
 
 	def closeLocalVideoSession(self, sessionId):
 		if self._streamer:
-			self._streamer.stopVideo();
+			self._localClients.remove(sessionId)
+
+			if len(self._localClients) == 0:
+				self._streamer.stopVideo();
+
 			return True
 
 

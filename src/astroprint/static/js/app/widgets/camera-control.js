@@ -1,7 +1,6 @@
 var CameraControlView = Backbone.View.extend({
 	cameraMode: 'video',//['video','photo']
 	state: null,
-	localSessionId: null,
 	cameraAvailable: false,
 	initCamera: function(settings)
 	{
@@ -153,10 +152,14 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 		$.ajax({
 			url: API_BASEURL + 'camera/peer-session',
 			method: 'POST',
+			data: JSON.stringify({
+				sessionId: AP_SESSION_ID
+			}),
+			contentType: 'application/json',
 			type: 'json'
 		})
 			.done(_.bind(function(r){
-				this.localSessionId = r.sessionId;
+				this.streaming = true;
 				this.$('#video-stream').attr('src', '/webcam/?action=stream');
 				this.setState('streaming');
 			}, this));
@@ -169,7 +172,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 			type: 'json',
 			contentType: 'application/json',
 			data: JSON.stringify({
-				sessionId: this.localSessionId
+				sessionId: AP_SESSION_ID
 			})
 		})
 			.done(_.bind(function(){
@@ -182,6 +185,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   el: null,
   serverUrl: null,
   streamingPlugIn: null,
+  streaming: false,
   managerName: 'webrtc',
   events: {
 	'hide':'onHide'
@@ -259,7 +263,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   initJanus: function()
   {
-	this.localSessionId = null;
+  	this.streaming = false;
 	this.streamingPlugIn = null;
   },
   startStreaming: function(e)
@@ -283,11 +287,14 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 					$.ajax({
 						url: API_BASEURL + "camera/peer-session",
 						type: "POST",
+						data: JSON.stringify({
+							sessionId: AP_SESSION_ID
+						}),
 						dataType: "json",
 						contentType: "application/json; charset=UTF-8",
 						data: JSON.stringify()
 					}).done(_.bind(function(response) {
-						this.localSessionId = response.sessionId;
+						this.streaming = true;
 
 						var streamingPlugIn = null;
 						var selectedStream = this.settings.encoding == 'h264' ? 1 : 2;
@@ -311,7 +318,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										dataType: "json",
 										contentType: "application/json; charset=UTF-8",
 										data: JSON.stringify({
-											sessionId: this.localSessionId
+											sessionId: AP_SESSION_ID
 										})
 									})
 									.done(_.bind(function(){
@@ -441,7 +448,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   stopStreaming: function(e)
   {
-	if (this.localSessionId) { 
+	if (this.streaming) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
 	}	

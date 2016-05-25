@@ -64,12 +64,10 @@ class WebRtc(object):
 		self._logger.info('Shutting Down WebRtcManager')
 		self.stopJanus()
 
-	def startLocalSession(self):
+	def startLocalSession(self, sessionId):
 		with self._peerCondition:
-			sessionId = uuid.uuid4().hex
-			
 			self._connectedPeers[sessionId] = "local";
-			return sessionId
+			return True
 
 	def closeLocalSession(self, sessionId):
 		with self._peerCondition:
@@ -90,6 +88,8 @@ class WebRtc(object):
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
+
+			return True
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
