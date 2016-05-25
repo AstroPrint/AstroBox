@@ -2,6 +2,7 @@ var CameraControlView = Backbone.View.extend({
 	cameraMode: 'video',//['video','photo']
 	state: null,
 	cameraAvailable: false,
+	browserNotVisibleManager: null,
 	initCamera: function(settings)
 	{
 		this.videoStreamingError = null;
@@ -133,6 +134,29 @@ var CameraControlView = Backbone.View.extend({
 
 		},this),100);
 	},
+	activateWindowHideListener: function()
+	{
+
+		var onVisibilityChange = _.bind(function() {
+			if(document.hidden || document.visibilityState != 'visible'){
+				this.browserNotVisibleManager = setInterval(_.bind(function(){
+					if(document.hidden || document.visibilityState != 'visible'){
+						this.stopStreaming();
+						clearInterval(this.browserNotVisibleManager);
+						this.browserNotVisibleManager = 'waiting';
+					}
+				},this), 15000);
+			} else {
+				if(this.browserNotVisibleManager == 'waiting'){
+					$(document).off("visibilitychange",onVisibilityChange);
+					this.browserNotVisibleManager = null;
+					this.startStreaming();
+				}
+			}
+		},this);
+
+		$(document).on("visibilitychange", onVisibilityChange);
+	},
 
 	//Implement these
 	cameraInitialized: function(){},
@@ -162,6 +186,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 				this.streaming = true;
 				this.$('#video-stream').attr('src', '/webcam/?action=stream');
 				this.setState('streaming');
+				this.activateWindowHideListener();
 			}, this));
 	},
 	stopStreaming: function(e)
@@ -197,7 +222,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   _socket: null,
   videoStreamingEvent: null,
   videoStreamingError: null,
-  browserNotVisibleManager : null,
   manageVideoStreamingEvent: function(value)
   {//override this for managing this error
 	this.videoStreamingError = value.message;
@@ -395,24 +419,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 									isPlaying = true;
 									this.$('.loading-button').removeClass('loading');
 
-									document.addEventListener("visibilitychange", _.bind(function() {
-										if(document.hidden || document.visibilityState != 'visible'){
-											this.browserNotVisibleManager = setInterval(_.bind(function(){
-												if(document.hidden || document.visibilityState != 'visible'){
-													this.stopStreaming();
-													clearInterval(this.browserNotVisibleManager);
-													this.browserNotVisibleManager = 'waiting';
-												}
-											},this), 15000);
-										} else {
-											if(this.browserNotVisibleManager == 'waiting'){
-												document.removeEventListener("visibilitychange",function(){});
-												this.browserNotVisibleManager = null;
-												this.startStreaming();
-											}
-										}
-
-									},this), false);
+									this.activateWindowHideListener();
 
 								},this));
 								
