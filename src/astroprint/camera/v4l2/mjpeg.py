@@ -127,7 +127,12 @@ class MjpegManager(V4L2Manager):
 
 	def closeLocalVideoSession(self, sessionId):
 		if self._streamer:
-			self._localClients.remove(sessionId)
+			try:
+				self._localClients.remove(sessionId)
+
+			except ValueError:
+				# the sessionId was not active. It's ok we just ignore
+				return True
 
 			if len(self._localClients) == 0:
 				self._streamer.stopVideo();
