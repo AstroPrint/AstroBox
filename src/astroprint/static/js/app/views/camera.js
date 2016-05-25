@@ -1,4 +1,6 @@
-var CameraView = CameraControlViewMJPEG.extend({
+var CameraViewBase = CameraControlViewMJPEG
+
+var CameraView = CameraViewBase.extend({
   el: '#camera-view',
   template: _.template( $("#camera-watch-page-template").html() ),
   serverUrl: null,

@@ -121,15 +121,17 @@ var CameraControlView = Backbone.View.extend({
 
 			this.$('.camera-image').attr('src', '/camera/snapshot?' + queryParams.join("&"));
 
-			
-			this.$('.camera-image').load(_.bind(function() {
+			this.$('.camera-image').on('load', _.bind(function() {
 				this.$('.loading-button').removeClass('loading');
+				this.$('.camera-image').off('load');
 			},this));
 
-			this.$('.camera-image').error(_.bind(function() {//NOT TESTED YET
+			this.$('.camera-image').on('error', _.bind(function() {
 				this.$('.loading-button').removeClass('loading');
 				this.$('.camera-image').removeAttr('src');
 				$('.icon-3d-object').show();
+				noty({text: "Error capturing photo.", timeout: 3000});
+				this.$('.camera-image').off('error');
 			},this));
 
 		},this),100);
@@ -185,8 +187,18 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 			.done(_.bind(function(r){
 				this.streaming = true;
 				this.$('#video-stream').attr('src', '/webcam/?action=stream');
-				this.setState('streaming');
-				this.activateWindowHideListener();
+
+				this.$('#video-stream').on('load', _.bind(function() {
+					this.setState('streaming');
+					this.activateWindowHideListener();
+					this.$('#video-stream').off('load');
+				},this));
+
+				this.$('#video-stream').on('error', _.bind(function() {
+					noty({text: "Error starting video.", timeout: 3000});
+					this.setState('error');
+					this.$('#video-stream').off('error');
+				},this));
 			}, this));
 	},
 	stopStreaming: function(e)
