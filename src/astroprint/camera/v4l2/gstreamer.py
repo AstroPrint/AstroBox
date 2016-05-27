@@ -65,7 +65,7 @@ class GStreamerManager(V4L2Manager):
 			return False
 
 	def settingsChanged(self, cameraSettings):
-		super(MjpegManager, self).settingsChanged(cameraSettings)
+		super(GStreamerManager, self).settingsChanged(cameraSettings)
 
 		##When a change in settup is saved, the camera must be shouted down
 		##(Janus included, of course)
