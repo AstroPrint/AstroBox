@@ -3,7 +3,7 @@
 		<div class="small-12 large-4 columns camera-view" align="center">
 			<script type="text/template" id="photo-printing-template">
 				<% if(this.cameraAvailable && !this.videoStreamingError){ %>
-					<% if(!this.ableWebRtc) { %>
+					<% if(!this.canStream) { %>
 						<div class="camera-container">
 							<i class="icon-3d-object"></i>
 							<img class="camera-image" width="100%"/>
@@ -22,9 +22,13 @@
 									</div>
 								</div>
 								<div id="videoScreen" class="video-on">
-									<video id="remotevideo" class="cover-img-cont" autoplay="" width="968">
-										You browser doesn't support element <code>video</code>.
-									</video>
+									<% if (this.managerName == "mjpeg") { %>
+										<img id="video-stream" class="cover-img-cont"/>
+									<% } else { %>
+										<video id="video-stream" class="cover-img-cont" autoplay="">
+											You browser doesn't support element <code>video</code>.
+										</video>
+									<% } %>
 								</div>
 							</div>
 							<img class="camera-image" width="100%" style="display:none"/>
@@ -61,7 +65,7 @@
 								</div>
 							</div>
 							<div class="small-4 columns">
-								<% if(this.ableWebRtc){ %>
+								<% if(this.canStream){ %>
 									<div id="camera-mode-slider" class="camera-mode" align="right">
 										<p>
 											<i class="icon-picture-1"></i>

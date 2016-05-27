@@ -4,14 +4,14 @@
 			<h1 class="bold">Camera</h1>
 		</div>
 	</div>
-<% if(this.cameraAvailable) {
-	if(this.videoStreamingError){ %>
-	<div class="panel text-center radius">
-		<i class="icon-camera"></i>
-		<h3 class="bold">No Camera Detected</h3>
-		<p><%= this.videoStreamingError %></p>
-	</div>
-<% 	} else { %>
+<% if(this.cameraAvailable) { %>
+	<% if(this.videoStreamingError){ %>
+		<div class="panel text-center radius">
+			<i class="icon-camera"></i>
+			<h3 class="bold">No Camera Detected</h3>
+			<p><%= this.videoStreamingError %></p>
+		</div>
+	<% } else { %>
 		<div class="row large-collapse">
 			<div class="video">
 				<div class="camera-view">
@@ -56,24 +56,26 @@
 						<% if(this.cameraMode == 'video') { %>
 							<div class="row video-container text-center">
 								<div class="video-off">
-									<span class="pad">
 										<i class="icon-videocam-1"></i>
 										<h3 class="bold">Video Stream Off</h3>
-									</span>
 								</div>
-								<div class="video-preparing pad">
+								<div class="video-preparing">
 									<i class="icon-rocket-spinner animate-spin"></i>
 									<h3 class="bold">Preparing Video...</h3>
 								</div>
 								<div id="videoScreen" class="video-on text-center">
-									<video id="remotevideo" class="cover-img-cont" autoplay="">
-										You browser doesn't support element <code>video</code>.
-									</video>
+									<% if (this.managerName == "mjpeg") { %>
+										<img id="video-stream" class="cover-img-cont"/>
+									<% } else { %>
+										<video id="video-stream" class="cover-img-cont" autoplay="">
+											You browser doesn't support element <code>video</code>.
+										</video>
+									<% } %>
 								</div>
 							</div>
 						<% } else { %>
 							<div class="row video-container">
-									<div class="video-off pad text-center">
+									<div class="video-off text-center">
 										<i class="icon-3d-object"></i>
 										<img class="camera-image"/>
 									</div>

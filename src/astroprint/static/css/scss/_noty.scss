@@ -17,5 +17,9 @@
 		&.noty_container_type_information {
 			background-color: $primary-color;
 		}
+
+		&.noty_container_type_warning {
+			background-color: $warning-color;
+		}
 	}
 }

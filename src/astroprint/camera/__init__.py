@@ -2,6 +2,8 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+from octoprint.settings import settings
+
 # singleton
 _instance = None
 
@@ -9,10 +11,28 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			number_of_video_device = 0#/dev/video``0´´
+			number_of_video_device = 0 #/dev/video``0´´
 
-			from astroprint.camera.gstreamer import GStreamerManager
-			_instance = GStreamerManager(number_of_video_device)
+			manager = settings().get(['camera', 'manager'])
+
+			if manager == 'gstreamer':
+				try:
+					from astroprint.camera.v4l2.gstreamer import GStreamerManager
+					_instance = GStreamerManager(number_of_video_device)
+
+				except ImportError, ValueError:
+					#another manager was selected or the gstreamer library is not present on this 
+					#system, in that case we pick a mjpeg manager
+
+					_instance = None
+					s = settings()
+					s.set(['camera', 'manager'], 'mjpeg')
+					s.save()
+
+			if _instance is None:
+				from astroprint.camera.v4l2.mjpeg import MjpegManager
+				_instance = MjpegManager(number_of_video_device)
+
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
@@ -26,7 +46,6 @@ import logging
 
 from sys import platform
 
-from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
@@ -70,7 +89,19 @@ class TimelapseWorker(threading.Thread):
 		return not self._resumeFromPause.isSet()
 
 class CameraManager(object):
+	name = None
+
 	def __init__(self):
+
+		s = settings()
+
+		self._settings = {
+			'encoding': s.get(["camera", "encoding"]),
+			'size': s.get(["camera", "size"]),
+			'framerate': s.get(["camera", "framerate"]),
+			'format': s.get(["camera", "format"])
+		}
+
 		self._eventManager = eventManager()
 
 		self.timelapseWorker = None
@@ -231,7 +262,7 @@ class CameraManager(object):
 		return False
 
 	def settingsChanged(self, cameraSettings):
-		pass
+		self._settings = cameraSettings
 
 	def open_camera(self):
 		return False
@@ -260,6 +291,9 @@ class CameraManager(object):
 	def save_pic(self, filename, text=None):
 		pass
 
+	def settingsStructure(self):
+		return {}
+
 	#Whether a camera device exists in the platform
 	def isCameraConnected(self):
 		return False
@@ -270,6 +304,18 @@ class CameraManager(object):
 
 	def isResolutionSupported(self, resolution):
 		pass
+
+	# starts a client session on the camera manager, starts streaming if first session. Returns True on succcess
+	def startLocalVideoSession(self, sessionId):
+		pass
+
+	# closes a client session on the camera manager, when no more sessions stop streaming. Returns True on success
+	def closeLocalVideoSession(self, sessionId):
+		pass
+
+	@property
+	def capabilities(self):
+		return []
 
 	## private functions
 

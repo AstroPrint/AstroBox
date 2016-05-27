@@ -73,16 +73,27 @@ def init_janus():
 @api.route("/camera/peer-session", methods=["POST", "DELETE"])
 @restricted_access
 def peer_session():
-	if request.method == 'POST':
-		#Initialize the peer session
-		sessionId = webRtcManager().startLocalSession()
-		return jsonify({"sessionId": sessionId})
+	data = request.json
+	if data and 'sessionId' in data:
+		sessionId = data['sessionId']
 
-	elif request.method == 'DELETE':
-		#Close peer session
-		data = request.json
-		webRtcManager().closeLocalSession(data['sessionId'])
-		return jsonify(SUCCESS)
+		if request.method == 'POST':
+			#Initialize the peer session
+			if cameraManager().startLocalVideoSession(sessionId):
+				return jsonify(SUCCESS)
+
+			abort(500)
+
+		elif request.method == 'DELETE':
+			#Close peer session
+			if cameraManager().closeLocalVideoSession(sessionId):
+				return jsonify(SUCCESS)
+
+			else:
+				abort(500)
+
+	else:
+		abort(400)
 
 @api.route("/camera/start-streaming",methods=["POST"])
 @restricted_access

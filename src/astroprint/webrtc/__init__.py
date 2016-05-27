@@ -64,12 +64,10 @@ class WebRtc(object):
 		self._logger.info('Shutting Down WebRtcManager')
 		self.stopJanus()
 
-	def startLocalSession(self):
+	def startLocalSession(self, sessionId):
 		with self._peerCondition:
-			sessionId = uuid.uuid4().hex
-			
 			self._connectedPeers[sessionId] = "local";
-			return sessionId
+			return True
 
 	def closeLocalSession(self, sessionId):
 		with self._peerCondition:
@@ -90,6 +88,8 @@ class WebRtc(object):
 					#last session
 					self.stopGStreamer()
 					self.stopJanus()
+
+			return True
 
 	def startPeerSession(self, clientId):
 		with self._peerCondition:
@@ -205,16 +205,11 @@ class WebRtc(object):
 				self._logger.error('Webrtc client lost: %s. Automatic peer session closing...',data['error'])
 			self.closePeerSession(key)
 
-		#print request.values
-		#print request.values['data']
-		#if request.values['data']
-
 	def pingPongRounder(self,params=None):
 		
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
-				print self._connectedPeers[key]
 				boxrouterManager().sendRequestToClient(self._connectedPeers[key].clientId, 'ping',None,10, self.pongCallback, [key])
 
 	def startGStreamer(self):

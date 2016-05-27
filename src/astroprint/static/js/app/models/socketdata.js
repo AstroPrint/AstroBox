@@ -4,6 +4,8 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+window.AP_SESSION_ID = null;
+
 var SocketData = Backbone.Model.extend({
 	connectionView: null,
 	_socket: null,
@@ -120,6 +122,7 @@ var SocketData = Backbone.Model.extend({
 				case "connected": {
 					// update the current UI API key and send it with any request
 					UI_API_KEY = data["apikey"];
+					AP_SESSION_ID = data["sessionId"];
 					$.ajaxSetup({
 						headers: {"X-Api-Key": UI_API_KEY}
 					});
