@@ -487,7 +487,29 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   }
 });
 
+var CameraControlViewMac = CameraControlView.extend({
+	startStreaming: function()
+	{
+		var promise = $.Deferred();
+
+		this.setState('preparing');
+
+		setTimeout(_.bind(function(){
+			this.setState('streaming');
+			promise.resolve();
+		}, this), 1000);
+
+		return promise;
+	},
+	stopStreaming: function()
+	{
+		this.setState('ready');
+		return $.Deferred().resolve();
+	}
+});
+
 var CameraViewBase = {
   mjpeg: CameraControlViewMJPEG,
-  gstreamer: CameraControlViewWebRTC
+  gstreamer: CameraControlViewWebRTC,
+  mac: CameraControlViewMac
 }[CAMERA_MANAGER];
