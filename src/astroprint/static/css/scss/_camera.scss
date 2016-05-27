@@ -27,7 +27,6 @@
 		}
 
 	    .video-container {
-	        //height: 100%;
 			height: calc(100vh - 240px);
     		min-height: 300px;
 	        border-bottom: none;
@@ -43,7 +42,10 @@
 
 				img, video {
 					max-height: 100%;
-					//@include vertical-align;
+				}
+
+				img {
+					@include vertical-align;
 				}
 			}
 
@@ -51,12 +53,8 @@
 			.no-detection,
 			.video-preparing {
 	            text-align: center;
-				//@include vertical-align;
+				@include vertical-align;
 	        }
-			.pad {
-				//display: block;
-				//padding: 15% 0;
-			}
 
 	        i {
 	            font-size: rem-calc(100);

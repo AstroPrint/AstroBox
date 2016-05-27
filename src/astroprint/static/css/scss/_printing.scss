@@ -89,6 +89,14 @@
 				margin-top: -15px;
 			}
 
+			.loading-button {
+				.video-off, .video-on {
+					i {
+						padding: 15px;
+					}
+				}
+			}
+
 			button, .button.loading {
 				padding: 0;
 				width: 100%;
@@ -440,7 +448,13 @@
 	    	}
 
 	    	.video-on {
-	    		display:block
+	    		display:block;
+				button {
+					background: $base;
+					&:hover {
+						background: darken($base, 20%);
+					}
+				}
 	    	}
 	    }
 	}

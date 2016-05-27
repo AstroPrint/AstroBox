@@ -58,11 +58,32 @@
 									<div class="overlay" style="display:none"></div>
 								</div>
 							</div>
-							<div class="small-4 columns">
-								<div class="loading-button">
-									<button class="success round take-pic"><i class="icon-camera"></i></button>
-									<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-								</div>
+							<div class="small-4 columns buttons">
+									<% if(this.cameraMode == 'video') { %>
+										<div class="loading-button">
+											<div class="video-off">
+												<button class="success round bold take-pic"><i class="icon-videocam-1"></i></button>
+											</div>
+											<div class="video-on">
+												<button class="secondary round bold take-pic"><i class="icon-stop"></i></button>
+											</div>
+										</div>
+									<% } else { %>
+										<div class="video-off">
+											<div class="loading-button">
+												<button class="success photo round take-pic"><i class="icon-camera"></i></button>
+												<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+											</div>
+										</div>
+									<% } %>
+
+									<!-- <% if(this.cameraMode == 'video') { %>
+										<button class="success radius bold"><i class="icon-videocam-1"></i><span class="hide-for-small">Start Streaming Video</span></button>
+									<% } else { %>
+										<button class="success round take-pic"><i class="icon-camera"></i></button>
+										<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+									<% } %> -->
+
 							</div>
 							<div class="small-4 columns">
 								<% if(this.canStream){ %>
@@ -80,7 +101,7 @@
 							</div>
 						</div>
 					</div>
-				<% } else { 
+				<% } else {
 					if(this.videoStreamingError) { %>
 						<div>
 							<%= this.videoStreamingError %>
