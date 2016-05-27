@@ -219,6 +219,8 @@ var PhotoView = CameraViewBase.extend({
 	},
 	cameraInitialized: function()
 	{
+		CameraViewBase.prototype.cameraInitialized.call(this);
+
 		app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
 		this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);

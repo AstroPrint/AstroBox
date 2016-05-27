@@ -281,8 +281,8 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
 	if( !this.canStream){
 		this.initJanus = null;
-		this.startStreaming = function(){ this.setState('nowebrtc'); };
-		this.stopStreaming = function(){ return true; };
+		this.startStreaming = function(){ this.setState('nowebrtc'); return $.Deferred().resolve(); };
+		this.stopStreaming = function(){ return $.Deferred().resolve(); };
 		this.onHide = function(){ return true; };
 		//this.setState('nowebrtc');
 		this.cameraMode = 'photo';
@@ -332,8 +332,12 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 						}),
 						dataType: "json",
 						contentType: "application/json; charset=UTF-8",
-						data: JSON.stringify()
-					}).done(_.bind(function(response) {
+					})
+					.fail(_.bind(function(){
+						noty({text: "Unable to start WebRTC session.", timeout: 3000});
+						this.setState('error');
+					}, this))
+					.done(_.bind(function(response) {
 						this.streaming = true;
 
 						var streamingPlugIn = null;

@@ -26,11 +26,6 @@
 			height: 100%;
 		}
 
-		.camera-image {
-			max-width: 100%;
-			max-height: 550px;
-		}
-
 	    .video-container {
 	        //height: 100%;
 			height: calc(100vh - 240px);
@@ -133,7 +128,8 @@
 			}
 	    }
 
-	    #remotevideo {
+	    #video-stream,
+	    .camera-image {
             max-width: 100%;
 			padding: 2px;
 			margin-bottom: -7px;
