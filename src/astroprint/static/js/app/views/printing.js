@@ -108,7 +108,7 @@ var PhotoView = CameraViewBase.extend({
 	events: {
 		'click button.take-pic': 'onCameraBtnClicked',
 		'change .timelapse select': 'timelapseFreqChanged',
-		"change input[name='camera-mode']": 'cameraModeChanged',
+		"change #camera-mode-printing": 'cameraModeChanged',
 		'show': 'onShow'
 	},
 	parent: null,

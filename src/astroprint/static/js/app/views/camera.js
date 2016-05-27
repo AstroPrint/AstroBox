@@ -6,7 +6,7 @@ var CameraView = CameraViewBase.extend({
 	   'hide':'onHide',
      'show':'onShow',
      'click .buttons .columns button': 'onCameraBtnClicked',
-     "change input[name='camera-mode']": 'cameraModeChanged'
+     "change #camera-mode-camera": 'cameraModeChanged'
   },
   manageVideoStreamingEvent: function(value)
   {
