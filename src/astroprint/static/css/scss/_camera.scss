@@ -23,10 +23,12 @@
 		@include radius($global-radius);
 
 		.image-container {
-			height: 100%;
+			height:100%;
+			position: relative;
 		}
 
 	    .video-container {
+			height: 100%;
 			height: calc(100vh - 240px);
     		min-height: 300px;
 	        border-bottom: none;
@@ -39,22 +41,28 @@
 				left: 0;
 				right: 0;
 				bottom: 0;
+				height: 100%;
+			}
 
-				img, video {
-					max-height: 100%;
-				}
-
-				img {
-					@include vertical-align;
-				}
+			img, video {
+				display: block;
+				margin: auto;
 			}
 
 	        .video-off,
 			.no-detection,
 			.video-preparing {
 	            text-align: center;
-				@include vertical-align;
+				height: 100%;
+
+				i {
+					line-height: .5;
+				}
 	        }
+
+			.v-align {
+				@include vertical-align;
+			}
 
 	        i {
 	            font-size: rem-calc(100);
@@ -130,8 +138,8 @@
 	    .camera-image {
             max-width: 100%;
 			padding: 2px;
-			margin-bottom: -7px;
-			max-height: 550px;
+			//margin-bottom: -7px;
+			max-height: 100%;
 	    }
 	}
 

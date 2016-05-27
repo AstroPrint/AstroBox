@@ -56,18 +56,22 @@
 						<% if(this.cameraMode == 'video') { %>
 							<div class="row video-container text-center">
 								<div class="video-off">
+									<div class="v-align">
 										<i class="icon-videocam-1"></i>
 										<h3 class="bold">Video Stream Off</h3>
+									</div>
 								</div>
 								<div class="video-preparing">
-									<i class="icon-rocket-spinner animate-spin"></i>
-									<h3 class="bold">Preparing Video...</h3>
+									<div class="v-align">
+										<i class="icon-rocket-spinner animate-spin"></i>
+										<h3 class="bold">Preparing Video...</h3>
+									</div>
 								</div>
 								<div id="videoScreen" class="video-on text-center">
 									<% if (this.managerName == "mjpeg") { %>
-										<img id="video-stream" class="cover-img-cont"/>
+										<img id="video-stream" class="cover-img-cont v-align"/>
 									<% } else { %>
-										<video id="video-stream" class="cover-img-cont" autoplay="">
+										<video id="video-stream" class="cover-img-cont v-align" autoplay="">
 											You browser doesn't support element <code>video</code>.
 										</video>
 									<% } %>
@@ -75,9 +79,12 @@
 							</div>
 						<% } else { %>
 							<div class="row video-container">
-									<div class="video-off text-center">
-										<i class="icon-3d-object"></i>
-										<img class="camera-image"/>
+									<div class="video-off">
+										<div class="v-align camera-screen">
+											<i class="icon-camera"></i>
+											<h3 class="bold">Still Pictures</h3>
+										</div>
+											<img class="camera-image v-align"/>
 									</div>
 							</div>
 						<% } %>
