@@ -488,6 +488,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 });
 
 var CameraControlViewMac = CameraControlView.extend({
+	canStream: true,
 	startStreaming: function()
 	{
 		var promise = $.Deferred();
