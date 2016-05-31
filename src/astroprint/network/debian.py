@@ -186,7 +186,7 @@ class NetworkManagerEvents(threading.Thread):
 					})
 
 				self._activatingConnection = None
-				#self._setOnline(True)
+				self._setOnline(True)
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
 				logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )

@@ -24,6 +24,7 @@ class MjpegManager(V4L2Manager):
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('MPJEG Camera Manager initialized')
 		self._videoDevice = videoDevice
+		self._streamer = None
 		self._isStreaming = False
 		self._localClients = []
 
