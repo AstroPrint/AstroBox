@@ -153,6 +153,9 @@ class V4L2Manager(CameraManager):
 	def settingsStructure(self):
 		desired = self._desiredSettings
 
+		if not self.supported_formats:
+			self.supported_formats = self._getSupportedResolutions()
+
 		pixelformats = [x['pixelformat'] for x in self.supported_formats]
 
 		for r in desired['frameSizes']:
