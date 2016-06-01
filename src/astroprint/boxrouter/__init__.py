@@ -14,10 +14,10 @@ def boxrouterManager():
 import json
 import threading
 import logging
-import base64
 import socket
 import os
 import weakref
+import uuid
 
 from time import sleep, time
 
@@ -26,11 +26,10 @@ from flask.ext.login import current_user
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
+from astroprint.boxrouter.handlers import BoxRouterMessageHandler
 from astroprint.network.manager import networkManager
 from astroprint.boxrouter.printerlistener import PrinterListener
-from astroprint.camera import cameraManager
 from astroprint.software import softwareManager
-from astroprint.printerprofile import printerProfileManager
 from astroprint.printer.manager import printerManager
 
 from ws4py.client.threadedclient import WebSocketClient
@@ -40,16 +39,15 @@ LINE_CHECK_STRING = 'box'
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
-		self._weakRefRouter = weakref.ref(router)
 		self._printerListener = None
 		self._lastReceived = 0
-		self._subscribers = 0
-		self._silentReconnect = False
-		self._profileManager = printerProfileManager()
-		self._logger = logging.getLogger(__name__)
 		self._lineCheck = None
 		self._error = False
+
+		self._weakRefRouter = weakref.ref(router)
+		self._logger = logging.getLogger(__name__)
 		self._condition = threading.Condition()
+		self._messageHandler = BoxRouterMessageHandler(self._weakRefRouter, self)
 		super(AstroprintBoxRouterClient, self).__init__(hostname)
 
 	def __del__(self):
@@ -132,215 +130,15 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def received_message(self, m):
 		self._lastReceived = time()
 		msg = json.loads(str(m))
-		printer = printerManager()
+		
+		method  = getattr(self._messageHandler, msg['type'], None)
+		if method:
+			response = method(msg)
+			if response is not None:
+				self.send(json.dumps(response))
 
-		if msg['type'] == 'auth':
-			router = self._weakRefRouter()
-			router and router.processAuthenticate(msg['data'] if 'data' in msg else None)
-
-		elif msg['type'] == 'set_temp':
-			if printer.isOperational():
-				payload = msg['payload']
-				printer.setTemperature(payload['target'] or 0.0, payload['value'] or 0.0)
-
-		elif msg['type'] == 'update_subscribers':
-			self._subscribers += int(msg['data'])
-
-			if not self._printerListener and self._subscribers > 0:
-				self.registerEvents()
-			elif self._printerListener and self._subscribers <= 0:
-				self._subscribers = 0
-				self.unregisterEvents()
-
-		elif msg['type'] == 'request':
-			try:
-				reqId = msg['reqId']
-				request = msg['data']['type']
-				data = msg['data']['payload']
-
-				if request == 'initial_state':
-					response = {
-						'printing': printer.isPrinting(),
-						'operational': printer.isOperational(),
-						'paused': printer.isPaused(),
-						'camera': printer.isCameraConnected(),
-						'printCapture': cameraManager().timelapseInfo,
-						'profile': self._profileManager.data,
-						'remotePrint': True
-					}
-				elif request == 'job_info':
-					response = printer._stateMonitor._jobData
-
-				elif request == 'printerCommand':
-					command = data['command']
-					options = data['options']
-
-					response = {'success': True}
-					if command == 'pause' or command == 'resume':
-						printer.togglePausePrint();
-
-					elif command == 'cancel':
-						printer.cancelPrint();
-
-					elif command == 'photo':
-						response['image_data'] = base64.b64encode(cameraManager().get_pic())
-
-					else:
-						response = {
-							'error': True,
-							'message': 'Printer command [%s] is not supported' % command
-						}
-
-				elif request == 'printCapture':
-					freq = data['freq']
-					if freq:
-						cm = cameraManager()
-
-						if cm.timelapseInfo:
-							if cm.update_timelapse(freq):
-								response = {'success': True}
-							else:
-								response = {
-									'error': True,
-									'message': 'Error updating the print capture'
-								}
-
-						else:
-							if cm.start_timelapse(freq):
-								response = {'success': True}
-							else:
-								response = {
-									'error': True,
-									'message': 'Error creating the print capture'
-								}
-
-					else:
-						response = {
-							'error': True,
-							'message': 'Frequency required'
-						}
-
-				elif request == 'signoff':
-					from astroprint.cloud import astroprintCloud
-
-					self._logger.info('Remote signoff requested.')
-					threading.Timer(1, astroprintCloud().remove_logged_user).start()
-
-					response = {'success': True}
-
-				elif request == 'print_file':
-					from astroprint.cloud import astroprintCloud
-					from astroprint.printfiles import FileDestinations
-
-					print_file_id = data['printFileId']
-
-					em = eventManager()
-
-					def progressCb(progress):
-						em.fire(
-							Events.CLOUD_DOWNLOAD, {
-								"type": "progress",
-								"id": print_file_id,
-								"progress": progress
-							}
-						)
-
-					def successCb(destFile, fileInfo):
-						if fileInfo is not True:
-							if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-								em.fire(
-									Events.CLOUD_DOWNLOAD, {
-										"type": "success",
-										"id": print_file_id,
-										"filename": printer.fileManager._getBasicFilename(destFile),
-										"info": fileInfo["info"]
-									}
-								)
-
-							else:
-								errorCb(destFile, "Couldn't save the file")
-								return
-
-						abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
-						if printer.selectFile(abosluteFilename, False, True):
-							self._printerListener._sendUpdate('print_file_download', {
-								'id': print_file_id,
-								'progress': 100,
-								'selected': True
-							})
-
-						else:
-							self._printerListener._sendUpdate('print_file_download', {
-								'id': print_file_id,
-								'progress': 100,
-								'error': True,
-								'message': 'Unable to start printing',
-								'selected': False
-							})
-
-					def errorCb(destFile, error):
-						if error == 'cancelled':
-							em.fire(
-									Events.CLOUD_DOWNLOAD,
-									{
-										"type": "cancelled",
-										"id": print_file_id
-									}
-								)
-						else:
-							em.fire(
-								Events.CLOUD_DOWNLOAD,
-								{
-									"type": "error",
-									"id": print_file_id,
-									"reason": error
-								}
-							)
-
-						if destFile and os.path.exists(destFile):
-							os.remove(destFile)
-
-					if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
-						response = {'success': True}
-					else:
-						response = {
-							'error': True,
-							'message': 'Unable to start download process'
-						}
-
-				elif request == 'cancel_download':
-					from astroprint.printfiles.downloadmanager import downloadManager
-
-					print_file_id = data['printFileId']
-
-					if downloadManager().cancelDownload(print_file_id):
-						response = {'success': True}
-					else:
-						response = {
-							'error': True,
-							'message': 'Unable to cancel download'
-						}
-
-				else:
-					response = {
-						'error': True,
-						'message': 'This Box does not recognize the request type [%s]' % request
-					}
-
-				self.send(json.dumps({
-					'type': 'req_response',
-					'reqId': reqId,
-					'data': response
-				}))
-
-			except Exception as e:
-				message = 'Error sending [%s] response: %s' % (request, e)
-				self._logger.error( message )
-				self.send(json.dumps({
-					'type': 'req_response',
-					'reqId': reqId,
-					'data': {'error': True, 'message':message }
-				}))
+		else:
+			self._logger.warn('Unknown message type [%s] received' % msg['type'])
 
 	def registerEvents(self):
 		if not self._printerListener:
@@ -365,6 +163,7 @@ class AstroprintBoxRouter(object):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
 		self._eventManager = eventManager()
+		self._pendingClientRequests = {}
 		self._retries = 0
 		self._retryTimer = None
 		self._boxId = None
@@ -396,6 +195,7 @@ class AstroprintBoxRouter(object):
 
 		self._eventManager.unsubscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.unsubscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
+		self._pendingClientRequests = None
 		self.boxrouter_disconnect()
 
 		#make sure we destroy the singleton
@@ -487,12 +287,11 @@ class AstroprintBoxRouter(object):
 			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
 
 			if self._ws:
-				ws = self._ws
+				self._ws.unregisterEvents()
+				if not self._ws.terminated:
+					self._ws.terminate()
+				
 				self._ws = None
-
-				ws.unregisterEvents()
-				if not ws.terminated:
-					ws.terminate()
 
 	def _onNetworkStateChanged(self, event, state):
 		if state == 'offline':
@@ -557,6 +356,56 @@ class AstroprintBoxRouter(object):
 			self._retryTimer.cancel()
 			self._retryTimer = None
 
+	def completeClientRequest(self, reqId, data):
+		if reqId in self._pendingClientRequests:
+			req = self._pendingClientRequests[reqId]
+			del self._pendingClientRequests[reqId]
+
+			if req["callback"]:
+				args = req["args"] or []
+				req["callback"](*([data] + args))
+
+		else:
+			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId);
+
+	def sendRequestToClient(self, clientId, type, data, timeout, respCallback, args=None):
+		reqId = uuid.uuid4().hex
+
+		if self.send({
+			'type': 'request_to_client',
+			'data': {
+				'clientId': clientId,
+				'timeout': timeout,
+				'reqId': reqId,
+				'type': type,
+				'payload': data
+			}
+		}):
+			self._pendingClientRequests[reqId] = {
+				'callback': respCallback,
+				'args': args,
+				'timeout': timeout
+			}
+
+	def sendEventToClient(self, clientId, type, data):
+		self.send({
+			'type': 'send_event_to_client',
+			'data': {
+				'clientId': clientId,
+				'eventType': type,
+				'eventData': data
+			}
+		})		
+
+	def send(self, data):
+		if self._ws and self.connected:
+			self._ws.send(json.dumps(data))
+			return True
+
+		else:
+			self._logger.error('Unable to send data: Socket not active')
+			return False
+
 	def processAuthenticate(self, data):
 		if data:
 			self._silentReconnect = False
@@ -575,6 +424,8 @@ class AstroprintBoxRouter(object):
 				self.status = self.STATUS_CONNECTED
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 
+			return None
+
 		else:
 			from octoprint.server import VERSION
 
@@ -590,17 +441,17 @@ class AstroprintBoxRouter(object):
 
 			sm = softwareManager()
 
-			self._ws.send(json.dumps({
-				'type': 'auth',
-				'data': {
-					'silentReconnect': self._silentReconnect,
-					'boxId': self.boxId,
-					'variantId': sm.variant['id'],
-					'boxName': nm.getHostname(),
-					'swVersion': VERSION,
-					'platform': sm.platform,
-					'localIpAddress': localIpAddress,
-					'publicKey': self._publicKey,
-					'privateKey': self._privateKey
-				}
-			}))
+			return {
+			 	'type': 'auth',
+			 	'data': {
+			 		'silentReconnect': self._silentReconnect,
+			 		'boxId': self.boxId,
+			 		'variantId': sm.variant['id'],
+			 		'boxName': nm.getHostname(),
+			 		'swVersion': VERSION,
+			 		'platform': sm.platform,
+			 		'localIpAddress': localIpAddress,
+			 		'publicKey': self._publicKey,
+			 		'privateKey': self._privateKey
+			 	}
+			}

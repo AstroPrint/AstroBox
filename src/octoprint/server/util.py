@@ -32,6 +32,7 @@ from astroprint.boxrouter import boxrouterManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.map import SUPPORTED_EXTENSIONS
 from astroprint.printer.manager import printerManager
+from astroprint.camera import cameraManager
 from astroprint.users import ApiUser
 
 
@@ -131,7 +132,8 @@ def getApiKey(request):
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
 			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
-			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS]
+			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS,
+			  Events.GSTREAMER_EVENT]
 
 	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
@@ -157,10 +159,10 @@ class PrinterStateConnection(SockJSConnection):
 
 	def on_open(self, info):
 		remoteAddress = self._getRemoteAddress(info)
-		self._logger.info("New connection from client: %s" % remoteAddress)
+		self._logger.info("New connection from client [IP address: %s, Session id: %s]", remoteAddress, self.session.session_id)
 
 		# connected => update the API key, might be necessary if the client was left open while the server restarted
-		self._emit("connected", {"apikey": octoprint.server.UI_API_KEY, "version": octoprint.server.VERSION})
+		self._emit("connected", {"apikey": octoprint.server.UI_API_KEY, "version": octoprint.server.VERSION, "sessionId": self.session.session_id})
 		self.sendEvent(Events.ASTROPRINT_STATUS, boxrouterManager().status)
 
 		printer = printerManager()
@@ -176,12 +178,13 @@ class PrinterStateConnection(SockJSConnection):
 		#octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
 
 	def on_close(self):
-		self._logger.info("Client connection closed")
+		self._logger.info("Client connection closed [Session id: %s]", self.session.session_id)
 
 		printer = printerManager()
 
 		printer.unregisterCallback(self)
 		printer.fileManager.unregisterCallback(self)
+		cameraManager().closeLocalVideoSession(self.session.session_id)
 		#octoprint.timelapse.unregisterCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_CLOSED)

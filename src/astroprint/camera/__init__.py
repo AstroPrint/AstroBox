@@ -2,6 +2,8 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+from octoprint.settings import settings
+
 # singleton
 _instance = None
 
@@ -9,12 +11,32 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			from astroprint.camera.video4linux import CameraV4LManager
-			_instance = CameraV4LManager()
+			number_of_video_device = 0 #/dev/video``0´´
+
+			manager = settings().get(['camera', 'manager'])
+
+			if manager == 'gstreamer':
+				try:
+					from astroprint.camera.v4l2.gstreamer import GStreamerManager
+					_instance = GStreamerManager(number_of_video_device)
+
+				except ImportError, ValueError:
+					#another manager was selected or the gstreamer library is not present on this 
+					#system, in that case we pick a mjpeg manager
+
+					_instance = None
+					s = settings()
+					s.set(['camera', 'manager'], 'mjpeg')
+					s.save()
+
+			if _instance is None:
+				from astroprint.camera.v4l2.mjpeg import MjpegManager
+				_instance = MjpegManager(number_of_video_device)
+
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
-
+			
 	return _instance
 
 import threading
@@ -67,14 +89,29 @@ class TimelapseWorker(threading.Thread):
 		return not self._resumeFromPause.isSet()
 
 class CameraManager(object):
+	name = None
+
 	def __init__(self):
+
+		s = settings()
+
+		self._settings = {
+			'encoding': s.get(["camera", "encoding"]),
+			'size': s.get(["camera", "size"]),
+			'framerate': s.get(["camera", "framerate"]),
+			'format': s.get(["camera", "format"])
+		}
+
 		self._eventManager = eventManager()
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
-		self.open_camera()
 
-		self._logger = logging.getLogger(__name__)
+		self.videoType = settings().get(["camera", "encoding"])
+		self.videoSize = settings().get(["camera", "size"])
+		self.videoFramerate = settings().get(["camera", "framerate"])
+		self.cameraName = None
+		self.open_camera()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
@@ -121,7 +158,7 @@ class CameraManager(object):
 		if not selectedFile:
 			return False
 
-		if not self.isCameraAvailable():
+		if not self.isCameraConnected():
 			if not self.open_camera():
 				return False
 
@@ -224,10 +261,19 @@ class CameraManager(object):
 
 		return False
 
+	def settingsChanged(self, cameraSettings):
+		self._settings = cameraSettings
+
 	def open_camera(self):
 		return False
 
 	def close_camera(self):
+		pass
+
+	def start_video_stream(self):
+		pass
+
+	def stop_video_stream(self):
 		pass
 
 	def list_camera_info(self):
@@ -238,12 +284,38 @@ class CameraManager(object):
 
 	def get_pic(self, text=None):
 		pass
-		
+
+	def get_pic_async(self, done, text=None):
+		pass
+
 	def save_pic(self, filename, text=None):
 		pass
 
-	def isCameraAvailable(self):
+	def settingsStructure(self):
+		return {}
+
+	#Whether a camera device exists in the platform
+	def isCameraConnected(self):
 		return False
+
+	#Whether the camera properties have been read
+	def hasCameraProperties(self):
+		return False
+
+	def isResolutionSupported(self, resolution):
+		pass
+
+	# starts a client session on the camera manager, starts streaming if first session. Returns True on succcess
+	def startLocalVideoSession(self, sessionId):
+		pass
+
+	# closes a client session on the camera manager, when no more sessions stop streaming. Returns True on success
+	def closeLocalVideoSession(self, sessionId):
+		pass
+
+	@property
+	def capabilities(self):
+		return []
 
 	## private functions
 

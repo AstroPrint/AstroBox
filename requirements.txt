@@ -8,9 +8,9 @@ Flask-Principal==0.4.0
 Flask-Assets==0.10
 pyserial==2.7
 netaddr==0.7.12
-watchdog==0.8.1
-sarge
-requests==2.3
+watchdog==0.8.3
+sarge==0.1.4
+requests==2.9
 requests-toolbelt==0.6.0
 flask-compress==1.0.2
 scss==0.8.73
@@ -19,3 +19,6 @@ python-networkmanager==1.0.1
 netifaces
 ws4py==0.3.4
 usbid==1.0.3
+futures==3.0.4
+blinker==1.4
+v4l2==0.2

@@ -5,6 +5,8 @@
 	"normalize",
 	"fontello",
 	"sprites",
+	"variables",
+	"mixins",
 	"animations",
 	"foundation/settings",
 	"foundation/components/visibility",
@@ -84,6 +86,10 @@ body, html {
 	}
 }
 
+i.animate-spin {
+	line-height: .5;
+}
+
 #app {
 	height: 100%;
 	overflow: visible;
@@ -105,7 +111,7 @@ body, html {
 #main {
 	border-top: 1px solid #ccc;
 	-webkit-transform: scale3d(1,1,1);
-	padding-bottom: 40px;
+	padding-bottom: 55px;
 }
 
 #connection-view {
@@ -269,4 +275,5 @@ body, html {
 	"turnoff",
 	"printing",
 	"terminal",
+	"camera",
 	"unreachable";

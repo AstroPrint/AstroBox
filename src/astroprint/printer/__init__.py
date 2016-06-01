@@ -19,7 +19,6 @@ from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
 
-
 class Printer(object):
 	STATE_NONE = 0
 	STATE_OPEN_SERIAL = 1
@@ -268,7 +267,7 @@ class Printer(object):
 		return self._state == self.STATE_PRINTING
 
 	def isCameraConnected(self):
-		return cameraManager().isCameraAvailable()
+		return cameraManager().isCameraConnected()
 
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ

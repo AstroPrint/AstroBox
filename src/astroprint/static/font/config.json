@@ -243,6 +243,12 @@
       "src": "fontawesome"
     },
     {
+      "uid": "b624a1e512819d410ddbee84e6918b9d",
+      "css": "stop",
+      "code": 35,
+      "src": "fontawesome"
+    },
+    {
       "uid": "0b28050bac9d3facf2f0226db643ece0",
       "css": "pause",
       "code": 59400,
@@ -331,6 +337,18 @@
       "css": "link",
       "code": 59420,
       "src": "websymbols"
+    },
+    {
+      "uid": "40c6538b0fd40540bf78373f8a1fb7af",
+      "css": "videocam-1",
+      "code": 103,
+      "src": "mfglabs"
+    },
+    {
+      "uid": "381da2c2f7fd51f8de877c044d7f439d",
+      "css": "picture-1",
+      "code": 105,
+      "src": "fontawesome"
     }
   ]
 }

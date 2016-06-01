@@ -10,7 +10,7 @@
 
 #settings-side-bar {
 	background: white;
-	padding: 0 0 20px;
+	padding: 0;
 	height: 100%;
 	margin: 0;
 	border-right: 1px solid #ccc;
@@ -28,6 +28,7 @@
 
 			a {
 				color: $success-color;
+                padding: 0 10px;
 			}
 
 			&.heading {
@@ -122,6 +123,18 @@
 	}
 }
 
+#wifi-hotspot {
+    .icon-attention {
+        color: $alert-color;
+        font-size: rem-calc(36);
+    }
+    .no-hotspot {
+        h4 {
+            color: $steel;
+        }
+    }
+}
+
 #internet-connection {
 	i {
 		color: $success-color;
@@ -136,7 +149,7 @@
 		}
 
 		.loading-button {
-			margin-top: 10px; 
+			margin-top: 10px;
 		}
 	}
 
@@ -168,10 +181,45 @@
 	}
 }
 
+#video-stream {
+
+    label {
+        margin-bottom: 10px;
+    }
+
+    button, .button {
+        margin-bottom: 0;
+    }
+
+    .error-message {
+        border: 3px dashed $base;
+        background: #efefef;
+        padding: 15px;
+        @include radius($global-radius);
+
+        p {
+            color: $steel;
+            &:last-child {
+                margin: 0;
+            }
+        }
+    }
+
+    .icon-attention{
+        font-size: 36px;
+        color: $red;
+    }
+
+    div.field-value {
+    	margin-bottom: 20px;
+    	margin-top: -10px;
+    }
+}
+
 #software-update-modal {
 	h2 span {
 		color: black;
-	} 
+	}
 }
 
 #software-update {

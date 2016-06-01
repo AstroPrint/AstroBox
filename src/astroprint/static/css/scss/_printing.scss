@@ -89,6 +89,14 @@
 				margin-top: -15px;
 			}
 
+			.loading-button {
+				.video-off, .video-on {
+					i {
+						padding: 15px;
+					}
+				}
+			}
+
 			button, .button.loading {
 				padding: 0;
 				width: 100%;
@@ -159,6 +167,47 @@
 					display: inline-block;
 					font-size: 30px;
 					margin-top: 16px;
+				}
+			}
+
+			.camera-mode {
+				padding: 0 rem-calc(10) 0 0;
+
+				p {
+					color: $charcoal;
+					margin: 0;
+
+					i {
+						font-size: rem-calc(16);
+						margin: 0 4px 0 5px;
+						text-shadow: -1px 0 1px $white;
+
+						&.icon-picture-1 {
+							margin-left: 0;
+						}
+					}
+				}
+
+
+				.switch input + label {
+					display: block;
+					width: 65px;
+					height: 28px;
+					border: 1px solid #ccc;
+					background: $steel;
+
+					&:after {
+						height: 20px;
+						top: rem-calc(3);
+						left: rem-calc(3);
+					}
+				}
+
+				.switch input:checked + label {
+
+					&:after {
+						left: rem-calc(36);
+					}
 				}
 			}
 		}
@@ -317,6 +366,97 @@
 		button.pause-print {
 			display: none;
 		}
+	}
+
+	div.error,
+	div.video-preparing {
+		display:none;
+	}
+
+	.camera-view {
+	    .video-container {
+	        min-height: 220px;
+	        border: 1px solid $iron;
+	        border-bottom: none;
+	        background: $oil;
+	        @include radius($global-radius $global-radius 0 0);
+
+	        .video-off,
+			.no-detection,
+			.video-preparing {
+	            text-align: center;
+	            padding-top: rem-calc(25);
+	        }
+
+	        i {
+	            font-size: rem-calc(80);
+				line-height: 1;
+	            color: $base;
+	        }
+
+	        h3, h4 {
+	            color: $base;
+				margin: 0;
+	        }
+
+	    }
+
+	    .video-on {
+	    	display:none;
+	    }
+
+	    #video-stream {
+            width: 100%;
+	    }
+
+	    &.preparing {
+			.video-preparing {
+				display:block;
+			}
+
+			.video-off {
+				display:none;
+			}
+
+			.video-on {
+	    			display:none;
+		    	}
+		}
+
+		&.error {
+	    	div.video {
+	    		display:none;
+	    	}
+
+			div.error {
+				display: block;
+				font-size: rem-calc(26);
+				p {
+					font-size: rem-calc(20);
+					margin-top: rem-calc(10);
+				}
+			}
+	    }
+
+	    &.streaming {
+	    	.video-preparing{
+	    		display:none;
+	    	}
+
+	    	.video-off {
+	    		display:none;
+	    	}
+
+	    	.video-on {
+	    		display:block;
+				button {
+					background: $base;
+					&:hover {
+						background: darken($base, 20%);
+					}
+				}
+	    	}
+	    }
 	}
 }
 

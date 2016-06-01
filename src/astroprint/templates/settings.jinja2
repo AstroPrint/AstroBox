@@ -11,18 +11,20 @@
 				<li class="heading bold">3D Printer</li>
 				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
 				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+				<li class="heading bold">Camera</li>
+				<li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
 				<li class="heading bold">Network</li>
 				<li class="network-name"><a href="#settings/network-name">Name</a></li>
 				<li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
 				<li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
 				<li class="heading bold">Software</li>
 				<li class="software-update"><a href="#settings/software-update">Update</a></li>
-				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a><li>
+				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
 			</ul>
 		</div>
 	</div>
 	<div class="small-12 medium-7 large-8 columns">
-		
+
 		<div class="show-for-small zebra">
 			<a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
 		</div>
@@ -158,6 +160,115 @@
 			</script>
 		</div>
 
+		<div class="show-for-small zebra camera">
+			<a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
+		</div>
+		<div id="video-stream" class="settings-page hide">
+			<script type="text/template" id="video-stream-settings-page-template">
+				<% if (this.cameraName) { %>
+					<div class="text-center">
+						<label class="bold"><%= this.cameraName %></label>
+						<div id="buttonRefresh" class="loading-button still">
+		                    <div class="still-camera">
+							    <button class="success radius spin">Re-scan for plugged camera</i></button>
+							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+		                    </div>
+						</div>
+					</div>
+					<hr>
+					<% if(!this.videoSettingsError) { %>
+						<div class="row">
+							<div class="small-12">
+								<form data-abide="ajax">
+									<% if (settings.structure.videoEncoding.length > 0) { %>
+										<label for="video-stream-format" class="bold">
+											Video Stream Encoding
+										</label>
+										<% if (settings.structure.videoEncoding.length > 1) { %>
+											<select id="video-stream-format" name="encoding">
+												<% _.each(settings.structure.videoEncoding, function(v) { %>
+													<option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% }) %>
+											</select>
+										<% } else { %>
+											<div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
+											<input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
+										<% } %>
+									<% } %>
+									<% if (settings.structure.frameSizes.length > 0) { %>
+										<label for="video-stream-size" class="bold">
+											Image Resolution
+										</label>
+										<% if (settings.structure.frameSizes.length > 1) { %>
+											<select id="video-stream-size" name="size">
+												<% _.each(settings.structure.frameSizes, function(v) { %>
+													<option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% }) %>
+											</select>
+										<% } else { %>
+											<div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
+											<input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
+										<% } %>
+									<% } %>
+									<% if (settings.structure.fps.length > 0) { %>
+										<label for="video-stream-framerate" class="bold">
+											Video Stream Frame Rate
+										</label>
+										<% if (settings.structure.fps.length > 1) { %>
+											<select id="video-stream-framerate" name="framerate">
+												<% _.each(settings.structure.fps, function(v) { %>
+													<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% }) %>
+											</select>
+										<% } else { %>
+											<div class="field-value"><%= settings.structure.fps[0].label %></div>
+											<input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
+										<% } %>
+									<% } %>
+									<% if (settings.structure.cameraOutput.length > 0) { %>
+										<label for="video-stream-framerate" class="bold">
+											Camera Output Format
+										</label>
+										<% if (settings.structure.cameraOutput.length > 1) { %>
+											<select id="video-stream-format" name="format">
+												<% _.each(settings.structure.cameraOutput, function(v) { %>
+													<option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% }) %>
+											</select>
+										<% } else { %>
+											<div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
+											<input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+										<% } %>
+									<% } %>
+									<hr/>
+									<div class="loading-button">
+										<button class="success radius">Save</button>
+										<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+									</div>
+								</form>
+							</div>
+						</div>
+					<% } else { %>
+						<div class="error-message" align="center">
+							<i class="icon-attention"></i><br/>
+							<p class="bold"><%= this.videoSettingsError %></p>
+						</div>
+					<% } %>
+				<% } else { %>
+					<div class="text-center no-camera">
+						<i class="icon-attention"></i>
+						<label class="bold">No Camera Found</label>
+						<div id="buttonRefresh" class="loading-button still">
+		                    <div class="still-camera">
+							    <button class="success radius spin">Scan for cameras</i></button>
+							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+		                    </div>
+						</div>
+					</div>
+				<% } %>
+			</script>
+		</div>
+
 		<div class="show-for-small zebra">
 			<a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
 		</div>
@@ -169,7 +280,7 @@
 						<div class="input-wrapper">
 							<label for="network-name" class="bold">
 								Network Name
-							</label>	
+							</label>
 							<input id="network-name" name="name" type="text" value="<%= settings.name %>" required pattern="hostname" autocomplete="off"/>
 							<small class="error">Invalid Device Name. Use letters, numbers or - only.</small>
 						</div>
@@ -215,7 +326,7 @@
 							The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
 						</p>
 						<p>
-							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a> 
+							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
 							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
 						</p>
 					</div>
@@ -260,8 +371,8 @@
 			</div>
 			<% if (settings.networks.manual) { %>
 				<h3 class="bold">Manually Configured</h3>
-				<div>Interface: <b><%= settings.networks.manual.interface %></b></div>			
-				<div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>	
+				<div>Interface: <b><%= settings.networks.manual.interface %></b></div>
+				<div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
 			<% } %>
 			<% if (settings.hasWifi) { %>
 				<div class="connection">
@@ -275,7 +386,7 @@
 							<i class="icon-wifi-signal-high"></i>
 						<% } %>
 						Connected to <b><%= settings.networks.wireless.name %></b>.
-						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip %></b></div>
+						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
 					<% } else { %>
 						Not Connected.
 					<% } %>
@@ -326,7 +437,10 @@
 		<div id="wifi-hotspot" class="settings-page hide"></div>
 		<script type="text/template" id="wifi-hotspot-settings-page-template">
 			<% if (settings.hotspot === false) { %>
-				Creating a Hotspot is not supported on this device.
+				<div class="text-center no-hotspot">
+					<i class="icon-attention"></i>
+					<h4 class="bold">Creating a Hotspot is not supported on this device</h4>
+				</div>
 			<% } else { %>
 				<h3 class="bold">Local Hotspot</h3>
 				<div>
@@ -445,9 +559,9 @@
 				<div class="small-10 large-11 columns">
 					<label for="serial-off">
 						<b>
-							Turn on serial logs. 
+							Turn on serial logs.
 						</b>
-						<i class="icon-attention"></i>You should only use this while helping solve a 
+						<i class="icon-attention"></i>You should only use this while helping solve a
 							communication problem with your printer. This generates a large amount of data.
 					</label>
 				</div>
@@ -509,7 +623,7 @@
 			<h2 class="bold">Delete AstroPrint logs</h2>
 			<div class="modal-body">
 				<p>
-					This will delete all your past AstroPrint logs. It will help save space but might 
+					This will delete all your past AstroPrint logs. It will help save space but might
 					prevent us from researching a past problem you might have had.
 				</p>
 				<p>
