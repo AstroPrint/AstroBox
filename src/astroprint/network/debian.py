@@ -42,6 +42,7 @@ class NetworkManagerEvents(threading.Thread):
 		self._activeDevice = None
 		self._activatingConnection = None
 		self._setOnlineCondition = threading.Condition()
+		self._justActivatedConnection = False
 
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
@@ -124,6 +125,11 @@ class NetworkManagerEvents(threading.Thread):
 		logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
 		if state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
+
+		elif self._justActivatedConnection and state == NetworkManager.NM_STATE_CONNECTED_LOCAL:
+			#local is a transition state when we have just activated a connection, so do nothing
+			self._justActivatedConnection = False
+
 		elif state != NetworkManager.NM_STATE_CONNECTING:
 			self._setOnline(False)
 
@@ -144,6 +150,7 @@ class NetworkManagerEvents(threading.Thread):
 						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 
 						self._activatingConnection = c.Connection
+						self._justActivatedConnection = False
 						self._monitorActivatingListener = c.Devices[0].connect_to_signal('StateChanged', self.monitorActivatingConnection)
 
 						settings = c.Connection.GetSettings()
@@ -186,6 +193,7 @@ class NetworkManagerEvents(threading.Thread):
 					})
 
 				self._activatingConnection = None
+				self._justActivatedConnection = True
 				self._setOnline(True)
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
