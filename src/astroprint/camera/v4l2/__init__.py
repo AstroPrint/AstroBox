@@ -56,7 +56,7 @@ class V4L2Manager(CameraManager):
 									self.safeRes = str(resolution[0]) + 'x' + str(resolution[1])
 
 			if self.maxFPSSupported != 0:#resolution and format in file right for this camera
-				settings().set(["camera", "framerate"],maxFPSSupportedString)
+				settings().set(["camera", "framerate"],self.maxFPSSupportedString)
 			else:
 				settings().set(["camera", "encoding"],'h264')
 				settings().set(["camera", "size"],self.safeRes)
@@ -380,6 +380,12 @@ class V4L2Manager(CameraManager):
 
 					if valueFPS <= 15:#RESTRICTION
 						desired['fps'].append({'resolution': '%sx%s' % (str(resolution[0]),str(resolution[1])), 'value': str(fps), 'label': '%s fps ' % str(valueFPS)})
+
+				if len(resolution[2]) == 1 and len(desired['fps']) == 0:#unique fps available is over 15 fps
+					splitFPS = resolution[2][0].split('/')
+					valueFPS = float(splitFPS[0])/float(splitFPS[1])
+					valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
+					desired['fps'].append({'resolution': '%sx%s' % (str(resolution[0]),str(resolution[1])), 'value': str(resolution[2][0]), 'label': '%s fps ' % str(valueFPS)})
 
 
 		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
