@@ -1,7 +1,7 @@
 {% extends 'base.jinja2' %}
 
 {% block css %}
-	{% assets filters="scss", output="css/gen/setup.css", 
+	{% assets filters="scss", output="css/gen/setup.css",
 		"css/scss/setup.scss" %}
 		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
 	{% endassets %}
@@ -47,7 +47,7 @@
 				</div>
 				<div class="checking-state" align="center">
 					<i class="icon-rocket-spinner animate-spin"></i>
-					<h3 class="bold" align="center">Checking name...</h3>
+					<h3 class="bold" align="center">Checking Name...</h3>
 				</div>
 				<div class="failed-state" align="center">
 					<i class="icon-cancel-circled failed"></i>
@@ -111,8 +111,8 @@
 						</div>
 					</div>
 					<p class="small">
-						<sup>*</sup> Without being connected to the internet, you can only 
-						use the {{variantData['productName']}} when you are near it. 
+						<sup>*</sup> Without being connected to the internet, you can only
+						use the {{variantData['productName']}} when you are near it.
 					</p>
 				</div>
 			</div>
@@ -125,7 +125,7 @@
 							The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
 						</p>
 						<p>
-							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a> 
+							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
 							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
 						</p>
 						<div class="row">
@@ -147,7 +147,7 @@
 									<div class="loading-button expand">
 										<input type="submit" class="button radius success connect" value="Connect"/>
 										<span class="loading button success disabled radius">
-											<i class="icon-rocket-spinner animate-spin"></i> Might be while. Please be patient...
+											<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
 										</span>
 									</div>
 								</div>
@@ -337,7 +337,7 @@
 		var PRODUCT_NAME = "{{variantData['productName']}}";
 		var shareOptions = {{ variantData['share'] | tojson | safe }}
 	</script>
-	{% assets filters="closure_js", output="js/gen/setup.js", 
+	{% assets filters="closure_js", output="js/gen/setup.js",
 		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
 		"js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
 		"js/setup/setup.js" -%}
