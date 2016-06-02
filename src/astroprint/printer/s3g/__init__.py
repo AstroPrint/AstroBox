@@ -445,7 +445,7 @@ class PrinterS3g(Printer):
 				self._comm.pause()
 
 				eventManager().fire(Events.PRINT_RESUMED, {
-					"file": self._currentFile['filaname'],
+					"file": self._currentFile['filename'],
 					"filename": os.path.basename(self._currentFile['filename']),
 					"origin": self._currentFile['origin']
 				})
