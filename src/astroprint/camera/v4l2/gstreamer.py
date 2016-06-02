@@ -152,7 +152,7 @@ class GStreamerManager(V4L2Manager):
 			],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
-				{'value': 'x-h264', 'label': 'H.264 Encoded'}
+				#{'value': 'x-h264', 'label': 'H.264 Encoded'}
 			]
 		}
 
