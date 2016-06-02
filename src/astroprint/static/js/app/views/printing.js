@@ -234,7 +234,21 @@ var PhotoView = CameraViewBase.extend({
 	render: function() 
 	{
 
+		var previousSrcObj = null;
+		var videoEl = this.$('#video-stream')[0];
+
+		if(videoEl) {
+			//We need to save the srcObject so that the webrtc session is kept after re-render
+			previousSrcObj = videoEl.srcObject;
+		}
+
 		this.$el.html(this.template());
+
+		if (previousSrcObj) {
+			//Select the div again as we need to get the one that was just rendered
+			//restore the srcObject that we saved so that we can restore the webrtc session
+			this.$('#video-stream')[0].srcObject = previousSrcObj; 
+		}
 
 		var imageNode = this.$('.camera-image');
 
