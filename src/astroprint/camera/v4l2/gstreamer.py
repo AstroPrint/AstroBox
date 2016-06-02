@@ -73,11 +73,12 @@ class GStreamerManager(V4L2Manager):
 		webRtcManager().stopJanus()
 		##
 
-		if self.gstreamerVideo:
-			self.gstreamerVideo.videotype = cameraSettings["encoding"]
-			self.gstreamerVideo.size = cameraSettings["size"].split('x')
-			self.gstreamerVideo.framerate = cameraSettings["framerate"]
-			self.gstreamerVideo.format = cameraSettings["format"]
+		#initialize a new object with the settings changed
+		if self.asyncPhotoTaker:
+			self.asyncPhotoTaker.stop()
+			self.asyncPhotoTaker = None
+
+		self.open_camera()
 
 	# def list_camera_info(self):
 	#    pass
@@ -151,7 +152,7 @@ class GStreamerManager(V4L2Manager):
 			],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
-				{'value': 'x-h264', 'label': 'H.264 Encoded'}
+				#{'value': 'x-h264', 'label': 'H.264 Encoded'}
 			]
 		}
 

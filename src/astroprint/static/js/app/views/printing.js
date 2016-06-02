@@ -157,7 +157,7 @@ var PhotoView = CameraViewBase.extend({
 	},
 	initialize: function(options) 
 	{
-
+		this.print_capture = app.socketData.get('print_capture');
 		this.parent = options.parent;
 		this.initCamera();
 
@@ -309,14 +309,14 @@ var PhotoView = CameraViewBase.extend({
 	},
 	onPrintCaptureChanged: function(s, value) 
 	{
+		this.print_capture = value;
 		if(this.cameraMode == 'photo'){
-			this.print_capture = value;
-			//this.render();
 			if(value && value.last_photo){
 			   var img = this.$('.camera-image');
 			   img.attr('src',value.last_photo);
 		   }
 		}
+		this.$('.timelapse select').val(value.freq);
 	},
 	onPrintingProgressChanged: function(s, value) 
 	{
