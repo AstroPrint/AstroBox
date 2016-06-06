@@ -52,6 +52,7 @@ var CameraControlView = Backbone.View.extend({
 	{		
 		if(this.cameraMode == 'video'){
 			if(this.state == 'streaming'){
+				this.deactivateWindowHideListener();
 				return this.stopStreaming();
 			} else {
 				return this.startStreaming();
@@ -137,7 +138,6 @@ var CameraControlView = Backbone.View.extend({
 				},this), 15000);
 			} else {
 				if(this.browserNotVisibleManager == 'waiting'){
-					$(document).off("visibilitychange",onVisibilityChange);
 					this.browserNotVisibleManager = null;
 					this.startStreaming();
 				}
@@ -145,6 +145,9 @@ var CameraControlView = Backbone.View.extend({
 		},this);
 
 		$(document).on("visibilitychange", onVisibilityChange);
+	},
+	deactivateWindowHideListener: function(){
+		$(document).off("visibilitychange");
 	},
 
 	//Implement these
