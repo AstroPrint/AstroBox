@@ -244,7 +244,7 @@ function Janus(gatewayCallbacks) {
 				if(retries > 3) {
 					// Did we just lose the gateway? :-(
 					connected = false;
-					gatewayCallbacks.error("Lost connection to the gateway (is it down?)");
+					//gatewayCallbacks.error("Lost connection to the gateway (is it down?)");
 					return;
 				}
 				eventHandler();

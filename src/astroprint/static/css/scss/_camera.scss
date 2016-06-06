@@ -230,6 +230,18 @@
 				margin-top: rem-calc(10);
 			}
 		}
+
+		.video-off {
+			display:none;
+		}
+
+		.video-on {
+    		display:none;
+	    }
+
+	    #camera-mode-slider{
+	    	display:none;
+	    }
     }
 
     &.streaming {

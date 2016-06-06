@@ -367,7 +367,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										})
 									})
 									.done(_.bind(function(){
-										this.setState('ready');
+										//this.setState('ready');
 										janus.sessionId = null;
 									},this))
 									.always(_.bind(this.initJanus, this))
@@ -428,7 +428,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										this.setState('error');
 										promise.reject();
 									}
-								},this),40000);
+								},this),1000);
 								
 								var isPlaying = false;
 
@@ -481,6 +481,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   stopStreaming: function()
   {
+  	this.setState('ready');
 	if (this.streaming) { 
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
