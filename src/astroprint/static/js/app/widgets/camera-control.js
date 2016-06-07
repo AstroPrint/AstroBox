@@ -261,36 +261,28 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   {
 	//Evaluate if we are able to do WebRTC
 
-	if(!navigatorPrevent) {
-
-		this.setState('ready'); 
-		this.canStream = true;
-
-	} else {
-
-		if(Janus.isWebrtcSupported()) {
-			if(!(navigator.mozGetUserMedia) 
-					&&
-				!(this.settings.encoding == 'vp8')
-			){
-				//BROWSER IS NOT FIREFOX
-				//AND VIDEO IS NOT VP8
-				
-				//this.setState('nowebrtc');
-				//this.canStream = false;
-				
-				this.$('#camera-mode-slider').hide();
-				this.canStream = false;
-				
-				////////////////////////
-			} else {
-				this.setState('ready'); 
-				this.canStream = true;
-			}
-		} else {
-			this.setState('nowebrtc');
+	if(Janus.isWebrtcSupported()) {
+		if(!(navigator.mozGetUserMedia) 
+				&&
+			!(this.settings.encoding == 'vp8')
+		){
+			//BROWSER IS NOT FIREFOX
+			//AND VIDEO IS NOT VP8
+			
+			//this.setState('nowebrtc');
+			//this.canStream = false;
+			
+			this.$('#camera-mode-slider').hide();
 			this.canStream = false;
+			
+			////////////////////////
+		} else {
+			this.setState('ready'); 
+			this.canStream = true;
 		}
+	} else {
+		this.setState('nowebrtc');
+		this.canStream = false;
 	}
 
 	if( !this.canStream){
