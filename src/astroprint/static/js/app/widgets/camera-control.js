@@ -223,6 +223,14 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 	}
 });
 
+//THIS IS A DEVELOPMENT VARIABLE
+//IT ABLES AND DISABLES BROWSER
+//DETECTOR
+var navigatorPrevent = true;
+//IT WILL DISSAPEAR WHEN COMPATIBILITY
+//AND STANDARIZATION WITH VIDEO FORMAT
+//AND BROWSERS FINISH
+
 var CameraControlViewWebRTC = CameraControlView.extend({
   el: null,
   serverUrl: null,
@@ -258,28 +266,36 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   {
 	//Evaluate if we are able to do WebRTC
 
-	if(Janus.isWebrtcSupported()) {
-		if(!(navigator.mozGetUserMedia) 
-				&&
-			!(this.settings.encoding == 'vp8')
-		){
-			//BROWSER IS NOT FIREFOX
-			//AND VIDEO IS NOT VP8
-			
-			//this.setState('nowebrtc');
-			//this.canStream = false;
-			
-			this.$('#camera-mode-slider').hide();
-			this.canStream = false;
-			
-			////////////////////////
-		} else {
-			this.setState('ready'); 
-			this.canStream = true;
-		}
+	if(!navigatorPrevent) {
+
+		this.setState('ready'); 
+		this.canStream = true;
+
 	} else {
-		this.setState('nowebrtc');
-		this.canStream = false;
+
+		if(Janus.isWebrtcSupported()) {
+			if(!(navigator.mozGetUserMedia) 
+					&&
+				!(this.settings.encoding == 'vp8')
+			){
+				//BROWSER IS NOT FIREFOX
+				//AND VIDEO IS NOT VP8
+				
+				//this.setState('nowebrtc');
+				//this.canStream = false;
+				
+				this.$('#camera-mode-slider').hide();
+				this.canStream = false;
+				
+				////////////////////////
+			} else {
+				this.setState('ready'); 
+				this.canStream = true;
+			}
+		} else {
+			this.setState('nowebrtc');
+			this.canStream = false;
+		}
 	}
 
 	if( !this.canStream){
