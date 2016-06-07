@@ -428,7 +428,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										this.setState('error');
 										promise.reject();
 									}
-								},this),1000);
+								},this),40000);
 								
 								var isPlaying = false;
 
@@ -443,6 +443,8 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 								videoCont.on("playing", onPlaying);
 								
 								attachMediaStream(videoCont.get(0), stream);
+
+								app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
 							},this),
 							oncleanup: function() {
