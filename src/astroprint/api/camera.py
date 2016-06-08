@@ -15,11 +15,7 @@ from astroprint.webrtc import webRtcManager
 def refreshPluggedCamera():
 	cm = cameraManager()
 
-	print 'refreshPluggedCamera'
-
 	opened = cm.open_camera()
-
-	print opened
 
 	return jsonify({"isCameraPlugged": opened})
 
