@@ -70,6 +70,9 @@ class GStreamerManager(V4L2Manager):
 		##When a change in settup is saved, the camera must be shouted down
 		##(Janus included, of course)
 		self.stop_video_stream()
+		eventManager().fire(Events.GSTREAMER_EVENT, {
+			'message': 'Camera settings were changed. Please reload for being able to restart video.'
+		})
 		webRtcManager().stopJanus()
 		##
 
