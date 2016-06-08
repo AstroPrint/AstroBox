@@ -6,6 +6,7 @@ import octoprint.util as util
 from flask import jsonify, request, abort
 from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
+from octoprint.settings import settings
 
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
@@ -15,9 +16,13 @@ from astroprint.webrtc import webRtcManager
 def refreshPluggedCamera():
 	cm = cameraManager()
 
-	opened = cm.open_camera()
+	if settings().get(['camera', 'manager']) == 'gstreamer':
+	
+		return jsonify({"isCameraPlugged": cm.init_gstreamer()})
 
-	return jsonify({"isCameraPlugged": opened})
+	else:
+		
+		return jsonify({"isCameraPlugged": cm.open_camera()})
 
 @api.route("/camera/has-properties", methods=["GET"])
 @restricted_access
