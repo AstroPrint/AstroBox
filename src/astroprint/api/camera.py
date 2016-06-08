@@ -15,14 +15,8 @@ from astroprint.webrtc import webRtcManager
 @restricted_access
 def refreshPluggedCamera():
 	cm = cameraManager()
-
-	if settings().get(['camera', 'manager']) == 'gstreamer':
-	
-		return jsonify({"isCameraPlugged": cm.init_gstreamer()})
-
-	else:
 		
-		return jsonify({"isCameraPlugged": cm.open_camera()})
+	return jsonify({"isCameraPlugged": cm.reScan()})
 
 @api.route("/camera/has-properties", methods=["GET"])
 @restricted_access
