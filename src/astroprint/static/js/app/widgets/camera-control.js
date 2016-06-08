@@ -223,14 +223,6 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 	}
 });
 
-//THIS IS A DEVELOPMENT VARIABLE
-//IT ABLES AND DISABLES BROWSER
-//DETECTOR
-var navigatorPrevent = true;
-//IT WILL DISSAPEAR WHEN COMPATIBILITY
-//AND STANDARIZATION WITH VIDEO FORMAT
-//AND BROWSERS FINISH
-
 var CameraControlViewWebRTC = CameraControlView.extend({
   el: null,
   serverUrl: null,
@@ -246,6 +238,9 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   _socket: null,
   videoStreamingEvent: null,
   videoStreamingError: null,
+  originalFunctions: null,//this could be contained the original functions
+  //startStreaming, stopStreaming, and onHide for being putted back after changing
+  //settings if new settings ables to get video instead of old settings
   manageVideoStreamingEvent: function(value)
   {//override this for managing this error
 	this.videoStreamingError = value.message;
@@ -299,15 +294,33 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 	}
 
 	if( !this.canStream){
+		
+		if( !this.originalFunctions) {
+			this.originalFunctions = new Object();
+			this.originalFunctions.startStreaming = this.startStreaming;
+			this.originalFunctions.stopStreaming = this.stopStreaming;
+			this.originalFunctions.onHide = this.onHide;
+			this.originalFunctions.initJanus = this.initJanus;
+		}
+
 		this.initJanus = null;
+
 		this.startStreaming = function(){ this.setState('nowebrtc'); return $.Deferred().resolve(); };
 		this.stopStreaming = function(){ return $.Deferred().resolve(); };
 		this.onHide = function(){ return true; };
 		//this.setState('nowebrtc');
 		this.cameraMode = 'photo';
 	} else {
+
+		if( this.originalFunctions) {
+			this.startStreaming = this.originalFunctions.startStreaming;
+			this.stopStreaming = this.originalFunctions.stopStreaming;
+			this.onHide = this.originalFunctions.onHide;
+			this.initJanus = this.originalFunctions.initJanus;
+		}
+
 		this.serverUrl = "http://" + window.location.hostname + ":8088/janus";
-		startStreaming = this.startStreaming;
+		
 		this.initJanus();
 
 		// Initialize the library (all console debuggers enabled)

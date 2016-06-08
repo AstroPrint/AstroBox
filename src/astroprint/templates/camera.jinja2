@@ -20,24 +20,34 @@
 							<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
 						</div>
 						<div class="small-12 columns text-center">
-							<b>Oops!</b>, Looks like Streaming Video is incompatible with your browser. Download one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
+							<b>Oops!</b>, You are using <%= navigator.sayswho %>. 
+							<% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
+								This browser can only stream video in VP8
+								encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
+							<% } else { %>
+
+								 Looks like Streaming Video is incompatible with your browser. Download
+
+							<% } %>
+
+							 one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
 							<ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
 								<li>
 									<a href="https://www.google.com/chrome/" class="bold" target="_blank">
 										<img src="static/img/chrome-icon.png"/><br>
-										<b>Chrome</b><br>
+										<b>Chrome</b><br><b>only VP8 enconding</b><br>
 									</a>
 								</li>
 								<li>
 									<a href="https://www.mozilla.org/en-US/firefox/new/" class="bold" target="_blank">
 										<img src="static/img/firefox-icon.png"/><br>
-										<b>Firefox</b><br>
+										<b>Firefox</b><br><b>H264 and VP8 enconding</b><br>
 									</a>
 								</li>
 								<li>
 									<a href="http://www.opera.com/" class="bold" target="_blank">
 										<img src="static/img/opera-icon.png"/><br>
-										<b>Opera</b><br>
+										<b>Opera</b><br><b>only VP8 enconding</b><br>
 									</a>
 								</li>
 							</ul>
