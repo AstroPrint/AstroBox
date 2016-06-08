@@ -34,10 +34,22 @@ class GStreamerManager(V4L2Manager):
 		self._logger = logging.getLogger(__name__)
 
 		super(GStreamerManager, self).__init__(videoDevice)
-		
+
+		self.init_gstreamer()
+
+	def isCameraConnected(self):
+		return super(GStreamerManager, self).isCameraConnected() and self.gstreamerVideo is not None
+
 	def open_camera(self):
+
+		if self.gstreamerVideo is None:
+			self.init_gstreamer()
+
+		return True
+
+	def init_gstreamer(self):
 		try:
-			if self.isCameraConnected():
+			if super(GStreamerManager, self).isCameraConnected():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
 				if self.gstreamerVideo:

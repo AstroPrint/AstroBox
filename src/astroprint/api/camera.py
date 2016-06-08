@@ -15,7 +15,13 @@ from astroprint.webrtc import webRtcManager
 def refreshPluggedCamera():
 	cm = cameraManager()
 
-	return jsonify({"isCameraPlugged": cm.open_camera()})
+	print 'refreshPluggedCamera'
+
+	opened = cm.open_camera()
+
+	print opened
+
+	return jsonify({"isCameraPlugged": opened})
 
 @api.route("/camera/has-properties", methods=["GET"])
 @restricted_access
