@@ -34,16 +34,19 @@ var CameraControlView = Backbone.View.extend({
 
 							this.render();
 						} else {
+							this.cameraAvailable = false;
 							this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
 							this.render();
 						}
 				},this))
 				.fail(_.bind(function(response){
+					this.cameraAvailable = false;
 					noty({text: "Unable to communicate with the camera.", timeout: 3000});
 					this.stopStreaming();
 					this.setState('error');
 				},this));
 			} else { 
+				this.cameraAvailable = false;
 				this.render(); 
 			}
 		},this))
