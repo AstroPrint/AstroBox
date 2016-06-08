@@ -1017,13 +1017,17 @@ class MachineCom(object):
 			if self._regex_minMaxError.match(line):
 				line = line.rstrip() + self._readline()
 			#Skip the communication errors, as those get corrected.
-			if 'checksum mismatch' in line \
-				or 'Wrong checksum' in line \
-				or 'Line Number is not Last Line Number' in line \
-				or 'expected line' in line \
-				or 'No Line Number with checksum' in line \
-				or 'No Checksum with line number' in line \
-				or 'Missing checksum' in line:
+			
+			line_lower = line.lower()
+
+			if 'checksum mismatch' in line_lower \
+				or 'wrong checksum' in line_lower \
+				or 'line number is not last line number' in line_lower \
+				or 'expected line' in line_lower \
+				or 'no line number with checksum' in line_lower \
+				or 'no checksum with line number' in line_lower \
+				or 'format error' in line_lower \
+				or 'missing checksum' in line_lower:
 				pass
 			elif not self.isError():
 				self._errorValue = line[6:]

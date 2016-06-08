@@ -69,13 +69,15 @@ var TempBarView = Backbone.View.extend({
         e.preventDefault();
         e.stopPropagation();
 
-        var target = $(e.target);
+        var target = $(e.currentTarget);
         var container = target.closest('.temp-target');
         var label = container.find('span.label');
+        var input = container.find('input');
 
         label.addClass('hide');
-        container.find('input').removeClass('hide').val(label.text()).focus();
-
+        input.removeClass('hide');
+        input.val(label.text());
+        setTimeout(function(){input.focus().select()},100);
     },
     onTempFieldChanged: function(e) {
         var input = $(e.target);
