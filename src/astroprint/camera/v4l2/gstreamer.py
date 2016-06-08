@@ -255,6 +255,12 @@ class GStreamer(object):
 		try:
 			# ##
 			# CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
+
+			self.videotype = settings().get(["camera", "encoding"])
+			self.size = settings().get(["camera", "size"]).split('x')
+			self.framerate = settings().get(["camera", "framerate"])
+			self.format = settings().get(["camera", "format"])
+
 			self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 			self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
 						
