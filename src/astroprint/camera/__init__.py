@@ -302,6 +302,10 @@ class CameraManager(object):
 	def hasCameraProperties(self):
 		return False
 
+	#Initiate a process to look for connected cameras
+	def reScan(self):
+		return False
+
 	def isResolutionSupported(self, resolution):
 		pass
 

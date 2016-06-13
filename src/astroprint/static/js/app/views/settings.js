@@ -370,6 +370,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 										});
 										noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
 										this.videoSettingsError = null;
+										this.validForm();
 										this.render();
 									}
 

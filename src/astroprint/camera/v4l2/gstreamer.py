@@ -34,10 +34,24 @@ class GStreamerManager(V4L2Manager):
 		self._logger = logging.getLogger(__name__)
 
 		super(GStreamerManager, self).__init__(videoDevice)
-		
+
+		#WARNING
+		##self.reScan()
+		#In super constructor, open_camera is called,
+		#so self.reScan() is called too (2 times in initializing)
+
+	def isCameraConnected(self):
+		return super(GStreamerManager, self).isCameraConnected() and self.gstreamerVideo is not None
+
 	def open_camera(self):
+		if self.gstreamerVideo is None:
+			self.reScan()
+
+		return True
+
+	def reScan(self):
 		try:
-			if self.isCameraConnected():
+			if super(GStreamerManager, self).isCameraConnected():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device)
 
 				if self.gstreamerVideo:
@@ -243,6 +257,12 @@ class GStreamer(object):
 		try:
 			# ##
 			# CAPS FOR GETTING IMAGES FROM VIDEO SOURCE
+
+			self.videotype = settings().get(["camera", "encoding"])
+			self.size = settings().get(["camera", "size"]).split('x')
+			self.framerate = settings().get(["camera", "framerate"])
+			self.format = settings().get(["camera", "format"])
+
 			self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 			self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
 						
@@ -630,15 +650,19 @@ class GStreamer(object):
 			if self.photoMode == 'NOT_TEXT':
 				
 				try:
-					self.tee_video_pad_binNotText.remove_probe(info.id)
+
 					self.queuebinNotText.set_state(gst.State.PAUSED)
-					
+
 					if self.streamProcessState == 'TAKING_PHOTO':
 						self.queuebinNotText.set_state(gst.State.NULL)
 
 					self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
+
+					gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+
+					self.tee_video_pad_binNotText.remove_probe(info.id)
 				
-				except:
+				except Exception, error:
 				
 					self._logger.error("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s", error)
 					
@@ -655,13 +679,16 @@ class GStreamer(object):
 
 				try:
 					
-					self.tee_video_pad_bin.remove_probe(info.id)
 					self.queuebin.set_state(gst.State.PAUSED)
 					
 					if self.streamProcessState == 'TAKING_PHOTO':
 						self.queuebin.set_state(gst.State.NULL)
 
 					self.jpegenc.unlink(self.multifilesinkphoto)
+
+					gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
+
+					self.tee_video_pad_bin.remove_probe(info.id)
 
 				except Exception, error:
 					

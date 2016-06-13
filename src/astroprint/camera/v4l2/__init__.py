@@ -138,6 +138,9 @@ class V4L2Manager(CameraManager):
 	def hasCameraProperties(self):
 		return self.supported_formats is not None
 
+	def reScan(self):
+		return self.open_camera()
+
 	def isResolutionSupported(self, resolution):
 		resolutions = []
 
