@@ -51,6 +51,7 @@ class GStreamerManager(V4L2Manager):
 
 		return True
 
+
 	def freeMemory(self):
 
 		self.stop_video_stream()
@@ -81,6 +82,7 @@ class GStreamerManager(V4L2Manager):
 		self.gstreamerVideo.destroyPipeline()
 		self.gstreamerVideo = None
 		self.gstreamerVideo = GStreamer(self.number_of_video_device)
+
 
 	def reScan(self):
 		try:
@@ -347,6 +349,13 @@ class GStreamer(object):
 			##########################
 			########
 
+			##X264 FORMAT
+			self.x264parse = None
+			self.x264dec = None
+			self.x264parseNotText = None
+			self.x264decNotText = None
+			#############
+
 			self.reset_pipeline_gstreamer_state()
 								
 		except Exception, error:
@@ -375,11 +384,21 @@ class GStreamer(object):
 			
 				camera1caps = gst.Caps.from_string('video/x-h264,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
 
-				self.x264parse = gst.ElementFactory.make('h264parse',None)
-				self.x264dec = gst.ElementFactory.make('omxh264dec',None)
+				if not self.x264parse:
+					self.x264parse = gst.ElementFactory.make('h264parse',None)
+					self.pipeline.add(self.x264parse)
 
-				self.x264parseNotText = gst.ElementFactory.make('h264parse',None)
-				self.x264decNotText = gst.ElementFactory.make('omxh264dec',None)
+				if not self.x264dec:
+					self.x264dec = gst.ElementFactory.make('omxh264dec',None)
+					self.pipeline.add(self.x264dec)
+
+				if not self.x264parseNotText:
+					self.x264parseNotText = gst.ElementFactory.make('h264parse',None)
+					self.pipeline.add(self.x264parseNotText)
+
+				if not self.x264decNotText:
+					self.x264decNotText = gst.ElementFactory.make('omxh264dec',None)
+					self.pipeline.add(self.x264decNotText)
 
 			else:
 
@@ -455,10 +474,18 @@ class GStreamer(object):
 			# OBJECTS FOR GETTING IMAGES FROM VIDEO SOURCE IN BINARY,
 			# USED FOR GET PHOTOS
 			# ##
+			if self.queuebin:
+				self.pipeline.remove(self.queuebin)
+			
 			self.queuebin = None
+
+			if self.queuebinNotText:
+				self.pipeline.remove(self.queuebinNotText)
+				
+			self.queuebinNotText = None
+			
 			self.tee_video_pad_bin = None        
 			self.queue_videobin_pad = None
-			self.queuebinNotText = None
 			self.tee_video_pad_binNotText = None        
 			self.queue_videobin_padNotText = None
 			# ##
@@ -501,7 +528,7 @@ class GStreamer(object):
 				self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 				self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
 				# ##
-				
+
 				# ##
 				# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
 				if not self.queueraw:
@@ -598,7 +625,6 @@ class GStreamer(object):
 				else:#VP8
 					self.queueraw.link(self.encode)
 					self.encode.link(self.videortppay)
-
 					
 				self.videortppay.link(self.udpsinkout)
 
@@ -635,17 +661,17 @@ class GStreamer(object):
 					self.pipeline.add(self.queuebinNotText)
 				# ##
 
-				if self.format == 'x-h264' and self.videotype == 'h264':
-					self.pipeline.add(self.x264dec)
-					self.pipeline.add(self.x264parse)
+				#if self.format == 'x-h264' and self.videotype == 'h264':
+				#	self.pipeline.add(self.x264dec)
+				#	self.pipeline.add(self.x264parse)
 				
 				if self.photoLogoNeedAdded:
 					self.pipeline.add(self.photo_logo)
 					self.photoLogoNeedAdded = False
 				
-				if self.format == 'x-h264' and self.videotype == 'h264':
-					self.pipeline.add(self.x264decNotText)
-					self.pipeline.add(self.x264parseNotText)
+				#if self.format == 'x-h264' and self.videotype == 'h264':
+				#	self.pipeline.add(self.x264decNotText)
+				#	self.pipeline.add(self.x264parseNotText)
 				# #
 
 				# PREPARING PHOTO
@@ -1122,9 +1148,9 @@ class GStreamer(object):
 						# ##
 
 						# ADDING PHOTO QUEUE TO PIPELINE
-						if self.format == 'x-h264' and self.videotype == 'h264':
-							self.pipeline.add(self.x264decNotText)
-							self.pipeline.add(self.x264parseNotText)					
+						#if self.format == 'x-h264' and self.videotype == 'h264':
+						#	self.pipeline.add(self.x264decNotText)
+						#	self.pipeline.add(self.x264parseNotText)					
 						##
 						
 						# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
@@ -1161,9 +1187,9 @@ class GStreamer(object):
 						# ##
 
 						# ADDING PHOTO QUEUE TO PIPELINE
-						if self.format == 'x-h264' and self.videotype == 'h264':
-							self.pipeline.add(self.x264dec)
-							self.pipeline.add(self.x264parse)
+						#if self.format == 'x-h264' and self.videotype == 'h264':
+						#	self.pipeline.add(self.x264dec)
+						#	self.pipeline.add(self.x264parse)
 
 						self.pipeline.add(self.photo_logo)
 						self.pipeline.add(self.photo_text)
