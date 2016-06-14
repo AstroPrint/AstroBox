@@ -15,7 +15,7 @@ try:
 	gi.require_version('Gst', '1.0')
 except ValueError:
 	raise ImportError
-	
+
 from gi.repository import Gst as gst
 
 from astroprint.camera.v4l2 import V4L2Manager
@@ -46,16 +46,70 @@ class GStreamerManager(V4L2Manager):
 	def open_camera(self):
 		if self.gstreamerVideo is None:
 			self.reScan()
+		else:
+			self.freeAndReset()
 
 		return True
 
+	def freeMemory(self):
+
+		self.stop_video_stream()
+		eventManager().fire(Events.GSTREAMER_EVENT, {
+			'message': 'Camera settings were changed. Please reload for being able to restart video.'
+		})
+		webRtcManager().stopJanus()
+
+		if self.gstreamerVideo.usingState["playState"] == "0" and self.gstreamerVideo.usingState["photoState"] == "0":
+			
+			self.gstreamerVideo.destroyInitAndReset()
+
+		elif self.gstreamerVideo.usingState["playState"] == "1" and self.gstreamerVideo.usingState["photoState"] == "0":
+			
+			self.gstreamerVideo.destroyPlayState()
+			self.gstreamerVideo.destroyInitAndReset()
+
+		elif self.gstreamerVideo.usingState["playState"] == "1" and self.gstreamerVideo.usingState["photoState"] == "1":
+			
+			self.gstreamerVideo.destroyPlayState()
+			self.gstreamerVideo.destroyPhotoState()
+
+
+	def freeAndReset(self):
+
+		self.freeMemory()
+
+		self.gstreamerVideo.destroyPipeline()
+		self.gstreamerVideo = None
+		self.gstreamerVideo = GStreamer(self.number_of_video_device)
+
 	def reScan(self):
 		try:
-			if super(GStreamerManager, self).isCameraConnected():
-				self.gstreamerVideo = GStreamer(self.number_of_video_device)
+			isCameraConnected = super(GStreamerManager, self).isCameraConnected()
 
-				if self.gstreamerVideo:
-					self.supported_formats = self._getSupportedResolutions()
+			tryingTimes = 0
+
+			import time
+
+			while not isCameraConnected and tryingTimes < 3:
+
+				isCameraConnected = super(GStreamerManager, self).isCameraConnected()
+				
+				time.sleep(1)
+				
+				tryingTimes +=1 
+
+
+			if isCameraConnected:
+
+				if not self.gstreamerVideo:
+				
+					self.gstreamerVideo = GStreamer(self.number_of_video_device)
+				
+				else:
+				
+					self.freeAndReset()
+				
+				self.supported_formats = self._getSupportedResolutions()
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -73,9 +127,13 @@ class GStreamerManager(V4L2Manager):
 			return False
 
 	def stop_video_stream(self):
-		if self.gstreamerVideo:
+
+		if self.gstreamerVideo and self.gstreamerVideo.streamProcessState == 'PLAYING':
+
 			return self.gstreamerVideo.stop_video()
+
 		else:
+
 			return False
 
 	def settingsChanged(self, cameraSettings):
@@ -83,6 +141,7 @@ class GStreamerManager(V4L2Manager):
 
 		##When a change in settup is saved, the camera must be shouted down
 		##(Janus included, of course)
+
 		self.stop_video_stream()
 		eventManager().fire(Events.GSTREAMER_EVENT, {
 			'message': 'Camera settings were changed. Please reload for being able to restart video.'
@@ -126,6 +185,11 @@ class GStreamerManager(V4L2Manager):
 		
 	# def save_pic(self, filename, text=None):
 	#    pass
+
+	def shutdown(self):
+		self._logger.info('Shutting Down GstreamerManager')
+		self.freeMemory()
+		gst.deinit()
 
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'
@@ -191,7 +255,13 @@ class GStreamer(object):
 			self.framerate = settings().get(["camera", "framerate"])
 			self.format = settings().get(["camera", "format"])
 
-			self.pipeline = None
+			self.usingState = dict({"playState":"0", "photoState":"0"})
+
+			# ##
+			# PIPELINE IS THE MAIN PIPE OF GSTREAMER FOR GET IMAGES
+			# FROM A SOURCE
+			# ##
+			self.pipeline = gst.Pipeline()
 			self.bus = None
 			self.loop = None
 			self.bus_managed = True
@@ -218,12 +288,14 @@ class GStreamer(object):
 			self.photo_text.set_property('valignment', 'top')
 			self.photo_text.set_property('ypad', 0)
 			self.photo_text.set_property('halignment', 'left')
+			self.pipeline.add(self.photo_text)
 
 			# ##
 			# JPEG ENCODING COMMAND
 			# ##
 			self.jpegencNotText = gst.ElementFactory.make('jpegenc', 'jpegencNotText')
 			self.jpegencNotText.set_property('quality',65)
+			self.pipeline.add(self.jpegencNotText)
 			self.multifilesinkphotoNotText = None
 			#####################
 
@@ -231,9 +303,10 @@ class GStreamer(object):
 			# ##
 			self.jpegenc = gst.ElementFactory.make('jpegenc', 'jpegenc')
 			self.jpegenc.set_property('quality',65)
+			self.pipeline.add(self.jpegenc)
 			self.multifilesinkphoto = None
 			#####################
-
+				
 
 			# ##
 			# IMAGE FOR SAVING PHOTO
@@ -244,12 +317,44 @@ class GStreamer(object):
 			
 			self.photoMode = 'NOT_TEXT'
 
+
+			# SOURCE AND LOGO HAVE TO BE
+			# ADDED TO PIPELINE
+			self.pipeline.add(self.video_source)
+			self.pipeline.add(self.video_logo)
+
+			self.tee = None
+			self.src_caps = None
+
+			##VIDEO
+			self.queueraw = None
+			self.enc_caps = None
+			self.udpsinkout = None
+			self.videortppay = None
+			self.encode = None
+			########
+
+			##PHOTO
+			self.queuebin = None
+			self.queuebinNotText = None
+			self.multifilesinkphoto = None
+			self.multifilesinkphotoNotText = None
+			self.photo_logo = None
+			##just setted with a value
+			###photo_text
+			###jpegenc
+			###jpegencNotText
+			##########################
+			########
+
 			self.reset_pipeline_gstreamer_state()
 								
 		except Exception, error:
 			self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
 			raise error
 
+	def __del__(self):
+		self._logger.info("Gstreamer memory cleaned")
 
 	def reset_pipeline_gstreamer_state(self):
 		# SETS DEFAULT STATE FOR GSTREAMER OBJECT
@@ -280,9 +385,10 @@ class GStreamer(object):
 
 				camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
 
-
-			self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
-			self.src_caps.set_property("caps", camera1caps)
+			if not self.src_caps:
+				self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
+				self.src_caps.set_property("caps", camera1caps)
+				self.pipeline.add(self.src_caps)
 			# ##
 
 			# ##
@@ -291,7 +397,17 @@ class GStreamer(object):
 			# LOGO AND WHITE BAR FROM TOP LEFT CORNER THAT APPEARS 
 			# IN THE VIDEO COMPOSED BY PHOTOS TAKEN WHILE PRINTING    
 			####
-			self.photo_logo = gst.ElementFactory.make('gdkpixbufoverlay', None)
+
+			if not self.photo_logo:
+
+				self.photo_logo = gst.ElementFactory.make('gdkpixbufoverlay', None)
+
+				self.photoLogoNeedAdded = True
+
+			else:
+
+				self.photoLogoNeedAdded = False
+
 			self.photo_logo.set_property('location', '/AstroBox/src/astroprint/static/img/camera-info-overlay.jpg')
 			self.photo_logo.set_property('offset-x', 0)
 			self.photo_logo.set_property('offset-y', 0)
@@ -306,25 +422,20 @@ class GStreamer(object):
 			# ##
 			# TEE COMMAND IN GSTREAMER ABLES TO JOIN NEW OUTPUT
 			# QUEUES TO THE SAME SOURCE 
-			self.tee = gst.ElementFactory.make('tee', 'tee')
+			if not self.tee:
+				self.tee = gst.ElementFactory.make('tee', 'tee')
+				self.pipeline.add(self.tee)
 			# ##
 			
 			# ##
 			# PIPELINE IS THE MAIN PIPE OF GSTREAMER FOR GET IMAGES
 			# FROM A SOURCE
 			# ##
-			self.pipeline = gst.Pipeline()
 			self.bus = self.pipeline.get_bus()
 			self.pipeline.set_property('name', 'tee-pipeline')
 			# self.bus.add_signal_watch_full(1)
 			self.bus.add_signal_watch()
 			self.bus.connect('message', self.bus_message)			
-			# SOURCE, CONVERSIONS AND OUTPUTS (QUEUES) HAVE TO BE
-			# ADDED TO PIPELINE
-			self.pipeline.add(self.video_source)
-			self.pipeline.add(self.video_logo)
-			self.pipeline.add(self.src_caps)
-			self.pipeline.add(self.tee)
 			# ##
 		   
 			# ##
@@ -393,17 +504,21 @@ class GStreamer(object):
 				
 				# ##
 				# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
-				queueraw = gst.ElementFactory.make('queue', 'queueraw')
+				if not self.queueraw:
+					self.queueraw = gst.ElementFactory.make('queue', 'queueraw')
+					self.pipeline.add(self.queueraw)
 				# ##
 				
 				# ##
 				# MODE FOR BROADCASTING VIDEO
-				udpsinkout = gst.ElementFactory.make('udpsink', 'udpsinkvideo')
-				udpsinkout.set_property('host', '127.0.0.1')
+				if not self.udpsinkout:
+					self.udpsinkout = gst.ElementFactory.make('udpsink', 'udpsinkvideo')
+					self.udpsinkout.set_property('host', '127.0.0.1')
+					self.pipeline.add(self.udpsinkout)
 				# ##
 
-				encode = None
-				h264parse = None
+				self.encode = None
+				self.h264parse = None
 		
 				if self.videotype == 'h264':
 					# ##
@@ -411,19 +526,27 @@ class GStreamer(object):
 					# ##
 					# ENCODING
 					if self.format == 'x-raw':
-						encode = gst.ElementFactory.make('omxh264enc', None)
+						if not self.encode:
+							encodeNeedToAdd = True
+							self.encode = gst.ElementFactory.make('omxh264enc', None)
 						# CAPABILITIES FOR H264 OUTPUT
 						camera1capsout = gst.Caps.from_string('video/x-h264,profile=high')
-						enc_caps = gst.ElementFactory.make("capsfilter", "filter2")
-						enc_caps.set_property("caps", camera1capsout)
+						if not self.enc_caps:
+							encCapsNeedToAdd = True
+							self.enc_caps = gst.ElementFactory.make("capsfilter", "filter2")
+							self.enc_caps.set_property("caps", camera1capsout)
+						else:
+							encCapsNeedToAdd = False
 					else:
-						h264parse = gst.ElementFactory.make('h264parse',None)
+						self.h264parse = gst.ElementFactory.make('h264parse',None)
 
 					# VIDEO PAY FOR H264 BEING SHARED IN UDP PACKAGES
-					videortppay = gst.ElementFactory.make('rtph264pay', 'rtph264pay')
-					videortppay.set_property('pt', 96)
+					if not self.videortppay:
+						self.videortppay = gst.ElementFactory.make('rtph264pay', 'rtph264pay')
+						self.videortppay.set_property('pt', 96)
+						self.pipeline.add(self.videortppay)
 					# UDP PORT FOR SHARING H264 VIDEO
-					udpsinkout.set_property('port', 8004)
+					self.udpsinkout.set_property('port', 8004)
 					# ##
 					
 				elif self.videotype == 'vp8':
@@ -431,90 +554,98 @@ class GStreamer(object):
 					# VP8 VIDEO MODE STUP
 					# ##
 					# ENCODING
-					encode = gst.ElementFactory.make('vp8enc', None)
-					encode.set_property('target-bitrate', 500000)
-					encode.set_property('keyframe-max-dist', 500)
-					#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
-					encode.set_property('deadline', 1)
-					#####
+					if not self.encode:
+						encodeNeedToAdd = True
+						self.encode = gst.ElementFactory.make('vp8enc', None)
+						self.encode.set_property('target-bitrate', 500000)
+						self.encode.set_property('keyframe-max-dist', 500)
+						#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
+						self.encode.set_property('deadline', 1)
+						#####
+					else:
+						encodeNeedToAdd = False
 					# VIDEO PAY FOR VP8 BEING SHARED IN UDP PACKAGES                
-					videortppay = gst.ElementFactory.make('rtpvp8pay', 'rtpvp8pay')
-					videortppay.set_property('pt', 96)
+					if not self.videortppay:
+						self.videortppay = gst.ElementFactory.make('rtpvp8pay', 'rtpvp8pay')
+						self.videortppay.set_property('pt', 96)
+						self.pipeline.add(self.videortppay)
 					# UDP PORT FOR SHARING VP8 VIDEO
-					udpsinkout.set_property('port', 8005)
+					self.udpsinkout.set_property('port', 8005)
 					# ##
 				
 				# ##
 				# ADDING VIDEO ELEMENTS TO PIPELINE
-				self.pipeline.add(queueraw)
-				if not (self.format == 'x-h264' and self.videotype == 'h264'):
-					self.pipeline.add(encode)
+				if not (self.format == 'x-h264' and self.videotype == 'h264') and encodeNeedToAdd:
+					self.pipeline.add(self.encode)
 				else:
-					self.pipeline.add(h264parse)
+					self.pipeline.add(self.h264parse)
 				
-				if self.videotype == 'h264' and self.format == 'x-raw':
-						self.pipeline.add(enc_caps)
-
-				self.pipeline.add(videortppay)
-				self.pipeline.add(udpsinkout)
+				if self.videotype == 'h264' and self.format == 'x-raw' and encCapsNeedToAdd:
+						self.pipeline.add(self.enc_caps)
 				
 				if self.videotype == 'h264':
 
 					if self.format == 'x-raw':
 
-						queueraw.link(encode)
-						encode.link(enc_caps)
-						enc_caps.link(videortppay)
+						self.queueraw.link(self.encode)
+						self.encode.link(self.enc_caps)
+						self.enc_caps.link(self.videortppay)
 					else:#x-h264
 
-						queueraw.link(h264parse)
-						h264parse.link(videortppay)
+						self.queueraw.link(self.h264parse)
+						self.h264parse.link(self.videortppay)
 
 				else:#VP8
-					queueraw.link(encode)
-					encode.link(videortppay)
+					self.queueraw.link(self.encode)
+					self.encode.link(self.videortppay)
 
 					
-				videortppay.link(udpsinkout)
+				self.videortppay.link(self.udpsinkout)
 
 				# CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 				# A GOOD IMAGE FROM CAMERA
-				self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
-				self.multifilesinkphoto.set_property('location', self.tempImage)
-				self.multifilesinkphoto.set_property('max-files', 1)
-				self.multifilesinkphoto.set_property('post-messages', True)
-				self.multifilesinkphoto.set_property('async', True)
-				self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
-				self.multifilesinkphotoNotText.set_property('location', self.tempImage)
-				self.multifilesinkphotoNotText.set_property('max-files', 1)
-				self.multifilesinkphotoNotText.set_property('post-messages', True)
-				self.multifilesinkphotoNotText.set_property('async', True)
+				if not self.multifilesinkphoto:
+					self.multifilesinkphotoNeedAdded = True
+					self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
+					self.multifilesinkphoto.set_property('location', self.tempImage)
+					self.multifilesinkphoto.set_property('max-files', 1)
+					self.multifilesinkphoto.set_property('post-messages', True)
+					self.multifilesinkphoto.set_property('async', True)
+				else:
+					self.multifilesinkphotoNeedAdded = False
 
-				# QUEUE FOR TAKING PHOTOS    
-				self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+				if not self.multifilesinkphotoNotText:
+					self.multifilesinkphotoNotTextNeedAdded = True
+					self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
+					self.multifilesinkphotoNotText.set_property('location', self.tempImage)
+					self.multifilesinkphotoNotText.set_property('max-files', 1)
+					self.multifilesinkphotoNotText.set_property('post-messages', True)
+					self.multifilesinkphotoNotText.set_property('async', True)
+				else:
+					self.multifilesinkphotoNotTextNeedAdded = False
+
+				# QUEUE FOR TAKING PHOTOS 
+				if not self.queuebin:
+					self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+					self.pipeline.add(self.queuebin)
 				# ##
 				# QUEUE FOR TAKING PHOTOS (without text)
-				self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+				if not self.queuebinNotText:
+					self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+					self.pipeline.add(self.queuebinNotText)
 				# ##
-
-				# ADDING PHOTO QUEUE TO PIPELINE
-				self.pipeline.add(self.queuebin)
 
 				if self.format == 'x-h264' and self.videotype == 'h264':
 					self.pipeline.add(self.x264dec)
 					self.pipeline.add(self.x264parse)
 				
-				self.pipeline.add(self.photo_logo)
-				self.pipeline.add(self.photo_text)
-				self.pipeline.add(self.jpegenc)
-				# ADDING PHOTO QUEUE (without text) TO PIPELINE
-				self.pipeline.add(self.queuebinNotText)
+				if self.photoLogoNeedAdded:
+					self.pipeline.add(self.photo_logo)
+					self.photoLogoNeedAdded = False
 				
 				if self.format == 'x-h264' and self.videotype == 'h264':
 					self.pipeline.add(self.x264decNotText)
 					self.pipeline.add(self.x264parseNotText)
-
-				self.pipeline.add(self.jpegencNotText)
 				# #
 
 				# PREPARING PHOTO
@@ -545,23 +676,29 @@ class GStreamer(object):
 				
 				# TEE PADDING MANAGING
 				# #TEE SOURCE H264
-				tee_video_pad_video = self.tee.get_request_pad("src_%u")
+				self.tee_video_pad_video = self.tee.get_request_pad("src_%u")
 				
 				# TEE SINKING MANAGING
 				# #VIDEO SINK QUEUE
-				queue_video_pad = queueraw.get_static_pad("sink")
+				self.queue_video_pad = self.queueraw.get_static_pad("sink")
 		
 				# TEE PAD LINK
 				# #VIDEO PADDING        
-				gst.Pad.link(tee_video_pad_video, queue_video_pad)
+				gst.Pad.link(self.tee_video_pad_video, self.queue_video_pad)
 				  
 				# START PLAYING THE PIPELINE
 				self.streamProcessState = 'PLAYING'
 				self.pipeline.set_state(gst.State.PLAYING)
 				
-				self.pipeline.add(self.multifilesinkphotoNotText)
+				if self.multifilesinkphotoNotTextNeedAdded:
+					self.pipeline.add(self.multifilesinkphotoNotText)
+					self.multifilesinkphotoNotTextNeedAdded = False
 
-				self.pipeline.add(self.multifilesinkphoto)
+				if self.multifilesinkphotoNeedAdded:
+					self.pipeline.add(self.multifilesinkphoto)
+					self.multifilesinkphotoNeedAdded = False
+				
+				self.usingState["playState"] = "1"
 
 				return True
 				
@@ -582,17 +719,29 @@ class GStreamer(object):
 			waitingForStopPipeline = True
 
 			self.waitForPlayPipeline = threading.Event()
-		
+
 			while waitingForStopPipeline:
 				if self.streamProcessState == 'TAKING_PHOTO' or self.streamProcessState == '':
+
 					waitingForStopPipeline = self.waitForPlayPipeline.wait(2)
 				else:
+
 					self.waitForPlayPipeline.set()
 					self.waitForPlayPipeline.clear()
 					waitingForStopPipeline = False
 
 			self.pipeline.set_state(gst.State.NULL)
-			self.reset_pipeline_gstreamer_state()
+
+			#ACTIONS FOR RIGHT MANAGING MEMORY
+			######
+			self.pipeline.remove(self.multifilesinkphotoNotText)
+			self.pipeline.remove(self.multifilesinkphoto)
+			self.multifilesinkphotoNotTextNeedAdded = True
+			self.multifilesinkphotoNeedAdded = True
+			self.multifilesinkphotoNotText = None
+			self.multifilesinkphoto = None
+			######
+
 			self.streamProcessState = 'PAUSED'
 
 			return True
@@ -605,6 +754,115 @@ class GStreamer(object):
 			self.reset_pipeline_gstreamer_state()
 			
 			return False
+
+	def destroyPipeline(self):
+
+		self.bus.remove_signal_watch()
+		self.bus = None
+		self.pipeline = None
+		self.streamProcessState = None
+
+	def destroyInitAndReset(self):
+
+		#remove camera negociation
+		if self.video_source:
+
+			if self.format == 'x-raw':
+
+				self.video_source.unlink(self.video_logo)
+				self.video_logo.unlink(self.src_caps)
+				self.src_caps.unlink(self.tee)
+
+				self.pipeline.remove(self.video_source)
+				self.pipeline.remove(self.video_logo)
+				self.pipeline.remove(self.src_caps)
+				self.pipeline.remove(self.tee)
+			else:#x-h264
+
+				self.video_source.unlink(self.src_caps)
+				self.src_caps.unlink(self.tee)
+				self.pipeline.remove(self.src_caps)
+				self.pipeline.remove(self.tee)
+
+		self.pipeline.send_event(gst.Event.new_eos())
+
+		self.video_source = None
+		self.video_logo = None
+		self.src_caps = None
+		self.tee = None
+		self.photo_logo = None
+		self.photo_text = None
+		self.jpegencNotText = None
+		self.jpegenc = None
+
+	def destroyPlayState(self):
+
+		if self.queueraw:
+
+			if self.videotype == 'h264':
+
+				if self.format == 'x-raw':
+
+					self.queueraw.unlink(self.encode)
+					self.encode.unlink(self.enc_caps)
+					self.enc_caps.unlink(self.videortppay)
+				else:#x-h264
+
+					self.queueraw.unlink(self.h264parse)
+					self.h264parse.unlink(self.videortppay)
+
+			else:#VP8
+
+				self.queueraw.unlink(self.encode)
+				self.encode.unlink(self.videortppay)
+
+				
+			self.videortppay.unlink(self.udpsinkout)
+
+			gst.Pad.unlink(self.tee_video_pad_video, self.queue_video_pad)
+
+			self.queueraw.set_state(gst.State.NULL)
+			self.pipeline.remove(self.queueraw)
+			self.queueraw = None
+
+			if not (self.format == 'x-h264' and self.videotype == 'h264'):
+			
+				self.pipeline.remove(self.encode)
+			
+				self.encode = None
+			
+			else:
+			
+				self.pipeline.remove(self.h264parse)
+			
+				self.h264parse = None
+			
+
+			if self.videotype == 'h264' and self.format == 'x-raw':
+					self.pipeline.remove(self.enc_caps)
+					self.enc_caps = None
+
+			self.pipeline.remove(self.videortppay)
+			self.videortppay = None
+			self.pipeline.remove(self.udpsinkout)
+			self.udpsinkout = None
+
+			self.tee_video_pad_video = None
+			
+			self.queue_video_pad = None
+
+			self.waitForPlayVideo.set()
+			self.waitForPlayVideo.clear()
+
+	def destroyPhotoState(self):
+
+		if self.tee_video_pad_binNotText is not None and self.queue_videobin_padNotText is not None:
+			
+			gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+
+		if self.tee_video_pad_bin is not None and self.queue_videobin_pad is not None:
+
+			gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
 
 	def bus_message(self, bus, msg):
 		
@@ -621,6 +879,7 @@ class GStreamer(object):
 					if self.photoMode == 'NOT_TEXT':
 						try:
 							self.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+
 						except Exception, error:
 							self._logger.error("ERROR IN BUS MESSAGE: %s", error)
 							self.fatalErrorManage(True, True, None, True, True)
@@ -658,7 +917,14 @@ class GStreamer(object):
 
 					self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 
-					gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+					if self.streamProcessState == 'PLAYING':
+						gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+
+					else:
+						######
+						self.pipeline.remove(self.multifilesinkphotoNotText)
+						self.multifilesinkphotoNotText = None
+						######
 
 					self.tee_video_pad_binNotText.remove_probe(info.id)
 				
@@ -686,7 +952,13 @@ class GStreamer(object):
 
 					self.jpegenc.unlink(self.multifilesinkphoto)
 
-					gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
+					if self.streamProcessState == 'PLAYING':
+						gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
+					else:
+						######
+						self.pipeline.remove(self.multifilesinkphoto)
+						self.multifilesinkphoto = None
+						######
 
 					self.tee_video_pad_bin.remove_probe(info.id)
 
@@ -728,12 +1000,9 @@ class GStreamer(object):
 				if not waitingState:
 					return None
 
-
-			# threading.wait(5000)
-			# self.sem = threading.Semaphore(0)
-
 			# TAKES A PHOTO USING GSTREAMER
 			self.take_photo_and_return(textPhoto)
+			self.usingState["photoState"] = "1"
 			# THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
 			# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
 
@@ -755,7 +1024,7 @@ class GStreamer(object):
 					self.pipeline.set_state(gst.State.PAUSED)
 					self.pipeline.set_state(gst.State.NULL)
 
-					self.reset_pipeline_gstreamer_state()
+					self.streamProcessState = 'PAUSED'
 
 
 				if waitingState:
@@ -836,23 +1105,26 @@ class GStreamer(object):
 					if textPhoto is None:
 						# CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 						# A GOOD IMAGE FROM CAMERA
-						self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesikNotText')
-						self.multifilesinkphotoNotText.set_property('location', self.tempImage)
-						self.multifilesinkphotoNotText.set_property('max-files', 1)
-						self.multifilesinkphotoNotText.set_property('post-messages', True)
-						self.multifilesinkphotoNotText.set_property('async', True)			
+						if not self.multifilesinkphotoNotText:
+							self.multifilesinkphotoNotTextNeedAdded = True
+							self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
+							self.multifilesinkphotoNotText.set_property('location', self.tempImage)
+							self.multifilesinkphotoNotText.set_property('max-files', 1)
+							self.multifilesinkphotoNotText.set_property('post-messages', True)
+							self.multifilesinkphotoNotText.set_property('async', True)
+						else:
+							self.multifilesinkphotoNotTextNeedAdded = False		
 
-						# QUEUE FOR TAKING PHOTOS    
-						self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+						# QUEUE FOR TAKING PHOTOS
+						if not self.queuebinNotText:
+							self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+							self.pipeline.add(self.queuebinNotText)
 						# ##
 
 						# ADDING PHOTO QUEUE TO PIPELINE
-						self.pipeline.add(self.queuebinNotText)
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.pipeline.add(self.x264decNotText)
-							self.pipeline.add(self.x264parseNotText)
-
-						self.pipeline.add(self.jpegencNotText)						
+							self.pipeline.add(self.x264parseNotText)					
 						##
 						
 						# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
@@ -871,26 +1143,30 @@ class GStreamer(object):
 
 						# CONFIGURATION FOR TAKING SOME FILES (PHOTO) FOR GETTING
 						# A GOOD IMAGE FROM CAMERA
-						self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
-						self.multifilesinkphoto.set_property('location', self.tempImage)
-						self.multifilesinkphoto.set_property('max-files', 1)
-						self.multifilesinkphoto.set_property('post-messages', True)
-						self.multifilesinkphoto.set_property('async', True)		
+						if not self.multifilesinkphoto:
+							self.multifilesinkphotoNeedAdded = True
+							self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
+							self.multifilesinkphoto.set_property('location', self.tempImage)
+							self.multifilesinkphoto.set_property('max-files', 1)
+							self.multifilesinkphoto.set_property('post-messages', True)
+							self.multifilesinkphoto.set_property('async', True)
+						else:
+							self.multifilesinkphotoNeedAdded = False	
 
 
-						# QUEUE FOR TAKING PHOTOS    
-						self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+						# QUEUE FOR TAKING PHOTOS
+						if not self.queuebin:
+							self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+							self.pipeline.add(self.queuebin)
 						# ##
 
 						# ADDING PHOTO QUEUE TO PIPELINE
-						self.pipeline.add(self.queuebin)
 						if self.format == 'x-h264' and self.videotype == 'h264':
 							self.pipeline.add(self.x264dec)
 							self.pipeline.add(self.x264parse)
 
 						self.pipeline.add(self.photo_logo)
 						self.pipeline.add(self.photo_text)
-						self.pipeline.add(self.jpegenc)
 						##
 				
 						# LINKING PHOTO ELEMENTS (INCLUDED TEXT)
