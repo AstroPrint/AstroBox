@@ -17,11 +17,11 @@ var LoginModal = Backbone.View.extend({
 	},
 	onFormValidated: function(e) 
     {
+        e.preventDefault();
+
 		var errorContainer = this.$el.find('.alert-box');
 		errorContainer.hide();
 		this.button.addClass('loading');
-
-		var self = this;
 
         $.ajax({
             url:  "/api/astroprint/private-key",
@@ -29,19 +29,26 @@ var LoginModal = Backbone.View.extend({
             data: {
             	email: this.$el.find('input[name=email]').val(),
             	password: this.$el.find('input[name=password]').val()
-            },
-            success: function() { 
-            	location.reload();
-            },
-            error: function(xhr) { 
+            }
+        })
+        .done(function(){
+            //Let some time for the cookie to be set
+            setTimeout(function(){
+                location.reload();
+            }, 1000);
+        })
+        .fail(_.bind(function(xhr){
+            if (xhr.status != 0) { 
                 if (xhr.status == 503) {
-                    errorContainer.text('Your device is not connected to AstroPrint.com').show();
+                    errorContainer.text('AstroPrint.com can\'t be reached').show();
                 } else {
                     errorContainer.text('Invalid Email/Password').show();
                 }
-                self.button.removeClass('loading');
+                this.button.removeClass('loading');
             }
-        });
+        }, this));
+
+        return false;
 	},
     onModalOpened: function()
     {

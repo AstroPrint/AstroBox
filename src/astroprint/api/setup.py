@@ -8,6 +8,7 @@ import octoprint.server
 from functools import wraps
 
 from sys import platform
+from requests import ConnectionError
 
 from flask import make_response, request, jsonify
 from flask.ext.login import current_user
@@ -127,8 +128,8 @@ def login_astroprint():
 			if ap.signin(email, password):
 				return make_response("OK", 200)
 
-		except AstroPrintCloudNoConnectionException:
-			return make_response("Your device is not connected to AstroPrint.com", 503)
+		except (AstroPrintCloudNoConnectionException, ConnectionError):
+			return make_response("AstroPrint.com can't be reached", 503)
 
 	return make_response('Invalid Credentials', 400)
 

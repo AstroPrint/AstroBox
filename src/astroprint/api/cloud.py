@@ -8,6 +8,7 @@ import uuid
 
 from flask import request, jsonify, abort
 from flask.ext.login import current_user
+from requests import ConnectionError
 
 from octoprint.settings import settings
 from octoprint.server import restricted_access, SUCCESS
@@ -37,8 +38,10 @@ def set_private_key():
 			if astroprintCloud().signin(email, password):
 				return jsonify(SUCCESS)	
 
-		except AstroPrintCloudNoConnectionException:
-			abort(503, "Your device is not connected to AstroPrint.com")
+		except (AstroPrintCloudNoConnectionException, ConnectionError):
+			abort(503, "AstroPrint.com can't be reached")
+
+		ConnectionError
 
 	else:
 		abort(400)
