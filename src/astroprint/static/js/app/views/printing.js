@@ -310,13 +310,15 @@ var PhotoView = CameraViewBase.extend({
 	onPrintCaptureChanged: function(s, value) 
 	{
 		this.print_capture = value;
-		if(this.cameraMode == 'photo'){
-			if(value && value.last_photo){
-			   var img = this.$('.camera-image');
-			   img.attr('src',value.last_photo);
-		   }
+		if (value) {
+			if(this.cameraMode == 'photo'){
+				if(value && value.last_photo){
+				   var img = this.$('.camera-image');
+				   img.attr('src',value.last_photo);
+			   }
+			}
+			this.$('.timelapse select').val(value.freq);
 		}
-		this.$('.timelapse select').val(value.freq);
 	},
 	onPrintingProgressChanged: function(s, value) 
 	{
