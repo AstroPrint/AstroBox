@@ -109,7 +109,7 @@ class CameraManager(object):
 					resolutionDefault = s.get(["camera", "size"]).split('x')
 
 					for resolution in res["resolutions"]:
-						print resolution
+
 						if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
 							
 							fps = resolution[2]

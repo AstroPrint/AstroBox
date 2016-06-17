@@ -6,6 +6,7 @@ import v4l2
 import os
 import fcntl
 import errno
+import time
 
 from astroprint.camera import CameraManager
 
@@ -58,7 +59,7 @@ class V4L2Manager(CameraManager):
 
 	def _getCameraName(self):
 
-		if self.isCameraConnected():
+		if  os.path.exists("/dev/video%d" % self.number_of_video_device):
 
 			device = '/dev/video%d' % self.number_of_video_device
 			with open(device, 'r') as vd:
@@ -189,9 +190,12 @@ class V4L2Manager(CameraManager):
 	# from CameraManager
 
 	def isCameraConnected(self):
+
 		try:
 			return os.path.exists("/dev/video%d" % self.number_of_video_device)
+
 		except:
+
 			return False
 
 	def hasCameraProperties(self):

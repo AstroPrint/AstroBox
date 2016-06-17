@@ -72,7 +72,12 @@ class GStreamerManager(V4L2Manager):
 				self.freeMemory()
 				self.gstreamerVideo = None
 
-			if isCameraConnected and self.hasCameraProperties():
+			#if at first time Astrobox were turned on without camera, it is
+			#necessary to refresh the name
+			self.cameraName = self._getCameraName()
+			
+
+			if isCameraConnected and self.cameraInfo['supportedResolutions']:
 				self.gstreamerVideo = GStreamer(self.number_of_video_device,self.cameraName)
 				self.supported_formats = self._getSupportedResolutions()			
 
