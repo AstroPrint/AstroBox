@@ -102,9 +102,10 @@ class CameraManager(object):
 		fpsArray = []
 
 		if self.isCameraConnected():
-
 			for res in cameraInfo["supportedResolutions"]:
+				print 'before'
 				if res["pixelformat"] == 'YUYV':#restricted
+					print 'inside'
 					
 					resolutionDefault = s.get(["camera", "size"]).split('x')
 
@@ -123,23 +124,23 @@ class CameraManager(object):
 									maxFPSSupported = valueFPS
 
 
-		self._settings = {
-			'encoding': s.get(["camera", "encoding"]),
-			'size': s.get(["camera", "size"]),
-			'framerate': maxFPSSupported,
-			'format': s.get(["camera", "format"])
-		}
+			self._settings = {
+				'encoding': s.get(["camera", "encoding"]),
+				'size': s.get(["camera", "size"]),
+				'framerate': maxFPSSupported,
+				'format': s.get(["camera", "format"])
+			}
 
-		self._eventManager = eventManager()
+			self._eventManager = eventManager()
 
-		self.timelapseWorker = None
-		self.timelapseInfo = None
+			self.timelapseWorker = None
+			self.timelapseInfo = None
 
-		self.videoType = settings().get(["camera", "encoding"])
-		self.videoSize = settings().get(["camera", "size"])
-		self.videoFramerate = settings().get(["camera", "framerate"])
-		self.cameraName = cameraInfo["name"]
-		self.open_camera()
+			self.videoType = settings().get(["camera", "encoding"])
+			self.videoSize = settings().get(["camera", "size"])
+			self.videoFramerate = settings().get(["camera", "framerate"])
+			self.cameraName = cameraInfo["name"]
+			self.open_camera()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')

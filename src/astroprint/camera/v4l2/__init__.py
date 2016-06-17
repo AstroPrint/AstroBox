@@ -173,7 +173,23 @@ class V4L2Manager(CameraManager):
 
 			        resolution.append(framerates)
 
-			return supported_formats
+			temp = []
+
+			#clean resolutions without FPS: some broken cameras has this configuration
+			for resolution in supported_format['resolutions']:
+				if len(resolution[2]) > 0:
+					temp.append(resolution)	
+
+			supported_format['resolutions'] = temp
+
+			try:
+				if supported_format['resolutions']:
+					return supported_formats
+				else:
+					return None
+			except:
+				return None
+			
 
 		except Exception:
 			self._logger.info('Camera error: it is not posible to get the camera capabilities', exc_info=True)
