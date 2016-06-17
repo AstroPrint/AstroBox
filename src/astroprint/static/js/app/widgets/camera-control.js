@@ -195,7 +195,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 				videoCont.on('error', _.bind(function() {
 					this.setState('error');
 					videoCont.off('error');
-					promie.reject()
+					promise.reject()
 				},this));
 			}, this));
 
