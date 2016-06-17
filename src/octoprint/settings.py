@@ -50,7 +50,7 @@ default_settings = {
 		"manager": "gstreamer",
 		"encoding": "h264",
 		"size": "640x480",
-		"framerate": "15",
+		"framerate": "1/15",
 		"format": "x-raw",
 		"pixelformat": "YUYV"
 	},

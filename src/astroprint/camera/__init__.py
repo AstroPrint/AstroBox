@@ -101,11 +101,9 @@ class CameraManager(object):
 
 		fpsArray = []
 
-		if self.isCameraConnected():
+		if cameraInfo["supportedResolutions"]:
 			for res in cameraInfo["supportedResolutions"]:
-				print 'before'
 				if res["pixelformat"] == 'YUYV':#restricted
-					print 'inside'
 					
 					resolutionDefault = s.get(["camera", "size"]).split('x')
 
@@ -117,12 +115,11 @@ class CameraManager(object):
 
 							for fpsValue in fps:
 								splitFPS = fpsValue.split('/')
-								valueFPS = float(splitFPS[1])/float(splitFPS[0])
+								valueFPS = float(splitFPS[0])/float(splitFPS[1])
 								valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
 								if valueFPS > maxFPSSupported:
 									fpsArray.append(valueFPS)
 									maxFPSSupported = valueFPS
-
 
 		self._settings = {
 			'encoding': s.get(["camera", "encoding"]),
