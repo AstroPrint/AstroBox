@@ -183,7 +183,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 			.done(_.bind(function(r){
 				this.streaming = true;
 				var videoCont = this.getVideoContainer();
-				videoCont.attr('src', '/webcam/?action=stream');
+				videoCont.attr('src', '/webcam/?action=stream&time='+new Date().getTime());
 
 				videoCont.on('load', _.bind(function() {
 					this.setState('streaming');
