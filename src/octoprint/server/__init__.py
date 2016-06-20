@@ -473,7 +473,6 @@ class Server():
 		discoveryManager = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
-		webRtcManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()

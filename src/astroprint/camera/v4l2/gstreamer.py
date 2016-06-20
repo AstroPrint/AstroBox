@@ -46,72 +46,34 @@ class GStreamerManager(V4L2Manager):
 	def open_camera(self):
 		if self.gstreamerVideo is None:
 			self.reScan()
-		else:
-			self.freeAndReset()
 
 		return True
 
-
 	def freeMemory(self):
-
 		self.stop_video_stream()
-		eventManager().fire(Events.GSTREAMER_EVENT, {
-			'message': 'Camera settings were changed. Please reload for being able to restart video.'
-		})
 		webRtcManager().stopJanus()
 
-		if self.gstreamerVideo.usingState["playState"] == "0" and self.gstreamerVideo.usingState["photoState"] == "0":
-			
-			self.gstreamerVideo.destroyInitAndReset()
-
-		elif self.gstreamerVideo.usingState["playState"] == "1" and self.gstreamerVideo.usingState["photoState"] == "0":
-			
-			self.gstreamerVideo.destroyPlayState()
-			self.gstreamerVideo.destroyInitAndReset()
-
-		elif self.gstreamerVideo.usingState["playState"] == "1" and self.gstreamerVideo.usingState["photoState"] == "1":
-			
-			self.gstreamerVideo.destroyPlayState()
-			self.gstreamerVideo.destroyPhotoState()
-
-
-	def freeAndReset(self):
-
-		self.freeMemory()
-
-		self.gstreamerVideo.destroyPipeline()
-		self.gstreamerVideo = None
-		self.gstreamerVideo = GStreamer(self.number_of_video_device)
-
+		if self.gstreamerVideo:
+			self.gstreamerVideo.freeMemory()
 
 	def reScan(self):
 		try:
 			isCameraConnected = super(GStreamerManager, self).isCameraConnected()
-
 			tryingTimes = 0
 
-			import time
-
 			while not isCameraConnected and tryingTimes < 3:
-
 				isCameraConnected = super(GStreamerManager, self).isCameraConnected()
-				
 				time.sleep(1)
-				
 				tryingTimes +=1 
 
+			if self.gstreamerVideo:
+				self.freeMemory()
+				self.gstreamerVideo.destroyPipeline()
+				self.gstreamerVideo = None
 
 			if isCameraConnected:
-
-				if not self.gstreamerVideo:
-				
-					self.gstreamerVideo = GStreamer(self.number_of_video_device)
-				
-				else:
-				
-					self.freeAndReset()
-				
-				self.supported_formats = self._getSupportedResolutions()
+				self.gstreamerVideo = GStreamer(self.number_of_video_device)
+				self.supported_formats = self._getSupportedResolutions()				
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -144,11 +106,9 @@ class GStreamerManager(V4L2Manager):
 		##When a change in settup is saved, the camera must be shouted down
 		##(Janus included, of course)
 
-		self.stop_video_stream()
 		eventManager().fire(Events.GSTREAMER_EVENT, {
-			'message': 'Camera settings were changed. Please reload for being able to restart video.'
+			'message': 'Your Camera settings have been changed. Please reload to restart your video.'
 		})
-		webRtcManager().stopJanus()
 		##
 
 		#initialize a new object with the settings changed
@@ -192,6 +152,7 @@ class GStreamerManager(V4L2Manager):
 		self._logger.info('Shutting Down GstreamerManager')
 		self.freeMemory()
 		gst.deinit()
+		webRtcManager().shutdown()
 
 	def isVideoStreaming(self):
 		return self.gstreamerVideo.getStreamProcessState() == 'PLAYING'
@@ -361,6 +322,18 @@ class GStreamer(object):
 		except Exception, error:
 			self._logger.error("Error initializing GStreamer's video pipeline: %s" % str(error))
 			raise error
+
+	def freeMemory(self):
+		if self.usingState["playState"] == "0" and self.usingState["photoState"] == "0":
+			self.destroyInitAndReset()
+
+		elif self.usingState["playState"] == "1" and self.usingState["photoState"] == "0":
+			self.destroyPlayState()
+			self.destroyInitAndReset()
+
+		elif self.usingState["playState"] == "1" and self.usingState["photoState"] == "1":
+			self.destroyPlayState()
+			self.destroyPhotoState()
 
 	def __del__(self):
 		self._logger.info("Gstreamer memory cleaned")
