@@ -101,25 +101,26 @@ class CameraManager(object):
 
 		fpsArray = []
 
-		for res in cameraInfo["supportedResolutions"]:
-			if res["pixelformat"] == 'YUYV':#restricted
-				
-				resolutionDefault = s.get(["camera", "size"]).split('x')
-				
-				print resolutionDefault
+		if self.isCameraConnected():
 
-				for resolution in res["resolutions"]:
-					print resolution
-					if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
-						fps = resolution[2]
-						print fps
-						for fpsValue in fps:
-							splitFPS = fpsValue.split('/')
-							valueFPS = float(splitFPS[1])/float(splitFPS[0])
-							valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
-							if valueFPS > maxFPSSupported:
-								fpsArray.append(valueFPS)
-								maxFPSSupported = valueFPS
+			for res in cameraInfo["supportedResolutions"]:
+				if res["pixelformat"] == 'YUYV':#restricted
+					
+					resolutionDefault = s.get(["camera", "size"]).split('x')
+
+					for resolution in res["resolutions"]:
+						print resolution
+						if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
+							
+							fps = resolution[2]
+
+							for fpsValue in fps:
+								splitFPS = fpsValue.split('/')
+								valueFPS = float(splitFPS[1])/float(splitFPS[0])
+								valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
+								if valueFPS > maxFPSSupported:
+									fpsArray.append(valueFPS)
+									maxFPSSupported = valueFPS
 
 
 		self._settings = {

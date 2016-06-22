@@ -17,8 +17,6 @@ class V4L2Manager(CameraManager):
 
 		self.cameraInfo = {"name":self._getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
 
-		print self.cameraInfo
-
 		super(V4L2Manager, self).__init__(self.cameraInfo)
 
 	def __getPixelFormats(self, device, maxformats=5):
@@ -60,14 +58,18 @@ class V4L2Manager(CameraManager):
 
 	def _getCameraName(self):
 
-		device = '/dev/video%d' % self.number_of_video_device
-		with open(device, 'r') as vd:
-			try:
-				cp = v4l2.v4l2_capability()
-				fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
-				return cp.card
-			except:
-				return 'unknown'
+		if self.isCameraConnected():
+
+			device = '/dev/video%d' % self.number_of_video_device
+			with open(device, 'r') as vd:
+				try:
+					cp = v4l2.v4l2_capability()
+					fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
+					return cp.card
+				except:
+					return 'unknown'
+		else:
+			return 'No camera found'
 
 	def _getSupportedResolutions(self):
 		"""Query the camera for supported resolutions for a given pixel_format.
