@@ -55,6 +55,7 @@ class GStreamerManager(V4L2Manager):
 
 		if self.gstreamerVideo:
 			self.gstreamerVideo.freeMemory()
+			self.gstreamerVideo.destroyPipeline()
 			self.gstreamerVideo = None
 
 	def reScan(self):
@@ -69,7 +70,6 @@ class GStreamerManager(V4L2Manager):
 
 			if self.gstreamerVideo:
 				self.freeMemory()
-				self.gstreamerVideo.destroyPipeline()
 				self.gstreamerVideo = None
 
 			if isCameraConnected:
