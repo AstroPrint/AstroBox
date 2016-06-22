@@ -158,8 +158,6 @@ def cameraSettings():
 			
 			s.save()
 
-			print cm
-
 			cm.settingsChanged({
 				'size': s.get(['camera', 'size']),
 				'encoding': s.get(['camera', 'encoding']),

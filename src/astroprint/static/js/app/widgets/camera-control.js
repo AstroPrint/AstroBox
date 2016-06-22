@@ -15,7 +15,7 @@ var CameraControlView = Backbone.View.extend({
 				
 			if(response.isCameraConnected){
 
-				$.getJSON(API_BASEURL + 'camera/is-camera-supported-by-astrobox')
+				$.getJSON(API_BASEURL + 'camera/ is-camera-supported')
 				.done(_.bind(function(response){
 
 					if(response.isCameraSupported){
