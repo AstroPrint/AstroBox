@@ -72,7 +72,7 @@ class GStreamerManager(V4L2Manager):
 				self.freeMemory()
 				self.gstreamerVideo = None
 
-			if isCameraConnected:
+			if isCameraConnected and self.hasCameraProperties():
 				self.gstreamerVideo = GStreamer(self.number_of_video_device,self.cameraName)
 				self.supported_formats = self._getSupportedResolutions()			
 
