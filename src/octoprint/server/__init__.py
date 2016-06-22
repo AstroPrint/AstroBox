@@ -286,8 +286,8 @@ class Server():
 		from astroprint.network.manager import networkManager
 		from astroprint.boxrouter import boxrouterManager
 
-		boxrouterManager()
 		networkManager()
+		boxrouterManager()
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
