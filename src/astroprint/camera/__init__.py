@@ -91,14 +91,41 @@ class TimelapseWorker(threading.Thread):
 class CameraManager(object):
 	name = None
 
-	def __init__(self):
+	def __init__(self,cameraInfo=None):
+
+		#RECTIFYNIG default settings
 
 		s = settings()
+
+		maxFPSSupported = 0
+
+		fpsArray = []
+
+		for res in cameraInfo["supportedResolutions"]:
+			if res["pixelformat"] == 'YUYV':#restricted
+				
+				resolutionDefault = s.get(["camera", "size"]).split('x')
+				
+				print resolutionDefault
+
+				for resolution in res["resolutions"]:
+					print resolution
+					if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
+						fps = resolution[2]
+						print fps
+						for fpsValue in fps:
+							splitFPS = fpsValue.split('/')
+							valueFPS = float(splitFPS[1])/float(splitFPS[0])
+							valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
+							if valueFPS > maxFPSSupported:
+								fpsArray.append(valueFPS)
+								maxFPSSupported = valueFPS
+
 
 		self._settings = {
 			'encoding': s.get(["camera", "encoding"]),
 			'size': s.get(["camera", "size"]),
-			'framerate': s.get(["camera", "framerate"]),
+			'framerate': maxFPSSupported,
 			'format': s.get(["camera", "format"])
 		}
 
@@ -110,7 +137,7 @@ class CameraManager(object):
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
-		self.cameraName = None
+		self.cameraName = cameraInfo["name"]
 		self.open_camera()
 
 	def shutdown(self):

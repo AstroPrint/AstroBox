@@ -15,7 +15,11 @@ class V4L2Manager(CameraManager):
 		self.supported_formats = None
 		self.cameraName = None
 
-		super(V4L2Manager, self).__init__()
+		self.cameraInfo = {"name":self._getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+
+		print self.cameraInfo
+
+		super(V4L2Manager, self).__init__(self.cameraInfo)
 
 	def __getPixelFormats(self, device, maxformats=5):
 	    """Query the camera to see what pixel formats it supports.  A list of
@@ -54,6 +58,17 @@ class V4L2Manager(CameraManager):
 	        return supported_formats
 	    return supported_formats
 
+	def _getCameraName(self):
+
+		device = '/dev/video%d' % self.number_of_video_device
+		with open(device, 'r') as vd:
+			try:
+				cp = v4l2.v4l2_capability()
+				fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
+				return cp.card
+			except:
+				return 'unknown'
+
 	def _getSupportedResolutions(self):
 		"""Query the camera for supported resolutions for a given pixel_format.
 		Data is returned in a list of dictionaries with supported pixel
@@ -73,10 +88,10 @@ class V4L2Manager(CameraManager):
 
 			if not supported_formats:
 				resolution = {}
-				resolution['description'] = "YUYV"
-				resolution['pixelformat'] = "YUYV"
-				resolution['resolutions'] = [[640, 480]]
-				resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
+				#resolution['description'] = "YUYV"
+				#resolution['pixelformat'] = "YUYV"
+				#resolution['resolutions'] = [[640, 480]]
+				#resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
 				supported_formats.append(resolution)
 				return supported_formats
 
@@ -111,7 +126,49 @@ class V4L2Manager(CameraManager):
 			            if e.errno != errno.EINVAL: 
 			                self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.") 
 			                return supported_formats
+
 			    supported_format['resolutions'] = resolutions
+
+			    for resolution in supported_format['resolutions']:
+
+			        frameinterval = v4l2.v4l2_frmivalenum()
+			        frameinterval.index = 0
+			        frameinterval.pixel_format = supported_format['pixelformat_int']
+			        frameinterval.width = resolution[0];
+			        frameinterval.height = resolution[1];
+
+			        framerates = []
+
+			        with open(device, 'r') as fd:
+			            try:
+			                while fcntl.ioctl(fd,v4l2.VIDIOC_ENUM_FRAMEINTERVALS,frameinterval) != -1:
+			                    if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_DISCRETE:
+			                        framerates.append(str(frameinterval.discrete.denominator) + '/' + str(frameinterval.discrete.numerator))
+			                    # for continuous and stepwise, let's just use min and
+			                    # max they use the same structure and only return
+			                    # one result
+			                    stepval = 0
+			                    if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_CONTINUOUS:
+			                        stepval = 1
+			                    elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
+			                         framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
+			                        minval = frameinterval.stepwise.min.denominator/frameinterval.stepwise.min.numerator
+			                        maxval = frameinterval.stepwise.max.denominator/frameinterval.stepwise.max.numerator
+			                        if stepval == 0:
+			                            stepval = frameinterval.stepwise.step.denominator/frameinterval.stepwise.step.numerator
+			                        
+			                        for cval in range(minval,maxval):
+			                            framerates.append('1/' + str(cval))
+			                        
+			                        break
+			                    frameinterval.index = frameinterval.index + 1
+			            except IOError as e:
+			                # EINVAL is the ioctl's way of telling us that there are no
+			                # more formats, so we ignore it
+			                if e.errno != errno.EINVAL:
+			                    self._logger.error("Unable to determine supported framerates (resolutions), this may be a driver issue.")
+
+			        resolution.append(framerates)
 
 			return supported_formats
 
@@ -145,30 +202,50 @@ class V4L2Manager(CameraManager):
 		resolutions = []
 
 		for supported_format in self.supported_formats:
-		    if supported_format.get('pixelformat') == 'YUYV':
-		        resolutions = supported_format.get('resolutions')
-		        break
+			if supported_format.get('pixelformat') == 'YUYV':
+				resolutions = supported_format.get('resolutions')
+				break
 
 		resolution = [long(e) for e in resolution.split('x')]
 		
-		return resolution in resolutions
+		for res in resolutions:
+			if resolution[0] == res[0] and resolution[1] == res[1]:
+				return res
+
 
 	def settingsStructure(self):
 		desired = self._desiredSettings
 
-		if not self.supported_formats:
-			self.supported_formats = self._getSupportedResolutions()
-
-		pixelformats = [x['pixelformat'] for x in self.supported_formats]
-
 		for r in desired['frameSizes']:
-			if not self.isResolutionSupported(r['value']):
+			resolution = self.isResolutionSupported(r['value'])
+			if not resolution:
 				desired['frameSizes'].remove(r)
+			else:
+				for fps in resolution[2]:
 
-		for o in desired['cameraOutput']:
-			if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
-				(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) or \
-				(o['value'] == 'x-h264' and 'H264' not in pixelformats):
-					desired['cameraOutput'].remove(o)
+					splitFPS = fps.split('/')
+					valueFPS = float(splitFPS[0])/float(splitFPS[1])
+					valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
 
-		return desired
+					if valueFPS <= 15:#RESTRICTION
+						desired['fps'].append({'resolution': '%sx%s' % (str(resolution[0]),str(resolution[1])), 'value': str(fps), 'label': '%s fps ' % str(valueFPS)})
+
+
+		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
+
+			if not self.supported_formats:
+				self.supported_formats = self._getSupportedResolutions()
+
+			pixelformats = [x['pixelformat'] for x in self.supported_formats]
+
+			for o in desired['cameraOutput']:
+				if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
+					(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) or \
+					(o['value'] == 'x-h264' and 'H264' not in pixelformats):
+						desired['cameraOutput'].remove(o)
+
+			return desired
+
+		else:#less resolution supported by Astrobox is not supported by this camera
+
+			return None

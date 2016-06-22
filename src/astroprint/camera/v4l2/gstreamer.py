@@ -55,6 +55,7 @@ class GStreamerManager(V4L2Manager):
 
 		if self.gstreamerVideo:
 			self.gstreamerVideo.freeMemory()
+			self.gstreamerVideo = None
 
 	def reScan(self):
 		try:
@@ -72,8 +73,8 @@ class GStreamerManager(V4L2Manager):
 				self.gstreamerVideo = None
 
 			if isCameraConnected:
-				self.gstreamerVideo = GStreamer(self.number_of_video_device)
-				self.supported_formats = self._getSupportedResolutions()				
+				self.gstreamerVideo = GStreamer(self.number_of_video_device,self.cameraName)
+				self.supported_formats = self._getSupportedResolutions()			
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -116,6 +117,7 @@ class GStreamerManager(V4L2Manager):
 			self.asyncPhotoTaker.stop()
 			self.asyncPhotoTaker = None
 
+		self.freeMemory()
 		self.open_camera()
 
 	# def list_camera_info(self):
@@ -189,11 +191,7 @@ class GStreamerManager(V4L2Manager):
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
 				{'value': '1280x720', 'label': 'High (1280 x 720)'}
 			],
-			'fps': [
-				{'value': '5', 'label': '5 fps'},
-				{'value': '10', 'label': '10 fps'},
-				{'value': '15', 'label': '15 fps'}
-			],
+			'fps': [],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
 				#{'value': 'x-h264', 'label': 'H.264 Encoded'}
@@ -206,17 +204,19 @@ class GStreamer(object):
 	# #THIS OBJECT COMPOSE A GSTREAMER LAUNCH LINE
 	# IT ABLES FOR DEVELOPPERS TO MANAGE, WITH GSTREAMER,
 	# THE PRINTER'S CAMERA: GET PHOTO AND VIDEO FROM IT
-	def __init__(self, device):
+	def __init__(self, device, cameraName):
 		
 		self._logger = logging.getLogger(__name__)
 
 		try:
-			self._logger.info("Initializing Gstreamer")
-
+			
 			self.videotype = settings().get(["camera", "encoding"])
 			self.size = settings().get(["camera", "size"]).split('x')
 			self.framerate = settings().get(["camera", "framerate"])
 			self.format = settings().get(["camera", "format"])
+			self.cameraName = cameraName
+
+			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s, size: %s and %sfps in %s format" % (cameraName, self.videotype , settings().get(["camera", "size"]) , str(self.framerate) , self.format))
 
 			self.usingState = dict({"playState":"0", "photoState":"0"})
 
@@ -228,6 +228,7 @@ class GStreamer(object):
 			self.bus = None
 			self.loop = None
 			self.bus_managed = True
+			self.fatalErrorManaged = None
 			self.takingPhotoCondition = threading.Condition()
 
 			# VIDEO SOURCE DESCRIPTION
@@ -349,13 +350,14 @@ class GStreamer(object):
 			self.size = settings().get(["camera", "size"]).split('x')
 			self.framerate = settings().get(["camera", "framerate"])
 			self.format = settings().get(["camera", "format"])
+			self.waitForPhoto = None
 
 			self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 			self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
 						
 			if self.format == 'x-h264' and self.videotype == 'h264':
-			
-				camera1caps = gst.Caps.from_string('video/x-h264,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+
+				camera1caps = gst.Caps.from_string('video/x-h264,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate)
 
 				if not self.x264parse:
 					self.x264parse = gst.ElementFactory.make('h264parse',None)
@@ -375,7 +377,7 @@ class GStreamer(object):
 
 			else:
 
-				camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate + '/1')
+				camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate)
 
 			if not self.src_caps:
 				self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
@@ -1025,6 +1027,11 @@ class GStreamer(object):
 
 					self.streamProcessState = 'PAUSED'
 
+				if self.fatalErrorManaged:
+
+					self.fatalErrorManaged = False
+					return None
+
 
 				if waitingState:
 
@@ -1064,6 +1071,10 @@ class GStreamer(object):
 							self.play_video()
 
 						self.bus_managed = True
+						if self.multifilesinkphoto:
+							self.pipeline.remove(self.multifilesinkphoto)
+						if self.multifilesinkphotoNotText:
+							self.pipeline.remove(self.multifilesinkphotoNotText)
 
 						if tryingTimes == 2:
 							self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
@@ -1265,6 +1276,8 @@ class GStreamer(object):
 
 	def fatalErrorManage(self, NULLToQueuebinNotText=True, NULLToQueuebin=True, Message=None, SendToLocal=True, SendToRemote=True):
 
+		self.fatalErrorManaged = True
+
 		self._logger.error('Gstreamer fatal error managing')
 		
 		if NULLToQueuebinNotText and self.queuebinNotText:
@@ -1278,6 +1291,9 @@ class GStreamer(object):
 		self.pipeline.set_state(gst.State.PAUSED)
 		self.pipeline.set_state(gst.State.NULL)
 		self.reset_pipeline_gstreamer_state()
+
+		if self.waitForPhoto:
+			self.waitForPhoto.clear()
 
 		if SendToRemote:
 			#signaling for remote peers

@@ -51,7 +51,8 @@ default_settings = {
 		"encoding": "h264",
 		"size": "640x480",
 		"framerate": "15",
-		"format": "x-raw"
+		"format": "x-raw",
+		"pixelformat": "YUYV"
 	},
 	"gcodeViewer": {
 		"enabled": True,

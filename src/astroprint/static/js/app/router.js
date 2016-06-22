@@ -27,7 +27,7 @@ var AppRouter = Backbone.Router.extend({
 	turningOff: false,
   	execute: function(callback, args) {
   		if (callback) {
-  			is_paused = app.socketData.get('paused');
+  			/*is_paused = app.socketData.get('paused');
   			if (app.socketData.get('printing') || is_paused) {
   				if 	(callback != this.printing &&
   					(callback != this.control || !is_paused)
@@ -38,7 +38,7 @@ var AppRouter = Backbone.Router.extend({
   			} else if (callback == this.printing) {
   				this.navigate('', {trigger: true, replace:true});
   				return;
-  			}
+  			}*/
 
   			callback.apply(this, args);
   		}
