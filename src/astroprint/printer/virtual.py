@@ -13,9 +13,9 @@ from astroprint.printfiles import FileDestinations
 
 from octoprint.events import eventManager, Events
 
-CONNECTION_TIME = 3.0 #secs
-HEATUP_TIME = 5.0 #secs
-PRINTJOB_TIME = 20.0 #secs
+CONNECTION_TIME = 1.0 #secs
+HEATUP_TIME = 2.0 #secs
+PRINTJOB_TIME = 10.0 #secs
 
 class PrinterVirtual(Printer):
 	driverName = 'virtual'
@@ -352,6 +352,8 @@ class JobSimulator(threading.Thread):
 			time.sleep(1)
 
 		self._pm._changeState(self._pm.STATE_OPERATIONAL)
+		self._pm.setTemperature('tool0', 0)
+		self._pm.setTemperature('bed', 0)
 
 		payload = {
 			"file": self._file['filename'],
