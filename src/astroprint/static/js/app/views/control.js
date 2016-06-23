@@ -388,6 +388,12 @@ var ControlView = Backbone.View.extend({
 	render: function() {
 		if (app.socketData.get('paused')) {
 			this.$el.addClass('print-paused');
+
+			var printing_progress = app.socketData.get('printing_progress');
+
+			if (printing_progress && printing_progress.filename) {
+				this.$('.back-to-print .filename').text(printing_progress.filename)
+			}
 		} else {
 			this.$el.removeClass('print-paused');
 		}
