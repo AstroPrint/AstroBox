@@ -8,129 +8,141 @@
 	<% if(this.videoStreamingError){ %>
 		<div class="panel text-center radius">
 			<i class="icon-camera"></i>
-			<h3 class="bold">No Camera Detected</h3>
+			<h3 class="bold">Camera error</h3>
 			<p><%= this.videoStreamingError %></p>
 		</div>
-	<% } else { %>
-		<div class="row large-collapse">
-			<div class="video">
-				<div class="camera-view">
-					<div class="row nowebrtc alert-box radius">
-						<div class="large-3 large-centered columns show-for-large-up">
-							<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
-						</div>
-						<div class="small-12 columns text-center">
-							<b>Oops!</b>, You are using <%= navigator.sayswho %>. 
-							<% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
-								This browser can only stream video in VP8
-								encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
-							<% } else { %>
+	<% } else { 
+		if(this.cameraNotSupported) { %>
 
-								 Looks like Streaming Video is incompatible with your browser. Download
+		<div class="panel text-center radius">
+			<i class="icon-attention"></i>
+			<h3 class="bold">Camera is not supported by Astrobox</h3>
+			<p>Sorry... but your camera is not supported by Astrobox. It is probably the minimal camera resolution is less than 640x480 (minimal resolution supported).</p>
+			<p>Please, replace your camera and <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button</p>
+		</div>
 
-							<% } %>
+		<% } else { %>
 
-							 one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
-							<ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
-								<li>
-									<a href="https://www.google.com/chrome/" class="bold" target="_blank">
-										<img src="static/img/chrome-icon.png"/><br>
-										<b>Chrome</b><br><b>only VP8 enconding</b><br>
-									</a>
-								</li>
-								<li>
-									<a href="https://www.mozilla.org/en-US/firefox/new/" class="bold" target="_blank">
-										<img src="static/img/firefox-icon.png"/><br>
-										<b>Firefox</b><br><b>H264 and VP8 enconding</b><br>
-									</a>
-								</li>
-								<li>
-									<a href="http://www.opera.com/" class="bold" target="_blank">
-										<img src="static/img/opera-icon.png"/><br>
-										<b>Opera</b><br><b>only VP8 enconding</b><br>
-									</a>
-								</li>
-							</ul>
-						</div>
-					</div>
-					<div class="row error alert-box radius">
-						<div class="small-12 large-9 columns">
-							<b>Oops!</b>, There is currently an error with Streaming Video.<br>
-							 <p><b>A few things to try:</b> Check the connection from your AstroBox to your camera, reboot your AstroBox, or return to your <a href="#" ><b>Dashboard</b></a> and try again later.</p>
-						</div>
-						<div class="large-3 columns show-for-large-up">
-							<img src="static/img/sadmonkey-2.png"/>
-						</div>
-					</div>
-					<div class="image-container">
-						<% if(this.cameraMode == 'video') { %>
-							<div class="row video-container text-center">
-								<div class="video-off">
-									<div class="v-align">
-										<i class="icon-videocam-1"></i>
-										<h3 class="bold">Video Stream Off</h3>
-									</div>
-								</div>
-								<div class="video-preparing">
-									<div class="v-align">
-										<i class="icon-rocket-spinner animate-spin"></i>
-										<h3 class="bold">Preparing Video...</h3>
-									</div>
-								</div>
-								<div id="videoScreen" class="video-on text-center">
-									<% if (this.managerName == "mjpeg") { %>
-										<img id="video-stream" class="cover-img-cont v-align"/>
-									<% } else { %>
-										<video id="video-stream" class="cover-img-cont v-align" autoplay="">
-											You browser doesn't support element <code>video</code>.
-										</video>
-									<% } %>
-								</div>
+			<div class="row large-collapse">
+				<div class="video">
+					<div class="camera-view">
+						<div class="row nowebrtc alert-box radius">
+							<div class="large-3 large-centered columns show-for-large-up">
+								<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
 							</div>
-						<% } else { %>
-							<div class="row video-container">
+							<div class="small-12 columns text-center">
+								<b>Oops!</b>, You are using <%= navigator.sayswho %>. 
+								<% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
+									This browser can only stream video in VP8
+									encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
+								<% } else { %>
+
+									 Looks like Streaming Video is incompatible with your browser. Download
+
+								<% } %>
+
+								 one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
+								<ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
+									<li>
+										<a href="https://www.google.com/chrome/" class="bold" target="_blank">
+											<img src="static/img/chrome-icon.png"/><br>
+											<b>Chrome</b><br><b>only VP8 enconding</b><br>
+										</a>
+									</li>
+									<li>
+										<a href="https://www.mozilla.org/en-US/firefox/new/" class="bold" target="_blank">
+											<img src="static/img/firefox-icon.png"/><br>
+											<b>Firefox</b><br><b>H264 and VP8 enconding</b><br>
+										</a>
+									</li>
+									<li>
+										<a href="http://www.opera.com/" class="bold" target="_blank">
+											<img src="static/img/opera-icon.png"/><br>
+											<b>Opera</b><br><b>only VP8 enconding</b><br>
+										</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+						<div class="row error alert-box radius">
+							<div class="small-12 large-9 columns">
+								<b>Oops!</b>, There is currently an error with Streaming Video.<br>
+								 <p><b>A few things to try:</b> Check the connection from your AstroBox to your camera, reboot your AstroBox, or return to your <a href="#" ><b>Dashboard</b></a> and try again later.</p>
+							</div>
+							<div class="large-3 columns show-for-large-up">
+								<img src="static/img/sadmonkey-2.png"/>
+							</div>
+						</div>
+						<div class="image-container">
+							<% if(this.cameraMode == 'video') { %>
+								<div class="row video-container text-center">
 									<div class="video-off">
-										<div class="v-align camera-screen">
-											<i class="icon-camera"></i>
-											<h3 class="bold">Still Pictures</h3>
+										<div class="v-align">
+											<i class="icon-videocam-1"></i>
+											<h3 class="bold">Video Stream Off</h3>
 										</div>
-											<img class="camera-image v-align"/>
 									</div>
-							</div>
-						<% } %>
-					</div>
-					<div class="row collapse buttons text-center">
-						<div class="small-12 large-3 columns show-for-large-up">&nbsp;</div>
-						<% if(this.cameraMode == 'video') { %>
-							<div class="small-8 large-6 columns video-off">
-								<button class="success radius bold"><i class="icon-videocam-1"></i><span class="hide-for-small">Start Streaming Video</span></button>
-							</div>
-							<div class="small-8 large-6 columns video-on">
-								<button class="secondary radius bold"><i class="icon-stop"></i><span class="hide-for-small">Stop Streaming Video</span></button>
-							</div>
-						<% } else { %>
-							<div class="small-8 large-6 columns video-off">
-								<div class="loading-button">
-									<button class="photo radius bold"><i class="icon-camera"></i><span class="hide-for-small">Take Photo</span></button>
-									<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> <span class="hide-for-small">Taking photo...</span></span>
+									<div class="video-preparing">
+										<div class="v-align">
+											<i class="icon-rocket-spinner animate-spin"></i>
+											<h3 class="bold">Preparing Video...</h3>
+										</div>
+									</div>
+									<div id="videoScreen" class="video-on text-center">
+										<% if (this.managerName == "mjpeg") { %>
+											<img id="video-stream" class="cover-img-cont v-align"/>
+										<% } else { %>
+											<video id="video-stream" class="cover-img-cont v-align" autoplay="">
+												You browser doesn't support element <code>video</code>.
+											</video>
+										<% } %>
+									</div>
 								</div>
-							</div>
-						<% } %>
-						<div id="camera-mode-slider" class="small-4 large-3 columns camera-mode" align="right">
-							<p>
-								<i class="icon-picture-1"></i>
-								<i class="icon-videocam-1"></i>
-							</p>
-							<div class="switch radius">
-								<input id="camera-mode-camera" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
-								<label for="camera-mode-camera"></label>
+							<% } else { %>
+								<div class="row video-container">
+										<div class="video-off">
+											<div class="v-align camera-screen">
+												<i class="icon-camera"></i>
+												<h3 class="bold">Still Pictures</h3>
+											</div>
+												<img class="camera-image v-align"/>
+										</div>
+								</div>
+							<% } %>
+						</div>
+						<div class="row collapse buttons text-center">
+							<div class="small-12 large-3 columns show-for-large-up">&nbsp;</div>
+							<% if(this.cameraMode == 'video') { %>
+								<div class="small-8 large-6 columns video-off">
+									<button class="success radius bold"><i class="icon-videocam-1"></i><span class="hide-for-small">Start Streaming Video</span></button>
+								</div>
+								<div class="small-8 large-6 columns video-on">
+									<button class="secondary radius bold"><i class="icon-stop"></i><span class="hide-for-small">Stop Streaming Video</span></button>
+								</div>
+							<% } else { %>
+								<div class="small-8 large-6 columns video-off">
+									<div class="loading-button">
+										<button class="photo radius bold"><i class="icon-camera"></i><span class="hide-for-small">Take Photo</span></button>
+										<span class="loading button disabled radius"><i class="icon-rocket-spinner animate-spin"></i> <span class="hide-for-small">Taking photo...</span></span>
+									</div>
+								</div>
+							<% } %>
+							<div id="camera-mode-slider" class="small-4 large-3 columns camera-mode" align="right">
+								<p>
+									<i class="icon-picture-1"></i>
+									<i class="icon-videocam-1"></i>
+								</p>
+								<div class="switch radius">
+									<input id="camera-mode-camera" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
+									<label for="camera-mode-camera"></label>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-	<% } %>
+		<% }
+	} %>
 <% } else { %>
 	<div class="panel text-center radius">
 		<i class="icon-camera"></i>
