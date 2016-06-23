@@ -107,6 +107,7 @@ class Printer(object):
 		return self._currentPrintJobId
 
 	def rampdown(self):
+		self._logger.info('Ramping down Printer Manager')
 		self.disconnect()
 		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 		self._callbacks = []

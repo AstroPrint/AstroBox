@@ -4,13 +4,15 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 from astroprint.printer.marlin import PrinterMarlin
 from astroprint.printer.s3g import PrinterS3g
+from astroprint.printer.virtual import PrinterVirtual
 
 # singleton
 _instance = None
 
 printerDriverMap = {
 	PrinterMarlin.driverName: PrinterMarlin,
-	PrinterS3g.driverName: PrinterS3g
+	PrinterS3g.driverName: PrinterS3g,
+	PrinterVirtual.driverName: PrinterVirtual
 }
 
 # This object is recreated when the driver is changed in the printer profile page.
