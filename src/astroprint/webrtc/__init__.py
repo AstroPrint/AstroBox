@@ -99,6 +99,7 @@ class WebRtc(object):
 				self.startJanus()
 
 			peer = ConnectionPeer(clientId, self)
+
 			sessionId = peer.start()
 			
 			if sessionId:
@@ -368,7 +369,7 @@ class ConnectionPeer(object):
 
 	def start(self):
 
-		sem = threading.Semaphore(0)
+		sem = threading.Event()
 
 		self.streamingPlugin = StreamingPlugin()
 		self.session = Session('ws://127.0.0.1:8188', secret='d5faa25fe8e3438d826efb1cd3369a50')
@@ -376,7 +377,7 @@ class ConnectionPeer(object):
 		@self.session.on_plugin_attached.connect
 		def receive_data(sender, **kw):
 			#wait until Janus plugin is not attached
-			sem.release()
+			sem.set()
 
 
 		#CONNECTION
@@ -418,7 +419,7 @@ class ConnectionPeer(object):
 		#
 		# Signal fired when a `Session` level message is received.
 		#	on_message = blinker.Signal()
-		#self.session.on_message.connect(self.session_on_message)
+		self.session.on_message.connect(self.session_on_message)
 
 		#
 		# Signal fired when a `Session` `Plugin` been attached.
@@ -473,9 +474,18 @@ class ConnectionPeer(object):
 		self.sessionKa.daemon = True
 		self.sessionKa.start()
 
-		sem.acquire()
+		waitingState = sem.wait(5)
+		sem.clear()
+
+		if waitingState:
+			
+			return self.session.id
+
+		else:
+
+			logging.error("Error initializing Janus: session can not be started")
+			return None
 		
-		return self.session.id
 
 	def close(self):
 		#stop the keepalive worker
