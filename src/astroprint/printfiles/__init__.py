@@ -601,13 +601,14 @@ class MetadataAnalyzer(object):
 
 	def stop(self):
 		self._stop = True
+
+		#We might be waiting on a _queue.get()
+		#We add a fake item so that _queue.get returns and we can kill the thread
+		self._queue.put((0, None))
+
 		if not self._active.isSet():
 			#It's waiting on a _active.wait()
 			self._active.set()
-		else:
-			#It's waiting on a _queue.get()
-			#We add a fake item so that _queue.get returns and we can kill the thread
-			self._queue.put((0, None))
 
 	def _work(self):
 		aborted = None

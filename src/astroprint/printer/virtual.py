@@ -1,5 +1,4 @@
 # coding=utf-8
-__author__ = "Gina Häußge <osd@foosel.net>"
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -14,6 +13,10 @@ from astroprint.printfiles import FileDestinations
 
 from octoprint.events import eventManager, Events
 
+CONNECTION_TIME = 3.0 #secs
+HEATUP_TIME = 5.0 #secs
+PRINTJOB_TIME = 20.0 #secs
+
 class PrinterVirtual(Printer):
 	driverName = 'virtual'
 	allowTerminal = True
@@ -24,6 +27,7 @@ class PrinterVirtual(Printer):
 		self._printing = False
 		self._heatingUp = False
 		self._temperatureChanger = None
+		self._printJob = None
 		self._logger = logging.getLogger(__name__)
 		super(PrinterVirtual, self).__init__()
 
@@ -70,8 +74,8 @@ class PrinterVirtual(Printer):
 		if self._currentFile is None:
 			raise ValueError("No file selected for printing")
 
-		#if self._printJob and self._printJob.isAlive():
-		#	raise Exception("A Print Job is still running")
+		if self._printJob and self._printJob.isAlive():
+			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
 		eventManager().fire(Events.PRINT_STARTED, {
@@ -80,8 +84,19 @@ class PrinterVirtual(Printer):
 			"origin": self._currentFile['origin']
 		})
 
-		#self._printJob = PrintJobS3G(self, self._currentFile)
-		#self._printJob.start()
+		#First we simulate heatup
+		self.setTemperature("tool0", 210)
+		self.setTemperature("bed", 60)
+		self.mcHeatingUpUpdate(True)
+
+		def heatupDone():
+			if not self._shutdown:
+				self.mcHeatingUpUpdate(False)
+				self._printJob = JobSimulator(self, self._currentFile)
+				self._printJob.start()
+
+		t = threading.Timer(HEATUP_TIME, heatupDone)
+		t.start()		 
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
 		"""
@@ -90,16 +105,10 @@ class PrinterVirtual(Printer):
 		if not super(PrinterVirtual, self).cancelPrint():
 			return
 
-		# reset progress, height, print time
-		self._setCurrentZ(None)
-		self._setProgressData(None, None, None, None, None)
+		self._printJob.cancel()
 
-		# mark print as failure
-		if self._currentFile is not None:
-			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
-			self.unselectFile()
-			
-		#self._printJob.cancel()
+		if self.isPaused:
+			self.setPause(False)
 
 	def serialList(self):
 		return {
@@ -114,11 +123,12 @@ class PrinterVirtual(Printer):
 		self._changeState(self.STATE_CONNECTING)
 
 		def doConnect():
-			self._changeState(self.STATE_OPERATIONAL)
-			self._temperatureChanger = TempsChanger(self)
-			self._temperatureChanger.start()
+			if not self._shutdown:			
+				self._changeState(self.STATE_OPERATIONAL)
+				self._temperatureChanger = TempsChanger(self)
+				self._temperatureChanger.start()
 
-		t = threading.Timer(3.0, doConnect)
+		t = threading.Timer(CONNECTION_TIME, doConnect)
 		t.start()
 
 	def isConnected(self):
@@ -144,8 +154,24 @@ class PrinterVirtual(Printer):
 	def setPause(self, paused):
 		if paused:
 			self._changeState(self.STATE_PAUSED)
+
+			eventManager().fire(Events.PRINT_PAUSED, {
+				"file": self._currentFile['filename'],
+				"filename": os.path.basename(self._currentFile['filename']),
+				"origin": self._currentFile['origin']
+			})
+
 		else:
 			self._changeState(self.STATE_PRINTING)
+
+			eventManager().fire(Events.PRINT_RESUMED, {
+				"file": self._currentFile['filename'],
+				"filename": os.path.basename(self._currentFile['filename']),
+				"origin": self._currentFile['origin']
+			})
+
+		if self._printJob:
+			self._printJob.setPaused(paused)
 
 	def isHeatingUp(self):
 		return self._heatingUp
@@ -181,13 +207,22 @@ class PrinterVirtual(Printer):
 		return "?%d?" % (self._state)
 
 	def getPrintTime(self):
-		raise NotImplementedError()
+		if self._printJob:
+			return self._printJob.printTime
+		else:
+			return None
 
 	def getPrintProgress(self):
-		raise NotImplementedError()
+		if self._printJob:
+			return self._printJob.progress
+		else:
+			return None
 
 	def getPrintFilepos(self):
-		raise NotImplementedError()
+		if self._printJob:
+			return self._printJob.filePos
+		else:
+			return None
 
 	def getCurrentConnection(self):
 		if not self._comm:
@@ -232,6 +267,14 @@ class PrinterVirtual(Printer):
 
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
+	def printJobCancelled(self):
+		# reset progress, height, print time
+		self._setProgressData(None, None, None, None, None)
+
+		# mark print as failure
+		if self._currentFile is not None:
+			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			self.unselectFile()
 
 class TempsChanger(threading.Thread):
 	def __init__(self, manager):
@@ -254,6 +297,8 @@ class TempsChanger(threading.Thread):
 			self._updateTemps()
 			time.sleep(1)
 
+		self._manager = None
+
 	def stop(self):
 		self._stopped = True
 
@@ -273,3 +318,79 @@ class TempsChanger(threading.Thread):
 			}
 
 		self._manager._stateMonitor.addTemperature(data)
+
+class JobSimulator(threading.Thread):
+	def __init__(self, printerManager, currentFile):
+		self._pm = printerManager
+		self._file = currentFile
+		self._jobLength = PRINTJOB_TIME
+		self._stopped = False
+		self._timeElapsed = 0
+		self._percentCompleted = 0
+		self._filePos = 0
+		self._currentLayer = 0
+		self._pausedEvent = threading.Event()
+
+		super(JobSimulator, self).__init__()
+
+	def run(self):
+		self._pausedEvent.set()
+
+		while not self._stopped and self._percentCompleted < 1:
+			self._pausedEvent.wait()
+
+			if self._stopped:
+				break
+
+			self._timeElapsed += 1
+			self._filePos += 1
+			self._currentLayer += 1
+			self._percentCompleted = self._timeElapsed / self._jobLength
+			self._pm.mcLayerChange(self._currentLayer)
+			self._pm.mcProgress()
+
+			time.sleep(1)
+
+		self._pm._changeState(self._pm.STATE_OPERATIONAL)
+
+		payload = {
+			"file": self._file['filename'],
+			"filename": os.path.basename(self._file['filename']),
+			"origin": self._file['origin'],
+			"time": self._timeElapsed,
+			"layerCount": self._currentLayer
+		}
+
+		if self._percentCompleted >= 1:
+			self._pm.mcPrintjobDone()
+			self._pm._fileManager.printSucceeded(payload['filename'], payload['time'], payload['layerCount'])
+			eventManager().fire(Events.PRINT_DONE, payload)			
+		else:
+			self._pm.printJobCancelled()
+			eventManager().fire(Events.PRINT_FAILED, payload)
+			self._pm._fileManager.printFailed(payload['filename'], payload['time'])
+
+		self._pm = None
+
+	def cancel(self):
+		self._stopped = True
+		if not self._pausedEvent.isSet():
+			self.setPaused(False)
+
+	def setPaused(self, value):
+		if value:
+			self._pausedEvent.clear()
+		else:
+			self._pausedEvent.set()
+
+	@property
+	def printTime(self):
+		return self._timeElapsed
+
+	@property
+	def progress(self):
+		return self._percentCompleted	
+
+	@property
+	def filePos(self):
+		return self._filePos

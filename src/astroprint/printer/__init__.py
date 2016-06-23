@@ -62,6 +62,7 @@ class Printer(object):
 		self._temp = {}
 		self._bedTemp = None
 		self._temps = deque([], 300)
+		self._shutdown = False
 
 		self._messages = deque([], 300)
 
@@ -108,6 +109,7 @@ class Printer(object):
 
 	def rampdown(self):
 		self._logger.info('Ramping down Printer Manager')
+		self._shutdown = True
 		self.disconnect()
 		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 		self._callbacks = []
@@ -610,13 +612,16 @@ class StateMonitor(object):
 			if self._stop:
 				#one last update
 				self._updateCallback(self.getCurrentData())
-				break;
+				break
 
 			now = time.time()
 			delta = now - self._lastUpdate
 			additionalWaitTime = self._ratelimit - delta
 			if additionalWaitTime > 0:
 				time.sleep(additionalWaitTime)
+
+			if self._stop:
+				break
 
 			data = self.getCurrentData()
 			self._updateCallback(data)
