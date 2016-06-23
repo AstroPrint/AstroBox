@@ -54,7 +54,7 @@ The AstroBox Software comes with a handy virtual printer so that you can test wi
 <pre>
 connection: 3.0
 heatingUp: 5.0
-printing: 10.0
+printJob: 10.0
 </pre>
 
-* Save the file and restart AstroBox
+* Restart AstroBox any time you make changes to these files

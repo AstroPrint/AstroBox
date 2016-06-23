@@ -12,10 +12,7 @@ from astroprint.printer import Printer
 from astroprint.printfiles import FileDestinations
 
 from octoprint.events import eventManager, Events
-
-CONNECTION_TIME = 1.0 #secs
-HEATUP_TIME = 2.0 #secs
-PRINTJOB_TIME = 10.0 #secs
+from octoprint.settings import settings
 
 class PrinterVirtual(Printer):
 	driverName = 'virtual'
@@ -24,6 +21,32 @@ class PrinterVirtual(Printer):
 	_fileManagerClass = PrintFileManagerGcode
 
 	def __init__(self):
+
+		seettings_file = "%s/virtual-printer-settings.yaml" % os.path.dirname(settings()._configfile)
+
+		self._settings = {
+			'connection': 1.0,
+			'heatingUp': 2.0,
+			'printJob': 10.0
+		}
+
+		if os.path.isfile(seettings_file):
+			import yaml
+			
+			config = None
+			with open(seettings_file, "r") as f:
+				config = yaml.safe_load(f)
+
+			def merge_dict(a,b):
+				for key in b:
+					if isinstance(b[key], dict):
+						merge_dict(a[key], b[key])
+					else:
+						a[key] = b[key]
+
+			if config:
+				merge_dict(self._settings, config)
+
 		self._printing = False
 		self._heatingUp = False
 		self._temperatureChanger = None
@@ -95,7 +118,7 @@ class PrinterVirtual(Printer):
 				self._printJob = JobSimulator(self, self._currentFile)
 				self._printJob.start()
 
-		t = threading.Timer(HEATUP_TIME, heatupDone)
+		t = threading.Timer(self._settings['heatingUp'], heatupDone)
 		t.start()		 
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -128,7 +151,7 @@ class PrinterVirtual(Printer):
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
 
-		t = threading.Timer(CONNECTION_TIME, doConnect)
+		t = threading.Timer(self._settings['connection'], doConnect)
 		t.start()
 
 	def isConnected(self):
@@ -323,7 +346,7 @@ class JobSimulator(threading.Thread):
 	def __init__(self, printerManager, currentFile):
 		self._pm = printerManager
 		self._file = currentFile
-		self._jobLength = PRINTJOB_TIME
+		self._jobLength = printerManager._settings['printJob']
 		self._stopped = False
 		self._timeElapsed = 0
 		self._percentCompleted = 0
