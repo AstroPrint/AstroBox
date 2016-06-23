@@ -50,8 +50,9 @@ default_settings = {
 		"manager": "gstreamer",
 		"encoding": "h264",
 		"size": "640x480",
-		"framerate": "15",
-		"format": "x-raw"
+		"framerate": "15/1",
+		"format": "x-raw",
+		"pixelformat": "YUYV"
 	},
 	"gcodeViewer": {
 		"enabled": True,

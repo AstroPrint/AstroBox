@@ -108,8 +108,7 @@ var PhotoView = CameraViewBase.extend({
 	events: {
 		'click button.take-pic': 'onCameraBtnClicked',
 		'change .timelapse select': 'timelapseFreqChanged',
-		"change #camera-mode-printing": 'cameraModeChanged',
-		'show': 'onShow'
+		"change #camera-mode-printing": 'cameraModeChanged'
 	},
 	parent: null,
 	print_capture: null,
@@ -160,62 +159,6 @@ var PhotoView = CameraViewBase.extend({
 		this.print_capture = app.socketData.get('print_capture');
 		this.parent = options.parent;
 		this.initCamera();
-
-		/*$.getJSON(API_BASEURL + 'camera/connected')
-		.done(_.bind(function(response){
-			
-			var cameraConnected = response.isCameraConnected;
-
-			if(cameraConnected){
-
-				$.getJSON(API_BASEURL + 'camera/has-properties')
-				.done(_.bind(function(response){
-						if(response.hasCameraProperties){
-							//video settings
-							$.getJSON(API_BASEURL + 'settings/camera')
-							.done(_.bind(function(settings){
-								
-								this.settings = settings;
-
-								if(cameraConnected){
-
-									app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
-
-									this.evalWebRtcAbleing();
-
-									this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
-									this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-									this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
-
-									this.onCameraChanged(app.socketData, app.socketData.get('camera'));
-
-									this.print_capture = app.socketData.get('print_capture');
-								} else {
-									this.setState('nowebrtc');
-									this.ableWebRtc = false
-									cameraModeChanged = null;
-									this.buttonEvent = function(e){ this.refreshPhoto(e); };
-									this.startStreaming = null;
-									this.stopStreaming = null;
-								}
-
-								this.render();
-
-							},this));
-						} else {
-							this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
-							this.render();
-						}
-				},this))
-				.fail(_.bind(function(response){
-					console.error(msg["error"]);
-					noty({text: "Unable to communicate with the camera.", timeout: 3000});
-					this.stopStreaming();
-					this.setState('error');
-				},this));
-			}
-		},this));*/
-
 	},
 	cameraInitialized: function()
 	{
@@ -231,7 +174,7 @@ var PhotoView = CameraViewBase.extend({
 
 		this.print_capture = app.socketData.get('print_capture');
 	},
-	render: function() 
+	render: function()
 	{
 
 		this.$el.html(this.template());
