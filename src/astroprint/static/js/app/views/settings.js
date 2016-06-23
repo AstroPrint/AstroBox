@@ -325,8 +325,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 	settingsSizeDefault: '640x480',
 	cameraName: 'No camera plugged',
 	events: {
-		"invalid.fndtn.abide form": 'invalidForm',
-		"valid.fndtn.abide form": 'validForm',
+		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera"
 	},
 	show: function() {
@@ -370,7 +369,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 										});
 										noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
 										this.videoSettingsError = null;
-										this.validForm();
+										this.saveData();
 										this.render();
 									}
 
@@ -431,19 +430,14 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 		this.delegateEvents(this.events);
 	},
-	invalidForm: function(e)
-	{
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
-
-		noty({text: "Please check your errors", timeout: 3000});
+	onFormSubmit: function(e) {
+	    e.preventDefault();
+	    this.saveData();
+		return false;
 	},
-	validForm: function(e) {
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
-
+	saveData: function()
+	{
+	    console.log('hello');
 	    var form = this.$('form');
 	    var loadingBtn = form.find('.loading-button');
 		var attrs = {};
