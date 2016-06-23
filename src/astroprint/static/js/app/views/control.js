@@ -131,8 +131,13 @@ var TempView = Backbone.View.extend({
 		this.bedTempBar.onResize();
 	},
 	updateBars: function(value) {
-		this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
-		this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
+		if (value.extruder) {
+			this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
+		}
+
+		if (value.bed) {
+			this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
+		}
 	}
 });
 
