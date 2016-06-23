@@ -41,3 +41,20 @@ Installation instructions
     $ sudo service astrobox stop
     $ sudo python ./run --config /etc/astrobox/config.yaml --host 127.0.0.1
   </pre>
+
+Setting up the virtual printer
+-------
+
+The AstroBox Software comes with a handy virtual printer so that you can test without the need of a real 3D Printer attached. Here's how you can set it up
+
+* Edit the `printer-profile.yaml` file in your settings directory (by default `[AstroBox Directory]/local`). Change the `driver` property to `virtual`.
+
+* Edit or create the `virtual-printer-settings.yaml` file in the same directory to guide your printing simulation. All values are in seconds. Here's a sample:
+
+<pre>
+connection: 3.0
+heatingUp: 5.0
+printing: 10.0
+</pre>
+
+* Save the file and restart AstroBox
