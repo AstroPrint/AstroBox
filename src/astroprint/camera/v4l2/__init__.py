@@ -7,16 +7,15 @@ import os
 import fcntl
 import errno
 import time
-
 from astroprint.camera import CameraManager
 
 class V4L2Manager(CameraManager):
 	def __init__(self, number_of_video_device):
 		self.number_of_video_device = number_of_video_device
-		self.supported_formats = None
-		self.cameraName = None
+		self.supported_formats = self._getSupportedResolutions()
+		self.cameraName = self._getCameraName()
 
-		self.cameraInfo = {"name":self._getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
 
 		super(V4L2Manager, self).__init__(self.cameraInfo)
 
@@ -96,7 +95,7 @@ class V4L2Manager(CameraManager):
 				#resolution['resolutions'] = [[640, 480]]
 				#resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
 				supported_formats.append(resolution)
-				return supported_formats
+				return None
 
 			for supported_format in supported_formats:
 			    resolutions = []
@@ -128,7 +127,7 @@ class V4L2Manager(CameraManager):
 			            # more formats, so we ignore it
 			            if e.errno != errno.EINVAL: 
 			                self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.") 
-			                return supported_formats
+			                return None
 
 			    supported_format['resolutions'] = resolutions
 
