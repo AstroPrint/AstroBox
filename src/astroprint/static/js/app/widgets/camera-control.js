@@ -265,6 +265,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   originalFunctions: null,//this could be contained the original functions
   //startStreaming, stopStreaming, and onHide for being putted back after changing
   //settings if new settings ables to get video instead of old settings
+  timeoutPlayingManager: null,
   manageVideoStreamingEvent: function(value)
   {//override this for managing this error
 	this.videoStreamingError = value.message;
@@ -467,12 +468,12 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 									this.setState('error');
 								},this));
 
-								window.setTimeout(_.bind(function(){
+								this.timeoutPlayingManager = window.setTimeout(_.bind(function(){
 									if(!isPlaying){
 										this.stopStreaming();
 										this.setState('error');
 										promise.reject();
-									}
+										clearTimeout(this.timeoutPlayingManager);									}
 								},this),40000);
 								
 								var isPlaying = false;
@@ -528,6 +529,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   stopStreaming: function()
   {
+  	clearTimeout(this.timeoutPlayingManager);
   	this.setState('ready');
 	if (this.streaming) { 
 		var body = { "request": "stop" };
