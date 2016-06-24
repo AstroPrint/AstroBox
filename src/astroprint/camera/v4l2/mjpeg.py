@@ -61,7 +61,7 @@ class MjpegManager(V4L2Manager):
 				self._streamer = MJPEGStreamer(self._videoDevice, self._settings['size'], self._settings['framerate'], self._settings['format'])
 
 				if self._streamer:
-					self.supported_formats = self._getSupportedResolutions()
+					self.supported_formats = self.cameraInfo['supportedResolutions']
 
 			return True
 

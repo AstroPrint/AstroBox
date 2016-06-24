@@ -91,7 +91,9 @@ class TimelapseWorker(threading.Thread):
 class CameraManager(object):
 	name = None
 
-	def __init__(self):
+	def __init__(self,cameraInfo=None):
+
+		#RECTIFYNIG default settings
 
 		s = settings()
 
@@ -110,7 +112,6 @@ class CameraManager(object):
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
-		self.cameraName = None
 		self.open_camera()
 
 	def shutdown(self):

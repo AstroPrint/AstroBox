@@ -216,9 +216,11 @@
 										</label>
 										<% if (settings.structure.fps.length > 1) { %>
 											<select id="video-stream-framerate" name="framerate">
-												<% _.each(settings.structure.fps, function(v) { %>
-													<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
-												<% }) %>
+												<% _.each(settings.structure.fps, function(v) { 
+														if(v.resolution == settings.size) { %>
+															<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+												<% 		}
+													}) %>
 											</select>
 										<% } else { %>
 											<div class="field-value"><%= settings.structure.fps[0].label %></div>

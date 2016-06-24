@@ -326,7 +326,8 @@ var CameraVideoStreamView = SettingsPage.extend({
 	cameraName: 'No camera plugged',
 	events: {
 		"submit form": 'onFormSubmit',
-		"click #buttonRefresh": "refreshPluggedCamera"
+		"click #buttonRefresh": "refreshPluggedCamera",
+		"change #video-stream-size": "restrictFps"
 	},
 	show: function() {
 
@@ -345,50 +346,58 @@ var CameraVideoStreamView = SettingsPage.extend({
 					this.cameraName = response.cameraName;
 
 					$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
-						this.settings = data;
+						
+						if(data.structure){
 
-						$.getJSON(API_BASEURL + 'camera/has-properties')
-						.done(_.bind(function(response){
-							if(response.hasCameraProperties){
+							this.settings = data;
 
-								$.getJSON(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
-								.done(_.bind(function(response){
-									if(response.isResolutionSupported){
-										this.videoSettingsError = null;
-										this.render();
-									} else {
-										//setting default settings
-										this.settings.size = this.settingsSizeDefault;
-										//saving new settings <- default settings
-										$.ajax({
-											url: API_BASEURL + 'settings/camera',
-											type: 'POST',
-											contentType: 'application/json',
-											dataType: 'json',
-											data: JSON.stringify(this.settings)
-										});
-										noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
-										this.videoSettingsError = null;
-										this.saveData();
-										this.render();
-									}
+							$.getJSON(API_BASEURL + 'camera/has-properties')
+							.done(_.bind(function(response){
+								if(response.hasCameraProperties){
 
-								},this))
-								.fail(function() {
-									noty({text: "There was an error reading your camera settings.", timeout: 3000});
-								})
-								.always(_.bind(function(){
-									loadingBtn.removeClass('loading');
-								},this));
-							} else {
+									$.getJSON(API_BASEURL + 'camera/is-resolution-supported',{ size: data.size })
+									.done(_.bind(function(response){
+										if(response.isResolutionSupported){
+											this.videoSettingsError = null;
+											this.render();
+										} else {
+											//setting default settings
+											this.settings.size = this.settingsSizeDefault;
+											//saving new settings <- default settings
+											$.ajax({
+												url: API_BASEURL + 'settings/camera',
+												type: 'POST',
+												contentType: 'application/json',
+												dataType: 'json',
+												data: JSON.stringify(this.settings)
+											});
+											noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
+											this.videoSettingsError = null;
+											this.saveData();
+											this.render();
+										}
+
+									},this))
+									.fail(function() {
+										noty({text: "There was an error reading your camera settings.", timeout: 3000});
+									})
+									.always(_.bind(function(){
+										loadingBtn.removeClass('loading');
+									},this));
+								} else {
+									this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...';
+									this.render();
+								}
+							},this))
+							.fail(_.bind(function(){
 								this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...';
 								this.render();
-							}
-						},this))
-						.fail(_.bind(function(){
-							this.videoSettingsError = 'Unable to communicate with your camera. Please, re-connect the camera and try again...';
+							},this))
+						} else {//camera plugged is not supported by Astrobox
+							//this.cameraName = data.cameraName;
+							this.videoSettingsError = 'The camera which was connected is not supported by Astrobox.<br>It is probably the minimal camera resolution is less than 640x480 (minimal resolution supported).';
 							this.render();
-						},this))
+						}
 					}, this))
 					.fail(function() {
 						noty({text: "There was an error getting Camera settings.", timeout: 3000});
@@ -402,6 +411,30 @@ var CameraVideoStreamView = SettingsPage.extend({
 		} else {
 			this.render();
 		}
+	},
+	restrictFps: function(){
+		this.$('#video-stream-framerate').html('');
+
+		$.each(this.settings.structure.fps, _.bind(function(i, item) { 
+			if(item.resolution == this.$('#video-stream-size').val()) {
+				if (this.settings.framerate == item.value){
+					this.$('#video-stream-framerate').append($('<option>', { 
+				        		value: item.value,
+				        		text : item.label,
+				        		selected: 'selected'
+			    			}
+			    		)
+			    	);
+				} else {
+					this.$('#video-stream-framerate').append($('<option>', { 
+				        		value: item.value,
+				        		text : item.label
+			    			}
+			    		)
+			    	);
+				}
+			}
+		},this));
 	},
 	refreshPluggedCamera: function(){
 		this.$('#buttonRefresh').addClass('loading');

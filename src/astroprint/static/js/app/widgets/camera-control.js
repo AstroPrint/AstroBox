@@ -3,7 +3,9 @@ var CameraControlView = Backbone.View.extend({
 	state: null,
 	canStream: false,
 	cameraAvailable: false,
+	cameraNotSupported: false,
 	browserNotVisibleManager: null,
+	browserVisibilityState: null,
 	initCamera: function(settings)
 	{
 		this.videoStreamingError = null;
@@ -13,31 +15,50 @@ var CameraControlView = Backbone.View.extend({
 				
 			if(response.isCameraConnected){
 
-				$.getJSON(API_BASEURL + 'camera/has-properties')
+				$.getJSON(API_BASEURL + 'camera/is-camera-supported')
 				.done(_.bind(function(response){
-						if(response.hasCameraProperties){
-							this.cameraAvailable = true;
-							//video settings
-							if( settings ){
-								this.settings = settings;
-								this.cameraInitialized();
 
-							} else {
-								$.getJSON(API_BASEURL + 'settings/camera')
-								.done(_.bind(function(settings){
-									
-									this.settings = settings;
-									this.cameraInitialized();
+					if(response.isCameraSupported){
 
-								},this));
-							}
+						this.cameraNotSupported = false;
 
-							this.render();
-						} else {
+						$.getJSON(API_BASEURL + 'camera/has-properties')
+						.done(_.bind(function(response){
+								if(response.hasCameraProperties){
+									this.cameraAvailable = true;
+									//video settings
+									if( settings ){
+										this.settings = settings;
+										this.cameraInitialized();
+
+									} else {
+										$.getJSON(API_BASEURL + 'settings/camera')
+										.done(_.bind(function(settings){
+											
+											this.settings = settings;
+											this.cameraInitialized();
+
+										},this));
+									}
+
+									this.render();
+								} else {
+									this.cameraAvailable = false;
+									this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+									this.render();
+								}
+						},this))
+						.fail(_.bind(function(response){
 							this.cameraAvailable = false;
-							this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
-							this.render();
-						}
+							noty({text: "Unable to communicate with the camera.", timeout: 3000});
+							this.stopStreaming();
+							this.setState('error');
+						},this));
+					} else {
+						this.cameraAvailable = true;
+						this.cameraNotSupported = true;
+						this.render(); 
+					}
 				},this))
 				.fail(_.bind(function(response){
 					this.cameraAvailable = false;
@@ -132,10 +153,9 @@ var CameraControlView = Backbone.View.extend({
 	{
 		var onVisibilityChange = _.bind(function() {
 			if(document.hidden || document.visibilityState != 'visible'){
-				this.browserNotVisibleManager = setInterval(_.bind(function(){
+				setTimeout(_.bind(function(){
 					if(document.hidden || document.visibilityState != 'visible'){
 						this.stopStreaming();
-						clearInterval(this.browserNotVisibleManager);
 						this.browserNotVisibleManager = 'waiting';
 					}
 				},this), 15000);
@@ -145,6 +165,7 @@ var CameraControlView = Backbone.View.extend({
 					this.startStreaming();
 				}
 			}
+			console.log(this.browserNotVisibleManager);
 		},this);
 
 		$(document).on("visibilitychange", onVisibilityChange);
@@ -244,6 +265,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   originalFunctions: null,//this could be contained the original functions
   //startStreaming, stopStreaming, and onHide for being putted back after changing
   //settings if new settings ables to get video instead of old settings
+  timeoutPlayingManager: null,
   manageVideoStreamingEvent: function(value)
   {//override this for managing this error
 	this.videoStreamingError = value.message;
@@ -446,12 +468,12 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 									this.setState('error');
 								},this));
 
-								window.setTimeout(_.bind(function(){
+								this.timeoutPlayingManager = window.setTimeout(_.bind(function(){
 									if(!isPlaying){
 										this.stopStreaming();
 										this.setState('error');
 										promise.reject();
-									}
+										clearTimeout(this.timeoutPlayingManager);									}
 								},this),40000);
 								
 								var isPlaying = false;
@@ -507,6 +529,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   stopStreaming: function()
   {
+  	clearTimeout(this.timeoutPlayingManager);
   	this.setState('ready');
 	if (this.streaming) { 
 		var body = { "request": "stop" };

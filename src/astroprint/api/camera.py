@@ -11,6 +11,15 @@ from octoprint.settings import settings
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
+
+@api.route("/camera/is-camera-supported", methods=["GET"])
+@restricted_access
+def isCameraSupportedByAstrobox():
+	cm = cameraManager()
+
+	return jsonify({"isCameraSupported": cm.settingsStructure() is not None})
+
+
 @api.route("/camera/refresh-plugged", methods=["POST"])
 @restricted_access
 def refreshPluggedCamera():
