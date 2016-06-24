@@ -17,6 +17,34 @@ class V4L2Manager(CameraManager):
 
 		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
 
+		maxFPSSupported = 0
+
+		fpsArray = []
+
+		try:
+
+			if cameraInfo["supportedResolutions"]:
+				for res in cameraInfo["supportedResolutions"]:
+					if res["pixelformat"] == 'YUYV':#restricted
+						
+						resolutionDefault = s.get(["camera", "size"]).split('x')
+
+						for resolution in res["resolutions"]:
+
+							if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
+								
+								fps = resolution[2]
+
+								for fpsValue in fps:
+									splitFPS = fpsValue.split('/')
+									valueFPS = float(splitFPS[0])/float(splitFPS[1])
+									valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
+									if valueFPS > maxFPSSupported:
+										fpsArray.append(valueFPS)
+										maxFPSSupported = valueFPS
+		except:
+			self._logger.info('Something went wrong with your camera... any camera connected?')
+
 		super(V4L2Manager, self).__init__(self.cameraInfo)
 
 	def __getPixelFormats(self, device, maxformats=5):
