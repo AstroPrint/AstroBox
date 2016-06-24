@@ -419,7 +419,7 @@ class ConnectionPeer(object):
 		#
 		# Signal fired when a `Session` level message is received.
 		#	on_message = blinker.Signal()
-		self.session.on_message.connect(self.session_on_message)
+		#self.session.on_message.connect(self.session_on_message)
 
 		#
 		# Signal fired when a `Session` `Plugin` been attached.
