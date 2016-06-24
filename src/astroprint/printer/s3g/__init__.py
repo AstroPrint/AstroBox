@@ -125,7 +125,7 @@ class PrinterS3g(Printer):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._logger.info('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
+		self._logger.info('Changing monitoring state from [%s] to [%s]' % (oldState, self.getStateString()))
 
 		# forward relevant state changes to gcode manager
 		if self._comm is not None and oldState == self.STATE_PRINTING:

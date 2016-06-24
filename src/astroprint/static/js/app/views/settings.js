@@ -322,12 +322,10 @@ var CameraVideoStreamView = SettingsPage.extend({
 	el: '#video-stream',
 	template: _.template( $("#video-stream-settings-page-template").html() ),
 	settings: null,
-	//settingsSizeDefault: '1280x720',
 	settingsSizeDefault: '640x480',
 	cameraName: 'No camera plugged',
 	events: {
-		"invalid.fndtn.abide form": 'invalidForm',
-		"valid.fndtn.abide form": 'validForm',
+		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
 		"change #video-stream-size": "restrictFps"
 	},
@@ -375,7 +373,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 											});
 											noty({text: "Lowering your camera input resolution", type: 'warning', timeout: 3000});
 											this.videoSettingsError = null;
-											this.validForm();
+											this.saveData();
 											this.render();
 										}
 
@@ -415,10 +413,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		}
 	},
 	restrictFps: function(){
-
 		this.$('#video-stream-framerate').html('');
-
-
 
 		$.each(this.settings.structure.fps, _.bind(function(i, item) { 
 			if(item.resolution == this.$('#video-stream-size').val()) {
@@ -468,19 +463,14 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 		this.delegateEvents(this.events);
 	},
-	invalidForm: function(e)
-	{
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
-
-		noty({text: "Please check your errors", timeout: 3000});
+	onFormSubmit: function(e) {
+	    e.preventDefault();
+	    this.saveData();
+		return false;
 	},
-	validForm: function(e) {
-	    if (e.namespace !== 'abide.fndtn') {
-	        return;
-	    }
-
+	saveData: function()
+	{
+	    console.log('hello');
 	    var form = this.$('form');
 	    var loadingBtn = form.find('.loading-button');
 		var attrs = {};

@@ -468,7 +468,8 @@ class Server():
 
 	def cleanup(self):
 		global discoveryManager
-		
+
+		printerManager().rampdown()
 		discoveryManager.shutdown()
 		discoveryManager = None
 		boxrouterManager().shutdown()

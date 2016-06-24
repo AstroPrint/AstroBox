@@ -92,7 +92,8 @@ var AstroBoxApp = Backbone.View.extend({
 			//clear current printing data
 			this.socketData.set({
 				printing_progress: null,
-				print_capture: null
+				print_capture: null,
+				paused: false
 			}, {silent: true});
 			this.$('.tab-bar .left-small').show();
 			this.$('.quick-nav').show();
