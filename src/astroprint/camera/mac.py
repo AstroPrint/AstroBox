@@ -54,6 +54,11 @@ class CameraMacManager(CameraManager):
 
 		return image
 
+	@property
+	def capabilities(self):
+		#return ['videoStreaming']
+		return []
+
 	def isCameraConnected(self):
 		return True
 

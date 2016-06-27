@@ -131,8 +131,13 @@ var TempView = Backbone.View.extend({
 		this.bedTempBar.onResize();
 	},
 	updateBars: function(value) {
-		this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
-		this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
+		if (value.extruder) {
+			this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
+		}
+
+		if (value.bed) {
+			this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
+		}
 	}
 });
 
@@ -383,6 +388,12 @@ var ControlView = Backbone.View.extend({
 	render: function() {
 		if (app.socketData.get('paused')) {
 			this.$el.addClass('print-paused');
+
+			var printing_progress = app.socketData.get('printing_progress');
+
+			if (printing_progress && printing_progress.filename) {
+				this.$('.back-to-print .filename').text(printing_progress.filename)
+			}
 		} else {
 			this.$el.removeClass('print-paused');
 		}
