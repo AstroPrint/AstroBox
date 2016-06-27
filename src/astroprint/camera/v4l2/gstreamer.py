@@ -1315,6 +1315,13 @@ class GStreamer(object):
 				'message': Message or 'Fatal error occurred in video streaming'
 			})
 
+		try:
+			self._logger.error("Trying to get list of formats supported by your camera...")
+			import subprocess
+			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext", shell=True, stdout=subprocess.PIPE).stdout.read())
+		except:
+			self._logger.error("Supported formats can not be obtainted...")
+
 
 class AsyncPhotoTaker(threading.Thread):
 	def __init__(self, take_photo_function):
