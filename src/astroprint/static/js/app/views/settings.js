@@ -470,7 +470,6 @@ var CameraVideoStreamView = SettingsPage.extend({
 	},
 	saveData: function()
 	{
-	    console.log('hello');
 	    var form = this.$('form');
 	    var loadingBtn = form.find('.loading-button');
 		var attrs = {};
