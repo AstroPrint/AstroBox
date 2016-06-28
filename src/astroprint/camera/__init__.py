@@ -11,7 +11,7 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			number_of_video_device = 0 #/dev/video``0´´
+			number_of_video_device = 1 #/dev/video``0´´
 
 			manager = settings().get(['camera', 'manager'])
 

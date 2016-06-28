@@ -116,7 +116,7 @@ class GStreamerManager(V4L2Manager):
 		##(Janus included, of course)
 
 		eventManager().fire(Events.GSTREAMER_EVENT, {
-			'message': 'Your Camera settings have been changed. Please reload to restart your video.'
+			'message': 'Your camera settings have been changed. Please reload to restart your video.'
 		})
 		##
 
@@ -202,7 +202,7 @@ class GStreamerManager(V4L2Manager):
 			'fps': [],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
-				#{'value': 'x-h264', 'label': 'H.264 Encoded'}
+				{'value': 'x-h264', 'label': 'H.264 Encoded'}
 			]
 		}
 
@@ -725,6 +725,11 @@ class GStreamer(object):
 			if self.streamProcessState == 'TAKING_PHOTO':
 				self.queueraw.set_state(gst.State.PAUSED)
 
+			if self.format == 'x-h264' and self.videotype == 'h264':
+				self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
+				if self.tee_video_pad_binNotText:
+					gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+
 			waitingForStopPipeline = True
 
 			self.waitForPlayPipeline = threading.Event()
@@ -739,7 +744,7 @@ class GStreamer(object):
 					self.waitForPlayPipeline.clear()
 					waitingForStopPipeline = False
 
-			self.pipeline.set_state(gst.State.NULL)
+			self.pipeline.set_state(gst.State.NULL)			
 
 			#ACTIONS FOR RIGHT MANAGING MEMORY
 			######
@@ -752,6 +757,9 @@ class GStreamer(object):
 			######
 
 			self.streamProcessState = 'PAUSED'
+
+			if self.format == 'x-h264' and self.videotype == 'h264':
+				self.reset_pipeline_gstreamer_state()
 
 			return True
 				
@@ -919,15 +927,17 @@ class GStreamer(object):
 				
 				try:
 
-					self.queuebinNotText.set_state(gst.State.PAUSED)
+					#self.queuebinNotText.set_state(gst.State.PAUSED)
 
 					if self.streamProcessState == 'TAKING_PHOTO':
 						self.queuebinNotText.set_state(gst.State.NULL)
 
-					self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
+					if not (self.format == 'x-h264' and self.videotype == 'h264'):
+						self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 
 					if self.streamProcessState == 'PLAYING':
-						gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+						if not (self.format == 'x-h264' and self.videotype == 'h264'):
+							gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
 
 					else:
 						######
@@ -1079,10 +1089,12 @@ class GStreamer(object):
 							self.play_video()
 
 						self.bus_managed = True
+						"""
 						if self.multifilesinkphoto:
 							self.pipeline.remove(self.multifilesinkphoto)
 						if self.multifilesinkphotoNotText:
 							self.pipeline.remove(self.multifilesinkphotoNotText)
+						"""
 
 						if tryingTimes == 2:
 							self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')

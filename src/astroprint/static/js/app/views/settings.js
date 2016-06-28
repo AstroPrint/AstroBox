@@ -415,6 +415,18 @@ var CameraVideoStreamView = SettingsPage.extend({
 	restrictFps: function(){
 		this.$('#video-stream-framerate').html('');
 
+		if(!this.settings){
+			$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
+				this.settings = data;
+				this._reloadFpsSelect();
+			},this));
+		} else {
+			this._reloadFpsSelect();
+		}
+
+		
+	},
+	_reloadFpsSelect: function(){
 		$.each(this.settings.structure.fps, _.bind(function(i, item) { 
 			if(item.resolution == this.$('#video-stream-size').val()) {
 				if (this.settings.framerate == item.value){

@@ -8,7 +8,11 @@
 	<% if(this.videoStreamingError){ %>
 		<div class="panel text-center radius">
 			<i class="icon-camera"></i>
-			<h3 class="bold">Camera error</h3>
+			<% if(this.videoStreamingErrorTitle){ %>
+				<h3 class="bold"><%= this.videoStreamingErrorTitle %></h3>
+			<% } else { %>
+				<h3 class="bold">Camera error</h3>
+			<% } %>
 			<p><%= this.videoStreamingError %></p>
 		</div>
 	<% } else { 
