@@ -329,7 +329,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		"click #buttonRefresh": "refreshPluggedCamera",
 		"change #video-stream-size": "restrictFps"
 	},
-	show: function() {
+	show: function(previousCameraName) {
 
 		var form = this.$('form');
 		var loadingBtn = form.find('.loading-button');
@@ -360,6 +360,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 										if(response.isResolutionSupported){
 											this.videoSettingsError = null;
 											this.render();
+											if(previousCameraName){
+												if(!(previousCameraName === this.cameraName)){
+													this.saveData();
+												}
+											}
 										} else {
 											//setting default settings
 											this.settings.size = this.settingsSizeDefault;
@@ -449,6 +454,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 		},this));
 	},
 	refreshPluggedCamera: function(){
+
+		var previousCameraName = this.cameraName;
+
 		this.$('#buttonRefresh').addClass('loading');
 
 		$.post(API_BASEURL + 'camera/refresh-plugged')
@@ -457,7 +465,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 			if(response.isCameraPlugged){
 				this.settings = null;
 				this.cameraName = '';
-				this.show();
+				this.show(previousCameraName);				
 			} else {
 				this.cameraName = false;
 				this.render();
