@@ -966,15 +966,17 @@ class GStreamer(object):
 
 				try:
 					
-					self.queuebin.set_state(gst.State.PAUSED)
+					#self.queuebin.set_state(gst.State.PAUSED)
 					
 					if self.streamProcessState == 'TAKING_PHOTO':
 						self.queuebin.set_state(gst.State.NULL)
 
-					self.jpegenc.unlink(self.multifilesinkphoto)
+					if not (self.format == 'x-h264' and self.videotype == 'h264'):
+						self.jpegenc.unlink(self.multifilesinkphoto)
 
 					if self.streamProcessState == 'PLAYING':
-						gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
+						if not (self.format == 'x-h264' and self.videotype == 'h264'):
+							gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
 					else:
 						######
 						self.pipeline.remove(self.multifilesinkphoto)
