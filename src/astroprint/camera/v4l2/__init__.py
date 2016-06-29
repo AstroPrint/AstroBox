@@ -304,12 +304,26 @@ class V4L2Manager(CameraManager):
 	def reScan(self):
 		return self.open_camera()
 
-	def isResolutionSupported(self, resolution):
+	def isResolutionSupported(self, resolution, format=None):
 
 		resolutions = []
 
 		for supported_format in self.supported_formats:
-			if supported_format.get('pixelformat') == 'YUYV':
+
+			########
+			#CONVERSION BETWEEN OR DATA AND GSTREAMER DATA
+			########
+			
+			if not format:
+				if self._settings['format'] == 'x-h264':
+					formatCompairing = 'H264'
+				else:
+					formatCompairing = 'YUYV'
+
+			else:
+				formatCompairing = format
+
+			if supported_format.get('pixelformat') == formatCompairing:
 				resolutions = supported_format.get('resolutions')
 				break
 
@@ -321,14 +335,15 @@ class V4L2Manager(CameraManager):
 		return False
 
 
-	def settingsStructure(self):
+	def settingsStructure(self,format=None):
 		desired = self._desiredSettings
 
 		for r in desired['frameSizes']:
-			resolution = self.isResolutionSupported(r['value'])
+			resolution = self.isResolutionSupported(r['value'],format)
 			if not resolution:
 				desired['frameSizes'].remove(r)
 			else:
+
 				for fps in resolution[2]:
 
 					splitFPS = fps.split('/')

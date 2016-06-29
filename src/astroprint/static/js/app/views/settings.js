@@ -327,7 +327,8 @@ var CameraVideoStreamView = SettingsPage.extend({
 	events: {
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
-		"change #video-stream-size": "restrictFps"
+		"change #video-stream-size": "restrictFps",
+		"change #video-stream-format": "reloadDateAndRestrictFps"
 	},
 	show: function(previousCameraName) {
 
@@ -417,13 +418,29 @@ var CameraVideoStreamView = SettingsPage.extend({
 			this.render();
 		}
 	},
-	restrictFps: function(){
+	reloadDateAndRestrictFps: function(e){
+
+		var formatSelected = e.target.options[e.target.selectedIndex].value;
+
+		//force to get the new camera capabilites for this format
+		this.settings = null;
+		/////////
+		this.restrictFps(formatSelected);
+	},
+	restrictFps: function(formatSelected){
 		this.$('#video-stream-framerate').html('');
 
 		if(!this.settings){
-			$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
+			$.ajax({
+				url: API_BASEURL + 'settings/camera',
+				type: 'POST',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify({format:formatSelected})
+			})
+			.done(_.bind(function(data){
 				this.settings = data;
-				this._reloadFpsSelect();
+				this._reloadFpsSelect(formatSelected);
 			},this));
 		} else {
 			this._reloadFpsSelect();
