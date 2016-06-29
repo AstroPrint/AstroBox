@@ -327,8 +327,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 	events: {
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
+		"change #video-stream-encoding": "changeEncoding",
 		"change #video-stream-size": "restrictFps",
-		"change #video-stream-format": "reloadDateAndRestrictFps"
+		"change #video-stream-format": "reloadDataAndRestrictFps"
 	},
 	show: function(previousCameraName) {
 
@@ -418,9 +419,20 @@ var CameraVideoStreamView = SettingsPage.extend({
 			this.render();
 		}
 	},
-	reloadDateAndRestrictFps: function(e){
+	changeEncoding: function(e){
+		if(e.target.options[e.target.selectedIndex].value == 'vp8'){
+			if($('#video-stream-format option:selected').val() == 'x-h264'){
+				$('#video-stream-format').val('x-raw');
+				this.reloadDataAndRestrictFps();
+			}
+			$('#video-stream-format').prop('disabled', 'disabled');
+		} else {//h264
+			$('#video-stream-format').prop('disabled', false);
+		}
+	},
+	reloadDataAndRestrictFps: function(){
 
-		var formatSelected = e.target.options[e.target.selectedIndex].value;
+		var formatSelected = $('#video-stream-format option:selected').val();
 
 		//force to get the new camera capabilites for this format
 		this.settings = null;
@@ -495,6 +507,10 @@ var CameraVideoStreamView = SettingsPage.extend({
 		this.$el.html(this.template({
 			settings: this.settings
 		}));
+
+		if($('#video-stream-encoding option:selected').val() == 'vp8'){
+			$('#video-stream-format').prop('disabled', 'disabled');
+		}
 
 		this.$el.foundation();
 
