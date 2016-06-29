@@ -214,8 +214,9 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 				},this));
 
 				videoCont.on('error', _.bind(function() {
-					this.setState('error');
 					videoCont.off('error');
+					this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+					this.render();
 					promise.reject()
 				},this));
 			}, this));
