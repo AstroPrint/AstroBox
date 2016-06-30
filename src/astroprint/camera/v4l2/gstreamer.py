@@ -35,11 +35,6 @@ class GStreamerManager(V4L2Manager):
 
 		super(GStreamerManager, self).__init__(videoDevice)
 
-		#WARNING
-		##self.reScan()
-		#In super constructor, open_camera is called,
-		#so self.reScan() is called too (2 times in initializing)
-
 	def isCameraConnected(self):
 		return super(GStreamerManager, self).isCameraConnected() and self.gstreamerVideo is not None
 
@@ -80,11 +75,11 @@ class GStreamerManager(V4L2Manager):
 			not self.supported_formats:#starting Astrobox without camera and rescan for adding one of them
 			#with this line, if you starts Astrobox without camera, it will try to rescan for camera one time
 			#plus, but it is necessary for rescaning a camera after that
-				self.cameraInfo = {"name":self._getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+				self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
 
 			if isCameraConnected and self.cameraInfo['supportedResolutions']:
 				self.supported_formats = self.cameraInfo['supportedResolutions']
-				self.gstreamerVideo = GStreamer(self.number_of_video_device,self.cameraInfo['name'])
+				self.gstreamerVideo = GStreamer(self.number_of_video_device,self.cameraInfo['name'], self)
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -208,15 +203,23 @@ class GStreamerManager(V4L2Manager):
 			]
 		}
 
+	#Virtual Interface GStreamerEvents
+
+	def fatalError(self):
+		self.freeMemory()
+		self.setSafeSettings()
+		self.reScan()
+
 
 class GStreamer(object):
 	
 	# #THIS OBJECT COMPOSE A GSTREAMER LAUNCH LINE
 	# IT ABLES FOR DEVELOPPERS TO MANAGE, WITH GSTREAMER,
 	# THE PRINTER'S CAMERA: GET PHOTO AND VIDEO FROM IT
-	def __init__(self, device, cameraName):
+	def __init__(self, device, cameraName, gstreamerEventsObj):
 		
 		self._logger = logging.getLogger(__name__)
+		self._gstreamerEvents = gstreamerEventsObj
 
 		try:
 			
@@ -226,7 +229,7 @@ class GStreamer(object):
 			self.format = settings().get(["camera", "format"])
 			self.cameraName = cameraName
 
-			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s, size: %s and %sfps in %s format" % (cameraName, self.videotype , settings().get(["camera", "size"]) , str(self.framerate) , self.format))
+			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s, size: %s and %s fps in %s format" % (cameraName, self.videotype , settings().get(["camera", "size"]) , str(self.framerate) , self.format))
 
 			self.usingState = dict({"playState":"0", "photoState":"0"})
 
@@ -776,6 +779,7 @@ class GStreamer(object):
 
 	def destroyPipeline(self):
 
+		self._gstreamerEvents = None
 		self.bus.remove_signal_watch()
 		self.bus = None
 		self.pipeline = None
@@ -918,7 +922,7 @@ class GStreamer(object):
 			self._logger.error("gstreamer bus message error: %s" % busError)
 
 			if 'Internal data flow error.' in str(busError):
-				message = str(busError)+' Did you selected a correct "Video Format" and resolution in settings? Please, change the camera resolution and/or video format, and try it again'
+				message = str(busError)
 				self.fatalErrorManage(True,True,message, True, True)
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
@@ -1314,7 +1318,7 @@ class GStreamer(object):
 		
 		self.pipeline.set_state(gst.State.PAUSED)
 		self.pipeline.set_state(gst.State.NULL)
-		self.reset_pipeline_gstreamer_state()
+		#self.reset_pipeline_gstreamer_state()
 
 		if self.waitForPhoto:
 			self.waitForPhoto.clear()
@@ -1337,6 +1341,8 @@ class GStreamer(object):
 			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext", shell=True, stdout=subprocess.PIPE).stdout.read())
 		except:
 			self._logger.error("Supported formats can not be obtainted...")
+
+		self._gstreamerEvents.fatalError()
 
 
 class AsyncPhotoTaker(threading.Thread):

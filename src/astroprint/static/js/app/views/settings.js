@@ -344,8 +344,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 			.done(_.bind(function(response){
 
 				if(response.isCameraConnected){
-
-					this.cameraName = response.cameraName;
+					if(this.cameraName != response.cameraName){
+						//previousCameraName = this.cameraName;
+						this.cameraName = response.cameraName;
+					} 
+					
 
 					$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
 						
@@ -366,6 +369,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 												if(!(previousCameraName === this.cameraName)){
 													this.saveData();
 												}
+											} else {
+												this.refreshPluggedCamera();
+												//this.saveData();
 											}
 										} else {
 											//setting default settings
@@ -556,7 +562,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 					this.settings = data;
 					noty({text: "Camera changes saved", timeout: 3000, type:"success"});
 					//Make sure we reload next time we load this tab
-					this.render();
+					//this.render();
 					this.parent.subviews['video-stream'].settings = null;
 				},this))
 				.fail(function(){

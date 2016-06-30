@@ -8,46 +8,67 @@ import fcntl
 import errno
 import time
 from astroprint.camera import CameraManager
+from octoprint.settings import settings
 
 class V4L2Manager(CameraManager):
 	def __init__(self, number_of_video_device):
 		self.number_of_video_device = number_of_video_device
 		self.supported_formats = self._getSupportedResolutions()
-		self.cameraName = self._getCameraName()
+		self.cameraName = self.getCameraName()
 
 		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
 
-		maxFPSSupported = 0
+		self.setSafeSettings()
+
+		super(V4L2Manager, self).__init__(self.cameraInfo)
+
+	def setSafeSettings(self):
+
+		self.maxFPSSupported = 0
+
+		self.maxFPSSupportedString = None
+
+		self.safeRes = None
 
 		fpsArray = []
 
+		self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+
 		try:
-
-			if cameraInfo["supportedResolutions"]:
-
-				for res in cameraInfo["supportedResolutions"]:
-
-					if res["pixelformat"] == 'YUYV':#restricted
-						
-						resolutionDefault = s.get(["camera", "size"]).split('x')
-
+			if self.cameraInfo["supportedResolutions"]:
+				for res in self.cameraInfo["supportedResolutions"]:
+					if res["pixelformat"] == settings().get(["camera", "format"]):#restricted
+						resolutionDefault = settings().get(["camera", "size"]).split('x')
 						for resolution in res["resolutions"]:
-
 							if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
-								
 								fps = resolution[2]
-
 								for fpsValue in fps:
 									splitFPS = fpsValue.split('/')
 									valueFPS = float(splitFPS[0])/float(splitFPS[1])
-									valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS) 
-									if valueFPS > maxFPSSupported:
+									valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS)
+									if valueFPS <= 15 and valueFPS > self.maxFPSSupported:
 										fpsArray.append(valueFPS)
-										maxFPSSupported = valueFPS
+										self.maxFPSSupported = valueFPS
+										self.maxFPSSupportedString = fpsValue
+							else:
+								if not self.safeRes and long(640) >= resolution[0] and long(480) >= resolution[1]\
+								and long(1280) <= resolution[0] and long(720) <= resolution[1]:
+									self.safeRes = str(resolution[0]) + 'x' + str(resolution[1])
+
+			if self.maxFPSSupported != 0:#resolution and format in file right for this camera
+				settings().set(["camera", "framerate"],maxFPSSupportedString)
+			else:
+				settings().set(["camera", "encoding"],'h264')
+				settings().set(["camera", "size"],self.safeRes)
+				settings().set(["camera", "framerate"],self.maxFPSSupportedString)
+				settings().set(["camera", "format"],'x-raw')
+				self.cameraName = self.getCameraName()
+
+				self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+
 		except:
 			self._logger.info('Something went wrong with your camera... any camera connected?')
 
-		super(V4L2Manager, self).__init__(self.cameraInfo)
 
 	def __getPixelFormats(self, device, maxformats=5):
 		"""Query the camera to see what pixel formats it supports.  A list of
@@ -92,7 +113,7 @@ class V4L2Manager(CameraManager):
 		    return a
 		return self._calcMCD(b, a % b)
 
-	def _getCameraName(self):
+	def getCameraName(self):
 
 		if  os.path.exists("/dev/video%d" % self.number_of_video_device):
 
@@ -311,14 +332,21 @@ class V4L2Manager(CameraManager):
 		for supported_format in self.supported_formats:
 
 			########
-			#CONVERSION BETWEEN OR DATA AND GSTREAMER DATA
+			#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
 			########
 			
 			if not format:
-				if self._settings['format'] == 'x-h264':
-					formatCompairing = 'H264'
-				else:
-					formatCompairing = 'YUYV'
+
+				pixelformats = self.__getPixelFormats(self.number_of_video_device)
+
+				pixelformatSelected = None
+				
+				for pixelformat in pixelformats:
+					if self._settings['format'] == pixelformat:
+						pixelformatSelected = pixelformat
+						break
+
+				formatCompairing = pixelformatSelected or 'YUYV'
 
 			else:
 				formatCompairing = format
