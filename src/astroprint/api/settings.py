@@ -188,7 +188,6 @@ def getAdvancedSoftwareSettings():
 @api.route("/settings/software/settings", methods=["DELETE"])
 @restricted_access
 def resetFactorySettings():
-	import threading
 	from astroprint.cloud import astroprintCloud
 
 	logger = logging.getLogger(__name__)
@@ -227,9 +226,10 @@ def resetFactorySettings():
 		os.unlink(user_file)
 
 	#We should reboot the whole device
-	threading.Timer(1.0, softwareManager.restartServer).start()
-
-	return jsonify()
+	if softwareManager.restartServer():
+		return jsonify()
+	else:
+		return ("There was an error rebooting.", 500)
 
 @api.route("/settings/software/check", methods=['GET'])
 @restricted_access
