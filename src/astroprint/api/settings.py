@@ -188,6 +188,7 @@ def getAdvancedSoftwareSettings():
 @api.route("/settings/software/settings", methods=["DELETE"])
 @restricted_access
 def resetFactorySettings():
+	import threading
 	from astroprint.cloud import astroprintCloud
 
 	logger = logging.getLogger(__name__)
@@ -214,6 +215,8 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
 
+	networkManager().forgetWifiNetworks()
+
 	#replace config.yaml with config.factory
 	config_file = s._configfile
 	os.unlink(config_file)
@@ -223,13 +226,8 @@ def resetFactorySettings():
 	if user_file and os.path.exists(user_file):
 		os.unlink(user_file)
 
-	s._config = {}
-	s.load(migrate=False)
-
-	networkManager().forgetWifiNetworks()
-
 	#We should reboot the whole device
-	softwareManager.restartServer()
+	threading.Timer(1.0, softwareManager.restartServer).start()
 
 	return jsonify()
 
