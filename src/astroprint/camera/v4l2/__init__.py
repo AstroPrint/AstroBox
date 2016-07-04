@@ -13,7 +13,12 @@ from octoprint.settings import settings
 class V4L2Manager(CameraManager):
 	def __init__(self, number_of_video_device):
 		self.number_of_video_device = number_of_video_device
-		self.supported_formats = self._getSupportedResolutions()
+
+		if self.isCameraConnected():
+			self.supported_formats = self._getSupportedResolutions()
+		else:
+			self.supported_formats = None
+
 		self.cameraName = self.getCameraName()
 
 		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
@@ -32,7 +37,12 @@ class V4L2Manager(CameraManager):
 
 		fpsArray = []
 
-		self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+		if self.isCameraConnected():
+			self.supported_formats = self._getSupportedResolutions()
+		else:
+			self.supported_formats = None
+
+		self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self.supported_formats}
 
 		try:
 			if self.cameraInfo["supportedResolutions"]:
@@ -391,6 +401,7 @@ class V4L2Manager(CameraManager):
 		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
 
 			if not self.supported_formats:
+				
 				self.supported_formats = self._getSupportedResolutions()
 
 			pixelformats = [x['pixelformat'] for x in self.supported_formats]

@@ -56,12 +56,14 @@ class GStreamerManager(V4L2Manager):
 	def reScan(self,cameraInfo=None):
 		try:
 			isCameraConnected = super(GStreamerManager, self).isCameraConnected()
-			tryingTimes = 0
+			tryingTimes = 1
 
-			while not isCameraConnected and tryingTimes < 3:
+			while not isCameraConnected and tryingTimes < 4:#3 retrying times for searching camera
+				self._logger.info('Camera not found... retrying %s times' %tryingTimes)
 				isCameraConnected = super(GStreamerManager, self).isCameraConnected()
 				time.sleep(1)
-				tryingTimes +=1 
+				tryingTimes +=1
+
 
 			if self.gstreamerVideo:
 				self.freeMemory()
@@ -75,7 +77,8 @@ class GStreamerManager(V4L2Manager):
 			not self.supported_formats:#starting Astrobox without camera and rescan for adding one of them
 			#with this line, if you starts Astrobox without camera, it will try to rescan for camera one time
 			#plus, but it is necessary for rescaning a camera after that
-				self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+				if isCameraConnected:
+					self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
 
 			if isCameraConnected and self.cameraInfo['supportedResolutions']:
 				self.supported_formats = self.cameraInfo['supportedResolutions']
