@@ -1191,20 +1191,26 @@ var ResetConfirmDialog = Backbone.View.extend({
 	doReset: function()
 	{
 		if (this.$('input').val() == 'RESET') {
-			this.$('.loading-button').addClass('loading');
+			var loadingBtn = this.$('.loading-button');
+			loadingBtn.addClass('loading');
+			
 			$.ajax({
 				url: API_BASEURL + 'settings/software/settings',
 				type: 'DELETE',
 				contentType: 'application/json',
 				dataType: 'json',
-				data: JSON.stringify({}),
-				success: function() {
-					location.href = "";
-				},
-				complete: _.bind(function() {
-					this.$('.loading-button').removeClass('loading');
-				}, this)
+				data: JSON.stringify({})
 			})
+			.done(function(){
+				noty({text: "Device Reset, please wait for reload...", type: 'success', timeout: 7000});
+				setTimeout(function(){
+					location.href = "";
+				}, 7000);
+			})
+			.fail(function(){
+				loadingBtn.removeClass('loading');
+				noty({text: "There was a problem with your reset.", timeout: 3000});
+			});
 		}
 	}
 });

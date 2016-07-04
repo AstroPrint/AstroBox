@@ -59,7 +59,6 @@ class MjpegManager(V4L2Manager):
 		try:
 			if self.isCameraConnected():
 				self._streamer = MJPEGStreamer(self._videoDevice, self._settings['size'], self._settings['framerate'], self._settings['format'])
-
 				if self._streamer:
 					self.supported_formats = self.cameraInfo['supportedResolutions']
 
@@ -74,6 +73,17 @@ class MjpegManager(V4L2Manager):
 		self.stop_video_stream()
 		self._localClients = []
 		self._streamer = None
+
+	def reScan(self):
+		if(self._streamer):
+			self.close_camera()
+
+			self.supported_formats = self._getSupportedResolutions()
+			self.cameraName = self.getCameraName()
+
+			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+
+		return self.open_camera()
 
 	def start_video_stream(self):
 		if self._streamer:

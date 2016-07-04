@@ -75,7 +75,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
             		if (payload.success) {
                         setTimeout(function() {
                             location.reload();
-                        }, 7000);
+                        }, 9000);
 					} else {
 						//error case here
 						this.$el.find('.progress-info').addClass('hide');

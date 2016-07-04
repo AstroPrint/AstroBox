@@ -456,7 +456,12 @@ class DebianNetworkManager(NetworkManagerBase):
 
 	def startHotspot(self):
 		with self._startHotspotCondition:
-			if self.isHotspotActive():
+			isHotspotActive = self.isHotspotActive()
+
+			if isHotspotActive is None: # this means is not possible in this system
+				return "Hotspot is not possible on this system"
+
+			if isHotspotActive is True:
 				return True
 
 			try:
