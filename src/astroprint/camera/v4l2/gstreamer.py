@@ -466,7 +466,7 @@ class GStreamer(object):
 
 			self.pipeline = pipeline
 
-			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s and size: %s" % (cameraName, self.videotype , settings().get(["camera", "size"])))
+			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s and size: %s. Source used: %s" % (cameraName, self.videotype , settings().get(["camera", "size"]),settings().get(["camera", "source"])))
 
 			# ##
 			# IMAGE FOR SAVING PHOTO
