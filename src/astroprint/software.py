@@ -475,7 +475,8 @@ class SoftwareManager(object):
 			for a in actions:
 				if a['action'] == 'astrobox-restart':
 					#Call to Popen will start the restart command but return inmediately before it completes
-					subprocess.Popen(a['command'].split(' '))
+					treading.Timer(1.0, subprocess.Popen, a['command'].split(' ')).start()
+					self._logger.info('Restart command scheduled')
 					return True
 
 			return False
