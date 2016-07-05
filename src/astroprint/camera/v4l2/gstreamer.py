@@ -102,7 +102,10 @@ class GStreamerManager(V4L2Manager):
 				self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
 
 				if settings().get(["camera", "source"]) == 'USB':
-					self.gstreamerVideo = GstreamerRawH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
+					if settings().get(["camera", "encoding"]) == 'h264':
+						self.gstreamerVideo = GstreamerRawH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
+					else:
+						self.gstreamerVideo = GstreamerRawVP8(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
 				else:#Raspicam
 					self.gstreamerVideo = GstreamerRaspicam(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
@@ -227,7 +230,10 @@ class GStreamerManager(V4L2Manager):
 				{'value': 'x-raw', 'label': 'Raw Video'}
 			],
 			'fps': [],
-			'videoEncoding': []
+			'videoEncoding': [
+				{'value': 'h264', 'label': 'H.264'},
+				{'value': 'vp8', 'label': 'VP8'}
+			]
 		}
 
 	#Virtual Interface GStreamerEvents
@@ -1328,6 +1334,68 @@ class GstreamerRaspicam(GStreamer):
 		#self.videortppay.unlink(self.udpsinkout)
 
 		#self.pipeline.remove(self.udpsinkout)
+
+
+class GstreamerRawVP8(GStreamer):
+
+
+	def initQueueVideo(self):
+		# ##
+		# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
+		#if not self.queuevideo:
+		self.queuevideo = gst.ElementFactory.make('queue', None)
+
+		# ##
+		# MODE FOR BROADCASTING VIDEO
+		#if not self.udpsinkout:
+		self.udpsinkout = gst.ElementFactory.make('udpsink', 'udpsinkvideo')
+		self.udpsinkout.set_property('host', '127.0.0.1')
+		self.udpsinkout.set_property('port', 8005)
+		# ##
+
+		#self.encode = None
+
+		#if not self.encode:
+		encodeNeedToAdd = True
+		self.encode = gst.ElementFactory.make('vp8enc', None)
+		self.encode.set_property('target-bitrate', 500000)
+		self.encode.set_property('keyframe-max-dist', 500)
+		#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
+		self.encode.set_property('deadline', 1)
+		#####
+
+		self.videortppay = gst.ElementFactory.make('rtpvp8pay', 'rtpvp8pay')
+		self.videortppay.set_property('pt', 96)
+
+	def deInitQueueVideo(self):
+		self.queuevideo = None
+		self.encode = None
+		self.videortppay = None
+		self.udpsinkout = None
+		self.tee_video_pad_video = None
+		self.queue_video_pad = None
+
+	def composeQueueVideo(self):
+		self.pipeline.add(self.queuevideo)
+		self.pipeline.add(self.encode)
+		self.pipeline.add(self.videortppay)
+		self.pipeline.add(self.udpsinkout)
+
+	def dismantleQueueVideo(self):
+		self.pipeline.remove(self.udpsinkout)
+		self.pipeline.remove(self.videortppay)
+		self.pipeline.remove(self.encode)
+		self.pipeline.remove(self.queuevideo)
+
+	def linkQueueVideo(self):
+		self.queuevideo.link(self.encode)
+		self.encode.link(self.videortppay)
+		self.videortppay.link(self.udpsinkout)
+
+	def unlinkQueueVideo(self):
+		self.videortppay.unlink(self.udpsinkout)
+		self.encode.unlink(self.videortppay)
+		self.queuevideo.unlink(self.encode)
 
 
 class AsyncPhotoTaker(threading.Thread):

@@ -327,7 +327,8 @@ var CameraVideoStreamView = SettingsPage.extend({
 	events: {
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
-		"change #video-stream-encoding": "changeEncoding"
+		"change #video-stream-encoding": "changeEncoding",
+    "change #video-stream-source": "changeSource"
 	},
 	show: function(previousCameraName) {
 
@@ -423,6 +424,15 @@ var CameraVideoStreamView = SettingsPage.extend({
 			this.render();
 		}
 	},
+  changeSource: function(e){
+    if($('#video-stream-source option:selected').val() == 'raspicam'){
+      $('#video-stream-encoding').prop('value', 'h264');
+      $('#video-stream-encoding').prop('disabled', 'disabled');
+      this.changeEncoding();
+    } else {
+      $('#video-stream-encoding').prop('disabled', '');
+    }
+  },
 	changeEncoding: function(e){
 
 		if(!this.settings){
