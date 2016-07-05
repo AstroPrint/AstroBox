@@ -460,23 +460,24 @@ class SoftwareManager(object):
 
 	def restartServer(self):
 		if platform == "linux" or platform == "linux2":
-			from astroprint.boxrouter import boxrouterManager
-			from astroprint.printer.manager import printerManager
-			from astroprint.camera import cameraManager
-			from astroprint.network.manager import networkManager
-
-			#let's be nice about shutthing things down
-			boxrouterManager().boxrouter_disconnect()
-			printerManager().disconnect()
-			cameraManager().close_camera()
-			networkManager().close()
-
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
 				if a['action'] == 'astrobox-restart':
 					#Call to Popen will start the restart command but return inmediately before it completes
-					threading.Timer(1.0, subprocess.Popen, a['command'].split(' ')).start()
+					threading.Timer(1.0, subprocess.Popen, [a['command'].split(' ')]).start()
 					self._logger.info('Restart command scheduled')
+
+					from astroprint.boxrouter import boxrouterManager
+					from astroprint.printer.manager import printerManager
+					from astroprint.camera import cameraManager
+					from astroprint.network.manager import networkManagerShutdown
+
+					#let's be nice about shutthing things down
+					boxrouterManager().boxrouter_disconnect()
+					printerManager().disconnect()
+					cameraManager().close_camera()
+					networkManagerShutdown()
+
 					return True
 
 			return False
