@@ -60,7 +60,8 @@ class PrinterListener(object):
 			'operational': flags['operational'],
 			'printing': flags['printing'] or flags['paused'],
 			'paused': flags['paused'],
-			'camera': flags['camera']
+			'camera': flags['camera'],
+			'heatingUp': flags['heatingUp']
 		}
 
 		self._sendUpdate('status_update', payload)

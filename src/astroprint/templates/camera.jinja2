@@ -8,8 +8,14 @@
 	<% if(this.videoStreamingError){ %>
 		<div class="panel text-center radius">
 			<i class="icon-camera"></i>
-			<h3 class="bold">Camera error</h3>
+			<% if(this.videoStreamingErrorTitle){ %>
+				<h3 class="bold"><%= this.videoStreamingErrorTitle %></h3>
+			<% } else { %>
+				<h3 class="bold">Camera error</h3>
+			<% } %>
 			<p><%= this.videoStreamingError %></p>
+			<p><b>Did you plug another camera?</b> Did you selected a correct "Video Format" and resolution in settings?</p><p>Please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button
+			</p>
 		</div>
 	<% } else { 
 		if(this.cameraNotSupported) { %>

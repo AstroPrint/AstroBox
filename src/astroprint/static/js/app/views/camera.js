@@ -12,6 +12,12 @@ var CameraView = CameraViewBase.extend({
   {
     this.onHide();//re-used function
     this.videoStreamingError = value.message;
+
+    if(value.message.indexOf('camera settings have been changed') > -1){
+      this.videoStreamingErrorTitle = 'Camera settings changed'
+    } else {
+      this.videoStreamingErrorTitle = null;
+    }
     this.render();
   },
   onCameraBtnClicked: function(e)

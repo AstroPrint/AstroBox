@@ -327,9 +327,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 	events: {
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
-		"change #video-stream-size": "restrictFps"
+		"change #video-stream-encoding": "changeEncoding",
+		"change #video-stream-size": "restrictFps",
+		"change #video-stream-format": "reloadDataAndRestrictFps"
 	},
-	show: function() {
+	show: function(previousCameraName) {
 
 		var form = this.$('form');
 		var loadingBtn = form.find('.loading-button');
@@ -342,8 +344,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 			.done(_.bind(function(response){
 
 				if(response.isCameraConnected){
-
-					this.cameraName = response.cameraName;
+					if(this.cameraName != response.cameraName){
+						//previousCameraName = this.cameraName;
+						this.cameraName = response.cameraName;
+					} 
+					
 
 					$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
 						
@@ -360,6 +365,14 @@ var CameraVideoStreamView = SettingsPage.extend({
 										if(response.isResolutionSupported){
 											this.videoSettingsError = null;
 											this.render();
+											if(previousCameraName){
+												if(!(previousCameraName === this.cameraName)){
+													this.saveData();
+												}
+											} else {
+												this.refreshPluggedCamera();
+												//this.saveData();
+											}
 										} else {
 											//setting default settings
 											this.settings.size = this.settingsSizeDefault;
@@ -412,9 +425,48 @@ var CameraVideoStreamView = SettingsPage.extend({
 			this.render();
 		}
 	},
-	restrictFps: function(){
+	changeEncoding: function(e){
+		if(e.target.options[e.target.selectedIndex].value == 'vp8'){
+			if($('#video-stream-format option:selected').val() == 'x-h264'){
+				$('#video-stream-format').val('x-raw');
+				this.reloadDataAndRestrictFps();
+			}
+			$('#video-stream-format').prop('disabled', 'disabled');
+		} else {//h264
+			$('#video-stream-format').prop('disabled', false);
+		}
+	},
+	reloadDataAndRestrictFps: function(){
+
+		var formatSelected = $('#video-stream-format option:selected').val();
+
+		//force to get the new camera capabilites for this format
+		this.settings = null;
+		/////////
+		this.restrictFps(formatSelected);
+	},
+	restrictFps: function(formatSelected){
 		this.$('#video-stream-framerate').html('');
 
+		if(!this.settings){
+			$.ajax({
+				url: API_BASEURL + 'settings/camera',
+				type: 'POST',
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify({format:formatSelected})
+			})
+			.done(_.bind(function(data){
+				this.settings = data;
+				this._reloadFpsSelect(formatSelected);
+			},this));
+		} else {
+			this._reloadFpsSelect();
+		}
+
+		
+	},
+	_reloadFpsSelect: function(){
 		$.each(this.settings.structure.fps, _.bind(function(i, item) { 
 			if(item.resolution == this.$('#video-stream-size').val()) {
 				if (this.settings.framerate == item.value){
@@ -437,6 +489,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 		},this));
 	},
 	refreshPluggedCamera: function(){
+
+		var previousCameraName = this.cameraName;
+
 		this.$('#buttonRefresh').addClass('loading');
 
 		$.post(API_BASEURL + 'camera/refresh-plugged')
@@ -445,7 +500,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 			if(response.isCameraPlugged){
 				this.settings = null;
 				this.cameraName = '';
-				this.show();
+				this.show(previousCameraName);				
 			} else {
 				this.cameraName = false;
 				this.render();
@@ -459,6 +514,10 @@ var CameraVideoStreamView = SettingsPage.extend({
 			settings: this.settings
 		}));
 
+		if($('#video-stream-encoding option:selected').val() == 'vp8'){
+			$('#video-stream-format').prop('disabled', 'disabled');
+		}
+
 		this.$el.foundation();
 
 		this.delegateEvents(this.events);
@@ -470,7 +529,6 @@ var CameraVideoStreamView = SettingsPage.extend({
 	},
 	saveData: function()
 	{
-	    console.log('hello');
 	    var form = this.$('form');
 	    var loadingBtn = form.find('.loading-button');
 		var attrs = {};
@@ -504,7 +562,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 					this.settings = data;
 					noty({text: "Camera changes saved", timeout: 3000, type:"success"});
 					//Make sure we reload next time we load this tab
-					this.render();
+					//this.render();
 					this.parent.subviews['video-stream'].settings = null;
 				},this))
 				.fail(function(){
@@ -1133,20 +1191,26 @@ var ResetConfirmDialog = Backbone.View.extend({
 	doReset: function()
 	{
 		if (this.$('input').val() == 'RESET') {
-			this.$('.loading-button').addClass('loading');
+			var loadingBtn = this.$('.loading-button');
+			loadingBtn.addClass('loading');
+			
 			$.ajax({
 				url: API_BASEURL + 'settings/software/settings',
 				type: 'DELETE',
 				contentType: 'application/json',
 				dataType: 'json',
-				data: JSON.stringify({}),
-				success: function() {
-					location.href = "";
-				},
-				complete: _.bind(function() {
-					this.$('.loading-button').removeClass('loading');
-				}, this)
+				data: JSON.stringify({})
 			})
+			.done(function(){
+				noty({text: "Device Reset, please wait for reload...", type: 'success', timeout: 7000});
+				setTimeout(function(){
+					location.href = "";
+				}, 7000);
+			})
+			.fail(function(){
+				loadingBtn.removeClass('loading');
+				noty({text: "There was a problem with your reset.", timeout: 3000});
+			});
 		}
 	}
 });

@@ -214,6 +214,8 @@ def resetFactorySettings():
 	emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
 	emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
 
+	networkManager().forgetWifiNetworks()
+
 	#replace config.yaml with config.factory
 	config_file = s._configfile
 	os.unlink(config_file)
@@ -223,15 +225,11 @@ def resetFactorySettings():
 	if user_file and os.path.exists(user_file):
 		os.unlink(user_file)
 
-	s._config = {}
-	s.load(migrate=False)
-
-	networkManager().forgetWifiNetworks()
-
 	#We should reboot the whole device
-	softwareManager.restartServer()
-
-	return jsonify()
+	if softwareManager.restartServer():
+		return jsonify()
+	else:
+		return ("There was an error rebooting.", 500)
 
 @api.route("/settings/software/check", methods=['GET'])
 @restricted_access

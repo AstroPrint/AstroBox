@@ -214,8 +214,9 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 				},this));
 
 				videoCont.on('error', _.bind(function() {
-					this.setState('error');
 					videoCont.off('error');
+					this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+					this.render();
 					promise.reject()
 				},this));
 			}, this));
@@ -262,6 +263,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   _socket: null,
   videoStreamingEvent: null,
   videoStreamingError: null,
+  videoStreamingErrorTitle: null,
   originalFunctions: null,//this could be contained the original functions
   //startStreaming, stopStreaming, and onHide for being putted back after changing
   //settings if new settings ables to get video instead of old settings
@@ -269,6 +271,12 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   manageVideoStreamingEvent: function(value)
   {//override this for managing this error
 	this.videoStreamingError = value.message;
+	if('camera settings have been changed'.indexOf(value.message) >-1){
+		this.videoStreamingErrorTitle = 'Camera settings changed'
+	} else {
+		this.videoStreamingErrorTitle = null;
+	}
+
 	console.error(value.message);
   },
   _onVideoStreamingError: function(e)

@@ -11,7 +11,6 @@ from octoprint.settings import settings
 from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
-
 @api.route("/camera/is-camera-supported", methods=["GET"])
 @restricted_access
 def isCameraSupportedByAstrobox():
