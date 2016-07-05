@@ -37,7 +37,20 @@ class V4L2Manager(CameraManager):
 
 		fpsArray = []
 
-		if self.isCameraConnected():
+		defaultFPS = settings().get(["camera", "framerate"])
+		
+		defaultFPSFound = False
+
+		cameraConnected = False
+
+		try:
+			cameraConnected = os.path.exists("/dev/video%d" % self.number_of_video_device)
+
+		except:
+
+			cameraConnected = False
+
+		if cameraConnected:
 			self.supported_formats = self._getSupportedResolutions()
 		else:
 			self.supported_formats = None
@@ -46,9 +59,18 @@ class V4L2Manager(CameraManager):
 
 		try:
 			if self.cameraInfo["supportedResolutions"]:
+
 				for res in self.cameraInfo["supportedResolutions"]:
-					if res["pixelformat"] == settings().get(["camera", "format"]):#restricted
+
+					pixelformatTranslated = res["pixelformat"]
+
+					if res["pixelformat"]=='YUYV':
+						pixelformatTranslated = 'x-raw'
+
+					if pixelformatTranslated == settings().get(["camera", "format"]):#restricted
+
 						resolutionDefault = settings().get(["camera", "size"]).split('x')
+
 						for resolution in res["resolutions"]:
 							if long(resolutionDefault[0]) == resolution[0] and long(resolutionDefault[1]) == resolution[1]:
 								fps = resolution[2]
@@ -56,6 +78,9 @@ class V4L2Manager(CameraManager):
 									splitFPS = fpsValue.split('/')
 									valueFPS = float(splitFPS[0])/float(splitFPS[1])
 									valueFPS = float(valueFPS) if int(valueFPS) < valueFPS else int(valueFPS)
+
+									defaultFPSFound = (fpsValue == defaultFPS)
+
 									if valueFPS <= 15 and valueFPS > self.maxFPSSupported:
 										fpsArray.append(valueFPS)
 										self.maxFPSSupported = valueFPS
@@ -65,10 +90,15 @@ class V4L2Manager(CameraManager):
 								and long(1280) <= resolution[0] and long(720) <= resolution[1]:
 									self.safeRes = str(resolution[0]) + 'x' + str(resolution[1])
 
-			if self.maxFPSSupported != 0:#resolution and format in file right for this camera
+			if defaultFPSFound:
+				
+				settings().set(["camera", "framerate"],defaultFPS)
+
+			elif self.maxFPSSupported != 0:#resolution and format in file right for this camera
 				settings().set(["camera", "framerate"],self.maxFPSSupportedString)
+
 			else:
-				settings().set(["camera", "encoding"],'h264')
+				settings().set(["camera", "encoding"],settings().get(["camera", "encoding"]) or 'h264')
 				settings().set(["camera", "size"],self.safeRes)
 				settings().set(["camera", "framerate"],self.maxFPSSupportedString)
 				settings().set(["camera", "format"],'x-raw')
