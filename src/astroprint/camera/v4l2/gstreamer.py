@@ -125,13 +125,7 @@ class GStreamerManager(V4L2Manager):
 
 		if self.gstreamerVideo and self.gstreamerVideo.streamProcessState == 'PLAYING':
 
-			#typedef enum {
-			#  GST_STATE_CHANGE_FAILURE             = 0,
-			#  GST_STATE_CHANGE_SUCCESS             = 1,
-			#  GST_STATE_CHANGE_ASYNC               = 2,
-			#  GST_STATE_CHANGE_NO_PREROLL          = 3
-			#} GstStateChangeReturn;
-			return self.pipeline.getPipeline().set_state(gst.State.NULL) == 1#GST_STATE_CHANGE_SUCCESS
+			return self.gstreamerVideo.stop_video()
 
 		else:
 
