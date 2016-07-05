@@ -428,7 +428,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     if($('#video-stream-source option:selected').val() == 'raspicam'){
       $('#video-stream-encoding').prop('value', 'h264');
       $('#video-stream-encoding').prop('disabled', 'disabled');
-      this.changeEncoding();
+      this.onFormSubmit();
     } else {
       $('#video-stream-encoding').prop('disabled', '');
     }
