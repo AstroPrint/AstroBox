@@ -1,0 +1,10 @@
+#supplies-view {
+    .box {
+        @include basic-box($ghost);
+        padding: 10px;
+
+        a {
+            display: block;
+        }
+    }
+}
