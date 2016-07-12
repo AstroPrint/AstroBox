@@ -81,4 +81,46 @@ def connectionCommand():
 
 	return NO_CONTENT
 
+@api.route("/get-status", methods=["GET"])
+def getStatus():
+
+	"""pm = printerManager()
+
+	state, port, baudrate = pm.getCurrentConnection()
+	current = {
+		"state": state,
+		"port": port,
+		"baudrate": baudrate
+	}
+	return jsonify({"current": current, "options": pm.getConnectionOptions()})
+	"""
+
+	printer = printerManager()
+	cm = cameraManager()
+
+	state = {
+		'id': boxrouterManager().boxId,
+		'name': networkManager().getHostname(),
+		'printing': printer.isPrinting(),
+		'printerModel': None,
+		'material': None,
+		'operational': printer.isOperational(),
+		'paused': printer.isPaused(),
+		'camera': printer.isCameraConnected(),
+		#'printCapture': cm.timelapseInfo,
+		'remotePrint': True,
+		'capabilities': ['remotePrint'] + cm.capabilities
+	}
+
+	return state
+
+"""@api.route("/astroprint/getUI-API-KEY", methods=["POST"])
+@restricted_access
+def getUiApiKey():
+
+	pass = request.values.get('pass', None)
+
+	astroprintCloud.get_private_key(email, password)
+"""
+	
 

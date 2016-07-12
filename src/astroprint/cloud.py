@@ -65,6 +65,8 @@ class AstroPrintCloud(object):
 		self.settings = settings()
 		self.hmacAuth = None
 
+		self.tryingLoggingTimes = 0
+
 		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 		if loggedUser:
 			from octoprint.server import userManager
@@ -78,6 +80,18 @@ class AstroPrintCloud(object):
 		self._print_file_store = None
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
+
+	
+	def getFib(n):
+
+		if n == 0:
+			return 0
+		
+		if n == 1:
+			return 1
+		
+		return fib(n-1) + fib(n-2)
+
 
 	def cloud_enabled(self):
 		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
