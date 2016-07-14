@@ -549,7 +549,7 @@ class SoftwareManager(object):
 		return True
 
 	def _checkAuth(self):
-		if current_user and current_user.is_authenticated():
+		if current_user and current_user.is_authenticated:
 			privateKey = current_user.privateKey
 			publicKey = current_user.publicKey
 

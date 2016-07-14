@@ -103,7 +103,7 @@ def save_hotspot_option():
 @api.route('/setup/astroprint', methods=['GET'])
 @not_setup_only
 def get_astroprint_info():
-	if current_user and current_user.is_authenticated() and current_user.privateKey:
+	if current_user and current_user.is_authenticated and current_user.privateKey:
 		return jsonify(user=current_user.get_id())
 	else:
 		return jsonify(user=None)

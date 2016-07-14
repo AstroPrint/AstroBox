@@ -118,7 +118,7 @@ def designs():
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
 def design_download(print_file_id):
-	if current_user is None or not current_user.is_authenticated() or not current_user.publicKey:
+	if current_user is None or not current_user.is_authenticated or not current_user.publicKey:
 		abort(401)
 
 	em = eventManager()

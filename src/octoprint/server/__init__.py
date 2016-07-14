@@ -121,8 +121,8 @@ def index():
 			astroboxName= networkManager().getHostname()
 		)
 
-	elif loggedUsername and (current_user is None or not current_user.is_authenticated() or current_user.get_id() != loggedUsername):
-		if current_user.is_authenticated():
+	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
+		if current_user.is_authenticated:
 			logout_user()
 
 		return render_template(
@@ -235,11 +235,11 @@ def getUiApiKey():
 	print 'current_user'
 	print current_user
 	print 'current_user.is_authenticated'
-	print current_user.is_authenticated()
+	print current_user.is_authenticated
 	print 'current_user.is_anonymous'
-	print current_user.is_anonymous()
+	print current_user.is_anonymous
 	print 'current_user.is_active'
-	print current_user.is_active()
+	print current_user.is_active
 	print 'current_user.get_id'
 	print current_user.get_id()
 	print 'boxrouterManager().status'
@@ -258,9 +258,9 @@ def getUiApiKey():
 			print 'user'
 			print user
 			print 'user.is_active()'
-			print user.is_active()
+			print user.is_active
 
-			if user and user.is_active():#I am the user logged
+			if user and user.is_active:#I am the user logged
 
 				online = networkManager().isOnline()
 
