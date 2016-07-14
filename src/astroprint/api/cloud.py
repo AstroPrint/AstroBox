@@ -41,8 +41,6 @@ def set_private_key():
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
 
-		ConnectionError
-
 	else:
 		abort(400)
 
