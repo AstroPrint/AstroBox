@@ -196,6 +196,107 @@ def camera_snapshot():
 	else:
 		return 'Camera not ready', 404
 
+
+@app.route("/status", methods=["GET"])
+def getStatus():
+
+	printer = printerManager()
+	cm = cameraManager()
+
+	state = Response()
+
+	state.data = json.dumps({
+		'id': boxrouterManager().boxId,
+		'name': networkManager().getHostname(),
+		'printing': printer.isPrinting(),
+		'printerModel': None,
+		'material': None,
+		'operational': printer.isOperational(),
+		'paused': printer.isPaused(),
+		'camera': printer.isCameraConnected(),
+		#'printCapture': cm.timelapseInfo,
+		'remotePrint': True,
+		'capabilities': ['remotePrint'] + cm.capabilities
+	})
+
+	return state
+
+@app.route("/apiKey", methods=["POST"])
+def getUiApiKey():
+
+	from flask import request, abort
+	from flask.ext.login import current_user
+	
+	from astroprint.cloud import astroprintCloud
+
+	email = request.values.get('email', None)
+	accessKey = request.values.get('accessKey', None)
+
+	print 'current_user'
+	print current_user
+	print 'current_user.is_authenticated'
+	print current_user.is_authenticated()
+	print 'current_user.is_anonymous'
+	print current_user.is_anonymous()
+	print 'current_user.is_active'
+	print current_user.is_active()
+	print 'current_user.get_id'
+	print current_user.get_id()
+	print 'boxrouterManager().status'
+	print boxrouterManager().status
+
+	userLogged = (current_user is not None and boxrouterManager().status == 'connected')
+
+	print 'userLogged'
+	print userLogged
+
+	if email and accessKey:#in blue phalcon somebody is logged in
+
+		if userLogged:#Somebody logged in Astrobox
+
+			user = userManager.findUser(email)
+			print 'user'
+			print user
+			print 'user.is_active()'
+			print user.is_active()
+
+			if user and user.is_active():#I am the user logged
+
+				online = networkManager().isOnline()
+
+				if online:
+
+					public_key = astroprintCloud().get_public_key(email, accessKey)
+
+					if not public_key:
+
+						abort(403)
+
+				else:
+
+					user = userManager.findUser(email)
+					if user.get_private_key() != accessKey:
+						abort(403)
+
+			else:#I am NOT the logged user
+				abort(403)
+
+	else:#in blue phalcon, nodody is logged in
+
+		if userLogged:
+
+			abort(401)
+
+
+	#BIG logical ELSE
+	response = Response()
+	response = json.dumps({
+		'uIApiKey': UI_API_KEY
+	})
+
+	return response
+
+
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
 	user = load_user(identity.id)

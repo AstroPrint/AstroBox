@@ -274,6 +274,9 @@ class User(UserMixin):
 	def get_name(self):
 		return self._username
 
+	def get_private_key(self):
+		return self.privateKey
+
 	def is_active(self):
 		return self._active
 

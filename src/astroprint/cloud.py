@@ -212,6 +212,7 @@ class AstroPrintCloud(object):
 			return None, None, None
 
 	def get_private_key(self, email, password):
+
 		r = requests.post( "%s/%s" % (self.apiHost , 'auth/privateKey'),
 						   data={
 							"email": email,
@@ -227,7 +228,7 @@ class AstroPrintCloud(object):
 		if data and "private_key" in data:
 			return data["private_key"]
 		else:
-			return None		
+			return None
 
 	def get_public_key(self, email, private_key):
 		r = requests.post( "%s/%s" % (self.apiHost , 'auth/publicKey'),
