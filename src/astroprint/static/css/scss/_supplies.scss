@@ -5,6 +5,29 @@
 
         a {
             display: block;
+            h4 {
+                background: $oil;
+                color: $ghost;
+                padding: 4px 0 0;
+            }
+            p {
+                color: $jet;
+            }
+
+            &:hover {
+                img {
+                    background: $iron;
+                }
+            }
+            button {
+                width: 100%;
+                margin-bottom: 0;
+            }
+        }
+        img {
+            background: #fff;
+            border: $basic-border;
+            margin-bottom: 2px;
         }
     }
 }
