@@ -225,27 +225,16 @@ def getStatus():
 def getUiApiKey():
 
 	from flask import request, abort
-	from flask.ext.login import current_user
 	
 	from astroprint.cloud import astroprintCloud
 
 	email = request.values.get('email', None)
 	accessKey = request.values.get('accessKey', None)
 
-	print 'current_user'
-	print current_user
-	print 'current_user.is_authenticated'
-	print current_user.is_authenticated
-	print 'current_user.is_anonymous'
-	print current_user.is_anonymous
-	print 'current_user.is_active'
-	print current_user.is_active
-	print 'current_user.get_id'
-	print current_user.get_id()
-	print 'boxrouterManager().status'
-	print boxrouterManager().status
-
-	userLogged = (current_user is not None and boxrouterManager().status == 'connected')
+	userLogged = settings().get(["cloudSlicer", "loggedUser"])
+	####
+	# - nobody logged: None
+	# - any log: email
 
 	print 'userLogged'
 	print userLogged
@@ -254,13 +243,7 @@ def getUiApiKey():
 
 		if userLogged:#Somebody logged in Astrobox
 
-			user = userManager.findUser(email)
-			print 'user'
-			print user
-			print 'user.is_active()'
-			print user.is_active
-
-			if user and user.is_active:#I am the user logged
+			if userLogged == email:#I am the user logged
 
 				online = networkManager().isOnline()
 
