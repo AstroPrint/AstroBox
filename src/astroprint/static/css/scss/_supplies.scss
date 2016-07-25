@@ -1,10 +1,27 @@
 #supplies-view {
+    .supplies-heading {
+        h3 {
+            margin-bottom: 0;
+            background: $ghost;
+            border-radius: 3px 3px 0 0;
+            border: 1px solid darken($ghost, 5%);
+            padding: 10px 0 5px;
+        }
+        p {
+            background: darken($ghost, 5%);
+            border-radius: 0 0 3px 3px;
+            padding: 4px 0;
+        }
+    }
     .box {
         @include basic-box($ghost);
         padding: 10px;
 
         a {
             display: block;
+            height: 100%;
+            position: relative;
+            padding-bottom: 55px;
             h4 {
                 background: $oil;
                 color: $ghost;
@@ -12,6 +29,15 @@
             }
             p {
                 color: $jet;
+                margin-bottom: rem-calc(15);
+                span {
+                    font-size: rem-calc(12);
+                    text-transform: uppercase;
+                    display: block;
+                    margin-top: 8px;
+                    border-top: $basic-border;
+                    padding-top: 10px;
+                }
             }
 
             &:hover {
@@ -22,6 +48,9 @@
             button {
                 width: 100%;
                 margin-bottom: 0;
+                position: absolute;
+                bottom: 0;
+                left: 0;
             }
         }
         img {
