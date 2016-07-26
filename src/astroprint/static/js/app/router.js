@@ -12,6 +12,7 @@ var AppRouter = Backbone.Router.extend({
 	printingView: null,
 	terminalView: null,
 	cameraView: null,
+	suppliesView: null,
 	routes: {
 		"": "home",
 		"files": "files",
@@ -22,6 +23,7 @@ var AppRouter = Backbone.Router.extend({
 		"settings/:page": "settings",
 		"gcode-terminal": "terminal",
 		"camera": "camera",
+		"supplies": "supplies",
 		"*notFound": "notFound"
 	},
 	turningOff: false,
@@ -160,5 +162,13 @@ var AppRouter = Backbone.Router.extend({
 	notFound: function()
 	{
 		this.navigate("", {trigger: true, replace: true});
+	},
+	supplies: function()
+	{
+		if (!this.suppliesView) {
+			this.suppliesView = new SuppliesView();
+		}
+
+		this.selectView(this.suppliesView);
 	}
 });
