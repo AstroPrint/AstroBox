@@ -301,13 +301,22 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 		){
 			//BROWSER IS NOT FIREFOX
 			//AND VIDEO IS NOT VP8
-			
-			//this.setState('nowebrtc');
-			//this.canStream = false;
-			
-			this.$('#camera-mode-slider').hide();
-			this.canStream = false;
-			
+
+			var chromeVersion = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
+
+			//Google Chrome is able to load video in H264 encoding since v52 version
+			if(chromeVersion[2] && parseInt(chromeVersion[2]) >= 52){
+
+				this.setState('ready'); 
+				this.canStream = true;
+
+			} else {
+				//this.setState('nowebrtc');
+				//this.canStream = false;
+				
+				this.$('#camera-mode-slider').hide();
+				this.canStream = false;
+			}
 			////////////////////////
 		} else {
 			this.setState('ready'); 
@@ -317,6 +326,8 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 		this.setState('nowebrtc');
 		this.canStream = false;
 	}
+
+	this.canStream = true;
 
 	if( !this.canStream){
 		
