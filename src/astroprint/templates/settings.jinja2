@@ -131,6 +131,17 @@
 							  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
 							  <label for="heated-bed"></label>
 							</div>
+							<label for="invert-z" class="bold">
+								Z-Axis Movement
+							</label>
+							<div class="toggle">
+								<span class="side-label">Head Moves</span>
+								<span class="switch radius">
+									<input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
+									<label for="invert-z"></label>
+								</span>
+								<span class="side-label">Bed Moves</span>
+							</div>
 							<div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
 								<label for="max-bed-temp" class="bold">
 									Max. Bed Temperature

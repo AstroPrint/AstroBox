@@ -98,6 +98,24 @@
 	}
 }
 
+#printer-profile {
+	.toggle {
+		.side-label {
+			position: relative;
+			top: -10px;
+			font-size: rem-calc(12);
+		}
+
+		.switch {
+			margin: 0px 10px;
+
+			label {
+				background: #666;
+			}
+		}
+	}
+}
+
 #wifi-network-list-modal {
 	table {
 		max-width: 100%;
