@@ -202,28 +202,20 @@ def getStatus():
 
 	printer = printerManager()
 	cm = cameraManager()
-<<<<<<< Updated upstream
 
-=======
 	fileName = None
 
 	if printer.isPrinting():
 		currentJob = printer.getCurrentJob()
-		print 'currentJob'
-		print currentJob
 		fileName = currentJob["file"]["name"]
 	
->>>>>>> Stashed changes
 	state = Response()
 
 	state.data = json.dumps({
 		'id': boxrouterManager().boxId,
 		'name': networkManager().getHostname(),
 		'printing': printer.isPrinting(),
-<<<<<<< Updated upstream
-=======
 		'fileName': fileName,
->>>>>>> Stashed changes
 		'printerModel': None,
 		'material': None,
 		'operational': printer.isOperational(),
@@ -250,9 +242,6 @@ def getUiApiKey():
 	####
 	# - nobody logged: None
 	# - any log: email
-
-	print 'userLogged'
-	print userLogged
 
 	if email and accessKey:#in blue phalcon somebody is logged in
 

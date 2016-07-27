@@ -192,14 +192,6 @@ def cancel_design_download(print_file_id):
 	else:
 		return abort(404)
 
-"""@api.route("/astroprint/getPrivateKey", methods=["POST"])
-@restricted_access
-def getUiApiKey():
-
-	pass = request.values.get('pass', None)
-
-	astroprintCloud.get_private_key(email, password)
-	"""
 
 
 
