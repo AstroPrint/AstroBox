@@ -29,7 +29,8 @@ class PrinterProfileManager(object):
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
 			'heated_bed': True,
-			'cancel_gcode': ['G28 X0 Y0']
+			'cancel_gcode': ['G28 X0 Y0'],
+			'invert_z': False
 		}
 
 		if not os.path.isfile(self._infoFile):

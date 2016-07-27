@@ -12,6 +12,7 @@
 		'max_nozzle_temp': 280,
 		'max_bed_temp': 140,
 		'heated_bed': true,
-		'cancel_gcode': null
+		'cancel_gcode': null,
+		'invert_z': false
 	}
 });

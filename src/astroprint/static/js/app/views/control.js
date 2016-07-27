@@ -157,8 +157,10 @@ var DistanceControl = Backbone.View.extend({
 
 var MovementControlView = Backbone.View.extend({
 	distanceControl: null,
+	printerProfile: null,
 	initialize: function(params) {
 		this.distanceControl = params.distanceControl;
+		this.printerProfile = app.printerProfile.toJSON();
 	},
     sendJogCommand: function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
@@ -229,10 +231,10 @@ var ZControlView = MovementControlView.extend({
 		'click .home_z': 'homeTapped'
 	},
 	zPlusTapped: function() {
-		this.sendJogCommand('z', 1, this.distanceControl.selected);
+		this.sendJogCommand('z', 1 * (this.printerProfile.invert_z ? -1 : 1), this.distanceControl.selected);
 	},
 	zMinusTapped: function() {
-		this.sendJogCommand('z', -1, this.distanceControl.selected);
+		this.sendJogCommand('z', -1 * (this.printerProfile.invert_z ? -1 : 1), this.distanceControl.selected);
 	},
 	homeTapped: function() {
 		if (!app.socketData.get('paused')) {
