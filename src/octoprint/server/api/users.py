@@ -56,7 +56,7 @@ def getUser(username):
 	if userManager is None:
 		return jsonify(SUCCESS)
 
-	if current_user is not None and not current_user.is_anonymous() and (current_user.get_name() == username or current_user.is_admin()):
+	if current_user is not None and not current_user.is_anonymous and (current_user.get_name() == username or current_user.is_admin()):
 		user = userManager.findUser(username)
 		if user is not None:
 			return jsonify(user.asDict())
@@ -112,7 +112,7 @@ def changePasswordForUser(username):
 	if userManager is None:
 		return jsonify(SUCCESS)
 
-	if current_user is not None and not current_user.is_anonymous() and (current_user.get_name() == username or current_user.is_admin()):
+	if current_user is not None and not current_user.is_anonymous and (current_user.get_name() == username or current_user.is_admin()):
 		if "application/json" in request.headers["Content-Type"]:
 			data = request.json
 			if "password" in data.keys() and data["password"]:
@@ -131,7 +131,7 @@ def deleteApikeyForUser(username):
 	if userManager is None:
 		return jsonify(SUCCESS)
 
-	if current_user is not None and not current_user.is_anonymous() and (current_user.get_name() == username or current_user.is_admin()):
+	if current_user is not None and not current_user.is_anonymous and (current_user.get_name() == username or current_user.is_admin()):
 		try:
 			userManager.deleteApikey(username)
 		except users.UnknownUser:
@@ -147,7 +147,7 @@ def generateApikeyForUser(username):
 	if userManager is None:
 		return jsonify(SUCCESS)
 
-	if current_user is not None and not current_user.is_anonymous() and (current_user.get_name() == username or current_user.is_admin()):
+	if current_user is not None and not current_user.is_anonymous and (current_user.get_name() == username or current_user.is_admin()):
 		try:
 			apikey = userManager.generateApiKey(username)
 		except users.UnknownUser:

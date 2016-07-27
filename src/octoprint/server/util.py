@@ -425,7 +425,7 @@ def admin_validator(request):
 	else:
 		user = current_user
 
-	if user is None or not user.is_authenticated() or not user.is_admin():
+	if user is None or not user.is_authenticated or not user.is_admin():
 		raise HTTPError(403)
 
 
@@ -448,7 +448,7 @@ def user_validator(request):
 	else:
 		user = current_user
 
-	if user is None or not user.is_authenticated():
+	if user is None or not user.is_authenticated:
 		raise HTTPError(403)
 
 

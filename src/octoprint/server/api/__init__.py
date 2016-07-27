@@ -213,7 +213,7 @@ def login():
 		return make_response(("User unknown or password incorrect", 401, []))
 	elif "passive" in request.values.keys():
 		user = current_user
-		if user is not None and not user.is_anonymous():
+		if user is not None and not user.is_anonymous:
 			identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
 			return jsonify(user.asDict())
 		elif s().getBoolean(["accessControl", "autologinLocal"]) \

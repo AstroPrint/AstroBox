@@ -121,8 +121,8 @@ def index():
 			astroboxName= networkManager().getHostname()
 		)
 
-	elif loggedUsername and (current_user is None or not current_user.is_authenticated() or current_user.get_id() != loggedUsername):
-		if current_user.is_authenticated():
+	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
+		if current_user.is_authenticated:
 			logout_user()
 
 		return render_template(
@@ -195,6 +195,94 @@ def camera_snapshot():
 		return Response(pic_buf, mimetype='image/jpeg')
 	else:
 		return 'Camera not ready', 404
+
+
+@app.route("/status", methods=["GET"])
+def getStatus():
+
+	printer = printerManager()
+	cm = cameraManager()
+
+	fileName = None
+
+	if printer.isPrinting():
+		currentJob = printer.getCurrentJob()
+		fileName = currentJob["file"]["name"]
+	
+	state = Response()
+
+	state.data = json.dumps({
+		'id': boxrouterManager().boxId,
+		'name': networkManager().getHostname(),
+		'printing': printer.isPrinting(),
+		'fileName': fileName,
+		'printerModel': None,
+		'material': None,
+		'operational': printer.isOperational(),
+		'paused': printer.isPaused(),
+		'camera': printer.isCameraConnected(),
+		#'printCapture': cm.timelapseInfo,
+		'remotePrint': True,
+		'capabilities': ['remotePrint'] + cm.capabilities
+	})
+
+	return state
+
+@app.route("/apiKey", methods=["POST"])
+def getUiApiKey():
+
+	from flask import request, abort
+	
+	from astroprint.cloud import astroprintCloud
+
+	email = request.values.get('email', None)
+	accessKey = request.values.get('accessKey', None)
+
+	userLogged = settings().get(["cloudSlicer", "loggedUser"])
+	####
+	# - nobody logged: None
+	# - any log: email
+
+	if email and accessKey:#in blue phalcon somebody is logged in
+
+		if userLogged:#Somebody logged in Astrobox
+
+			if userLogged == email:#I am the user logged
+
+				online = networkManager().isOnline()
+
+				if online:
+
+					public_key = astroprintCloud().get_public_key(email, accessKey)
+
+					if not public_key:
+
+						abort(403)
+
+				else:
+
+					user = userManager.findUser(email)
+					if user.get_private_key() != accessKey:
+						abort(403)
+
+			else:#I am NOT the logged user
+				abort(403)
+
+	else:#in blue phalcon, nodody is logged in
+
+		if userLogged:
+
+			abort(401)
+
+
+	#BIG logical ELSE
+	response = Response()
+	response = json.dumps({
+		'uIApiKey': UI_API_KEY
+	})
+
+	return response
+
 
 @identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
