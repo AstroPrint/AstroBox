@@ -295,6 +295,7 @@ class PrinterS3g(Printer):
 			if self._printJob:
 				self._printJob.cancel()
 				self._printJob.join()
+				self._printJob = None
 
 			if self.isConnected():
 				self._comm.close()
@@ -528,7 +529,6 @@ class PrinterS3g(Printer):
 		if self._currentFile is None:
 			raise ValueError("No file selected for printing")
 
-
 		if self._printJob and self._printJob.isAlive():
 			raise Exception("A Print Job is still running")
 
@@ -558,8 +558,13 @@ class PrinterS3g(Printer):
 		# reset progress, height, print time
 		self._setCurrentZ(None)
 		self._setProgressData(None, None, None, None, None)
+		self._printJob = None
 
 		# mark print as failure
 		if self._currentFile is not None:
 			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
 			self.unselectFile()
+
+	def mcPrintjobDone(self):
+		self._printJob = None
+		super(PrinterS3g, self).mcPrintjobDone():
