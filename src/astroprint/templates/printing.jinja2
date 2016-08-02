@@ -193,8 +193,14 @@
 <div id="cancel-print-modal" class="reveal-modal medium radius" data-reveal align="center">
 	<h2 class="bold">Cancel current print job.</h2>
 	<div class="modal-body">
-		<p>This will stop the current print job. This action can't be recovered.</p>
-		<p>Are you sure?</p>
+		<p class="bold">Help us improve 3D Printing by telling us why you're canceling this print:</p>
+		<p>
+			<input id="cancel-reason-detached" type="radio" name="reason" value="detached"><label for="cancel-reason-detached">Object Detached</label><br/>
+			<input id="cancel-reason-quality" type="radio" name="reason" value="quality"><label for="cancel-reason-quality">Bad Quality</label><br/>
+			<input id="cancel-reason-filament" type="radio" name="reason" value="filament"><label for="cancel-reason-filament">Not Enough Filament</label><br/>
+			<input id="cancel-reason-other" type="radio" name="reason" value="other"><label for="cancel-reason-other">Other</label><br/>
+			<input type="text" name="other_text" class="hide" placeholder="What happenend?"/>
+		</p>
 	</div>
 	<div class="row">
 		<div class="small-12 medium-6 columns">

@@ -121,11 +121,11 @@ class PrinterVirtual(Printer):
 		t = threading.Timer(self._settings['heatingUp'], heatupDone)
 		t.start()		 
 
-	def cancelPrint(self, disableMotorsAndHeater=True):
+	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterVirtual, self).cancelPrint():
+		if not super(PrinterVirtual, self).cancelPrint(reason, disableMotorsAndHeater):
 			return
 
 		self._printJob.cancel()

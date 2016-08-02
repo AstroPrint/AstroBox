@@ -542,11 +542,11 @@ class PrinterS3g(Printer):
 		self._printJob = PrintJobS3G(self, self._currentFile)
 		self._printJob.start()
 
-	def cancelPrint(self, disableMotorsAndHeater=True):
+	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterS3g, self).cancelPrint():
+		if not super(PrinterS3g, self).cancelPrint(reason, disableMotorsAndHeater):
 			return
 
 		self._comm.abort_immediately()

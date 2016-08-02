@@ -452,13 +452,21 @@ class AstroPrintCloud(object):
 		else: 
 			return None
 
-	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started' ):
+	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None ):
 		if self.cloud_enabled():
 			try:
 				if id:
-					r = requests.put("%s/printjobs/%s" % (self.apiHost, id), data=json.dumps({
-						'status': status
-					}), auth=self.hmacAuth, headers={'Content-Type': 'application/json'} )
+
+					data = {'status': status}
+
+					if reason:
+						data['reason'] = reason
+
+					r = requests.put("%s/printjobs/%s" % (self.apiHost, id), 
+						data=json.dumps(data), 
+						auth=self.hmacAuth, 
+						headers={'Content-Type': 'application/json'} 
+					)
 
 				else:
 					#create a print job

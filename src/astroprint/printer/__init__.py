@@ -319,7 +319,7 @@ class Printer(object):
 
 		return True
 
-	def cancelPrint(self, disableMotorsAndHeater=True):
+	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
 		"""
 		 Cancel the current printjob.
 		"""
@@ -329,7 +329,7 @@ class Printer(object):
 		cameraManager().stop_timelapse()
 
 		if self._currentPrintJobId:
-			astroprintCloud().print_job(self._currentPrintJobId, status='failed')
+			astroprintCloud().print_job(self._currentPrintJobId, status='failed', reason=reason)
 			self._currentPrintJobId = None
 
 		return True

@@ -47,7 +47,17 @@ def controlJob():
 	elif command == "cancel":
 		if not activePrintjob:
 			return make_response("Printer is neither printing nor paused, 'cancel' command cannot be performed", 409)
-		printer.cancelPrint()
+
+		#get reason
+		reason = {}
+		if 'reason' in data:
+			reason['reason_id'] = data['reason']
+
+		if 'other_text' in data:
+			reason['other_text'] = data['other_text']
+
+		printer.cancelPrint(reason)
+		
 	return NO_CONTENT
 
 

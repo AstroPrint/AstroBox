@@ -457,9 +457,6 @@ var PrintingView = Backbone.View.extend({
 		this.paused = app.socketData.get('paused');
 		this.render();
 		this.photoView.render();
-
-		/*this.photoView.print_capture = app.socketData.get('print_capture');
-		this.photoView.render();*/
 	},
 	onHide: function()
 	{
@@ -477,7 +474,7 @@ var PrintingView = Backbone.View.extend({
 		var wasPaused = app.socketData.get('paused');
 
 		loadingBtn.addClass('loading');
-		this._jobCommand('pause', function(data){
+		this._jobCommand('pause', null, function(data){
 			if (data && _.has(data, 'error')) {
 				console.error(data.error);
 			} else {
@@ -490,13 +487,13 @@ var PrintingView = Backbone.View.extend({
 		app.router.navigate('control', {trigger: true, replace: true});
 		this.$el.addClass('hide');
 	},
-	_jobCommand: function(command, callback) {
+	_jobCommand: function(command, data, callback) {
 		$.ajax({
 			url: API_BASEURL + "job",
 			type: "POST",
 			dataType: "json",
 			contentType: "application/json; charset=UTF-8",
-			data: JSON.stringify({command: command})
+			data: JSON.stringify(_.extend({command: command}, data))
 		}).
 		done(function(data){
 			if (callback) callback(data);
@@ -510,8 +507,9 @@ var PrintingView = Backbone.View.extend({
 var CancelPrintDialog = Backbone.View.extend({
 	el: '#cancel-print-modal',
 	events: {
-		'click button.yes': 'cancelClicked',
-		'click button.no': 'close'
+		'click button.yes': 'onCancelClicked',
+		'click button.no': 'close',
+		'change input[name=reason]': 'onReasonChanged'
 	},
 	parent: null,
 	initialize: function(params) {
@@ -519,18 +517,36 @@ var CancelPrintDialog = Backbone.View.extend({
 	},
 	open: function() {
 		this.$el.foundation('reveal', 'open');
+		this.$("input[name=reason]").prop("checked", false);
+		this.$("input[name=other_text]").val('').addClass('hide');
 	},
 	close: function() {
 		this.$el.foundation('reveal', 'close');
 	},
-	cancelClicked: function(e) {
+	onCancelClicked: function(e) {
 		e.preventDefault();
 
 		var loadingBtn = $(e.target).closest('.loading-button');
+		var reasonVal = this.$("input[name=reason]:checked").val();
+		var reasonData = null;
 
 		loadingBtn.addClass('loading');
-		this.parent._jobCommand('cancel', _.bind(function(data){
 
+		if (reasonVal) {
+			reasonData = {
+				reason: reasonVal
+			};
+
+			if (reasonVal == 'other') {
+				var otherText = this.$("input[name=other_text]").val();
+
+				if (otherText) {
+					reasonData['other_text'] = otherText;
+				}
+			}
+		}
+
+		this.parent._jobCommand('cancel', reasonData, _.bind(function(data){
 			this.parent.photoView.onHide();
 			
 			if (data && _.has(data, 'error')) {
@@ -544,5 +560,16 @@ var CancelPrintDialog = Backbone.View.extend({
 				}, this), 1000);
 			}
 		}, this));
+	},
+	onReasonChanged: function(e)
+	{
+		var value = $(e.currentTarget).val();
+		var otherText = this.$('input[name=other_text]');
+
+		if (value == 'other') {
+			otherText.removeClass('hide').focus();
+		} else {
+			otherText.addClass('hide');
+		}
 	}
 });
