@@ -567,4 +567,4 @@ class PrinterS3g(Printer):
 
 	def mcPrintjobDone(self):
 		self._printJob = None
-		super(PrinterS3g, self).mcPrintjobDone():
+		super(PrinterS3g, self).mcPrintjobDone()
