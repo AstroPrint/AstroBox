@@ -1017,7 +1017,7 @@ class MachineCom(object):
 			if self._regex_minMaxError.match(line):
 				line = line.rstrip() + self._readline()
 			#Skip the communication errors, as those get corrected.
-			
+
 			line_lower = line.lower()
 
 			if 'checksum mismatch' in line_lower \
@@ -1470,8 +1470,14 @@ class PrintingGcodeFileInformation(PrintingFileInformation):
 			raise e
 
 	def _processLine(self, line):
-		if ";" in line:
-			line = line[0:line.find(";")]
+		commentPos = line.find(";")
+
+		if commentPos >= 0:
+			if commentPos == 0:
+				return None #The whole line is a comment
+			else:
+				line = line[0:commentPos]
+
 		line = line.strip()
 		if len(line) > 0:
 			toolMatch = self._regex_toolCommand.match(line)
