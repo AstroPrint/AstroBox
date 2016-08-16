@@ -100,18 +100,26 @@ class PrinterListener(object):
 
 		self._sendUpdate('print_file_download', data)
 
+	def sendLastUpdate(self, event):
+		if event in self._lastSent:
+			self._send(event, self._lastSent[event])
+
 	def _sendUpdate(self, event, data):
-		if self._lastSent[event] != data:
-			try:
-				self._socket.send(json.dumps({
-					'type': 'send_event',
-					'data': {
-						'eventType': event,
-						'eventData': data
-					}
-				}))
+		if self._lastSent[event] != data and self._send(event, data):
+			self._lastSent[event] = deepcopy(data) if data else None
 
-				self._lastSent[event] = deepcopy(data) if data else None
+	def _send(self, event, data):
+		try:
+			self._socket.send(json.dumps({
+				'type': 'send_event',
+				'data': {
+					'eventType': event,
+					'eventData': data
+				}
+			}))
 
-			except Exception as e:
-				self._logger.error( 'Error sending [%s] event: %s' % (event, e) )
+			return True
+
+		except Exception as e:
+			self._logger.error( 'Error sending [%s] event: %s' % (event, e) )
+			return False

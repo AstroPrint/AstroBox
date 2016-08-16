@@ -105,7 +105,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		try:
 			self._th = None #If this is not freed, the socket can't be freed because of circular references
 			super(AstroprintBoxRouterClient, self).terminate()
-			
+
 		except AttributeError as e:
 			if self.stream is None:
 				self.environ = None
@@ -130,7 +130,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 	def received_message(self, m):
 		self._lastReceived = time()
 		msg = json.loads(str(m))
-		
+
 		method  = getattr(self._messageHandler, msg['type'], None)
 		if method:
 			response = method(msg)
@@ -290,7 +290,7 @@ class AstroprintBoxRouter(object):
 				self._ws.unregisterEvents()
 				if not self._ws.terminated:
 					self._ws.terminate()
-				
+
 				self._ws = None
 
 	def _onNetworkStateChanged(self, event, state):
@@ -395,7 +395,7 @@ class AstroprintBoxRouter(object):
 				'eventType': type,
 				'eventData': data
 			}
-		})		
+		})
 
 	def send(self, data):
 		if self._ws and self.connected:
