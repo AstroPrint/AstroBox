@@ -39,7 +39,7 @@ class PrinterListener(object):
 	def sendHistoryData(self, data):
 		pass
 
-	def addTemperature(self, data):		
+	def addTemperature(self, data):
 		payload = {
 			'bed': { 'actual': data['bed']['actual'], 'target': data['bed']['target'] },
 			'tool0': { 'actual': data['tool0']['actual'], 'target': data['tool0']['target'] }
@@ -61,7 +61,8 @@ class PrinterListener(object):
 			'printing': flags['printing'] or flags['paused'],
 			'paused': flags['paused'],
 			'camera': flags['camera'],
-			'heatingUp': flags['heatingUp']
+			'heatingUp': flags['heatingUp'],
+			'state': data['state']['text'].lower()
 		}
 
 		self._sendUpdate('status_update', payload)
@@ -113,4 +114,4 @@ class PrinterListener(object):
 				self._lastSent[event] = deepcopy(data) if data else None
 
 			except Exception as e:
-				self._logger.error( 'Error sending [%s] event: %s' % (event, e) )		
+				self._logger.error( 'Error sending [%s] event: %s' % (event, e) )
