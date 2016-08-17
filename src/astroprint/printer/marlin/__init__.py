@@ -361,8 +361,7 @@ class PrinterMarlin(Printer):
 
 		self._setJobData(filename, filesize, True)
 		self._setProgressData(0.0, 0, 0, None, 1)
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
-		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcFileTransferDone(self, filename):
 		self._sdStreaming = False
@@ -375,8 +374,7 @@ class PrinterMarlin(Printer):
 		self._setCurrentZ(None)
 		self._setJobData(None, None, None)
 		self._setProgressData(None, None, None, None, None)
-		self._stateMonitor.setState({"state": self._state, "stateString": self.getStateString(), "flags": self._getStateFlags()})
-		#self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
 
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)
