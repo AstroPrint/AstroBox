@@ -9,10 +9,10 @@ var CameraControlView = Backbone.View.extend({
 	initCamera: function(settings)
 	{
 		this.videoStreamingError = null;
-		
+
 		$.getJSON(API_BASEURL + 'camera/connected')
 		.done(_.bind(function(response){
-				
+
 			if(response.isCameraConnected){
 
 				$.getJSON(API_BASEURL + 'camera/is-camera-supported')
@@ -34,7 +34,7 @@ var CameraControlView = Backbone.View.extend({
 									} else {
 										$.getJSON(API_BASEURL + 'settings/camera')
 										.done(_.bind(function(settings){
-											
+
 											this.settings = settings;
 											this.cameraInitialized();
 
@@ -57,7 +57,7 @@ var CameraControlView = Backbone.View.extend({
 					} else {
 						this.cameraAvailable = true;
 						this.cameraNotSupported = true;
-						this.render(); 
+						this.render();
 					}
 				},this))
 				.fail(_.bind(function(response){
@@ -66,14 +66,14 @@ var CameraControlView = Backbone.View.extend({
 					this.stopStreaming();
 					this.setState('error');
 				},this));
-			} else { 
+			} else {
 				this.cameraAvailable = false;
-				this.render(); 
+				this.render();
 			}
 		},this))
 	},
 	buttonEvent: function()
-	{		
+	{
 		if(this.cameraMode == 'video'){
 			if(this.state == 'streaming'){
 				this.deactivateWindowHideListener();
@@ -85,7 +85,7 @@ var CameraControlView = Backbone.View.extend({
 			return this.takePhoto();
 		}
 	},
-	render: function() 
+	render: function()
 	{
 		this.$el.html(this.template());
 	},
@@ -119,16 +119,17 @@ var CameraControlView = Backbone.View.extend({
 			if(this.state == 'streaming'){
 				this.stopStreaming();
 			}
-		} else { 
+		} else {
 			this.$('.camera-image').removeAttr('src');
 		}
+    this.setState('ready');
 	},
 	setState: function(state)
 	{
 		this.state = state;
-		this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)  
+		this.$el.removeClass('preparing error nowebrtc streaming ready').addClass(state)
 	},
-	takePhoto: function() 
+	takePhoto: function()
 	{
 		var promise = $.Deferred();
 
@@ -295,7 +296,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 	//Evaluate if we are able to do WebRTC
 
 	if(Janus.isWebrtcSupported()) {
-		if(!(navigator.mozGetUserMedia) 
+		if(!(navigator.mozGetUserMedia)
 				&&
 			!(this.settings.encoding == 'vp8')
 		){
@@ -307,19 +308,19 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 			//Google Chrome is able to load video in H264 encoding since v52 version
 			if(chromeVersion[2] && parseInt(chromeVersion[2]) >= 52){
 
-				this.setState('ready'); 
+				this.setState('ready');
 				this.canStream = true;
 
 			} else {
 				//this.setState('nowebrtc');
 				//this.canStream = false;
-				
+
 				this.$('#camera-mode-slider').hide();
 				this.canStream = false;
 			}
 			////////////////////////
 		} else {
-			this.setState('ready'); 
+			this.setState('ready');
 			this.canStream = true;
 		}
 	} else {
@@ -330,7 +331,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 	this.canStream = true;
 
 	if( !this.canStream){
-		
+
 		if( !this.originalFunctions) {
 			this.originalFunctions = new Object();
 			this.originalFunctions.startStreaming = this.startStreaming;
@@ -356,7 +357,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 		}
 
 		this.serverUrl = "http://" + window.location.hostname + ":8088/janus";
-		
+
 		this.initJanus();
 
 		// Initialize the library (all console debuggers enabled)
@@ -386,7 +387,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 		data: ''
 	})
 	.done(_.bind(function(isJanusRunning){
-		if(!videoCont.is(':visible')) {			
+		if(!videoCont.is(':visible')) {
 			// Create session
 			var janus = new Janus({
 				server: this.serverUrl,
@@ -417,7 +418,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 							plugin: "janus.plugin.streaming",
 							success: _.bind(function(pluginHandle) {
 								this.streamingPlugIn = pluginHandle;
-								
+
 								this.streamingPlugIn.oncleanup = _.bind(function(){
 									var body = { "request": "destroy" };
 									this.streamingPlugIn.send({"message": body});
@@ -494,7 +495,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										promise.reject();
 										clearTimeout(this.timeoutPlayingManager);									}
 								},this),40000);
-								
+
 								var isPlaying = false;
 
 								onPlaying = _.bind(function () {
@@ -504,9 +505,9 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 									videoCont.off('playing', onPlaying);
 									promise.resolve();
 								}, this);
-								
+
 								videoCont.on("playing", onPlaying);
-								
+
 								attachMediaStream(videoCont.get(0), stream);
 
 								app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
@@ -520,7 +521,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 					);
 				}, this),
 				error: _.bind(function(error) {
-					if(!this.$el.hasClass('ready') 
+					if(!this.$el.hasClass('ready')
 						&& !this.videoStreamingError //prevent if internal gstreamer error is showing
 						){
 							console.error(error);
@@ -537,7 +538,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 		}
 
 		promise.resolve(); //We didn't start it but it wasn't visible anyway
-	},this))	
+	},this))
 	.fail(_.bind(function(error){
 		noty({text: "Unable to start the WebRTC system.", timeout: 3000});
 		this.initJanus();
@@ -550,7 +551,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   {
   	clearTimeout(this.timeoutPlayingManager);
   	this.setState('ready');
-	if (this.streaming) { 
+	if (this.streaming) {
 		var body = { "request": "stop" };
 		this.streamingPlugIn.send({"message": body});
 	}
