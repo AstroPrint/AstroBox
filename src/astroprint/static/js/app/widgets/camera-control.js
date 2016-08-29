@@ -436,7 +436,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 										//this.setState('ready');
 										janus.sessionId = null;
 									},this))
-									.always(_.bind(this.initJanus, this))
+									.always(_.bind(function(){this.setState('ready');this.initJanus();}, this))
 									.fail(_.bind(function(){this.setState('error');},this))
 								},this);
 
@@ -549,14 +549,14 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   },
   stopStreaming: function()
   {
-  	clearTimeout(this.timeoutPlayingManager);
-  	this.setState('ready');
-	if (this.streaming) {
-		var body = { "request": "stop" };
-		this.streamingPlugIn.send({"message": body});
-	}
+    clearTimeout(this.timeoutPlayingManager);
 
-	return $.Deferred().resolve();
+    if (this.streaming) {
+      var body = { "request": "stop" };
+      this.streamingPlugIn.send({"message": body});
+    }
+
+    return $.Deferred().resolve();
   }
 });
 
