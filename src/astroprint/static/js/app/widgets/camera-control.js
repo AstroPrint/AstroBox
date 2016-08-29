@@ -420,7 +420,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 								this.streamingPlugIn = pluginHandle;
 
 								this.streamingPlugIn.oncleanup = _.bind(function(){
-									var body = { "request": "destroy" };
+									var body = { "request": "destroy", "id": pluginHandle.session.getSessionId() };
 									this.streamingPlugIn.send({"message": body});
 
 									$.ajax({

@@ -58,7 +58,7 @@ class WebRtc(object):
 				return False
 			return False
 		else:
-			return True	
+			return True
 
 	def shutdown(self):
 		self._logger.info('Shutting Down WebRtcManager')
@@ -101,7 +101,7 @@ class WebRtc(object):
 			peer = ConnectionPeer(clientId, self)
 
 			sessionId = peer.start()
-			
+
 			if sessionId:
 				self._connectedPeers[sessionId] = peer
 				return sessionId
@@ -125,7 +125,7 @@ class WebRtc(object):
 					peer = None
 
 				if peer:
-					peer.streamingPlugin.send_message({'request':'destroy'})
+					peer.streamingPlugin.send_message({'request':'destroy', 'id': sessionId})
 					peer.close()
 					self.sendEventToPeer(self._connectedPeers[sessionId], 'stopConnection')
 					del self._connectedPeers[sessionId]
@@ -140,21 +140,21 @@ class WebRtc(object):
 					ready.disconnect(self.closeAllSessions)
 
 	def closeAllSessions(self,sender,message):
-		
+
 		self._logger.info("Closing all streaming sessions")
 
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				if message:
 					self.sendEventToPeer(self._connectedPeers[key], sender, message)
-				self.closePeerSession(key)				
+				self.closePeerSession(key)
 			else:
 				self.closeLocalSession(key)
 
 		self.stopJanus()
 
 	def preparePlugin(self, sessionId):
-		
+
 		try:
 			peer = self._connectedPeers[sessionId]
 
@@ -165,17 +165,17 @@ class WebRtc(object):
 
 		if peer:
 			peer.streamingPlugin.send_message({'request':'list'})
-			
+
 			videoEncodingSelected = settings().get(["camera", "encoding"])
-						
+
 			if videoEncodingSelected == 'h264':
-				
+
 				self.videoId = 1
-				
+
 			else:#VP8
-				
+
 				self.videoId = 2
-			
+
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
@@ -200,14 +200,14 @@ class WebRtc(object):
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
 	def pongCallback(self, data, key):
-		
+
 		if 'pong' != data:
 			if 'error' in data:
 				self._logger.error('Webrtc client lost: %s. Automatic peer session closing...',data['error'])
 			self.closePeerSession(key)
 
 	def pingPongRounder(self,params=None):
-		
+
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
@@ -249,17 +249,17 @@ class WebRtc(object):
 					response = session.post(
 					    url='http://127.0.0.1:8088',
 					    data={
-						 "message":{ 
+						 "message":{
 						 	"request": 'info',
          					 	"transaction": 'ready'
 						  	}
-					    } 
+					    }
 					)
-					
+
 				except Exception, error:
 					#self._logger.warn('Waiting for Janus initialization')
 					tryingCounter += 1
-					
+
 					if tryingCounter >= 100:
 						self._logger.error(error)
 						return False
@@ -274,7 +274,7 @@ class WebRtc(object):
 			return True
 
 	def stopJanus(self):
-		
+
 		try:
 			if self._JanusProcess is not None:
 				self._JanusProcess.kill()
@@ -283,21 +283,21 @@ class WebRtc(object):
 
 				#STOP TIMER FOR LOST PEERS
 				self.peersDeadDetacher.cancel()
-				
+
 				return True
 		except Exception, error:
 			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
 			return False
-			
+
 
 	def stopGStreamer(self):
 		cameraManager().stop_video_stream()
-	
+
 	def sendEventToPeers(self, type, data=None):
 		for key in self._connectedPeers.keys():
 			if self._connectedPeers[key] != 'local':
 				self.sendEventToPeer(self._connectedPeers[key], type, data)
-			
+
 	def sendEventToPeer(self, peer, type, data=None):
 		boxrouterManager().sendEventToClient(peer.clientId, type, data)
 
@@ -478,14 +478,14 @@ class ConnectionPeer(object):
 		sem.clear()
 
 		if waitingState:
-			
+
 			return self.session.id
 
 		else:
 
 			logging.error("Error initializing Janus: session can not be started")
 			return None
-		
+
 
 	def close(self):
 		#stop the keepalive worker
