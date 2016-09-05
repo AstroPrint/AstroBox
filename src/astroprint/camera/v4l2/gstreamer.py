@@ -32,7 +32,6 @@ class GStreamerManager(V4L2Manager):
 		self.gstreamerVideo = None
 		self.asyncPhotoTaker = None
 		self.pipeline = None
-		self.initPipeline()
 		self._logger = logging.getLogger(__name__)
 
 
@@ -56,6 +55,9 @@ class GStreamerManager(V4L2Manager):
 		if self.gstreamerVideo:
 			self.gstreamerVideo.freeMemory()
 			self.gstreamerVideo = None
+			self.deinitGstreamerBus()
+			self.pipeline.freePipeline()
+			self.pipeline = None
 
 	def reScan(self,cameraInfo=None):
 		try:
@@ -75,6 +77,9 @@ class GStreamerManager(V4L2Manager):
 				self.cameraInfo = None
 				self.supported_formats = None
 
+			self.pipeline = GstPipeline()
+			self.initGstreamerBus()
+
 			#if at first time Astrobox were turned on without camera, it is
 			#necessary to refresh the name
 			if not self.cameraInfo or \
@@ -91,15 +96,14 @@ class GStreamerManager(V4L2Manager):
 
 					if settings().get(["camera", "encoding"]) == 'h264':
 
-						self.gstreamerVideo = GstreamerRawH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline)
+						self.gstreamerVideo = GstreamerRawH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
 					else:#vp8
 
-						self.gstreamerVideo = GstreamerRawVP8(self.number_of_video_device,self.cameraInfo['name'], self.pipeline)
+						self.gstreamerVideo = GstreamerRawVP8(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
 				else:#X-H264
-
-					self.gstreamerVideo = GstreamerXH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline)
+					self.gstreamerVideo = GstreamerXH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
 
 		except Exception, error:
@@ -178,8 +182,12 @@ class GStreamerManager(V4L2Manager):
 
 	def shutdown(self):
 		self._logger.info('Shutting Down GstreamerManager')
-		self.pipeline.set_state(gst.State.NULL)
-		self.pipeline.send_event(gst.Event.new_eos())
+		#self.pipeline.freePipeline()
+		self.freeMemory()
+		#self.deinitGstreamerBus()
+		#self.deInitPipeline()
+		gst.deinit()
+		webRtcManager().shutdown()
 
 
 	def isVideoStreaming(self):
@@ -231,30 +239,12 @@ class GStreamerManager(V4L2Manager):
 		self.setSafeSettings()
 		self.reScan()
 
-
-
-	def initPipeline(self):
-		# ##
-		# PIPELINE IS THE MAIN PIPE OF GSTREAMER FOR GET IMAGES
-		# FROM A SOURCE
-		# ##
-		self.pipeline = gst.Pipeline()
-		self.bus = None
-		#self.loop = None
-		self.initGstreamerBus()
-
-	def deinitPipeline(self):
-		self.pipeline = None
-		self.bus = None
-		#self.loop = None
-
-
 	def initGstreamerBus(self):
 		# ##
 		# PIPELINE IS THE MAIN PIPE OF GSTREAMER FOR GET IMAGES
 		# FROM A SOURCE
 		# ##
-		self.bus = self.pipeline.get_bus()
+		self.bus = self.pipeline.getPipeline().get_bus()
 		# self.bus.add_signal_watch_full(1)
 		self.bus.add_signal_watch()
 		self.bus.connect('message', self.bus_message)
@@ -264,6 +254,7 @@ class GStreamerManager(V4L2Manager):
 		# self.bus.add_signal_watch_full(1)
 		self.bus.remove_signal_watch()
 		#self.bus.disconnect('message')
+		self.bus = None
 
 	def bus_message(self, bus, msg):
 
@@ -280,7 +271,7 @@ class GStreamerManager(V4L2Manager):
 					if self.gstreamerVideo.photoMode == 'NOT_TEXT':
 
 						try:
-							self.gstreamerVideo.tee_video_pad_binNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+							self.gstreamerVideo.tee_video_pad_photoNotText.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 
 						except Exception, error:
 							self._logger.error("ERROR IN BUS MESSAGE: %s", error)
@@ -288,7 +279,7 @@ class GStreamerManager(V4L2Manager):
 
 					else:
 						try:
-							self.gstreamerVideo.tee_video_pad_bin.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
+							self.gstreamerVideo.tee_video_pad_photo.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.video_bin_pad_probe_callback, None)
 
 						except Exception, error:
 							self._logger.error("ERROR IN BUS MESSAGE: %s", error)
@@ -301,7 +292,12 @@ class GStreamerManager(V4L2Manager):
 			self._logger.error("gstreamer bus message error: %s" % busError)
 
 			if self.gstreamerVideo.waitForPhoto:
-				self.gstreamerVideo.stopQueueBinNotText()
+
+				if self.gstreamerVideo.photoMode == 'NOT_TEXT':
+					self.gstreamerVideo.stopQueuePhotoNotText()
+				else:
+					self.gstreamerVideo.stopQueuePhoto()
+
 				self.gstreamerVideo.photoTaken = False
 				self.gstreamerVideo.waitForPhoto.set()
 
@@ -316,33 +312,29 @@ class GStreamerManager(V4L2Manager):
 
 			self._logger.info("gstreamer EOS (End of Stream) message received.")
 
-			self.freeMemory()
-			self.deinitGstreamerBus()
-			self.deinitPipeline()
-			gst.deinit()
-			webRtcManager().shutdown()
-
 
 	def video_bin_pad_probe_callback(self, pad, info, user_data):
 
 		if info.id == 1:
 
 			if self.gstreamerVideo.photoMode == 'NOT_TEXT':
-			#queuebinNotText
+
 				try:
-					self.gstreamerVideo.stopQueueBinNotText()
+
+					self.gstreamerVideo.stopQueuePhotoNotText()
 
 					self.gstreamerVideo.photoTaken = True
 
-					self.gstreamerVideo.tee_video_pad_binNotText.remove_probe(info.id)
+					self.gstreamerVideo.tee_video_pad_photoNotText.remove_probe(info.id)
+
 
 				except Exception, error:
 
 					self._logger.error("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s", error)
 
 					if self.gstreamerVideo.streamProcessState == 'TAKING_PHOTO':
-						self.gstreamerVideo.queuebinNotText.set_state(gst.State.PAUSED)
-						self.gstreamerVideo.queuebinNotText.set_state(gst.State.NULL)
+						self.gstreamerVideo.queuephotoNotText.set_state(gst.State.PAUSED)
+						self.gstreamerVideo.queuephotoNotText.set_state(gst.State.NULL)
 
 					self.gstreamerVideo.waitForPhoto.set()
 					self.fatalErrorManage(True, True, None, True, True)
@@ -350,21 +342,21 @@ class GStreamerManager(V4L2Manager):
 					return gst.PadProbeReturn.DROP
 
 			else:
-				#queuebin
+				#queuephoto
 				try:
-					self.gstreamerVideo.stopQueueBin()
+					self.gstreamerVideo.stopQueuePhoto()
 
 					self.gstreamerVideo.photoTaken = True
 
-					self.gstreamerVideo.tee_video_pad_bin.remove_probe(info.id)
+					self.gstreamerVideo.tee_video_pad_photo.remove_probe(info.id)
 
 				except Exception, error:
 
 					self._logger.error("ERROR IN VIDEO_BIN_PAD_PROBE_CALLBACK: %s", error)
 
 					if self.gstreamerVideo.streamProcessState == 'TAKING_PHOTO':
-						self.gstreamerVideo.queuebin.set_state(gst.State.PAUSED)
-						self.gstreamerVideo.queuebin.set_state(gst.State.NULL)
+						self.gstreamerVideo.queuephoto.set_state(gst.State.PAUSED)
+						self.gstreamerVideo.queuephoto.set_state(gst.State.NULL)
 
 					self.gstreamerVideo.waitForPhoto.set()
 					self.fatalErrorManage(True, True, None, True, True)
@@ -386,20 +378,20 @@ class GStreamerManager(V4L2Manager):
 
 		self._logger.error('Gstreamer fatal error managing')
 
-		if NULLToQueuebinNotText and self.gstreamerVideo.queuebinNotText:
-				self.gstreamerVideo.queuebinNotText.set_state(gst.State.PAUSED)
-				self.gstreamerVideo.queuebinNotText.set_state(gst.State.NULL)
+		if NULLToQueuebinNotText and self.gstreamerVideo.queuephotoNotText:
+				self.gstreamerVideo.queuephotoNotText.set_state(gst.State.PAUSED)
+				self.gstreamerVideo.queuephotoNotText.set_state(gst.State.NULL)
 
-		#if NULLToQueuebin and self.gstreamerVideo.queuebin:
-		#	self.gstreamerVideo.queuebin.set_state(gst.State.PAUSED)
-		#	self.gstreamerVideo.queuebin.set_state(gst.State.NULL)
+		#if NULLToQueuebin and self.gstreamerVideo.queuephoto:
+		#	self.gstreamerVideo.queuephoto.set_state(gst.State.PAUSED)
+		#	self.gstreamerVideo.queuephoto.set_state(gst.State.NULL)
 
-		self.pipeline.set_state(gst.State.PAUSED)
-		self.pipeline.set_state(gst.State.NULL)
+		self.pipeline.getPipeline().set_state(gst.State.PAUSED)
+		self.pipeline.getPipeline().set_state(gst.State.NULL)
 		#self.reset_pipeline_gstreamer_state()
 
 		if self.gstreamerVideo.waitForPhoto:
-			self.gstreamerVideo.stopQueueBinNotText()
+			self.gstreamerVideo.stopQueuePhotoNotText()
 			self.photoTaken = False
 			self.gstreamerVideo.waitForPhoto.set()
 
@@ -424,6 +416,33 @@ class GStreamerManager(V4L2Manager):
 
 		self.fatalError()
 
+class GstPipeline(object):
+
+	def __init__(self):
+
+		self._logger = logging.getLogger(__name__)
+
+		# ##
+		# PIPELINE IS THE MAIN PIPE OF GSTREAMER FOR GET IMAGES
+		# FROM A SOURCE
+		# ##
+		self.pipeline = gst.Pipeline()
+		#self.bus = None
+		#self.loop = None
+
+	def __del__(self):
+		self._logger.info("Gstreamer's pipeline memory cleaned")
+
+	def freePipeline(self):
+		self.pipeline.set_state(gst.State.NULL)
+		self.pipeline = None
+		#self.loop = None
+		#self.bus.remove_signal_watch()
+		#self.bus = None
+
+	def getPipeline(self):
+		return self.pipeline
+
 class GStreamer(object):
 
 	def __init__(self, device, cameraName, pipeline):
@@ -441,6 +460,7 @@ class GStreamer(object):
 			self.fatalErrorManaged = None
 			self.photoTaken = None
 			self.waitForPhoto = None
+			self.waitForStopVideo = None
 
 			self.pipeline = pipeline
 
@@ -465,27 +485,27 @@ class GStreamer(object):
 
 			#video queue
 
-			self.initQueueRaw()
+			self.initQueueVideo()
 
-			self.composeQueueRaw()
+			self.composeQueueVideo()
 
-			self.linkQueueRaw()
+			self.linkQueueVideo()
 
 			#photo queue
 
-			self.initQueueBin()
+			self.initQueuePhoto()
 
-			self.composeQueueBin()
+			self.composeQueuePhoto()
 
-			self.linkQueueBin()
+			self.linkQueuePhoto()
 
 			#photo text queue
 
-			self.initQueueBinNotText()
+			self.initQueuePhotoNotText()
 
-			self.composeQueueBinNotText()
+			self.composeQueuePhotoNotText()
 
-			self.linkQueueBinNotText()
+			self.linkQueuePhotoNotText()
 
 
 		except Exception, error:
@@ -504,13 +524,13 @@ class GStreamer(object):
 
 		except: pass
 
-		self.destroyQueueBinNotText()
-		self.destroyQueueBin()
-		self.destroyQueueRaw()
+		self.destroyQueuePhotoNotText()
+		self.destroyQueuePhoto()
+		self.destroyQueueVideo()
 		self.destroyTeeSource()
 
 	def __del__(self):
-		self._logger.info("Gstreamer memory cleaned")
+		self._logger.info("Gstreamer's objects memory cleaned")
 
 	def initTeeSource(self,device):
 		# VIDEO SOURCE DESCRIPTION
@@ -577,10 +597,10 @@ class GStreamer(object):
 		self.video_logo.unlink(self.src_caps)
 		self.video_source.unlink(self.video_logo)
 
-	def initQueueRaw(self):
+	def initQueueVideo(self):
 		# ##
 		# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
-		self.queueraw = gst.ElementFactory.make('queue', None)
+		self.queuevideo = gst.ElementFactory.make('queue', None)
 
 		# ##
 		# MODE FOR BROADCASTING VIDEO
@@ -601,79 +621,100 @@ class GStreamer(object):
 		self.videortppay.set_property('pt', 96)
 		self.videortppay.set_property('config-interval', 1)
 
-	def deInitQueueRaw(self):
-		self.queueraw = None
+	def deInitQueueVideo(self):
+		self.queuevideo = None
 		self.encode = None
 		self.enc_caps = None
 		self.videortppay = None
 		self.udpsinkout = None
+		self.tee_video_pad_video = None
+		self.queue_video_pad = None
 
-	def destroyQueueRaw(self):
-		self.unlinkQueueRaw()
-		self.dismantleQueueRaw()
-		self.deInitQueueRaw()
-
-	def composeQueueRaw(self):
-		self.pipeline.add(self.queueraw)
+	def composeQueueVideo(self):
+		self.pipeline.add(self.queuevideo)
 		self.pipeline.add(self.encode)
 		self.pipeline.add(self.enc_caps)
 		self.pipeline.add(self.videortppay)
 		self.pipeline.add(self.udpsinkout)
 
-	def dismantleQueueRaw(self):
+	def dismantleQueueVideo(self):
 		self.pipeline.remove(self.udpsinkout)
 		self.pipeline.remove(self.videortppay)
 		self.pipeline.remove(self.enc_caps)
 		self.pipeline.remove(self.encode)
-		self.pipeline.remove(self.queueraw)
+		self.pipeline.remove(self.queuevideo)
 
-	def linkQueueRaw(self):
-		self.queueraw.link(self.encode)
+	def linkQueueVideo(self):
+		self.queuevideo.link(self.encode)
 		self.encode.link(self.enc_caps)
 		self.enc_caps.link(self.videortppay)
 		self.videortppay.link(self.udpsinkout)
 
-	def unlinkQueueRaw(self):
+	def unlinkQueueVideo(self):
 		self.videortppay.unlink(self.udpsinkout)
 		self.enc_caps.unlink(self.videortppay)
 		self.encode.unlink(self.enc_caps)
-		self.queueraw.unlink(self.encode)
+		self.queuevideo.unlink(self.encode)
 
-	def padLinkQueueRaw(self):
+	def padLinkQueueVideo(self):
 		# TEE PADDING MANAGING
 		# #TEE SOURCE H264
 		self.tee_video_pad_video = self.tee.get_request_pad("src_%u")
 
 		# TEE SINKING MANAGING
 		# #VIDEO SINK QUEUE
-		self.queue_video_pad = self.queueraw.get_static_pad("sink")
+		self.queue_video_pad = self.queuevideo.get_static_pad("sink")
 
 		# TEE PAD LINK
 		# #VIDEO PADDING
 		gst.Pad.link(self.tee_video_pad_video, self.queue_video_pad)
 
-	def padUnLinkQueueRaw(self):
+	def padUnLinkQueueVideoManager(self, pad, info, user_data):
+
+		self.tee_video_pad_video.remove_probe(info.id)
+
+		self.padUnLinkQueueVideo()
+
+		self.waitForStopVideo.set()
+
+		return gst.PadProbeReturn.DROP
+
+
+	def padUnLinkQueueVideo(self):
 		gst.Pad.unlink(self.tee_video_pad_video, self.queue_video_pad)
 
-	def startQueueRaw(self):
-
+	def startQueueVideo(self):
 		#self.pipeline.add(self.udpsinkout)
 
 		#self.videortppay.link(self.udpsinkout)
 
-		self.padLinkQueueRaw()
+		self.padLinkQueueVideo()
 
-	def stopQueueRaw(self):
+	def stopQueueVideo(self):
 
-		self.padUnLinkQueueRaw()
+		try:
+			self.tee_video_pad_video.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.padUnLinkQueueVideoManager, None)
+			self.waitForStopVideo.wait()
+
+		except Exception, error:
+			#self.padUnLinkQueueVideo()
+			self._logger.error("ERROR IN BUS MESSAGE: %s", error)
+			self.fatalErrorManage(True, True, None, True, True)
+
+
 
 		#self.videortppay.unlink(self.udpsinkout)
 
 		#self.pipeline.remove(self.udpsinkout)
 
-	def initQueueBin(self):
+	def destroyQueueVideo(self):
+		self.unlinkQueueVideo()
+		self.dismantleQueueVideo()
+		self.deInitQueueVideo()
 
-		self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+	def initQueuePhoto(self):
+
+		self.queuephoto = gst.ElementFactory.make('queue', 'queuephoto')
 
 		self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
 		self.multifilesinkphoto.set_property('location', self.tempImage)
@@ -686,20 +727,12 @@ class GStreamer(object):
 		self.photo_logo.set_property('offset-x', 0)
 		self.photo_logo.set_property('offset-y', 0)
 
-		"""
-		# PREPARING PHOTO
-		# SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-		text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'></span>"
-		self.photo_text.set_property('text', text)
-		"""
-
 		self.photo_text = gst.ElementFactory.make('textoverlay', None)
 		text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>0% - Layer - X / X </span>"
 		self.photo_text.set_property('text', text)
 		self.photo_text.set_property('valignment', 'top')
 		self.photo_text.set_property('ypad', 0)
 		self.photo_text.set_property('halignment', 'left')
-
 
 		if self.size[1] == '720':
 
@@ -715,45 +748,82 @@ class GStreamer(object):
 		self.jpegenc = gst.ElementFactory.make('jpegenc', 'jpegenc')
 		self.jpegenc.set_property('quality',65)
 
-	def deInitQueueBin(self):
-		self.queuebin = None
+	def deInitQueuePhoto(self):
+		self.queuephoto = None
 		self.jpegenc = None
 		self.multifilesinkphoto = None
 
-	def composeQueueBin(self):
-		self.pipeline.add(self.queuebin)
+	def composeQueuePhoto(self):
+		self.pipeline.add(self.queuephoto)
 		self.pipeline.add(self.photo_logo)
 		self.pipeline.add(self.photo_text)
 		self.pipeline.add(self.jpegenc)
 
-	def dismantleQueueBin(self):
+	def dismantleQueuePhoto(self):
 		#self.pipeline.remove(self.multifilesinkphoto)
 		self.pipeline.remove(self.photo_text)
 		self.pipeline.remove(self.photo_logo)
 		self.pipeline.remove(self.jpegenc)
-		self.pipeline.remove(self.queuebin)
+		self.pipeline.remove(self.queuephoto)
 
-	def linkQueueBin(self):
+	def linkQueuePhoto(self):
 		# LINKING PHOTO ELEMENTS (INCLUDED TEXT)
-		self.queuebin.link(self.photo_logo)
+		self.queuephoto.link(self.photo_logo)
 		self.photo_logo.link(self.photo_text)
 		self.photo_text.link(self.jpegenc)
 
-	def unlinkQueueBin(self):
+	def unlinkQueuePhoto(self):
 		# LINKING PHOTO ELEMENTS (INCLUDED TEXT)
 		self.jpegenc.unlink(self.multifilesinkphoto)
 		self.photo_text.link(self.jpegenc)
 		self.photo_logo.link(self.photo_text)
-		self.queuebin.link(self.photo_logo)
+		self.queuephoto.link(self.photo_logo)
 
-	def destroyQueueBin(self):
-		self.unlinkQueueBin()
-		self.dismantleQueueBin()
-		self.deInitQueueBin()
+	def padLinkQueuePhoto(self):
+
+		self.tee_video_pad_photo = self.tee.get_request_pad("src_%u")
+
+		self.queue_videophoto_pad = self.queuephoto.get_static_pad("sink")
+
+		gst.Pad.link(self.tee_video_pad_photo, self.queue_videophoto_pad)
+
+	def padUnLinkQueuePhoto(self):
+
+		gst.Pad.unlink(self.tee_video_pad_photo, self.queue_videophoto_pad)
 
 
-	def initQueueBinNotText(self):
-		self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+	def startQueuePhoto(self):
+		self.pipeline.add(self.multifilesinkphoto)
+
+		self.jpegenc.link(self.multifilesinkphoto)
+
+		self.padLinkQueuePhoto()
+
+		if self.streamProcessState == 'PAUSED':
+			self.videortppay.unlink(self.udpsinkout)
+			self.pipeline.remove(self.udpsinkout)
+
+		self.pipeline.set_state(gst.State.PLAYING)
+
+	def stopQueuePhoto(self):
+
+		if self.streamProcessState == 'TAKING_PHOTO':
+			self.padUnLinkQueuePhoto()
+			self.pipeline.add(self.udpsinkout)
+			self.videortppay.link(self.udpsinkout)
+			self.pipeline.set_state(gst.State.PAUSED)
+
+		self.padUnLinkQueuePhoto()
+		self.jpegencNotText.unlink(self.multifilesinkphoto)
+		self.pipeline.remove(self.multifilesinkphoto)
+
+	def destroyQueuePhoto(self):
+		self.unlinkQueuePhoto()
+		self.dismantleQueuePhoto()
+		self.deInitQueuePhoto()
+
+	def initQueuePhotoNotText(self):
+		self.queuephotoNotText = gst.ElementFactory.make('queue', 'queuephotoNotText')
 
 		#self.multifilesinkphotoNotTextNeedAdded = True
 		self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
@@ -765,74 +835,78 @@ class GStreamer(object):
 		self.jpegencNotText = gst.ElementFactory.make('jpegenc', 'jpegencNotText')
 		self.jpegencNotText.set_property('quality',65)
 
-	def deInitQueueBinNotText(self):
-		self.queuebinNotText = None
+	def deInitQueuePhotoNotText(self):
+		self.queuephotoNotText = None
 		self.jpegencNotText = None
 		self.multifilesinkphotoNotText = None
 
-	def composeQueueBinNotText(self):
-		self.pipeline.add(self.queuebinNotText)
+	def composeQueuePhotoNotText(self):
+		self.pipeline.add(self.queuephotoNotText)
 		self.pipeline.add(self.jpegencNotText)
 		#self.pipeline.add(self.multifilesinkphotoNotText)
 
-	def dismantleQueueBinNotText(self):
+	def dismantleQueuePhotoNotText(self):
 		#self.pipeline.remove(self.multifilesinkphotoNotText)
 		self.pipeline.remove(self.jpegencNotText)
-		self.pipeline.remove(self.queuebinNotText)
+		self.pipeline.remove(self.queuephotoNotText)
 
-
-	def linkQueueBinNotText(self):
+	def linkQueuePhotoNotText(self):
 		# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-		self.queuebinNotText.link(self.jpegencNotText)
+		self.queuephotoNotText.link(self.jpegencNotText)
 		#self.jpegencNotText.link(self.multifilesinkphotoNotText)
 
-	def unlinkQueueBinNotText(self):
-		self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
-		self.queuebinNotText.unlink(self.jpegencNotText)
+	def unlinkQueuePhotoNotText(self):
+		#self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
+		self.queuephotoNotText.unlink(self.jpegencNotText)
 
-	def destroyQueueBinNotText(self):
-		self.unlinkQueueBinNotText()
-		self.dismantleQueueBinNotText()
-		self.deInitQueueBinNotText()
+	def padLinkQueuePhotoNotText(self):
 
-	def padLinkQueueBinNotText(self):
+		self.tee_video_pad_photoNotText = self.tee.get_request_pad("src_%u")
 
-		self.tee_video_pad_binNotText = self.tee.get_request_pad("src_%u")
+		self.queue_videophoto_padNotText = self.queuephotoNotText.get_static_pad("sink")
 
-		self.queue_videobin_padNotText = self.queuebinNotText.get_static_pad("sink")
-
-		gst.Pad.link(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
+		gst.Pad.link(self.tee_video_pad_photoNotText, self.queue_videophoto_padNotText)
 
 
-	def padUnLinkQueueBinNotText(self):
+	def padUnLinkQueuePhotoNotText(self):
 
-		gst.Pad.unlink(self.tee_video_pad_binNotText, self.queue_videobin_padNotText)
-
-	def padLinkQueueBin(self):
-
-		self.tee_video_pad_bin = self.tee.get_request_pad("src_%u")
-
-		self.queue_videobin_pad = self.queuebin.get_static_pad("sink")
-
-		gst.Pad.link(self.tee_video_pad_bin, self.queue_videobin_pad)
+		gst.Pad.unlink(self.tee_video_pad_photoNotText, self.queue_videophoto_padNotText)
 
 
-	def padUnLinkQueueBin(self):
-
-		gst.Pad.unlink(self.tee_video_pad_bin, self.queue_videobin_pad)
-
-
-	def startQueueBinNotText(self):
+	def startQueuePhotoNotText(self):
 		self.pipeline.add(self.multifilesinkphotoNotText)
 
 		self.jpegencNotText.link(self.multifilesinkphotoNotText)
 
-		self.padLinkQueueBinNotText()
+		self.padLinkQueuePhotoNotText()
 
-	def stopQueueBinNotText(self):
-		#self.padUnLinkQueueBinNotText()
-		#self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
+		if self.streamProcessState == 'PAUSED':
+			self.videortppay.unlink(self.udpsinkout)
+			self.pipeline.remove(self.udpsinkout)
+
+		self.pipeline.set_state(gst.State.PLAYING)
+
+	def stopQueuePhotoNotText(self):
+
+		if self.streamProcessState == 'TAKING_PHOTO':
+			self.padUnLinkQueuePhotoNotText()
+			self.pipeline.add(self.udpsinkout)
+			self.videortppay.link(self.udpsinkout)
+			self.pipeline.set_state(gst.State.PAUSED)
+
+		self.padUnLinkQueuePhotoNotText()
+		self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 		self.pipeline.remove(self.multifilesinkphotoNotText)
+
+		#ERROR 13!!!!!
+		#if self.streamProcessState == 'PLAYING' or self.streamProcessState == 'TAKING_PHOTO_PLAYING':
+		#	self.stop_video()
+		#	self.play_video()
+
+	def destroyQueuePhotoNotText(self):
+		self.unlinkQueuePhotoNotText()
+		self.dismantleQueuePhotoNotText()
+		self.deInitQueuePhotoNotText()
 
 	def play_video(self):
 
@@ -853,7 +927,7 @@ class GStreamer(object):
 
 				self.streamProcessState = 'PREPARING_VIDEO'
 
-				self.startQueueRaw()
+				self.startQueueVideo()
 
 				# START PLAYING THE PIPELINE
 				self.streamProcessState = 'PLAYING'
@@ -876,7 +950,7 @@ class GStreamer(object):
 		# STOPS THE VIDEO
 		try:
 			if self.streamProcessState == 'TAKING_PHOTO':
-				self.queueraw.set_state(gst.State.PAUSED)
+				self.queuevideo.set_state(gst.State.PAUSED)
 
 			waitingForStopPipeline = True
 
@@ -892,7 +966,10 @@ class GStreamer(object):
 					self.waitForPlayPipeline.clear()
 					waitingForStopPipeline = False
 
-			self.stopQueueRaw()
+			self.waitForStopVideo = threading.Event()
+			self.stopQueueVideo()
+			self.waitForStopVideo.clear()
+
 
 			self.pipeline.set_state(gst.State.PAUSED)
 
@@ -922,113 +999,113 @@ class GStreamer(object):
 
 	def take_photo(self, textPhoto, tryingTimes=0):
 
-			self.waitForPhoto = threading.Event(None)
+		self.waitForPhoto = threading.Event(None)
 
-			if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
+		if self.streamProcessState == 'PREPARING_VIDEO' or self.streamProcessState == '':
 
-				waitingState = self.waitForPhoto.wait(5)
-				self.waitForPhoto.clear()
+			waitingState = self.waitForPhoto.wait(5)
+			self.waitForPhoto.clear()
 
-				# waitingState values:
-				#  - True: exit before timeout. The device is able to take photo because video was stablished.
-				#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
+			# waitingState values:
+			#  - True: exit before timeout. The device is able to take photo because video was stablished.
+			#  - False: timeout given. The device is busy stablishing video. It is not able to take photo yet.
 
-				if not waitingState:
-					return None
-
-			# TAKES A PHOTO USING GSTREAMER
-			self.take_photo_and_return(textPhoto)
-			# THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
-			# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
-
-			photo = None
-
-			try:
-
-				self.waitForPhoto.wait(None)
-				# waitingState values:
-				#  - True: exit before timeout
-				#  - False: timeout given
-
-
-				if self.streamProcessState == 'TAKING_PHOTO':
-
-					self.pipeline.set_state(gst.State.PAUSED)
-					self.pipeline.set_state(gst.State.NULL)
-					self.streamProcessState = 'PAUSED'
-
-				elif self.streamProcessState == 'TAKING_PHOTO_PLAYING':
-
-					self.streamProcessState = 'PLAYING'
-
-				if self.fatalErrorManaged:
-					self.fatalErrorManaged = False
-					return None
-
-				if self.photoTaken :#photo write in disk
-
-					try:
-
-						with open(self.tempImage, 'r') as fin:
-							photo = fin.read()
-
-						os.unlink(self.tempImage)
-
-					except:
-						self._logger.error('Error while opening photo file: recomposing photo maker process...')
-
-				else:#photo error
-
-					if tryingTimes >= 3:
-
-						self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Tried %s times, but unluckly It was not possible.' % tryingTimes)
-
-						#signaling for remote peers
-						manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
-						manage_fatal_error_webrtc.send('cameraError',message='Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
-
-						#event for local peers
-						eventManager().fire(Events.GSTREAMER_EVENT, {
-							'message': 'Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message'
-						})
-
-						return None
-
-
-					if not self.bus_managed:
-
-						self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Trying again... %s times' % tryingTimes)
-
-						self.bus_managed = True
-
-						if tryingTimes == 2:
-							self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
-
-						return self.take_photo(textPhoto,tryingTimes+1)
-
-					else:
-
-						return self.take_photo(textPhoto,tryingTimes+1)
-
-			except Exception, error:
-
-				if self.streamProcessState == 'TAKING_PHOTO':
-
-					self.pipeline.set_state(gst.State.PAUSED)
-					self.pipeline.set_state(gst.State.NULL)
-
-					#self.reset_pipeline_gstreamer_state()
-
-				self._logger.error("take_photo except:  %s" % str(error), exc_info = True)
-				self.waitForPhoto.clear()
-
+			if not waitingState:
 				return None
 
-			self.photoTaken = None
+		# TAKES A PHOTO USING GSTREAMER
+		self.take_photo_and_return(textPhoto)
+		# THEN, WHEN PHOTO IS STORED, THIS IS REMOVED PHISICALLY
+		# FROM HARD DISK FOR GETTING NEW PHOTOS AND FREEING SPACE
 
-			self.waitForPhoto = None
+		photo = None
 
-			return photo
+		try:
+
+			self.waitForPhoto.wait(None)
+			# waitingState values:
+			#  - True: exit before timeout
+			#  - False: timeout given
+
+
+			if self.streamProcessState == 'TAKING_PHOTO':
+
+				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
+				self.streamProcessState = 'PAUSED'
+
+			elif self.streamProcessState == 'TAKING_PHOTO_PLAYING':
+
+				self.streamProcessState = 'PLAYING'
+
+			if self.fatalErrorManaged:
+				self.fatalErrorManaged = False
+				return None
+
+			if self.photoTaken :#photo write in disk
+
+				try:
+
+					with open(self.tempImage, 'r') as fin:
+						photo = fin.read()
+
+					os.unlink(self.tempImage)
+
+				except:
+					self._logger.error('Error while opening photo file: recomposing photo maker process...')
+
+			else:#photo error
+
+				if tryingTimes >= 3:
+
+					self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Tried %s times, but unluckly It was not possible.' % tryingTimes)
+
+					#signaling for remote peers
+					manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
+					manage_fatal_error_webrtc.send('cameraError',message='Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+
+					#event for local peers
+					eventManager().fire(Events.GSTREAMER_EVENT, {
+						'message': 'Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message'
+					})
+
+					return None
+
+
+				if not self.bus_managed:
+
+					self._logger.error('Error in Gstreamer: bus does not get a GstMultiFileSink kind of message. Trying again... %s times' % tryingTimes)
+
+					self.bus_managed = True
+
+					if tryingTimes == 2:
+						self._logger.error('Error in Gstreamer: Fatal error: photo queue is not able to be turned on. Gstreamer\'s bus does not get a GstMultiFileSink kind of message')
+
+					return self.take_photo(textPhoto,tryingTimes+1)
+
+				else:
+
+					return self.take_photo(textPhoto,tryingTimes+1)
+
+		except Exception, error:
+
+			if self.streamProcessState == 'TAKING_PHOTO':
+
+				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
+
+				#self.reset_pipeline_gstreamer_state()
+
+			self._logger.error("take_photo except:  %s" % str(error), exc_info = True)
+			self.waitForPhoto.clear()
+
+			return None
+
+		self.photoTaken = None
+
+		self.waitForPhoto = None
+
+		return photo
 
 	def take_photo_and_return(self, textPhoto):
 
@@ -1037,32 +1114,29 @@ class GStreamer(object):
 
 			try:
 
-				self.pipeline.set_state(gst.State.NULL)
-
 				if textPhoto:
-
 					# PREPARING PHOTO
 					# SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
 					text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>  " + textPhoto + "  </span>"
+
 					self.photo_text.set_property('text', text)
 
-					self.startQueueBin()
+					self.startQueuePhoto()
 
 					self.photoMode = 'TEXT'
 
 				else:
 
-					self.startQueueBinNotText()
+					self.startQueuePhotoNotText()
 
 					self.photoMode = 'NOT_TEXT'
-
-				self.pipeline.set_state(gst.State.PLAYING)
 
 
 				if self.streamProcessState == 'PLAYING':
 					self.streamProcessState = 'TAKING_PHOTO_PLAYING'
 
 				elif self.streamProcessState == 'PAUSED':
+					self.pipeline.set_state(gst.State.PLAYING)
 					self.streamProcessState = 'TAKING_PHOTO'
 
 			except Exception, error:
@@ -1094,11 +1168,11 @@ class GstreamerRawH264(GStreamer):
 class GstreamerRawVP8(GStreamer):
 
 
-	def initQueueRaw(self):
+	def initQueueVideo(self):
 		# ##
 		# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
-		#if not self.queueraw:
-		self.queueraw = gst.ElementFactory.make('queue', None)
+		#if not self.queuevideo:
+		self.queuevideo = gst.ElementFactory.make('queue', None)
 
 		# ##
 		# MODE FOR BROADCASTING VIDEO
@@ -1122,33 +1196,35 @@ class GstreamerRawVP8(GStreamer):
 		self.videortppay = gst.ElementFactory.make('rtpvp8pay', 'rtpvp8pay')
 		self.videortppay.set_property('pt', 96)
 
-	def deInitQueueRaw(self):
-		self.queueraw = None
+	def deInitQueueVideo(self):
+		self.queuevideo = None
 		self.encode = None
 		self.videortppay = None
 		self.udpsinkout = None
+		self.tee_video_pad_video = None
+		self.queue_video_pad = None
 
-	def composeQueueRaw(self):
-		self.pipeline.add(self.queueraw)
+	def composeQueueVideo(self):
+		self.pipeline.add(self.queuevideo)
 		self.pipeline.add(self.encode)
 		self.pipeline.add(self.videortppay)
 		self.pipeline.add(self.udpsinkout)
 
-	def dismantleQueueRaw(self):
+	def dismantleQueueVideo(self):
 		self.pipeline.remove(self.udpsinkout)
 		self.pipeline.remove(self.videortppay)
 		self.pipeline.remove(self.encode)
-		self.pipeline.remove(self.queueraw)
+		self.pipeline.remove(self.queuevideo)
 
-	def linkQueueRaw(self):
-		self.queueraw.link(self.encode)
+	def linkQueueVideo(self):
+		self.queuevideo.link(self.encode)
 		self.encode.link(self.videortppay)
 		self.videortppay.link(self.udpsinkout)
 
-	def unlinkQueueRaw(self):
+	def unlinkQueueVideo(self):
 		self.videortppay.unlink(self.udpsinkout)
 		self.encode.unlink(self.videortppay)
-		self.queueraw.unlink(self.encode)
+		self.queuevideo.unlink(self.encode)
 
 
 class GstreamerXH264(GStreamer):
@@ -1234,11 +1310,11 @@ class GstreamerXH264(GStreamer):
 		self.video_source.unlink(self.src_caps)
 
 
-	def initQueueRaw(self):
+	def initQueueVideo(self):
 		# ##
 		# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
-		#if not self.queueraw:
-		self.queueraw = gst.ElementFactory.make('queue', None)
+		#if not self.queuevideo:
+		self.queuevideo = gst.ElementFactory.make('queue', None)
 
 		# ##
 		# MODE FOR BROADCASTING VIDEO
@@ -1258,36 +1334,38 @@ class GstreamerXH264(GStreamer):
 		self.videortppay.set_property('pt', 96)
 		self.videortppay.set_property('config-interval', 1)
 
-	def deInitQueueRaw(self):
-		self.queueraw = None
+	def deInitQueueVideo(self):
+		self.queuevideo = None
 		self.videortppay = None
 		self.udpsinkout = None
+		self.tee_video_pad_video = None
+		self.queue_video_pad = None
 
-	def destroyQueueRaw(self):
-		self.unlinkQueueRaw()
-		self.dismantleQueueRaw()
-		self.deInitQueueRaw()
-
-	def composeQueueRaw(self):
-		self.pipeline.add(self.queueraw)
+	def composeQueueVideo(self):
+		self.pipeline.add(self.queuevideo)
 		self.pipeline.add(self.videortppay)
 		self.pipeline.add(self.udpsinkout)
 
-	def dismantleQueueRaw(self):
+	def dismantleQueueVideo(self):
 		self.pipeline.remove(self.udpsinkout)
 		self.pipeline.remove(self.videortppay)
-		self.pipeline.remove(self.queueraw)
+		self.pipeline.remove(self.queuevideo)
 
-	def linkQueueRaw(self):
-		self.queueraw.link(self.videortppay)
+	def linkQueueVideo(self):
+		self.queuevideo.link(self.videortppay)
 		self.videortppay.link(self.udpsinkout)
 
-	def unlinkQueueRaw(self):
+	def unlinkQueueVideo(self):
 		self.videortppay.unlink(self.udpsinkout)
-		self.queueraw.unlink(self.videortppay)
+		self.queuevideo.unlink(self.videortppay)
 
-	def initQueueBinNotText(self):
-		self.queuebinNotText = gst.ElementFactory.make('queue', 'queuebinNotText')
+	def destroyQueueVideo(self):
+		self.unlinkQueueVideo()
+		self.dismantleQueueVideo()
+		self.deInitQueueVideo()
+
+	def initQueuePhotoNotText(self):
+		self.queuephotoNotText = gst.ElementFactory.make('queue', 'queuephotoNotText')
 
 		#self.multifilesinkphotoNotTextNeedAdded = True
 		self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
@@ -1301,69 +1379,38 @@ class GstreamerXH264(GStreamer):
 
 		self.x264decNotText = gst.ElementFactory.make('omxh264dec',None)
 
-	def deInitQueueBinNotText(self):
-		self.queuebinNotText = None
+	def deInitQueuePhotoNotText(self):
+		self.queuephotoNotText = None
 		self.x264decNotText = None
 		self.jpegencNotText = None
 		self.multifilesinkphotoNotText = None
 
-	def composeQueueBinNotText(self):
-		self.pipeline.add(self.queuebinNotText)
+	def composeQueuePhotoNotText(self):
+		self.pipeline.add(self.queuephotoNotText)
 		self.pipeline.add(self.x264decNotText)
 		self.pipeline.add(self.jpegencNotText)
 		#self.pipeline.add(self.multifilesinkphotoNotText)
 
-	def dismantleQueueBinNotText(self):
+	def dismantleQueuePhotoNotText(self):
 		#self.pipeline.remove(self.multifilesinkphotoNotText)
 		self.pipeline.remove(self.jpegencNotText)
 		self.pipeline.remove(self.x264decNotText)
-		self.pipeline.remove(self.queuebinNotText)
+		self.pipeline.remove(self.queuephotoNotText)
 
 
-	def linkQueueBinNotText(self):
+	def linkQueuePhotoNotText(self):
 		# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-		self.queuebinNotText.link(self.x264decNotText)
+		self.queuephotoNotText.link(self.x264decNotText)
 		self.x264decNotText.link(self.jpegencNotText)
 		#self.jpegencNotText.link(self.multifilesinkphotoNotText)
 
-	def unlinkQueueBinNotText(self):
+	def unlinkQueuePhotoNotText(self):
 		#self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 		self.x264decNotText.unlink(self.jpegencNotText)
-		self.queuebinNotText.unlink(self.x264decNotText)
+		self.queuephotoNotText.unlink(self.x264decNotText)
 
-	def startQueueBinNotText(self):
-		self.pipeline.add(self.multifilesinkphotoNotText)
-
-		self.jpegencNotText.link(self.multifilesinkphotoNotText)
-
-		self.padLinkQueueBinNotText()
-
-		if self.streamProcessState == 'PAUSED':
-			self.videortppay.unlink(self.udpsinkout)
-			self.pipeline.remove(self.udpsinkout)
-
-		self.pipeline.set_state(gst.State.PLAYING)
-
-	def stopQueueBinNotText(self):
-
-		if self.streamProcessState == 'TAKING_PHOTO':
-			self.padUnLinkQueueBinNotText()
-			self.pipeline.add(self.udpsinkout)
-			self.videortppay.link(self.udpsinkout)
-			self.pipeline.set_state(gst.State.PAUSED)
-
-		self.padUnLinkQueueBinNotText()
-		self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
-		self.pipeline.remove(self.multifilesinkphotoNotText)
-
-		#ERROR 13!!!!!
-		#if self.streamProcessState == 'PLAYING' or self.streamProcessState == 'TAKING_PHOTO_PLAYING':
-		#	self.stop_video()
-		#	self.play_video()
-
-
-	def initQueueBin(self):
-		self.queuebin = gst.ElementFactory.make('queue', 'queuebin')
+	def initQueuePhoto(self):
+		self.queuephoto = gst.ElementFactory.make('queue', 'queuephoto')
 
 		#self.multifilesinkphotoNeedAdded = True
 		self.multifilesinkphoto = gst.ElementFactory.make('multifilesink', 'multifilesink')
@@ -1412,8 +1459,8 @@ class GstreamerXH264(GStreamer):
 		self.x264dec = gst.ElementFactory.make('omxh264dec',None)
 
 
-	def deInitQueueBin(self):
-		self.queuebin = None
+	def deInitQueuePhoto(self):
+		self.queuephoto = None
 		self.x264dec = None
 		self.photo_text = None
 		self.photo_logo = None
@@ -1421,8 +1468,8 @@ class GstreamerXH264(GStreamer):
 		self.jpegenc = None
 		self.multifilesinkphoto = None
 
-	def composeQueueBin(self):
-		self.pipeline.add(self.queuebin)
+	def composeQueuePhoto(self):
+		self.pipeline.add(self.queuephoto)
 		self.pipeline.add(self.x264dec)
 		self.pipeline.add(self.video_logo)
 		self.pipeline.add(self.photo_text)
@@ -1430,56 +1477,84 @@ class GstreamerXH264(GStreamer):
 		self.pipeline.add(self.jpegenc)
 		#self.pipeline.add(self.multifilesinkphoto)
 
-	def dismantleQueueBin(self):
+	def dismantleQueuePhoto(self):
 		#self.pipeline.remove(self.multifilesinkphoto)
 		self.pipeline.remove(self.jpegenc)
 		self.pipeline.remove(self.x264dec)
 		self.pipeline.remove(self.video_logo)
 		self.pipeline.remove(self.photo_text)
 		self.pipeline.remove(self.photo_logo)
-		self.pipeline.remove(self.queuebin)
+		self.pipeline.remove(self.queuephoto)
 
-	def linkQueueBin(self):
+	def linkQueuePhoto(self):
 		# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-		self.queuebin.link(self.x264dec)
+		self.queuephoto.link(self.x264dec)
 		self.x264dec.link(self.video_logo)
 		self.video_logo.link(self.photo_logo)
 		self.photo_logo.link(self.photo_text)
 		self.photo_text.link(self.jpegenc)
 		#self.jpegenc.link(self.multifilesinkphoto)
 
-	def unlinkQueueBin(self):
+	def unlinkQueuePhoto(self):
 		#self.jpegenc.unlink(self.multifilesinkphoto)
 		self.photo_text.unlink(self.jpegenc)
 		self.photo_logo.unlink(self.photo_text)
 		self.video_logo.unlink(self.photo_logo)
 		self.x264dec.unlink(self.video_logo)
-		self.queuebin.unlink(self.x264dec)
+		self.queuephoto.unlink(self.x264dec)
 
-	def startQueueBin(self):
-		self.pipeline.add(self.multifilesinkphoto)
+	def take_photo_and_return(self, textPhoto):
 
-		self.jpegenc.link(self.multifilesinkphoto)
+		# TAKES A PHOTO USING GSTREAMER
+		try:
 
-		self.padLinkQueueBin()
+			try:
 
-		if self.streamProcessState == 'PAUSED':
-			self.videortppay.unlink(self.udpsinkout)
-			self.pipeline.remove(self.udpsinkout)
+				self.pipeline.set_state(gst.State.NULL)
 
-		self.pipeline.set_state(gst.State.PLAYING)
+				if textPhoto:
 
-	def stopQueueBin(self):
+					# PREPARING PHOTO
+					# SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
+					text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>  " + textPhoto + "  </span>"
+					self.photo_text.set_property('text', text)
 
-		if self.streamProcessState == 'TAKING_PHOTO':
-			self.padUnLinkQueueBin()
-			self.pipeline.add(self.udpsinkout)
-			self.videortppay.link(self.udpsinkout)
+					self.startQueuePhoto()
+
+					self.photoMode = 'TEXT'
+
+				else:
+
+					self.startQueuePhotoNotText()
+
+					self.photoMode = 'NOT_TEXT'
+
+				if self.streamProcessState == 'PLAYING':
+					self.streamProcessState = 'TAKING_PHOTO_PLAYING'
+
+				elif self.streamProcessState == 'PAUSED':
+					self.streamProcessState = 'TAKING_PHOTO'
+
+				self.pipeline.set_state(gst.State.PLAYING)
+
+			except Exception, error:
+
+				self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
+				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
+
+
+			self.bus_managed = False
+
+			return None
+
+		except Exception, error:
+
+			self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
 			self.pipeline.set_state(gst.State.PAUSED)
+			self.pipeline.set_state(gst.State.NULL)
 
-		self.padUnLinkQueueBin()
-		self.jpegenc.unlink(self.multifilesinkphoto)
-		self.pipeline.remove(self.multifilesinkphoto)
+			return None
 
 
 class AsyncPhotoTaker(threading.Thread):
