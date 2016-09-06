@@ -355,7 +355,9 @@ class V4L2Manager(CameraManager):
 				return True
 
 		except IOError:
-			pass
+			self.number_of_video_device += 1
+			if self.number_of_video_device == 1:
+				return self.isCameraConnected()
 
 		return False
 
