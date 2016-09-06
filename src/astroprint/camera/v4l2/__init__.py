@@ -16,12 +16,11 @@ class V4L2Manager(CameraManager):
 
 		if self.isCameraConnected():
 			self.supported_formats = self._getSupportedResolutions()
+			self.cameraName = self.getCameraName()
+			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+
 		else:
 			self.supported_formats = None
-
-		self.cameraName = self.getCameraName()
-
-		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
 
 		self.setSafeSettings()
 
@@ -41,16 +40,7 @@ class V4L2Manager(CameraManager):
 
 		defaultFPSFound = False
 
-		cameraConnected = False
-
-		try:
-			cameraConnected = os.path.exists("/dev/video%d" % self.number_of_video_device)
-
-		except:
-
-			cameraConnected = False
-
-		if cameraConnected:
+		if self.isCameraConnected():
 			self.supported_formats = self._getSupportedResolutions()
 		else:
 			self.supported_formats = None
@@ -157,7 +147,7 @@ class V4L2Manager(CameraManager):
 
 	def getCameraName(self):
 		try:
-			if  os.path.exists("/dev/video%d" % self.number_of_video_device):
+			if os.path.exists("/dev/video%d" % self.number_of_video_device):
 
 				device = '/dev/video%d' % self.number_of_video_device
 				with open(device, 'r') as vd:
@@ -167,6 +157,7 @@ class V4L2Manager(CameraManager):
 						return cp.card
 					except:
 						return 'unknown'
+
 		except:
 			pass
 
@@ -355,13 +346,18 @@ class V4L2Manager(CameraManager):
 	# from CameraManager
 
 	def isCameraConnected(self):
-
 		try:
-			return os.path.exists("/dev/video%d" % self.number_of_video_device)
+			device = "/dev/video%d" % self.number_of_video_device
+			if os.path.exists(device):
+				with open(device, 'r') as fd:
+					pass
 
-		except:
+				return True
 
-			return False
+		except IOError:
+			pass
+
+		return False
 
 	def hasCameraProperties(self):
 		return self.supported_formats is not None
