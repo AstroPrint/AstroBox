@@ -125,7 +125,13 @@ class GStreamerManager(V4L2Manager):
 
 		if self.gstreamerVideo and self.gstreamerVideo.streamProcessState == 'PLAYING':
 
-			return self.gstreamerVideo.stop_video()
+			#typedef enum {
+			#  GST_STATE_CHANGE_FAILURE             = 0,
+			#  GST_STATE_CHANGE_SUCCESS             = 1,
+			#  GST_STATE_CHANGE_ASYNC               = 2,
+			#  GST_STATE_CHANGE_NO_PREROLL          = 3
+			#} GstStateChangeReturn;
+			return self.pipeline.getPipeline().set_state(gst.State.NULL) == 1#GST_STATE_CHANGE_SUCCESS
 
 		else:
 
@@ -378,17 +384,8 @@ class GStreamerManager(V4L2Manager):
 
 		self._logger.error('Gstreamer fatal error managing')
 
-		if NULLToQueuebinNotText and self.gstreamerVideo.queuephotoNotText:
-				self.gstreamerVideo.queuephotoNotText.set_state(gst.State.PAUSED)
-				self.gstreamerVideo.queuephotoNotText.set_state(gst.State.NULL)
-
-		#if NULLToQueuebin and self.gstreamerVideo.queuephoto:
-		#	self.gstreamerVideo.queuephoto.set_state(gst.State.PAUSED)
-		#	self.gstreamerVideo.queuephoto.set_state(gst.State.NULL)
-
 		self.pipeline.getPipeline().set_state(gst.State.PAUSED)
 		self.pipeline.getPipeline().set_state(gst.State.NULL)
-		#self.reset_pipeline_gstreamer_state()
 
 		if self.gstreamerVideo.waitForPhoto:
 			self.gstreamerVideo.stopQueuePhotoNotText()
@@ -1510,6 +1507,9 @@ class GstreamerXH264(GStreamer):
 
 			try:
 
+				#self.waitForStopVideo = threading.Event()
+				#self.stopQueueVideo()
+				#self.waitForStopVideo.clear()
 				self.pipeline.set_state(gst.State.NULL)
 
 				if textPhoto:
@@ -1535,6 +1535,7 @@ class GstreamerXH264(GStreamer):
 				elif self.streamProcessState == 'PAUSED':
 					self.streamProcessState = 'TAKING_PHOTO'
 
+				#self.startQueueVideo()
 				self.pipeline.set_state(gst.State.PLAYING)
 
 			except Exception, error:
