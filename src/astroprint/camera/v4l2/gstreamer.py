@@ -188,10 +188,7 @@ class GStreamerManager(V4L2Manager):
 
 	def shutdown(self):
 		self._logger.info('Shutting Down GstreamerManager')
-		#self.pipeline.freePipeline()
 		self.freeMemory()
-		#self.deinitGstreamerBus()
-		#self.deInitPipeline()
 		gst.deinit()
 		webRtcManager().shutdown()
 
