@@ -156,19 +156,21 @@ class V4L2Manager(CameraManager):
 		return self._calcMCD(b, a % b)
 
 	def getCameraName(self):
+		try:
+			if  os.path.exists("/dev/video%d" % self.number_of_video_device):
 
-		if  os.path.exists("/dev/video%d" % self.number_of_video_device):
+				device = '/dev/video%d' % self.number_of_video_device
+				with open(device, 'r') as vd:
+					try:
+						cp = v4l2.v4l2_capability()
+						fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
+						return cp.card
+					except:
+						return 'unknown'
+		except:
+			pass
 
-			device = '/dev/video%d' % self.number_of_video_device
-			with open(device, 'r') as vd:
-				try:
-					cp = v4l2.v4l2_capability()
-					fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
-					return cp.card
-				except:
-					return 'unknown'
-		else:
-			return 'No camera found'
+		return 'No camera found'
 
 	def _getSupportedResolutions(self):
 		"""Query the camera for supported resolutions for a given pixel_format.
