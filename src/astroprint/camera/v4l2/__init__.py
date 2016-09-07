@@ -346,6 +346,7 @@ class V4L2Manager(CameraManager):
 	def _isDevFileValid(self, devFile):
 		try:
 			if os.path.exists(devFile):
+				# in some cases the file is there but can't be accessed
 				with open(devFile, 'r') as fd:
 					pass
 
@@ -363,6 +364,7 @@ class V4L2Manager(CameraManager):
 			return True
 
 		else:
+			#We make sure to check for /dev/video0 and video1
 			self.number_of_video_device += 1
 
 			if self.number_of_video_device == 1 and self._isDevFileValid("/dev/video%d" % self.number_of_video_device):
@@ -381,37 +383,39 @@ class V4L2Manager(CameraManager):
 
 		resolutions = []
 
-		for supported_format in self.supported_formats:
+		if self.supported_formats:
+			for supported_format in self.supported_formats:
 
-			########
-			#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
-			########
+				########
+				#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
+				########
 
-			if not format:
+				if not format:
 
-				pixelformats = self.__getPixelFormats(self.number_of_video_device)
+					pixelformats = self.__getPixelFormats(self.number_of_video_device)
 
-				pixelformatSelected = None
+					pixelformatSelected = None
 
-				for pixelformat in pixelformats:
-					if self._settings['format'] == pixelformat:
-						pixelformatSelected = pixelformat
-						break
+					for pixelformat in pixelformats:
+						if self._settings['format'] == pixelformat:
+							pixelformatSelected = pixelformat
+							break
 
-				formatCompairing = pixelformatSelected or 'YUYV'
+					formatCompairing = pixelformatSelected or 'YUYV'
 
-			else:
-				formatCompairing = format
+				else:
+					formatCompairing = format
 
-			if supported_format.get('pixelformat') == formatCompairing:
-				resolutions = supported_format.get('resolutions')
-				break
+				if supported_format.get('pixelformat') == formatCompairing:
+					resolutions = supported_format.get('resolutions')
+					break
 
-		resolution = [long(e) for e in resolution.split('x')]
+			resolution = [long(e) for e in resolution.split('x')]
 
-		for res in resolutions:
-			if resolution[0] == res[0] and resolution[1] == res[1]:
-				return res
+			for res in resolutions:
+				if resolution[0] == res[0] and resolution[1] == res[1]:
+					return res
+
 		return False
 
 
