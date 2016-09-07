@@ -343,33 +343,33 @@ class V4L2Manager(CameraManager):
 	def _desiredSettings(self):
 		return {}
 
-	# from CameraManager
-
-	def isCameraConnected(self):
-		tryNext = False
-
+	def _isDevFileValid(self, devFile):
 		try:
-			device = "/dev/video%d" % self.number_of_video_device
-			if os.path.exists(device):
-				with open(device, 'r') as fd:
+			if os.path.exists(devFile):
+				with open(devFile, 'r') as fd:
 					pass
 
 				return True
 
-			else:
-				tryNext = True
-
 		except IOError:
-			tryNext = True
+			pass
 
-		if tryNext:
-			self.number_of_video_device += 1
-			if self.number_of_video_device == 1:
-				return self.isCameraConnected()
+		return False
+
+	# from CameraManager
+
+	def isCameraConnected(self):
+		if self._isDevFileValid("/dev/video%d" % self.number_of_video_device):
+			return True
 
 		else:
-			self.number_of_video_device = 0
-			return False
+			self.number_of_video_device += 1
+
+			if self.number_of_video_device == 1 and self._isDevFileValid("/dev/video%d" % self.number_of_video_device):
+				return True
+
+		self.number_of_video_device = 0
+		return False
 
 	def hasCameraProperties(self):
 		return self.supported_formats is not None
