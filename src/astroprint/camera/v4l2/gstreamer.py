@@ -963,7 +963,7 @@ class GStreamer(object):
 
 			stateChanged = self.pipeline.set_state(gst.State.NULL)
 
-			if stateChanged == gst.StateChangeReturn.FAILURE:
+			if stateChanged != gst.StateChangeReturn.SUCCESS:
 				return False
 
 			self.streamProcessState = 'PAUSED'
