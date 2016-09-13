@@ -313,17 +313,6 @@ class GStreamerManager(V4L2Manager):
 				message = str(busError)
 				self.fatalErrorManage(True,True,message, True, True)
 
-		"""elif t == gst.MessageType.STATE_CHANGED:
-
-			states=msg.parse_state_changed()
-			print states[1]
-			print msg.src.get_name()
-			if msg.src.get_name() == "pipeline0" and states[1]==4: #To state is PLAYING
-				#dot = '/usr/bin/dot'
-				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "playbin")
-				#os.system(dot + " -Tpng -o playbin.png playbin")
-				print("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
-		"""
 		elif t == gst.MessageType.EOS:
 
 			self._logger.info("gstreamer EOS (End of Stream) message received.")
