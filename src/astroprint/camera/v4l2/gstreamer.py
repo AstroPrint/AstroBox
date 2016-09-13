@@ -12,8 +12,8 @@ gstreamer_debug_level = 3
 
 os.environ['GST_DEBUG'] = '*:' + str(gstreamer_debug_level)
 #os.environ['GST_DEBUG_NO_COLOR'] = '1'
-os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/tmp'
-os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/tmp'
+os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
+os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
 
 
 from octoprint.events import eventManager, Events
@@ -313,8 +313,17 @@ class GStreamerManager(V4L2Manager):
 				message = str(busError)
 				self.fatalErrorManage(True,True,message, True, True)
 
-		#elif t == gst.MessageType.STATE_CHANGED:
+		"""elif t == gst.MessageType.STATE_CHANGED:
 
+			states=msg.parse_state_changed()
+			print states[1]
+			print msg.src.get_name()
+			if msg.src.get_name() == "pipeline0" and states[1]==4: #To state is PLAYING
+				#dot = '/usr/bin/dot'
+				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "playbin")
+				#os.system(dot + " -Tpng -o playbin.png playbin")
+				print("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
+		"""
 		elif t == gst.MessageType.EOS:
 
 			self._logger.info("gstreamer EOS (End of Stream) message received.")
@@ -413,10 +422,10 @@ class GStreamerManager(V4L2Manager):
 			self._logger.error("Supported formats can not be obtainted...")
 
 		try:
-				dot = '/usr/bin/dot'
+				#dot = '/usr/bin/dot'
 				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
-				st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d@%H:%M:%S')
-				os.system(dot + " -Tpng -o fatal-error" + st + ".png fatal-error")
+				#st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d@%H:%M:%S')
+				#os.system(dot + " -Tpng -o fatal-error" + st + ".png fatal-error")
 				self._logger.error("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
 		except:
 			self._logger.error("Graphic diagram can not be made...")
@@ -668,7 +677,7 @@ class GStreamer(object):
 	def padLinkQueueVideo(self):
 		# TEE PADDING MANAGING
 		# #TEE SOURCE H264
-		self.tee_video_pad_video = self.tee.get_request_pad("src_%u")
+		self.tee_video_pad_video = self.tee.get_request_pad("src_1")
 
 		# TEE SINKING MANAGING
 		# #VIDEO SINK QUEUE
@@ -690,7 +699,10 @@ class GStreamer(object):
 
 
 	def padUnLinkQueueVideo(self):
+
 		gst.Pad.unlink(self.tee_video_pad_video, self.queue_video_pad)
+
+		self.tee.remove_pad(self.tee_video_pad_video)
 
 	def startQueueVideo(self):
 		#self.pipeline.add(self.udpsinkout)
@@ -800,6 +812,8 @@ class GStreamer(object):
 
 		gst.Pad.unlink(self.tee_video_pad_photo, self.queue_videophoto_pad)
 
+		self.tee.remove_pad(self.tee_video_pad_photo)
+
 
 	def startQueuePhoto(self):
 		self.pipeline.add(self.multifilesinkphoto)
@@ -880,6 +894,8 @@ class GStreamer(object):
 	def padUnLinkQueuePhotoNotText(self):
 
 		gst.Pad.unlink(self.tee_video_pad_photoNotText, self.queue_videophoto_padNotText)
+
+		self.tee.remove_pad(self.tee_video_pad_photoNotText)
 
 
 	def startQueuePhotoNotText(self):
@@ -984,7 +1000,7 @@ class GStreamer(object):
 
 			stateChanged = self.pipeline.set_state(gst.State.NULL)
 
-			if stateChanged != gst.StateChangeReturn.SUCCESS:
+			if stateChanged == gst.StateChangeReturn.FAILURE:
 				return False
 
 			self.streamProcessState = 'PAUSED'
