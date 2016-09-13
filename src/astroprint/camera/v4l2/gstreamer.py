@@ -7,6 +7,14 @@ import time
 import logging
 import os
 import threading
+import datetime
+gstreamer_debug_level = 3
+
+os.environ['GST_DEBUG'] = '*:' + str(gstreamer_debug_level)
+#os.environ['GST_DEBUG_NO_COLOR'] = '1'
+os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/tmp'
+os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/tmp'
+
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -17,6 +25,9 @@ except ValueError:
 	raise ImportError
 
 from gi.repository import Gst as gst
+
+gst.debug_set_active(True)
+gst.debug_set_default_threshold(gstreamer_debug_level)
 
 from astroprint.camera.v4l2 import V4L2Manager
 from astroprint.webrtc import webRtcManager
@@ -303,7 +314,6 @@ class GStreamerManager(V4L2Manager):
 				self.fatalErrorManage(True,True,message, True, True)
 
 		#elif t == gst.MessageType.STATE_CHANGED:
-		#	pass
 
 		elif t == gst.MessageType.EOS:
 
@@ -401,6 +411,15 @@ class GStreamerManager(V4L2Manager):
 			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext", shell=True, stdout=subprocess.PIPE).stdout.read())
 		except:
 			self._logger.error("Supported formats can not be obtainted...")
+
+		try:
+				dot = '/usr/bin/dot'
+				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
+				st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d@%H:%M:%S')
+				os.system(dot + " -Tpng -o fatal-error" + st + ".png fatal-error")
+				self._logger.error("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
+		except:
+			self._logger.error("Graphic diagram can not be made...")
 
 		self.fatalError()
 
@@ -599,6 +618,8 @@ class GStreamer(object):
 
 		encodeNeedToAdd = True
 		self.encode = gst.ElementFactory.make('omxh264enc', None)
+		self.encode.set_property('control-rate',1)
+		self.encode.set_property('target-bitrate',1250000)
 
 		# CAPABILITIES FOR H264 OUTPUT
 		self.enc_caps = gst.ElementFactory.make("capsfilter", "filter2")
