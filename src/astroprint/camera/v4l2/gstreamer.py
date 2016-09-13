@@ -316,8 +316,7 @@ class GStreamerManager(V4L2Manager):
 		elif t == gst.MessageType.STATE_CHANGED:
 
 			states=msg.parse_state_changed()
-			print states[1]
-			print msg.src.get_name()
+
 			if msg.src.get_name() == "pipeline0" and states[1]==4: #To state is PLAYING
 				#dot = '/usr/bin/dot'
 				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "playbin")
@@ -677,7 +676,7 @@ class GStreamer(object):
 	def padLinkQueueVideo(self):
 		# TEE PADDING MANAGING
 		# #TEE SOURCE H264
-		self.tee_video_pad_video = self.tee.get_request_pad("src_1")
+		self.tee_video_pad_video = self.tee.get_request_pad("src_%u")
 
 		# TEE SINKING MANAGING
 		# #VIDEO SINK QUEUE
