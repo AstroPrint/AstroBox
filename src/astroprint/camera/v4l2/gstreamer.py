@@ -313,15 +313,10 @@ class GStreamerManager(V4L2Manager):
 				message = str(busError)
 				self.fatalErrorManage(True,True,message, True, True)
 
-		elif t == gst.MessageType.STATE_CHANGED:
+		#elif t == gst.MessageType.STATE_CHANGED: pass
 
-			states=msg.parse_state_changed()
-
-			if msg.src.get_name() == "pipeline0" and states[1]==4: #To state is PLAYING
-				#dot = '/usr/bin/dot'
-				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "playbin")
-				#os.system(dot + " -Tpng -o playbin.png playbin")
-				print("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
+			#states=msg.parse_state_changed() states
+			#msg.src normally pipeline
 
 		elif t == gst.MessageType.EOS:
 
@@ -416,16 +411,13 @@ class GStreamerManager(V4L2Manager):
 		try:
 			self._logger.error("Trying to get list of formats supported by your camera...")
 			import subprocess
-			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext", shell=True, stdout=subprocess.PIPE).stdout.read())
+			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext -d /dev/video" + self.number_of_video_device, shell=True, stdout=subprocess.PIPE).stdout.read())
 		except:
 			self._logger.error("Supported formats can not be obtainted...")
 
 		try:
-				#dot = '/usr/bin/dot'
 				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
-				#st = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d@%H:%M:%S')
-				#os.system(dot + " -Tpng -o fatal-error" + st + ".png fatal-error")
-				self._logger.error("pipeline dot file created in " + os.getenv("GST_DEBUG_DUMP_DOT_DIR"))
+				self._logger.error("Gstreamer's pipeline dot file created: " + os.getenv("GST_DEBUG_DUMP_DOT_DIR") + "/fatal-error.dot")
 		except:
 			self._logger.error("Graphic diagram can not be made...")
 
@@ -470,6 +462,7 @@ class GStreamer(object):
 			self.size = settings().get(["camera", "size"]).split('x')
 			self.framerate = settings().get(["camera", "framerate"])
 			self.format = settings().get(["camera", "format"])
+			self.number_of_video_device = device
 
 			self.bus_managed = True
 			self.fatalErrorManaged = None
@@ -626,8 +619,8 @@ class GStreamer(object):
 
 		encodeNeedToAdd = True
 		self.encode = gst.ElementFactory.make('omxh264enc', None)
-		self.encode.set_property('control-rate',1)
-		self.encode.set_property('target-bitrate',1250000)
+		#self.encode.set_property('control-rate',1)
+		#self.encode.set_property('target-bitrate',1250000)
 
 		# CAPABILITIES FOR H264 OUTPUT
 		self.enc_caps = gst.ElementFactory.make("capsfilter", "filter2")
@@ -829,13 +822,13 @@ class GStreamer(object):
 
 	def stopQueuePhoto(self):
 
+		self.padUnLinkQueuePhoto()
+
 		if self.streamProcessState == 'TAKING_PHOTO':
-			self.padUnLinkQueuePhoto()
 			self.pipeline.add(self.udpsinkout)
 			self.videortppay.link(self.udpsinkout)
 			self.pipeline.set_state(gst.State.PAUSED)
 
-		self.padUnLinkQueuePhoto()
 		self.jpegencNotText.unlink(self.multifilesinkphoto)
 		self.pipeline.remove(self.multifilesinkphoto)
 
@@ -911,14 +904,13 @@ class GStreamer(object):
 		self.pipeline.set_state(gst.State.PLAYING)
 
 	def stopQueuePhotoNotText(self):
+		self.padUnLinkQueuePhotoNotText()
 
 		if self.streamProcessState == 'TAKING_PHOTO':
-			self.padUnLinkQueuePhotoNotText()
 			self.pipeline.add(self.udpsinkout)
 			self.videortppay.link(self.udpsinkout)
 			self.pipeline.set_state(gst.State.PAUSED)
 
-		self.padUnLinkQueuePhotoNotText()
 		self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 		self.pipeline.remove(self.multifilesinkphotoNotText)
 
@@ -1053,13 +1045,11 @@ class GStreamer(object):
 
 
 			if self.streamProcessState == 'TAKING_PHOTO':
-
 				self.pipeline.set_state(gst.State.PAUSED)
 				self.pipeline.set_state(gst.State.NULL)
 				self.streamProcessState = 'PAUSED'
 
 			elif self.streamProcessState == 'TAKING_PHOTO_PLAYING':
-
 				self.streamProcessState = 'PLAYING'
 
 			if self.fatalErrorManaged:
@@ -1340,6 +1330,8 @@ class GstreamerXH264(GStreamer):
 		#if not self.queuevideo:
 		self.queuevideo = gst.ElementFactory.make('queue', None)
 
+		#self.h264parseVideo = gst.ElementFactory.make('h264parse',None)
+
 		# ##
 		# MODE FOR BROADCASTING VIDEO
 		#if not self.udpsinkout:
@@ -1360,6 +1352,7 @@ class GstreamerXH264(GStreamer):
 
 	def deInitQueueVideo(self):
 		self.queuevideo = None
+		#self.h264parseVideo = None
 		self.videortppay = None
 		self.udpsinkout = None
 		self.tee_video_pad_video = None
@@ -1367,12 +1360,14 @@ class GstreamerXH264(GStreamer):
 
 	def composeQueueVideo(self):
 		self.pipeline.add(self.queuevideo)
+		#self.pipeline.add(self.h264parseVideo)
 		self.pipeline.add(self.videortppay)
 		self.pipeline.add(self.udpsinkout)
 
 	def dismantleQueueVideo(self):
 		self.pipeline.remove(self.udpsinkout)
 		self.pipeline.remove(self.videortppay)
+		#self.pipeline.remove(self.h264parseVideo)
 		self.pipeline.remove(self.queuevideo)
 
 	def linkQueueVideo(self):
@@ -1390,13 +1385,23 @@ class GstreamerXH264(GStreamer):
 
 	def initQueuePhotoNotText(self):
 		self.queuephotoNotText = gst.ElementFactory.make('queue', 'queuephotoNotText')
+		self.queuephotoNotText.set_property('max-size-buffers',1)
+
+		self.h264parsePhotoNotText = gst.ElementFactory.make('h264parse',None)
+		self.x264encPhotoNotText = gst.ElementFactory.make('omxh264enc',None)
+		#self.h264parsePhotoNotText.set_property('disable-passthrough',True)
+		self.h264parsePhotoNotText.set_property('config-interval',10)
+
+
+		#self.videoconvert = gst.ElementFactory.make('videoconvert',None)
+		#self.videorate = gst.ElementFactory.make('videorate',None)
 
 		#self.multifilesinkphotoNotTextNeedAdded = True
 		self.multifilesinkphotoNotText = gst.ElementFactory.make('multifilesink', 'multifilesinkNotText')
 		self.multifilesinkphotoNotText.set_property('location', self.tempImage)
 		self.multifilesinkphotoNotText.set_property('max-files', 1)
 		self.multifilesinkphotoNotText.set_property('post-messages', True)
-		self.multifilesinkphotoNotText.set_property('async', True)
+		self.multifilesinkphotoNotText.set_property('next-file',2)
 
 		self.jpegencNotText = gst.ElementFactory.make('jpegenc', 'jpegencNotText')
 		self.jpegencNotText.set_property('quality',65)
@@ -1405,12 +1410,14 @@ class GstreamerXH264(GStreamer):
 
 	def deInitQueuePhotoNotText(self):
 		self.queuephotoNotText = None
+		self.h264parsePhotoNotText = None
 		self.x264decNotText = None
 		self.jpegencNotText = None
 		self.multifilesinkphotoNotText = None
 
 	def composeQueuePhotoNotText(self):
 		self.pipeline.add(self.queuephotoNotText)
+		self.pipeline.add(self.h264parsePhotoNotText)
 		self.pipeline.add(self.x264decNotText)
 		self.pipeline.add(self.jpegencNotText)
 		#self.pipeline.add(self.multifilesinkphotoNotText)
@@ -1419,19 +1426,23 @@ class GstreamerXH264(GStreamer):
 		#self.pipeline.remove(self.multifilesinkphotoNotText)
 		self.pipeline.remove(self.jpegencNotText)
 		self.pipeline.remove(self.x264decNotText)
+		self.pipeline.remove(self.h264parsePhotoNotText)
 		self.pipeline.remove(self.queuephotoNotText)
 
 
 	def linkQueuePhotoNotText(self):
 		# LINKING PHOTO ELEMENTS (WITHOUT TEXT ON PHOTO)
-		self.queuephotoNotText.link(self.x264decNotText)
+		self.queuephotoNotText.link(self.h264parsePhotoNotText)
+		self.h264parsePhotoNotText.link(self.x264decNotText)
 		self.x264decNotText.link(self.jpegencNotText)
 		#self.jpegencNotText.link(self.multifilesinkphotoNotText)
+
 
 	def unlinkQueuePhotoNotText(self):
 		#self.jpegencNotText.unlink(self.multifilesinkphotoNotText)
 		self.x264decNotText.unlink(self.jpegencNotText)
-		self.queuephotoNotText.unlink(self.x264decNotText)
+		self.h264parsePhotoNotText.unlink(self.x264decNotText)
+		self.queuephotoNotText.unlink(self.h264parsePhotoNotText)
 
 	def initQueuePhoto(self):
 		self.queuephoto = gst.ElementFactory.make('queue', 'queuephoto')
@@ -1527,6 +1538,7 @@ class GstreamerXH264(GStreamer):
 		self.x264dec.unlink(self.video_logo)
 		self.queuephoto.unlink(self.x264dec)
 
+	"""
 	def take_photo_and_return(self, textPhoto):
 
 		# TAKES A PHOTO USING GSTREAMER
@@ -1537,7 +1549,7 @@ class GstreamerXH264(GStreamer):
 				#self.waitForStopVideo = threading.Event()
 				#self.stopQueueVideo()
 				#self.waitForStopVideo.clear()
-				self.pipeline.set_state(gst.State.NULL)
+				self.pipeline.set_state(gst.State.READY)
 
 				if textPhoto:
 
@@ -1583,7 +1595,7 @@ class GstreamerXH264(GStreamer):
 			self.pipeline.set_state(gst.State.NULL)
 
 			return None
-
+	"""
 
 class AsyncPhotoTaker(threading.Thread):
 	def __init__(self, take_photo_function):
