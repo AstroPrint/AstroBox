@@ -8,16 +8,18 @@ import logging
 import os
 import threading
 import datetime
-gstreamer_debug_level = 3
-
-os.environ['GST_DEBUG'] = '*:' + str(gstreamer_debug_level)
-#os.environ['GST_DEBUG_NO_COLOR'] = '1'
-os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
-os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
-
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
+
+gstreamer_debug_level = settings().get(["camera", "debug-level"])
+
+if settings().get(["camera", "graphic-debug"]):
+	os.environ['GST_DEBUG'] = '*:' + str(gstreamer_debug_level)
+	#os.environ['GST_DEBUG_NO_COLOR'] = '1'
+	os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
+	os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
+
 
 try:
 	gi.require_version('Gst', '1.0')
@@ -415,11 +417,12 @@ class GStreamerManager(V4L2Manager):
 		except:
 			self._logger.error("Supported formats can not be obtainted...")
 
-		try:
-				gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
-				self._logger.error("Gstreamer's pipeline dot file created: " + os.getenv("GST_DEBUG_DUMP_DOT_DIR") + "/fatal-error.dot")
-		except:
-			self._logger.error("Graphic diagram can not be made...")
+		if settings().get(["camera", "graphic-debug"]):
+			try:
+					gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
+					self._logger.error("Gstreamer's pipeline dot file created: " + os.getenv("GST_DEBUG_DUMP_DOT_DIR") + "/fatal-error.dot")
+			except:
+				self._logger.error("Graphic diagram can not be made...")
 
 		self.fatalError()
 
