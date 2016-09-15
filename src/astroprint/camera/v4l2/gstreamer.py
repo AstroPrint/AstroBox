@@ -17,8 +17,8 @@ gstreamer_debug_level = settings().get(["camera", "debug-level"])
 if settings().get(["camera", "graphic-debug"]):
 	os.environ['GST_DEBUG'] = '*:' + str(gstreamer_debug_level)
 	#os.environ['GST_DEBUG_NO_COLOR'] = '1'
-	os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
-	os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/home/pi/development/AstroBox/src/astroprint/static/img'
+	os.environ['GST_DEBUG_DUMP_DOT_DIR'] =  '/home/pi'
+	os.environ['GST_DEBUG_DUMP_DIR_DIR'] =  '/home/pi'
 
 
 try:
