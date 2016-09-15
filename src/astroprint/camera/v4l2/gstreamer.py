@@ -939,8 +939,6 @@ class GStreamer(object):
 				# START PLAYING THE PIPELINE
 				self.streamProcessState = 'PLAYING'
 
-				gst.debug_bin_to_dot_file (self.pipeline, gst.DebugGraphDetails.ALL, "playbin")
-
 				stateChanged = self.pipeline.set_state(gst.State.PLAYING)
 				if stateChanged == gst.StateChangeReturn.FAILURE:
 					return False
