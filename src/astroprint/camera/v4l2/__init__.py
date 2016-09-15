@@ -58,8 +58,6 @@ class V4L2Manager(CameraManager):
 
 					if res["pixelformat"]=='YUYV':
 						pixelformatTranslated = 'x-raw'
-					elif res["pixelformat"]=='H264':
-						pixelformatTranslated = 'x-h264'
 
 					if pixelformatTranslated == settings().get(["camera", "format"]):#restricted
 
@@ -102,8 +100,9 @@ class V4L2Manager(CameraManager):
 							chr((fmt.pixelformat >> 8) & 0xFF),
 							chr((fmt.pixelformat >> 16) & 0xFF),
 							chr((fmt.pixelformat >> 24) & 0xFF))
-						pixelformat['description'] = fmt.description.decode()
-						supported_formats.append(pixelformat)
+						if pixelformat['pixelformat'] != 'H264':
+							pixelformat['description'] = fmt.description.decode()
+							supported_formats.append(pixelformat)
 				fmt.index = fmt.index + 1
 		except IOError as e:
 	        # EINVAL is the ioctl's way of telling us that there are no
@@ -332,51 +331,12 @@ class V4L2Manager(CameraManager):
 	def reScan(self):
 		return self.open_camera()
 
-	def isResolutionSupported(self, resolution, format=None):
+	def isResolutionSupported(self, resolution, format=None): pass
 
-		resolutions = []
-
-		for supported_format in self.supported_formats:
-
-			########
-			#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
-			########
-
-			if not format:
-
-				pixelformats = self.__getPixelFormats(self.number_of_video_device)
-
-				pixelformatSelected = None
-
-				for pixelformat in pixelformats:
-					if self._settings['format'] == pixelformat:
-						pixelformatSelected = pixelformat
-						break
-
-				formatCompairing = pixelformatSelected or 'YUYV'
-
-			else:
-				formatCompairing = format
-
-			if supported_format.get('pixelformat') == formatCompairing:
-				resolutions = supported_format.get('resolutions')
-				break
-
-		resolution = [long(e) for e in resolution.split('x')]
-
-		for res in resolutions:
-			if resolution[0] == res[0] and resolution[1] == res[1]:
-				return res
-		return False
 
 
 	def settingsStructure(self,format=None):
 		desired = self._desiredSettings
-
-		for r in desired['frameSizes']:
-			resolution = self.isResolutionSupported(r['value'],format)
-			if not resolution:
-				desired['frameSizes'].remove(r)
 
 		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
 
@@ -388,8 +348,7 @@ class V4L2Manager(CameraManager):
 
 			for o in desired['cameraOutput']:
 				if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
-					(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) or \
-					(o['value'] == 'x-h264' and 'H264' not in pixelformats):
+					(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) :
 						desired['cameraOutput'].remove(o)
 
 			return desired

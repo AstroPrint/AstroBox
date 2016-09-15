@@ -51,7 +51,6 @@ default_settings = {
 		"encoding": "h264",
 		"size": "640x480",
 		"framerate": "15/1",
-		"format": "x-raw",
 		"pixelformat": "YUYV",
 		"debug-level": 0,
 		"graphic-debug": False

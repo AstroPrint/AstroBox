@@ -328,8 +328,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
 		"change #video-stream-encoding": "changeEncoding",
-		"change #video-stream-size": "restrictFps",
-		"change #video-stream-format": "reloadDataAndRestrictFps"
+		"change #video-stream-size": "restrictFps"
 	},
 	show: function(previousCameraName) {
 
@@ -347,11 +346,11 @@ var CameraVideoStreamView = SettingsPage.extend({
 					if(this.cameraName != response.cameraName){
 						//previousCameraName = this.cameraName;
 						this.cameraName = response.cameraName;
-					} 
-					
+					}
+
 
 					$.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
-						
+
 						if(data.structure){
 
 							this.settings = data;
@@ -426,67 +425,22 @@ var CameraVideoStreamView = SettingsPage.extend({
 		}
 	},
 	changeEncoding: function(e){
-		if(e.target.options[e.target.selectedIndex].value == 'vp8'){
-			if($('#video-stream-format option:selected').val() == 'x-h264'){
-				$('#video-stream-format').val('x-raw');
-				this.reloadDataAndRestrictFps();
-			}
-			$('#video-stream-format').prop('disabled', 'disabled');
-		} else {//h264
-			$('#video-stream-format').prop('disabled', false);
-		}
-	},
-	reloadDataAndRestrictFps: function(){
-
-		var formatSelected = $('#video-stream-format option:selected').val();
-
-		//force to get the new camera capabilites for this format
-		this.settings = null;
-		/////////
-		this.restrictFps(formatSelected);
-	},
-	restrictFps: function(formatSelected){
-		this.$('#video-stream-framerate').html('');
 
 		if(!this.settings){
-			$.ajax({
-				url: API_BASEURL + 'settings/camera',
-				type: 'POST',
-				contentType: 'application/json',
-				dataType: 'json',
-				data: JSON.stringify({format:formatSelected})
-			})
-			.done(_.bind(function(data){
-				this.settings = data;
-				this._reloadFpsSelect(formatSelected);
-			},this));
-		} else {
-			this._reloadFpsSelect();
-		}
 
-		
-	},
-	_reloadFpsSelect: function(){
-		$.each(this.settings.structure.fps, _.bind(function(i, item) { 
-			if(item.resolution == this.$('#video-stream-size').val()) {
-				if (this.settings.framerate == item.value){
-					this.$('#video-stream-framerate').append($('<option>', { 
-				        		value: item.value,
-				        		text : item.label,
-				        		selected: 'selected'
-			    			}
-			    		)
-			    	);
-				} else {
-					this.$('#video-stream-framerate').append($('<option>', { 
-				        		value: item.value,
-				        		text : item.label
-			    			}
-			    		)
-			    	);
-				}
-			}
-		},this));
+      var formatSelected = $('#video-stream-format option:selected').val();
+
+      $.ajax({
+        url: API_BASEURL + 'settings/camera',
+        type: 'POST',
+        contentType: 'application/json',
+        dataType: 'json',
+        data: JSON.stringify({format:formatSelected})
+      })
+      .done(_.bind(function(data){
+        this.settings = data;
+      },this));
+    }
 	},
 	refreshPluggedCamera: function(){
 
@@ -500,7 +454,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 			if(response.isCameraPlugged){
 				this.settings = null;
 				this.cameraName = '';
-				this.show(previousCameraName);				
+				this.show(previousCameraName);
 			} else {
 				this.cameraName = false;
 				this.render();
@@ -1193,7 +1147,7 @@ var ResetConfirmDialog = Backbone.View.extend({
 		if (this.$('input').val() == 'RESET') {
 			var loadingBtn = this.$('.loading-button');
 			loadingBtn.addClass('loading');
-			
+
 			$.ajax({
 				url: API_BASEURL + 'settings/software/settings',
 				type: 'DELETE',

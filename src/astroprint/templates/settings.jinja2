@@ -227,7 +227,7 @@
 										</label>
 										<% if (settings.structure.fps.length > 1) { %>
 											<select id="video-stream-framerate" name="framerate">
-												<% _.each(settings.structure.fps, function(v) { 
+												<% _.each(settings.structure.fps, function(v) {
 														if(v.resolution == settings.size) { %>
 															<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
 												<% 		}
@@ -236,22 +236,6 @@
 										<% } else { %>
 											<div class="field-value"><%= settings.structure.fps[0].label %></div>
 											<input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
-										<% } %>
-									<% } %>
-									<% if (settings.structure.cameraOutput.length > 0) { %>
-										<label for="video-stream-format" class="bold">
-											Camera Output Format
-										</label>
-										<% 
-											if (settings.structure.cameraOutput.length > 1) { %>
-											<select id="video-stream-format" name="format">
-												<% _.each(settings.structure.cameraOutput, function(v) { %>
-													<option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
-												<% }) %>
-											</select>
-										<% } else { %>
-											<div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
-											<input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
 										<% } %>
 									<% } %>
 									<hr/>
