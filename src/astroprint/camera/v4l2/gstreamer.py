@@ -47,7 +47,6 @@ class GStreamerManager(V4L2Manager):
 		self.pipeline = None
 		self._logger = logging.getLogger(__name__)
 
-
 		super(GStreamerManager, self).__init__(videoDevice)
 
 
@@ -463,7 +462,6 @@ class GStreamer(object):
 
 			self.videotype = settings().get(["camera", "encoding"])
 			self.size = settings().get(["camera", "size"]).split('x')
-			self.framerate = settings().get(["camera", "framerate"])
 			self.format = settings().get(["camera", "format"])
 			self.number_of_video_device = device
 
@@ -475,7 +473,7 @@ class GStreamer(object):
 
 			self.pipeline = pipeline
 
-			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s, size: %s and %s fps in %s format" % (cameraName, self.videotype , settings().get(["camera", "size"]) , str(self.framerate) , self.format))
+			self._logger.info("Initializing Gstreamer with camera %s, encoding: %s, size: %s in %s format" % (cameraName, self.videotype , settings().get(["camera", "size"]), self.format))
 
 			# ##
 			# IMAGE FOR SAVING PHOTO
@@ -561,7 +559,7 @@ class GStreamer(object):
 		self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
 		self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
 
-		camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate)
+		camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1])
 
 		self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
 		self.src_caps.set_property("caps", camera1caps)
@@ -951,6 +949,8 @@ class GStreamer(object):
 				# START PLAYING THE PIPELINE
 				self.streamProcessState = 'PLAYING'
 
+				gst.debug_bin_to_dot_file (self.pipeline, gst.DebugGraphDetails.ALL, "playbin")
+
 				stateChanged = self.pipeline.set_state(gst.State.PLAYING)
 				if stateChanged == gst.StateChangeReturn.FAILURE:
 					return False
@@ -1255,7 +1255,7 @@ class GstreamerXH264(GStreamer):
 
 		self.size = settings().get(["camera", "size"]).split('x')
 
-		camera1caps = gst.Caps.from_string('video/x-h264,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=' + self.framerate)
+		camera1caps = gst.Caps.from_string('video/x-h264,width=' + self.size[0] + ',height=' + self.size[1])
 
 		#if not self.src_caps:
 		self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
