@@ -331,8 +331,28 @@ class V4L2Manager(CameraManager):
 	def reScan(self):
 		return self.open_camera()
 
-	def isResolutionSupported(self, resolution, format=None): pass
+	def isResolutionSupported(self, resolution, format=None):
 
+		resolutions = []
+
+		for supported_format in self.supported_formats:
+
+			########
+			#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
+			########
+
+			formatCompairing = 'YUYV'
+
+			if supported_format.get('pixelformat') == formatCompairing:
+				resolutions = supported_format.get('resolutions')
+				break
+
+		resolution = [long(e) for e in resolution.split('x')]
+
+		for res in resolutions:
+			if resolution[0] == res[0] and resolution[1] == res[1]:
+				return res
+		return False
 
 
 	def settingsStructure(self,format=None):
