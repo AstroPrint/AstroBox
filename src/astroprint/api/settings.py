@@ -144,6 +144,9 @@ def cameraSettings():
 		if "application/json" in request.headers["Content-Type"]:
 			data = request.json
 
+			if "source" in data:
+				s.set(['camera', 'source'], data['source'])
+
 			if "size" in data:
 				s.set(['camera', 'size'], data['size'])
 
@@ -158,13 +161,15 @@ def cameraSettings():
 			cm.settingsChanged({
 				'size': s.get(['camera', 'size']),
 				'encoding': s.get(['camera', 'encoding']),
-				'framerate': s.get(['camera', 'framerate'])
+				'framerate': s.get(['camera', 'framerate']),
+				'source': s.get(['camera', 'source']),
 			})
 
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']),
 		size= s.get(['camera', 'size']),
 		framerate= s.get(['camera', 'framerate']),
+		source= s.get(['camera', 'source']),
 		structure= cm.settingsStructure()
 	)
 

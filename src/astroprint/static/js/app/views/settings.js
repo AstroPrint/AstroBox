@@ -327,8 +327,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 	events: {
 		"submit form": 'onFormSubmit',
 		"click #buttonRefresh": "refreshPluggedCamera",
-		"change #video-stream-encoding": "changeEncoding",
-		"change #video-stream-size": "restrictFps"
+		"change #video-stream-encoding": "changeEncoding"
 	},
 	show: function(previousCameraName) {
 
@@ -468,10 +467,6 @@ var CameraVideoStreamView = SettingsPage.extend({
 			settings: this.settings
 		}));
 
-		if($('#video-stream-encoding option:selected').val() == 'vp8'){
-			$('#video-stream-format').prop('disabled', 'disabled');
-		}
-
 		this.$el.foundation();
 
 		this.delegateEvents(this.events);
@@ -483,9 +478,9 @@ var CameraVideoStreamView = SettingsPage.extend({
 	},
 	saveData: function()
 	{
-	    var form = this.$('form');
-	    var loadingBtn = form.find('.loading-button');
-		var attrs = {};
+    var form = this.$('form');
+    var loadingBtn = form.find('.loading-button');
+    var attrs = {};
 
 		loadingBtn.addClass('loading');
 

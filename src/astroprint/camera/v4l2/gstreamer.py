@@ -101,13 +101,11 @@ class GStreamerManager(V4L2Manager):
 			if isCameraConnected:
 				self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
 
-				if settings().get(["camera", "encoding"]) == 'h264':
-
+				if settings().get(["camera", "source"]) == 'USB':
 					self.gstreamerVideo = GstreamerRawH264(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
-				else:#vp8
-
-					self.gstreamerVideo = GstreamerRawVP8(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
+				else:#Raspicam
+					self.gstreamerVideo = GstreamerRaspicam(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
 
 
 		except Exception, error:
@@ -198,7 +196,6 @@ class GStreamerManager(V4L2Manager):
 		return self.gstreamerVideo.streamProcessState
 
 	def close_camera(self):
-		if self.asyncPhotoTaker:
 			self.asyncPhotoTaker.stop()
 
 	def startLocalVideoSession(self, sessionId):
@@ -218,19 +215,19 @@ class GStreamerManager(V4L2Manager):
 	@property
 	def _desiredSettings(self):
 		return {
-			'videoEncoding': [
-				{'value': 'h264', 'label': 'H.264'},
-				{'value': 'vp8', 'label': 'VP8'}
+			'busSource': [
+				{'value': 'USB', 'label': 'USB Camera'},
+				{'value': 'raspicam', 'label': 'Raspicam'}
 			],
 			'frameSizes': [
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
 				{'value': '1280x720', 'label': 'High (1280 x 720)'}
 			],
-			'fps': [],
 			'cameraOutput': [
-				{'value': 'x-raw', 'label': 'Raw Video'},
-				{'value': 'x-h264', 'label': 'H.264 Encoded'}
-			]
+				{'value': 'x-raw', 'label': 'Raw Video'}
+			],
+			'fps': [],
+			'videoEncoding': []
 		}
 
 	#Virtual Interface GStreamerEvents
@@ -1168,66 +1165,169 @@ class GStreamer(object):
 class GstreamerRawH264(GStreamer):
 	pass
 
-class GstreamerRawVP8(GStreamer):
+class GstreamerRaspicam(GStreamer):
 
+	def initTeeSource(self,device):
+		# VIDEO SOURCE DESCRIPTION
+		# #DEVICE 0 (FIRST CAMERA) USING v4l2src DRIVER
+		# #(v4l2src: VIDEO FOR LINUX TO SOURCE)
+		self.video_source = gst.ElementFactory.make('v4l2src', 'video_source')
+		self.video_source.set_property("device", '/dev/video' + str(device))
 
-	def initQueueVideo(self):
+		# ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
+		self.video_logo = gst.ElementFactory.make('gdkpixbufoverlay', 'logo_overlay')
+		self.video_logo.set_property('location', '/AstroBox/src/astroprint/static/img/astroprint_logo.png')
+		self.video_logo.set_property('overlay-width', 150)
+		self.video_logo.set_property('overlay-height', 29)
+
+		self.size = settings().get(["camera", "size"]).split('x')
+
+		self.video_logo.set_property('offset-x', int(self.size[0]) - 160)
+		self.video_logo.set_property('offset-y', int(self.size[1]) - 30)
+
+		if self.size[0] == '1270':
+			camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=30/1')
+		else:
+			camera1caps = gst.Caps.from_string('video/x-raw,format=I420,width=' + self.size[0] + ',height=' + self.size[1] + ',framerate=5/1')
+
+		self.src_caps = gst.ElementFactory.make("capsfilter", "filter1")
+		self.src_caps.set_property("caps", camera1caps)
+
 		# ##
-		# GSTRAMER MAIN QUEUE: DIRECTLY CONNECTED TO SOURCE
-		#if not self.queuevideo:
-		self.queuevideo = gst.ElementFactory.make('queue', None)
-
-		# ##
-		# MODE FOR BROADCASTING VIDEO
-		#if not self.udpsinkout:
-		self.udpsinkout = gst.ElementFactory.make('udpsink', 'udpsinkvideo')
-		self.udpsinkout.set_property('host', '127.0.0.1')
-		self.udpsinkout.set_property('port', 8005)
+		# TEE COMMAND IN GSTREAMER ABLES TO JOIN NEW OUTPUT
+		# QUEUES TO THE SAME SOURCE
+		self.tee = gst.ElementFactory.make('tee', 'tee')
 		# ##
 
-		#self.encode = None
-
-		#if not self.encode:
-		encodeNeedToAdd = True
-		self.encode = gst.ElementFactory.make('vp8enc', None)
-		self.encode.set_property('target-bitrate', 500000)
-		self.encode.set_property('keyframe-max-dist', 500)
-		#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
-		self.encode.set_property('deadline', 1)
-		#####
-
-		self.videortppay = gst.ElementFactory.make('rtpvp8pay', 'rtpvp8pay')
-		self.videortppay.set_property('pt', 96)
-
-	def deInitQueueVideo(self):
-		self.queuevideo = None
-		self.encode = None
-		self.videortppay = None
-		self.udpsinkout = None
-		self.tee_video_pad_video = None
-		self.queue_video_pad = None
-
-	def composeQueueVideo(self):
-		self.pipeline.add(self.queuevideo)
-		self.pipeline.add(self.encode)
-		self.pipeline.add(self.videortppay)
-		self.pipeline.add(self.udpsinkout)
-
-	def dismantleQueueVideo(self):
-		self.pipeline.remove(self.udpsinkout)
-		self.pipeline.remove(self.videortppay)
-		self.pipeline.remove(self.encode)
-		self.pipeline.remove(self.queuevideo)
 
 	def linkQueueVideo(self):
 		self.queuevideo.link(self.encode)
-		self.encode.link(self.videortppay)
+		self.encode.link(self.enc_caps)
+		self.enc_caps.link(self.videortppay)
 		self.videortppay.link(self.udpsinkout)
+		self.startQueueVideo()
 
 	def unlinkQueueVideo(self):
 		self.videortppay.unlink(self.udpsinkout)
-		self.encode.unlink(self.videortppay)
+		self.enc_caps.unlink(self.videortppay)
+		self.encode.unlink(self.enc_caps)
 		self.queuevideo.unlink(self.encode)
+		self.padUnLinkQueueVideo()
+
+	def play_video(self):
+
+		if not self.streamProcessState == 'PREPARING_VIDEO' or not  self.streamProcessState == 'PLAYING':
+			# SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
+			try:
+				waitingForVideo = True
+
+				self.waitForPlayVideo = threading.Event()
+
+				while waitingForVideo:
+					if self.streamProcessState == 'TAKING_PHOTO' or self.streamProcessState == '':
+						waitingForVideo = self.waitForPlayVideo.wait(2)
+					else:
+						self.waitForPlayVideo.set()
+						self.waitForPlayVideo.clear()
+						waitingForVideo = False
+
+				self.streamProcessState = 'PREPARING_VIDEO'
+
+				#self.startQueueVideo()
+
+				# START PLAYING THE PIPELINE
+				self.streamProcessState = 'PLAYING'
+
+				stateChanged = self.pipeline.set_state(gst.State.PLAYING)
+				if stateChanged == gst.StateChangeReturn.FAILURE:
+					return False
+
+
+				return True
+
+			except Exception, error:
+				self._logger.error("Error playing video with GStreamer: %s" % str(error), exc_info = True)
+				self.pipeline.set_state(gst.State.PAUSED)
+				self.pipeline.set_state(gst.State.NULL)
+
+				return False
+
+	def stop_video(self):
+		# STOPS THE VIDEO
+		try:
+			if self.streamProcessState == 'TAKING_PHOTO':
+				self.queuevideo.set_state(gst.State.PAUSED)
+
+			waitingForStopPipeline = True
+
+			self.waitForPlayPipeline = threading.Event()
+
+			while waitingForStopPipeline:
+				if self.streamProcessState == 'TAKING_PHOTO' or self.streamProcessState == '':
+
+					waitingForStopPipeline = self.waitForPlayPipeline.wait(2)
+				else:
+
+					self.waitForPlayPipeline.set()
+					self.waitForPlayPipeline.clear()
+					waitingForStopPipeline = False
+
+			self.waitForStopVideo = threading.Event()
+			self.stopQueueVideo()
+			self.waitForStopVideo.clear()
+
+
+			#self.pipeline.set_state(gst.State.PAUSED)
+
+			stateChanged = self.pipeline.set_state(gst.State.NULL)
+
+			if stateChanged == gst.StateChangeReturn.FAILURE:
+				return False
+
+			self.streamProcessState = 'PAUSED'
+
+			return True
+
+		except Exception, error:
+
+			self._logger.error("Error stopping video with GStreamer: %s" % str(error), exc_info=True)
+			self.pipeline.set_state(gst.State.PAUSED)
+			self.pipeline.set_state(gst.State.NULL)
+
+			return False
+
+	def padUnLinkQueueVideoManager(self, pad, info, user_data):
+
+		self.tee_video_pad_video.remove_probe(info.id)
+
+		#self.padUnLinkQueueVideo()
+
+		self.waitForStopVideo.set()
+
+		return gst.PadProbeReturn.DROP
+
+
+	def startQueueVideo(self):
+		#self.pipeline.add(self.udpsinkout)
+
+		#self.videortppay.link(self.udpsinkout)
+
+		self.padLinkQueueVideo()
+
+	def stopQueueVideo(self):
+
+		try:
+			self.tee_video_pad_video.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.padUnLinkQueueVideoManager, None)
+			self.waitForStopVideo.wait()
+
+		except Exception, error:
+			#self.padUnLinkQueueVideo()
+			self._logger.error("Error trying to stop video queue: %s", error)
+			self.fatalErrorManage(True, True, None, True, True)
+
+		#self.videortppay.unlink(self.udpsinkout)
+
+		#self.pipeline.remove(self.udpsinkout)
 
 
 class AsyncPhotoTaker(threading.Thread):

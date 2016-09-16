@@ -52,6 +52,7 @@ default_settings = {
 		"size": "640x480",
 		"framerate": "15/1",
 		"pixelformat": "YUYV",
+		"source": "USB",
 		"debug-level": 0,
 		"graphic-debug": False
 	},

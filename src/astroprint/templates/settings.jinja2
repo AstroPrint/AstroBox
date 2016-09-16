@@ -191,6 +191,21 @@
 						<div class="row">
 							<div class="small-12">
 								<form>
+                  <% if (settings.structure.busSource.length > 0) { %>
+                    <label for="video-stream-format" class="bold">
+                      Video Stream Source
+                    </label>
+                    <% if (settings.structure.busSource.length > 1) { %>
+                      <select id="video-stream-source" name="source">
+                        <% _.each(settings.structure.busSource, function(v) { %>
+                          <option value="<%= v.value %>" <%= settings.source == v.value ? 'selected' : '' %>><%= v.label %></option>
+                        <% }) %>
+                      </select>
+                    <% } else { %>
+                      <div class="field-value"><%= settings.structure.source[0].label %></div>
+                      <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
+                    <% } %>
+                  <% } %>
 									<% if (settings.structure.videoEncoding.length > 0) { %>
 										<label for="video-stream-format" class="bold">
 											Video Stream Encoding
