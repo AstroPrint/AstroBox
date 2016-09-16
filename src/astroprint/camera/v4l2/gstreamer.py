@@ -8,6 +8,7 @@ import logging
 import os
 import threading
 import datetime
+import subprocess
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -402,8 +403,7 @@ class GStreamerManager(V4L2Manager):
 
 		try:
 			self._logger.error("Trying to get list of formats supported by your camera...")
-			import subprocess
-			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext -d /dev/video" + self.number_of_video_device, shell=True, stdout=subprocess.PIPE).stdout.read())
+			self._logger.error(subprocess.Popen("v4l2-ctl --list-formats-ext -d /dev/video" + str(self.number_of_video_device), shell=True, stdout=subprocess.PIPE).stdout.read())
 		except:
 			self._logger.error("Supported formats can not be obtainted...")
 
