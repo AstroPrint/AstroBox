@@ -702,7 +702,7 @@ class GStreamer(object):
 
 		except Exception, error:
 			#self.padUnLinkQueueVideo()
-			self._logger.error("ERROR IN BUS MESSAGE: %s", error)
+			self._logger.error("Error trying to stop video queue: %s", error)
 			self.fatalErrorManage(True, True, None, True, True)
 
 
@@ -996,8 +996,6 @@ class GStreamer(object):
 			self.pipeline.set_state(gst.State.NULL)
 
 			return False
-
-
 
 	def destroyTeeSource(self):
 		self.unlinkTeeSource()
