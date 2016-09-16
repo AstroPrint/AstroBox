@@ -409,7 +409,7 @@ class GStreamerManager(V4L2Manager):
 
 		if settings().get(["camera", "graphic-debug"]):
 			try:
-					gst.debug_bin_to_dot_file (msg.src, gst.DebugGraphDetails.ALL, "fatal-error")
+					gst.debug_bin_to_dot_file (self.pipeline.getPipeline(), gst.DebugGraphDetails.ALL, "fatal-error")
 					self._logger.error("Gstreamer's pipeline dot file created: " + os.getenv("GST_DEBUG_DUMP_DOT_DIR") + "/fatal-error.dot")
 			except:
 				self._logger.error("Graphic diagram can not be made...")
