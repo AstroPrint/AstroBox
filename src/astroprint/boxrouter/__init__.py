@@ -234,7 +234,7 @@ class AstroprintBoxRouter(object):
 			if loggedUser and userManager:
 				user = userManager.findUser(loggedUser)
 
-				if user:
+				if user and user.is_authenticated:
 					self._publicKey = user.publicKey
 					self._privateKey = user.privateKey
 
