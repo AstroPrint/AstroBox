@@ -183,7 +183,7 @@ def performSystemAction():
 					except Exception, e:
 						logger.warn("Command failed: %s" % e)
 						return make_response(("Command failed: %s" % e, 500, []))
-				
+
 				else:
 					break
 
@@ -205,7 +205,7 @@ def login():
 			remember = False
 
 		user = octoprint.server.userManager.findUser(username)
-		if user is not None:			
+		if user is not None:
 			if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
 				login_user(user, remember=remember)
 				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
