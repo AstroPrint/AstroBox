@@ -16,12 +16,11 @@ class V4L2Manager(CameraManager):
 
 		if self.isCameraConnected():
 			self.supported_formats = self._getSupportedResolutions()
+			self.cameraName = self.getCameraName()
+			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+
 		else:
 			self.supported_formats = None
-
-		self.cameraName = self.getCameraName()
-
-		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
 
 		self.setSafeSettings()
 
@@ -41,16 +40,7 @@ class V4L2Manager(CameraManager):
 
 		defaultFPSFound = False
 
-		cameraConnected = False
-
-		try:
-			cameraConnected = os.path.exists("/dev/video%d" % self.number_of_video_device)
-
-		except:
-
-			cameraConnected = False
-
-		if cameraConnected:
+		if self.isCameraConnected():
 			self.supported_formats = self._getSupportedResolutions()
 		else:
 			self.supported_formats = None
@@ -156,19 +146,22 @@ class V4L2Manager(CameraManager):
 		return self._calcMCD(b, a % b)
 
 	def getCameraName(self):
+		try:
+			if os.path.exists("/dev/video%d" % self.number_of_video_device):
 
-		if  os.path.exists("/dev/video%d" % self.number_of_video_device):
+				device = '/dev/video%d' % self.number_of_video_device
+				with open(device, 'r') as vd:
+					try:
+						cp = v4l2.v4l2_capability()
+						fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
+						return cp.card
+					except:
+						return 'unknown'
 
-			device = '/dev/video%d' % self.number_of_video_device
-			with open(device, 'r') as vd:
-				try:
-					cp = v4l2.v4l2_capability()
-					fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
-					return cp.card
-				except:
-					return 'unknown'
-		else:
-			return 'No camera found'
+		except:
+			pass
+
+		return 'No camera found'
 
 	def _getSupportedResolutions(self):
 		"""Query the camera for supported resolutions for a given pixel_format.
@@ -197,12 +190,12 @@ class V4L2Manager(CameraManager):
 				return None
 
 			for supported_format in supported_formats:
-				resolutions = []
-				framesize = v4l2.v4l2_frmsizeenum()
-				framesize.index = 0
-				framesize.pixel_format = supported_format['pixelformat_int']
-				with open(device, 'r') as vd:
-					try:
+			    resolutions = []
+			    framesize = v4l2.v4l2_frmsizeenum()
+			    framesize.index = 0
+			    framesize.pixel_format = supported_format['pixelformat_int']
+			    with open(device, 'r') as vd:
+			        try:
 						cp = v4l2.v4l2_capability()
 						fcntl.ioctl(vd, v4l2.VIDIOC_QUERYCAP, cp)
 						self.cameraName = cp.card
@@ -218,7 +211,7 @@ class V4L2Manager(CameraManager):
 
 								if hasattr(framesize.stepwise, 'max_width'):
 									max_width = framesize.stepwise.max_width
-								else:
+   							 	else:
 									max_width = framesize.stepwise.max_height
 
 								width = framesize.stepwise.min_width
@@ -252,73 +245,73 @@ class V4L2Manager(CameraManager):
 
 								break
 							framesize.index = framesize.index + 1
-					except IOError as e:
-						# EINVAL is the ioctl's way of telling us that there are no
-						# more formats, so we ignore it
-						if e.errno != errno.EINVAL:
-							self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.")
-							return None
+			        except IOError as e:
+			            # EINVAL is the ioctl's way of telling us that there are no
+			            # more formats, so we ignore it
+			            if e.errno != errno.EINVAL:
+			                self._logger.error("Unable to determine supported framesizes (resolutions), this may be a driver issue.")
+			                return None
 
-					supported_format['resolutions'] = resolutions
+			    supported_format['resolutions'] = resolutions
 
-					for resolution in supported_format['resolutions']:
+			    for resolution in supported_format['resolutions']:
 
-						frameinterval = v4l2.v4l2_frmivalenum()
-						frameinterval.index = 0
-						frameinterval.pixel_format = supported_format['pixelformat_int']
-						frameinterval.width = resolution[0];
-						frameinterval.height = resolution[1];
+					frameinterval = v4l2.v4l2_frmivalenum()
+					frameinterval.index = 0
+					frameinterval.pixel_format = supported_format['pixelformat_int']
+					frameinterval.width = resolution[0];
+					frameinterval.height = resolution[1];
 
-						framerates = []
+					framerates = []
 
-						with open(device, 'r') as fd:
-							try:
-								while fcntl.ioctl(fd,v4l2.VIDIOC_ENUM_FRAMEINTERVALS,frameinterval) != -1:
-									if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_DISCRETE:
-										framerates.append(str(frameinterval.discrete.denominator) + '/' + str(frameinterval.discrete.numerator))
-										# for continuous and stepwise, let's just use min and
-										# max they use the same structure and only return
-										# one result
-									stepval = 0
-									if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_CONTINUOUS:
-										stepval = 1
+					with open(device, 'r') as fd:
+						try:
+							while fcntl.ioctl(fd,v4l2.VIDIOC_ENUM_FRAMEINTERVALS,frameinterval) != -1:
+								if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_DISCRETE:
+									framerates.append(str(frameinterval.discrete.denominator) + '/' + str(frameinterval.discrete.numerator))
+			                    # for continuous and stepwise, let's just use min and
+			                    # max they use the same structure and only return
+			                    # one result
+								stepval = 0
+								if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_CONTINUOUS:
+									stepval = 1
 
-										minval = frameinterval.stepwise.min.denominator/frameinterval.stepwise.min.numerator
-										maxval = frameinterval.stepwise.max.denominator/frameinterval.stepwise.max.numerator
+									minval = frameinterval.stepwise.min.denominator/frameinterval.stepwise.min.numerator
+									maxval = frameinterval.stepwise.max.denominator/frameinterval.stepwise.max.numerator
 
-										if stepval == 0:
-											stepval = frameinterval.stepwise.step.denominator/frameinterval.stepwise.step.numerator
+									if stepval == 0:
+										stepval = frameinterval.stepwise.step.denominator/frameinterval.stepwise.step.numerator
 
-										numerator = frameinterval.stepwise.max.numerator
+									numerator = frameinterval.stepwise.max.numerator
+									denominator = frameinterval.stepwise.max.denominator
+
+									while numerator <= frameinterval.stepwise.min.numerator:
+										while denominator <= frameinterval.stepwise.min.denominator:
+											framerates.append(str(denominator) + '/' + str(numerator))
+											denominator = denominator + frameinterval.stepwise.step.denominator
+
+										numerator = numerator + frameinterval.stepwise.step.numerator
 										denominator = frameinterval.stepwise.max.denominator
 
-										while numerator <= frameinterval.stepwise.min.numerator:
-											while denominator <= frameinterval.stepwise.min.denominator:
-												framerates.append(str(denominator) + '/' + str(numerator))
-												denominator = denominator + frameinterval.stepwise.step.denominator
+								elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
+									framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
+									minval = frameinterval.stepwise.min.denominator/frameinterval.stepwise.min.numerator
+									maxval = frameinterval.stepwise.max.denominator/frameinterval.stepwise.max.numerator
+									if stepval == 0:
+										stepval = frameinterval.stepwise.step.denominator/frameinterval.stepwise.step.numerator
 
-											numerator = numerator + frameinterval.stepwise.step.numerator
-											denominator = frameinterval.stepwise.max.denominator
+									for cval in range(minval,maxval):
+										framerates.append('1/' + str(cval))
 
-									elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or\
-										framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
-										minval = frameinterval.stepwise.min.denominator/frameinterval.stepwise.min.numerator
-										maxval = frameinterval.stepwise.max.denominator/frameinterval.stepwise.max.numerator
-										if stepval == 0:
-											stepval = frameinterval.stepwise.step.denominator/frameinterval.stepwise.step.numerator
+									break
+								frameinterval.index = frameinterval.index + 1
+						except IOError as e:
+							# EINVAL is the ioctl's way of telling us that there are no
+							# more formats, so we ignore it
+							if e.errno != errno.EINVAL:
+								self._logger.error("Unable to determine supported framerates (resolutions), this may be a driver issue.")
 
-										for cval in range(minval,maxval):
-											framerates.append('1/' + str(cval))
-
-										break
-									frameinterval.index = frameinterval.index + 1
-							except IOError as e:
-								# EINVAL is the ioctl's way of telling us that there are no
-								# more formats, so we ignore it
-								if e.errno != errno.EINVAL:
-									self._logger.error("Unable to determine supported framerates (resolutions), this may be a driver issue.")
-
-						resolution.append(framerates)
+					resolution.append(framerates)
 
 			temp = []
 
@@ -350,16 +343,35 @@ class V4L2Manager(CameraManager):
 	def _desiredSettings(self):
 		return {}
 
+	def _isDevFileValid(self, devFile):
+		try:
+			if os.path.exists(devFile):
+				# in some cases the file is there but can't be accessed
+				with open(devFile, 'r') as fd:
+					pass
+
+				return True
+
+		except IOError:
+			pass
+
+		return False
+
 	# from CameraManager
 
 	def isCameraConnected(self):
+		if self._isDevFileValid("/dev/video%d" % self.number_of_video_device):
+			return True
 
-		try:
-			return os.path.exists("/dev/video%d" % self.number_of_video_device)
+		else:
+			#We make sure to check for /dev/video0 and video1
+			self.number_of_video_device += 1
 
-		except:
+			if self.number_of_video_device == 1 and self._isDevFileValid("/dev/video%d" % self.number_of_video_device):
+				return True
 
-			return False
+		self.number_of_video_device = 0
+		return False
 
 	def hasCameraProperties(self):
 		return self.supported_formats is not None
@@ -371,37 +383,39 @@ class V4L2Manager(CameraManager):
 
 		resolutions = []
 
-		for supported_format in self.supported_formats:
+		if self.supported_formats:
+			for supported_format in self.supported_formats:
 
-			########
-			#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
-			########
+				########
+				#CONVERSION BETWEEN OUR DATA AND GSTREAMER DATA
+				########
 
-			if not format:
+				if not format:
 
-				pixelformats = self.__getPixelFormats(self.number_of_video_device)
+					pixelformats = self.__getPixelFormats(self.number_of_video_device)
 
-				pixelformatSelected = None
+					pixelformatSelected = None
 
-				for pixelformat in pixelformats:
-					if self._settings['format'] == pixelformat:
-						pixelformatSelected = pixelformat
-						break
+					for pixelformat in pixelformats:
+						if self._settings['format'] == pixelformat:
+							pixelformatSelected = pixelformat
+							break
 
-				formatCompairing = pixelformatSelected or 'YUYV'
+					formatCompairing = pixelformatSelected or 'YUYV'
 
-			else:
-				formatCompairing = format
+				else:
+					formatCompairing = format
 
-			if supported_format.get('pixelformat') == formatCompairing:
-				resolutions = supported_format.get('resolutions')
-				break
+				if supported_format.get('pixelformat') == formatCompairing:
+					resolutions = supported_format.get('resolutions')
+					break
 
-		resolution = [long(e) for e in resolution.split('x')]
+			resolution = [long(e) for e in resolution.split('x')]
 
-		for res in resolutions:
-			if resolution[0] == res[0] and resolution[1] == res[1]:
-				return res
+			for res in resolutions:
+				if resolution[0] == res[0] and resolution[1] == res[1]:
+					return res
+
 		return False
 
 
