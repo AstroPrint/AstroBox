@@ -378,7 +378,7 @@ var PrintFilesListView = Backbone.View.extend({
   {
     var now = new Date().getTime();
 
-    if (this.last_refresh < (now - this.refresh_threshold) ) {
+    if (this.last_refresh == 0 || this.last_refresh < (now - this.refresh_threshold) ) {
       this.last_refresh = now;
       var loadingBtn = this.$('.loading-button.sync');
 
