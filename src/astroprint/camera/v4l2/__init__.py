@@ -215,11 +215,11 @@ class V4L2Manager(CameraManager):
 									heightCounter = 1
 
 									########## Low resolution #########
-									if self._calcMCD(640,stepWidth) == stepWidth and self._calcMCD(480,stepHeight) == stepHeight):
+									if self._calcMCD(640,stepWidth) == stepWidth and self._calcMCD(480,stepHeight) == stepHeight:
 										resolutions.append([640L,480L])
 
 									########## High resolution #########
-									if self._calcMCD(1280L,stepWidth) == stepWidth and self._calcMCD(720L,stepHeight) == stepHeight):
+									if self._calcMCD(1280L,stepWidth) == stepWidth and self._calcMCD(720L,stepHeight) == stepHeight:
 										resolutions.append([1280L,720L])
 
 									break
