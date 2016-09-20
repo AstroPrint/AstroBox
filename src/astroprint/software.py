@@ -126,7 +126,7 @@ if platform != 'darwin':
 
 		def pulse(self, owner):
 			if self.current_items != self._lastCurrentReported or self.total_items != self._lastTotalReported:
-				self._progressCb("sources_update", float(self.current_items) / float(self.total_items)) 
+				self._progressCb("sources_update", float(self.current_items) / float(self.total_items))
 				self._logger.info("Update progress item %d of %d" % (self.current_items, self.total_items))
 				self._lastCurrentReported = self.current_items
 				self._lastTotalReported = self.total_items
@@ -191,9 +191,9 @@ class SoftwareUpdater(threading.Thread):
 					pkg.check()
 
 				except Exception as e:
-					self._logger.error('There was a problem with update package: \n	%s' % e)
+					self._logger.error('There was a problem with update package: \n %s' % e)
 					completionCb(True)
-					return					
+					return
 
 				if pkg.missing_deps:
 					cache.open()
@@ -202,14 +202,14 @@ class SoftwareUpdater(threading.Thread):
 						for dep in pkg.missing_deps:
 							self._logger.info("Marking dependency [%s] to be installed." % dep)
 							cache[dep].mark_install()
-					
+
 					self._progressCb("deps_download", 0.0)
 					try:
 						cache.commit(DepsDownloadProgress(self._progressCb, completionCb), DepsInstallProgress(self._progressCb, completionCb))
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
 
 					except Exception as e:
-						self._logger.error('There was a problem installing dependencies: \n	%s' % e)
+						self._logger.error('There was a problem installing dependencies: \n %s' % e)
 						completionCb(True)
 						return
 
@@ -237,15 +237,15 @@ class SoftwareUpdater(threading.Thread):
 			r.close()
 
 class SoftwareManager(object):
-	# Download Phase			start 	end		message
+	# Download Phase      start   end   message
 	updatePhaseProgressInfo = {
-		"download": 			(0.0,	0.2,	"Downloading release..."),
-		"sources_update": 		(0.21,	0.4,	"Updating dependency list..."),
-		"deps_download": 		(0.41,	0.6,	"Downloading dependencies..."),
-		"deps_install": 		(0.61,	0.75,	"Installing dependencies..."),
-		"release_install": 		(0.76,	0.85,	"Upgrading software..."),
-		"release_configure": 	(0.86,	0.95,	"Configuring..."),
-		"release_finalize": 	(0.96,	1.0,	"Finalizing")
+		"download":       (0.0, 0.2,  "Downloading release..."),
+		"sources_update":     (0.21,  0.4,  "Updating dependency list..."),
+		"deps_download":    (0.41,  0.6,  "Downloading dependencies..."),
+		"deps_install":     (0.61,  0.75, "Installing dependencies..."),
+		"release_install":    (0.76,  0.85, "Upgrading software..."),
+		"release_configure":  (0.86,  0.95, "Configuring..."),
+		"release_finalize":   (0.96,  1.0,  "Finalizing")
 	}
 
 	softwareCheckInterval = 86400 #1 day
@@ -301,8 +301,8 @@ class SoftwareManager(object):
 	def versionString(self):
 		return '%s - v%d.%d(%s)' % (
 			self.data['variant']['name'],
-			self.data['version']['major'], 
-			self.data['version']['minor'], 
+			self.data['version']['major'],
+			self.data['version']['minor'],
 			self.data['version']['build'])
 
 	@property
@@ -362,7 +362,7 @@ class SoftwareManager(object):
 		try:
 			r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
 					'current': [
-						self.data['version']['major'], 
+						self.data['version']['major'],
 						self.data['version']['minor'],
 						self.data['version']['build']
 					],
@@ -537,7 +537,7 @@ class SoftwareManager(object):
 		# first delete all old logs
 		for f in os.listdir(logsDir):
 			path = os.path.join(logsDir, f)
-			
+
 			if os.path.isfile(path) and f not in activeLogFiles:
 				os.unlink(path)
 
@@ -549,7 +549,7 @@ class SoftwareManager(object):
 		return True
 
 	def _checkAuth(self):
-		if current_user and current_user.is_authenticated:
+		if current_user and current_user.is_authenticated and not current_user.is_anonymous:
 			privateKey = current_user.privateKey
 			publicKey = current_user.publicKey
 
