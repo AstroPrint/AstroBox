@@ -133,7 +133,7 @@ var FileUploadFiles = FileUploadCombined.extend({
   always: function()
   {
     if (this.currentFileType == 'print') {
-      this.resetUploadArea
+      this.resetUploadArea();
     }
   },
   resetUploadArea: function()
