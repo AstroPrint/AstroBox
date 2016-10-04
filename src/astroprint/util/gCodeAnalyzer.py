@@ -65,7 +65,7 @@ class GCodeAnalyzer(thread):
 					self._logger.error("Bad gcode data returned: %s" % pipe.stdout.text)
 					gcodeData = None
 
-					if exceptionCallback:
+					if self.exceptionCallback:
 						parameters = {}
 						parameters['parent'] = self.parent
 						parameters['filename'] = self.filename
@@ -77,7 +77,7 @@ class GCodeAnalyzer(thread):
 				gcodeData = None
 
 
-				if exceptionCallback:
+				if self.exceptionCallback:
 					parameters = {}
 					parameters['parent'] = self.parent
 					parameters['filename'] = self.filename
@@ -87,7 +87,7 @@ class GCodeAnalyzer(thread):
 		except:
 			gcodeData = None
 
-			if exceptionCallback:
+			if self.exceptionCallback:
 				parameters = {}
 				parameters['parent'] = self.parent
 				parameters['filename'] = self.filename

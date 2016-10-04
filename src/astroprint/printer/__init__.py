@@ -385,7 +385,6 @@ class Printer(object):
 		self._addTemperatureData(temp, bedTemp)
 
 	def mcProgress(self):
-		print 'in printer'
 		"""
 		 Callback method for the comm object, called upon any change in progress of the printjob.
 		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
@@ -405,14 +404,6 @@ class Printer(object):
 
 		elif self._estimatedPrintTime:
 			estimatedTimeLeft = self._estimatedPrintTime / 60
-
-		#print 'ppppp'
-		#print progress
-		#print self.getPrintFilepos()
-		#print printTime
-		#print estimatedTimeLeft
-		#print self._currentLayer
-		#print 'ddddd'
 
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
 
