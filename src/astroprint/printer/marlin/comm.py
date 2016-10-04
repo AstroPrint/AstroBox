@@ -854,7 +854,7 @@ class MachineCom(object):
 						self._oksAfterHeatingUp -= 1
 
 						if not self.timerCalculator:
-							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,self)
+							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,None,self)
 							self.timerCalculator.makeCalcs()
 
 				### Baudrate detection

@@ -75,13 +75,9 @@ class PrintFilesManager(object):
 			self._metadataAnalyzer.addFileToBacklog(filename)
 
 	def _onMetadataAnalysisFinished(self, filename, results):
-		print '-1'
-		print results
-		print filename
+
 		if filename is None or results is None:
 			return
-
-		print '0'
 
 		basename = os.path.basename(filename)
 
@@ -111,25 +107,36 @@ class PrintFilesManager(object):
 			analysisResult['filament_length'] = totalLength
 
 
-		if results.layerCount:
-			analysisResult['layer_count'] = results.layerCount
-			dirty = True
+		try:
 
-		if results.size:
-			mapSize = {}
-			mapSize['x'] = results.size['x']
-			mapSize['y'] = results.size['y']
-			mapSize['z'] = results.size['z']
+			if results.layerCount:
+				analysisResult['layer_count'] = results.layerCount
+				dirty = True
+		except: pass
 
-			analysisResult['size'] = mapSize
-			dirty = True
+		try:
+			if results.size:
+				mapSize = {}
+				mapSize['x'] = results.size['x']
+				mapSize['y'] = results.size['y']
+				mapSize['z'] = results.size['z']
 
-		if results.layer_height:
-			analysisResult['layer_height'] = results.layer_height
-			dirty = True
+				analysisResult['size'] = mapSize
+				dirty = True
+		except: pass
 
-		if results.total_filament:
-			analysisResult['total_filament'] = results.total_filament
+		try:
+			if results.layer_height:
+				analysisResult['layer_height'] = results.layer_height
+				dirty = True
+		except: pass
+
+		try:
+
+			if results.total_filament:
+				analysisResult['total_filament'] = results.total_filament
+
+		except: pass
 
 		if dirty:
 			metadata = self.getFileMetadata(basename)
@@ -409,8 +416,6 @@ class PrintFilesManager(object):
 
 	def getAllFilenames(self):
 		return [x["name"] for x in self.getAllFileData()]
-		print self.getAllFileData()
-		return map(lambda x: x["name"], self.getAllFileData())
 
 	def getAllFileData(self):
 		files = []
