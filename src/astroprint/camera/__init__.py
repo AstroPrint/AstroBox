@@ -21,7 +21,7 @@ def cameraManager():
 					_instance = GStreamerManager(number_of_video_device)
 
 				except ImportError, ValueError:
-					#another manager was selected or the gstreamer library is not present on this 
+					#another manager was selected or the gstreamer library is not present on this
 					#system, in that case we pick a mjpeg manager
 
 					_instance = None
@@ -36,7 +36,7 @@ def cameraManager():
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
 			_instance = CameraMacManager()
-			
+
 	return _instance
 
 import threading
@@ -76,7 +76,7 @@ class TimelapseWorker(threading.Thread):
 		self._stopExecution = True
 		if self.isPaused():
 			self.resume()
-			
+
 		self.join()
 
 	def pause(self):
@@ -129,7 +129,7 @@ class CameraManager(object):
 		#Build text
 		printerData = printerManager().getCurrentData()
 		text = "%d%% - Layer %s%s" % (
-			printerData['progress']['completion'], 
+			printerData['progress']['completion'],
 			str(printerData['progress']['currentLayer']) if printerData['progress']['currentLayer'] else '--',
 			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
 		)
@@ -189,9 +189,9 @@ class CameraManager(object):
 
 			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 
-			return True	
+			return True
 
-		return False	
+		return False
 
 	def update_timelapse(self, freq):
 		if self.timelapseInfo and self.timelapseInfo['freq'] != freq:
@@ -223,7 +223,7 @@ class CameraManager(object):
 
 			self.timelapseInfo['freq'] = freq
 			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
-			
+
 			return True
 
 		return False

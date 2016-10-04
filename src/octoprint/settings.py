@@ -51,8 +51,10 @@ default_settings = {
 		"encoding": "h264",
 		"size": "640x480",
 		"framerate": "15/1",
-		"format": "x-raw",
-		"pixelformat": "YUYV"
+		"pixelformat": "YUYV",
+		"source": "USB",
+		"debug-level": 0,
+		"graphic-debug": False
 	},
 	"gcodeViewer": {
 		"enabled": True,
@@ -209,7 +211,7 @@ class Settings(object):
 	def load(self, migrate=False):
 		if os.path.exists(self._factoryConfigFile) and not os.path.exists(self._configfile):
 			shutil.copy(self._factoryConfigFile, self._configfile)
-		
+
 		if os.path.exists(self._configfile) and os.path.isfile(self._configfile):
 			with open(self._configfile, "r") as f:
 				self._config = yaml.safe_load(f)

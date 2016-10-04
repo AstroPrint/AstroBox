@@ -102,7 +102,7 @@ def handleWifiHotspot():
 			'hotspot': {
 				'active': nm.isHotspotActive(),
 				'name': nm.getHostname(),
-				'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])	
+				'hotspotOnlyOffline': settings().getBoolean(['wifi', 'hotspotOnlyOffline'])
 			} if nm.isHotspotable() else False
 		})
 
@@ -144,6 +144,9 @@ def cameraSettings():
 		if "application/json" in request.headers["Content-Type"]:
 			data = request.json
 
+			if "source" in data:
+				s.set(['camera', 'source'], data['source'])
+
 			if "size" in data:
 				s.set(['camera', 'size'], data['size'])
 
@@ -153,25 +156,22 @@ def cameraSettings():
 			if "framerate" in data:
 				s.set(['camera', 'framerate'], data['framerate'])
 
-			if "format" in data:
-				s.set(['camera', 'format'], data['format'])
-			
 			s.save()
 
 			cm.settingsChanged({
 				'size': s.get(['camera', 'size']),
 				'encoding': s.get(['camera', 'encoding']),
 				'framerate': s.get(['camera', 'framerate']),
-				'format': s.get(['camera', 'format'])
+				'source': s.get(['camera', 'source']),
 			})
 
 	return jsonify(
-		encoding= s.get(['camera', 'encoding']), 
+		encoding= s.get(['camera', 'encoding']),
 		size= s.get(['camera', 'size']),
 		framerate= s.get(['camera', 'framerate']),
-		format= s.get(['camera','format']),
+		source= s.get(['camera', 'source']),
 		structure= cm.settingsStructure()
-	)	
+	)
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access
@@ -181,7 +181,7 @@ def getAdvancedSoftwareSettings():
 
 	return jsonify(
 		apiKey= UI_API_KEY,
-		serialActivated= s.getBoolean(['serial', 'log']), 
+		serialActivated= s.getBoolean(['serial', 'log']),
 		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
 	)
 
@@ -281,7 +281,7 @@ def changeSerialLogs():
 		printerManager().setSerialDebugLogging(data['active'])
 
 		return jsonify();
-	
+
 	else:
 		return ("Wrong data sent in.", 400)
 
