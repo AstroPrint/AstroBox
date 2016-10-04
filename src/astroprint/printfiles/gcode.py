@@ -58,7 +58,7 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 			self._gcode.progressCallback = self._onParsingProgress
 			self._gcode.load(path)
 			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
-			#self._loadedCallback(self._currentFile, self._gcode)
+			self._loadedCallback(self._currentFile, self._gcode)
 
 		finally:
 			self._gcode = None
@@ -100,6 +100,16 @@ class GcodeInterpreter(object):
 
 		parent._loadedCallback(parent._currentFile, parent)
 
+	def cbGCodeAnalyzerException(self,parameters):
+		self._logger.warn("There was a problem using /usr/bin/astroprint/GCodeAnalyzer... using alternative algorithm")
+
+		with open(parameters['filename'], "r") as f:
+			self._load(f)
+
+			self._logger.debug("Analysis of file %s finished, notifying callback" % parameters['filename'])
+
+			parameters['parent']._loadedCallback(parameters['parent']._currentFile, parameters['parent'])
+
 	def load(self, filename):
 		if os.path.isfile(filename):
 			self.filename = filename
@@ -121,14 +131,12 @@ class GcodeInterpreter(object):
 			#self.totalMoveTimeMinute = totalMoveTimeMinute
 
 		except:
-			self._logger.warn("There was a problem using /usr/bin/astroprint/GCodeAnalyzer... using alternative algorithm")
 
-			with open(filename, "r") as f:
-				self._load(f)
+			parameters = {}
+			parameters['parent'] = self
+			parameters['filename'] = self.filename
 
-				self._logger.debug("Analysis of file %s finished, notifying callback" % self.filename)
-
-				parent._loadedCallback(parent._currentFile, parent)
+			self.cbGCodeAnalyzerException(parameters)
 
 	def abort(self):
 		self._abort = True
