@@ -16,6 +16,7 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
 from astroprint.printfiles import PrintFilesManager, MetadataAnalyzer, FileDestinations, AnalysisAborted
+from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 class PrintFileManagerGcode(PrintFilesManager):
 	name = 'gcode'
@@ -37,7 +38,7 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 
 	def pause(self):
 		super(GcodeMetadataAnalyzer, self).pause()
-		
+
 		if self._gcode is not None:
 			self._logger.debug("Aborting running analysis, will restart when Gcode analyzer is resumed")
 			self._gcode.abort()
@@ -53,11 +54,11 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 		try:
 			self._logger.debug("Starting analysis of file %s" % filename)
 			eventManager().fire(Events.METADATA_ANALYSIS_STARTED, {"file": filename})
-			self._gcode = GcodeInterpreter()
+			self._gcode = GcodeInterpreter(self._loadedCallback,self._currentFile)
 			self._gcode.progressCallback = self._onParsingProgress
 			self._gcode.load(path)
 			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
-			self._loadedCallback(self._currentFile, self._gcode)
+			#self._loadedCallback(self._currentFile, self._gcode)
 
 		finally:
 			self._gcode = None
@@ -65,7 +66,7 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 			self._currentFile = None
 
 class GcodeInterpreter(object):
-	def __init__(self):
+	def __init__(self,loadedCallback,currentFile):
 		self._logger = logging.getLogger(__name__)
 
 		self.layerList = None
@@ -74,15 +75,60 @@ class GcodeInterpreter(object):
 		self.totalMoveTimeMinute = 0
 		self.filename = None
 		self.progressCallback = None
+		self._loadedCallback = loadedCallback
+		self._currentFile = currentFile
 		self._abort = False
 		self._filamentDiameter = 0
-	
+
+	def cbGCodeAnalyzerReady(self,timePerLayers,totalPrintTime,layerCount,size,layer_height,total_filament,parent):
+
+		self.progressCallback(100.0)
+
+		self.layerList =  timePerLayers
+
+		self.totalMoveTimeMinute = totalPrintTime/60
+
+		self.layerCount = layerCount
+
+		self.size = size
+
+		self.layer_height = layer_height
+
+		self.total_filament = None#total_filament has not got any information
+
+		self._logger.debug("Analysis of file %s finished, notifying callback" % self.filename)
+
+		parent._loadedCallback(parent._currentFile, parent)
+
 	def load(self, filename):
 		if os.path.isfile(filename):
 			self.filename = filename
 			self._fileSize = os.stat(filename).st_size
+
+		try:
+
+			self.progressCallback(0.0)
+
+			self.timerCalculator = GCodeAnalyzer(self.filename,False,self.cbGCodeAnalyzerReady,self)
+
+			self.timePerLayers = self.timerCalculator.makeCalcs()
+
+			#self.extrusionAmount = maxExtrusion
+			#self.extrusionVolume = [0] * len(maxExtrusion)
+			#for i in range(len(maxExtrusion)):
+			# radius = self._filamentDiameter / 2
+			# self.extrusionVolume[i] = (self.extrusionAmount[i] * (math.pi * radius * radius)) / 1000
+			#self.totalMoveTimeMinute = totalMoveTimeMinute
+
+		except:
+			self._logger.warn("There was a problem using /usr/bin/astroprint/GCodeAnalyzer... using alternative algorithm")
+
 			with open(filename, "r") as f:
 				self._load(f)
+
+				self._logger.debug("Analysis of file %s finished, notifying callback" % self.filename)
+
+				parent._loadedCallback(parent._currentFile, parent)
 
 	def abort(self):
 		self._abort = True

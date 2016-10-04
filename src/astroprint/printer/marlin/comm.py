@@ -24,6 +24,7 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
 from octoprint.util.virtual import VirtualPrinter
+from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 from astroprint.printfiles import FileDestinations
 
@@ -154,6 +155,15 @@ class MachineCom(object):
 		# multithreading locks as these functions can be called from different threads
 		self._sendingLock = threading.Lock()
 		self._calculateChecksumLock = threading.Lock()
+
+		self.timerCalculator = None
+		self.timePerLayers =  None
+		self.totalPrintTime = None
+		self.originalTotalPrintTime = None
+		self.layerCount = None
+		self.size = None
+		self.layer_height = None
+		self.total_filament = None
 
 		# monitoring thread
 		self.thread = threading.Thread(target=self._monitor)
@@ -620,6 +630,20 @@ class MachineCom(object):
 			else:
 				self._bedTemp = (actual, None)
 
+	def cbGCodeAnalyzerReady(self,timePerLayers,totalPrintTime,layerCount,size,layer_height,total_filament,parent):
+
+		self.timePerLayers =  timePerLayers
+
+		self.totalPrintTime = totalPrintTime*1.07
+
+		self.layerCount = layerCount
+
+		self.size = size
+
+		self.layer_height = layer_height
+
+		self.total_filament = None#total_filament has not got any information
+
 	def _monitor(self):
 		#feedbackControls = settings().getFeedbackControls()
 		#pauseTriggers = settings().getPauseTriggers()
@@ -822,8 +846,16 @@ class MachineCom(object):
 					if self._oksAfterHeatingUp == 0:
 						self._heatingUp = False
 						self._callback.mcHeatingUpUpdate(self._heatingUp)
+
+						#self._currentFile.resetLayerPrintTime()
+						##HEATED
 					else:
+						#HEATING
 						self._oksAfterHeatingUp -= 1
+
+						if not self.timerCalculator:
+							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,self)
+							self.timerCalculator.makeCalcs()
 
 				### Baudrate detection
 				if self._state == self.STATE_DETECT_BAUDRATE:
