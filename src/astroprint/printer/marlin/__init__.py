@@ -59,6 +59,9 @@ class PrinterMarlin(Printer):
 		# comm
 		self._comm = None
 
+		self.estimatedTimeLeft = None
+		self.timePercentPreviousLayers = 0
+
 		super(PrinterMarlin, self).__init__()
 
 	def rampdown(self):
@@ -221,7 +224,10 @@ class PrinterMarlin(Printer):
 		if not super(PrinterMarlin, self).startPrint():
 			return
 
+		self.estimatedTimeLeft = None
+		self.timePercentPreviousLayers = 0
 		self._comm.startPrint()
+
 
 	def togglePausePrint(self):
 		"""
@@ -330,6 +336,63 @@ class PrinterMarlin(Printer):
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 
 		self._setState(state)
+
+	def mcLayerChange(self, layer):
+
+		super(PrinterMarlin, self).mcLayerChange(layer)
+
+		try:
+			if not layer == 0:
+				self.timePercentPreviousLayers += self._comm.timePerLayers[self._layerCount - layer+1]['layer']['time']
+			else:
+				self.timePercentPreviousLayers = 0
+		except: pass
+
+	def mcProgress(self):
+		"""
+		 Callback method for the comm object, called upon any change in progress of the printjob.
+		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
+		"""
+		try:
+
+			layerFileUpperPercent = self._comm.timePerLayers[self._layerCount - self._currentLayer]['layer']['upperPercent']
+
+			if self._currentLayer > 0:
+				layerFileLowerPercent = self._comm.timePerLayers[self._layerCount - self._currentLayer+1]['layer']['upperPercent']
+			else:
+				layerFileLowerPercent = 0
+
+			currentAbsoluteFilePercent = self.getPrintProgress()
+			elapsedTime = self.getPrintTime()
+
+			try:
+				currentLayerPercent = (currentAbsoluteFilePercent - layerFileLowerPercent) / (layerFileUpperPercent - layerFileLowerPercent)
+			except:
+				currentLayerPercent = 0
+
+			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._layerCount - self._currentLayer]['layer']['time']
+
+			currentTimePercent = self.timePercentPreviousLayers + layerTimePercent
+
+			estimatedTimeLeft = self._comm.totalPrintTime * ( 1.0 - currentTimePercent )
+
+			elapsedTimeVariance = elapsedTime - ( self._comm.totalPrintTime - estimatedTimeLeft)
+
+			adjustedEstimatedTime = self._comm.totalPrintTime + elapsedTimeVariance
+
+			estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 - currentTimePercent ) ) / 60
+
+			if self.estimatedTimeLeft and self.estimatedTimeLeft < estimatedTimeLeft:
+				estimatedTimeLeft = self.estimatedTimeLeft
+			else:
+				self.estimatedTimeLeft = estimatedTimeLeft
+
+
+			self._setProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
+
+		except Exception, e:
+			super(PrinterMarlin, self).mcProgress()
+
 
 	def mcMessage(self, message):
 		"""
