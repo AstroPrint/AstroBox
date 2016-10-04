@@ -26,7 +26,7 @@ from astroprint.printer.manager import printerManager
 @restricted_access
 def cloud_slicer_logout():
 	astroprintCloud().signout()
-	return jsonify(SUCCESS)	
+	return jsonify(SUCCESS)
 
 @api.route('/astroprint/private-key', methods=['POST'])
 def set_private_key():
@@ -36,7 +36,7 @@ def set_private_key():
 	if email and password:
 		try:
 			if astroprintCloud().signin(email, password):
-				return jsonify(SUCCESS)	
+				return jsonify(SUCCESS)
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
@@ -52,8 +52,19 @@ def upload_data():
 	filePath = request.args.get('file', None)
 
 	if filePath:
-		url, params, redirect_url = astroprintCloud().get_upload_info(filePath)
-		return jsonify(url=url, params=params, redirect=redirect_url)
+		uploadInfo = astroprintCloud().get_upload_info(filePath)
+
+		if uploadInfo:
+			if 'error' in uploadInfo:
+				if uploadInfo['error'] == 'no_user':
+					abort(401)
+				else:
+					abort(500)
+
+			else:
+				return json.dumps(uploadInfo)
+		else:
+			abort(500)
 
 	abort(400)
 
@@ -73,7 +84,7 @@ def designs():
 					local_file = local_files[i]
 					p['local_filename'] = local_file['name']
 					p['local_only'] = False
-					
+
 					if 'prints' in local_file \
 						and 'last' in local_file['prints'] \
 						and local_file['prints']['last'] \
@@ -140,7 +151,7 @@ def design_download(print_file_id):
 					"type": "success",
 					"id": print_file_id
 				}
-			)			
+			)
 
 		else:
 			if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
@@ -159,7 +170,7 @@ def design_download(print_file_id):
 	def errorCb(destFile, error):
 		if error == 'cancelled':
 			em.fire(
-					Events.CLOUD_DOWNLOAD, 
+					Events.CLOUD_DOWNLOAD,
 					{
 						"type": "cancelled",
 						"id": print_file_id
@@ -167,20 +178,20 @@ def design_download(print_file_id):
 				)
 		else:
 			em.fire(
-				Events.CLOUD_DOWNLOAD, 
+				Events.CLOUD_DOWNLOAD,
 				{
 					"type": "error",
 					"id": print_file_id,
 					"reason": error
 				}
 			)
-		
+
 		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
 
 	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
 		return jsonify(SUCCESS)
-			
+
 	return abort(400)
 
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["DELETE"])

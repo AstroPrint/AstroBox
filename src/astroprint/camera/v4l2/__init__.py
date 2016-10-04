@@ -30,7 +30,6 @@ class V4L2Manager(CameraManager):
 	def setSafeSettings(self):
 
 		self.safeRes = None
-
 		fpsArray = []
 
 		cameraConnected = False
@@ -51,16 +50,13 @@ class V4L2Manager(CameraManager):
 
 		try:
 			if self.cameraInfo["supportedResolutions"]:
-
 				for res in self.cameraInfo["supportedResolutions"]:
-
 					pixelformatTranslated = res["pixelformat"]
 
 					if res["pixelformat"]=='YUYV':
 						pixelformatTranslated = 'x-raw'
 
 					if pixelformatTranslated == settings().get(["camera", "format"]):#restricted
-
 						resolutionDefault = settings().get(["camera", "size"]).split('x')
 
 			else:
@@ -105,8 +101,8 @@ class V4L2Manager(CameraManager):
 							supported_formats.append(pixelformat)
 				fmt.index = fmt.index + 1
 		except IOError as e:
-	        # EINVAL is the ioctl's way of telling us that there are no
-	        # more formats, so we ignore it
+			# EINVAL is the ioctl's way of telling us that there are no
+			# more formats, so we ignore it
 			if e.errno != errno.EINVAL:
 				self._logger.error("Unable to determine Pixel Formats, this may be a driver issue.")
 
@@ -116,7 +112,8 @@ class V4L2Manager(CameraManager):
 
 	def _calcMCD(self, a, b):
 		if b == 0:
-		    return a
+			return a
+
 		return self._calcMCD(b, a % b)
 
 	def getCameraName(self):
@@ -147,7 +144,6 @@ class V4L2Manager(CameraManager):
 		spec the ioctl used here is experimental but seems to be well supported.
 		"""
 		try:
-
 			device = '/dev/video%d' % self.number_of_video_device
 			supported_formats = self.__getPixelFormats(device)
 
@@ -165,6 +161,7 @@ class V4L2Manager(CameraManager):
 				framesize = v4l2.v4l2_frmsizeenum()
 				framesize.index = 0
 				framesize.pixel_format = supported_format['pixelformat_int']
+
 				with open(device, 'r') as vd:
 					try:
 						cp = v4l2.v4l2_capability()
@@ -178,8 +175,8 @@ class V4L2Manager(CameraManager):
 								# for continuous and stepwise, let's just use min and
 								# max they use the same structure and only return
 								# one result
-							elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
 
+							elif framesize.type == v4l2.V4L2_FRMSIZE_TYPE_CONTINUOUS or framesize.type == v4l2.V4L2_FRMSIZE_TYPE_STEPWISE:
 								if hasattr(framesize.stepwise, 'max_width'):
 									max_width = framesize.stepwise.max_width
 								else:
@@ -194,28 +191,18 @@ class V4L2Manager(CameraManager):
 								widthCounter = 1
 								heightCounter = 1
 
-								"""while width <= max_width:
-									while height <= framesize.stepwise.max_height:
-										resolutions.append([width,height])
-										height = height * stepHeight
-
-									width = width * stepWidth
-									height = framesize.stepwise.min_height
-								"""
-
-
 								########## Low resolution #########
-								if(self._calcMCD(640,stepWidth) == stepWidth):
-									if(self._calcMCD(480,stepHeight) == stepHeight):
-										resolutions.append([640L,480L])
+								if self._calcMCD(640,stepWidth) == stepWidth and self._calcMCD(480,stepHeight) == stepHeight:
+									resolutions.append([640L,480L])
 
 								########## High resolution #########
-								if(self._calcMCD(1280L,stepWidth) == stepWidth):
-									if(self._calcMCD(720L,stepHeight) == stepHeight):
-										resolutions.append([1280L,720L])
+								if self._calcMCD(1280L,stepWidth) == stepWidth and self._calcMCD(720L,stepHeight) == stepHeight:
+									resolutions.append([1280L,720L])
 
 								break
+
 							framesize.index = framesize.index + 1
+
 					except IOError as e:
 						# EINVAL is the ioctl's way of telling us that there are no
 						# more formats, so we ignore it
@@ -244,6 +231,7 @@ class V4L2Manager(CameraManager):
 										# max they use the same structure and only return
 										# one result
 									stepval = 0
+
 									if frameinterval.type == v4l2.V4L2_FRMIVAL_TYPE_CONTINUOUS:
 										stepval = 1
 
@@ -276,6 +264,7 @@ class V4L2Manager(CameraManager):
 
 										break
 									frameinterval.index = frameinterval.index + 1
+
 							except IOError as e:
 								# EINVAL is the ioctl's way of telling us that there are no
 								# more formats, so we ignore it
@@ -298,9 +287,9 @@ class V4L2Manager(CameraManager):
 					return supported_formats
 				else:
 					return None
+
 			except:
 				return None
-
 
 		except Exception:
 			self._logger.info('Camera error: it is not posible to get the camera capabilities', exc_info=True)
@@ -359,9 +348,7 @@ class V4L2Manager(CameraManager):
 		desired = self._desiredSettings
 
 		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
-
 			if not self.supported_formats:
-
 				self.supported_formats = self._getSupportedResolutions()
 
 			pixelformats = [x['pixelformat'] for x in self.supported_formats]
@@ -374,5 +361,4 @@ class V4L2Manager(CameraManager):
 			return desired
 
 		else:#less resolution supported by Astrobox is not supported by this camera
-
 			return None

@@ -39,7 +39,7 @@ from astroprint.printer.manager import printerManager
 from astroprint.printfiles.downloadmanager import downloadManager
 
 class AstroPrintCloudException(Exception):
-    pass
+	pass
 
 class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	#There no connection to the astroprint cloud
@@ -168,45 +168,61 @@ class AstroPrintCloud(object):
 		design_id = uuid.uuid4().hex
 		s3_key = design_id + fileExtension
 
-		try:
-			#Get credentials to upload the file
-			r = requests.get( "%s/designs/upload/params?key=%s" % (self.apiHost, s3_key), auth=self.hmacAuth )
-			data = r.json()
-		except:
-			data = None
+		#only registered users can upload files to the cloud
+		if current_user and not current_user.is_anonymous:
+			try:
+				#Get credentials to upload the file
+				r = requests.get( "%s/designs/upload/params?key=%s" % (self.apiHost, s3_key), auth=self.hmacAuth )
+				data = r.json()
+			except:
+				data = None
 
-		if data:
-			publicKey = current_user.publicKey
-			privateKey = current_user.privateKey
+			if data:
+				publicKey = current_user.publicKey
+				privateKey = current_user.privateKey
 
-			request = json.dumps({
-				'design_id': design_id,
-				's3_key': s3_key,
-				'filename': filename
-			})
+				request = json.dumps({
+					'design_id': design_id,
+					's3_key': s3_key,
+					'filename': filename
+				})
 
-			hashed = hmac.new(privateKey, request, sha256)
-			signature = binascii.b2a_base64(hashed.digest())[:-1]
+				hashed = hmac.new(privateKey, request, sha256)
+				signature = binascii.b2a_base64(hashed.digest())[:-1]
 
-			redirect_url = "%s/design/uploaded?public_key=%s&req=%s&sig=%s" % (
-				self.apiHost.replace('api', 'www'),
-				publicKey,
-				quote_plus(request),
-				quote_plus(signature))
+				redirect_url = "%s/design/uploaded?public_key=%s&req=%s&sig=%s" % (
+					self.apiHost.replace('api', 'www'),
+					publicKey,
+					quote_plus(request),
+					quote_plus(signature))
 
-			#url, post parameters, redirect Url
-			return data['url'], data['post_data'], redirect_url
+				#url, post parameters, redirect Url
+				return {
+					'url': data['url'],
+					'params': data['post_data'],
+					'redirect': redirect_url
+				}
+
+			else:
+				return {
+					'error': 'invalid_data',
+				}
+
 		else:
-			return None, None, None
+			return {
+				'error': 'no_user',
+			}
 
 	def get_private_key(self, email, password):
 
-		r = requests.post( "%s/%s" % (self.apiHost , 'auth/privateKey'),
-						   data={
-							"email": email,
-							"password": password
-						   },
-						   headers={'User-Agent': self._sm.userAgent})
+		r = requests.post(
+			"%s/%s" % (self.apiHost , 'auth/privateKey'),
+			data={
+				"email": email,
+				"password": password
+			},
+			headers={'User-Agent': self._sm.userAgent}
+		)
 
 		try:
 			data = r.json()
@@ -219,12 +235,14 @@ class AstroPrintCloud(object):
 			return None
 
 	def get_public_key(self, email, private_key):
-		r = requests.post( "%s/%s" % (self.apiHost , 'auth/publicKey'),
-						   data={
-							"email": email,
-							"private_key": private_key
-						   },
-						   headers={'User-Agent': self._sm.userAgent})
+		r = requests.post(
+			"%s/%s" % (self.apiHost , 'auth/publicKey'),
+			data={
+				"email": email,
+				"private_key": private_key
+			},
+			headers={'User-Agent': self._sm.userAgent}
+		)
 
 		try:
 			data = r.json()
@@ -235,106 +253,6 @@ class AstroPrintCloud(object):
 			return data["public_key"]
 		else:
 			return None
-
-	def start_slice_job(self, config, gcodePath, stlPath, procesingCb, completionCb):
-		s = requests.Session()
-		s.auth = self.hmacAuth
-
-		upload_url, upload_data = self.get_upload_info(stlPath)
-
-		if not upload_url:
-			s.close()
-			completionCb(stlPath, gcodePath, "Unable to obtaion creadentials to upload design to the slicer service.")
-			return
-
-		try:
-			# Upload to s3
-
-			m = MultipartEncoder(fields=upload_data.items() + [('file',(stlPath, open(stlPath, 'rb')))])
-			r = requests.post( upload_url, data=m, headers={'Content-Type': m.content_type})
-			m = None #Free the memory?
-			status_code = r.status_code
-		except:
-			status_code = 500
-
-		if status_code > 204:
-			s.close()
-			completionCb(stlPath, gcodePath, "The design couldn't be uploaded to the slicer service.")
-			return
-
-		path, filename = split(stlPath)
-
-		try:
-			r = s.post( "%s/%s" % (self.apiHost, "designs/slice"),
-			data={
-				"input_key": s3_key,
-				"filename": filename
-			})
-			data = r.json()
-
-		except:
-			data = None
-
-		if not data or "design_id" not in data:
-			s.close()
-			completionCb(stlPath, gcodePath, "There was an error creating slicing job.")
-			return
-
-		design_id = data['design_id']
-
-		sleep(1)
-		# Loop to watch for completion of the slicing job
-		while True:
-			try:
-				r = s.get('%s/designs/%s' % (self.apiHost, design_id))
-				data = r.json()
-			except:
-				data = None
-
-			if data and "progress" in data and "status" in data:
-				if data["status"] == 'failed':
-					s.close()
-					completionCb(stlPath, gcodePath, data["error"] if "error" in data else "Cloud slicer failed." )
-					return
-
-				procesingCb(min(data["progress"], 90))
-				if data["progress"] >= 100 or data["status"] == 'finished':
-					break
-
-			else:
-				s.close()
-				completionCb(stlPath, gcodePath, "Slicing failed.")
-				return
-
-			sleep(2)
-
-		try:
-			r = s.get('%s/designs/%s/gcode/link' % (self.apiHost, design_id))
-			data = r.json()
-		except:
-			data = None
-
-		s.close()
-		if data and "url" in data:
-			r = requests.get(data["url"], stream=True)
-
-			if r.status_code == 200:
-				content_length = float(r.headers['Content-Length']);
-				downloaded_size = 0.0
-
-				with open(gcodePath, 'wb') as fd:
-					for chunk in r.iter_content(524288): #0.5 MB
-						downloaded_size += len(chunk)
-						fd.write(chunk)
-						procesingCb(90 + round((downloaded_size / content_length) * 10.0, 1))
-
-				completionCb(stlPath, gcodePath)
-				return
-
-			else:
-				r.close()
-
-		completionCb(stlPath, gcodePath, "GCode file was not valid.")
 
 	def print_files(self, forceCloudSync = False):
 		if self.cloud_enabled() and (not self._print_file_store or forceCloudSync):
