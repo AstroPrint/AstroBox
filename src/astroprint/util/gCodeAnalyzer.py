@@ -92,5 +92,5 @@ class GCodeAnalyzer(thread):
 				parameters['parent'] = self.parent
 				parameters['filename'] = self.filename
 
-			self.exceptionCallback(parameters)
+				self.exceptionCallback(parameters)
 
