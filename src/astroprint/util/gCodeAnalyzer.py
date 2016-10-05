@@ -36,17 +36,17 @@ class GCodeAnalyzer(thread):
 
 		try:
 			pipe = run(
-				'%s/GCodeAnalyzer "%s" 2>>%s/gcode_analyzer_error.log 1' if self.layersInfo else '%s/GCodeAnalyzer "%s" 2>>%s/gcode_analyzer_error.log' % (
+				'%s/GCodeAnalyzer "%s" 1' if self.layersInfo else '%s/GCodeAnalyzer "%s"' % (
 					'/usr/bin/astroprint',
-					self.filename,
-					'/var/log/astrobox'
+					self.filename
 				), stdout=Capture())
 
 			if pipe.returncode == 0:
 				try:
 					gcodeData = json.loads(pipe.stdout.text);
 
-					self.layerList =  gcodeData['layers']
+					if self.layersInfo:
+						self.layerList =  gcodeData['layers']
 
 					self.totalPrintTime = gcodeData['print_time']
 
