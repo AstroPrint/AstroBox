@@ -119,7 +119,7 @@ class GcodeInterpreter(object):
 
 			self.progressCallback(0.0)
 
-			self.timerCalculator = GCodeAnalyzer(self.filename,False,self.cbGCodeAnalyzerReady,self)
+			self.timerCalculator = GCodeAnalyzer(self.filename,False,self.cbGCodeAnalyzerReady,None,self)
 
 			self.timePerLayers = self.timerCalculator.makeCalcs()
 
