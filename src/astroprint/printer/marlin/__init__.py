@@ -343,7 +343,7 @@ class PrinterMarlin(Printer):
 
 		try:
 			if not layer == 0:
-				self.timePercentPreviousLayers += self._comm.timePerLayers[self._layerCount - layer+1]['layer']['time']
+				self.timePercentPreviousLayers += self._comm.timePerLayers[layer+1]['time']
 			else:
 				self.timePercentPreviousLayers = 0
 		except: pass
@@ -355,10 +355,10 @@ class PrinterMarlin(Printer):
 		"""
 		try:
 
-			layerFileUpperPercent = self._comm.timePerLayers[self._layerCount - self._currentLayer]['layer']['upperPercent']
+			layerFileUpperPercent = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
 
 			if self._currentLayer > 0:
-				layerFileLowerPercent = self._comm.timePerLayers[self._layerCount - self._currentLayer+1]['layer']['upperPercent']
+				layerFileLowerPercent = self._comm.timePerLayers[self._currentLayer-2]['upperPercent']
 			else:
 				layerFileLowerPercent = 0
 
@@ -370,7 +370,7 @@ class PrinterMarlin(Printer):
 			except:
 				currentLayerPercent = 0
 
-			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._layerCount - self._currentLayer]['layer']['time']
+			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._currentLayer-1]['time']
 
 			currentTimePercent = self.timePercentPreviousLayers + layerTimePercent
 
