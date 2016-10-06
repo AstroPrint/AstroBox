@@ -36,7 +36,7 @@ class GCodeAnalyzer(thread):
 
 		try:
 			pipe = run(
-				'%s/GCodeAnalyzer "%s" 1' if self.layersInfo else '%s/GCodeAnalyzer "%s"' % (
+				('%s/GCodeAnalyzer "%s" 1' if self.layersInfo else '%s/GCodeAnalyzer "%s"') % (
 					'/usr/bin/astroprint',
 					self.filename
 				), stdout=Capture())

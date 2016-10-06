@@ -342,11 +342,12 @@ class PrinterMarlin(Printer):
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
 		try:
-			if not layer == 0:
-				self.timePercentPreviousLayers += self._comm.timePerLayers[layer+1]['time']
+			if not layer == 1:
+				self.timePercentPreviousLayers += self._comm.timePerLayers[layer-2]['time']
 			else:
 				self.timePercentPreviousLayers = 0
 		except: pass
+
 
 	def mcProgress(self):
 		"""
@@ -354,10 +355,9 @@ class PrinterMarlin(Printer):
 		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
 		"""
 		try:
-
 			layerFileUpperPercent = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
 
-			if self._currentLayer > 0:
+			if self._currentLayer > 1:
 				layerFileLowerPercent = self._comm.timePerLayers[self._currentLayer-2]['upperPercent']
 			else:
 				layerFileLowerPercent = 0
@@ -386,7 +386,6 @@ class PrinterMarlin(Printer):
 				estimatedTimeLeft = self.estimatedTimeLeft
 			else:
 				self.estimatedTimeLeft = estimatedTimeLeft
-
 
 			self._setProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
 
