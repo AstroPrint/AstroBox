@@ -700,8 +700,18 @@ class GStreamer(object):
 	def stopQueueVideo(self):
 
 		try:
-			self.tee_video_pad_video.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.padUnLinkQueueVideoManager, None)
+
+			#self.pipeline.set_state(gst.State.PAUSED)
+
+			self.tee_video_pad_video.add_probe(gst.PadProbeType.BLOCK, self.padUnLinkQueueVideoManager, None)
 			self.waitForStopVideo.wait()
+
+			stateChanged = self.pipeline.set_state(gst.State.NULL)
+
+			if stateChanged == gst.StateChangeReturn.FAILURE:
+				return False
+
+			return True
 
 		except Exception, error:
 			#self.padUnLinkQueueVideo()
@@ -977,20 +987,12 @@ class GStreamer(object):
 					waitingForStopPipeline = False
 
 			self.waitForStopVideo = threading.Event()
-			self.stopQueueVideo()
+			StateChangeReturn = self.stopQueueVideo()
 			self.waitForStopVideo.clear()
-
-
-			self.pipeline.set_state(gst.State.PAUSED)
-
-			stateChanged = self.pipeline.set_state(gst.State.NULL)
-
-			if stateChanged == gst.StateChangeReturn.FAILURE:
-				return False
 
 			self.streamProcessState = 'PAUSED'
 
-			return True
+			return StateChangeReturn
 
 		except Exception, error:
 
