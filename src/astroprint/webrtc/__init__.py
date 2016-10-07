@@ -26,6 +26,7 @@ import astroprint.util as processesUtil
 from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
 from astroprint.boxrouter import boxrouterManager
+from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.util import interval
 
@@ -221,7 +222,14 @@ class WebRtc(object):
 
 	def startJanus(self):
 		#Start janus command here
+
+		nm = networkManager()
+
 		args = ['/opt/janus/bin/./janus']
+
+		if not nm.isOnline():
+
+			args = ['/opt/janus/bin/./janus','--config=/opt/janus/etc/janus/janus.cfg.local']
 
 		try:
 			self._JanusProcess = subprocess.Popen(
