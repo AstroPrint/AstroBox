@@ -159,7 +159,6 @@ class MachineCom(object):
 		self.timerCalculator = None
 		self.timePerLayers =  None
 		self.totalPrintTime = None
-		self.originalTotalPrintTime = None
 		self.layerCount = None
 		self.size = None
 		self.layer_height = None
@@ -634,7 +633,8 @@ class MachineCom(object):
 
 		self.timePerLayers =  timePerLayers
 
-		self.totalPrintTime = totalPrintTime*1.07
+		if not self.totalPrintTime:
+			self.totalPrintTime = totalPrintTime*1.07
 
 		self.layerCount = layerCount
 
