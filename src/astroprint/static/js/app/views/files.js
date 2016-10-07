@@ -107,7 +107,7 @@ var FileUploadFiles = FileUploadCombined.extend({
     }
     this.progressBar.find('.progress-message span').text(message);
   },
-  failed: function(error)
+  onError: function(type, error)
   {
     var message = 'There was an error uploading your file';
 
@@ -126,15 +126,9 @@ var FileUploadFiles = FileUploadCombined.extend({
     this.resetUploadArea();
     console.error(error);
   },
-  success: function(data)
+  onPrintFileUploaded: function(fileInfo)
   {
-    FileUploadCombined.prototype.success.call(this, data);
-  },
-  always: function()
-  {
-    if (this.currentFileType == 'print') {
-      this.resetUploadArea
-    }
+    this.resetUploadArea();
   },
   resetUploadArea: function()
   {
@@ -546,16 +540,37 @@ var FilesView = Backbone.View.extend({
   },
   refreshPrintFiles: function()
   {
-    this.printFilesListView.refresh(true);
+    var promise = $.Deferred();
+    this.printFilesListView.refresh(true, function(success) {
+      if (success) {
+        promise.resolve();
+      } else {
+        promise.reject('unable_to_refresh');
+      }
+    });
+
+    return promise;
   },
   fileInfo: function(fileId)
   {
     var view = _.find(this.printFilesListView.print_file_views, function(v) {
       return v.print_file.get('id') == fileId;
-    })
+    });
 
+    this.printFilesListView.storage_control_view.selectStorage('cloud');
+    this.showFileInfoView(view);
+  },
+  fileInfoByName: function(name)
+  {
+    var view = _.find(this.printFilesListView.print_file_views, function(v) {
+      return v.print_file.get('name') == name;
+    });
+
+    this.showFileInfoView(view);
+  },
+  showFileInfoView: function(view)
+  {
     if (view) {
-      this.printFilesListView.storage_control_view.selectStorage('cloud');
       view.infoClicked();
     }
   },

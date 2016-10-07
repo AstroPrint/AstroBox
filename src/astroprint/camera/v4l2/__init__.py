@@ -297,7 +297,7 @@ class V4L2Manager(CameraManager):
 								if e.errno != errno.EINVAL:
 									self._logger.error("Unable to determine supported framerates (resolutions), this may be a driver issue.")
 
-					resolution.append(framerates)
+						resolution.append(framerates)
 
 			temp = []
 

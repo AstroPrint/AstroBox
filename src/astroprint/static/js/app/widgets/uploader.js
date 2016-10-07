@@ -185,12 +185,28 @@ var FileUploadCombined = FileUploadBase.extend({
       break;
 
       case 'print':
-        this.progress(100);
-        noty({text: "File uploaded successfully :)", type: 'success', timeout: 3000});
-        app.router.navigate('files', {trigger: true, replace:true});
-        app.router.filesView.refreshPrintFiles(true);
-        app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
+        this.progress(98);
+        app.router.filesView.refreshPrintFiles(true)
+          .done(_.bind(function(){
+            noty({text: "File uploaded successfully :)", type: 'success', timeout: 3000});
+            this.progress(100);
+            app.router.navigate('files', {trigger: true, replace:true});
+            app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
+            app.router.filesView.fileInfoByName(data.result.files.local.name);
+            this.onPrintFileUploaded(data.result.files.local);
+          }, this))
+          .fail(_.bind(function(err){
+            this.failed(err)
+          }, this))
       break;
     }
-  }
+  },
+  failed: function(error)
+  {
+    this.onError(this.currentFileType, error);
+  },
+
+  //Override These
+  onPrintFileUploaded: function() {},
+  onError: function(type, error) {}
 });
