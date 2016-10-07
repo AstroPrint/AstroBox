@@ -296,6 +296,8 @@ class PrinterMarlin(Printer):
 
 	#~~ state monitoring
 
+		self._comm.cleanPrintingVars()
+
 	def _setState(self, state):
 		self._state = state
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
@@ -417,6 +419,7 @@ class PrinterMarlin(Printer):
 	def mcPrintjobDone(self):
 		super(PrinterMarlin, self).mcPrintjobDone()
 		self.disableMotorsAndHeater()
+		self._comm.cleanPrintingVars()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
