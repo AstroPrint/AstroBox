@@ -673,11 +673,18 @@ class GStreamer(object):
 		# #VIDEO PADDING
 		gst.Pad.link(self.tee_video_pad_video, self.queue_video_pad)
 
+	def padUnLinkQueueVideoManagerDownstream(self, pad, info, user_data):
+		self.tee_video_pad_video.remove_probe(info.id)
+
+		self.padUnLinkQueueVideo()
+
+		return gst.PadProbeReturn.DROP
+
 	def padUnLinkQueueVideoManager(self, pad, info, user_data):
 
 		self.tee_video_pad_video.remove_probe(info.id)
 
-		self.padUnLinkQueueVideo()
+		self.tee_video_pad_video.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self.padUnLinkQueueVideoManagerDownstream, None)
 
 		self.waitForStopVideo.set()
 
