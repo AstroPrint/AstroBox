@@ -629,6 +629,22 @@ class MachineCom(object):
 			else:
 				self._bedTemp = (actual, None)
 
+	def cleanPrintingVars(self):
+
+		self.timePerLayers =  None
+
+		self.totalPrintTime = None
+
+		self.layerCount = None
+
+		self.size = None
+
+		self.layer_height = None
+
+		self.total_filament = None
+
+		self.timerCalculator = None
+
 	def cbGCodeAnalyzerReady(self,timePerLayers,totalPrintTime,layerCount,size,layer_height,total_filament,parent):
 
 		self.timePerLayers =  timePerLayers
