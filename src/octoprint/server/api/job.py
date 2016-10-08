@@ -1,5 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import octoprint.util as util
@@ -48,16 +49,8 @@ def controlJob():
 		if not activePrintjob:
 			return make_response("Printer is neither printing nor paused, 'cancel' command cannot be performed", 409)
 
-		#get reason
-		reason = {}
-		if 'reason' in data:
-			reason['reason_id'] = data['reason']
+		return jsonify(printer.cancelPrint())
 
-		if 'other_text' in data:
-			reason['other_text'] = data['other_text']
-
-		printer.cancelPrint(reason)
-		
 	return NO_CONTENT
 
 

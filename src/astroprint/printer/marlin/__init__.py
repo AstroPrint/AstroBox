@@ -240,12 +240,10 @@ class PrinterMarlin(Printer):
 		else:
 			cameraManager().pause_timelapse()
 
-	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
+	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterMarlin, self).cancelPrint(reason, disableMotorsAndHeater):
-			return
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue

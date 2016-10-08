@@ -32,7 +32,7 @@ class PrinterVirtual(Printer):
 
 		if os.path.isfile(seettings_file):
 			import yaml
-			
+
 			config = None
 			with open(seettings_file, "r") as f:
 				config = yaml.safe_load(f)
@@ -119,16 +119,14 @@ class PrinterVirtual(Printer):
 				self._printJob.start()
 
 		t = threading.Timer(self._settings['heatingUp'], heatupDone)
-		t.start()		 
+		t.start()
 
-	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
+	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterVirtual, self).cancelPrint(reason, disableMotorsAndHeater):
-			return
-
-		self._printJob.cancel()
+		if self._printJob:
+			self._printJob.cancel()
 
 		if self.isPaused:
 			self.setPause(False)
@@ -146,7 +144,7 @@ class PrinterVirtual(Printer):
 		self._changeState(self.STATE_CONNECTING)
 
 		def doConnect():
-			if not self._shutdown:			
+			if not self._shutdown:
 				self._changeState(self.STATE_OPERATIONAL)
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
@@ -333,7 +331,7 @@ class TempsChanger(threading.Thread):
 
 	def _updateTemps(self):
 		data = { "time": int(time.time()) }
-		
+
 		for t in self._targets.keys():
 			data[t] = {
 				"actual": self._actuals[t],
@@ -389,7 +387,7 @@ class JobSimulator(threading.Thread):
 		if self._percentCompleted >= 1:
 			self._pm.mcPrintjobDone()
 			self._pm._fileManager.printSucceeded(payload['filename'], payload['time'], payload['layerCount'])
-			eventManager().fire(Events.PRINT_DONE, payload)			
+			eventManager().fire(Events.PRINT_DONE, payload)
 		else:
 			self._pm.printJobCancelled()
 			eventManager().fire(Events.PRINT_FAILED, payload)
@@ -414,7 +412,7 @@ class JobSimulator(threading.Thread):
 
 	@property
 	def progress(self):
-		return self._percentCompleted	
+		return self._percentCompleted
 
 	@property
 	def filePos(self):
