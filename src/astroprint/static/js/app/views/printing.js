@@ -546,11 +546,13 @@ var CancelPrintDialog = Backbone.View.extend({
           this.printJobId = data.print_job_id;
           this.$('.ask').addClass('hide');
           this.$('.reasons').removeClass('hide').find('h3').addClass('animated bounceIn');
+          loadingBtn.removeClass('loading');
         } else {
-          this.close();
+          setTimeout(_.bind(function() {
+            loadingBtn.removeClass('loading');
+            this.close();
+          }, this), 1000);
         }
-
-        loadingBtn.removeClass('loading');
       }
     }, this));
   },
