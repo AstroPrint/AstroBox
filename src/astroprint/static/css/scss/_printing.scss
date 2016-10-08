@@ -460,6 +460,21 @@
 	}
 }
 
+
+#cancel-print-modal {
+  .reasons {
+    h3 {
+      margin: 10px 0;
+      .icon-ok-circled {
+        color: $success-color;
+        font-size: rem-calc(35);
+      }
+
+      font-size: rem-calc(25);
+    }
+  }
+}
+
 @media #{$medium-up} {
 	#printing-view .temperatures .temp-bar {
 		label {
