@@ -320,20 +320,25 @@ class Printer(object):
 
 		return True
 
-	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
+	def cancelPrint(self, disableMotorsAndHeater=True):
 		"""
 		 Cancel the current printjob.
 		"""
+		activePrintJob = None;
+
 		if self._comm is None:
-			return False
+			return {'print_job_id': False}
 
 		cameraManager().stop_timelapse()
 
 		if self._currentPrintJobId:
-			astroprintCloud().print_job(self._currentPrintJobId, status='failed', reason=reason)
+			astroprintCloud().print_job(self._currentPrintJobId, status='failed')
+			activePrintJob = self._currentPrintJobId
 			self._currentPrintJobId = None
 
-		return True
+		self.executeCancelCommands(disableMotorsAndHeater)
+
+		return {'print_job_id': activePrintJob}
 
 	def togglePausePrint(self):
 		"""
@@ -538,6 +543,9 @@ class Printer(object):
 
 	def sendRawCommand(self, command):
 		raise NotImplementedError()
+
+	def executeCancelCommands(self, disableMotorsAndHeater):
+		raise NotImplementedError();
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):
