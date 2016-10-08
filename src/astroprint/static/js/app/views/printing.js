@@ -523,7 +523,7 @@ var CancelPrintDialog = Backbone.View.extend({
     this.$("input[name=reason]").prop("checked", false);
     this.$("input[name=other_text]").val('').addClass('hide');
     this.$('.ask').removeClass('hide');
-    this.$('.reasons').addClass('hide').find('h3').remveClass('animated bounceIn');
+    this.$('.reasons').addClass('hide').find('h3').removeClass('animated bounceIn');
   },
   close: function() {
     this.$el.foundation('reveal', 'close');

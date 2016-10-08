@@ -49,6 +49,7 @@ class PrinterVirtual(Printer):
 
 		self._printing = False
 		self._heatingUp = False
+		self._heatingUpTimer = None
 		self._temperatureChanger = None
 		self._printJob = None
 		self._logger = logging.getLogger(__name__)
@@ -111,25 +112,39 @@ class PrinterVirtual(Printer):
 		self.setTemperature("tool0", 210)
 		self.setTemperature("bed", 60)
 		self.mcHeatingUpUpdate(True)
+		self._heatingUp = True
 
 		def heatupDone():
 			if not self._shutdown:
 				self.mcHeatingUpUpdate(False)
+				self._heatingUp = False
+				self._heatingUpTimer = None
 				self._printJob = JobSimulator(self, self._currentFile)
 				self._printJob.start()
 
-		t = threading.Timer(self._settings['heatingUp'], heatupDone)
-		t.start()
+		self._printJob = None
+		self._heatingUpTimer = threading.Timer(self._settings['heatingUp'], heatupDone)
+		self._heatingUpTimer.start()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
 		 Cancel the current printjob.
 		"""
+
 		if self._printJob:
 			self._printJob.cancel()
 
 		if self.isPaused:
 			self.setPause(False)
+
+		if self._heatingUpTimer:
+			self._heatingUpTimer.cancel()
+			self._heatingUpTimer = None
+			self.mcHeatingUpUpdate(False)
+			self.setTemperature("tool0", 0)
+			self.setTemperature("bed", 0)
+			time.sleep(1)
+			self._changeState(self.STATE_OPERATIONAL)
 
 	def serialList(self):
 		return {
