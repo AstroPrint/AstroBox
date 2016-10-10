@@ -199,7 +199,9 @@ class GStreamerManager(V4L2Manager):
 		return self.gstreamerVideo.streamProcessState
 
 	def close_camera(self):
-			self.asyncPhotoTaker.stop()
+			if self.asyncPhotoTaker:
+				self.close_camera()
+				self.asyncPhotoTaker = None
 
 	def startLocalVideoSession(self, sessionId):
 		return webRtcManager().startLocalSession(sessionId)
