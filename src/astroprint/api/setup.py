@@ -77,12 +77,13 @@ def check_internet():
 def connect_internet():
 	if "application/json" in request.headers["Content-Type"]:
 		data = request.json
-		result = networkManager().setWifiNetwork(data['id'], data['password'])
+		if 'id' in data and 'password' in data:
+			result = networkManager().setWifiNetwork(data['id'], data['password'])
 
-		if result:
-			return jsonify(result)
-		else:
-			return ("Network %s not found" % data['id'], 404)
+			if result:
+				return jsonify(result)
+			else:
+				return ("Network %s not found" % data['id'], 404)
 
 	return ("Invalid Request", 400)
 
