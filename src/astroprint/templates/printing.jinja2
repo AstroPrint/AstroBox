@@ -1,217 +1,242 @@
 <div class="row print-info">
-	<h2 class="bold" align="center">Printing</h2>
-		<div class="small-12 large-4 columns camera-view" align="center">
-			<script type="text/template" id="photo-printing-template">
+  <h2 class="bold" align="center">Printing</h2>
+    <div class="small-12 large-4 columns camera-view" align="center">
+      <script type="text/template" id="photo-printing-template">
+        <% if(this.cameraAvailable) {
+          if(this.cameraNotSupported) { %>
+            <div class="panel text-center radius">
+              <i class="icon-attention"></i>
+              <h3 class="bold">Camera not supported</h3>
+              <p>
+                You can cancel your print and go to the camera app.
+                <p><img src="/static/img/camera-icon.png" style="width:45px"><br><b>Camera</b></p>
+              </p>
+            </div>
+          <% } else {
+            if(this.videoStreamingError){ %>
 
-				<% if(this.cameraAvailable) {
-					if(this.cameraNotSupported) { %>
-						<div class="panel text-center radius">
-                            <i class="icon-attention"></i>
-                            <h3 class="bold">Camera not supported</h3>
-                            <p>You can cancel your print and go to the camera app.
-                            	<p><img src="/static/img/camera-icon.png" style="width:45px"><br><b>Camera</b></p>
-							</p>
-                        </div>
-					<% } else {
-						if(this.videoStreamingError){ %>
+              <div class="panel text-center radius">
+                <i class="icon-camera"></i>
+                <h3 class="bold">Camera error</h3>
+                <p><%= this.videoStreamingError %></p>
+              </div>
+            <% } else {
+            if(!this.canStream) { %>
+              <div class="camera-container">
+                <i class="icon-3d-object"></i>
+                <img class="camera-image" width="100%"/>
+              </div>
+            <% } else { %>
+              <% if(this.cameraMode == 'video'){ %>
+                <div class="video-container">
+                  <div class="small-12 columns text-center">
+                    <div class="video-off">
+                      <i class="icon-videocam-1"></i>
+                      <h4 class="bold">Camera Stream Off</h4>
+                    </div>
+                    <div class="video-preparing">
+                      <i class="icon-rocket-spinner animate-spin"></i>
+                      <h3 class="bold">Preparing video...</h3>
+                    </div>
+                  </div>
+                  <div id="videoScreen" class="video-on">
+                    <% if (this.managerName == "mjpeg") { %>
+                      <img id="video-stream" class="cover-img-cont"/>
+                    <% } else { %>
+                      <video id="video-stream" class="cover-img-cont" autoplay="">
+                        You browser doesn't support element <code>video</code>.
+                      </video>
+                    <% } %>
+                  </div>
+                </div>
+                <img class="camera-image" width="100%" style="display:none"/>
 
-							<div class="panel text-center radius">
-								<i class="icon-camera"></i>
-								<h3 class="bold">Camera error</h3>
-								<p><%= this.videoStreamingError %></p>
-							</div>
-						<% } else {
-						if(!this.canStream) { %>
-							<div class="camera-container">
-								<i class="icon-3d-object"></i>
-								<img class="camera-image" width="100%"/>
-							</div>
-						<% } else { %>
-							<% if(this.cameraMode == 'video'){ %>
-								<div class="video-container">
-									<div class="small-12 columns text-center">
-										<div class="video-off">
-											<i class="icon-videocam-1"></i>
-											<h4 class="bold">Camera Stream Off</h4>
-										</div>
-										<div class="video-preparing">
-											<i class="icon-rocket-spinner animate-spin"></i>
-											<h3 class="bold">Preparing video...</h3>
-										</div>
-									</div>
-									<div id="videoScreen" class="video-on">
-										<% if (this.managerName == "mjpeg") { %>
-											<img id="video-stream" class="cover-img-cont"/>
-										<% } else { %>
-											<video id="video-stream" class="cover-img-cont" autoplay="">
-												You browser doesn't support element <code>video</code>.
-											</video>
-										<% } %>
-									</div>
-								</div>
-								<img class="camera-image" width="100%" style="display:none"/>
+              <% } else { %>
+                <div class="camera-container">
+                  <i class="icon-3d-object"></i>
+                  <img class="camera-image" width="100%"/>
+                </div>
+              <% } %>
+            <% } %>
+            <div class="camera-controls">
+              <div class="row collapse">
+                <div class="small-4 columns" align="center">
+                  <div class="timelapse">
+                    <i class="icon-picture"></i>
+                    <select id="freqSelector" class="bold" align="center">
+                      <option value="0">Off</option>
+                      <option value="layer">Ea. layer</option>
+                      <option value="60">1 min</option>
+                      <option value="120">2 mins</option>
+                      <option value="300">5 mins</option>
+                      <option value="900">15 mins</option>
+                      <option value="1800">30 mins</option>
+                    </select>
+                    <span class="dot"></span>
+                    <div class="overlay" style="display:none"></div>
+                  </div>
+                </div>
+                <div class="small-4 columns buttons">
+                  <% if(this.cameraMode == 'video') { %>
+                    <div class="loading-button">
+                      <div class="video-off">
+                        <button class="success round bold take-pic"><i class="icon-videocam-1"></i></button>
+                      </div>
+                      <div class="video-on">
+                        <button class="secondary round bold take-pic"><i class="icon-stop"></i></button>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <div class="video-off">
+                      <div class="loading-button">
+                        <button class="success photo round take-pic"><i class="icon-camera"></i></button>
+                        <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                      </div>
+                    </div>
+                  <% } %>
 
-							<% } else { %>
-								<div class="camera-container">
-									<i class="icon-3d-object"></i>
-									<img class="camera-image" width="100%"/>
-								</div>
-							<% } %>
-						<% } %>
-						<div class="camera-controls">
-							<div class="row collapse">
-								<div class="small-4 columns" align="center">
-									<div class="timelapse">
-										<i class="icon-picture"></i>
-										<select id="freqSelector" class="bold" align="center">
-											<option value="0">Off</option>
-											<option value="layer">Ea. layer</option>
-											<option value="60">1 min</option>
-											<option value="120">2 mins</option>
-											<option value="300">5 mins</option>
-											<option value="900">15 mins</option>
-											<option value="1800">30 mins</option>
-										</select>
-										<span class="dot"></span>
-										<div class="overlay" style="display:none"></div>
-									</div>
-								</div>
-								<div class="small-4 columns buttons">
-									<% if(this.cameraMode == 'video') { %>
-										<div class="loading-button">
-											<div class="video-off">
-												<button class="success round bold take-pic"><i class="icon-videocam-1"></i></button>
-											</div>
-											<div class="video-on">
-												<button class="secondary round bold take-pic"><i class="icon-stop"></i></button>
-											</div>
-										</div>
-									<% } else { %>
-										<div class="video-off">
-											<div class="loading-button">
-												<button class="success photo round take-pic"><i class="icon-camera"></i></button>
-												<span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-											</div>
-										</div>
-									<% } %>
-
-								</div>
-								<div class="small-4 columns">
-									<% if(this.canStream){ %>
-										<div id="camera-mode-slider" class="camera-mode" align="right">
-											<p>
-												<i class="icon-picture-1"></i>
-												<i class="icon-videocam-1"></i>
-											</p>
-											<div class="switch radius">
-												<input id="camera-mode-printing" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
-												<label for="camera-mode-printing"></label>
-											</div>
-										</div>
-									<% } %>
-								</div>
-							</div>
-						</div>
-					<% }
-					}
-				} else { %>
-					<div class="camera-container">
-						<i class="icon-3d-object"></i>
-						<img class="camera-image" width="100%"/>
-					</div>
-				<% } %>
-			</script>
-		</div>
-	<div class="info">
-		<div class="small-12 large-8 columns">
-			<div class="progress success radius">
-				<span class="meter" style="width: 0%"></span>
-				<span class="filename"></span>
-				<span class="progress-label"></span>
-			</div>
-		</div>
-		<div class="small-12 medium-6 large-4 columns" align="center">
-			<h2 class="bold">Time Remaining</h2>
-			<div class="bold">
-				<span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
-			</div>
-		</div>
-		<div class="small-12 medium-6 large-4 columns" align="center">
-			<h2 class="bold">Printing Layer</h2>
-			<div class="bold">
-				<span class="current-layer highlighted">-</span> of <span class="highlighted layer-count">-</span>
-			</div>
-		</div>
-	</div>
-	<div class="heating">
-		<div class="small-12 large-8 columns" align="center">
-			<i class="icon-temperatire blink-animation"></i>
-			<b>Heating up...</b>
-		</div>
-	</div>
+                </div>
+                <div class="small-4 columns">
+                  <% if(this.canStream){ %>
+                    <div id="camera-mode-slider" class="camera-mode" align="right">
+                      <p>
+                        <i class="icon-picture-1"></i>
+                        <i class="icon-videocam-1"></i>
+                      </p>
+                      <div class="switch radius">
+                        <input id="camera-mode-printing" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
+                        <label for="camera-mode-printing"></label>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }
+          }
+        } else { %>
+          <div class="camera-container">
+            <i class="icon-3d-object"></i>
+            <img class="camera-image" width="100%"/>
+          </div>
+        <% } %>
+      </script>
+    </div>
+  <div class="info">
+    <div class="small-12 large-8 columns">
+      <div class="progress success radius">
+        <span class="meter" style="width: 0%"></span>
+        <span class="filename"></span>
+        <span class="progress-label"></span>
+      </div>
+    </div>
+    <div class="small-12 medium-6 large-4 columns" align="center">
+      <h2 class="bold">Time Remaining</h2>
+      <div class="bold">
+        <span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
+      </div>
+    </div>
+    <div class="small-12 medium-6 large-4 columns" align="center">
+      <h2 class="bold">Printing Layer</h2>
+      <div class="bold">
+        <span class="current-layer highlighted">-</span> of <span class="highlighted layer-count">-</span>
+      </div>
+    </div>
+  </div>
+  <div class="heating">
+    <div class="small-12 large-8 columns" align="center">
+      <i class="icon-temperatire blink-animation"></i>
+      <b>Heating up...</b>
+    </div>
+  </div>
 </div>
 
 {%- macro temp_control(class, label) %}
-	<div class="temp-bar {{class}}">
-		<h3 class="bold">Current Temp (&deg;C)</h3>
-		<label class="bold">{{label}}</label>
-		<div class="temp-curret-line">
-			<div class="triangle_left"></div>
-			<div class="triangle_right"></div>
-		</div>
-		<div class="temp-target bold">
-			<a class="temp-edit"><i class="icon-pencil"></i></a>
-			<span class="label">- -</span>
-			<input type="number" class="hide"/>
-		</div>
-		<div class="temp-current bold">--</div>
-	</div>
+  <div class="temp-bar {{class}}">
+    <h3 class="bold">Current Temp (&deg;C)</h3>
+    <label class="bold">{{label}}</label>
+    <div class="temp-curret-line">
+      <div class="triangle_left"></div>
+      <div class="triangle_right"></div>
+    </div>
+    <div class="temp-target bold">
+      <a class="temp-edit"><i class="icon-pencil"></i></a>
+      <span class="label">- -</span>
+      <input type="number" class="hide"/>
+    </div>
+    <div class="temp-current bold">--</div>
+  </div>
 {%- endmacro %}
 
 <div class="row temperatures">
-	<div class="small-12 columns">
-		<h2 class="bold">Printer Temperature</h2>
-		{{ temp_control('nozzle', 'Nozzle')}}
-		{{ temp_control('bed', 'Bed')}}
-	</div>
+  <div class="small-12 columns">
+    <h2 class="bold">Printer Temperature</h2>
+    {{ temp_control('nozzle', 'Nozzle')}}
+    {{ temp_control('bed', 'Bed')}}
+  </div>
 </div>
 <div class="row">
-	<div class="small-12 medium-4 columns" align="center">
-		<div class="loading-button expand">
-			<button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
-			<span class="button loading success radius disabled"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
-		</div>
-	</div>
-	<div class="small-12 medium-4 columns" align="center">
-		<button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
-	</div>
-	<div class="small-12 medium-4 columns" align="center">
-		<button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel Print</button>
-	</div>
+  <div class="small-12 medium-4 columns" align="center">
+    <div class="loading-button expand">
+      <button class="success radius pause-print"><i class="icon-pause"></i> Pause Print</button>
+      <span class="button loading success radius disabled"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
+    </div>
+  </div>
+  <div class="small-12 medium-4 columns" align="center">
+    <button class="radius controls expand" style="display:none"><i class="icon-move"></i> Printer Controls</button>
+  </div>
+  <div class="small-12 medium-4 columns" align="center">
+    <button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel Print</button>
+  </div>
 </div>
 
 <div id="cancel-print-modal" class="reveal-modal medium radius" data-reveal align="center">
-	<h2 class="bold">Cancel current print job.</h2>
-	<div class="modal-body">
-		<p class="bold">Help us improve 3D Printing by telling us why you're canceling this print:</p>
-		<p>
-			<input id="cancel-reason-detached" type="radio" name="reason" value="detached"><label for="cancel-reason-detached">Object Detached</label><br/>
-			<input id="cancel-reason-quality" type="radio" name="reason" value="quality"><label for="cancel-reason-quality">Bad Quality</label><br/>
-			<input id="cancel-reason-filament" type="radio" name="reason" value="filament"><label for="cancel-reason-filament">Not Enough Filament</label><br/>
-			<input id="cancel-reason-other" type="radio" name="reason" value="other"><label for="cancel-reason-other">Other</label><br/>
-			<input type="text" name="other_text" class="hide" placeholder="What happened?"/>
-		</p>
-	</div>
-	<div class="row">
-		<div class="small-12 medium-6 columns">
-			<button class="secondary radius no expand">No</button>
-		</div>
-		<div class="small-12 medium-6 columns">
-			<div class="loading-button expand">
-				<button class="alert radius yes">Yes, cancel it</button>
-				<span class="button loading radius alert"><i class="icon-rocket-spinner animate-spin"></i> Canceling...</span>
-			</div>
-		</div>
-	</div>
-	<a class="close-reveal-modal">&#215;</a>
+  <h2 class="bold">Cancel current print job.</h2>
+  <div class="modal-body">
+    <div class="ask">
+      <div class="reveal-content">
+        <p>Are you sure you would like to cancel the current print?</p>
+      </div>
+      <div class="button-container">
+        <button class="radius secondary left no">No</button>
+        <div class="loading-button right yes">
+          <button class="alert radius yes">Yes, Cancel it</button>
+          <span class="loading button disabled alert radius">
+            <i class="icon-rocket-spinner animate-spin"></i> Canceling...
+          </span>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+    <div class="reasons hide">
+      <div class="reveal-content">
+        <h3 align="center"><i class="icon-ok-circled"></i> Your Print has been Canceled</h3>
+        <div class="row">
+          <div class="small-10 small-centered columns">
+            <div class="panel">
+              <p>Help us <b>improve 3D Printing</b> by telling us why you're canceling this print:</p>
+              <p>
+                <input id="cancel-reason-detached" type="radio" name="reason" value="detached"><label for="cancel-reason-detached">Object Detached</label><br/>
+                <input id="cancel-reason-quality" type="radio" name="reason" value="quality"><label for="cancel-reason-quality">Bad Quality</label><br/>
+                <input id="cancel-reason-filament" type="radio" name="reason" value="filament"><label for="cancel-reason-filament">Not Enough Material</label><br/>
+                <input id="cancel-reason-other" type="radio" name="reason" value="other"><label for="cancel-reason-other">Other</label><br/>
+                <input type="text" name="other_text" class="hide" placeholder="What happened?"/>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <button class="radius secondary left no">Close</button>
+        <div class="loading-button right send">
+          <button class="success radius send">Send</button>
+          <span class="loading button disabled success radius">
+            <i class="icon-rocket-spinner animate-spin"></i> Sending...
+          </span>
+        </div>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+  </div>
+  <a class="close-reveal-modal">&#215;</a>
 </div>

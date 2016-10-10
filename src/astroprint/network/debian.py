@@ -135,7 +135,7 @@ class NetworkManagerEvents(threading.Thread):
 
 	@idle_add_decorator
 	def propertiesChanged(self, properties):
-		if "ActiveConnections" in properties: 
+		if "ActiveConnections" in properties:
 			#if len(properties['ActiveConnections']) == 0:
 			#	self._setOnline(False)
 			#	return
@@ -174,16 +174,16 @@ class NetworkManagerEvents(threading.Thread):
 				d = self.getActiveConnectionDevice()
 				if d.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
 					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-						'status': 'connected', 
+						'status': 'connected',
 						'info': {
 							'type': 'ethernet',
 							'ip': d.Ip4Address
 						}
-					})					
+					})
 				else:
 					ap = d.SpecificDevice().ActiveAccessPoint
 					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-						'status': 'connected', 
+						'status': 'connected',
 						'info': {
 							'type': 'wifi',
 							'signal': ap.Strength,
@@ -254,7 +254,7 @@ class NetworkManagerEvents(threading.Thread):
 				eventManager.fire(Events.NETWORK_STATUS, 'offline')
 				if self._manager.isHotspotActive() is False: #isHotspotActive returns None if not possible
 					logger.info('AstroBox is offline. Starting hotspot...')
-					result = self._manager.startHotspot() 
+					result = self._manager.startHotspot()
 					if result is True:
 						logger.info('Hostspot started')
 					else:
@@ -273,6 +273,9 @@ class DebianNetworkManager(NetworkManagerBase):
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
 
+		#Find out and set the active WiFi Device
+		self._activeWifiDevice = self._getWifiDevice();
+
 	def close(self):
 		self._eventListener.stop()
 		self._eventListener = None
@@ -285,7 +288,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		return self._nm.const('state', self._nm.NetworkManager.status())
 
 	def getWifiNetworks(self):
-		wifiDevice = self.getWifiDevice()
+		wifiDevice = self._activeWifiDevice
 
 		networks = {}
 
@@ -331,7 +334,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 							ap = d.SpecificDevice().ActiveAccessPoint
 
-							if type(ap) is NetworkManager.AccessPoint:						
+							if type(ap) is NetworkManager.AccessPoint:
 								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
 								wepSecured = not wpaSecured and ap.Flags == NetworkManager.NM_802_11_AP_FLAGS_PRIVACY
 
@@ -346,23 +349,17 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		return activeConnections
 
-	def getWifiDevice(self):
-		devices = self._nm.NetworkManager.GetDevices()
-		for d in devices:
-			# Return the first MANAGED device that's a WiFi
-			if d.Managed and d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
-				return d
-
-		return False
-
 	def isHotspotable(self):
 		return bool(self.settings.get(['wifi', 'hotspotDevice'])) and self.isHotspotActive() != None
+
+	def hasWifi(self):
+		return bool(self._activeWifiDevice)
 
 	def isOnline(self):
 		return self._eventListener._online
 
 	def setWifiNetwork(self, bssid, password = None):
-		wifiDevice = self.getWifiDevice()
+		wifiDevice = self._activeWifiDevice
 
 		if bssid and wifiDevice:
 			accessPoint = None
@@ -386,7 +383,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 						if 'ipv4' in options:
 							del options['ipv4']
-						
+
 						connection = c
 						break
 
@@ -519,7 +516,7 @@ class DebianNetworkManager(NetworkManagerBase):
 				remove(file_path)
 				#Move new file
 				move(abs_path, file_path)
-			
+
 			udpateFiles = [
 				'/etc/hosts'
 			]
@@ -532,3 +529,36 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		else:
 			return False
+
+	# ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
+
+	def _getWifiDevice(self):
+		devices = self._nm.NetworkManager.GetDevices()
+		wifiDevices = []
+
+		for d in devices:
+			# Return the first MANAGED device that's a WiFi
+			if d.Managed and d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+				wifiDevices.append(d)
+
+		if wifiDevices:
+			if len(wifiDevices) == 1:
+				d = wifiDevices[0]
+				logger.info('Found one WiFi interface [%s], using it.' % d.Interface)
+				return d
+
+			else:
+				logger.info('Found multiple WiFi devices [%s], looking for the configured one to use...' % ', '.join([d.Interface for d in wifiDevices]))
+				configuredWifiIf = self.settings.get(['network', 'interface'])
+
+				for d in wifiDevices:
+					if d.Interface == configuredWifiIf:
+						logger.info('Using Configured WiFi Interface: [%s]' % d.Interface)
+						return d
+
+				#The on in settings is not found, use the first avaiable one
+				d = wifiDevices[0]
+				logger.warn('Configured WiFi Interface [%s] not found. Using: [%s]' % (configuredWifiIf, d.Interface))
+				return d
+
+		return False

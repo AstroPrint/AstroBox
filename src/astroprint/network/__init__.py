@@ -17,7 +17,7 @@ class NetworkManager(object):
 			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
 			return True
 
-		except urllib2.URLError as err: 
+		except urllib2.URLError as err:
 			return False
 
 	def checkOnline(self):
@@ -45,9 +45,6 @@ class NetworkManager(object):
 	def getWifiNetworks(self):
 		return None
 
-	def getWifiDevice(self):
-		return None
-
 	def isHotspotable(self):
 		return None
 
@@ -61,6 +58,9 @@ class NetworkManager(object):
 		return None
 
 	def isHotspotActive(self):
+		return None
+
+	def hasWifi(self):
 		return None
 
 	def isOnline(self):

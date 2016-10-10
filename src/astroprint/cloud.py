@@ -418,6 +418,29 @@ class AstroPrintCloud(object):
 
 		return False
 
+	def updateCancelReason(self, printJobId, reason):
+		if (self.cloud_enabled()):
+			try:
+				r = requests.put("%s/printjobs/%s/add-reason" % (self.apiHost, printJobId),
+					data=json.dumps(reason),
+					auth=self.hmacAuth,
+					headers={'Content-Type': 'application/json'}
+				)
+
+				if r.status_code == 200:
+					return True
+
+				if r.status_code == 400:
+					self._logger.error("Unable to do updateCancelReason (400). Response: %s" % r.text)
+
+				else:
+					self._logger.error("updateCancelReason request failed with status: %d" % r.status_code)
+
+			except Exception as e:
+				self._logger.error("Failed to send updateCancelReason request: %s" % e)
+
+		return False
+
 	def _sync_print_file_store(self):
 		if self.cloud_enabled():
 			try:

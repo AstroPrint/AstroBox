@@ -75,6 +75,7 @@ class PrintFilesManager(object):
 			self._metadataAnalyzer.addFileToBacklog(filename)
 
 	def _onMetadataAnalysisFinished(self, filename, results):
+
 		if filename is None or results is None:
 			return
 
@@ -104,6 +105,38 @@ class PrintFilesManager(object):
 
 			analysisResult['filament_volume'] = totalVolume
 			analysisResult['filament_length'] = totalLength
+
+
+		try:
+
+			if results.layerCount:
+				analysisResult['layer_count'] = results.layerCount
+				dirty = True
+		except: pass
+
+		try:
+			if results.size:
+				mapSize = {}
+				mapSize['x'] = results.size['x']
+				mapSize['y'] = results.size['y']
+				mapSize['z'] = results.size['z']
+
+				analysisResult['size'] = mapSize
+				dirty = True
+		except: pass
+
+		try:
+			if results.layer_height:
+				analysisResult['layer_height'] = results.layer_height
+				dirty = True
+		except: pass
+
+		try:
+
+			if results.total_filament:
+				analysisResult['total_filament'] = results.total_filament
+
+		except: pass
 
 		if dirty:
 			metadata = self.getFileMetadata(basename)
@@ -261,7 +294,7 @@ class PrintFilesManager(object):
 		return self._getBasicFilename(absolutePath)
 
 	def processDesign(self, absolutePath, destination, uploadCallback=None):
-		
+
 		def designProcessed(stlPath, filePath, error=None):
 			if error:
 				eventManager().fire(Events.SLICING_FAILED, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(filePath), "reason": error})
@@ -374,7 +407,7 @@ class PrintFilesManager(object):
 		if not util.isAllowedFile(filename.lower(), set(self.SUPPORTED_EXTENSIONS)):
 			return None
 
-		# TODO: detect which type of file and add in the extra folder portion 
+		# TODO: detect which type of file and add in the extra folder portion
 		secure = os.path.join(self._uploadFolder, secure_filename(self._getBasicFilename(filename)))
 		if mustExist and (not os.path.exists(secure) or not os.path.isfile(secure)):
 			return None
@@ -383,8 +416,6 @@ class PrintFilesManager(object):
 
 	def getAllFilenames(self):
 		return [x["name"] for x in self.getAllFileData()]
-		print self.getAllFileData()
-		return map(lambda x: x["name"], self.getAllFileData())
 
 	def getAllFileData(self):
 		files = []
@@ -404,7 +435,7 @@ class PrintFilesManager(object):
 		# TODO: Make this more robust when STLs will be viewable from the client
 		if self.isDesignFileName(filename):
 			return
-	
+
 		absolutePath = self.getAbsolutePath(filename)
 		if absolutePath is None:
 			return None
@@ -444,7 +475,7 @@ class PrintFilesManager(object):
 	def getFileCloudId(self, filename):
 		if filename:
 			filename = self._getBasicFilename(filename)
-		
+
 			if filename in self._metadata.keys() and 'cloud_id' in self._metadata[filename].keys():
 				return self._metadata[filename]['cloud_id']
 
@@ -625,7 +656,7 @@ class MetadataAnalyzer(object):
 						break
 					else:
 						continue
-				
+
 				self._logger.debug("Processing file %s from queue (priority %d)" % (filename, priority))
 
 			self._active.wait()

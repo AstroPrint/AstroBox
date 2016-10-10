@@ -59,6 +59,9 @@ class PrinterMarlin(Printer):
 		# comm
 		self._comm = None
 
+		self.estimatedTimeLeft = None
+		self.timePercentPreviousLayers = 0
+
 		super(PrinterMarlin, self).__init__()
 
 	def rampdown(self):
@@ -221,7 +224,10 @@ class PrinterMarlin(Printer):
 		if not super(PrinterMarlin, self).startPrint():
 			return
 
+		self.estimatedTimeLeft = None
+		self.timePercentPreviousLayers = 0
 		self._comm.startPrint()
+
 
 	def togglePausePrint(self):
 		"""
@@ -240,12 +246,10 @@ class PrinterMarlin(Printer):
 		else:
 			cameraManager().pause_timelapse()
 
-	def cancelPrint(self, reason=None, disableMotorsAndHeater=True):
+	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
 		 Cancel the current printjob.
 		"""
-		if not super(PrinterMarlin, self).cancelPrint(reason, disableMotorsAndHeater):
-			return
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
@@ -290,6 +294,8 @@ class PrinterMarlin(Printer):
 
 	#~~ state monitoring
 
+		self._comm.cleanPrintingVars()
+
 	def _setState(self, state):
 		self._state = state
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
@@ -331,6 +337,62 @@ class PrinterMarlin(Printer):
 
 		self._setState(state)
 
+	def mcLayerChange(self, layer):
+
+		super(PrinterMarlin, self).mcLayerChange(layer)
+
+		try:
+			if not layer == 1:
+				self.timePercentPreviousLayers += self._comm.timePerLayers[layer-2]['time']
+			else:
+				self.timePercentPreviousLayers = 0
+		except: pass
+
+
+	def mcProgress(self):
+		"""
+		 Callback method for the comm object, called upon any change in progress of the printjob.
+		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
+		"""
+		try:
+			layerFileUpperPercent = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
+
+			if self._currentLayer > 1:
+				layerFileLowerPercent = self._comm.timePerLayers[self._currentLayer-2]['upperPercent']
+			else:
+				layerFileLowerPercent = 0
+
+			currentAbsoluteFilePercent = self.getPrintProgress()
+			elapsedTime = self.getPrintTime()
+
+			try:
+				currentLayerPercent = (currentAbsoluteFilePercent - layerFileLowerPercent) / (layerFileUpperPercent - layerFileLowerPercent)
+			except:
+				currentLayerPercent = 0
+
+			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._currentLayer-1]['time']
+
+			currentTimePercent = self.timePercentPreviousLayers + layerTimePercent
+
+			estimatedTimeLeft = self._comm.totalPrintTime * ( 1.0 - currentTimePercent )
+
+			elapsedTimeVariance = elapsedTime - ( self._comm.totalPrintTime - estimatedTimeLeft)
+
+			adjustedEstimatedTime = self._comm.totalPrintTime + elapsedTimeVariance
+
+			estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 - currentTimePercent ) ) / 60
+
+			if self.estimatedTimeLeft and self.estimatedTimeLeft < estimatedTimeLeft:
+				estimatedTimeLeft = self.estimatedTimeLeft
+			else:
+				self.estimatedTimeLeft = estimatedTimeLeft
+
+			self._setProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
+
+		except Exception, e:
+			super(PrinterMarlin, self).mcProgress()
+
+
 	def mcMessage(self, message):
 		"""
 		 Callback method for the comm object, called upon message exchanges via serial.
@@ -355,6 +417,7 @@ class PrinterMarlin(Printer):
 	def mcPrintjobDone(self):
 		super(PrinterMarlin, self).mcPrintjobDone()
 		self.disableMotorsAndHeater()
+		self._comm.cleanPrintingVars()
 
 	def mcFileTransferStarted(self, filename, filesize):
 		self._sdStreaming = True
@@ -378,6 +441,10 @@ class PrinterMarlin(Printer):
 
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)
+
+	def _setJobData(self, filename, filesize, sd):
+		super(PrinterMarlin, self)._setJobData(filename, filesize, sd)
+		self._comm.totalPrintTime = self._estimatedPrintTime
 
 	#~~ sd file handling
 
