@@ -539,7 +539,13 @@ var CancelPrintDialog = Backbone.View.extend({
       this.parent.photoView.onHide();
 
       if (data && _.has(data, 'error')) {
-        noty({text: "There was an error canceling your job.", timeout: 3000});
+        var error = JSON.parse(data.error);
+        if (error.id == 'no_active_print') {
+          noty({text: "No Print Job is active", type: "warning" , timeout: 3000});
+          this.close();
+        } else {
+          noty({text: "There was an error canceling your job.", timeout: 3000});
+        }
         loadingBtn.removeClass('loading');
       } else {
         if (data.print_job_id) {

@@ -3,6 +3,8 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import json
+
 import octoprint.util as util
 
 from flask import request, make_response, jsonify
@@ -47,7 +49,12 @@ def controlJob():
 		printer.togglePausePrint()
 	elif command == "cancel":
 		if not activePrintjob:
-			return make_response("Printer is neither printing nor paused, 'cancel' command cannot be performed", 409)
+			response = make_response(json.dumps({
+				'id': 'no_active_print',
+				'msg': "Printer is neither printing nor paused, 'cancel' command cannot be performed"
+			}), 409)
+			response.headers['Content-Type'] = 'application/json';
+			return response
 
 		return jsonify(printer.cancelPrint())
 
