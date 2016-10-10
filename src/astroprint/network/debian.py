@@ -542,7 +542,7 @@ class DebianNetworkManager(NetworkManagerBase):
 				wifiDevices.append(d)
 
 		if wifiDevices:
-			if wifiDevices.count == 1:
+			if len(wifiDevices) == 1:
 				d = wifiDevices[0]
 				logger.info('Found one WiFi interface [%s], using it.' % d.Interface)
 				return d
