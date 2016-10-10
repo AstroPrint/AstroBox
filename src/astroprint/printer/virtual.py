@@ -267,7 +267,7 @@ class PrinterVirtual(Printer):
 		return self.getStateString(), 'virtual', 0
 
 	def jog(self, axis, amount):
-		self._logger.info('Jog - Axis: %s, Amount: %s', axis, amount)
+		self._logger.info('Jog - Axis: %s, Amount: %s', axis, self.jogAmountWithPrinterProfile(axis, amount))
 
 	def home(self, axes):
 		self._logger.info('Home - Axes: %s', ', '.join(axes))

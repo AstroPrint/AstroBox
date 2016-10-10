@@ -173,7 +173,7 @@ class PrinterMarlin(Printer):
 
 	def jog(self, axis, amount):
 		movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
-		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), amount, movementSpeed[axis]), "G90"])
+		self.commands(["G91", "G1 %s%.4f F%d" % (axis.upper(), self.jogAmountWithPrinterProfile(axis, amount), movementSpeed[axis]), "G90"])
 
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])

@@ -160,7 +160,6 @@ var MovementControlView = Backbone.View.extend({
 	printerProfile: null,
 	initialize: function(params) {
 		this.distanceControl = params.distanceControl;
-		this.printerProfile = app.printerProfile.toJSON();
 	},
     sendJogCommand: function(axis, multiplier, distance) {
         if (typeof distance === "undefined")
@@ -231,10 +230,10 @@ var ZControlView = MovementControlView.extend({
 		'click .home_z': 'homeTapped'
 	},
 	zPlusTapped: function() {
-		this.sendJogCommand('z', 1 * (this.printerProfile.invert_z ? -1 : 1), this.distanceControl.selected);
+		this.sendJogCommand('z', 1, this.distanceControl.selected);
 	},
 	zMinusTapped: function() {
-		this.sendJogCommand('z', -1 * (this.printerProfile.invert_z ? -1 : 1), this.distanceControl.selected);
+		this.sendJogCommand('z', -1 , this.distanceControl.selected);
 	},
 	homeTapped: function() {
 		if (!app.socketData.get('paused')) {
@@ -252,7 +251,7 @@ var ExtrusionControlView = Backbone.View.extend({
 	render: function() {
 		var printer_profile = app.printerProfile.toJSON();
 
-		this.$('.row.extruder-switch').html(this.template({ 
+		this.$('.row.extruder-switch').html(this.template({
 			profile: printer_profile
 		}));
 
@@ -305,10 +304,10 @@ var ExtrusionControlView = Backbone.View.extend({
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify(data)
-        });			
+        });
 	},
 	_checkAmount: function() {
-		return !isNaN(this.$el.find('input[name="extrusion-length"]').val()); 
+		return !isNaN(this.$el.find('input[name="extrusion-length"]').val());
 	},
 	_sendExtrusionCommand: function(direction) {
         var data = {
@@ -322,7 +321,7 @@ var ExtrusionControlView = Backbone.View.extend({
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify(data)
-        });		
+        });
 	}
 });
 
@@ -356,7 +355,7 @@ var FanControlView = Backbone.View.extend({
             dataType: "json",
             contentType: "application/json; charset=UTF-8",
             data: JSON.stringify(data)
-        });			
+        });
 	}
 });
 

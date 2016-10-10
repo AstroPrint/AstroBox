@@ -415,6 +415,14 @@ class Printer(object):
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
 
+	#~~~ Print Profile ~~~~
+
+	def jogAmountWithPrinterProfile(self, axis, amount):
+		if axis == 'z':
+			return (-amount if self._profileManager.data.get('invert_z') else amount)
+
+		return amount
+
 	#~~~ Data processing functions ~~~
 
 	def _addTemperatureData(self, temp, bedTemp):
