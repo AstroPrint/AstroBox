@@ -528,7 +528,9 @@
 						<%= data.release.release_notes %>
 					</p>
 				</div>
-			<% } %>
+			<% } else { %>
+        <h3 class="bold" align="center" style="margin: 20px 0">You are running the latest software</h3>
+      <% } %>
 			<div class="modal-actions row">
 				<% if (data.update_available) { %>
 					<div class="small-12 medium-6 columns">
