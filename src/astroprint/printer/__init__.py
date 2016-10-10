@@ -243,7 +243,6 @@ class Printer(object):
 
 		self._layerCount = layerCount
 		self._estimatedPrintTime = estimatedPrintTime
-		self._comm.totalPrintTime = estimatedPrintTime
 
 	def setSerialDebugLogging(self, active):
 		serialLogger = logging.getLogger("SERIAL")

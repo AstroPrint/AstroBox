@@ -442,6 +442,10 @@ class PrinterMarlin(Printer):
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)
 
+	def _setJobData(self, filename, filesize, sd):
+		super(PrinterMarlin, self)._setJobData(filename, filesize, sd)
+		self._comm.totalPrintTime = self._estimatedPrintTime
+
 	#~~ sd file handling
 
 	def getSdFiles(self):
