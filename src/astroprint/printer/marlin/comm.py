@@ -388,7 +388,10 @@ class MachineCom(object):
 			self._sendCommand("M110 N0")
 
 			#start sending gcode from file
-			self._sendNext()
+			firstCmd = self._getNextCommand()
+			if firstCmd:
+				self._commandQueue.appendleft(firstCmd)
+
 		except:
 			self._errorValue = getExceptionString()
 			self._changeState(self.STATE_ERROR)
@@ -1108,6 +1111,12 @@ class MachineCom(object):
 		return ret
 
 	def _sendNext(self):
+		line = self._getNextCommand()
+		if line:
+			self._sendCommand(line, True)
+			self._callback.mcProgress()
+
+	def _getNextCommand(self):
 		line = self._currentFile.getNext()
 		if line is None:
 			# if self.isStreaming():
@@ -1137,10 +1146,9 @@ class MachineCom(object):
 			self._callback.mcPrintjobDone()
 			self._changeState(self.STATE_OPERATIONAL)
 			eventManager().fire(Events.PRINT_DONE, payload)
+			return None
 
-		else:
-			self._sendCommand(line, True)
-			self._callback.mcProgress()
+		return line
 
 	def _handleResendRequest(self, line):
 		lineToResend = None
