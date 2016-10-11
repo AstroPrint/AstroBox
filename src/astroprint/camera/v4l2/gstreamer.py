@@ -200,7 +200,7 @@ class GStreamerManager(V4L2Manager):
 
 	def close_camera(self):
 			if self.asyncPhotoTaker:
-				self.close_camera()
+				self.asyncPhotoTaker.stop()
 				self.asyncPhotoTaker = None
 
 	def startLocalVideoSession(self, sessionId):
