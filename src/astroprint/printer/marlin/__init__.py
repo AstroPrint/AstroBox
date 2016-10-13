@@ -539,6 +539,12 @@ class PrinterMarlin(Printer):
 	def getConsumedFilament(self):
 		return self._comm.getConsumedFilament()
 
+	def getTotalConsumedFilament(self):
+		return self._comm.getTotalConsumedFilament()
+
+	def getSelectedTool(self):
+		return self._comm.getSelectedTool()
+
 	def getPrintProgress(self):
 		return self._comm.getPrintProgress()
 

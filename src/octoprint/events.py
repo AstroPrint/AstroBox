@@ -54,6 +54,7 @@ class Events(object):
 	POWER_OFF = "PowerOff"
 	HOME = "Home"
 	Z_CHANGE = "ZChange"
+	TOOL_CHANGE = "ToolChange"
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"
@@ -61,13 +62,6 @@ class Events(object):
 	EJECT = "Eject"
 	E_STOP = "EStop"
 	LAYER_CHANGE = "LayerChange"
-
-	# Timelapse
-	#CAPTURE_START = "CaptureStart"
-	#CAPTURE_DONE = "CaptureDone"
-	#MOVIE_RENDERING = "MovieRendering"
-	#MOVIE_DONE = "MovieDone"
-	#MOVIE_FAILED = "MovieFailed"
 
 	# Slicing
 	SLICING_STARTED = "SlicingStarted"

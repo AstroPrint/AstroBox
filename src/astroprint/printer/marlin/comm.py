@@ -28,6 +28,8 @@ from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 from astroprint.printfiles import FileDestinations
 
+from astroprint.printer.marlin.material_counter import MaterialCounter
+
 try:
 	import _winreg
 except:
@@ -76,11 +78,6 @@ class MachineCom(object):
 	STATE_CLOSED_WITH_ERROR = 10
 	#STATE_TRANSFERING_FILE = 11
 
-	#Extrusion modes
-	EXTRUSION_MODE_ABSOLUTE = 1
-	EXTRUSION_MODE_RELATIVE = 2
-
-
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
@@ -114,9 +111,8 @@ class MachineCom(object):
 		self._lastLayerHeight = None
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
-		self._currentExtruder = 0
+		self._currentTool = 0
 		self._oksAfterHeatingUp = 0
-		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
@@ -130,8 +126,6 @@ class MachineCom(object):
 
 		# print job
 		self._currentFile = None
-		self._consumedFilament = 0
-		self._lastExtrusion = 0
 		self._positionWhenPaused = {}
 
 		# regexes
@@ -172,6 +166,9 @@ class MachineCom(object):
 		self.size = None
 		self.layer_height = None
 		self.total_filament = None
+
+		#Material Counter
+		self._materialCounter = MaterialCounter()
 
 		# monitoring thread
 		self.thread = threading.Thread(target=self._monitor)
@@ -324,10 +321,13 @@ class MachineCom(object):
 		return self._port, self._baudrate
 
 	def getConsumedFilament(self):
-		if self._extrusionMode == self.EXTRUSION_MODE_ABSOLUTE:
-			return self._consumedFilament + self._lastExtrusion
-		else:
-			return self._consumedFilament
+		return self._materialCounter.consumedFilament
+
+	def getTotalConsumedFilament(self):
+		return self._materialCounter.totalConsumedFilament
+
+	def getSelectedTool(self):
+		return self._currentTool
 
 	##~~ external interface
 
@@ -375,13 +375,13 @@ class MachineCom(object):
 		if self._currentFile is None:
 			raise ValueError("No file selected for printing")
 
+		self._materialCounter.startPrint()
+
 		try:
 			self._currentFile.start()
 			self._lastLayerHeight = 0.0
 			self._currentLayer  = 0
 			self._oksAfterHeatingUp = 3
-			self._consumedFilament = 0
-			self._lastExtrusion = 0
 			#self._currentLayer = 1
 			#sefl._lastLayerHeight
 			#self._callback.mcLayerChange(self._tentativeLayer)
@@ -839,12 +839,12 @@ class MachineCom(object):
 				# 	self.refreshSdFiles()
 
 				##~~ Message handling
-				elif line.strip() != '' \
-						and line.strip() != 'ok' and not line.startswith("wait") \
-						and not line.startswith('Resend:') \
-						and line != 'echo:Unknown command:""\n' \
-						and self.isOperational():
-					self._callback.mcMessage(line)
+				#elif line.strip() != '' \
+				#		and line.strip() != 'ok' and not line.startswith("wait") \
+				#		and not line.startswith('Resend:') \
+				#		and line != 'echo:Unknown command:""\n' \
+				#		and self.isOperational():
+				#	self._callback.mcMessage(line)
 
 				##~~ Parsing for feedback commands
 				# if feedbackControls:
@@ -1272,7 +1272,35 @@ class MachineCom(object):
 	def _gcode_T(self, cmd):
 		toolMatch = self._regex_paramTInt.search(cmd)
 		if toolMatch:
-			self._currentExtruder = int(toolMatch.group(1))
+			tool = int(toolMatch.group(1))
+			if self._currentTool != tool:
+				oldTool = self._currentTool
+
+				self._materialCounter.changeActiveTool(tool, oldTool)
+				self._currentTool = tool
+				self._callback.mcToolChange(tool, oldTool)
+		return cmd
+
+	def _gcode_G92(self, cmd):
+		# At the moment this command is only relevant in Absolute Extrusion Mode
+		if self._materialCounter.extrusionMode == MaterialCounter.EXTRUSION_MODE_ABSOLUTE:
+			eValue = None
+
+			if cmd.strip() == 'G92': #A simple G92 command resets all axis so E is now set to 0
+				eValue = 0
+			elif 'E' in cmd:
+				match = self._regex_paramEFloat.search(cmd)
+				if match:
+					try:
+						eValue = float(match.group(1))
+
+					except ValueError:
+						pass
+
+			if eValue is not None:
+				#There has been an E reset
+				self._materialCounter.resetExtruderLength(eValue)
+
 		return cmd
 
 	def _gcode_G0(self, cmd):
@@ -1280,10 +1308,7 @@ class MachineCom(object):
 			match = self._regex_paramEFloat.search(cmd)
 			if match:
 				try:
-					self._lastExtrusion = float(match.group(1))
-
-					if self._extrusionMode == self.EXTRUSION_MODE_RELATIVE:
-						self._consumedFilament += self._lastExtrusion
+					self._materialCounter.reportExtrusion(float(match.group(1)))
 
 				except ValueError:
 					pass
@@ -1317,7 +1342,7 @@ class MachineCom(object):
 	_gcode_M1 = _gcode_M0
 
 	def _gcode_M104(self, cmd):
-		toolNum = self._currentExtruder
+		toolNum = self._currentTool
 		toolMatch = self._regex_paramTInt.search(cmd)
 		if toolMatch:
 			toolNum = int(toolMatch.group(1))
@@ -1386,14 +1411,12 @@ class MachineCom(object):
 		return cmd
 
 	def _gcode_M82(self, cmd): #Set to absolute extrusion mode
-		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
+		self._materialCounter.changeExtrusionMode(MaterialCounter.EXTRUSION_MODE_ABSOLUTE)
 		return cmd;
 
 	def _gcode_M83(self, cmd): #Set to relative extrusion mode
-		self._consumedFilament += self._lastExtrusion
-		self._extrusionMode = self.EXTRUSION_MODE_RELATIVE
+		self._materialCounter.changeExtrusionMode(MaterialCounter.EXTRUSION_MODE_RELATIVE)
 		return cmd
-
 
 ### MachineCom callback ################################################################################################
 
@@ -1417,6 +1440,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcZChange(self, newZ):
+		pass
+
+	def mcToolChange(self, newTool, oldTool):
 		pass
 
 	def mcLayerChange(self, layer):

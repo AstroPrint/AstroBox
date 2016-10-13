@@ -510,6 +510,12 @@ class PrinterS3g(Printer):
 	def getConsumedFilament(self):
 		return None
 
+	def getTotalConsumedFilament(self):
+		return None
+
+	def getSelectedTool(self):
+		return None
+
 	def getPrintFilepos(self):
 		if self._currentFile is None:
 			return None

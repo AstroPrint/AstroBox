@@ -144,7 +144,7 @@ class Printer(object):
 				"temps": list(self._temps),
 				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
 				#"logs": list(self._log),
-				"messages": list(self._messages)
+				#"messages": list(self._messages)
 			})
 			callback.sendCurrentData(data)
 			#callback.sendHistoryData(data)
@@ -337,7 +337,7 @@ class Printer(object):
 
 			self.executeCancelCommands(disableMotorsAndHeater)
 
-			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
+			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getTotalConsumedFilament()))
 
 			return {'print_job_id': activePrintJob}
 
@@ -375,7 +375,7 @@ class Printer(object):
 			astroprintCloud().print_job(self._currentPrintJobId, status='success')
 			self._currentPrintJobId = None
 
-		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
+		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getTotalConsumedFilament()))
 
 	def mcZChange(self, newZ):
 		"""
@@ -388,6 +388,9 @@ class Printer(object):
 			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
 
 		self._setCurrentZ(newZ)
+
+	def mcToolChange(self, newTool, oldTool):
+		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
@@ -532,6 +535,12 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def getConsumedFilament(self):
+		raise NotImplementedError()
+
+	def getTotalConsumedFilament(self):
+		raise NotImplementedError()
+
+	def getSelectedTool(self):
 		raise NotImplementedError()
 
 	def getPrintProgress(self):
