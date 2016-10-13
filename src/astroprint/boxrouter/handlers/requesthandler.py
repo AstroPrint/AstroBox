@@ -217,8 +217,7 @@ class PrinterCommandHandler(object):
 		done(None)
 
 	def cancel(self, data, clientId, done):
-		printerManager().cancelPrint()
-		done(None)
+		done(printerManager().cancelPrint())
 
 	def photo(self, data, clientId, done):
 

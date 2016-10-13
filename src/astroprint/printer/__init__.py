@@ -324,23 +324,25 @@ class Printer(object):
 		"""
 		 Cancel the current printjob.
 		"""
-		activePrintJob = None;
 
-		if self._comm is None:
-			return {'print_job_id': False}
+		if self._comm and (self.isPrinting() or self.isPaused()):
+			activePrintJob = None;
 
-		cameraManager().stop_timelapse()
+			cameraManager().stop_timelapse()
 
-		if self._currentPrintJobId:
-			astroprintCloud().print_job(self._currentPrintJobId, status='failed')
-			activePrintJob = self._currentPrintJobId
-			self._currentPrintJobId = None
+			if self._currentPrintJobId:
+				astroprintCloud().print_job(self._currentPrintJobId, status='failed')
+				activePrintJob = self._currentPrintJobId
+				self._currentPrintJobId = None
 
-		self.executeCancelCommands(disableMotorsAndHeater)
+			self.executeCancelCommands(disableMotorsAndHeater)
 
-		self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
+			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
 
-		return {'print_job_id': activePrintJob}
+			return {'print_job_id': activePrintJob}
+
+		else:
+			return {'error': 'no_print_job', 'message': 'No active print job to cancel'}
 
 	def togglePausePrint(self):
 		"""
