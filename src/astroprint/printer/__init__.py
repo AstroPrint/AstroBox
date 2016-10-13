@@ -285,6 +285,7 @@ class Printer(object):
 		self._stateMonitor.setProgress({
 			"completion": self._progress * 100 if self._progress is not None else None,
 			"currentLayer": self._currentLayer,
+			"filamentConsumed": self.getConsumedFilament(),
 			"filepos": filepos,
 			"printTime": int(self._printTime) if self._printTime is not None else None,
 			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
@@ -337,6 +338,8 @@ class Printer(object):
 
 		self.executeCancelCommands(disableMotorsAndHeater)
 
+		self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
+
 		return {'print_job_id': activePrintJob}
 
 	def togglePausePrint(self):
@@ -369,6 +372,8 @@ class Printer(object):
 		if self._currentPrintJobId:
 			astroprintCloud().print_job(self._currentPrintJobId, status='success')
 			self._currentPrintJobId = None
+
+		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getConsumedFilament()))
 
 	def mcZChange(self, newZ):
 		"""
@@ -522,6 +527,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def getPrintTime(self):
+		raise NotImplementedError()
+
+	def getConsumedFilament(self):
 		raise NotImplementedError()
 
 	def getPrintProgress(self):

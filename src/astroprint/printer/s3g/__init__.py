@@ -507,6 +507,9 @@ class PrinterS3g(Printer):
 		else:
 			return time.time() - self._currentFile['start_time']
 
+	def getConsumedFilament(self):
+		return None
+
 	def getPrintFilepos(self):
 		if self._currentFile is None:
 			return None

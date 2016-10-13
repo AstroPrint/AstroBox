@@ -76,6 +76,11 @@ class MachineCom(object):
 	STATE_CLOSED_WITH_ERROR = 10
 	#STATE_TRANSFERING_FILE = 11
 
+	#Extrusion modes
+	EXTRUSION_MODE_ABSOLUTE = 1
+	EXTRUSION_MODE_RELATIVE = 2
+
+
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
@@ -111,6 +116,7 @@ class MachineCom(object):
 		self._heatupWaitTimeLost = 0.0
 		self._currentExtruder = 0
 		self._oksAfterHeatingUp = 0
+		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
@@ -124,6 +130,8 @@ class MachineCom(object):
 
 		# print job
 		self._currentFile = None
+		self._consumedFilament = 0
+		self._lastExtrusion = 0
 		self._positionWhenPaused = {}
 
 		# regexes
@@ -133,6 +141,7 @@ class MachineCom(object):
 		self._regex_command = re.compile("^\s*([GM]\d+|T)")
 		self._regex_float = re.compile(floatPattern)
 		self._regex_paramZFloat = re.compile("Z(%s)" % floatPattern)
+		self._regex_paramEFloat = re.compile("E(%s)" % floatPattern)
 		self._regex_paramSInt = re.compile("S(%s)" % intPattern)
 		self._regex_paramNInt = re.compile("N(%s)" % intPattern)
 		self._regex_paramTInt = re.compile("T(%s)" % intPattern)
@@ -314,6 +323,12 @@ class MachineCom(object):
 	def getConnection(self):
 		return self._port, self._baudrate
 
+	def getConsumedFilament(self):
+		if self._extrusionMode == self.EXTRUSION_MODE_ABSOLUTE:
+			return self._consumedFilament + self._lastExtrusion
+		else:
+			return self._consumedFilament
+
 	##~~ external interface
 
 	def close(self, isError = False):
@@ -365,6 +380,8 @@ class MachineCom(object):
 			self._lastLayerHeight = 0.0
 			self._currentLayer  = 0
 			self._oksAfterHeatingUp = 3
+			self._consumedFilament = 0
+			self._lastExtrusion = 0
 			#self._currentLayer = 1
 			#sefl._lastLayerHeight
 			#self._callback.mcLayerChange(self._tentativeLayer)
@@ -451,7 +468,7 @@ class MachineCom(object):
 		eventManager().fire(Events.PRINT_CANCELLED, {
 			"file": self._currentFile.getFilename(),
 			"filename": os.path.basename(self._currentFile.getFilename()),
-			"origin": self._currentFile.getFileLocation()
+			"origin": self._currentFile.getFileLocation(),
 		})
 
 	def setPause(self, pause):
@@ -1259,6 +1276,18 @@ class MachineCom(object):
 		return cmd
 
 	def _gcode_G0(self, cmd):
+		if 'E' in cmd:
+			match = self._regex_paramEFloat.search(cmd)
+			if match:
+				try:
+					self._lastExtrusion = float(match.group(1))
+
+					if self._extrusionMode == self.EXTRUSION_MODE_RELATIVE:
+						self._consumedFilament += self._lastExtrusion
+
+				except ValueError:
+					pass
+
 		if 'Z' in cmd:
 			match = self._regex_paramZFloat.search(cmd)
 			if match:
@@ -1278,8 +1307,8 @@ class MachineCom(object):
 
 			self._lastLayerHeight = self._currentZ
 
-
 		return cmd
+
 	_gcode_G1 = _gcode_G0
 
 	def _gcode_M0(self, cmd):
@@ -1354,6 +1383,15 @@ class MachineCom(object):
 
 	def _gcode_M112(self, cmd): # It's an emergency what todo? Canceling the print should be the minimum
 		self.cancelPrint()
+		return cmd
+
+	def _gcode_M82(self, cmd): #Set to absolute extrusion mode
+		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
+		return cmd;
+
+	def _gcode_M83(self, cmd): #Set to relative extrusion mode
+		self._consumedFilament += self._lastExtrusion
+		self._extrusionMode = self.EXTRUSION_MODE_RELATIVE
 		return cmd
 
 
