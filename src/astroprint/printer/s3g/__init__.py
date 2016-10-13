@@ -508,10 +508,10 @@ class PrinterS3g(Printer):
 			return time.time() - self._currentFile['start_time']
 
 	def getConsumedFilament(self):
-		return None
+		return 0
 
 	def getTotalConsumedFilament(self):
-		return None
+		return 0
 
 	def getSelectedTool(self):
 		return None

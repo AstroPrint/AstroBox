@@ -266,6 +266,12 @@ class PrinterVirtual(Printer):
 
 		return self.getStateString(), 'virtual', 0
 
+	def getConsumedFilament(self):
+		return self._printJob._consumedFilament if self._printJob else 0
+
+	def getTotalConsumedFilament(self):
+		return sum([self._printJob._consumedFilament[k] for k in self._printJob._consumedFilament.keys()]) if self._printJob else 0
+
 	def jog(self, axis, amount):
 		self._logger.info('Jog - Axis: %s, Amount: %s', axis, self.jogAmountWithPrinterProfile(axis, amount))
 
@@ -366,6 +372,7 @@ class JobSimulator(threading.Thread):
 		self._filePos = 0
 		self._currentLayer = 0
 		self._pausedEvent = threading.Event()
+		self._consumedFilament = {0: 0}
 
 		super(JobSimulator, self).__init__()
 
@@ -381,6 +388,7 @@ class JobSimulator(threading.Thread):
 			self._timeElapsed += 1
 			self._filePos += 1
 			self._currentLayer += 1
+			self._consumedFilament[0] += 10
 			self._percentCompleted = self._timeElapsed / self._jobLength
 			self._pm.mcLayerChange(self._currentLayer)
 			self._pm.mcProgress()

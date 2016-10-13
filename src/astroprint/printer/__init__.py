@@ -330,14 +330,16 @@ class Printer(object):
 
 			cameraManager().stop_timelapse()
 
+			consumedMaterial = self.getTotalConsumedFilament()
+
 			if self._currentPrintJobId:
-				astroprintCloud().print_job(self._currentPrintJobId, status='failed')
+				astroprintCloud().print_job(self._currentPrintJobId, status='failed', materialUsed= consumedMaterial)
 				activePrintJob = self._currentPrintJobId
 				self._currentPrintJobId = None
 
 			self.executeCancelCommands(disableMotorsAndHeater)
 
-			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getTotalConsumedFilament()))
+			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
 
 			return {'print_job_id': activePrintJob}
 
@@ -371,11 +373,13 @@ class Printer(object):
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
 		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
 
+		consumedMaterial = self.getTotalConsumedFilament()
+
 		if self._currentPrintJobId:
-			astroprintCloud().print_job(self._currentPrintJobId, status='success')
+			astroprintCloud().print_job(self._currentPrintJobId, status= 'success', materialUsed= consumedMaterial)
 			self._currentPrintJobId = None
 
-		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (self._selectedFile['filename'] if self._selectedFile else 'unknown', self.getTotalConsumedFilament()))
+		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
 
 	def mcZChange(self, newZ):
 		"""

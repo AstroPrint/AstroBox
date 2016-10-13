@@ -370,7 +370,7 @@ class AstroPrintCloud(object):
 		else:
 			return None
 
-	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None ):
+	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None ):
 		if self.cloud_enabled():
 			try:
 				if id:
@@ -379,6 +379,9 @@ class AstroPrintCloud(object):
 
 					if reason:
 						data['reason'] = reason
+
+					if materialUsed:
+						data['material_used'] = materialUsed
 
 					r = requests.put("%s/printjobs/%s" % (self.apiHost, id),
 						data=json.dumps(data),
