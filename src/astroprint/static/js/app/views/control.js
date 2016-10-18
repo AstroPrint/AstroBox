@@ -409,6 +409,7 @@ var ControlView = Backbone.View.extend({
     this.fanView = new FanControlView();
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
+    this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
   },
   updateTemps: function(s, value)
   {
@@ -418,17 +419,7 @@ var ControlView = Backbone.View.extend({
   },
   render: function()
   {
-    if (app.socketData.get('paused')) {
-      this.$el.addClass('print-paused');
-
-      var printing_progress = app.socketData.get('printing_progress');
-
-      if (printing_progress && printing_progress.filename) {
-        this.$('.back-to-print .filename').text(printing_progress.filename)
-      }
-    } else {
-      this.$el.removeClass('print-paused');
-    }
+    this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
     this.tempView.render();
@@ -440,5 +431,28 @@ var ControlView = Backbone.View.extend({
     app.router.printingView.togglePausePrint(e);
 
     this.$el.addClass('hide');
+  },
+  onPrintingProgressChanged: function(model, printingProgress)
+  {
+    var el = this.$('.back-to-print .filename');
+
+    if (printingProgress && printingProgress.filename && printingProgress.filename != el.text()) {
+      el.text(printingProgress.filename)
+    }
+  },
+  onPausedChanged: function(model, paused)
+  {
+    if (paused) {
+      this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+      this.$el.addClass('print-paused');
+    } else {
+      this.stopListening(app.socketData, 'change:printing_progress');
+
+      if (app.socketData.get('printing')) {
+        app.router.navigate("printing", {replace: true, trigger: true});
+      } else {
+        this.$el.removeClass('print-paused');
+      }
+    }
   }
 });

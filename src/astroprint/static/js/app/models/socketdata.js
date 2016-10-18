@@ -7,251 +7,247 @@
 window.AP_SESSION_ID = null;
 
 var SocketData = Backbone.Model.extend({
-	connectionView: null,
-	_socket: null,
-	_autoReconnectTrial: 0,
-	_nextReconnectAttempt: null,
-	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
-	currentState: 0,
-	loggedUser: LOGGED_USER, //username or null
-	defaults: {
-		box_reachable: 'unreachable', //unreachable, reachable, checking
-		online: false,
-		printing: false,
-		paused: false,
-		camera: false,
-		printing_progress: {
-			percent: 0.0,
-			time_left: 0
-		},
-		temps: {
-			bed: {
-				actual: 0,
-				target: 0
-			},
-			extruder: {
-				actual: 0,
-				target: 0
-			}
-		},
-		astroprint: {
-			status: null
-		},
-		printer: {
-			status: null
-		},
-		print_capture: null
-	},
-	initialize: function()
-	{
-		this.set('printing', initial_states.printing);
-		this.set('paused', initial_states.paused);
-		this.set('online', initial_states.online);
-		this.set('print_capture', initial_states.print_capture);
+  connectionView: null,
+  _socket: null,
+  _autoReconnectTrial: 0,
+  _nextReconnectAttempt: null,
+  _autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
+  currentState: 0,
+  loggedUser: LOGGED_USER, //username or null
+  defaults: {
+    box_reachable: 'unreachable', //unreachable, reachable, checking
+    online: false,
+    printing: false,
+    paused: false,
+    camera: false,
+    printing_progress: {
+      percent: 0.0,
+      time_left: 0
+    },
+    temps: {
+      bed: {
+        actual: 0,
+        target: 0
+      },
+      extruder: {
+        actual: 0,
+        target: 0
+      }
+    },
+    astroprint: {
+      status: null
+    },
+    printer: {
+      status: null
+    },
+    print_capture: null
+  },
+  initialize: function()
+  {
+    this.set('printing', initial_states.printing);
+    this.set('paused', initial_states.paused);
+    this.set('online', initial_states.online);
+    this.set('print_capture', initial_states.print_capture);
 
-		//See if we need to check for sofware version
-		if (initial_states.checkSoftware && initial_states.online) {
-			$.get(API_BASEURL + 'settings/software/check')
-				.done(_.bind(function(data){
-					if (data.update_available && !data.is_current) {
-						this.trigger('new_sw_release', data);
-						//this.$('.new-release .version-label').text(data.release.major+'.'+data.release.minor+'('+data.release.build+')');
-						//this.$('.new-release').removeClass('hide');
-					}
-				}, this));
-		}
-	},
-	connect: function()
-	{
-		this.set('box_reachable', 'checking');
+    //See if we need to check for sofware version
+    if (initial_states.checkSoftware && initial_states.online) {
+      $.get(API_BASEURL + 'settings/software/check')
+        .done(_.bind(function(data){
+          if (data.update_available && !data.is_current) {
+            this.trigger('new_sw_release', data);
+          }
+        }, this));
+    }
+  },
+  connect: function()
+  {
+    this.set('box_reachable', 'checking');
 
-		var options = {};
-		if (SOCKJS_DEBUG) {
-			options["debug"] = true;
-		}
+    var options = {};
+    if (SOCKJS_DEBUG) {
+      options["debug"] = true;
+    }
 
-		this._socket = new SockJS(SOCKJS_URI, undefined, options);
-		this._socket.onopen = _.bind(this._onConnect, this);
-		this._socket.onclose = _.bind(this._onClose, this);
-		this._socket.onmessage = _.bind(this._onMessage, this);
-	},
-	reconnect: function() {
-		this._socket.close();
-		delete this._socket;
-		this.connect();
-	},
-	_onConnect: function() {
-		if (this._nextReconnectAttempt) {
-			clearTimeout(this._nextReconnectAttempt);
-			this._nextReconnectAttempt = null;
-		}
-		this._autoReconnectTrial = 0;
-		this.set('box_reachable', 'reachable');
-		//Get some initials
-	},
-	_onClose: function(e) {
-		if (e.code == 1000) {
-			// it was us calling close
-			return;
-		}
+    this._socket = new SockJS(SOCKJS_URI, undefined, options);
+    this._socket.onopen = _.bind(this._onConnect, this);
+    this._socket.onclose = _.bind(this._onClose, this);
+    this._socket.onmessage = _.bind(this._onMessage, this);
+  },
+  reconnect: function() {
+    this._socket.close();
+    delete this._socket;
+    this.connect();
+  },
+  _onConnect: function() {
+    if (this._nextReconnectAttempt) {
+      clearTimeout(this._nextReconnectAttempt);
+      this._nextReconnectAttempt = null;
+    }
+    this._autoReconnectTrial = 0;
+    this.set('box_reachable', 'reachable');
+    //Get some initials
+  },
+  _onClose: function(e) {
+    if (e.code == 1000) {
+      // it was us calling close
+      return;
+    }
 
-		this.set('box_reachable', 'unreachable');
-		this.connectionView.setPrinterConnection('failed');
-		this.connectionView.setAstroprintConnection('failed');
-		this._currentState = 0;
+    this.set('box_reachable', 'unreachable');
+    this.connectionView.setPrinterConnection('failed');
+    this.connectionView.setAstroprintConnection('failed');
+    this._currentState = 0;
 
-		if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
-			var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
+    if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
+      var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
 
-			console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
+      console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
 
-			this._nextReconnectAttempt = setTimeout(_.bind(this.reconnect, this), timeout * 1000);
-			this._autoReconnectTrial++;
-		} else {
-			this._onReconnectFailed();
-		}
-	},
-	_onReconnectFailed: function() {
-		console.error('reconnect failed');
-	},
-	_onMessage: function(e) {
-		for (var prop in e.data) {
-			var data = e.data[prop];
+      this._nextReconnectAttempt = setTimeout(_.bind(this.reconnect, this), timeout * 1000);
+      this._autoReconnectTrial++;
+    } else {
+      this._onReconnectFailed();
+    }
+  },
+  _onReconnectFailed: function() {
+    console.error('reconnect failed');
+  },
+  _onMessage: function(e) {
+    for (var prop in e.data) {
+      var data = e.data[prop];
 
-			switch (prop) {
-				case "connected": {
-					// update the current UI API key and send it with any request
-					UI_API_KEY = data["apikey"];
-					AP_SESSION_ID = data["sessionId"];
-					$.ajaxSetup({
-						headers: {"X-Api-Key": UI_API_KEY}
-					});
+      switch (prop) {
+        case "connected": {
+          // update the current UI API key and send it with any request
+          UI_API_KEY = data["apikey"];
+          AP_SESSION_ID = data["sessionId"];
+          $.ajaxSetup({
+            headers: {"X-Api-Key": UI_API_KEY}
+          });
 
-					this.connectionView.connect();
+          this.connectionView.connect();
+        }
+        break;
 
-					break;
-				}
+        case "current": {
+          var flags = data.state.flags;
 
-				case "current": {
-					var flags = data.state.flags;
+          if (data.temps.length) {
+            var temps = data.temps[data.temps.length-1];
+            this.set('temps', {
+              bed: temps.bed,
+              extruder: temps.tool0
+            });
+          }
 
-					if (data.temps.length) {
-						var temps = data.temps[data.temps.length-1];
-						this.set('temps', {
-							bed: temps.bed,
-							extruder: temps.tool0
-						});
-					}
+          if (data.state && data.state.text != this.currentState) {
+            this.currentState = data.state.text;
+            var connectionClass = 'blink-animation';
+            var printerStatus = 'connecting';
 
-					if (data.state && data.state.text != this.currentState) {
-						this.currentState = data.state.text;
-						var connectionClass = 'blink-animation';
-						var printerStatus = 'connecting';
+            if (flags.closedOrError) {
+              connectionClass = 'failed';
+              printerStatus = 'failed';
+            } else if (flags.operational) {
+              connectionClass = 'connected';
+              printerStatus = 'connected';
+            }
 
-						if (flags.closedOrError) {
-							connectionClass = 'failed';
-							printerStatus = 'failed';
-						} else if (flags.operational) {
-							connectionClass = 'connected';
-							printerStatus = 'connected';
-						}
+            this.connectionView.setPrinterConnection(connectionClass);
+            this.set('printer', {status: printerStatus });
+          }
 
-						this.connectionView.setPrinterConnection(connectionClass);
-						this.set('printer', {status: printerStatus });
-					}
+          if (!flags.paused) {
+            this.set('printing', flags.printing);
+          }
 
-					if (!flags.paused) {
-						this.set('printing', flags.printing);
-					}
+          this.set('paused', flags.paused);
+          this.set('camera', flags.camera);
 
-					this.set('paused', flags.paused);
-					this.set('camera', flags.camera);
+          if (flags.printing || flags.paused) {
+            var progress = data.progress;
+            var job = data.job;
 
-					if (flags.printing) {
-						var progress = data.progress;
+            this.set('printing_progress', {
+              filename: job.file.name,
+              rendered_image: job.file.rendered_image,
+              layer_count: job.layerCount,
+              current_layer: progress.currentLayer,
+              percent: progress.completion ? progress.completion.toFixed(1) : 0,
+              time_left: data.progress.printTimeLeft,
+              time_elapsed: progress.printTime ? progress.printTime : 0,
+              heating_up: flags.heatingUp
+            });
+          }
+        }
+        break;
 
-						this.set('printing_progress', {
-							filename: data.job.file.name,
-							rendered_image: data.job.file.rendered_image,
-							layer_count: data.job.layerCount,
-							current_layer: progress.currentLayer,
-							percent: progress.completion ? progress.completion.toFixed(1) : 0,
-							time_left: data.progress.printTimeLeft,
-							time_elapsed: progress.printTime ? progress.printTime : 0,
-							heating_up: flags.heatingUp
-						});
-					}
+        case "event": {
+          var type = data["type"];
+          var payload = data["payload"];
 
-					break;
-				}
+          switch(type) {
+            case 'MetadataAnalysisFinished':
+              app.eventManager.trigger('astrobox:MetadataAnalysisFinished', payload);
+            break;
 
-				case "event": {
-					var type = data["type"];
-					var payload = data["payload"];
+            case 'CloudDownloadEvent':
+              app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
+            break;
 
-					switch(type) {
-						case 'MetadataAnalysisFinished':
-							app.eventManager.trigger('astrobox:MetadataAnalysisFinished', payload);
-							break;
+            case 'AstroPrintStatus':
+              switch(payload) {
+                case 'connecting':
+                  this.connectionView.setAstroprintConnection('blink-animation');
+                break;
 
-						case 'CloudDownloadEvent':
-							app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
-							break;
+                case 'connected':
+                  this.connectionView.setAstroprintConnection('connected');
+                break;
 
-						case 'AstroPrintStatus':
-							switch(payload) {
-								case 'connecting':
-									this.connectionView.setAstroprintConnection('blink-animation');
-									break;
+                case 'disconnected':
+                case 'error':
+                  this.connectionView.setAstroprintConnection('failed');
+                break;
 
-								case 'connected':
-									this.connectionView.setAstroprintConnection('connected');
-									break;
+                default:
+                  console.log('astroprintStatus unkonwn event: '+payload);
+              }
+              this.set('astroprint', { status: payload });
+            break;
 
-								case 'disconnected':
-								case 'error':
-									this.connectionView.setAstroprintConnection('failed');
-									break;
+            case 'LockStatusChanged':
+              if (payload != this.loggedUser) {
+                location.reload();
+              }
+            break;
 
-								default:
-								console.log('astroprintStatus unkonwn event: '+payload);
-							}
-							this.set('astroprint', { status: payload });
-							break;
+            case 'PrintCaptureInfoChanged':
+              this.set('print_capture', payload);
+            break;
 
-						case 'LockStatusChanged':
-							if (payload != this.loggedUser) {
-								location.reload();
-							}
-							break;
+            case 'NetworkStatus':
+              this.set('online', payload == 'online');
+            break;
 
-						case 'PrintCaptureInfoChanged':
-							this.set('print_capture', payload);
-							break;
+            case 'InternetConnectingStatus':
+              app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
+            break;
 
-						case 'NetworkStatus':
-							this.set('online', payload == 'online');
-							break;
+            case 'GstreamerEvent':
+              app.eventManager.trigger('astrobox:videoStreamingEvent',payload);
+            break;
 
-						case 'InternetConnectingStatus':
-							app.eventManager.trigger('astrobox:InternetConnectingStatus', payload);
-							break;
+            default:
+              console.warn('Unkonwn event received: '+type);
+          }
+        }
+        break;
 
-						case 'GstreamerEvent':
-							app.eventManager.trigger('astrobox:videoStreamingEvent',payload);
-							break;
-
-						default:
-							console.warn('Unkonwn event received: '+type);
-					}
-
-					break;
-				}
-
-				case 'commsData':
-					app.eventManager.trigger('astrobox:commsData', {direction: data.direction, data: data.data});
-				break;
-			}
-		}
-	}
+        case 'commsData':
+          app.eventManager.trigger('astrobox:commsData', {direction: data.direction, data: data.data});
+        break;
+      }
+    }
+  }
 });
