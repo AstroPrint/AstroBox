@@ -5,170 +5,173 @@
  */
 
 var AppRouter = Backbone.Router.extend({
-	homeView: null,
-	filesView: null,
-	controlView: null,
-	settingsView: null,
-	printingView: null,
-	terminalView: null,
-	cameraView: null,
-	suppliesView: null,
-	routes: {
-		"": "home",
-		"files": "files",
-		"file-info/:fileId": "fileInfo",
-		"control": "control",
-		"printing": "printing",
-		"settings": "settings",
-		"settings/:page": "settings",
-		"gcode-terminal": "terminal",
-		"camera": "camera",
-		"supplies": "supplies",
-		"*notFound": "notFound"
-	},
-	turningOff: false,
-  	execute: function(callback, args) {
-  		if (callback) {
-  			is_paused = app.socketData.get('paused');
-  			if (app.socketData.get('printing') || is_paused) {
-  				if 	(callback != this.printing &&
-  					(callback != this.control || !is_paused)
-  				) {
-  					this.navigate('printing', {trigger: true, replace:true});
-  					return;
-  				}
-  			} else if (callback == this.printing) {
-  				this.navigate('', {trigger: true, replace:true});
-  				return;
-  			}
+  homeView: null,
+  filesView: null,
+  controlView: null,
+  settingsView: null,
+  printingView: null,
+  terminalView: null,
+  cameraView: null,
+  suppliesView: null,
+  routes: {
+    "": "home",
+    "files": "files",
+    "file-info/:fileId": "fileInfo",
+    "control": "control",
+    "printing": "printing",
+    "settings": "settings",
+    "settings/:page": "settings",
+    "gcode-terminal": "terminal",
+    "camera": "camera",
+    "supplies": "supplies",
+    "*notFound": "notFound"
+  },
+  turningOff: false,
+  execute: function(callback, args) {
+    if (callback) {
+      is_paused = app.socketData.get('paused');
+      is_printing = app.socketData.get('printing');
 
-  			callback.apply(this, args);
-  		}
-	},
-	home: function()
-	{
-		if (!this.homeView) {
-			this.homeView = new HomeView({forceSync: false});
-		}
+      if (is_printing || is_paused) {
+        app.setPrinting();
 
-		this.selectView(this.homeView);
-		app.selectQuickNav('dash');
-	},
-	files: function()
-	{
-		if (!this.filesView) {
-			this.filesView = new FilesView({forceSync: false});
-		}
+        if  (callback != this.printing &&
+          (callback != this.control || !is_paused)
+        ) {
+          this.navigate('printing', {trigger: true, replace:true});
+          return;
+        }
+      } else if (callback == this.printing) {
+        this.navigate('', {trigger: true, replace:true});
+        return;
+      }
 
-		this.selectView(this.filesView);
-		app.selectQuickNav('files');
-	},
-	fileInfo: function(fileId)
-	{
-		var showDlg = _.bind(function(success) {
-			if (success) {
-				this.filesView.fileInfo(fileId);
-			}
-		}, this);
+      callback.apply(this, args);
+    }
+  },
+  home: function()
+  {
+    if (!this.homeView) {
+      this.homeView = new HomeView({forceSync: false});
+    }
 
-		if (this.filesView) {
-			this.filesView.printFilesListView.refresh(true, showDlg);
-		} else {
-			this.filesView = new FilesView({
-				forceSync: true,
-				syncCompleted: showDlg
-			});
-		}
+    this.selectView(this.homeView);
+    app.selectQuickNav('dash');
+  },
+  files: function()
+  {
+    if (!this.filesView) {
+      this.filesView = new FilesView({forceSync: false});
+    }
 
-		this.navigate('files', {trigger: true, replace:true});
-	},
-	control: function()
-	{
-		if (!this.controlView) {
-			this.controlView = new ControlView();
-		}
+    this.selectView(this.filesView);
+    app.selectQuickNav('files');
+  },
+  fileInfo: function(fileId)
+  {
+    var showDlg = _.bind(function(success) {
+      if (success) {
+        this.filesView.fileInfo(fileId);
+      }
+    }, this);
 
-		this.selectView(this.controlView);
-		app.selectQuickNav('control');
-	},
-	printing: function()
-	{
-		if (!this.printingView) {
-			this.printingView = new PrintingView();
-		}
+    if (this.filesView) {
+      this.filesView.printFilesListView.refresh(true, showDlg);
+    } else {
+      this.filesView = new FilesView({
+        forceSync: true,
+        syncCompleted: showDlg
+      });
+    }
 
-		this.selectView(this.printingView);
-		app.$('.quick-nav').hide();
-	},
-	settings: function(page)
-	{
-		if (!this.settingsView) {
-			this.settingsView = new SettingsView();
-		}
+    this.navigate('files', {trigger: true, replace:true});
+  },
+  control: function()
+  {
+    if (!this.controlView) {
+      this.controlView = new ControlView();
+    }
 
-		this.selectView(this.settingsView);
-		this.settingsView.menu.changeActive(page || 'printer-connection');
-		app.selectQuickNav('settings');
-	},
-	terminal: function() {
-		if (!this.terminalView) {
-			this.terminalView = new TerminalView();
-		}
+    this.selectView(this.controlView);
+    app.selectQuickNav('control');
+  },
+  printing: function()
+  {
+    if (!this.printingView) {
+      this.printingView = new PrintingView();
+    }
 
-		this.selectView(this.terminalView);
-	},
-	camera: function() {
-		if (!this.cameraView) {
-			this.cameraView = new CameraView();
-		}
+    this.selectView(this.printingView);
+  },
+  settings: function(page)
+  {
+    if (!this.settingsView) {
+      this.settingsView = new SettingsView();
+    }
 
-		this.selectView(this.cameraView);
-		app.selectQuickNav('camera');
-	},
-	selectView: function(view) {
-		var currentView = app.$el.find('.app-view.active');
-		var targetView = view.$el;
-		var targetId = targetView.attr('id');
+    this.selectView(this.settingsView);
+    this.settingsView.menu.changeActive(page || 'printer-connection');
+    app.selectQuickNav('settings');
+  },
+  terminal: function() {
+    if (!this.terminalView) {
+      this.terminalView = new TerminalView();
+    }
 
-		targetView.removeClass('hide').addClass('active');
-		targetView.trigger('show');
+    this.selectView(this.terminalView);
+  },
+  camera: function() {
+    if (!this.cameraView) {
+      this.cameraView = new CameraView();
+    }
 
-		if (targetView.data('fullscreen')) {
-			$('#app').addClass('hide');
+    this.selectView(this.cameraView);
+    app.selectQuickNav('camera');
+  },
+  selectView: function(view) {
+    var currentView = app.$el.find('.app-view.active');
+    var targetView = view.$el;
+    var targetId = targetView.attr('id');
 
-			currentView.each(function(idx, el) {
-				var $el = $(el);
+    targetView.removeClass('hide').addClass('active');
+    targetView.trigger('show');
 
-				if ($el.attr('id') != targetId && $el.data('fullscreen')) {
-					//If we have another fullscreen view, hide it
-					$el.addClass('hide').removeClass('active');
-				}
-			});
+    if (targetView.data('fullscreen')) {
+      $('#app').addClass('hide');
 
-			currentView.trigger('hide');
-		} else {
-			if (currentView.attr('id') != targetId) {
-				currentView.addClass('hide').removeClass('active');
-				currentView.trigger('hide');
+      currentView.each(function(idx, el) {
+        var $el = $(el);
 
-				if (targetId == 'control-view') {
-					this.controlView.tempView.resetBars();
-				}
-			}
+        if ($el.attr('id') != targetId && $el.data('fullscreen')) {
+          //If we have another fullscreen view, hide it
+          $el.addClass('hide').removeClass('active');
+        }
+      });
 
-			app.selectQuickNav();
-		}
-	},
-	notFound: function()
-	{
-		this.navigate("", {trigger: true, replace: true});
-	},
-	supplies: function()
-	{
-		if (!this.suppliesView) {
-			this.suppliesView = new SuppliesView();
-		}
+      currentView.trigger('hide');
+    } else {
+      if (currentView.attr('id') != targetId) {
+        currentView.addClass('hide').removeClass('active');
+        currentView.trigger('hide');
 
-		this.selectView(this.suppliesView);
-	}
+        if (targetId == 'control-view') {
+          this.controlView.tempView.resetBars();
+        }
+      }
+
+      app.selectQuickNav();
+    }
+  },
+  notFound: function()
+  {
+    this.navigate("", {trigger: true, replace: true});
+  },
+  supplies: function()
+  {
+    if (!this.suppliesView) {
+      this.suppliesView = new SuppliesView();
+    }
+
+    this.selectView(this.suppliesView);
+  }
 });
