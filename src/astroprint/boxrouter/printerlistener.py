@@ -40,10 +40,13 @@ class PrinterListener(object):
 		pass
 
 	def addTemperature(self, data):
-		payload = {
-			'bed': { 'actual': data['bed']['actual'], 'target': data['bed']['target'] },
-			'tool0': { 'actual': data['tool0']['actual'], 'target': data['tool0']['target'] }
-		}
+		payload = {}
+
+		if 'bed' in data:
+			payload['bed'] = { 'actual': data['bed']['actual'], 'target': data['bed']['target'] }
+
+		if 'tool0' in data:
+			payload['tool0'] = { 'actual': data['tool0']['actual'], 'target': data['tool0']['target'] }
 
 		self._sendUpdate('temp_update', payload)
 
