@@ -188,23 +188,19 @@ class PrinterVirtual(Printer):
 		return self._state == self.STATE_PAUSED
 
 	def setPause(self, paused):
+		printFileInfo = {
+			"file": self._currentFile['filename'],
+			"filename": os.path.basename(self._currentFile['filename']),
+			"origin": self._currentFile['origin']
+		}
+
 		if paused:
 			self._changeState(self.STATE_PAUSED)
-
-			eventManager().fire(Events.PRINT_PAUSED, {
-				"file": self._currentFile['filename'],
-				"filename": os.path.basename(self._currentFile['filename']),
-				"origin": self._currentFile['origin']
-			})
+			eventManager().fire(Events.PRINT_PAUSED, printFileInfo)
 
 		else:
 			self._changeState(self.STATE_PRINTING)
-
-			eventManager().fire(Events.PRINT_RESUMED, {
-				"file": self._currentFile['filename'],
-				"filename": os.path.basename(self._currentFile['filename']),
-				"origin": self._currentFile['origin']
-			})
+			eventManager().fire(Events.PRINT_RESUMED, printFileInfo)
 
 		if self._printJob:
 			self._printJob.setPaused(paused)
