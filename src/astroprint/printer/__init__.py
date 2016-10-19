@@ -414,15 +414,18 @@ class Printer(object):
 		progress = self.getPrintProgress()
 		estimatedTimeLeft = None
 
-		if printTime and progress and self._estimatedPrintTime:
-			if progress < 1.0:
-				estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
-				elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
-				adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
-				estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+		if self._estimatedPrintTime:
+			if printTime and progress:
+				if progress < 1.0:
+					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
+					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
+					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
+					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+				else:
+					estimatedTimeLeft = 0
 
-		elif self._estimatedPrintTime:
-			estimatedTimeLeft = self._estimatedPrintTime / 60
+			else:
+				estimatedTimeLeft = self._estimatedPrintTime / 60
 
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
 
