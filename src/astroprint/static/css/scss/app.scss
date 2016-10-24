@@ -32,6 +32,21 @@ body, html {
 	.tab-bar-section.middle {
 		right: 0;
 		text-align: left;
+
+		ul {
+			list-style: none;
+			a {
+				color: #999;
+				line-height: rem-calc(50);
+				display: block;
+				float: left;
+				padding: 0 15px;
+				&:hover {
+					background: #efefef;
+					color: #505050;
+				}
+			}
+		}
 	}
 
 	h1.title {

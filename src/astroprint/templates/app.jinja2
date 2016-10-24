@@ -26,6 +26,7 @@
 				<section class="middle tab-bar-section">
 					<span class="top-logo-small show-for-small"><a href="#"><i class="icon-rocket"></i></a></span>
 					<h1 class="title hide-for-small"><a href="#"><img src="/img/astrobox_logo_medium.png"/></a></h1>
+					<ul class="left show-for-large-up"><li><a href="#" target="_blank">My AstroPrint Cloud</a></li></ul>
 					<div id="connection-view">
 						<a href="#settings/internet-connection" class="offline" data-title="Not connected to the internet">
 							<img src="/img/no-internet-icon.png" />
@@ -40,6 +41,7 @@
 				<ul class="off-canvas-list" id="main-menu">
 					<li class="header bold"><label>{{astroboxName}}</label></li>
 					<li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
+					<li><a href="#"><i class="icon-rocket"></i> My AstroPrint Cloud</a></li>
 					{% if not user_email %}
 						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
 					{% else %}
@@ -117,7 +119,7 @@
 	{% assets filters="closure_js", output="js/gen/app.js",
 		"js/lib/jquery.js", "js/lib/jquery.ui.widget.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/modernizr.js",
 		"js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js",
-		"js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.equalizer.js", 
+		"js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.equalizer.js",
 		"js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
 		"js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
 		"js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js",
