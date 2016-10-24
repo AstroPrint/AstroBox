@@ -51,7 +51,8 @@ default_settings = {
 		"encoding": "h264",
 		"size": "640x480",
 		"framerate": "15/1",
-		"pixelformat": "YUYV",
+		"format": "x-raw", #This is used by mpjeg Manager
+		"pixelformat": "YUYV", #This is used by GStreamer Manager
 		"source": "USB",
 		"debug-level": 0,
 		"graphic-debug": False

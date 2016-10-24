@@ -154,6 +154,9 @@ def cameraSettings():
 			if "encoding" in data:
 				s.set(['camera', 'encoding'], data['encoding'])
 
+			if "format" in data:
+				s.set(['camera', 'format'], data['format'])
+
 			if "framerate" in data:
 				s.set(['camera', 'framerate'], data['framerate'])
 
@@ -164,12 +167,14 @@ def cameraSettings():
 				'encoding': s.get(['camera', 'encoding']),
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
+				'format': s.get(['camera', 'format'])
 			})
 
 	return jsonify(
 		encoding= s.get(['camera', 'encoding']),
 		size= s.get(['camera', 'size']),
 		framerate= s.get(['camera', 'framerate']),
+		format= s.get(['camera', 'format']),
 		source= s.get(['camera', 'source']),
 		structure= cm.settingsStructure()
 	)

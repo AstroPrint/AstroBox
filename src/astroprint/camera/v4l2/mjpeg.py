@@ -78,15 +78,19 @@ class MjpegManager(V4L2Manager):
 		if self._streamer :
 			self.close_camera()
 
-		self.supported_formats = self._getSupportedResolutions()
+		if self.isCameraConnected():
+			self.supported_formats = self._getSupportedResolutions()
 
-		if self.supported_formats is None:
-			return False
+			if self.supported_formats is None:
+				return False
+			else:
+				self.cameraName = self.getCameraName()
+				self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
+
+				return self.open_camera()
+
 		else:
-			self.cameraName = self.getCameraName()
-			self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
-
-			return self.open_camera()
+			return False
 
 	def start_video_stream(self):
 		if self._streamer:

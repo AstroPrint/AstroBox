@@ -348,7 +348,6 @@ var CameraVideoStreamView = SettingsPage.extend({
             this.cameraName = response.cameraName;
           }
 
-
           $.getJSON(API_BASEURL + 'settings/camera', null, _.bind(function(data) {
 
             if(data.structure){
@@ -407,7 +406,7 @@ var CameraVideoStreamView = SettingsPage.extend({
               },this))
             } else {//camera plugged is not supported by Astrobox
               //this.cameraName = data.cameraName;
-              this.videoSettingsError = 'The camera which was connected is not supported by Astrobox.<br>It is probably the minimal camera resolution is less than 640x480 (minimal resolution supported).';
+              this.videoSettingsError = 'The camera connected is not supported.<br>The minimal resolution is less than 640x480 (minimal resolution supported).';
               this.render();
             }
           }, this))

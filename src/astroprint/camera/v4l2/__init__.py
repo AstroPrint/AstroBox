@@ -16,14 +16,15 @@ class V4L2Manager(CameraManager):
 
 		if self.isCameraConnected():
 			self.supported_formats = self._getSupportedResolutions()
+			self.cameraName = self.getCameraName()
+			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+			self.setSafeSettings()
+
 		else:
 			self.supported_formats = None
-
-		self.cameraName = self.getCameraName()
-
-		self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
-
-		self.setSafeSettings()
+			self.cameraName = None
+			self.cameraInfo = None
+			self._logger.info('No Camera detected on /dev/video%d' % number_of_video_device);
 
 		super(V4L2Manager, self).__init__(self.cameraInfo)
 
@@ -61,8 +62,8 @@ class V4L2Manager(CameraManager):
 
 			else:
 				settings().set(["camera", "encoding"],settings().get(["camera", "encoding"]) or 'h264')
-				settings().set(["camera", "size"],self.safeRes)
-				settings().set(["camera", "format"],'x-raw')
+				settings().set(["camera", "size"], self.safeRes)
+				settings().set(["camera", "format"], 'x-raw')
 				self.cameraName = self.getCameraName()
 
 				self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
@@ -301,13 +302,19 @@ class V4L2Manager(CameraManager):
 	# from CameraManager
 
 	def isCameraConnected(self):
-
 		try:
-			return os.path.exists("/dev/video%d" % self.number_of_video_device)
+			device = "/dev/video%d" % self.number_of_video_device
+			if os.path.exists(device):
+				#check that we can write to it
+				fd = open(device, 'r')
+				fd.close()
+				return True
 
-		except:
+		except IOError as e:
+			if e.errno != errno.ECOMM:
+				self._logger.error('Error in camera detection: %s' % os.strerror(e.errno))
 
-			return False
+		return False
 
 	def hasCameraProperties(self):
 		return self.supported_formats is not None

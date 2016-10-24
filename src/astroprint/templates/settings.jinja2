@@ -1,197 +1,197 @@
 <div class="row heading">
-	<div class="small-12 title-heading">
-		<h1 class="bold">Settings</h1>
-	</div>
+  <div class="small-12 title-heading">
+    <h1 class="bold">Settings</h1>
+  </div>
 </div>
 
 <div class="row collapse container">
-	<div class="hide-for-small-only medium-5  large-4 columns">
-		<div id="settings-side-bar">
-			<ul class="side-nav">
-				<li class="heading bold">3D Printer</li>
-				<li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
-				<li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
-				<li class="heading bold">Camera</li>
-				<li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
-				<li class="heading bold">Network</li>
-				<li class="network-name"><a href="#settings/network-name">Name</a></li>
-				<li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
-				<li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
-				<li class="heading bold">Software</li>
-				<li class="software-update"><a href="#settings/software-update">Update</a></li>
-				<li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
-			</ul>
-		</div>
-	</div>
-	<div class="small-12 medium-7 large-8 columns">
+  <div class="hide-for-small-only medium-5  large-4 columns">
+    <div id="settings-side-bar">
+      <ul class="side-nav">
+        <li class="heading bold">3D Printer</li>
+        <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
+        <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+        <li class="heading bold">Camera</li>
+        <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
+        <li class="heading bold">Network</li>
+        <li class="network-name"><a href="#settings/network-name">Name</a></li>
+        <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
+        <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
+        <li class="heading bold">Software</li>
+        <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="small-12 medium-7 large-8 columns">
 
-		<div class="show-for-small zebra">
-			<a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
-		</div>
-		<div id="printer-connection" class="settings-page">
-			<div class="row connection-status">
-				<div class="small-12">
-					<span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
-					<span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
-					<span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
-				</div>
-			</div>
-			<form></form>
-		</div>
+    <div class="show-for-small zebra">
+      <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
+    </div>
+    <div id="printer-connection" class="settings-page">
+      <div class="row connection-status">
+        <div class="small-12">
+          <span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
+          <span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
+          <span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
+        </div>
+      </div>
+      <form></form>
+    </div>
 
-		<script type="text/template" id="printer-connection-settings-page-template">
-			<div class="row">
-				<div class="small-12">
-					<label for="settings-serial-port" class="bold">
-						USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
-						<% if (settings.serial.portOptions.length > 0) { %>
-							<% if (settings.serial.portOptions.length > 1) { %>
-								<select id="settings-serial-port" name="port">
-									<% _.each(settings.serial.portOptions, function(e) { %>
-										<option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
-									<% }) %>
-								</select>
-							<% } else { %>
-								<% var e = settings.serial.portOptions[0] %>
-								<input type="hidden" value="<%= e[0] %>" name="port"/>
-								<p><%= e[1] %></p>
-							<% } %>
-						<% } else { %>
-							<p>
-							No printer detected. Is your printer plugged in?<br/>
-							<a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
-							</p>
-						<% } %>
-					</label>
-				</div>
-			</div>
-			<% if (settings.serial.portOptions.length > 0 && settings.serial.baudrateOptions.length > 0) { %>
-				<div class="row">
-					<div class="small-12">
-						<label for="settings-baudrate" class="bold">Baud Rate
-							<select id="settings-baudrate" name="baudrate">
-								<% _.each(settings.serial.baudrateOptions, function(e) { %>
-									<option value="<%= e %>"<%= settings.serial.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
-								<% }) %>
-							</select>
-						</label>
-					</div>
-				</div>
-			<% } %>
-			<% if (settings.serial.portOptions.length > 0 && ( settings.serial.baudrateOptions.length > 0 || settings.driver == 's3g') )  { %>
-				<div align="center">
-					<div class="loading-button test-connection">
-						<button class="success radius">Test Connection</button>
-						<span class="button disabled radius success loading">Connecting...</span>
-					</div>
-				</div>
-			<% } %>
-		</script>
+    <script type="text/template" id="printer-connection-settings-page-template">
+      <div class="row">
+        <div class="small-12">
+          <label for="settings-serial-port" class="bold">
+            USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
+            <% if (settings.serial.portOptions.length > 0) { %>
+              <% if (settings.serial.portOptions.length > 1) { %>
+                <select id="settings-serial-port" name="port">
+                  <% _.each(settings.serial.portOptions, function(e) { %>
+                    <option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+                  <% }) %>
+                </select>
+              <% } else { %>
+                <% var e = settings.serial.portOptions[0] %>
+                <input type="hidden" value="<%= e[0] %>" name="port"/>
+                <p><%= e[1] %></p>
+              <% } %>
+            <% } else { %>
+              <p>
+              No printer detected. Is your printer plugged in?<br/>
+              <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+              </p>
+            <% } %>
+          </label>
+        </div>
+      </div>
+      <% if (settings.serial.portOptions.length > 0 && settings.serial.baudrateOptions.length > 0) { %>
+        <div class="row">
+          <div class="small-12">
+            <label for="settings-baudrate" class="bold">Baud Rate
+              <select id="settings-baudrate" name="baudrate">
+                <% _.each(settings.serial.baudrateOptions, function(e) { %>
+                  <option value="<%= e %>"<%= settings.serial.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+                <% }) %>
+              </select>
+            </label>
+          </div>
+        </div>
+      <% } %>
+      <% if (settings.serial.portOptions.length > 0 && ( settings.serial.baudrateOptions.length > 0 || settings.driver == 's3g') )  { %>
+        <div align="center">
+          <div class="loading-button test-connection">
+            <button class="success radius">Test Connection</button>
+            <span class="button disabled radius success loading">Connecting...</span>
+          </div>
+        </div>
+      <% } %>
+    </script>
 
-		<div class="show-for-small zebra">
-			<a href="#settings/printer-profile"><h1 class="bold" align="center">3D Printer Profile</h1></a>
-		</div>
-		<div id="printer-profile" class="settings-page hide">
-			<script type="text/template" id="printer-profile-settings-page-template">
-				<div class="row">
-					<div class="small-12">
-						<form data-abide="ajax">
-							<label for="settings-printer-driver" class="bold">
-								Driver
-								<select id="settings-printer-driver" name="driver">
-									<option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
-									<option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
-								</select>
-							</label>
-							<label for="extruder-count" class="bold">
-								No. of Extruders
-							</label>
-							<select id="extruder-count" name="extruder_count">
-								<option value='1'>1</option>
-								<option value='2'>2</option>
-								<option value='3'>3</option>
-								<option value='4'>4</option>
-							</select>
-							<div class="input-wrapper">
-								<label for="max-nozzle-temp" class="bold">
-									Max. Nozzle Temperature
-								</label>
-								<div class="row collapse">
-									<div class="small-9 columns">
-										<input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-										<small class="error">Invalid Nozzle Temperature.</small>
-									</div>
-									<div class="small-3 columns"><span class="postfix">&deg;C</div>
-								</div>
-							</div>
-							<label for="heated-bed" class="bold">
-								Heated Bed
-							</label>
-							<div class="switch radius">
-							  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-							  <label for="heated-bed"></label>
-							</div>
-							<label for="invert-z" class="bold">
-								Z-Axis Movement
-							</label>
-							<div class="toggle">
-								<span class="side-label">Head Moves</span>
-								<span class="switch radius">
-									<input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
-									<label for="invert-z"></label>
-								</span>
-								<span class="side-label">Bed Moves</span>
-							</div>
-							<div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-								<label for="max-bed-temp" class="bold">
-									Max. Bed Temperature
-								</label>
-								<div class="row collapse">
-									<div class="small-9 columns">
-										<input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-										<small class="error">Invalid Bed Temperature.</small>
-									</div>
-									<div class="small-3 columns"><span class="postfix">&deg;C</div>
-								</div>
-							</div>
-							<div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
-								<label for="cancel-gcode" class="bold">
-									Cancel GCODE
-								</label>
-								<textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%=settings.cancel_gcode.join('\n')%></textarea>
-							</div>
-							<hr/>
-							<div class="loading-button">
-								<button class="success radius">Save Profile</button>
-								<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-							</div>
-						</form>
-					</div>
-				</div>
-			</script>
-		</div>
+    <div class="show-for-small zebra">
+      <a href="#settings/printer-profile"><h1 class="bold" align="center">3D Printer Profile</h1></a>
+    </div>
+    <div id="printer-profile" class="settings-page hide">
+      <script type="text/template" id="printer-profile-settings-page-template">
+        <div class="row">
+          <div class="small-12">
+            <form data-abide="ajax">
+              <label for="settings-printer-driver" class="bold">
+                Driver
+                <select id="settings-printer-driver" name="driver">
+                  <option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
+                  <option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+                </select>
+              </label>
+              <label for="extruder-count" class="bold">
+                No. of Extruders
+              </label>
+              <select id="extruder-count" name="extruder_count">
+                <option value='1'>1</option>
+                <option value='2'>2</option>
+                <option value='3'>3</option>
+                <option value='4'>4</option>
+              </select>
+              <div class="input-wrapper">
+                <label for="max-nozzle-temp" class="bold">
+                  Max. Nozzle Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+                    <small class="error">Invalid Nozzle Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                </div>
+              </div>
+              <label for="heated-bed" class="bold">
+                Heated Bed
+              </label>
+              <div class="switch radius">
+                <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+                <label for="heated-bed"></label>
+              </div>
+              <label for="invert-z" class="bold">
+                Z-Axis Movement
+              </label>
+              <div class="toggle">
+                <span class="side-label">Head Moves</span>
+                <span class="switch radius">
+                  <input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
+                  <label for="invert-z"></label>
+                </span>
+                <span class="side-label">Bed Moves</span>
+              </div>
+              <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                <label for="max-bed-temp" class="bold">
+                  Max. Bed Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+                    <small class="error">Invalid Bed Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                </div>
+              </div>
+              <div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
+                <label for="cancel-gcode" class="bold">
+                  Cancel GCODE
+                </label>
+                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%=settings.cancel_gcode.join('\n')%></textarea>
+              </div>
+              <hr/>
+              <div class="loading-button">
+                <button class="success radius">Save Profile</button>
+                <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </script>
+    </div>
 
-		<div class="show-for-small zebra camera">
-			<a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
-		</div>
-		<div id="video-stream" class="settings-page hide">
-			<script type="text/template" id="video-stream-settings-page-template">
-				<% if (this.cameraName) { %>
-					<div class="text-center">
-						<label class="bold"><%= this.cameraName %></label>
-						<div id="buttonRefresh" class="loading-button still">
-		                    <div class="still-camera">
-							    <button class="success radius spin">Re-scan for plugged camera</i></button>
-							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-		                    </div>
-						</div>
-					</div>
-					<hr>
-					<% if(!this.videoSettingsError) { %>
-						<div class="row">
-							<div class="small-12">
-								<form>
-                  <% if (settings.structure.busSource.length > 0) { %>
+    <div class="show-for-small zebra camera">
+      <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
+    </div>
+    <div id="video-stream" class="settings-page hide">
+      <script type="text/template" id="video-stream-settings-page-template">
+        <% if (this.cameraName && settings && settings.structure) { %>
+          <div class="text-center">
+            <label class="bold"><%= this.cameraName %></label>
+            <div id="buttonRefresh" class="loading-button still">
+              <div class="still-camera">
+                <button class="success radius spin">Re-scan for plugged camera</i></button>
+                <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+              </div>
+            </div>
+          </div>
+          <hr>
+          <% if(!this.videoSettingsError) { %>
+            <div class="row">
+              <div class="small-12">
+                <form>
+                  <% if (settings.structure.busSource && settings.structure.busSource.length > 0) { %>
                     <label for="video-stream-format" class="bold">
                       Video Stream Source
                     </label>
@@ -206,457 +206,472 @@
                       <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
                     <% } %>
                   <% } %>
-									<% if (settings.structure.videoEncoding.length > 0) { %>
-										<label for="video-stream-format" class="bold">
-											Video Stream Encoding
-										</label>
-										<% if (settings.structure.videoEncoding.length > 1) { %>
-											<select id="video-stream-encoding" name="encoding">
-												<% _.each(settings.structure.videoEncoding, function(v) { %>
-													<option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
-												<% }) %>
-											</select>
-										<% } else { %>
-											<div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
-											<input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
-										<% } %>
-									<% } %>
-									<% if (settings.structure.frameSizes.length > 0) { %>
-										<label for="video-stream-size" class="bold">
-											Image Resolution
-										</label>
-										<% if (settings.structure.frameSizes.length > 1) { %>
-											<select id="video-stream-size" name="size">
-												<% _.each(settings.structure.frameSizes, function(v) { %>
-													<option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
-												<% }) %>
-											</select>
-										<% } else { %>
-											<div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
-											<input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
-										<% } %>
-									<% } %>
-									<% if (settings.structure.fps.length > 0) { %>
-										<label for="video-stream-framerate" class="bold">
-											Video Stream Frame Rate
-										</label>
-										<% if (settings.structure.fps.length > 1) { %>
-											<select id="video-stream-framerate" name="framerate">
-												<% _.each(settings.structure.fps, function(v) {
-														if(v.resolution == settings.size) { %>
-															<option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
-												<% 		}
-													}) %>
-											</select>
-										<% } else { %>
-											<div class="field-value"><%= settings.structure.fps[0].label %></div>
-											<input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
-										<% } %>
-									<% } %>
-									<hr/>
-									<div class="loading-button">
-										<button class="success radius">Save</button>
-										<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-									</div>
-								</form>
-							</div>
-						</div>
-					<% } else { %>
-						<div class="error-message" align="center">
-							<i class="icon-attention"></i><br/>
-							<p class="bold"><%= this.videoSettingsError %></p>
-						</div>
-					<% } %>
-				<% } else { %>
-					<div class="text-center no-camera">
-						<i class="icon-attention"></i>
-						<label class="bold">No Camera Found</label>
-						<div id="buttonRefresh" class="loading-button still">
-		                    <div class="still-camera">
-							    <button class="success radius spin">Scan for Cameras</i></button>
-							    <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-		                    </div>
-						</div>
-					</div>
-				<% } %>
-			</script>
-		</div>
+                  <% if (settings.structure.cameraOutput.length > 0) { %>
+                    <label for="camera-output-format" class="bold">
+                      Camera Ouput Format
+                    </label>
+                    <% if (settings.structure.cameraOutput.length > 1) { %>
+                      <select id="camera-output-format" name="format">
+                        <% _.each(settings.structure.cameraOutput, function(v) { %>
+                          <option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
+                        <% }) %>
+                      </select>
+                    <% } else { %>
+                      <div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
+                      <input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+                    <% } %>
+                  <% } %>
+                  <% if (settings.structure.videoEncoding.length > 0) { %>
+                    <label for="video-stream-format" class="bold">
+                      Video Stream Encoding
+                    </label>
+                    <% if (settings.structure.videoEncoding.length > 1) { %>
+                      <select id="video-stream-encoding" name="encoding">
+                        <% _.each(settings.structure.videoEncoding, function(v) { %>
+                          <option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+                        <% }) %>
+                      </select>
+                    <% } else { %>
+                      <div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
+                      <input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
+                    <% } %>
+                  <% } %>
+                  <% if (settings.structure.frameSizes.length > 0) { %>
+                    <label for="video-stream-size" class="bold">
+                      Image Resolution
+                    </label>
+                    <% if (settings.structure.frameSizes.length > 1) { %>
+                      <select id="video-stream-size" name="size">
+                        <% _.each(settings.structure.frameSizes, function(v) { %>
+                          <option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
+                        <% }) %>
+                      </select>
+                    <% } else { %>
+                      <div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
+                      <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
+                    <% } %>
+                  <% } %>
+                  <% if (settings.structure.fps.length > 0) { %>
+                    <label for="video-stream-framerate" class="bold">
+                      Video Stream Frame Rate
+                    </label>
+                    <% if (settings.structure.fps.length > 1) { %>
+                      <select id="video-stream-framerate" name="framerate">
+                        <% _.each(settings.structure.fps, function(v) {
+                            if(v.resolution == settings.size) { %>
+                              <option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+                        <%    }
+                          }) %>
+                      </select>
+                    <% } else { %>
+                      <div class="field-value"><%= settings.structure.fps[0].label %></div>
+                      <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
+                    <% } %>
+                  <% } %>
+                  <hr/>
+                  <div class="loading-button">
+                    <button class="success radius">Save</button>
+                    <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+                  </div>
+                </form>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="error-message" align="center">
+              <i class="icon-attention"></i><br/>
+              <p class="bold"><%= this.videoSettingsError %></p>
+            </div>
+          <% } %>
+        <% } else { %>
+          <div class="text-center no-camera">
+            <i class="icon-attention"></i>
+            <label class="bold">No Camera Found</label>
+            <div id="buttonRefresh" class="loading-button still">
+                        <div class="still-camera">
+                  <button class="success radius spin">Scan for Cameras</i></button>
+                  <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                        </div>
+            </div>
+          </div>
+        <% } %>
+      </script>
+    </div>
 
-		<div class="show-for-small zebra">
-			<a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
-		</div>
-		<div id="network-name" class="settings-page hide"></div>
-		<script type="text/template" id="network-name-settings-page-template">
-			<div class="row">
-				<div class="small-12">
-					<form data-abide="ajax">
-						<div class="input-wrapper">
-							<label for="network-name" class="bold">
-								Network Name
-							</label>
-							<input id="network-name" name="name" type="text" value="<%= settings.name %>" required pattern="hostname" autocomplete="off"/>
-							<small class="error">Invalid Device Name. Use letters, numbers or - only.</small>
-						</div>
-						<p>
-							A few important things to remember:
-						</p>
-						<ul class="preview">
-							<li><i class="icon-signal"></i> Hotspot WiFi name: <span class="network-name bold"><%= settings.name %></span></li>
-							<li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
-						</ul>
-						<hr/>
-						<div class="loading-button">
-							<button class="success radius">Save</button>
-							<span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-						</div>
-					</form>
-				</div>
-			</div>
-		</script>
+    <div class="show-for-small zebra">
+      <a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
+    </div>
+    <div id="network-name" class="settings-page hide"></div>
+    <script type="text/template" id="network-name-settings-page-template">
+      <div class="row">
+        <div class="small-12">
+          <form data-abide="ajax">
+            <div class="input-wrapper">
+              <label for="network-name" class="bold">
+                Network Name
+              </label>
+              <input id="network-name" name="name" type="text" value="<%= settings.name %>" required pattern="hostname" autocomplete="off"/>
+              <small class="error">Invalid Device Name. Use letters, numbers or - only.</small>
+            </div>
+            <p>
+              A few important things to remember:
+            </p>
+            <ul class="preview">
+              <li><i class="icon-signal"></i> Hotspot WiFi name: <span class="network-name bold"><%= settings.name %></span></li>
+              <li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
+            </ul>
+            <hr/>
+            <div class="loading-button">
+              <button class="success radius">Save</button>
+              <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+            </div>
+          </form>
+        </div>
+      </div>
+    </script>
 
-		<div class="show-for-small zebra">
-			<a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
-		</div>
+    <div class="show-for-small zebra">
+      <a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
+    </div>
 
-		<div id="internet-connection" class="settings-page hide"></div>
-		<div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
-			<h2 class="bold">Select a WiFi Network</h2>
-			<div class="modal-content"></div>
-			<div class="modal-actions row">
-				<div class="small-12 medium-6 medium-centered columns">
-					<button class="secondary radius expand" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
-				</div>
-			</div>
-			<a class="close-reveal-modal">&#215;</a>
-		</div>
+    <div id="internet-connection" class="settings-page hide"></div>
+    <div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
+      <h2 class="bold">Select a WiFi Network</h2>
+      <div class="modal-content"></div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 medium-centered columns">
+          <button class="secondary radius expand" onclick="$('#wifi-network-list-modal').foundation('reveal', 'close')">Cancel</button>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
 
-		<div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal>
-			<script type="text/template" id="wifi-network-password-modal-template">
-				<% if (wifi.wep) { %>
-					<h2 class="bold" align="center">WEP Security Deprecated</h2>
-					<div class="modal-body">
-						<p>
-							The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
-						</p>
-						<p>
-							WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
-							and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
-						</p>
-					</div>
-					<div class="modal-actions row">
-						<div class="small-12 medium-6 medium-centered columns">
-							<button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Close</button>
-						</div<
-					</div>
-				<% } else { %>
-					<h2 class="bold" align="center">WiFi Password</h2>
-					<div class="modal-body">
-						<p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
-						<form>
-							<input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>">
-							<input type="password" class="network-password-field" name="password"/>
-						</form>
-					</div>
-					<div class="modal-actions row">
-						<div class="small-12 medium-6 columns">
-							<button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
-						</div>
-						<div class="small-12 medium-6 columns">
-							<div class="loading-button expand">
-								<button class="radius success connect">Connect</button>
-								<span class="loading button success disabled radius">
-									<i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
-								</span>
-							</div>
-						</div>
-					</div>
-				<% } %>
-			</script>
-		</div>
+    <div id="wifi-network-password-modal" class="reveal-modal medium radius" data-reveal>
+      <script type="text/template" id="wifi-network-password-modal-template">
+        <% if (wifi.wep) { %>
+          <h2 class="bold" align="center">WEP Security Deprecated</h2>
+          <div class="modal-body">
+            <p>
+              The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
+            </p>
+            <p>
+              WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
+              and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
+            </p>
+          </div>
+          <div class="modal-actions row">
+            <div class="small-12 medium-6 medium-centered columns">
+              <button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Close</button>
+            </div<
+          </div>
+        <% } else { %>
+          <h2 class="bold" align="center">WiFi Password</h2>
+          <div class="modal-body">
+            <p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
+            <form>
+              <input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>">
+              <input type="password" class="network-password-field" name="password"/>
+            </form>
+          </div>
+          <div class="modal-actions row">
+            <div class="small-12 medium-6 columns">
+              <button class="secondary radius cancel expand" onclick="$('#wifi-network-password-modal').foundation('reveal', 'close')">Cancel</button>
+            </div>
+            <div class="small-12 medium-6 columns">
+              <div class="loading-button expand">
+                <button class="radius success connect">Connect</button>
+                <span class="loading button success disabled radius">
+                  <i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
+                </span>
+              </div>
+            </div>
+          </div>
+        <% } %>
+      </script>
+    </div>
 
-		<script type="text/template" id="internet-connection-settings-page-template">
-			<div class="connection">
-				<% if (settings.networks.wired) { %>
-					<h3 class="bold">Wired Connection</h3>
-					<i class="icon-exchange"></i> Connected.
-					<div class="ip-address">IP Address: <b><%= settings.networks.wired.ip %></b></div>
-				<% } %>
-			</div>
-			<% if (settings.networks.manual) { %>
-				<h3 class="bold">Manually Configured</h3>
-				<div>Interface: <b><%= settings.networks.manual.interface %></b></div>
-				<div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
-			<% } %>
-			<% if (settings.hasWifi) { %>
-				<div class="connection">
-					<h3 class="bold">Wireless Connection</h3>
-					<% if (settings.networks.wireless) { %>
-						<% if (settings.networks.wireless.signal < 33) { %>
-							<i class="icon-wifi-signal-low"></i>
-						<% } else if (settings.networks.wireless.signal > 33 && settings.networks.wireless.signal < 66) { %>
-							<i class="icon-wifi-signal-med"></i>
-						<% } else { %>
-							<i class="icon-wifi-signal-high"></i>
-						<% } %>
-						Connected to <b><%= settings.networks.wireless.name %></b>.
-						<div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
-					<% } else { %>
-						Not Connected.
-					<% } %>
-					<div class="loading-button list-networks">
-						<button class="radius small">Scan WiFi networks</button>
-						<span class="loading button disabled radius small">
-							<i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
-						</span>
-					</div>
-				</div>
-			<% } %>
-		</script>
-		<script type="text/template" id="wifi-network-modal-row">
-			<table>
-			<% _.each(networks, function(n, idx) { %>
-				<tr>
-					<td>
-						<% if (n.signal < 33) { %>
-							<i class="icon-wifi-signal-low"></i>
-						<% } else if (n.signal > 33 && n.signal < 66) { %>
-							<i class="icon-wifi-signal-med"></i>
-						<% } else { %>
-							<i class="icon-wifi-signal-high"></i>
-						<% } %>
-						<% if (n.secured) { %><i class="icon-lock"></i><% } %>
-					</td>
-					<td class="network-name"><%= n.name %></td>
-					<td>
-						<% if (n.active) { %>
-							<div class="active-network"><i class="icon-exchange"></i> Connected</div>
-						<% } else { %>
-							<div class="loading-button">
-								<button class="radius success tiny" data-id="<%= idx %>">Connect</button>
-								<span class="loading button disabled success tiny radius">
-									<i class="icon-rocket-spinner animate-spin"></i> Please be patient...
-								</span>
-							</div>
-						<% } %>
-					</td>
-				</tr>
-			<% }); %>
-			</table>
-		</script>
+    <script type="text/template" id="internet-connection-settings-page-template">
+      <div class="connection">
+        <% if (settings.networks.wired) { %>
+          <h3 class="bold">Wired Connection</h3>
+          <i class="icon-exchange"></i> Connected.
+          <div class="ip-address">IP Address: <b><%= settings.networks.wired.ip %></b></div>
+        <% } %>
+      </div>
+      <% if (settings.networks.manual) { %>
+        <h3 class="bold">Manually Configured</h3>
+        <div>Interface: <b><%= settings.networks.manual.interface %></b></div>
+        <div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
+      <% } %>
+      <% if (settings.hasWifi) { %>
+        <div class="connection">
+          <h3 class="bold">Wireless Connection</h3>
+          <% if (settings.networks.wireless) { %>
+            <% if (settings.networks.wireless.signal < 33) { %>
+              <i class="icon-wifi-signal-low"></i>
+            <% } else if (settings.networks.wireless.signal > 33 && settings.networks.wireless.signal < 66) { %>
+              <i class="icon-wifi-signal-med"></i>
+            <% } else { %>
+              <i class="icon-wifi-signal-high"></i>
+            <% } %>
+            Connected to <b><%= settings.networks.wireless.name %></b>.
+            <div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
+          <% } else { %>
+            Not Connected.
+          <% } %>
+          <div class="loading-button list-networks">
+            <button class="radius small">Scan WiFi networks</button>
+            <span class="loading button disabled radius small">
+              <i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
+            </span>
+          </div>
+        </div>
+      <% } %>
+    </script>
+    <script type="text/template" id="wifi-network-modal-row">
+      <table>
+      <% _.each(networks, function(n, idx) { %>
+        <tr>
+          <td>
+            <% if (n.signal < 33) { %>
+              <i class="icon-wifi-signal-low"></i>
+            <% } else if (n.signal > 33 && n.signal < 66) { %>
+              <i class="icon-wifi-signal-med"></i>
+            <% } else { %>
+              <i class="icon-wifi-signal-high"></i>
+            <% } %>
+            <% if (n.secured) { %><i class="icon-lock"></i><% } %>
+          </td>
+          <td class="network-name"><%= n.name %></td>
+          <td>
+            <% if (n.active) { %>
+              <div class="active-network"><i class="icon-exchange"></i> Connected</div>
+            <% } else { %>
+              <div class="loading-button">
+                <button class="radius success tiny" data-id="<%= idx %>">Connect</button>
+                <span class="loading button disabled success tiny radius">
+                  <i class="icon-rocket-spinner animate-spin"></i> Please be patient...
+                </span>
+              </div>
+            <% } %>
+          </td>
+        </tr>
+      <% }); %>
+      </table>
+    </script>
 
-		<div class="show-for-small zebra">
-			<a href="#settings/wifi-hotspot"><h1 class="bold" align="center">WiFi Hotspot</h1></a>
-		</div>
-		<div id="wifi-hotspot" class="settings-page hide"></div>
-		<script type="text/template" id="wifi-hotspot-settings-page-template">
-			<% if (settings.hotspot === false) { %>
-				<div class="text-center no-hotspot">
-					<i class="icon-attention"></i>
-					<h4 class="bold">Creating a Hotspot is not supported on this device</h4>
-				</div>
-			<% } else { %>
-				<h3 class="bold">Local Hotspot</h3>
-				<div>
-					<% if (settings.hotspot.active) { %>
-						<h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
-						<div class="loading-button stop-hotspot">
-							<button class="radius">Stop hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
-							</span>
-						</div>
-					<% } else { %>
-						<div class="loading-button start-hotspot">
-							<button class="radius">Start hotspot</button>
-							<span class="loading button disabled radius">
-								<i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
-							</span>
-						</div>
-					<% } %>
-					<div class="row hotspot-off">
-						<div class="small-2 large-1 columns">
-							<input id="hotspot-off" type="checkbox" <% if (settings.hotspot.hotspotOnlyOffline) { %> value="yes" checked <% } %>>
-						</div>
-						<div class="small-10 large-11 columns">
-							<label for="hotspot-off">
-								<b>Turn hotspot off when a known network is found in the future.</b>
-							</label>
-						</div>
-					</div>
-				</div>
-			<% } %>
-		</script>
+    <div class="show-for-small zebra">
+      <a href="#settings/wifi-hotspot"><h1 class="bold" align="center">WiFi Hotspot</h1></a>
+    </div>
+    <div id="wifi-hotspot" class="settings-page hide"></div>
+    <script type="text/template" id="wifi-hotspot-settings-page-template">
+      <% if (settings.hotspot === false) { %>
+        <div class="text-center no-hotspot">
+          <i class="icon-attention"></i>
+          <h4 class="bold">Creating a Hotspot is not supported on this device</h4>
+        </div>
+      <% } else { %>
+        <h3 class="bold">Local Hotspot</h3>
+        <div>
+          <% if (settings.hotspot.active) { %>
+            <h4>Running a hotspot on <b><%= settings.hotspot.name %></b></h4>
+            <div class="loading-button stop-hotspot">
+              <button class="radius">Stop hotspot</button>
+              <span class="loading button disabled radius">
+                <i class="icon-rocket-spinner animate-spin"></i> Stopping Hotspot...
+              </span>
+            </div>
+          <% } else { %>
+            <div class="loading-button start-hotspot">
+              <button class="radius">Start hotspot</button>
+              <span class="loading button disabled radius">
+                <i class="icon-rocket-spinner animate-spin"></i> Starting Hotspot...
+              </span>
+            </div>
+          <% } %>
+          <div class="row hotspot-off">
+            <div class="small-2 large-1 columns">
+              <input id="hotspot-off" type="checkbox" <% if (settings.hotspot.hotspotOnlyOffline) { %> value="yes" checked <% } %>>
+            </div>
+            <div class="small-10 large-11 columns">
+              <label for="hotspot-off">
+                <b>Turn hotspot off when a known network is found in the future.</b>
+              </label>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </script>
 
-		<div class="show-for-small zebra">
-			<a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
-		</div>
-		<div id="software-update" class="settings-page hide" align="center">
-			<h4 align="center">
-				<b>{{version}}</b> Installed.<br/>
-				{% if commit %}
-				<small>({{commit}})</small>
-				{% endif %}
-			</h4>
-			<div class="loading-button check">
-				<button class="success radius">Check for updates</button>
-				<span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>
-			</div>
-		</div>
-		<div id="software-update-modal" class="reveal-modal medium radius" data-reveal>
-			<div class="content"></div>
-			<a class="close-reveal-modal">&#215;</a>
-		</div>
-		<script type="text/template" id="software-update-modal-content">
-			<h2 class="bold">
-				<% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
-			</h2>
-			<% if (data.update_available) { %>
-				<div class="modal-body">
-					<p>
-					<% if (data.is_current) { %>
-						Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
-					<% } else { %>
-						Version: <big class="bold"><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></big>
-						<br/>Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
-					<% } %>
-					<% if (data.release.force_setup) { %>
-						<br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
-					<% } %>
-					</p>
-					<p>
-						<b>Release Notes:</b><br/>
-						<%= data.release.release_notes %>
-					</p>
-				</div>
-			<% } else { %>
+    <div class="show-for-small zebra">
+      <a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
+    </div>
+    <div id="software-update" class="settings-page hide" align="center">
+      <h4 align="center">
+        <b>{{version}}</b> Installed.<br/>
+        {% if commit %}
+        <small>({{commit}})</small>
+        {% endif %}
+      </h4>
+      <div class="loading-button check">
+        <button class="success radius">Check for updates</button>
+        <span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>
+      </div>
+    </div>
+    <div id="software-update-modal" class="reveal-modal medium radius" data-reveal>
+      <div class="content"></div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+    <script type="text/template" id="software-update-modal-content">
+      <h2 class="bold">
+        <% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
+      </h2>
+      <% if (data.update_available) { %>
+        <div class="modal-body">
+          <p>
+          <% if (data.is_current) { %>
+            Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
+          <% } else { %>
+            Version: <big class="bold"><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></big>
+            <br/>Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
+          <% } %>
+          <% if (data.release.force_setup) { %>
+            <br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
+          <% } %>
+          </p>
+          <p>
+            <b>Release Notes:</b><br/>
+            <%= data.release.release_notes %>
+          </p>
+        </div>
+      <% } else { %>
         <h3 class="bold" align="center" style="margin: 20px 0">You are running the latest software</h3>
       <% } %>
-			<div class="modal-actions row">
-				<% if (data.update_available) { %>
-					<div class="small-12 medium-6 columns">
-						<button class="secondary radius cancel expand">Cancel</button>
-					</div>
-					<div class="small-12 medium-6 columns">
-						<div class="loading-button expand">
-							<button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
-							<span class="button disabled success radius loading">
-								<i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
-							</span>
-						</div>
-					</div>
-				<% } else { %>
-					<div class="columns">
-						<button class="secondary radius cancel expand">Close</button>
-					</div>
-				<% } %>
-			</div>
-		</script>
+      <div class="modal-actions row">
+        <% if (data.update_available) { %>
+          <div class="small-12 medium-6 columns">
+            <button class="secondary radius cancel expand">Cancel</button>
+          </div>
+          <div class="small-12 medium-6 columns">
+            <div class="loading-button expand">
+              <button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+              <span class="button disabled success radius loading">
+                <i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
+              </span>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="columns">
+            <button class="secondary radius cancel expand">Close</button>
+          </div>
+        <% } %>
+      </div>
+    </script>
 
-		<div class="show-for-small zebra software">
-			<a href="#settings/software-advanced"><h1 class="bold" align="center">Advanced Settings</h1></a>
-		</div>
+    <div class="show-for-small zebra software">
+      <a href="#settings/software-advanced"><h1 class="bold" align="center">Advanced Settings</h1></a>
+    </div>
 
-		<div id="software-advanced" class="settings-page hide" align="center"></div>
-		<script type="text/template" id="software-advanced-content-template">
-			<h4 class="bold">API Key</h4>
-			<div class="apiKey"><%= data.apiKey %></div>
-			<hr/>
-			<h4 class="bold">Factory Settings</h4>
-			<button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
-			<hr/>
-			<h4 class="bold">Logs</h4>
-			<button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button><br/>
-			Size of logs directory: <span class="size bold"><%= size_format(data.sizeLogs) %></span> <button class="secondary radius tiny" data-reveal-id="delete-logs-modal">Clear</button>
-			<div class="row serial-container">
-				<div class="small-2 large-1 columns">
-					<input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
-				</div>
-				<div class="small-10 large-11 columns">
-					<label for="serial-off">
-						<b>
-							Turn on serial logs.
-						</b>
-						<i class="icon-attention"></i>You should only use this while helping solve a
-							communication problem with your printer. This generates a large amount of data.
-					</label>
-				</div>
-			</div>
-		</script>
+    <div id="software-advanced" class="settings-page hide" align="center"></div>
+    <script type="text/template" id="software-advanced-content-template">
+      <h4 class="bold">API Key</h4>
+      <div class="apiKey"><%= data.apiKey %></div>
+      <hr/>
+      <h4 class="bold">Factory Settings</h4>
+      <button class="alert radius" data-reveal-id="restore-confirm-modal">Restore Factory Settings</button>
+      <hr/>
+      <h4 class="bold">Logs</h4>
+      <button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button><br/>
+      Size of logs directory: <span class="size bold"><%= size_format(data.sizeLogs) %></span> <button class="secondary radius tiny" data-reveal-id="delete-logs-modal">Clear</button>
+      <div class="row serial-container">
+        <div class="small-2 large-1 columns">
+          <input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
+        </div>
+        <div class="small-10 large-11 columns">
+          <label for="serial-off">
+            <b>
+              Turn on serial logs.
+            </b>
+            <i class="icon-attention"></i>You should only use this while helping solve a
+              communication problem with your printer. This generates a large amount of data.
+          </label>
+        </div>
+      </div>
+    </script>
 
-		<div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
-			<h2 class="bold">Are you sure?</h2>
-			<div class="modal-body">
-				<p>This will delete all your settings and files from this {{variantData['productName']}}.</p>
-				<p>
-					<label for="confirmation">
-						<b>Write "RESET" to confirm</b>
-						<input type="text"/>
-					</label>
-				</p>
-			</div>
-			<div class="modal-actions row">
-				<div class="small-12 medium-6 columns">
-					<button class="secondary radius expand">Cancel</button>
-				</div>
-				<div class="small-12 medium-6 columns">
-					<div class="loading-button expand">
-						<button class="alert radius">Reset</button>
-						<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
-					</div>
-				</div>
-			</div>
-			<a class="close-reveal-modal">&#215;</a>
-		</div>
+    <div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Are you sure?</h2>
+      <div class="modal-body">
+        <p>This will delete all your settings and files from this {{variantData['productName']}}.</p>
+        <p>
+          <label for="confirmation">
+            <b>Write "RESET" to confirm</b>
+            <input type="text"/>
+          </label>
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Reset</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Resetting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
 
-		<div id="send-logs-modal" class="reveal-modal medium radius" data-reveal>
-			<h2 class="bold">Send logs to AstroPrint</h2>
-			<div class="modal-body">
-				<p>This sends us your device logs so we can help analyze your problem.</p>
-				<p>
-					<label>
-						Do you have a support ticket? If not, consider <a href="https://astroprint.zendesk.com" target="_support">creating one</a>.
-						<input type="text" name="ticket" placeholder="Enter support ticket # or leave empty"/>
-					</label>
-					<textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
-				</p>
-			</div>
-			<div class="modal-actions row">
-				<div class="small-12 medium-6 columns">
-					<button class="secondary radius expand">Cancel</button>
-				</div>
-				<div class="small-12 medium-6 columns">
-					<div class="loading-button expand">
-						<button class="success radius">Send Logs</button>
-						<span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
-					</div>
-				</div>
-			</div>
-			<a class="close-reveal-modal">&#215;</a>
-		</div>
+    <div id="send-logs-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Send logs to AstroPrint</h2>
+      <div class="modal-body">
+        <p>This sends us your device logs so we can help analyze your problem.</p>
+        <p>
+          <label>
+            Do you have a support ticket? If not, consider <a href="https://astroprint.zendesk.com" target="_support">creating one</a>.
+            <input type="text" name="ticket" placeholder="Enter support ticket # or leave empty"/>
+          </label>
+          <textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="success radius">Send Logs</button>
+            <span class="button disabled success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
 
-		<div id="delete-logs-modal" class="reveal-modal medium radius" data-reveal>
-			<h2 class="bold">Delete AstroPrint logs</h2>
-			<div class="modal-body">
-				<p>
-					This will delete all your past AstroPrint logs. It will help save space but might
-					prevent us from researching a past problem you might have had.
-				</p>
-				<p>
-					Are you sure you want to delete all logs?
-				</p>
-			</div>
-			<div class="modal-actions row">
-				<div class="small-12 medium-6 columns">
-					<button class="secondary radius expand">Cancel</button>
-				</div>
-				<div class="small-12 medium-6 columns">
-					<div class="loading-button expand">
-						<button class="alert radius">Delete Logs</button>
-						<span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
-					</div>
-				</div>
-			</div>
-			<a class="close-reveal-modal">&#215;</a>
-		</div>
-	</div>
+    <div id="delete-logs-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete AstroPrint logs</h2>
+      <div class="modal-body">
+        <p>
+          This will delete all your past AstroPrint logs. It will help save space but might
+          prevent us from researching a past problem you might have had.
+        </p>
+        <p>
+          Are you sure you want to delete all logs?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Delete Logs</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+  </div>
 </div>
