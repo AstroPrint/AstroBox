@@ -11,7 +11,7 @@ class MaterialCounter(object):
 
 	def __init__(self):
 		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
-		self._activeTool = 0;
+		self._activeTool = "0";
 		self._lastExtruderLengthReset = {"0": 0}
 		self._consumedFilament = {"0": 0}
 		self._lastExtrusion = {"0": 0}
