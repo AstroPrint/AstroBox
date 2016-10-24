@@ -15,9 +15,9 @@ class V4L2Manager(CameraManager):
 		self.number_of_video_device = number_of_video_device
 
 		if self.isCameraConnected():
-			self.supported_formats = self._getSupportedResolutions()
-			self.cameraName = self.getCameraName()
-			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
+			#self.supported_formats = self._getSupportedResolutions()
+			#self.cameraName = self.getCameraName()
+			#self.cameraInfo = { "name": self.cameraName, "supportedResolutions": self.supported_formats }
 			self.setSafeSettings()
 
 		else:
@@ -29,24 +29,10 @@ class V4L2Manager(CameraManager):
 		super(V4L2Manager, self).__init__(self.cameraInfo)
 
 	def setSafeSettings(self):
-
 		self.safeRes = None
 		fpsArray = []
 
-		cameraConnected = False
-
-		try:
-			cameraConnected = os.path.exists("/dev/video%d" % self.number_of_video_device)
-
-		except:
-
-			cameraConnected = False
-
-		if cameraConnected:
-			self.supported_formats = self._getSupportedResolutions()
-		else:
-			self.supported_formats = None
-
+		self.supported_formats = self._getSupportedResolutions()
 		self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self.supported_formats}
 
 		try:

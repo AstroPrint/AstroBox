@@ -46,18 +46,21 @@ class GStreamerManager(V4L2Manager):
 		self.gstreamerVideo = None
 		self.asyncPhotoTaker = None
 		self.pipeline = None
+		self.cameraInfo = None
+		self.number_of_video_device = videoDevice
 		self._logger = logging.getLogger(__name__)
 
+		if super(GStreamerManager, self).isCameraConnected():
+			self.reScan()
+
 		super(GStreamerManager, self).__init__(videoDevice)
-
-
 
 	def isCameraConnected(self):
 		return super(GStreamerManager, self).isCameraConnected() and self.gstreamerVideo is not None
 
 	def open_camera(self):
 		if self.gstreamerVideo is None:
-			self.reScan(self.cameraInfo)
+			return self.reScan(self.cameraInfo)
 
 		return True
 
@@ -72,25 +75,21 @@ class GStreamerManager(V4L2Manager):
 			self.pipeline.freePipeline()
 			self.pipeline = None
 
-	def reScan(self,cameraInfo=None):
+	def reScan(self, cameraInfo=None):
 		try:
 			isCameraConnected = super(GStreamerManager, self).isCameraConnected()
 			tryingTimes = 1
 
-			while not isCameraConnected and tryingTimes < 4:#3 retrying times for searching camera
-				self._logger.info('Camera not found... retrying %s times' %tryingTimes)
+			while not isCameraConnected and tryingTimes < 4:#retrying 3 times for searching camera
+				self._logger.info('Camera not found... retrying (%s)' % tryingTimes)
 				isCameraConnected = super(GStreamerManager, self).isCameraConnected()
 				time.sleep(1)
 				tryingTimes +=1
-
 
 			if self.gstreamerVideo:
 				self.freeMemory()
 				self.gstreamerVideo = None
 				self.cameraInfo = None
-
-			self.pipeline = GstPipeline()
-			self.initGstreamerBus()
 
 			#if at first time Astrobox were turned on without camera, it is
 			#necessary to refresh the name
@@ -99,7 +98,10 @@ class GStreamerManager(V4L2Manager):
 			#with this line, if you starts Astrobox without camera, it will try to rescan for camera one time
 			#plus, but it is necessary for rescaning a camera after that
 			if isCameraConnected:
-				self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self._getSupportedResolutions()}
+				self.pipeline = GstPipeline()
+				self.initGstreamerBus()
+
+				self.cameraInfo = { "name": self.getCameraName(), "supportedResolutions": self._getSupportedResolutions() }
 
 				if settings().get(["camera", "source"]) == 'USB':
 					if settings().get(["camera", "encoding"]) == 'h264':
@@ -109,7 +111,6 @@ class GStreamerManager(V4L2Manager):
 
 				else:#Raspicam
 					self.gstreamerVideo = GstreamerRaspicam(self.number_of_video_device,self.cameraInfo['name'], self.pipeline.getPipeline())
-
 
 		except Exception, error:
 			self._logger.error(error, exc_info=True)
@@ -243,8 +244,9 @@ class GStreamerManager(V4L2Manager):
 
 	def fatalError(self):
 		self.freeMemory()
-		self.setSafeSettings()
-		self.reScan()
+		if super(GStreamerManager, self).isCameraConnected():
+			self.setSafeSettings()
+			self.reScan()
 
 	def initGstreamerBus(self):
 		# ##
@@ -932,8 +934,8 @@ class GStreamer(object):
 
 		#ERROR 13!!!!!
 		#if self.streamProcessState == 'PLAYING' or self.streamProcessState == 'TAKING_PHOTO_PLAYING':
-		#	self.stop_video()
-		#	self.play_video()
+		# self.stop_video()
+		# self.play_video()
 
 	def destroyQueuePhotoNotText(self):
 		self.unlinkQueuePhotoNotText()

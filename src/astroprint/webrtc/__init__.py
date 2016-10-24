@@ -49,17 +49,17 @@ class WebRtc(object):
 		else:
 			return True #Janus was running before it
 
-	def ensureGstreamerRunning(self):
-		cam = cameraManager()
-		if cam.open_camera():
-			if not cam.start_video_stream():
-				self._logger.error('Managing Gstreamer error in WebRTC object')
+	#def ensureGstreamerRunning(self):
+	#	cam = cameraManager()
+	#	if cam.open_camera():
+	#		if not cam.start_video_stream():
+	#			self._logger.error('Managing Gstreamer error in WebRTC object')
 				#Janus is forced to be closed
-				self.stopJanus()
-				return False
-			return False
-		else:
-			return True
+	#			self.stopJanus()
+	#			return False
+	#		return False
+	#	else:
+	#		return True
 
 	def shutdown(self):
 		self._logger.info('Shutting Down WebRtcManager')
