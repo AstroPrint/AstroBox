@@ -1418,6 +1418,10 @@ class MachineCom(object):
 		self._materialCounter.changeExtrusionMode(MaterialCounter.EXTRUSION_MODE_RELATIVE)
 		return cmd
 
+	# In Marlin G91 and G90 also change the relative nature of extrusion
+	_gcode_G90 = _gcode_M82
+	_gcode_G91 = _gcode_M83
+
 ### MachineCom callback ################################################################################################
 
 class MachineComPrintCallback(object):
