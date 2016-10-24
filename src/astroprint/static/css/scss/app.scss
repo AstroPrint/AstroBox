@@ -35,15 +35,19 @@ body, html {
 
 		ul {
 			list-style: none;
+			background: $ghost;
+			border-right: $basic-border;
+			border-left: $basic-border;
+			margin-right: 15px;
 			a {
 				color: #999;
 				line-height: rem-calc(50);
 				display: block;
-				float: left;
 				padding: 0 15px;
+				font-size: rem-calc(14);
 				&:hover {
 					background: #efefef;
-					color: #505050;
+					color: $charcoal;
 				}
 			}
 		}
