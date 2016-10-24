@@ -201,6 +201,7 @@ class GStreamerManager(V4L2Manager):
 	def close_camera(self):
 			if self.asyncPhotoTaker:
 				self.asyncPhotoTaker.stop()
+				self.asyncPhotoTaker.join()
 				self.asyncPhotoTaker = None
 
 	def startLocalVideoSession(self, sessionId):
@@ -1131,43 +1132,30 @@ class GStreamer(object):
 		# TAKES A PHOTO USING GSTREAMER
 		try:
 
-			try:
+			if textPhoto:
+				# PREPARING PHOTO
+				# SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
+				text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>  " + textPhoto + "  </span>"
 
-				if textPhoto:
-					# PREPARING PHOTO
-					# SETTING THE TEXT INFORMATION ABOUT THE PRINTING STATE IN PHOTO
-					text = "<span foreground='#eb1716' background='white' font='nexa_boldregular' size='large'>  " + textPhoto + "  </span>"
+				self.photo_text.set_property('text', text)
 
-					self.photo_text.set_property('text', text)
+				self.startQueuePhoto()
 
-					self.startQueuePhoto()
+				self.photoMode = 'TEXT'
 
-					self.photoMode = 'TEXT'
+			else:
 
-				else:
+				self.startQueuePhotoNotText()
 
-					self.startQueuePhotoNotText()
-
-					self.photoMode = 'NOT_TEXT'
+				self.photoMode = 'NOT_TEXT'
 
 
-				if self.streamProcessState == 'PLAYING':
-					self.streamProcessState = 'TAKING_PHOTO_PLAYING'
+			if self.streamProcessState == 'PLAYING':
+				self.streamProcessState = 'TAKING_PHOTO_PLAYING'
 
-				elif self.streamProcessState == 'PAUSED':
-					self.pipeline.set_state(gst.State.PLAYING)
-					self.streamProcessState = 'TAKING_PHOTO'
-
-			except Exception, error:
-
-				self._logger.error("Error taking photo with GStreamer: %s" % str(error), exc_info = True)
-				self.pipeline.set_state(gst.State.PAUSED)
-				self.pipeline.set_state(gst.State.NULL)
-
-
-			self.bus_managed = False
-
-			return None
+			elif self.streamProcessState == 'PAUSED':
+				self.pipeline.set_state(gst.State.PLAYING)
+				self.streamProcessState = 'TAKING_PHOTO'
 
 		except Exception, error:
 
@@ -1175,7 +1163,10 @@ class GStreamer(object):
 			self.pipeline.set_state(gst.State.PAUSED)
 			self.pipeline.set_state(gst.State.NULL)
 
-			return None
+
+		self.bus_managed = False
+
+		return None
 
 	def getStreamProcessState(self):
 		# RETURNS THE CURRENT STREAM STATE
