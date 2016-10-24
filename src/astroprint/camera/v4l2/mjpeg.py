@@ -75,15 +75,18 @@ class MjpegManager(V4L2Manager):
 		self._streamer = None
 
 	def reScan(self):
-		if(self._streamer):
+		if self._streamer :
 			self.close_camera()
 
-			self.supported_formats = self._getSupportedResolutions()
+		self.supported_formats = self._getSupportedResolutions()
+
+		if self.supported_formats is None:
+			return False
+		else:
 			self.cameraName = self.getCameraName()
+			self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
 
-			self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
-
-		return self.open_camera()
+			return self.open_camera()
 
 	def start_video_stream(self):
 		if self._streamer:
@@ -166,9 +169,9 @@ class MJPEGStreamer(object):
 		#precalculated stuff
 		watermark = cv2.imread(os.path.join(app.static_folder, 'img', 'astroprint_logo.png'))
 		watermark = cv2.resize( watermark, ( 100, 100 * watermark.shape[0]/watermark.shape[1] ) )
-		
+
 		self._watermarkShape = watermark.shape
-		
+
 		watermarkMask = cv2.cvtColor(watermark, cv2.COLOR_BGR2GRAY) / 255.0
 		watermarkMask = np.repeat( watermarkMask, 3).reshape( (self._watermarkShape[0],self._watermarkShape[1],3) )
 		self._watermakMaskWeighted = watermarkMask * watermark
@@ -199,7 +202,7 @@ class MJPEGStreamer(object):
 			if self._process.returncode is None:
 				self._process.terminate()
 				self._process.wait()
-			
+
 			self._process = None
 
 	def getPhoto(self, text=None, doneCb=None):
@@ -245,4 +248,4 @@ class MJPEGStreamer(object):
 				return True
 
 			return False
-			
+

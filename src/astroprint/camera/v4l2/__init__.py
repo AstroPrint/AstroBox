@@ -105,6 +105,7 @@ class V4L2Manager(CameraManager):
 			# more formats, so we ignore it
 			if e.errno != errno.EINVAL:
 				self._logger.error("Unable to determine Pixel Formats, this may be a driver issue.")
+				return None
 
 			return supported_formats
 
@@ -148,12 +149,6 @@ class V4L2Manager(CameraManager):
 			supported_formats = self.__getPixelFormats(device)
 
 			if not supported_formats:
-				resolution = {}
-				#resolution['description'] = "YUYV"
-				#resolution['pixelformat'] = "YUYV"
-				#resolution['resolutions'] = [[640, 480]]
-				#resolution['pixelformat_int'] = v4l2.v4l2_fmtdesc().pixelformat
-				supported_formats.append(resolution)
 				return None
 
 			for supported_format in supported_formats:
