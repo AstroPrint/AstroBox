@@ -80,9 +80,10 @@ class MjpegManager(V4L2Manager):
 			if self.isVideoStreaming():
 				self.stop_video_stream()
 
+			self._streamer.stop()
+			self._streamer = None
+
 		self._localClients = []
-		self._streamer.stop()
-		self._streamer = None
 
 	def reScan(self):
 		if self._streamer:
@@ -146,12 +147,7 @@ class MjpegManager(V4L2Manager):
 					done(None)
 					return
 
-			def onDone(photo):
-				done(photo)
-				if not self.isVideoStreaming():
-					self.close_camera()
-
-			threading.Thread(target=self._streamer.getPhoto, args=(text, onDone)).start()
+			threading.Thread(target=self._streamer.getPhoto, args=(done, text)).start()
 			return
 
 		done(None)
@@ -160,6 +156,7 @@ class MjpegManager(V4L2Manager):
 		return self._streamer and self._streamer.isVideoStreaming();
 
 	def startLocalVideoSession(self, sessionId):
+		self.open_camera()
 		if self._streamer:
 			if len(self._localClients) == 0:
 				self._streamer.startVideo()
@@ -208,7 +205,7 @@ class MJPEGStreamer(object):
 		self._watermakMaskWeighted = watermarkMask * watermark
 		self._watermarkInverted = 1.0 - watermarkMask
 
-	def startVideo(self):
+	def startStreamer(self):
 		if not self._process:
 			command = [
 				"/mjpeg_streamer/mjpg_streamer",
@@ -226,10 +223,17 @@ class MJPEGStreamer(object):
 
 				running = self._process.returncode is None
 
-				if running:
-					self._streaming = True
-
 				return running
+
+		return False
+
+	def startVideo(self):
+		if self._streaming:
+			return True
+
+		if self.startStreamer():
+			self._streaming = True
+			return True
 
 		return False
 
@@ -253,11 +257,10 @@ class MJPEGStreamer(object):
 		image = None
 
 		if not self._process:
-			self.startVideo()
+			self.startStreamer()
 
 		try:
-			if self._format == 'x-raw':
-				time.sleep(1.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
+			time.sleep(1.8 if self._format == 'x-raw' else 0.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
 
 			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()
@@ -273,14 +276,14 @@ class MJPEGStreamer(object):
 		doneCb(image)
 
 	def _apply_watermark(self, img, text):
-			if text and img != None:
-				imgPortion = img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5]
-				img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5] = (self._watermarkInverted * imgPortion) + self._watermakMaskWeighted
+		if text and img != None:
+			imgPortion = img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5]
+			img[-(self._watermarkShape[0]+5):-5, -(self._watermarkShape[1]+5):-5] = (self._watermarkInverted * imgPortion) + self._watermakMaskWeighted
 
-				img[:self._infoAreaShape[0], :self._infoAreaShape[1]] = self._infoArea
-				cv2.putText(img, text, (30,17), cv2.FONT_HERSHEY_PLAIN, 1.0, (81,82,241), thickness=1)
+			img[:self._infoAreaShape[0], :self._infoAreaShape[1]] = self._infoArea
+			cv2.putText(img, text, (30,17), cv2.FONT_HERSHEY_PLAIN, 1.0, (81,82,241), thickness=1)
 
-				return True
+			return True
 
-			return False
+		return False
 
