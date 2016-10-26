@@ -159,22 +159,27 @@ class GStreamerManager(V4L2Manager):
 	# There are cases where we want the pic to be synchronous
 	# so we leave this version too
 	def get_pic(self, text=None):
-		id = uuid.uuid4().hex
-		self._photo[id] = None
 
 		if self.gstreamerVideo:
+			id = uuid.uuid4().hex
+			self._photo[id] = None
+
 			waitEvent = Event()
 
 			def photoDone(photoBuf):
-				self._photo[id] = photoBuf
-				waitEvent.set()
+				if not waitEvent.is_set():
+					self._photo[id] = photoBuf
+					waitEvent.set()
 
 			self.gstreamerVideo.takePhoto(photoDone, text)
 			waitEvent.wait(5.0) #Wait a max of 5 secs
 
-		photo = self._photo[id]
-		del self._photo[id]
-		return photo
+			photo = self._photo[id]
+			del self._photo[id]
+			return photo
+
+		else:
+			return None
 
 	def get_pic_async(self, done, text=None):
 		if self.gstreamerVideo:

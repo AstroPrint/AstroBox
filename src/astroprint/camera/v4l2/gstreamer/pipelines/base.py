@@ -5,6 +5,8 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import subprocess
 import time
 
+from collections import deque
+
 from threading import Event, Thread
 
 from gi.repository import Gst as gst
@@ -38,6 +40,11 @@ class GstBasePipeline(object):
 		self._queuePhotoTextElement = None
 		self._jpegTextEncElement = None
 
+		#queue control
+		self._videoEncQueueLinked = False
+		self._photoQueueLinked = False
+		self._photoTextQueueLinked = False
+
 		#probe holders
 		self._teePadVideoEncProbe = None
 
@@ -60,8 +67,24 @@ class GstBasePipeline(object):
 		self._setupPhotoPipe()
 		self._setupPhotoTextPipe()
 
+		#Photo Request Queue Management
+		self._photoReqs = deque()
+		self._photoReqsProcessor = PhotoReqsProcessor(self._photoReqs, self._jpegEncElement,  self._onNoMorePhotoReqs)
+		self._photoTextReqs = deque()
+		self._photoTextReqsProcessor = PhotoReqsProcessor(self._photoTextReqs, self._jpegTextEncElement, self._onNoMorePhotoTextReqs)
+
 	def __del__(self):
 		self._logger.info('Pipeline destroyed')
+
+	def _informClientsOfInterruption(self, message):
+		#signaling for remote peers
+		manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
+		manage_fatal_error_webrtc.send('cameraError', message= message)
+
+		#event for local peers
+		eventManager().fire(Events.GSTREAMER_EVENT, {
+			'message': message or 'Fatal error occurred in video streaming'
+		})
 
 	#
 	#	 Source Tee Pipeline setup
@@ -126,6 +149,7 @@ class GstBasePipeline(object):
 				try:
 					videoQueuePad = self._queueVideoElement.get_static_pad("sink")
 					gst.Pad.link(self._teePadVideoEnc, videoQueuePad)
+					self._videoEncQueueLinked = True
 					#self._queueVideoElement.set_state(gst.State.PLAYING)
 					return
 
@@ -133,7 +157,7 @@ class GstBasePipeline(object):
 					pass
 
 			self._logger.error("Error trying to detach video queue: %s", error)
-			self.fatalErrorManager(None, True, True)
+			self.fatalErrorManager()
 
 		connector = PipelineOperation(self._teePadPhoto, readyToAttach)
 		connector.start()
@@ -144,8 +168,10 @@ class GstBasePipeline(object):
 		def readyToDetach(success= True):
 			if success:
 				try:
+					self._videoEncQueueLinked = False
 					videoQueuePad = self._queueVideoElement.get_static_pad("sink")
 					gst.Pad.unlink(self._teePadVideoEnc, videoQueuePad)
+
 					if doneCallback:
 						doneCallback(True)
 
@@ -155,7 +181,7 @@ class GstBasePipeline(object):
 					pass
 
 			self._logger.error("Error trying to detach video queue: %s", error)
-			self.fatalErrorManager(None, True, True)
+			self.fatalErrorManager()
 			if doneCallback:
 				doneCallback(False)
 
@@ -185,41 +211,51 @@ class GstBasePipeline(object):
 		self._queuePhotoElement = None
 		self._jpegEncElement = None
 
-	def _attachPhotoPipe(self):
+	def _attachPhotoPipe(self, doneCallback= None):
 		def readyToAttach(success= True):
 			if success:
 				try:
 					photoQueuePad = self._queuePhotoElement.get_static_pad("sink")
 					gst.Pad.link(self._teePadPhoto, photoQueuePad)
-					return
+					self._queuePhotoElement.set_state(gst.State.PLAYING)
+					self._jpegEncElement.set_state(gst.State.PLAYING)
+					self._photoQueueLinked = True
 
-				except:
-					pass
-
-			self._logger.error("Error trying to detach video queue: %s", error)
-			self.fatalErrorManager(None, True, True)
-
-		connector = PipelineOperation(self._teePadPhoto, readyToAttach)
-		connector.start()
-
-	def _detachPhotoPipe(self, doneCallback= None):
-
-		#Ready callback
-		def readyToDetach(success= True):
-			if success:
-				try:
-					photoQueuePad = self._queuePhotoElement.get_static_pad("sink")
-					gst.Pad.unlink(self._teePadPhoto, photoQueuePad)
 					if doneCallback:
 						doneCallback(True)
 
 					return
 
-				except:
-					pass
+				except Exception as e:
+					self._logger.error("Error trying to detach video queue: %s", e)
 
-			self._logger.error("Error trying to detach video queue: %s", error)
-			self.fatalErrorManager(None, True, True)
+			self.fatalErrorManager()
+			if doneCallback:
+				doneCallback(False)
+
+		connector = PipelineOperation(self._teePadPhoto, readyToAttach)
+		connector.start()
+
+	def _detachPhotoPipe(self, doneCallback= None):
+		#Ready callback
+		def readyToDetach(success= True):
+			if success:
+				try:
+					self._photoQueueLinked = False
+					photoQueuePad = self._queuePhotoElement.get_static_pad("sink")
+					gst.Pad.unlink(self._teePadPhoto, photoQueuePad)
+					self._queuePhotoElement.set_state(gst.State.NULL)
+					self._jpegEncElement.set_state(gst.State.NULL)
+
+					if doneCallback:
+						doneCallback(True)
+
+					return
+
+				except Exception as e:
+					self._logger.error("Error trying to detach video queue: %s", e)
+
+			self.fatalErrorManager()
 			if doneCallback:
 				doneCallback(False)
 
@@ -233,13 +269,18 @@ class GstBasePipeline(object):
 	def _setupPhotoTextPipe(self):
 		pass
 
-	def _attachPhotoTextPipe(self):
+	def _attachPhotoTextPipe(self, doneCallback= None):
 		pass
 
 	def _detachPhotoTextPipe(self, doneCallback= None):
 		pass
 
 	def tearDown(self):
+		self._photoReqs.clear()
+		self._photoReqsProcessor.stop()
+		self._photoTextReqs.clear()
+		self._photoTextReqsProcessor.stop()
+
 		self._pipeline.set_state(gst.State.NULL)
 		self._tearDownSourceTee()
 		self._tearDownVideoEncodingPipe()
@@ -247,22 +288,13 @@ class GstBasePipeline(object):
 		self._bus.disconnect(self._busOnMessageSignal)
 		self._bus.remove_signal_watch()
 
-	def fatalErrorManager(self, Message=None, SendToLocal=True, SendToRemote=True):
+	def fatalErrorManager(self, message= None):
 		self._logger.error('Handling Gstreamer fatal error')
 
 		self._pipeline.set_state(gst.State.PAUSED)
 		self._pipeline.set_state(gst.State.NULL)
 
-		if SendToRemote:
-			#signaling for remote peers
-			manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
-			manage_fatal_error_webrtc.send('cameraError',message=Message)
-
-		if SendToLocal:
-			#event for local peers
-			eventManager().fire(Events.GSTREAMER_EVENT, {
-				'message': Message or 'Fatal error occurred in video streaming'
-			})
+		self._informClientsOfInterruption(message)
 
 		try:
 			self._logger.info("Trying to get list of formats supported by your camera...")
@@ -283,23 +315,43 @@ class GstBasePipeline(object):
 
 	def takePhoto(self, doneCallback, text=None):
 		if text:
-			self._attachPhotoTextPipe()
-			captureElement = self._jpegTextEncElement;
-			detachFunc = self._detachPhotoTextPipe;
+			self._photoTextReqs.appendleft({
+				'text': text,
+				'callback': doneCallback
+			})
+
+			if not self._photoTextReqsProcessor.isAlive():
+				self._photoTextReqsProcessor.start()
+
+			if not self._photoTextQueueLinked:
+				def onAttachDone(success):
+					if success:
+						self._photoTextReqsProcessor.setReqsAvailable()
+
+				self._attachPhotoTextPipe(onAttachDone)
+			else:
+				self._photoTextReqsProcessor.setReqsAvailable()
+
 		else:
-			self._attachPhotoPipe()
-			captureElement = self._jpegEncElement;
-			detachFunc = self._detachPhotoPipe;
+			self._photoReqs.appendleft({
+				'text': None,
+				'callback': doneCallback
+			})
+
+			if not self._photoReqsProcessor.isAlive():
+				self._photoReqsProcessor.start()
+
+			if not self._photoQueueLinked:
+				def onAttachDone(success):
+					if success:
+						self._photoReqsProcessor.setReqsAvailable()
+
+				self._attachPhotoPipe(onAttachDone)
+
+			else:
+				self._photoReqsProcessor.setReqsAvailable()
 
 		self._pipeline.set_state(gst.State.PLAYING)
-
-		def photoDone(photoBuf):
-			doneCallback(photoBuf)
-			self._pipeline.set_state(gst.State.NULL)
-			detachFunc()
-
-		sampler = SampleTaker(captureElement, photoDone)
-		sampler.start()
 
 	def playVideo(self, doneCallback= None):
 		if self.state == self.STATE_STREAMING:
@@ -395,7 +447,6 @@ class GstBasePipeline(object):
 			if doneCallback:
 				doneCallback(False)
 
-
 	### Signal Handlers and Callbacks
 
 	def _onBusMessage(self, bus, msg):
@@ -404,22 +455,32 @@ class GstBasePipeline(object):
 		if t == gst.MessageType.ERROR:
 			busError, detail = msg.parse_error()
 
-			self._logger.error("gstreamer bus message error: %s" % busError)
+			self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
 
-			#if self.waitForPhoto:
-			#	if self.photoMode == 'NOT_TEXT':
-			#		self.stopQueuePhotoNotText()
-			#	else:
-			#		self.stopQueuePhoto()
-			#
-			#	self.waitForPhoto.set()
-
-			if 'Internal data flow error.' in str(busError):
-				message = str(busError)
-				self.fatalErrorManager(message, True, True)
+			if busError.code == 1: #Internal Data Flow Error
+				self._informClientsOfInterruption(str(busError))
+				self._pipeline.set_state(gst.State.NULL)
 
 		elif t == gst.MessageType.EOS:
 			self._logger.info("gstreamer EOS (End of Stream) message received.")
+
+	def _onNoMorePhotoReqs(self):
+		def onDetachDone(success):
+			#queue detachment is done
+			if success:
+				self._pipeline.set_state(gst.State.NULL)
+
+		#start photo queue detachemnt
+		self._detachPhotoPipe(onDetachDone)
+
+	def _onNoMorePhotoTextReqs(self):
+		def onDetachDone(success):
+			#queue detachment is done
+			if success:
+				self._pipeline.set_state(gst.State.NULL)
+
+		#start photo queue detachemnt
+		self._detachPhotoTextPipe(onDetachDone)
 
 	### Implement these in child clases
 
@@ -461,43 +522,71 @@ class PipelineOperation(Thread):
 		self._waitEvent.set()
 		return gst.PadProbeReturn.REMOVE
 
-
 #
-#  Worker thread to capture photos
+#  Photo processor. It takes photos from the photo request queue and tries to serve them
+#  with the appropiate pipeline. It runs on a separate thread
 #
 
+class PhotoReqsProcessor(Thread):
+	def __init__(self, photoReqs, element, noMoreReqsCallback ):
+		super(PhotoReqsProcessor, self).__init__()
 
-class SampleTaker(Thread):
-	def __init__(self, element, readyCallback, timeout=5.0, waitBeforeCapture=1.2):
-		super(SampleTaker, self).__init__()
-
-		self._readyCallback = readyCallback
+		self._photoReqs = photoReqs
+		self._morePhotosEvent = Event()
+		self._stopped = False
+		self._noMoreReqsCallback = noMoreReqsCallback
 		self._element = element
-		self._waitEvent = Event()
-		self._timeout = timeout
-		self._waitBeforeCapture = waitBeforeCapture
+
+		self._captureEvent = Event()
+		self._timeout = 5.0
+		self._waitBeforeCapture = 1.5
 		self._photoCaptureStart = None
 		self._captureProbe = None
 		self._callbackCalled = False
+		self._readyCallback = None
 
 	def run(self):
 		pad = self._element.get_static_pad("src")
-		self._photoCaptureStart = time.time()
 
-		self._captureProbe = pad.add_probe(gst.PadProbeType.BUFFER,  self._probeCallback)
-		self._waitEvent.wait(self._timeout)
+		while not self._stopped:
+			self._morePhotosEvent.wait()
+			self._captureProbe = pad.add_probe(gst.PadProbeType.BUFFER,  self._probeCallback)
 
-		if not self._callbackCalled:
-			self._readyCallback(None)
+			while len(self._photoReqs) > 0:
+				if self._stopped:
+					return
+
+				req = self._photoReqs.pop()
+
+				self._callbackCalled = False
+				self._readyCallback = req['callback']
+				self._captureEvent.clear()
+				self._photoCaptureStart = time.time()
+
+				self._captureEvent.wait(self._timeout)
+
+				if not self._callbackCalled:
+					self._readyCallback(None)
+
+			self._morePhotosEvent.clear()
+			self._noMoreReqsCallback()
+
+			pad.remove_probe(self._captureProbe)
+			self._captureProbe = None
 
 	def _probeCallback(self, pad, info):
-		if (time.time() - self._photoCaptureStart) > self._waitBeforeCapture:
-			pad.remove_probe(self._captureProbe)
-
+		if not self._callbackCalled and (time.time() - self._photoCaptureStart) > self._waitBeforeCapture:
 			photoBuffer = info.get_buffer().map(gst.MapFlags.READ)[1].data
 			self._readyCallback(photoBuffer)
 			self._callbackCalled = True
-			self._waitEvent.set()
+			self._captureEvent.set()
 
 		return gst.PadProbeReturn.DROP
+
+	def stop(self):
+		self._morePhotosEvent.set()
+		self._stopped = True
+
+	def setReqsAvailable(self):
+		self._morePhotosEvent.set()
 
