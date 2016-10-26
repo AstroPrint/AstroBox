@@ -283,7 +283,7 @@ class GstBasePipeline(object):
 				self._detachVideoEncodingPipe(doneCallback)
 			else:
 				self._pipeline.set_state(gst.State.NULL)
-				self.state == self.STATE_IDLE
+				self.state = self.STATE_IDLE
 				if doneCallback:
 					doneCallback(True)
 
