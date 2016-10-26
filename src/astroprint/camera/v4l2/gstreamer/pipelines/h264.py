@@ -58,10 +58,11 @@ class GstH264Pipeline(GstBasePipeline):
 
 	def _tearDownVideoEncodingPipe(self):
 		#unlink
-		self._rtpElement.unlink(self._udpSinkElement)
-		self._encoderCaps.unlink(self._rtpElement)
-		self._encoderElement.unlink(self._encoderCaps)
-		self._queueVideoElement.unlink(self._encoderElement)
+		#I think unlink happens automatically when removing
+		#self._rtpElement.unlink(self._udpSinkElement)
+		#self._encoderCaps.unlink(self._rtpElement)
+		#self._encoderElement.unlink(self._encoderCaps)
+		#self._queueVideoElement.unlink(self._encoderElement)
 
 		#remove
 		self._pipeline.remove(self._udpSinkElement)

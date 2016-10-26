@@ -3,6 +3,7 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import subprocess
+import time
 
 from threading import Event, Thread
 
@@ -32,6 +33,10 @@ class GstBasePipeline(object):
 		self._teePadPhoto = None
 		self._teePadPhotoText = None
 		self._queueVideoElement = None
+		self._queuePhotoElement = None
+		self._jpegEncElement = None
+		self._queuePhotoTextElement = None
+		self._jpegTextEncElement = None
 
 		#probe holders
 		self._teePadVideoEncProbe = None
@@ -52,6 +57,15 @@ class GstBasePipeline(object):
 
 		self._setupSourceTee()
 		self._setupVideoEncodingPipe()
+		self._setupPhotoPipe()
+		self._setupPhotoTextPipe()
+
+	def __del__(self):
+		self._logger.info('Pipeline destroyed')
+
+	#
+	#	 Source Tee Pipeline setup
+	#
 
 	def _setupSourceTee(self):
 		# VIDEO SOURCE DESCRIPTION
@@ -95,9 +109,10 @@ class GstBasePipeline(object):
 
 	def _tearDownSourceTee(self):
 		#unlink element
-		self._videoLogoElement.unlink(self._teeElement)
-		self._videoSourceCaps.unlink(self._videoLogoElement)
-		self._videoSourceElement.unlink(self._videoSourceCaps)
+		#I think unlink happens automatically when removing
+		#self._videoLogoElement.unlink(self._teeElement)
+		#self._videoSourceCaps.unlink(self._videoLogoElement)
+		#self._videoSourceElement.unlink(self._videoSourceCaps)
 
 		#remove elements
 		self._pipeline.remove(self._videoSourceElement)
@@ -106,9 +121,22 @@ class GstBasePipeline(object):
 		self._pipeline.remove(self._teeElement)
 
 	def _attachVideoEncodingPipe(self):
-		videoQueuePad = self._queueVideoElement.get_static_pad("sink")
-		gst.Pad.link(self._teePadVideoEnc, videoQueuePad)
-		self._queueVideoElement.set_state(gst.State.PLAYING)
+		def readyToAttach(success= True):
+			if success:
+				try:
+					videoQueuePad = self._queueVideoElement.get_static_pad("sink")
+					gst.Pad.link(self._teePadVideoEnc, videoQueuePad)
+					#self._queueVideoElement.set_state(gst.State.PLAYING)
+					return
+
+				except:
+					pass
+
+			self._logger.error("Error trying to detach video queue: %s", error)
+			self.fatalErrorManager(None, True, True)
+
+		connector = PipelineOperation(self._teePadPhoto, readyToAttach)
+		connector.start()
 
 	def _detachVideoEncodingPipe(self, doneCallback= None):
 
@@ -121,6 +149,8 @@ class GstBasePipeline(object):
 					if doneCallback:
 						doneCallback(True)
 
+					return
+
 				except:
 					pass
 
@@ -129,27 +159,85 @@ class GstBasePipeline(object):
 			if doneCallback:
 				doneCallback(False)
 
-		disconnector = PipelineDisconnector(self._teePadVideoEnc, readyToDetach)
+		disconnector = PipelineOperation(self._teePadVideoEnc, readyToDetach)
 		disconnector.start()
 
-		#try:
-		#	self._teePadVideoEnc.add_probe(gst.PadProbeType.BLOCK, self._teePadVideoEncProbeCallback, None)
-		#	self._waitForStopVideo.wait()
+	#
+	#	 Photo (no text) pipeline setup
+	#
 
-		#except Exception, error:
-		#	self._logger.error("Error trying to stop video queue: %s", error)
-		#	self.fatalErrorManager(None, True, True)
+	def _setupPhotoPipe(self):
+		self._queuePhotoElement = gst.ElementFactory.make('queue', 'queuephoto')
+		self._jpegEncElement = gst.ElementFactory.make('jpegenc', 'jpegenc')
+		self._jpegEncElement.set_property('quality',65)
 
-	#def _teePadVideoEncProbeCallback(self, pad, info, user_data):
-	#	self._teePadVideoEnc.add_probe(gst.PadProbeType.BLOCK_DOWNSTREAM, self._teePadVideoEncProbeDownstreamCallback, None)
-	#	return gst.PadProbeReturn.REMOVE
+		#add
+		self._pipeline.add(self._queuePhotoElement)
+		self._pipeline.add(self._jpegEncElement)
 
-	#def _teePadVideoEncProbeDownstreamCallback(self, pad, info, user_data):
-	#	videoQueuePad = self._queueVideoElement.get_static_pad("sink")
-	#	gst.Pad.unlink(self._teePadVideoEnc, videoQueuePad)
-	#	self._waitForStopVideo.set()
+		#link
+		self._queuePhotoElement.link(self._jpegEncElement)
 
-	#	return gst.PadProbeReturn.REMOVE
+	def _tearDownPhotoPipe(self):
+		self._pipeline.remove(self._queuePhotoElement)
+		self._pipeline.remove(self._jpegEncElement)
+
+		self._queuePhotoElement = None
+		self._jpegEncElement = None
+
+	def _attachPhotoPipe(self):
+		def readyToAttach(success= True):
+			if success:
+				try:
+					photoQueuePad = self._queuePhotoElement.get_static_pad("sink")
+					gst.Pad.link(self._teePadPhoto, photoQueuePad)
+					return
+
+				except:
+					pass
+
+			self._logger.error("Error trying to detach video queue: %s", error)
+			self.fatalErrorManager(None, True, True)
+
+		connector = PipelineOperation(self._teePadPhoto, readyToAttach)
+		connector.start()
+
+	def _detachPhotoPipe(self, doneCallback= None):
+
+		#Ready callback
+		def readyToDetach(success= True):
+			if success:
+				try:
+					photoQueuePad = self._queuePhotoElement.get_static_pad("sink")
+					gst.Pad.unlink(self._teePadPhoto, photoQueuePad)
+					if doneCallback:
+						doneCallback(True)
+
+					return
+
+				except:
+					pass
+
+			self._logger.error("Error trying to detach video queue: %s", error)
+			self.fatalErrorManager(None, True, True)
+			if doneCallback:
+				doneCallback(False)
+
+		disconnector = PipelineOperation(self._teePadPhoto, readyToDetach)
+		disconnector.start()
+
+	#
+	#	 Photo (with text) pipeline setup
+	#
+
+	def _setupPhotoTextPipe(self):
+		pass
+
+	def _attachPhotoTextPipe(self):
+		pass
+
+	def _detachPhotoTextPipe(self, doneCallback= None):
+		pass
 
 	def tearDown(self):
 		self._pipeline.set_state(gst.State.NULL)
@@ -164,11 +252,6 @@ class GstBasePipeline(object):
 
 		self._pipeline.set_state(gst.State.PAUSED)
 		self._pipeline.set_state(gst.State.NULL)
-
-		#TODO: if Photo pending stop waiting
-		#if self.waitForPhoto:
-		#	self.stopQueuePhotoNotText()
-		#	self.waitForPhoto.set()
 
 		if SendToRemote:
 			#signaling for remote peers
@@ -198,8 +281,25 @@ class GstBasePipeline(object):
 
 		self._manager.resetPipeline()
 
-	def takePhoto(self):
-		pass
+	def takePhoto(self, doneCallback, text=None):
+		if text:
+			self._attachPhotoTextPipe()
+			captureElement = self._jpegTextEncElement;
+			detachFunc = self._detachPhotoTextPipe;
+		else:
+			self._attachPhotoPipe()
+			captureElement = self._jpegEncElement;
+			detachFunc = self._detachPhotoPipe;
+
+		self._pipeline.set_state(gst.State.PLAYING)
+
+		def photoDone(photoBuf):
+			doneCallback(photoBuf)
+			self._pipeline.set_state(gst.State.NULL)
+			detachFunc()
+
+		sampler = SampleTaker(captureElement, photoDone)
+		sampler.start()
 
 	def playVideo(self, doneCallback= None):
 		if self.state == self.STATE_STREAMING:
@@ -334,26 +434,70 @@ class GstBasePipeline(object):
 
 
 #
-#  Worker thread to disconnect pipelines
+#  Worker thread to work on changing pads
 #
 
-class PipelineDisconnector(Thread):
+
+class PipelineOperation(Thread):
 	def __init__(self, pad, readyCallback, timeout=5.0):
-		super(PipelineDisconnector, self).__init__()
+		super(PipelineOperation, self).__init__()
 
 		self._readyCallback = readyCallback
 		self._pad = pad
 		self._waitEvent = Event()
 		self._timeout = timeout
+		self._callbackCalled = False
 
 	def run(self):
 		self._pad.add_probe(gst.PadProbeType.IDLE, self._probeCallback, None)
-		waitResult = self._waitEvent.wait(self._timeout)
+		self._waitEvent.wait(self._timeout)
 
-		self._readyCallback(waitResult)
+		if not self._callbackCalled:
+			self._readyCallback(False)
 
-	def probeCallback(self):
+	def _probeCallback(self, pad, info, user_data):
+		self._readyCallback(True)
+		self._callbackCalled = True
 		self._waitEvent.set()
 		return gst.PadProbeReturn.REMOVE
 
+
+#
+#  Worker thread to capture photos
+#
+
+
+class SampleTaker(Thread):
+	def __init__(self, element, readyCallback, timeout=5.0, waitBeforeCapture=1.2):
+		super(SampleTaker, self).__init__()
+
+		self._readyCallback = readyCallback
+		self._element = element
+		self._waitEvent = Event()
+		self._timeout = timeout
+		self._waitBeforeCapture = waitBeforeCapture
+		self._photoCaptureStart = None
+		self._captureProbe = None
+		self._callbackCalled = False
+
+	def run(self):
+		pad = self._element.get_static_pad("src")
+		self._photoCaptureStart = time.time()
+
+		self._captureProbe = pad.add_probe(gst.PadProbeType.BUFFER,  self._probeCallback)
+		self._waitEvent.wait(self._timeout)
+
+		if not self._callbackCalled:
+			self._readyCallback(None)
+
+	def _probeCallback(self, pad, info):
+		if (time.time() - self._photoCaptureStart) > self._waitBeforeCapture:
+			pad.remove_probe(self._captureProbe)
+
+			photoBuffer = info.get_buffer().map(gst.MapFlags.READ)[1].data
+			self._readyCallback(photoBuffer)
+			self._callbackCalled = True
+			self._waitEvent.set()
+
+		return gst.PadProbeReturn.DROP
 

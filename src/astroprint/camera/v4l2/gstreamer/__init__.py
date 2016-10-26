@@ -6,8 +6,9 @@ import subprocess
 import logging
 import time
 import gi
+import uuid
 
-from threading import Thread, Semaphore
+from threading import Thread, Event
 
 from octoprint.settings import settings
 
@@ -49,10 +50,10 @@ class GStreamerManager(V4L2Manager):
 
 	def __init__(self, videoDevice):
 		self.gstreamerVideo = None
-		self.asyncPhotoTaker = None
 		self.pipeline = None
 		self.cameraInfo = None
 		self.number_of_video_device = videoDevice
+		self._photo = {}
 		self._logger = logging.getLogger(__name__)
 
 		if super(GStreamerManager, self).isCameraConnected():
@@ -146,11 +147,6 @@ class GStreamerManager(V4L2Manager):
 		})
 		##
 
-		#initialize a new object with the settings changed
-		if self.asyncPhotoTaker:
-			self.asyncPhotoTaker.stop()
-			self.asyncPhotoTaker = None
-
 		self.freeMemory()
 		self.open_camera()
 
@@ -163,26 +159,28 @@ class GStreamerManager(V4L2Manager):
 	# There are cases where we want the pic to be synchronous
 	# so we leave this version too
 	def get_pic(self, text=None):
-		if self.gstreamerVideo:
-			return self.gstreamerVideo.takePhoto(text)
+		id = uuid.uuid4().hex
+		self._photo[id] = None
 
-		return None
+		if self.gstreamerVideo:
+			waitEvent = Event()
+
+			def photoDone(photoBuf):
+				self._photo[id] = photoBuf
+				waitEvent.set()
+
+			self.gstreamerVideo.takePhoto(photoDone, text)
+			waitEvent.wait(5.0) #Wait a max of 5 secs
+
+		photo = self._photo[id]
+		del self._photo[id]
+		return photo
 
 	def get_pic_async(self, done, text=None):
-		# This is just a placeholder
-		# we need to pass done around and call it with
-		# the image info when ready
-		if not self.gstreamerVideo:
+		if self.gstreamerVideo:
+			self.gstreamerVideo.takePhoto(done, text)
+		else:
 			done(None)
-			return
-
-		if not self.asyncPhotoTaker:
-			self.asyncPhotoTaker = AsyncPhotoTaker(self.gstreamerVideo.takePhoto)
-
-		self.asyncPhotoTaker.take_photo(done, text)
-
-	# def save_pic(self, filename, text=None):
-	#    pass
 
 	def shutdown(self):
 		self._logger.info('Shutting Down GstreamerManager')
@@ -196,11 +194,8 @@ class GStreamerManager(V4L2Manager):
 	def getVideoStreamingState(self):
 		return self.gstreamerVideo.streamProcessState
 
-	def close_camera(self):
-			if self.asyncPhotoTaker:
-				self.asyncPhotoTaker.stop()
-				self.asyncPhotoTaker.join()
-				self.asyncPhotoTaker = None
+	#def close_camera(self):
+	#	pass
 
 	def startLocalVideoSession(self, sessionId):
 		return webRtcManager().startLocalSession(sessionId)
@@ -244,41 +239,4 @@ class GStreamerManager(V4L2Manager):
 		if super(GStreamerManager, self).isCameraConnected():
 			self.setSafeSettings()
 			self.reScan()
-
-
-#
-#  Class to allow for taking pictures asynchronously
-#
-
-
-class AsyncPhotoTaker(Thread):
-	def __init__(self, take_photo_function):
-		super(AsyncPhotoTaker, self).__init__()
-
-		self.threadAlive = True
-		self.take_photo_function = take_photo_function
-		self.sem = Semaphore(0)
-		self.doneFunc = None
-		self.text = None
-		self.start()
-
-	def run(self):
-		while self.threadAlive:
-			self.sem.acquire()
-			if not self.threadAlive:
-				return
-
-			if self.doneFunc:
-				self.doneFunc(self.take_photo_function(self.text))
-				self.doneFunc = None
-				self.text = None
-
-	def take_photo(self, done, text):
-		self.doneFunc = done
-		self.text = text
-		self.sem.release()
-
-	def stop(self):
-		self.threadAlive = False
-		self.sem.release()
 
