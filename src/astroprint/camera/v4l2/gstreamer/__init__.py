@@ -118,22 +118,22 @@ class GStreamerManager(V4L2Manager):
 
 		return not self.gstreamerVideo is None
 
-	def start_video_stream(self):
+	def start_video_stream(self, doneCallback= None):
 		if self.gstreamerVideo:
 			if not self.isVideoStreaming():
-				return self.gstreamerVideo.playVideo()
-			else:
-				return True
+				self.gstreamerVideo.playVideo(doneCallback)
+			elif doneCallback:
+				doneCallback(True)
 
-		else:
-			return False
+		elif doneCallback:
+			doneCallback(False)
 
-	def stop_video_stream(self):
+	def stop_video_stream(self, doneCallback= None):
 		if self.gstreamerVideo and self.gstreamerVideo.state == self.gstreamerVideo.STATE_STREAMING:
-			return self.gstreamerVideo.stopVideo()
+			self.gstreamerVideo.stopVideo(doneCallback)
 
-		else:
-			return False
+		elif doneCallback:
+			doneCallback(False)
 
 	def settingsChanged(self, cameraSettings):
 		super(GStreamerManager, self).settingsChanged(cameraSettings)

@@ -92,22 +92,28 @@ class MjpegManager(V4L2Manager):
 		else:
 			return False
 
-	def start_video_stream(self):
+	def start_video_stream(self, doneCallback= None):
 		if self._streamer:
 			if not self._isStreaming:
 				self._streamer.startVideo()
 				self._isStreaming = True
-			return True
+			result = True
 		else:
-			return False
+			result = False
 
-	def stop_video_stream(self):
+		if doneCallback:
+			doneCallback(result)
+
+	def stop_video_stream(self, doneCallback= None):
 		if self._streamer:
 			self._streamer.stopVideo()
 			self._isStreaming = False
-			return True
+			result = True
 		else:
-			return False
+			result = False
+
+		if doneCallback:
+			doneCallback(result)
 
 	def list_camera_info(self):
 		pass

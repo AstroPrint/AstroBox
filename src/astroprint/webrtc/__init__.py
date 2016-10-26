@@ -49,18 +49,6 @@ class WebRtc(object):
 		else:
 			return True #Janus was running before it
 
-	#def ensureGstreamerRunning(self):
-	#	cam = cameraManager()
-	#	if cam.open_camera():
-	#		if not cam.start_video_stream():
-	#			self._logger.error('Managing Gstreamer error in WebRTC object')
-				#Janus is forced to be closed
-	#			self.stopJanus()
-	#			return False
-	#		return False
-	#	else:
-	#		return True
-
 	def shutdown(self):
 		self._logger.info('Shutting Down WebRtcManager')
 		self.stopJanus()
@@ -216,9 +204,12 @@ class WebRtc(object):
 
 	def startGStreamer(self):
 		#Start Gstreamer
-		if not cameraManager().start_video_stream():
-			self._logger.error('Managing Gstreamer error in WebRTC object')
-			self.stopJanus()
+		def startDone(success):
+			if not success:
+				self._logger.error('Managing Gstreamer error in WebRTC object')
+				self.stopJanus()
+
+		cameraManager().start_video_stream(startDone)
 
 	def startJanus(self):
 		#Start janus command here
@@ -233,8 +224,8 @@ class WebRtc(object):
 
 		try:
 			self._JanusProcess = subprocess.Popen(
-		    	args,
-		    	stdout=subprocess.PIPE
+					args,
+					stdout=subprocess.PIPE
 			)
 
 		except Exception, error:
@@ -255,13 +246,13 @@ class WebRtc(object):
 
 				try:
 					response = session.post(
-					    url='http://127.0.0.1:8088',
-					    data={
+							url='http://127.0.0.1:8088',
+							data={
 						 "message":{
-						 	"request": 'info',
-         					 	"transaction": 'ready'
-						  	}
-					    }
+							"request": 'info',
+										"transaction": 'ready'
+								}
+							}
 					)
 
 				except Exception, error:
@@ -394,29 +385,29 @@ class ConnectionPeer(object):
 		#SIGNALS
 		#
 		# Signal fired when `Connection` has been established.
-	    #	on_opened = blinker.Signal()
+			#	on_opened = blinker.Signal()
 		#self.session.cxn_cls.on_opened.connect(self.connection_on_opened)
 
 		#
-	    # Signal fired when `Connection` has been closed.
-	    #	on_closed = blinker.Signal()
+			# Signal fired when `Connection` has been closed.
+			#	on_closed = blinker.Signal()
 		#self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
 
 		#
-	    # Signal fired when `Connection` receives a message
-	    #	on_message = blinker.Signal()
+			# Signal fired when `Connection` receives a message
+			#	on_message = blinker.Signal()
 		self.session.cxn_cls.on_message.connect(self.connection_on_message)
 
-	    ##
+			##
 
 
-	    #SESSION
-	    #self.session
-	    #
-	    #SIGNALS
-	    #
-	    # Signal fired when `Session` has been connected.
-	    #	on_connected = blinker.Signal()
+			#SESSION
+			#self.session
+			#
+			#SIGNALS
+			#
+			# Signal fired when `Session` has been connected.
+			#	on_connected = blinker.Signal()
 		#self.session.on_connected.connect(self.session_on_connected)
 
 		#

@@ -38,7 +38,6 @@ class GstBasePipeline(object):
 
 		#Events for synchronization
 		self._waitForPhoto = None
-		self._waitForPlayVideo = None
 
 		self._device = device
 		self._manager = manager
@@ -111,7 +110,7 @@ class GstBasePipeline(object):
 		gst.Pad.link(self._teePadVideoEnc, videoQueuePad)
 		self._queueVideoElement.set_state(gst.State.PLAYING)
 
-	def _detachVideoEncodingPipe(self):
+	def _detachVideoEncodingPipe(self, doneCallback= None):
 
 		#Ready callback
 		def readyToDetach(success= True):
@@ -119,13 +118,16 @@ class GstBasePipeline(object):
 				try:
 					videoQueuePad = self._queueVideoElement.get_static_pad("sink")
 					gst.Pad.unlink(self._teePadVideoEnc, videoQueuePad)
-					return
+					if doneCallback:
+						doneCallback(True)
 
 				except:
 					pass
 
 			self._logger.error("Error trying to detach video queue: %s", error)
 			self.fatalErrorManager(None, True, True)
+			if doneCallback:
+				doneCallback(False)
 
 		disconnector = PipelineDisconnector(self._teePadVideoEnc, readyToDetach)
 		disconnector.start()
@@ -199,46 +201,58 @@ class GstBasePipeline(object):
 	def takePhoto(self):
 		pass
 
-	def playVideo(self):
+	def playVideo(self, doneCallback= None):
 		if self.state == self.STATE_STREAMING:
 			return
 
 		if self.state != self.STATE_PREPARING_STREAMING:
-			# SETS VIDEO ENCODING PARAMETERS AND STARTS VIDEO
-			try:
-				waitingForVideo = True
+			#Video starter callback
+			def videoCanStart():
+				try:
+					self._attachVideoEncodingPipe()
 
-				self._waitForPlayVideo = Event()
+					stateChanged = self._pipeline.set_state(gst.State.PLAYING)
+					if stateChanged == gst.StateChangeReturn.FAILURE:
+						return False
 
-				if self.state == self.STATE_PHOTO:
-					while waitingForVideo:
-						if self.state == self.STATE_PHOTO:
-							waitingForVideo = self._waitForPlayVideo.wait(2)
-						else:
-							self._waitForPlayVideo.set()
-							self._waitForPlayVideo.clear()
-							waitingForVideo = False
+					# START PLAYING THE PIPELINE
+					self.state = self.STATE_STREAMING
+					return True
 
-				self.state = self.STATE_PREPARING_STREAMING
-				print "attaching"
-				self._attachVideoEncodingPipe()
+				except Exception, error:
+					self._logger.error("Error starting video stream: %s" % str(error), exc_info = True)
+					self._pipeline.set_state(gst.State.PAUSED)
+					self._pipeline.set_state(gst.State.NULL)
 
-				stateChanged = self._pipeline.set_state(gst.State.PLAYING)
-				if stateChanged == gst.StateChangeReturn.FAILURE:
 					return False
 
-				# START PLAYING THE PIPELINE
-				self.state = self.STATE_STREAMING
-				return True
+			self.state = self.STATE_PREPARING_STREAMING
+			if self.state == self.STATE_PHOTO:
+				def waitForVideo(timeout):
+					startTime = time.time()
+					while True:
+						if self.state == self.STATE_PHOTO:
+							time.sleep(1)
+							if (time.time() - startTime) > timeout:
+								#Error there as a timeout
+								self._logger.error("Timeout (%f secs) starting video stream" % timeout)
+								if doneCallback:
+									doneCallback(False)
 
-			except Exception, error:
-				self._logger.error("Error starting video stream: %s" % str(error), exc_info = True)
-				self._pipeline.set_state(gst.State.PAUSED)
-				self._pipeline.set_state(gst.State.NULL)
+						else:
+							result = videoCanStart()
+							if doneCallback:
+								doneCallback(result)
 
-				return False
+				starter = Thread(target=waitForVideo, kwargs={'timeout': 20.0})
+				starter.start()
 
-	def stopVideo(self):
+			else:
+				result = videoCanStart()
+				if doneCallback:
+					doneCallback(result)
+
+	def stopVideo(self, doneCallback= None):
 		# STOPS THE VIDEO
 		try:
 			"""if self.state == self.STATE_PHOTO:
@@ -266,19 +280,20 @@ class GstBasePipeline(object):
 			return StateChangeReturn"""
 
 			if self.state == self.STATE_PHOTO:
-				self._detachVideoEncodingPipe()
+				self._detachVideoEncodingPipe(doneCallback)
 			else:
 				self._pipeline.set_state(gst.State.NULL)
 				self.state == self.STATE_IDLE
-
-			return True
+				if doneCallback:
+					doneCallback(True)
 
 		except Exception, error:
 			self._logger.error("Error stoping video: %s" % str(error), exc_info=True)
 			self._pipeline.set_state(gst.State.PAUSED)
 			self._pipeline.set_state(gst.State.NULL)
 
-			return False
+			if doneCallback:
+				doneCallback(False)
 
 
 	### Signal Handlers and Callbacks
@@ -323,7 +338,7 @@ class GstBasePipeline(object):
 #
 
 class PipelineDisconnector(Thread):
-	def __init__(self, pad, readyCallback, timeout=20.0):
+	def __init__(self, pad, readyCallback, timeout=5.0):
 		super(PipelineDisconnector, self).__init__()
 
 		self._readyCallback = readyCallback

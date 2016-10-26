@@ -240,12 +240,10 @@ class PrinterCommandHandler(object):
 
 class CameraCommandHandler(object):
 	def start_video_stream(self, data, clientId, done):
-		cameraManager().start_video_stream()
-		done(None)
+		cameraManager().start_video_stream(done)
 
 	def stop_video_stream(self, data, clientId, done):
-		cameraManager().stop_video_stream()
-		done(None)
+		cameraManager().stop_video_stream(done)
 
 # P2P Command Group Handler
 
