@@ -8,7 +8,7 @@ import flask
 import json
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
-from flask import Flask, render_template, send_from_directory, make_response, Response, request
+from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
 from flask.ext.login import LoginManager, current_user, logout_user
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
 from flask.ext.compress import Compress
@@ -50,8 +50,7 @@ admin_permission = Permission(RoleNeed("admin"))
 user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
-from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, \
-	UrlForwardHandler, user_validator
+from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, UrlForwardHandler, user_validator
 from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
@@ -69,7 +68,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
 
-UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
+UI_API_KEY = None
 VERSION = None
 
 @app.route('/astrobox/identify', methods=['GET'])
@@ -181,11 +180,11 @@ def apple_icon():
 
 @app.route('/img/<path:path>')
 def static_proxy_images(path):
-    return app.send_static_file(os.path.join('img', path))
+	return app.send_static_file(os.path.join('img', path))
 
 @app.route('/font/<path:path>')
 def static_proxy_fonts(path):
-    return app.send_static_file(os.path.join('font', path))
+	return app.send_static_file(os.path.join('font', path))
 
 @app.route('/camera/snapshot', methods=["GET"])
 def camera_snapshot():
@@ -208,7 +207,7 @@ def getStatus():
 	if printer.isPrinting():
 		currentJob = printer.getCurrentJob()
 		fileName = currentJob["file"]["name"]
-	
+
 	state = Response()
 
 	state.data = json.dumps({
@@ -230,9 +229,6 @@ def getStatus():
 
 @app.route("/apiKey", methods=["POST"])
 def getUiApiKey():
-
-	from flask import request, abort
-	
 	from astroprint.cloud import astroprintCloud
 
 	email = request.values.get('email', None)
@@ -243,24 +239,18 @@ def getUiApiKey():
 	# - nobody logged: None
 	# - any log: email
 
-	if email and accessKey:#in blue phalcon somebody is logged in
-
+	if email and accessKey:#somebody is logged in the remote client
 		if userLogged:#Somebody logged in Astrobox
-
 			if userLogged == email:#I am the user logged
-
 				online = networkManager().isOnline()
 
 				if online:
-
 					public_key = astroprintCloud().get_public_key(email, accessKey)
 
 					if not public_key:
-
 						abort(403)
 
 				else:
-
 					user = userManager.findUser(email)
 					if user.get_private_key() != accessKey:
 						abort(403)
@@ -268,12 +258,9 @@ def getUiApiKey():
 			else:#I am NOT the logged user
 				abort(403)
 
-	else:#in blue phalcon, nodody is logged in
-
+	else:#nodody is logged in the remote client
 		if userLogged:
-
 			abort(401)
-
 
 	#BIG logical ELSE
 	response = Response()
@@ -333,6 +320,7 @@ class Server():
 		global softwareManager
 		global discoveryManager
 		global VERSION
+		global UI_API_KEY
 
 		from tornado.wsgi import WSGIContainer
 		from tornado.httpserver import HTTPServer
@@ -346,6 +334,8 @@ class Server():
 		# first initialize the settings singleton and make sure it uses given configfile and basedir if available
 		self._initSettings(self._configfile, self._basedir)
 		s = settings()
+
+		UI_API_KEY = s.get(['api', 'key'])
 
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
