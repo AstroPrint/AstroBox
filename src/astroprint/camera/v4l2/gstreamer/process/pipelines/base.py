@@ -70,13 +70,17 @@ class GstBasePipeline(object):
 		self._bus.set_flushing(True)
 
 		#setup a listener for bus_errors
-		self._busListener = Thread(target= self._busMessageListener)
+		#self._busListener = Thread(target= self._busMessageListener)
+		#self._busListener.start()
+		self._busListener = BusListener(self._bus)
+		self._busListener.addListener(gst.MessageType.ERROR, self._onBusError)
+		self._busListener.addListener(gst.MessageType.EOS, self._onBusEos)
 		self._busListener.start()
 
 		#Photo Request Queue Management
 		self._photoReqsProcessor =  PhotoReqsProcessor( self._pipeline, self._onNoMorePhotoReqs )
 
-		self._elementStateManager = ElementStateManager(self._bus)
+		self._elementStateManager = ElementStateManager(self._busListener)
 		self._elementStateManager.start()
 
 		self._pipeline.set_state(gst.State.READY)
@@ -217,7 +221,6 @@ class GstBasePipeline(object):
 
 		self._handlePipelineStartStop(onPipelineStateChanged)
 
-
 	def _detachPhotoPipe(self, doneCallback= None):
 		#These are used to flush
 		chainStartSinkPad = self._queuePhotoElement.get_static_pad("sink")
@@ -288,6 +291,7 @@ class GstBasePipeline(object):
 
 			self._photoReqsProcessor.stop()
 			self._elementStateManager.stop()
+			self._busListener.stop()
 
 			self._tearDownSourceTee()
 			self._tearDownVideoEncodingPipe()
@@ -368,6 +372,18 @@ class GstBasePipeline(object):
 
 	### Signal Handlers and Callbacks
 
+	def _onBusError(self, msg):
+		busError, detail = msg.parse_error()
+
+		self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
+
+		if busError.code == 1: #Internal Data Flow Error
+			self.tearDown()
+
+	def _onBusEos(self, msg):
+		self._logger.info("gstreamer EOS (End of Stream) message received.")
+
+	'''
 	def _busMessageListener(self):
 		while self._bus:
 			msg = self._bus.timed_pop_filtered(1 * gst.SECOND, gst.MessageType.ERROR | gst.MessageType.EOS ) #| gst.MessageType.STATE_CHANGED)
@@ -389,7 +405,7 @@ class GstBasePipeline(object):
 				#elif t == gst.MessageType.STATE_CHANGED:
 				#	old, new, pending = msg.parse_state_changed()
 				#	self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
-
+		'''
 
 	def _onNoMorePhotoReqs(self):
 		#start photo queue detachemnt
@@ -420,7 +436,7 @@ class GstBasePipeline(object):
 #
 
 class ElementStateManager(Thread):
-	def __init__(self, bus):
+	def __init__(self, busListener):
 		super(ElementStateManager, self).__init__()
 
 		self.daemon = True
@@ -430,10 +446,12 @@ class ElementStateManager(Thread):
 		self._newStateAvailableEvent = Event()
 		self._stateReqs = deque()
 		self._currentReq = None
-		self._bus = bus
+		self._busListener = busListener
 		self._pendingReqs = {}
 
 	def run(self):
+		busListenerId = self._busListener.addListener(gst.MessageType.STATE_CHANGED, self._onStateChanged)
+
 		while not self._stopped:
 			self._newStateAvailableEvent.wait()
 
@@ -456,14 +474,23 @@ class ElementStateManager(Thread):
 						else:
 							self._pendingReqs[element] = {targetState: cb}
 
-						while self._pendingReqs:
-							print self._pendingReqs
-
-							msg = self._bus.timed_pop_filtered(gst.SECOND, gst.MessageType.STATE_CHANGED) #1 sec timeout
-							if msg:
-								self._onBusMessage(msg)
-
 			self._newStateAvailableEvent.clear()
+
+		self._busListener.removeListener(busListenerId)
+
+	def _onStateChanged(self, msg):
+		old, new, pending = msg.parse_state_changed()
+		self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
+
+		if msg.src in self._pendingReqs:
+			pendingForElement = self._pendingReqs[msg.src]
+
+			if pending == gst.State.VOID_PENDING and new in pendingForElement:
+				if new in pendingForElement:
+					pendingForElement[new](new)
+					del pendingForElement[new]
+					if not pendingForElement:
+						del self._pendingReqs[msg.src]
 
 	def _onBusMessage(self, msg):
 		if msg.src in self._pendingReqs:
@@ -615,3 +642,71 @@ class PhotoReqsProcessor(Thread):
 		self._logger.info('Adding Photo Req: text ( %s ), needsExposure ( %s ), callback ( %s )' % (text, needsExposure, callback))
 		self._photoReqs.appendleft({ 'text': text, 'needsExposure': needsExposure, 'callback': callback })
 		self._morePhotosEvent.set()
+
+#
+#  bus listener and dispatcher
+#  It monitor the bus messages and dispatches events to listeners
+#
+
+class BusListener(Thread):
+	def __init__(self, bus ):
+		super(BusListener, self).__init__()
+		self._bus = bus
+		self._stopped = False
+		self._relevantMessages = []
+		self._relevantMessagesMask = gst.MessageType.UNKNOWN
+		self._listenersByEvents = {}
+		self._listeners = {}
+		self._nextId = 1
+		self._changeListenersCondition = Condition()
+
+	def run(self):
+		while not self._stopped:
+			print self._relevantMessagesMask
+			msg = self._bus.timed_pop_filtered(gst.SECOND, self._relevantMessagesMask) #1 sec timeout
+			if not self._stopped and msg:
+				t = msg.type
+
+				for l in self._listenersByEvents[t]:
+					self._listeners[l][1](msg)
+
+	def _recalculateMask(self):
+		self._relevantMessagesMask = gst.MessageType.UNKNOWN
+		for mask in self._relevantMessages:
+			self._relevantMessagesMask |= mask
+
+	def stop(self):
+		self._stopped = True
+
+	def addListener(self, msgType, callback):
+		with self._changeListenersCondition:
+			if msgType not in self._relevantMessages:
+				self._relevantMessages.append(msgType)
+				self._recalculateMask()
+
+			listenerId = self._nextId
+			self._nextId += 1
+			self._listeners[listenerId] = (msgType, callback)
+
+			if msgType in self._listenersByEvents:
+				self._listenersByEvents[msgType].append(listenerId)
+			else:
+				self._listenersByEvents[msgType] = [listenerId]
+
+			return listenerId
+
+	def removeListener(self, id):
+		with self._changeListenersCondition:
+			listener = self._listeners[id] #(msgType, callback)
+			msgType = listener[0]
+
+			#Remove from the listeners
+			listenersByEvent = self._listenersByEvents[msgType]
+			listenersByEvent.remove(id)
+
+			if len(listenersByEvent) == 0:
+				#We need to remove from the mask
+				del self._listenersByEvents[msgType]
+				self._relevantMessages.remove(msgType)
+				self._recalculateMask()
+
