@@ -14,6 +14,7 @@ import numpy as np
 from sarge import Command
 
 from octoprint.server import app
+from octoprint.settings import settings
 
 from astroprint.camera.v4l2 import V4L2Manager
 
@@ -25,7 +26,6 @@ class MjpegManager(V4L2Manager):
 		self._logger.info('MPJEG Camera Manager initialized')
 		self._videoDevice = videoDevice
 		self._streamer = None
-		self._isStreaming = False
 		self._localClients = []
 
 		super(MjpegManager, self).__init__(videoDevice)
@@ -50,32 +50,42 @@ class MjpegManager(V4L2Manager):
 	def settingsChanged(self, cameraSettings):
 		super(MjpegManager, self).settingsChanged(cameraSettings)
 
-		self.stop_video_stream()
+		if self._streamer:
+			self.close_camera()
+			self._streamer = None
+
 		self._localClients = []
-		self._streamer = None
-		self.open_camera()
+		self.reScan()
 
 	def open_camera(self):
-		try:
-			if self.isCameraConnected():
-				self._streamer = MJPEGStreamer(self._videoDevice, self._settings['size'], self._settings['framerate'], self._settings['format'])
-				if self._streamer:
-					self.supported_formats = self.cameraInfo['supportedResolutions']
+		if self.isCameraConnected():
+			if self._streamer:
+				return True
 
-			return True
+			else:
+				try:
+					self._streamer = MJPEGStreamer(self._videoDevice, self._settings['size'], self._settings['framerate'], self._settings['format'])
 
-		except Exception, error:
-			self._logger.error(error, exc_info=True)
+					if self._streamer:
+						self.supported_formats = self.cameraInfo['supportedResolutions']
+						return True
+
+				except Exception, error:
+					self._logger.error(error, exc_info=True)
 
 		return False
 
 	def close_camera(self):
-		self.stop_video_stream()
+		if self._streamer:
+			if self.isVideoStreaming():
+				self.stop_video_stream()
+
 		self._localClients = []
+		self._streamer.stop()
 		self._streamer = None
 
 	def reScan(self):
-		if self._streamer :
+		if self._streamer:
 			self.close_camera()
 
 		if self.isCameraConnected():
@@ -87,30 +97,38 @@ class MjpegManager(V4L2Manager):
 				self.cameraName = self.getCameraName()
 				self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
 
-				return self.open_camera()
+				self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraName, self._settings['encoding'], self._settings['size'], self._settings['source']))
+
+				return True
 
 		else:
 			return False
 
 	def start_video_stream(self, doneCallback= None):
-		if self._streamer:
-			if not self._isStreaming:
-				self._streamer.startVideo()
-				self._isStreaming = True
-			result = True
-		else:
-			result = False
+		if self.isVideoStreaming():
+			if doneCallback:
+				doneCallback(True)
+
+		if not self._streamer:
+			if not self.open_camera():
+				if doneCallback:
+					doneCallback(False)
+				return
+
+		result = self._streamer.startVideo()
 
 		if doneCallback:
 			doneCallback(result)
 
 	def stop_video_stream(self, doneCallback= None):
+		if not self._streamer or not self.isVideoStreaming():
+			if doneCallback:
+				doneCallback(True)
+
+			return
+
 		if self._streamer:
-			self._streamer.stopVideo()
-			self._isStreaming = False
-			result = True
-		else:
-			result = False
+			result = self._streamer.stopVideo()
 
 		if doneCallback:
 			doneCallback(result)
@@ -121,22 +139,25 @@ class MjpegManager(V4L2Manager):
 	def list_devices(self):
 		pass
 
-	def get_pic(self, text=None):
-		if self._streamer:
-			return self._streamer.getPhoto(text)
-
-		else:
-			return None
-
 	def get_pic_async(self, done, text=None):
-		if self._streamer:
-			threading.Thread(target=self._streamer.getPhoto, args=(text, done)).start()
+		if self.isCameraConnected():
+			if not self._streamer:
+				if not self.open_camera():
+					done(None)
+					return
 
-		else:
-			done(None)
+			def onDone(photo):
+				done(photo)
+				if not self.isVideoStreaming():
+					self.close_camera()
+
+			threading.Thread(target=self._streamer.getPhoto, args=(text, onDone)).start()
+			return
+
+		done(None)
 
 	def isVideoStreaming(self):
-		return self._isStreaming;
+		return self._streamer and self._streamer.isVideoStreaming();
 
 	def startLocalVideoSession(self, sessionId):
 		if self._streamer:
@@ -171,7 +192,7 @@ class MJPEGStreamer(object):
 		self._format = format
 		self._videoRunning = False
 		self._process = None
-
+		self._streaming = False
 
 		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
 		self._infoAreaShape = self._infoArea.shape
@@ -203,11 +224,16 @@ class MJPEGStreamer(object):
 
 				time.sleep(0.2)
 
-				return self._process.returncode is None
+				running = self._process.returncode is None
+
+				if running:
+					self._streaming = True
+
+				return running
 
 		return False
 
-	def stopVideo(self):
+	def stop(self):
 		if self._process:
 			if self._process.returncode is None:
 				self._process.terminate()
@@ -215,13 +241,19 @@ class MJPEGStreamer(object):
 
 			self._process = None
 
-	def getPhoto(self, text=None, doneCb=None):
+		self._streaming = False
+
+	def stopVideo(self):
+		self.stop()
+
+	def isVideoStreaming(self):
+		return self._streaming
+
+	def getPhoto(self, doneCb, text=None):
 		image = None
-		stopAfterPhoto = False
 
 		if not self._process:
 			self.startVideo()
-			stopAfterPhoto = True
 
 		try:
 			if self._format == 'x-raw':
@@ -238,14 +270,7 @@ class MJPEGStreamer(object):
 			self._apply_watermark(decodedImage, text)
 			image = cv2.cv.EncodeImage('.jpeg', cv2.cv.fromarray(decodedImage), [cv2.cv.CV_IMWRITE_JPEG_QUALITY, 80]).tostring()
 
-		if stopAfterPhoto:
-			self.stopVideo()
-
-		if doneCb:
-			doneCb(image)
-
-		else:
-			return image
+		doneCb(image)
 
 	def _apply_watermark(self, img, text):
 			if text and img != None:

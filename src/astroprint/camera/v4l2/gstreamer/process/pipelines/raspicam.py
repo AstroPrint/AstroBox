@@ -4,10 +4,10 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 
-from astroprint.camera.v4l2.gstreamer.pipelines.base import GstBasePipeline
+from .base import GstBasePipeline
 
 class GstRaspicamPipeline(GstBasePipeline):
 
-	def __init__(self, manager, device, size):
+	def __init__(self, device, size, mainLoop, debugLevel):
 		self._logger = logging.getLogger(__name__)
-		super(GstRaspicamPipeline, self).__init__(manager, device, size)
+		super(GstRaspicamPipeline, self).__init__(device, size, mainLoop, debugLevel)

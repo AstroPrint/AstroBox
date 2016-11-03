@@ -2,6 +2,10 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import uuid
+
+from threading import Event
+
 from octoprint.settings import settings
 
 # singleton
@@ -23,6 +27,9 @@ def cameraManager():
 				except ImportError, ValueError:
 					#another manager was selected or the gstreamer library is not present on this
 					#system, in that case we pick a mjpeg manager
+
+					#Uncomment when debugging to know which error exactly caused it to enter here
+					#logging.error('error', exc_info = True)
 
 					_instance = None
 					s = settings()
@@ -101,10 +108,12 @@ class CameraManager(object):
 			'encoding': s.get(["camera", "encoding"]),
 			'size': s.get(["camera", "size"]),
 			'framerate': s.get(["camera", "framerate"]),
-			'format': s.get(["camera", "format"])
+			'format': s.get(["camera", "format"]),
+			'source': s.get(["camera", "source"])
 		}
 
 		self._eventManager = eventManager()
+		self._photos = {} # To hold sync photos
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
@@ -112,10 +121,13 @@ class CameraManager(object):
 		self.videoType = settings().get(["camera", "encoding"])
 		self.videoSize = settings().get(["camera", "size"])
 		self.videoFramerate = settings().get(["camera", "framerate"])
-		self.open_camera()
+
+		if self.isCameraConnected():
+			self.reScan()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
+		self._photos = None
 		self.close_camera()
 
 		if self.timelapseWorker:
@@ -159,9 +171,7 @@ class CameraManager(object):
 		if not selectedFile:
 			return False
 
-		if not self.isCameraConnected():
-			if not self.open_camera():
-				return False
+		return self.isCameraConnected()
 
 		timelapseId = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
 		if timelapseId:
@@ -265,6 +275,30 @@ class CameraManager(object):
 	def settingsChanged(self, cameraSettings):
 		self._settings = cameraSettings
 
+	# There are cases where we want the pic to be synchronous
+	# so we leave this version too
+	def get_pic(self, text=None):
+		if self.isCameraConnected():
+			id = uuid.uuid4().hex
+			self._photos[id] = None
+
+			waitEvent = Event()
+
+			def photoDone(photoBuf):
+				if not waitEvent.isSet():
+					self._photos[id] = photoBuf
+					waitEvent.set()
+
+			self.get_pic_async(photoDone, text)
+			waitEvent.wait(5.0) #Wait a max of 5 secs
+
+			photo = self._photos[id]
+			del self._photos[id]
+			return photo
+
+		else:
+			return None
+
 	def open_camera(self):
 		return False
 
@@ -281,9 +315,6 @@ class CameraManager(object):
 		pass
 
 	def list_devices(self):
-		pass
-
-	def get_pic(self, text=None):
 		pass
 
 	def get_pic_async(self, done, text=None):
