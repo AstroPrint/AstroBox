@@ -383,30 +383,6 @@ class GstBasePipeline(object):
 	def _onBusEos(self, msg):
 		self._logger.info("gstreamer EOS (End of Stream) message received.")
 
-	'''
-	def _busMessageListener(self):
-		while self._bus:
-			msg = self._bus.timed_pop_filtered(1 * gst.SECOND, gst.MessageType.ERROR | gst.MessageType.EOS ) #| gst.MessageType.STATE_CHANGED)
-			if msg:
-				t = msg.type
-
-				if t == gst.MessageType.ERROR:
-					busError, detail = msg.parse_error()
-
-					self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
-
-					if busError.code == 1: #Internal Data Flow Error
-						self.tearDown()
-						return
-
-				elif t == gst.MessageType.EOS:
-					self._logger.info("gstreamer EOS (End of Stream) message received.")
-
-				#elif t == gst.MessageType.STATE_CHANGED:
-				#	old, new, pending = msg.parse_state_changed()
-				#	self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
-		'''
-
 	def _onNoMorePhotoReqs(self):
 		#start photo queue detachemnt
 		if self._videoEncQueueLinked:
@@ -480,7 +456,7 @@ class ElementStateManager(Thread):
 
 	def _onStateChanged(self, msg):
 		old, new, pending = msg.parse_state_changed()
-		self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
+		#self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
 
 		if msg.src in self._pendingReqs:
 			pendingForElement = self._pendingReqs[msg.src]
@@ -491,24 +467,6 @@ class ElementStateManager(Thread):
 					del pendingForElement[new]
 					if not pendingForElement:
 						del self._pendingReqs[msg.src]
-
-	def _onBusMessage(self, msg):
-		if msg.src in self._pendingReqs:
-			pendingForElement = self._pendingReqs[msg.src]
-			print pendingForElement
-
-			old, new, pending = msg.parse_state_changed()
-			self._logger.info( "\033[90m%s\033[0m changing from \033[93m%s\033[0m to \033[93m%s\033[0m" % (msg.src, old, new) )
-
-			if pending == gst.State.VOID_PENDING and new in pendingForElement:
-				pendingForElement[new](new)
-				del pendingForElement[new]
-				print pendingForElement
-				if not pendingForElement:
-					del self._pendingReqs[msg.src]
-
-		else:
-			print msg.src
 
 	def stop(self):
 		self._stopped = True
@@ -653,8 +611,6 @@ class BusListener(Thread):
 		super(BusListener, self).__init__()
 		self._bus = bus
 		self._stopped = False
-		self._relevantMessages = []
-		self._relevantMessagesMask = gst.MessageType.UNKNOWN
 		self._listenersByEvents = {}
 		self._listeners = {}
 		self._nextId = 1
@@ -662,28 +618,19 @@ class BusListener(Thread):
 
 	def run(self):
 		while not self._stopped:
-			print self._relevantMessagesMask
-			msg = self._bus.timed_pop_filtered(gst.SECOND, self._relevantMessagesMask) #1 sec timeout
+			msg = self._bus.timed_pop(gst.SECOND)
 			if not self._stopped and msg:
 				t = msg.type
 
-				for l in self._listenersByEvents[t]:
-					self._listeners[l][1](msg)
-
-	def _recalculateMask(self):
-		self._relevantMessagesMask = gst.MessageType.UNKNOWN
-		for mask in self._relevantMessages:
-			self._relevantMessagesMask |= mask
+				if t in self._listenersByEvents:
+					for l in self._listenersByEvents[t]:
+						self._listeners[l][1](msg)
 
 	def stop(self):
 		self._stopped = True
 
 	def addListener(self, msgType, callback):
 		with self._changeListenersCondition:
-			if msgType not in self._relevantMessages:
-				self._relevantMessages.append(msgType)
-				self._recalculateMask()
-
 			listenerId = self._nextId
 			self._nextId += 1
 			self._listeners[listenerId] = (msgType, callback)
@@ -707,6 +654,4 @@ class BusListener(Thread):
 			if len(listenersByEvent) == 0:
 				#We need to remove from the mask
 				del self._listenersByEvents[msgType]
-				self._relevantMessages.remove(msgType)
-				self._recalculateMask()
 
