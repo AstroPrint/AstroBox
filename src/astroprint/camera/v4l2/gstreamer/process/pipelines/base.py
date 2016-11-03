@@ -48,6 +48,7 @@ class GstBasePipeline(object):
 		self._jpegEncElement = None
 		self._photoAppsinkElement = None
 		self._photoTextElement = None
+		self._fakesinkElement = None
 
 		#queue control
 		self._videoEncQueueLinked = False
@@ -122,16 +123,25 @@ class GstBasePipeline(object):
 		# QUEUES TO THE SAME SOURCE
 		self._teeElement = gst.ElementFactory.make('tee', 'tee')
 
+		#fakeskink for security
+		self._fakesinkElement = gst.ElementFactory.make('fakesink', 'fakesink')
+
 		#Add Elements to the pipeline
 		self._pipeline.add(self._videoSourceElement)
 		self._pipeline.add(self._videoLogoElement)
 		self._pipeline.add(self._videoSourceCaps)
 		self._pipeline.add(self._teeElement)
+		self._pipeline.add(self._fakesinkElement)
 
 		#Link Elements
 		self._videoSourceElement.link(self._videoSourceCaps)
 		self._videoSourceCaps.link(self._videoLogoElement)
 		self._videoLogoElement.link(self._teeElement)
+
+		#link fake sink: Fake sink allows the pipeline to alwasy have something that consumes the data
+		fakeSinkPad = self._fakesinkElement.get_static_pad("sink")
+		teePadFakeSink = self._teeElement.get_request_pad("src_%u")
+		teePadFakeSink.link(fakeSinkPad)
 
 	def _tearDownSourceTee(self):
 		#remove elements
@@ -139,6 +149,7 @@ class GstBasePipeline(object):
 		self._pipeline.remove(self._videoLogoElement)
 		self._pipeline.remove(self._videoSourceCaps)
 		self._pipeline.remove(self._teeElement)
+		self._pipeline.remove(self._fakesinkElement)
 
 	#
 	#	 Photo (no text) pipeline setup
@@ -208,6 +219,11 @@ class GstBasePipeline(object):
 			if doneCallback:
 				doneCallback(state is not None)
 
+		self._queuePhotoElement.set_locked_state(False)
+		self._jpegEncElement.set_locked_state(False)
+		self._photoAppsinkElement.set_locked_state(False)
+		self._photoTextElement.set_locked_state(False)
+
 		self._queuePhotoElement.set_state(gst.State.PLAYING)
 		self._photoTextElement.set_state(gst.State.PLAYING)
 		self._jpegEncElement.set_state(gst.State.PLAYING)
@@ -219,6 +235,7 @@ class GstBasePipeline(object):
 
 		self._photoQueueLinked = True
 
+		#self._elementStateManager.addStateReq(self._pipeline, gst.State.PLAYING, onPipelineStateChanged)
 		self._handlePipelineStartStop(onPipelineStateChanged)
 
 	def _detachPhotoPipe(self, doneCallback= None):
@@ -240,6 +257,11 @@ class GstBasePipeline(object):
 			self._elementStateManager.addStateReq(self._photoTextElement, gst.State.READY)
 			self._elementStateManager.addStateReq(self._photoAppsinkElement, gst.State.READY)
 			self._elementStateManager.addStateReq(self._jpegEncElement, gst.State.READY)
+
+			self._queuePhotoElement.set_locked_state(True)
+			self._jpegEncElement.set_locked_state(True)
+			self._photoAppsinkElement.set_locked_state(True)
+			self._photoTextElement.set_locked_state(True)
 
 			self._photoQueueLinked = False
 
@@ -266,12 +288,14 @@ class GstBasePipeline(object):
 				newPipelineState = gst.State.PLAYING
 
 			else:
-				#stream needs to stop
+				"""#stream needs to stop
 				def onChangeDone():
 					self.tearDown()
 
 				self._elementStateManager.addStateReq(self._pipeline, gst.State.NULL, onChangeDone)
-				return
+				return"""
+				#stream should pause
+				newPipelineState = gst.State.PLAYING
 
 			if self._currentPipelineState != newPipelineState:
 				def onChangeDone(state):
@@ -316,12 +340,9 @@ class GstBasePipeline(object):
 		if self._photoReqsProcessor.isAlive():
 			if not self._photoQueueLinked:
 				def onAttachDone(success):
-					self._logger.info('attached %s' % success)
-
 					if success:
 						self._photoReqsProcessor.addPhotoReq(text, not self._videoEncQueueLinked, doneCallback)
 
-				self._logger.info('About to attach')
 				self._attachPhotoPipe(onAttachDone)
 
 			else:
@@ -359,10 +380,10 @@ class GstBasePipeline(object):
 			return
 
 		if self._videoEncQueueLinked:
-			if self._photoQueueLinked:
-				self._detachVideoEncodingPipe(doneCallback)
-			else:
-				self._stopPipeline(doneCallback)
+			#if self._photoQueueLinked:
+			self._detachVideoEncodingPipe(doneCallback)
+			#else:
+			#	self._stopPipeline(doneCallback)
 
 		elif doneCallback:
 			doneCallback(True)
@@ -436,10 +457,7 @@ class ElementStateManager(Thread):
 					if self._stopped:
 						return
 
-					req = self._stateReqs.pop()
-					targetState = req['state']
-					element = req['element']
-					cb = req['callback']
+					element, targetState, cb = self._stateReqs.pop()
 
 					#self._logger.info( "Requesting state %s for %s" % (targetState, element) )
 					element.set_state(targetState)
@@ -474,7 +492,7 @@ class ElementStateManager(Thread):
 		self._newStateAvailableEvent.set()
 
 	def addStateReq(self, element, state, callback = None):
-		self._stateReqs.appendleft({ 'element': element, 'state': state, 'callback': callback })
+		self._stateReqs.appendleft( (element, state, callback) )
 		self._newStateAvailableEvent.set()
 
 #
@@ -558,7 +576,7 @@ class PhotoReqsProcessor(Thread):
 				self._noMoreReqsCallback()
 
 	def _processPhotoReq(self, req):
-		text = req['text']
+		text, needsExposure, reqCallback = req
 
 		if text:
 			text = "<span font='arial' weight='bold'>%s</span>" % text
@@ -568,9 +586,6 @@ class PhotoReqsProcessor(Thread):
 
 		time.sleep(0.1) #Wait for the pipeline to stabilize with the new values
 
-		reqCallback = req['callback']
-		needsExposure = req['needsExposure']
-
 		sample = None
 		photoBuffer = None
 		tries = 3
@@ -579,7 +594,7 @@ class PhotoReqsProcessor(Thread):
 			if needsExposure:
 				time.sleep(1.5) #give it time to focus and get light. Only on first photo in the sequence
 
-			self._logger.info('Request Photo from camera')
+			self._logger.debug('Request Photo from camera')
 			sample = self._appSink.emit('pull-sample')
 
 			if sample:
@@ -588,7 +603,7 @@ class PhotoReqsProcessor(Thread):
 			else:
 				tries -= 1
 
-		self._logger.info('Photo Received. Size (%d)' % len(photoBuffer) if photoBuffer is not None else 0)
+		self._logger.debug('Photo Received. Size (%d)' % len(photoBuffer) if photoBuffer is not None else 0)
 		reqCallback(photoBuffer)
 
 	def stop(self):
@@ -597,8 +612,7 @@ class PhotoReqsProcessor(Thread):
 		self._stopped = True
 
 	def addPhotoReq(self, text, needsExposure, callback):
-		self._logger.info('Adding Photo Req: text ( %s ), needsExposure ( %s ), callback ( %s )' % (text, needsExposure, callback))
-		self._photoReqs.appendleft({ 'text': text, 'needsExposure': needsExposure, 'callback': callback })
+		self._photoReqs.appendleft( (text, needsExposure, callback) )
 		self._morePhotosEvent.set()
 
 #

@@ -99,13 +99,11 @@ class GStreamerManager(V4L2Manager):
 			if doneCallback:
 				doneCallback(True)
 
-			return
-
-		if self._apPipeline:
+		else:
 			result = self._apPipeline.stopVideo()
 
-		if doneCallback:
-			doneCallback(result)
+			if doneCallback:
+				doneCallback(result)
 
 
 	def settingsChanged(self, cameraSettings):

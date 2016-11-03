@@ -73,9 +73,9 @@ class processInterface(Thread):
 		self._onListeningEvent.set() # Inform the client that we're ready
 		self._onListeningEvent = None # unref
 		while not self._stopped:
-			self._logger.info('waiting for commands...')
+			self._logger.debug('waiting for commands...')
 			command = self._reqQ.get()
-			self._logger.info('Recieved: %s' % repr(command))
+			self._logger.debug('Recieved: %s' % repr(command))
 
 			if self._stopped:
 				break
@@ -114,12 +114,13 @@ class processInterface(Thread):
 		return self._pipeline.isVideoStreaming()
 
 	def _startVideoAction(self):
+		doneEvent = Event()
+
 		def doneCb(success):
 			if not doneEvent.isSet():
 				self._sendResponse(success)
 				doneEvent.set()
 
-		doneEvent = Event()
 		self._pipeline.playVideo(doneCb)
 
 		if not doneEvent.wait(10.0):
@@ -128,20 +129,23 @@ class processInterface(Thread):
 			return self.RESPONSE_HANDLED
 
 	def _stopVideoAction(self):
+		doneEvent = Event()
+
 		def doneCb(success):
 			if not doneEvent.isSet():
 				self._sendResponse(success)
 				doneEvent.set()
 
-		doneEvent = Event()
 		self._pipeline.stopVideo(doneCb)
 
 		if not doneEvent.wait(10.0):
 			return {'error': 'timeout'}
 		else:
-			return self.RESPONSE_EXIT
+			return self.RESPONSE_HANDLED
 
 	def _takePhotoAction(self, text=None):
+		doneEvent = Event()
+
 		def doneCb(photo):
 			if not doneEvent.isSet():
 				if not photo:
@@ -151,7 +155,6 @@ class processInterface(Thread):
 
 				doneEvent.set()
 
-		doneEvent = Event()
 		self._pipeline.takePhoto(doneCb, text)
 
 		if not doneEvent.wait(7.0):
@@ -173,7 +176,7 @@ class processInterface(Thread):
 		else:
 			self._respQ.put(resp)
 
-			self._logger.info('Sent: %s' % repr(resp))
+			self._logger.debug('Sent: %s' % repr(resp))
 
 	def stop(self):
 		self._stopped = True

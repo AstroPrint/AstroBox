@@ -96,37 +96,50 @@ class GstH264Pipeline(GstBasePipeline):
 		self._encoderCaps.set_state(gst.State.PLAYING)
 		self._rtpElement.set_state(gst.State.PLAYING)
 
+		self._queueVideoElement.set_locked_state(False)
+		self._udpSinkElement.set_locked_state(False)
+		self._encoderElement.set_locked_state(False)
+		self._encoderCaps.set_locked_state(False)
+		self._rtpElement.set_locked_state(False)
+
 		videoQueuePad = self._queueVideoElement.get_static_pad("sink")
 		teePadVideoEnc = self._teeElement.get_request_pad("src_%u")
 		teePadVideoEnc.link(videoQueuePad)
 
 		self._videoEncQueueLinked = True
+		#self._elementStateManager.addStateReq(self._pipeline, gst.State.PLAYING, onPipelineStateChanged)
 		self._handlePipelineStartStop(onPipelineStateChanged)
 
 	def _detachVideoEncodingPipe(self, doneCallback= None):
 		#These are used to flush
 		chainStartSinkPad = self._queueVideoElement.get_static_pad("sink")
 		chainEndSinkPad = self._udpSinkElement.get_static_pad("sink")
+		teePadVideoEnc = chainStartSinkPad.get_peer()
 
 		def onPipelineStateChanged(state):
 			if doneCallback:
 				doneCallback(state is not None)
 
 		def onBlocked(probe):
-			teePadVideoEnc = chainStartSinkPad.get_peer()
 			self._teeElement.release_request_pad(teePadVideoEnc)
 			teePadVideoEnc.remove_probe(probe)
 
 		def onFlushed():
-			self._elementStateManager.addStateReq(self._queueVideoElement, gst.State.NULL)
-			self._elementStateManager.addStateReq(self._udpSinkElement, gst.State.NULL)
-			self._elementStateManager.addStateReq(self._encoderElement, gst.State.NULL)
-			self._elementStateManager.addStateReq(self._encoderCaps, gst.State.NULL)
-			self._elementStateManager.addStateReq(self._rtpElement, gst.State.NULL)
+			self._elementStateManager.addStateReq(self._queueVideoElement, gst.State.READY)
+			self._elementStateManager.addStateReq(self._udpSinkElement, gst.State.READY)
+			self._elementStateManager.addStateReq(self._encoderElement, gst.State.READY)
+			self._elementStateManager.addStateReq(self._encoderCaps, gst.State.READY)
+			self._elementStateManager.addStateReq(self._rtpElement, gst.State.READY)
+
+			self._queueVideoElement.set_locked_state(True)
+			self._udpSinkElement.set_locked_state(True)
+			self._encoderElement.set_locked_state(True)
+			self._encoderCaps.set_locked_state(True)
+			self._rtpElement.set_locked_state(True)
 
 			self._videoEncQueueLinked = False
 
 			self._handlePipelineStartStop(onPipelineStateChanged)
 
-		unlinker = PadUnlinker(self._teePadVideoEnc, chainStartSinkPad, chainEndSinkPad, onBlocked, onFlushed)
+		unlinker = PadUnlinker(teePadVideoEnc, chainStartSinkPad, chainEndSinkPad, onBlocked, onFlushed)
 		unlinker.start()

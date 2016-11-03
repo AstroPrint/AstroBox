@@ -214,6 +214,10 @@ class WebRtc(object):
 	def startJanus(self):
 		#Start janus command here
 
+		if self._JanusProcess and self._JanusProcess.returncode is None:
+			self._logger.debug('Janus was already running')
+			return True #already running
+
 		nm = networkManager()
 
 		args = ['/opt/janus/bin/./janus']
@@ -235,6 +239,8 @@ class WebRtc(object):
 			return False
 
 		if self._JanusProcess:
+			self._logger.debug('Janus Started')
+
 			from requests import Session
 
 			session = Session()
@@ -273,10 +279,14 @@ class WebRtc(object):
 			return True
 
 	def stopJanus(self):
-
 		try:
 			if self._JanusProcess is not None:
-				self._JanusProcess.kill()
+				if self._JanusProcess.returncode is None:
+					self._JanusProcess.terminate()
+					self._JanusProcess.wait()
+					self._logger.debug('Janus Stopped')
+
+				self._JanusProcess = None
 				self.sendEventToPeers('stopConnection')
 				self._connectedPeers = {}
 
@@ -284,10 +294,9 @@ class WebRtc(object):
 				self.peersDeadDetacher.cancel()
 
 				return True
-		except Exception, error:
-			self._logger.error("Error stopping Janus: it is already stopped. Error: %s" % str(error))
+		except Exception as e:
+			self._logger.error("Error stopping Janus. Error: %s" % e)
 			return False
-
 
 	def stopGStreamer(self):
 		cameraManager().stop_video_stream()
