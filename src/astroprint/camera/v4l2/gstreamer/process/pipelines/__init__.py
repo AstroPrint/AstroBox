@@ -2,16 +2,21 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from .h264 import GstH264Pipeline
-from .vp8 import GstVp8Pipeline
-from .raspicam import GstRaspicamPipeline
+class InvalidGStreamerPipelineException(Exception):
+    pass
 
 def pipelineFactory(device, size, source, encoder, mainLoop, debugLevel):
-	if source.lower() == 'usb':
-		if encoder.lower() == 'h264':
+	if source == 'usb':
+		if encoder == 'h264':
+			from .h264 import GstH264Pipeline
 			return GstH264Pipeline(device, size, mainLoop, debugLevel)
-		else: # VP8
+
+		elif encoder == 'vp8': # VP8
+			from .vp8 import GstVp8Pipeline
 			return GstVp8Pipeline(device, size, mainLoop, debugLevel)
 
-	else: #Raspicam
+	elif source == 'raspicam': #Raspicam
+		from .raspicam import GstRaspicamPipeline
 		return GstRaspicamPipeline(device, size, mainLoop, debugLevel)
+
+	raise InvalidGStreamerPipelineException('Invalid source [%s] and encodder [%s] combination' % (source, encoder))

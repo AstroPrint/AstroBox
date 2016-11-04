@@ -6,7 +6,7 @@ import logging
 
 from threading import Thread, Event
 
-from .pipelines import pipelineFactory
+from .pipelines import pipelineFactory, InvalidGStreamerPipelineException
 
 def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ, respQ, debugLevel=0):
 	from gi.repository import GObject
@@ -16,7 +16,15 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ,
 
 	logger = logging.getLogger(__name__ + ':processLoop')
 
-	pipeline = pipelineFactory(device, size, source, encoding, mainLoop, debugLevel)
+	try:
+		pipeline = pipelineFactory(device, size, source, encoding, mainLoop, debugLevel)
+	except InvalidGStreamerPipelineException as e:
+		import sys
+
+		logger.error(e)
+		onListeningEvent.set()
+		sys.exit(-1)
+
 	interface = processInterface(pipeline, reqQ, respQ, mainLoop, onListeningEvent)
 
 	try:

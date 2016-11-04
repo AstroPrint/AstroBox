@@ -26,8 +26,8 @@ class AstroPrintPipeline(object):
 			args= (
 				device,
 				tuple([int(x) for x in size.split('x')]),
-				source,
-				encoding,
+				source.lower(),
+				encoding.lower(),
 				onListeningEvent,
 				self._reqQ,
 				self._respQ,

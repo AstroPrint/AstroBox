@@ -295,7 +295,7 @@ class GstBasePipeline(object):
 				self._elementStateManager.addStateReq(self._pipeline, gst.State.NULL, onChangeDone)
 				return"""
 				#stream should pause
-				newPipelineState = gst.State.PLAYING
+				newPipelineState = gst.State.PAUSED
 
 			if self._currentPipelineState != newPipelineState:
 				def onChangeDone(state):
