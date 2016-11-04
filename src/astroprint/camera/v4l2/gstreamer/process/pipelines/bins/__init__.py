@@ -49,7 +49,7 @@ class EncoderBin(object):
 
 		def onFlushed():
 			self._logger.debug('Chain Flushed')
-			self._bin.set_state(Gst.State.READY)
+			self._bin.get_bus().post(Gst.Message.new_request_state(self._bin, Gst.State.READY))
 			self._bin.set_locked_state(True)
 
 			if onDone:

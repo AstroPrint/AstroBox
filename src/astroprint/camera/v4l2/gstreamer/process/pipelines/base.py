@@ -56,6 +56,7 @@ class GstBasePipeline(object):
 		self._busListener.addListener(Gst.MessageType.ERROR, self._onBusError)
 		self._busListener.addListener(Gst.MessageType.EOS, self._onBusEos)
 		self._busListener.addListener(Gst.MessageType.STATE_CHANGED, self._onBusStateChanged)
+		self._busListener.addListener(Gst.MessageType.REQUEST_STATE, self._onRequestState)
 		self._busListener.start()
 
 	def __del__(self):
@@ -211,11 +212,10 @@ class GstBasePipeline(object):
 	def _onBusStateChanged(self, msg):
 		old, new, pending = msg.parse_state_changed()
 		self._logger.debug( "\033[90m%20.20s\033[0m: \033[93m%7.7s\033[0m --> \033[93m%s\033[0m" % (msg.src.__class__.__name__.replace('__main__.',''), old.value_name.replace('GST_STATE_',''), new.value_name.replace('GST_STATE_','')) )
-	def _onNoMorePhotoReqs(self):
-		if self._videoEncBin.isLinked:
-			self._detachBin(self._photoCaptureBin)
-		else:
-			self._stopPipeline()
+
+	def _onRequestState(self, msg):
+		state = msg.parse_request_state()
+		msg.src.set_state(state)
 
 	### Implement these in child clases
 
