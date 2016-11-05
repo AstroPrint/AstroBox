@@ -60,7 +60,8 @@ class PhotoCaptureBin(EncoderBin):
 		self.__reqQueue.start()
 
 	def __onNoMorePhotos(self):
-		self.detach() # <------ This currently fails
+		self._logger.debug('No more photos in Queue')
+		self.detach()
 
 	def addPhotoReq(self, text, needsExposure, callback):
 		self.__reqQueue.addPhotoReq(text, needsExposure, callback)
@@ -90,6 +91,7 @@ class PhotoReqsProcessor(Thread):
 		self._photoQueue = self._pipeline.get_by_name('queue_photo')
 		self._appSink = self._pipeline.get_by_name('photo_appsink')
 		self._photoTextElement = self._pipeline.get_by_name('text_overlay')
+		self._alreadyExposed = False
 
 	def run(self):
 		while not self._stopped:
@@ -102,6 +104,7 @@ class PhotoReqsProcessor(Thread):
 
 					self._processPhotoReq( self._photoReqs.pop() )
 
+				self._alreadyExposed = False
 				self._morePhotosEvent.clear()
 				self._noMoreReqsCallback()
 
@@ -119,12 +122,13 @@ class PhotoReqsProcessor(Thread):
 		sample = None
 		photoBuffer = None
 
-		if needsExposure:
+		if needsExposure and not self._alreadyExposed:
 			time.sleep(1.5) #give it time to focus and get light. Only on first photo in the sequence
+			self._alreadyExposed = True
 
 		self._logger.debug('Request Photo from camera')
-		stateReturn, state, pending = self._appSink.get_state(1*Gst.SECOND)
-		if stateReturn == Gst.StateChangeReturn.SUCCESS and pending == Gst.State.VOID_PENDING and state == Gst.State.PLAYING:
+		stateReturn, state, pending = self._appSink.get_state(1.5 * Gst.SECOND)
+		if state == Gst.State.PLAYING and ( stateReturn == Gst.StateChangeReturn.SUCCESS or stateReturn == Gst.StateChangeReturn.NO_PREROLL ):
 			sample = self._appSink.emit('pull-sample')
 		else:
 			self._logger.error( "AppSink is not playing. Currently: \033[93m%s\033[0m" % state.value_name.replace('GST_STATE_','') )

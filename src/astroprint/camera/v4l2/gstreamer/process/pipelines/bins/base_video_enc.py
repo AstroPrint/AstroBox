@@ -20,6 +20,7 @@ class VideoEncBinBase(EncoderBin):
 			raise Exception("VideoEnc chain can't be constructed")
 
 		self.__queueVideoElement = Gst.ElementFactory.make('queue', 'video_enc_queue')
+		self.__queueVideoElement.set_property('silent', True)
 
 		self.__udpSinkElement = Gst.ElementFactory.make('udpsink', 'udp_sink_video')
 		self.__udpSinkElement.set_property('host', '127.0.0.1')
@@ -39,7 +40,7 @@ class VideoEncBinBase(EncoderBin):
 		self._bin.add_pad( binSinkPad )
 
 	def _getLastPad(self):
-		return self.__udpSinkElement.get_static_pad('src')
+		return self.__udpSinkElement.get_static_pad('sink')
 
 	# ~~~~~~~ Implement these in child classes ~~~~~~~~~~~~~~
 

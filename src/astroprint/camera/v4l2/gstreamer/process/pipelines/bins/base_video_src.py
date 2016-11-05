@@ -24,23 +24,27 @@ class VideoSrcBinBase(object):
 
 		#Now we create the tee, fakesink and link it with the end of the bin
 		self.__teeElement = Gst.ElementFactory.make('tee', 'video_src_tee')
-		#self.__fakeSinkQueue = Gst.ElementFactory.make('queue', 'fakesink_queue')
-		#self.__fakeSink = Gst.ElementFactory.make('fakesink', 'fakesink')
-		#self.__fakeSink.set_property('sync', False)
+
+		self.__fakeSinkQueue = Gst.ElementFactory.make('queue', 'fakesink_queue')
+		self.__fakeSinkQueue.set_property('silent', True)
+		self.__fakeSinkQueue.set_property('max-size-buffers', 1)
+		self.__fakeSinkQueue.set_property('leaky', 2) #Leak old buffers
+
+		self.__fakeSink = Gst.ElementFactory.make('fakesink', 'fakesink')
+		self.__fakeSink.set_property('sync', False)
 
 		self._bin.add(self.__teeElement)
-		#self._bin.add(self.__fakeSinkQueue)
-		#self._bin.add(self.__fakeSink)
+		self._bin.add(self.__fakeSinkQueue)
+		self._bin.add(self.__fakeSink)
 
 		lastElement.link(self.__teeElement)
 
-		#teePad = self.__teeElement.get_request_pad('src_%u')
-		#fakesinkPad = self.__fakeSink.get_static_pad('sink')
-		#teePad.link(fakesinkPad)
-		#fakeSinkQueuePad = self.__fakeSinkQueue.get_static_pad('sink')
-		#teePad.link(fakeSinkQueuePad)
+		self.__fakeSinkQueue.link(self.__fakeSink)
 
-		#self.__fakeSinkQueue.link(self.__fakeSink)
+		teePad = self.__teeElement.get_request_pad('src_%u')
+		fakeSinkQueuePad = self.__fakeSinkQueue.get_static_pad('sink')
+		teePad.link(fakeSinkQueuePad)
+
 
 	#Creates a request pad on the tee, its corresponing ghost pad on the bin and returns it
 	def requestSrcTeePad(self):

@@ -20,11 +20,13 @@ class EncoderBin(object):
 		if self._isLinked:
 			return False
 
+		self._bin.set_state(Gst.State.PLAYING)
 		self._bin.set_locked_state(False)
 
 		teePad.link(self._bin.get_static_pad('sink'))
 
 		self._isLinked = True
+		self._logger.debug('Attached for %s' % self.__class__.__name__)
 		return True
 
 	def detach(self, onDone= None):
@@ -34,23 +36,23 @@ class EncoderBin(object):
 
 			return
 
-		self._logger.debug('Start detaching')
+		self._logger.debug('Start detaching %s' % self.__class__.__name__)
 		#These are used to flush
 		chainStartSinkPad = self._bin.get_static_pad("sink")
 		chainEndSinkPad = self._getLastPad()
 		teePad = chainStartSinkPad.get_peer()
 
 		def onBlocked(probe):
-			self._logger.debug('Pad blocked')
+			self._logger.debug('Pad blocked for %s' % self.__class__.__name__)
 			teeElement = teePad.get_parent_element()
-			teePad.remove_probe(probe)
 			teePad.unlink(chainStartSinkPad)
 			teeElement.release_request_pad(teePad)
+			# Releasing the request pad removes the probe
 
 		def onFlushed():
-			self._logger.debug('Chain Flushed')
-			self._bin.get_bus().post(Gst.Message.new_request_state(self._bin, Gst.State.READY))
+			self._logger.debug('Chain Flushed for %s' % self.__class__.__name__)
 			self._bin.set_locked_state(True)
+			self._bin.get_bus().post(Gst.Message.new_request_state(self._bin, Gst.State.READY))
 
 			if onDone:
 				onDone(True)
@@ -73,7 +75,7 @@ class EncoderBin(object):
 	@property
 	def isPlaying(self):
 		returnChangeState, state, pending = self._bin.get_state(1 * Gst.SECOND)
-		return ( returnChangeState == Gst.StateChangeReturn.SUCCESS and state == Gst.State.PLAYING )
+		return ( state == Gst.State.PLAYING and ( returnChangeState == Gst.StateChangeReturn.SUCCESS or returnChangeState == Gst.StateChangeReturn.NO_PREROLL )  )
 
 	# ~~~~~~ Implement these ~~~~~~~~
 	def destroy(self):

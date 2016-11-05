@@ -71,7 +71,6 @@ class GstBasePipeline(object):
 				if doneCallback:
 					doneCallback(state is not None)
 
-			bin.bin.set_state(Gst.State.PLAYING)
 			self._handlePipelineStartStop(onPipelineStateChanged)
 
 		elif doneCallback:
@@ -123,10 +122,11 @@ class GstBasePipeline(object):
 				self._pipeline.set_state(newPipelineState)
 
 				stateReturn, state, pending = self._pipeline.get_state(3 * Gst.SECOND)
-				if stateReturn == Gst.StateChangeReturn.SUCCESS:
+				if stateReturn == Gst.StateChangeReturn.SUCCESS or Gst.StateChangeReturn.NO_PREROLL:
+					self._logger.debug( "Succesfully changed pipeline state to \033[93m%s\033[0m" % (state.value_name.replace('GST_STATE_','')))
 					onChangeDone(state)
 				else:
-					self._logger.error( "Unable to change pipeline state to [\033[93m%s\033[0m], stayed on [\033[93m%s\033[0m]" % (newPipelineState.value_name.replace('GST_STATE_',''), state.value_name.replace('GST_STATE_','')) )
+					self._logger.error( "Error [%s] to change pipeline state to \033[93m%s\033[0m, stayed on \033[93m%s\033[0m" % (stateReturn.value_name.replace('GST_STATE_CHANGE_',''), newPipelineState.value_name.replace('GST_STATE_',''), state.value_name.replace('GST_STATE_','')) )
 					onChangeDone(None)
 
 			elif doneCallback: #no change needed
@@ -203,11 +203,12 @@ class GstBasePipeline(object):
 
 		self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
 
-		if busError.code == 1: #Internal Data Flow Error
-			self.tearDown()
+		#if busError.code == 1: #Internal Data Flow Error
+		self.tearDown()
 
 	def _onBusEos(self, msg):
-		self._logger.info("gstreamer EOS (End of Stream) message received.")
+		self._logger.warn("gstreamer EOS (End of Stream) message received.")
+		self.tearDown()
 
 	def _onBusStateChanged(self, msg):
 		old, new, pending = msg.parse_state_changed()
@@ -215,6 +216,7 @@ class GstBasePipeline(object):
 
 	def _onRequestState(self, msg):
 		state = msg.parse_request_state()
+		self._logger.debug('%s requested state change to \033[93m%s\033[0m' % (msg.src.__class__.__name__.replace('__main__.',''),  state.value_name.replace('GST_STATE_','')))
 		msg.src.set_state(state)
 
 	### Implement these in child clases
