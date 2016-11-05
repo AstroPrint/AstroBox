@@ -6,6 +6,9 @@ from threading import Thread
 
 from gi.repository import Gst
 
+from ..util import waitToReachState
+
+
 #
 #  Base Bin Class for Bin after the Tee
 #
@@ -27,6 +30,7 @@ class EncoderBin(object):
 
 		self._isLinked = True
 		self._logger.debug('Attached for %s' % self.__class__.__name__)
+
 		return True
 
 	def detach(self, onDone= None):
@@ -74,8 +78,7 @@ class EncoderBin(object):
 
 	@property
 	def isPlaying(self):
-		returnChangeState, state, pending = self._bin.get_state(1 * Gst.SECOND)
-		return ( state == Gst.State.PLAYING and ( returnChangeState == Gst.StateChangeReturn.SUCCESS or returnChangeState == Gst.StateChangeReturn.NO_PREROLL )  )
+		return waitToReachState(self._bin, Gst.State.PLAYING, 1.0)
 
 	# ~~~~~~ Implement these ~~~~~~~~
 	def destroy(self):

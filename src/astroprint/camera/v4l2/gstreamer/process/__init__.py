@@ -123,52 +123,33 @@ class processInterface(Thread):
 		return self.RESPONSE_ASYNC
 
 	def _startVideoAction(self, reqId):
-		#doneEvent = Event()
 
 		def doneCb(success):
-			#if not doneEvent.isSet():
 			self._sendResponse(reqId, success)
-			#doneEvent.set()
 
 		self._pipeline.playVideo(doneCb)
 
-		#if not doneEvent.wait(10.0):
-		#	return {'error': 'timeout'}
-		#else:
 		return self.RESPONSE_ASYNC
 
 	def _stopVideoAction(self, reqId):
-		#doneEvent = Event()
 
 		def doneCb(success):
-			#if not doneEvent.isSet():
 			self._sendResponse(reqId, success)
-			#	doneEvent.set()
 
 		self._pipeline.stopVideo(doneCb)
 
-		#if not doneEvent.wait(10.0):
-		#	return {'error': 'timeout'}
-		#else:
 		return self.RESPONSE_ASYNC
 
 	def _takePhotoAction(self, reqId, text=None):
-		#doneEvent = Event()
 
 		def doneCb(photo):
-			#if not doneEvent.isSet():
 			if not photo:
 				self._sendResponse(reqId, None)
 			else:
 				self._sendResponse(reqId, photo, raw= True, b64encode= True)
 
-				#doneEvent.set()
-
 		self._pipeline.takePhoto(doneCb, text)
 
-		#if not doneEvent.wait(7.0):
-		#	return {'error': 'timeout'}
-		#else:
 		return self.RESPONSE_ASYNC
 
 	def _shutdownAction(self, reqId):

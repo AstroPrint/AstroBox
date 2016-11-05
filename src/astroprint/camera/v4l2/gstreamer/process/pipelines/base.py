@@ -12,11 +12,12 @@ import logging
 
 from collections import deque
 
-from threading import Event, Thread, Condition
+from threading import Event, Thread, Condition, Lock
 
 from gi.repository import Gst
 
 from .bins.photo_capture import PhotoCaptureBin
+from .util import waitToReachState
 
 #
 #  Base Class for GStreamer Pipeline management
@@ -39,12 +40,13 @@ class GstBasePipeline(object):
 		#pipeline control
 		self._currentPipelineState = None
 		self._pipelineStateCondition = Condition()
+		self._photoBinAttachDetachLock = Lock() #Make sure attach and detach operation wait for each other to complete
 
 		self._pipeline = Gst.Pipeline()
 
 		self._videoSrcBin = self._getVideoSrcBin(self._pipeline, device, size)
 		self._videoEncBin = self._getVideoEncBin()
-		self._photoCaptureBin = PhotoCaptureBin()
+		self._photoCaptureBin = PhotoCaptureBin(self._onNoMorePhotos)
 
 		self._pipeline.add(self._videoEncBin.bin)
 		self._pipeline.add(self._photoCaptureBin.bin)
@@ -121,16 +123,34 @@ class GstBasePipeline(object):
 
 				self._pipeline.set_state(newPipelineState)
 
-				stateReturn, state, pending = self._pipeline.get_state(3 * Gst.SECOND)
-				if stateReturn == Gst.StateChangeReturn.SUCCESS or Gst.StateChangeReturn.NO_PREROLL:
-					self._logger.debug( "Succesfully changed pipeline state to \033[93m%s\033[0m" % (state.value_name.replace('GST_STATE_','')))
-					onChangeDone(state)
+				if waitToReachState(self._pipeline, newPipelineState):
+					self._logger.debug( "Succesfully changed pipeline state to \033[93m%s\033[0m" % (newPipelineState.value_name.replace('GST_STATE_','')))
+					onChangeDone(newPipelineState)
 				else:
+					stateReturn, state, pending = self._pipeline.get_state(1)
 					self._logger.error( "Error [%s] to change pipeline state to \033[93m%s\033[0m, stayed on \033[93m%s\033[0m" % (stateReturn.value_name.replace('GST_STATE_CHANGE_',''), newPipelineState.value_name.replace('GST_STATE_',''), state.value_name.replace('GST_STATE_','')) )
 					onChangeDone(None)
 
 			elif doneCallback: #no change needed
 				doneCallback(newPipelineState)
+
+	def _onNoMorePhotos(self):
+		self._logger.debug('No more photos in Photo Queue')
+		waitForDetach = Event()
+		def onDetached(success):
+			if not waitForDetach.is_set():
+				if not success:
+					self._logger.warn('There was an error detaching Photos Bin')
+
+				waitForDetach.set()
+
+		self._photoBinAttachDetachLock.acquire()
+		self._detachBin(self._photoCaptureBin, onDetached)
+		if not waitForDetach.wait(1.0):
+			self._logger.warn('Timeout detaching Photos Bin')
+
+		self._photoBinAttachDetachLock.release()
+
 
 	def tearDown(self):
 		if not self._toreDownAlready:
@@ -158,6 +178,9 @@ class GstBasePipeline(object):
 				else:
 					doneCallback(False)
 
+				self._photoBinAttachDetachLock.release()
+
+			self._photoBinAttachDetachLock.acquire()
 			self._attachBin(self._photoCaptureBin, onAttachDone)
 
 		else:

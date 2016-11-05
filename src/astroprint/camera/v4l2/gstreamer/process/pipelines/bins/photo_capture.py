@@ -11,13 +11,14 @@ from collections import deque
 from gi.repository import Gst
 
 from . import EncoderBin
+from ..util import waitToReachState
 
 #
 #  Base Class for GStreamer Photo Capture Bin
 #
 
 class PhotoCaptureBin(EncoderBin):
-	def __init__(self):
+	def __init__(self, onNoMorePhotos):
 		self._logger = logging.getLogger(__name__)
 		super(PhotoCaptureBin, self).__init__('photo_bin')
 
@@ -56,12 +57,8 @@ class PhotoCaptureBin(EncoderBin):
 		binSinkPad.set_active(True)
 		self._bin.add_pad( binSinkPad )
 
-		self.__reqQueue = PhotoReqsProcessor(self._bin, self.__onNoMorePhotos)
+		self.__reqQueue = PhotoReqsProcessor(self, onNoMorePhotos)
 		self.__reqQueue.start()
-
-	def __onNoMorePhotos(self):
-		self._logger.debug('No more photos in Queue')
-		self.detach()
 
 	def addPhotoReq(self, text, needsExposure, callback):
 		self.__reqQueue.addPhotoReq(text, needsExposure, callback)
@@ -78,23 +75,23 @@ class PhotoCaptureBin(EncoderBin):
 #
 
 class PhotoReqsProcessor(Thread):
-	def __init__(self, pipeline, noMoreReqsCallback ):
+	def __init__(self, bin, noMoreReqsCallback ):
 		super(PhotoReqsProcessor, self).__init__()
 
 		self.daemon = True
 		self._logger = logging.getLogger(__name__+':PhotoReqsProcessor')
 		self._stopped = False
 		self._noMoreReqsCallback = noMoreReqsCallback
-		self._pipeline = pipeline
+		self._bin = bin
 		self._photoReqs = deque()
 		self._morePhotosEvent = Event()
-		self._photoQueue = self._pipeline.get_by_name('queue_photo')
-		self._appSink = self._pipeline.get_by_name('photo_appsink')
-		self._photoTextElement = self._pipeline.get_by_name('text_overlay')
+		self._appSink = self._bin.bin.get_by_name('photo_appsink')
+		self._photoTextElement = self._bin.bin.get_by_name('text_overlay')
 		self._alreadyExposed = False
 
 	def run(self):
 		while not self._stopped:
+			self._alreadyExposed = False
 			self._morePhotosEvent.wait()
 
 			if not self._stopped and len(self._photoReqs) > 0:
@@ -104,7 +101,6 @@ class PhotoReqsProcessor(Thread):
 
 					self._processPhotoReq( self._photoReqs.pop() )
 
-				self._alreadyExposed = False
 				self._morePhotosEvent.clear()
 				self._noMoreReqsCallback()
 
@@ -127,10 +123,10 @@ class PhotoReqsProcessor(Thread):
 			self._alreadyExposed = True
 
 		self._logger.debug('Request Photo from camera')
-		stateReturn, state, pending = self._appSink.get_state(1.5 * Gst.SECOND)
-		if state == Gst.State.PLAYING and ( stateReturn == Gst.StateChangeReturn.SUCCESS or stateReturn == Gst.StateChangeReturn.NO_PREROLL ):
+		if waitToReachState(self._appSink, Gst.State.PLAYING, 3.0, 2):
 			sample = self._appSink.emit('pull-sample')
 		else:
+			sr, state, p = self._appSink.get_state(1)
 			self._logger.error( "AppSink is not playing. Currently: \033[93m%s\033[0m" % state.value_name.replace('GST_STATE_','') )
 
 		if sample:
@@ -147,4 +143,3 @@ class PhotoReqsProcessor(Thread):
 	def addPhotoReq(self, text, needsExposure, callback):
 		self._photoReqs.appendleft( (text, needsExposure, callback) )
 		self._morePhotosEvent.set()
-		print "******************************** %d ************************" % len(self._photoReqs)
