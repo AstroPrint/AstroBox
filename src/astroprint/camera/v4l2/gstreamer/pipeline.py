@@ -5,8 +5,10 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import json
 import time
+import sys
 
 from multiprocessing import Process, Queue, Event
+from threading import Thread, Condition, current_thread
 
 from blinker import signal
 
@@ -21,6 +23,9 @@ class AstroPrintPipeline(object):
 		onListeningEvent = Event()
 		self._reqQ = Queue()
 		self._respQ = Queue()
+		self._pendingReqs = {}
+		self._lastReqId = 0
+		self._sendCondition = Condition()
 		self._process = Process(
 			target= startPipelineProcess,
 			args= (
@@ -34,6 +39,10 @@ class AstroPrintPipeline(object):
 			)
 		)
 		self._process.start()
+
+		self._responseListener = ProcessResponseListener(self._respQ, self._onProcessResponse)
+		self._responseListener.start()
+
 		onListeningEvent.wait()
 
 	"""def run(self):
@@ -87,74 +96,130 @@ class AstroPrintPipeline(object):
 
 		self._process = None"""
 
+	def _onProcessResponse(self, id, data):
+		if id in self._pendingReqs:
+			try:
+				callback = self._pendingReqs[id]
+				if callback:
+					callback(data)
+
+				del self._pendingReqs[id]
+
+				if self._logger.isEnabledFor(logging.DEBUG):
+					if sys.getsizeof(data) > 50:
+						dataStr = "%d bytes" % sys.getsizeof(data)
+					else:
+						dataStr = repr(data)
+
+					self._logger.debug('Response for %d handled [ %s ]' % (id, dataStr))
+
+			except Exception:
+				self._logger.error("Problem executing callback response", exc_info= True)
+
+		else:
+			self._logger.error("There's no pending request for response %d" % id)
+
+	def _sendReqToProcess(self, data, callback= None):
+		with self._sendCondition:
+			self._lastReqId += 1
+			id = self._lastReqId
+			self._pendingReqs[id] = callback
+			self._reqQ.put( (id, data) )
+			self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
+
 	def startVideo(self, doneCallback = None):
 		if self._process and self._process.exitcode is None:
-			self._reqQ.put({'action': 'startVideo'})
-			resp = self._respQ.get()
-			return resp if resp else False
+			self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
 
 		else:
 			self._logger.warn('startVideo ignored. No Process is running')
-			resp = False
-
-		if doneCallback:
-			doneCallback(resp)
+			if doneCallback:
+				doneCallback(False)
 
 	def stopVideo(self, doneCallback = None):
 		if self._process and self._process.exitcode is None:
-			self._reqQ.put( {'action': 'stopVideo'} )
-			resp = self._respQ.get()
-			return resp if resp else False
+			self._sendReqToProcess({'action': 'stopVideo'}, doneCallback)
 
 		else:
 			self._logger.warn('stopVideo ignored. No Process is running')
-			resp = False
-
-		if doneCallback:
-			doneCallback(resp)
+			if doneCallback:
+				doneCallback(False)
 
 	def takePhoto(self, doneCallback, text=None):
 		if self._process and self._process.exitcode is None:
-			if text is not None:
-				self._reqQ.put( {'action': 'takePhoto', 'data': {'text': text}} )
-			else:
-				self._reqQ.put( {'action': 'takePhoto', 'data': None} )
-
-			resp = self._respQ.get()
-
-			if resp:
-				if 'error' in resp:
-					self._logger.error('Error during photo capture: %s' % resp['error'])
-					doneCallback(None)
-				else:
-					from base64 import b64decode
-					try:
-						doneCallback(b64decode(resp))
-					except TypeError as e:
-						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+			def posprocesing(resp):
+				if resp:
+					if 'error' in resp:
+						self._logger.error('Error during photo capture: %s' % resp['error'])
 						doneCallback(None)
+					else:
+						from base64 import b64decode
+						try:
+							doneCallback(b64decode(resp))
+						except TypeError as e:
+							self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+							doneCallback(None)
 
+				else:
+					doneCallback(None)
+
+			if text is not None:
+				self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
 			else:
-				doneCallback(None)
+				self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
 
 		else:
 			self._logger.warn('takePhoto ignored. No Process is running')
-			doneCallback(None)
+			doneCallback(False)
 
-	def isVideoPlaying(self):
+	def isVideoPlaying(self, doneCallback):
 		if self._process and self._process.exitcode is None:
-			self._reqQ.put( {'action': 'isVideoPlaying'} )
-			resp = self._respQ.get()
-			return resp if resp else False
+			self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
 
 		else:
 			self._logger.warn('isVideoPlaying ignored. No Process is running')
-			return False
+			doneCallback(False)
 
 	def stop(self):
 		if self._process and self._process.exitcode is None:
-			self._reqQ.put( {'action': 'shutdown'} )
+			self._sendReqToProcess({'action': 'shutdown'})
 			self._process.join()
+			self._process = None
 			self._reqQ.close()
 			self._respQ.close()
-			self._process = None
+			self._responseListener.stop()
+
+			#It's possible that stop is called as a result of a response which is
+			#executed in the self._responseListener Thread. You can't join your own thread!
+			if current_thread() != self._responseListener:
+				self._responseListener.join()
+
+			self._responseListener = None
+
+#
+# Thread to listen for incoming responses from the process
+#
+
+class ProcessResponseListener(Thread):
+	def __init__(self, responseQueue, onNewResponse):
+		super(ProcessResponseListener, self).__init__()
+		self._queue = responseQueue
+		self._stopped = False
+		self._onNewResponse = onNewResponse
+
+	def run(self):
+		while not self._stopped:
+			response = self._queue.get()
+
+			if not self._stopped:
+				if response:
+					try:
+						id, data = response
+
+						self._onNewResponse(id, data)
+
+					except Exception as e:
+						self._logger.error("Error unpacking gstreamer process response", exc_info= True)
+
+	def stop(self):
+		self._stopped = True

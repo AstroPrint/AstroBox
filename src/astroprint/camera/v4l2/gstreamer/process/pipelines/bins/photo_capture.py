@@ -147,3 +147,4 @@ class PhotoReqsProcessor(Thread):
 	def addPhotoReq(self, text, needsExposure, callback):
 		self._photoReqs.appendleft( (text, needsExposure, callback) )
 		self._morePhotosEvent.set()
+		print "******************************** %d ************************" % len(self._photoReqs)

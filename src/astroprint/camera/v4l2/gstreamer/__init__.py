@@ -5,6 +5,8 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import time
 
+from threading import Event
+
 from octoprint.events import eventManager, Events
 
 from astroprint.camera.v4l2 import V4L2Manager
@@ -32,7 +34,7 @@ class GStreamerManager(V4L2Manager):
 			try:
 				self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'])
 			except Exception as e:
-				self._logger.error('Failed to open camera: %s' % e)
+				self._logger.error('Failed to open camera: %s' % e, exc_info= True)
 				return False
 
 		return True
@@ -133,8 +135,12 @@ class GStreamerManager(V4L2Manager):
 
 			def onDone(photo):
 				done(photo)
-				if not self.isVideoStreaming():
-					self.close_camera()
+
+				def onIsVideoPlayingDone(isPlaying):
+					if not isPlaying:
+						self.close_camera()
+
+				self._isVideoStreamingAsync(onIsVideoPlayingDone)
 
 			self._apPipeline.takePhoto(onDone, text)
 			return
@@ -144,11 +150,32 @@ class GStreamerManager(V4L2Manager):
 	def shutdown(self):
 		self._logger.info('Shutting Down GstreamerManager')
 		self.freeMemory()
-		#gst.deinit()
 		webRtcManager().shutdown()
 
+	def _isVideoStreamingAsync(self, onDone):
+		if self._apPipeline:
+			self._apPipeline.isVideoPlaying(onDone)
+		else:
+			onDone(False)
+
 	def isVideoStreaming(self):
-		return self._apPipeline and self._apPipeline.isVideoPlaying()
+		if self._apPipeline:
+			waitForDone = Event()
+			respCont = [None]
+
+			def onDone(isPlaying):
+				if not waitForDone.is_set():
+					respCont[0] = isPlaying
+
+			self._apPipeline.isVideoPlaying(onDone)
+			waitForDone.wait(1.0)
+
+			return respCont[0]
+
+		else:
+			return False
+
+		#return self._apPipeline and self._apPipeline.isVideoPlaying()
 
 	def startLocalVideoSession(self, sessionId):
 		return webRtcManager().startLocalSession(sessionId)
