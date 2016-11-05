@@ -25,6 +25,7 @@ class AstroPrintPipeline(object):
 		self._respQ = Queue()
 		self._pendingReqs = {}
 		self._lastReqId = 0
+		self._device = device
 		self._sendCondition = Condition()
 		self._process = Process(
 			target= startPipelineProcess,
@@ -45,59 +46,39 @@ class AstroPrintPipeline(object):
 
 		onListeningEvent.wait()
 
-	"""def run(self):
+	def _onProcessResponse(self, id, data):
+		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
+			self._logger.warn('Broadcasting error to ALL pending requests [ %s ]' % repr(data))
+			if self._pendingReqs:
+				for cb in self._pendingReqs.values():
+					if cb:
+						cb(data)
 
-		self._process = subprocess.Popen([
-			'/home/pi/development/gst-ap-controller/gst-ap',
-			'--device', self._device,
-			'--width', self._size[0],
-			'--height', self._size[1],
-			'--source', self._source.lower(),
-			'--encoding', self._encoding
-		], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+				self._pendingReqs = {}
 
+			if data and 'error' in data and data['error'] == 'fatal_error':
+				#shutdown the process
+				self._sendReqToProcess({'action': 'shutdown'})
 
-		ready = self._process.stdout.readline().strip() == 'ready'
+				message = 'Fatal error occurred in video streaming (%s)' % data['details'] if 'details' in data else 'unkonwn'
 
-		if ready:
-			self._onListeningEvent.set()
-			self._onListeningEvent = None
+				#signaling for remote peers
+				manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
+				manage_fatal_error_webrtc.send('cameraError', message= message)
 
-		self._process.wait()
+				#event for local peers
+				eventManager().fire(Events.GSTREAMER_EVENT, {
+					'message': message
+				})
 
-		if self._process.wait() != 0:
-			self._logger.error('GstAstroPrint terminated with error %d' % self._process.returncode)
-
-			message = 'Fatal error occurred in video streaming (%d)' % self._process.returncode
-
-			#signaling for remote peers
-			manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
-			manage_fatal_error_webrtc.send('cameraError', message= message)
-
-			#event for local peers
-			eventManager().fire(Events.GSTREAMER_EVENT, {
-				'message': message
-			})
-
-			try:
-				self._logger.info("Trying to get list of formats supported by your camera...")
-				self._logger.info(subprocess.Popen("v4l2-ctl --list-formats-ext -d %s" % str(self._device), shell=True, stdout=subprocess.PIPE).stdout.read())
-
-			except:
-				self._logger.error("Unable to retrieve supported formats")
-
-			if settings().get(["camera", "graphic-debug"]):
 				try:
-					gst.debug_bin_to_dot_file (self._pipeline, gst.DebugGraphDetails.ALL, "fatal-error")
-					self._logger.info( "Gstreamer's pipeline dot file created: %s/fatal-error.dot" % os.getenv("GST_DEBUG_DUMP_DOT_DIR") )
+					self._logger.info("Trying to get list of formats supported by your camera...")
+					self._logger.info(subprocess.Popen("v4l2-ctl --list-formats-ext -d %s" % str(self._device), shell=True, stdout=subprocess.PIPE).stdout.read())
 
 				except:
-					self._logger.error("Graphic diagram can not created")
+					self._logger.error("Unable to retrieve supported formats")
 
-		self._process = None"""
-
-	def _onProcessResponse(self, id, data):
-		if id in self._pendingReqs:
+		elif id in self._pendingReqs:
 			try:
 				callback = self._pendingReqs[id]
 				if callback:
@@ -202,6 +183,7 @@ class AstroPrintPipeline(object):
 
 class ProcessResponseListener(Thread):
 	def __init__(self, responseQueue, onNewResponse):
+		self._logger = logging.getLogger(__name__)
 		super(ProcessResponseListener, self).__init__()
 		self._queue = responseQueue
 		self._stopped = False

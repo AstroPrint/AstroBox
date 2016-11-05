@@ -5,18 +5,18 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 class InvalidGStreamerPipelineException(Exception):
     pass
 
-def pipelineFactory(device, size, source, encoder, mainLoop, debugLevel):
+def pipelineFactory(device, size, source, encoder, onFatalError, mainLoop, debugLevel):
 	if source == 'usb':
 		if encoder == 'h264':
 			from .h264 import GstH264Pipeline
-			return GstH264Pipeline(device, size, mainLoop, debugLevel)
+			return GstH264Pipeline(device, size, onFatalError, mainLoop, debugLevel)
 
 		elif encoder == 'vp8': # VP8
 			from .vp8 import GstVp8Pipeline
-			return GstVp8Pipeline(device, size, mainLoop, debugLevel)
+			return GstVp8Pipeline(device, size, onFatalError, mainLoop, debugLevel)
 
 	elif source == 'raspicam': #Raspicam
 		from .raspicam import GstRaspicamPipeline
-		return GstRaspicamPipeline(device, size, mainLoop, debugLevel)
+		return GstRaspicamPipeline(device, size, onFatalError, mainLoop, debugLevel)
 
 	raise InvalidGStreamerPipelineException('Invalid source [%s] and encodder [%s] combination' % (source, encoder))

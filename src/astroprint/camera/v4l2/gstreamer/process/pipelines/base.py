@@ -24,7 +24,7 @@ from .util import waitToReachState
 #
 
 class GstBasePipeline(object):
-	def __init__(self, device, size, mainLoop, debugLevel):
+	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
 
 		if not Gst.init_check(None):
 			raise ImportError
@@ -33,6 +33,7 @@ class GstBasePipeline(object):
 			Gst.debug_set_active(True)
 			Gst.debug_set_default_threshold(debugLevel)
 
+		self._onFatalError = onFatalError
 		self._mainLop = mainLoop
 
 		self._toreDownAlready = False
@@ -64,8 +65,8 @@ class GstBasePipeline(object):
 	def __del__(self):
 		self._logger.info('Pipeline destroyed')
 
-	def fatalErrorManager(self):
-		self.tearDown()
+	def __fatalErrorManager(self, details):
+		self._onFatalError(details)
 
 	def _attachBin(self, bin, doneCallback= None):
 		if bin.attach(self._videoSrcBin.requestSrcTeePad()):
@@ -225,13 +226,25 @@ class GstBasePipeline(object):
 		busError, detail = msg.parse_error()
 
 		self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
+		self.__fatalErrorManager(busError)
 
 		#if busError.code == 1: #Internal Data Flow Error
-		self.tearDown()
+
+
+		# KEEP THIS. It might be useful to debug hard to find errors
+		'''
+		if self._logger.isEnabledFor(logging.DEBUG):
+			try:
+				Gst.debug_bin_to_dot_file (self._pipeline, Gst.DebugGraphDetails.ALL, "fatal-error")
+				self._logger.info( "Gstreamer's pipeline dot file created: %s/fatal-error.dot" % os.getenv("GST_DEBUG_DUMP_DOT_DIR") )
+
+			except:
+				self._logger.error("Graphic diagram can not created")
+		'''
 
 	def _onBusEos(self, msg):
 		self._logger.warn("gstreamer EOS (End of Stream) message received.")
-		self.tearDown()
+		self.__fatalErrorManager('EOS Received')
 
 	def _onBusStateChanged(self, msg):
 		old, new, pending = msg.parse_state_changed()

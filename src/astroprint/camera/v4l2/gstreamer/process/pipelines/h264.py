@@ -11,9 +11,9 @@ from .bins.v4l2_video_src import UsbVideoSrcBin
 from .bins.h264_video_enc import H264VideoEncBin
 
 class GstH264Pipeline(GstBasePipeline):
-	def __init__(self, device, size, mainLoop, debugLevel):
+	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
 		self._logger = logging.getLogger(__name__)
-		super(GstH264Pipeline, self).__init__(device, size, mainLoop, debugLevel)
+		super(GstH264Pipeline, self).__init__(device, size, onFatalError, mainLoop, debugLevel)
 
 	def _getVideoSrcBin(self, pipeline, device, size):
 		return UsbVideoSrcBin(pipeline, device, size)

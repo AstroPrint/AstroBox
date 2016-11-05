@@ -16,9 +16,13 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ,
 	mainLoop = GObject.MainLoop()
 
 	logger = logging.getLogger(__name__ + ':processLoop')
+	interface = None
+
+	def onFatalError(details):
+		interface.sendResponse(0, {'error': 'fatal_error', 'details': details})
 
 	try:
-		pipeline = pipelineFactory(device, size, source, encoding, mainLoop, debugLevel)
+		pipeline = pipelineFactory(device, size, source, encoding, onFatalError, mainLoop, debugLevel)
 	except InvalidGStreamerPipelineException as e:
 		import sys
 
@@ -30,9 +34,9 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ,
 
 	try:
 		interface.start()
-		logger.info('Pipeline process started')
+		logger.debug('Pipeline process started')
 		mainLoop.run()
-		logger.info('Pipeline process ended')
+		logger.debug('Pipeline process ended')
 
 	except KeyboardInterrupt, SystemExit:
 		mainLoop.quit()
@@ -119,13 +123,13 @@ class processInterface(Thread):
 		self._mainLoop.quit()
 
 	def _isVideoPlayingAction(self, reqId):
-		self._sendResponse(reqId, self._pipeline.isVideoStreaming())
+		self.sendResponse(reqId, self._pipeline.isVideoStreaming())
 		return self.RESPONSE_ASYNC
 
 	def _startVideoAction(self, reqId):
 
 		def doneCb(success):
-			self._sendResponse(reqId, success)
+			self.sendResponse(reqId, success)
 
 		self._pipeline.playVideo(doneCb)
 
@@ -134,7 +138,7 @@ class processInterface(Thread):
 	def _stopVideoAction(self, reqId):
 
 		def doneCb(success):
-			self._sendResponse(reqId, success)
+			self.sendResponse(reqId, success)
 
 		self._pipeline.stopVideo(doneCb)
 
@@ -144,9 +148,9 @@ class processInterface(Thread):
 
 		def doneCb(photo):
 			if not photo:
-				self._sendResponse(reqId, None)
+				self.sendResponse(reqId, None)
 			else:
-				self._sendResponse(reqId, photo, raw= True, b64encode= True)
+				self.sendResponse(reqId, photo, raw= True, b64encode= True)
 
 		self._pipeline.takePhoto(doneCb, text)
 
@@ -156,7 +160,7 @@ class processInterface(Thread):
 		self._pipeline.tearDown()
 		return self.RESPONSE_EXIT
 
-	def _sendResponse(self, reqId, resp, raw= False, b64encode= False):
+	def sendResponse(self, reqId, resp, raw= False, b64encode= False):
 		if raw:
 			if b64encode:
 				from base64 import b64encode
