@@ -18,14 +18,15 @@ from octoprint.settings import settings
 from .process import startPipelineProcess
 
 class AstroPrintPipeline(object):
-	def __init__(self, device, size, source, encoding):
+	def __init__(self, device, size, source, encoding, onFatalError):
 		self._logger = logging.getLogger(__name__)
 		onListeningEvent = Event()
-		self._parentConn, self._processConn = Pipe()
+		self._parentConn, self._processConn = Pipe(True)
 		self._pendingReqs = {}
 		self._lastReqId = 0
 		self._device = device
 		self._sendCondition = Condition()
+		self._onFatalError = onFatalError
 		self._process = Process(
 			target= startPipelineProcess,
 			args= (
@@ -45,6 +46,9 @@ class AstroPrintPipeline(object):
 		self._responseListener.start()
 		self._logger.debug('Pipeline Process Started.')
 
+	def __del__(self):
+		self._logger.debug('Pipeline Process Controller removed')
+
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
 			self._logger.warn('Broadcasting error to ALL pending requests [ %s ]' % repr(data))
@@ -54,10 +58,6 @@ class AstroPrintPipeline(object):
 						cb(data)
 
 			if data and 'error' in data and data['error'] == 'fatal_error':
-				#shutdown the process
-				self._pendingReqs = {}
-				self._sendReqToProcess({'action': 'shutdown'})
-
 				message = 'Fatal error occurred in video streaming (%s)' % data['details'] if 'details' in data else 'unkonwn'
 
 				#signaling for remote peers
@@ -75,6 +75,10 @@ class AstroPrintPipeline(object):
 
 				except:
 					self._logger.error("Unable to retrieve supported formats")
+
+				#shutdown the process
+				self._pendingReqs = {}
+				self._onFatalError()
 
 		elif id in self._pendingReqs:
 			try:
@@ -161,11 +165,10 @@ class AstroPrintPipeline(object):
 
 	def stop(self):
 		if self._process and self._process.exitcode is None:
+			self._responseListener.stop()
 			self._sendReqToProcess({'action': 'shutdown'})
 			self._process.join()
 			self._process = None
-			self._parentConn.close()
-			self._responseListener.stop()
 
 			#It's possible that stop is called as a result of a response which is
 			#executed in the self._responseListener Thread. You can't join your own thread!
@@ -180,25 +183,30 @@ class AstroPrintPipeline(object):
 
 class ProcessResponseListener(Thread):
 	def __init__(self, parentConn, onNewResponse):
-		self._logger = logging.getLogger(__name__)
 		super(ProcessResponseListener, self).__init__()
+		self._logger = logging.getLogger(__name__ + ':ProcessResponseListener')
 		self._parentConn = parentConn
 		self._stopped = False
 		self._onNewResponse = onNewResponse
 
 	def run(self):
 		while not self._stopped:
-			response = self._parentConn.recv()
+			try:
+				while not self._parentConn.poll(1.0):
+					if self._stopped:
+						return
+				response = self._parentConn.recv()
+			except IOError:
+				self._logger.debug('Process closed its connection. Stoping ProcessResponseListener')
+				return
 
-			if not self._stopped:
-				if response:
-					try:
-						id, data = response
+			try:
+				id, data = response
 
-						self._onNewResponse(id, data)
+				self._onNewResponse(id, data)
 
-					except Exception as e:
-						self._logger.error("Error unpacking gstreamer process response", exc_info= True)
+			except Exception as e:
+				self._logger.error("Error unpacking gstreamer process response", exc_info= True)
 
 	def stop(self):
 		self._stopped = True

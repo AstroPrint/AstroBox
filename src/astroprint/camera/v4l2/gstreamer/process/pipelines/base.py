@@ -152,7 +152,6 @@ class GstBasePipeline(object):
 
 		self._photoBinAttachDetachLock.release()
 
-
 	def tearDown(self):
 		if not self._toreDownAlready:
 			self._logger.debug("Tearing down...")
@@ -226,7 +225,7 @@ class GstBasePipeline(object):
 		busError, detail = msg.parse_error()
 
 		self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
-		self.__fatalErrorManager(busError)
+		self.__fatalErrorManager(busError.message)
 
 		#if busError.code == 1: #Internal Data Flow Error
 

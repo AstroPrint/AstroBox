@@ -32,12 +32,15 @@ class GStreamerManager(V4L2Manager):
 	def open_camera(self):
 		if self._apPipeline is None:
 			try:
-				self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'])
+				self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineClosed)
 			except Exception as e:
 				self._logger.error('Failed to open camera: %s' % e, exc_info= True)
 				return False
 
 		return True
+
+	def _onApPipelineClosed(self):
+		self.freeMemory()
 
 	def close_camera(self):
 		if self._apPipeline:
@@ -45,12 +48,8 @@ class GStreamerManager(V4L2Manager):
 			self._apPipeline = None
 
 	def freeMemory(self):
-		self.stop_video_stream()
+		self.close_camera()
 		webRtcManager().stopJanus()
-
-		if self._apPipeline:
-			self._apPipeline.stop()
-			self._apPipeline = None
 
 	def reScan(self):
 		try:
@@ -64,7 +63,6 @@ class GStreamerManager(V4L2Manager):
 				tryingTimes +=1
 
 			if self._apPipeline:
-				self.close_camera()
 				self.freeMemory()
 
 			#if at first time Astrobox were turned on without camera, it is
@@ -120,10 +118,6 @@ class GStreamerManager(V4L2Manager):
 		##
 
 		self.freeMemory()
-
-		if self._apPipeline:
-			self.close_camera()
-
 		self.reScan()
 
 	def get_pic_async(self, done, text=None):
