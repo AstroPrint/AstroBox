@@ -7,7 +7,7 @@ import json
 import time
 import sys
 
-from multiprocessing import Process, Queue, Event
+from multiprocessing import Process, Event, Pipe
 from threading import Thread, Condition, current_thread
 
 from blinker import signal
@@ -21,8 +21,7 @@ class AstroPrintPipeline(object):
 	def __init__(self, device, size, source, encoding):
 		self._logger = logging.getLogger(__name__)
 		onListeningEvent = Event()
-		self._reqQ = Queue()
-		self._respQ = Queue()
+		self._parentConn, self._processConn = Pipe()
 		self._pendingReqs = {}
 		self._lastReqId = 0
 		self._device = device
@@ -35,16 +34,16 @@ class AstroPrintPipeline(object):
 				source.lower(),
 				encoding.lower(),
 				onListeningEvent,
-				self._reqQ,
-				self._respQ,
+				( self._parentConn, self._processConn )
 			)
 		)
 		self._process.start()
 
-		self._responseListener = ProcessResponseListener(self._respQ, self._onProcessResponse)
-		self._responseListener.start()
+		self._responseListener = ProcessResponseListener(self._parentConn, self._onProcessResponse)
 
 		onListeningEvent.wait()
+		self._responseListener.start()
+		self._logger.debug('Pipeline Process Started.')
 
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
@@ -54,10 +53,9 @@ class AstroPrintPipeline(object):
 					if cb:
 						cb(data)
 
-				self._pendingReqs = {}
-
 			if data and 'error' in data and data['error'] == 'fatal_error':
 				#shutdown the process
+				self._pendingReqs = {}
 				self._sendReqToProcess({'action': 'shutdown'})
 
 				message = 'Fatal error occurred in video streaming (%s)' % data['details'] if 'details' in data else 'unkonwn'
@@ -105,7 +103,7 @@ class AstroPrintPipeline(object):
 			self._lastReqId += 1
 			id = self._lastReqId
 			self._pendingReqs[id] = callback
-			self._reqQ.put( (id, data) )
+			self._parentConn.send( (id, data) )
 			self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
 
 	def startVideo(self, doneCallback = None):
@@ -166,8 +164,7 @@ class AstroPrintPipeline(object):
 			self._sendReqToProcess({'action': 'shutdown'})
 			self._process.join()
 			self._process = None
-			self._reqQ.close()
-			self._respQ.close()
+			self._parentConn.close()
 			self._responseListener.stop()
 
 			#It's possible that stop is called as a result of a response which is
@@ -182,16 +179,16 @@ class AstroPrintPipeline(object):
 #
 
 class ProcessResponseListener(Thread):
-	def __init__(self, responseQueue, onNewResponse):
+	def __init__(self, parentConn, onNewResponse):
 		self._logger = logging.getLogger(__name__)
 		super(ProcessResponseListener, self).__init__()
-		self._queue = responseQueue
+		self._parentConn = parentConn
 		self._stopped = False
 		self._onNewResponse = onNewResponse
 
 	def run(self):
 		while not self._stopped:
-			response = self._queue.get()
+			response = self._parentConn.recv()
 
 			if not self._stopped:
 				if response:

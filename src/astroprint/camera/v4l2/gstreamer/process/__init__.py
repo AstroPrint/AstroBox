@@ -9,7 +9,7 @@ from threading import Thread, Event, Condition
 
 from .pipelines import pipelineFactory, InvalidGStreamerPipelineException
 
-def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ, respQ, debugLevel=0):
+def startPipelineProcess(device, size, source, encoding, onListeningEvent, procPipe, debugLevel=0):
 	from gi.repository import GObject
 
 	GObject.threads_init()
@@ -30,13 +30,12 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ,
 		onListeningEvent.set()
 		sys.exit(-1)
 
-	interface = processInterface(pipeline, reqQ, respQ, mainLoop, onListeningEvent)
+	interface = processInterface(pipeline, procPipe, mainLoop, onListeningEvent)
 
 	try:
 		interface.start()
 		logger.debug('Pipeline process started')
 		mainLoop.run()
-		logger.debug('Pipeline process ended')
 
 	except KeyboardInterrupt, SystemExit:
 		mainLoop.quit()
@@ -51,20 +50,21 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, reqQ,
 
 		interface.join()
 
-		respQ.close()
-		reqQ.close()
-
 		if not onListeningEvent.is_set():
 			onListeningEvent.set()
+
+		procPipe[1].close()
+
+		logger.debug('Pipeline process ended')
+
 
 class processInterface(Thread):
 	RESPONSE_EXIT = -1000
 	RESPONSE_ASYNC = -1001
 
-	def __init__(self, pipeline, reqQ, respQ, mainLoop, onListeningEvent):
+	def __init__(self, pipeline, procPipe, mainLoop, onListeningEvent):
 		self._pipeline = pipeline
-		self._reqQ = reqQ
-		self._respQ = respQ
+		self._parentConn, self._processConn = procPipe
 		self._sendCondition = Condition()
 		self._onListeningEvent = onListeningEvent
 		self._mainLoop = mainLoop
@@ -88,7 +88,7 @@ class processInterface(Thread):
 		self._onListeningEvent = None # unref
 		while not self._stopped:
 			self._logger.debug('waiting for commands...')
-			command = self._reqQ.get()
+			command = self._processConn.recv()
 			if self._stopped:
 				break
 
@@ -170,7 +170,7 @@ class processInterface(Thread):
 		response = (reqId, resp)
 
 		with self._sendCondition:
-			self._respQ.put( response )
+			self._processConn.send( response )
 			if self._logger.isEnabledFor(logging.DEBUG):
 				if sys.getsizeof(resp) > 50:
 					dataStr = "(%d, %d bytes)" % (reqId, sys.getsizeof(resp))
