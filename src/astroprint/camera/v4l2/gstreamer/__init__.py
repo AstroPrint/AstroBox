@@ -130,12 +130,6 @@ class GStreamerManager(V4L2Manager):
 			def onDone(photo):
 				done(photo)
 
-				def onIsVideoPlayingDone(isPlaying):
-					if not isPlaying:
-						self.close_camera()
-
-				self._isVideoStreamingAsync(onIsVideoPlayingDone)
-
 			self._apPipeline.takePhoto(onDone, text)
 			return
 
@@ -146,11 +140,11 @@ class GStreamerManager(V4L2Manager):
 		self.freeMemory()
 		webRtcManager().shutdown()
 
-	def _isVideoStreamingAsync(self, onDone):
-		if self._apPipeline:
-			self._apPipeline.isVideoPlaying(onDone)
-		else:
-			onDone(False)
+	#def _isVideoStreamingAsync(self, onDone):
+	#	if self._apPipeline:
+	#		self._apPipeline.isVideoPlaying(onDone)
+	#	else:
+	#		onDone(False)
 
 	def isVideoStreaming(self):
 		if self._apPipeline:

@@ -60,8 +60,8 @@ class PhotoCaptureBin(EncoderBin):
 		self.__reqQueue = PhotoReqsProcessor(self, onNoMorePhotos)
 		self.__reqQueue.start()
 
-	def addPhotoReq(self, text, needsExposure, callback):
-		self.__reqQueue.addPhotoReq(text, needsExposure, callback)
+	def addPhotoReq(self, text, callback):
+		self.__reqQueue.addPhotoReq(text, callback)
 
 	def destroy(self):
 		self.__reqQueue.stop()
@@ -91,7 +91,6 @@ class PhotoReqsProcessor(Thread):
 
 	def run(self):
 		while not self._stopped:
-			self._alreadyExposed = False
 			self._morePhotosEvent.wait()
 
 			if not self._stopped and len(self._photoReqs) > 0:
@@ -105,7 +104,7 @@ class PhotoReqsProcessor(Thread):
 				self._noMoreReqsCallback()
 
 	def _processPhotoReq(self, req):
-		text, needsExposure, reqCallback = req
+		text, reqCallback = req
 
 		if text:
 			text = "<span font='arial' weight='bold'>%s</span>" % text
@@ -118,7 +117,7 @@ class PhotoReqsProcessor(Thread):
 		sample = None
 		photoBuffer = None
 
-		if needsExposure and not self._alreadyExposed:
+		if not self._alreadyExposed:
 			time.sleep(1.5) #give it time to focus and get light. Only on first photo in the sequence
 			self._alreadyExposed = True
 
@@ -140,6 +139,6 @@ class PhotoReqsProcessor(Thread):
 		self._photoReqs.clear()
 		self._morePhotosEvent.set()
 
-	def addPhotoReq(self, text, needsExposure, callback):
-		self._photoReqs.appendleft( (text, needsExposure, callback) )
+	def addPhotoReq(self, text, callback):
+		self._photoReqs.appendleft( (text, callback) )
 		self._morePhotosEvent.set()

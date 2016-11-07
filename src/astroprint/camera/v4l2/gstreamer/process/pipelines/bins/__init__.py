@@ -78,7 +78,7 @@ class EncoderBin(object):
 
 	@property
 	def isPlaying(self):
-		return waitToReachState(self._bin, Gst.State.PLAYING, 1.0)
+		return waitToReachState(self._bin, Gst.State.PLAYING, 1.0, 2)
 
 	# ~~~~~~ Implement these ~~~~~~~~
 	def destroy(self):

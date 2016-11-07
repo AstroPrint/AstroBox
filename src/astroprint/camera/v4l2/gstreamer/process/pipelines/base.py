@@ -70,24 +70,15 @@ class GstBasePipeline(object):
 
 	def _attachBin(self, bin, doneCallback= None):
 		if bin.attach(self._videoSrcBin.requestSrcTeePad()):
-			def onPipelineStateChanged(state):
-				if doneCallback:
-					doneCallback(state is not None)
-
-			self._handlePipelineStartStop(onPipelineStateChanged)
+			self._setToPlayAndWait(doneCallback)
 
 		elif doneCallback:
 				doneCallback(False)
 
-
 	def _detachBin(self, bin, doneCallback= None):
 		def onDetached(success):
 			if success:
-				def onPipelineStateChanged(state):
-					if doneCallback:
-						doneCallback(state is not None)
-
-				self._handlePipelineStartStop(onPipelineStateChanged)
+				self._setToPlayAndWait(doneCallback)
 
 			elif doneCallback:
 				doneCallback(False)
@@ -104,36 +95,24 @@ class GstBasePipeline(object):
 		self._pipeline.set_state(Gst.State.NULL)
 		onChangeDone()
 
-	def _handlePipelineStartStop(self, doneCallback= None):
-		with self._pipelineStateCondition:
-			newPipelineState = None
+	def _setToPlayAndWait(self, onPlaying= None):
+		if self._currentPipelineState != Gst.State.PLAYING:
+			self._pipeline.set_state(Gst.State.PLAYING)
 
-			if self._videoEncBin.isLinked or self._photoCaptureBin.isLinked:
-				#stream needs to flow
-				newPipelineState = Gst.State.PLAYING
-
+			if waitToReachState(self._pipeline, Gst.State.PLAYING, 1.5, 2):
+				self._logger.debug( "Succesfully changed pipeline state to \033[93mPLAYING\033[0m")
+				self._currentPipelineState = Gst.State.PLAYING
+				result = True
 			else:
-				newPipelineState = Gst.State.PAUSED
+				stateReturn, state, pending = self._pipeline.get_state(1)
+				self._logger.error( "Error [%s] to change pipeline state to \033[93mPLAYING\033[0m, stayed on \033[93m%s\033[0m" % (stateReturn.value_name.replace('GST_STATE_CHANGE_',''), state.value_name.replace('GST_STATE_','')) )
+				result = False
 
-			if self._currentPipelineState != newPipelineState:
-				def onChangeDone(state):
-					self._currentPipelineState = state
+		else:
+			result = True
 
-					if doneCallback:
-						doneCallback(state)
-
-				self._pipeline.set_state(newPipelineState)
-
-				if waitToReachState(self._pipeline, newPipelineState):
-					self._logger.debug( "Succesfully changed pipeline state to \033[93m%s\033[0m" % (newPipelineState.value_name.replace('GST_STATE_','')))
-					onChangeDone(newPipelineState)
-				else:
-					stateReturn, state, pending = self._pipeline.get_state(1)
-					self._logger.error( "Error [%s] to change pipeline state to \033[93m%s\033[0m, stayed on \033[93m%s\033[0m" % (stateReturn.value_name.replace('GST_STATE_CHANGE_',''), newPipelineState.value_name.replace('GST_STATE_',''), state.value_name.replace('GST_STATE_','')) )
-					onChangeDone(None)
-
-			elif doneCallback: #no change needed
-				doneCallback(newPipelineState)
+		if onPlaying:
+			onPlaying(result)
 
 	def _onNoMorePhotos(self):
 		self._logger.debug('No more photos in Photo Queue')
@@ -147,7 +126,7 @@ class GstBasePipeline(object):
 
 		self._photoBinAttachDetachLock.acquire()
 		self._detachBin(self._photoCaptureBin, onDetached)
-		if not waitForDetach.wait(1.0):
+		if not waitForDetach.wait(2.0):
 			self._logger.warn('Timeout detaching Photos Bin')
 
 		self._photoBinAttachDetachLock.release()
@@ -174,7 +153,7 @@ class GstBasePipeline(object):
 		if not self._photoCaptureBin.isLinked:
 			def onAttachDone(success):
 				if success:
-					self._photoCaptureBin.addPhotoReq(text, not self._videoEncBin.isLinked, doneCallback )
+					self._photoCaptureBin.addPhotoReq(text, doneCallback )
 				else:
 					doneCallback(False)
 
@@ -184,7 +163,7 @@ class GstBasePipeline(object):
 			self._attachBin(self._photoCaptureBin, onAttachDone)
 
 		else:
-			self._photoCaptureBin.addPhotoReq(text, not self._videoEncBin.isLinked, doneCallback)
+			self._photoCaptureBin.addPhotoReq(text, doneCallback)
 
 	def playVideo(self, doneCallback= None):
 		if self.isVideoStreaming():
