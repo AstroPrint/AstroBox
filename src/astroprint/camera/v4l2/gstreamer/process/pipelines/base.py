@@ -227,9 +227,6 @@ class GstBasePipeline(object):
 		self._logger.error("gstreamer error: %s\n--- More Info: ---\n%s\n------------------" % (busError, detail))
 		self.__fatalErrorManager(busError.message)
 
-		#if busError.code == 1: #Internal Data Flow Error
-
-
 		# KEEP THIS. It might be useful to debug hard to find errors
 		'''
 		if self._logger.isEnabledFor(logging.DEBUG):

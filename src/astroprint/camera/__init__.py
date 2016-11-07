@@ -73,7 +73,7 @@ class TimelapseWorker(threading.Thread):
 		lastUpload = 0
 		self._resumeFromPause.set()
 		while not self._stopExecution:
-			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId):
+			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId, async=False):
 				lastUpload = time.time()
 
 			time.sleep(1)
@@ -137,7 +137,7 @@ class CameraManager(object):
 		global _instance
 		_instance = None
 
-	def addPhotoToTimelapse(self, timelapseId):
+	def addPhotoToTimelapse(self, timelapseId, async= True):
 		#Build text
 		printerData = printerManager().getCurrentData()
 		text = "%d%% - Layer %s%s" % (
@@ -146,18 +146,35 @@ class CameraManager(object):
 			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
 		)
 
-		picBuf = self.get_pic(text=text)
+		if async is False:
+			waitForPhoto = threading.Event()
+			responseCont = [False] #To allow for changing it inside the callback
 
-		if picBuf:
-			picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
-			#we need to check again as it's possible that this was the last
-			#pic and the timelapse is closed.
-			if picData and self.timelapseInfo:
-				self.timelapseInfo['last_photo'] = picData['url']
-				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
-				return True
+		else:
+			waitForPhoto = None
 
-		return False
+		def onDone(picBuf):
+			result = False
+
+			if picBuf:
+				picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
+				#we need to check again as it's possible that this was the last
+				#pic and the timelapse is closed.
+				if picData and self.timelapseInfo:
+					self.timelapseInfo['last_photo'] = picData['url']
+					self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+					result = True
+
+			if waitForPhoto and not waitForPhoto.isSet():
+				responseCont[0] = result
+				waitForPhoto.set()
+
+		self.get_pic_async(onDone, text)
+
+		if waitForPhoto:
+			waitForPhoto.wait(7.0) # wait 7.0 secs for the capture of the photo and the upload, otherwise fail
+			return responseCont[0]
+
 
 	def start_timelapse(self, freq):
 		if freq == '0':
