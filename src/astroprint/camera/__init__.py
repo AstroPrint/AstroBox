@@ -177,6 +177,9 @@ class CameraManager(object):
 
 
 	def start_timelapse(self, freq):
+		if not self.isCameraConnected():
+			return False
+
 		if freq == '0':
 			return False
 
@@ -187,8 +190,6 @@ class CameraManager(object):
 		selectedFile = printerManager()._selectedFile
 		if not selectedFile:
 			return False
-
-		return self.isCameraConnected()
 
 		timelapseId = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
 		if timelapseId:

@@ -1,4 +1,4 @@
-# coding=utf-8	
+# coding=utf-8
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
@@ -23,7 +23,7 @@ def isCameraSupportedByAstrobox():
 @restricted_access
 def refreshPluggedCamera():
 	cm = cameraManager()
-		
+
 	return jsonify({"isCameraPlugged": cm.reScan()})
 
 @api.route("/camera/has-properties", methods=["GET"])
@@ -60,7 +60,7 @@ def update_timelapse():
 		if cm.timelapseInfo:
 			if cm.update_timelapse(freq):
 				return jsonify(SUCCESS)
-				
+
 		else:
 			if cm.start_timelapse(freq):
 				return jsonify(SUCCESS)
@@ -109,5 +109,5 @@ def peer_session():
 def start_streaming():
 	#open_camera
 	webRtcManager().startGStreamer()
-	
-	return jsonify(SUCCESS) 
+
+	return jsonify(SUCCESS)
