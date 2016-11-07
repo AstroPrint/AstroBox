@@ -138,6 +138,7 @@ class GstBasePipeline(object):
 			self._busListener.stop()
 
 			self._pipeline.set_state(Gst.State.NULL)
+			Gst.deinit()
 			self._videoSrcBin = None
 			self._videoEncBin = None
 			self._photoCaptureBin = None
@@ -147,7 +148,6 @@ class GstBasePipeline(object):
 
 			if self._mainLop.is_running():
 				self._mainLop.quit()
-
 
 	def takePhoto(self, doneCallback, text=None):
 		if not self._photoCaptureBin.isLinked:

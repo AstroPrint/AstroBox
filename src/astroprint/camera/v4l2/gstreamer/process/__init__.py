@@ -119,8 +119,8 @@ class processInterface(Thread):
 			if resp is self.RESPONSE_EXIT:
 				break
 
+		self._pipeline.tearDown()
 		self._pipeline = None
-		self._mainLoop.quit()
 
 	def _isVideoPlayingAction(self, reqId):
 		self.sendResponse(reqId, self._pipeline.isVideoStreaming())
@@ -157,7 +157,6 @@ class processInterface(Thread):
 		return self.RESPONSE_ASYNC
 
 	def _shutdownAction(self, reqId):
-		self._pipeline.tearDown()
 		return self.RESPONSE_EXIT
 
 	def sendResponse(self, reqId, resp, raw= False, b64encode= False):
@@ -165,7 +164,6 @@ class processInterface(Thread):
 			if b64encode:
 				from base64 import b64encode
 				resp = b64encode(resp)
-
 
 		response = (reqId, resp)
 
