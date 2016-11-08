@@ -20,34 +20,39 @@ from .process import startPipelineProcess
 class AstroPrintPipeline(object):
 	def __init__(self, device, size, source, encoding, onFatalError):
 		self._logger = logging.getLogger(__name__)
-		onListeningEvent = Event()
 		self._parentConn, self._processConn = Pipe(True)
 		self._pendingReqs = {}
 		self._lastReqId = 0
 		self._device = device
+		self._source = source.lower()
+		self._encoding = encoding.lower()
+		self._size = tuple([int(x) for x in size.split('x')])
 		self._sendCondition = Condition()
 		self._onFatalError = onFatalError
+		self._responseListener = ProcessResponseListener(self._parentConn, self._onProcessResponse)
+		self._responseListener.start()
+		self._startProcess()
+
+	def __del__(self):
+		self._logger.debug('Pipeline Process Controller removed')
+
+	def _startProcess(self):
+		onListeningEvent = Event()
+
 		self._process = Process(
 			target= startPipelineProcess,
 			args= (
-				device,
-				tuple([int(x) for x in size.split('x')]),
-				source.lower(),
-				encoding.lower(),
+				self._device,
+				self._size,
+				self._source,
+				self._encoding,
 				onListeningEvent,
 				( self._parentConn, self._processConn )
 			)
 		)
 		self._process.start()
-
-		self._responseListener = ProcessResponseListener(self._parentConn, self._onProcessResponse)
-
 		onListeningEvent.wait()
-		self._responseListener.start()
 		self._logger.debug('Pipeline Process Started.')
-
-	def __del__(self):
-		self._logger.debug('Pipeline Process Controller removed')
 
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
@@ -103,68 +108,62 @@ class AstroPrintPipeline(object):
 			self._logger.error("There's no pending request for response %d" % id)
 
 	def _sendReqToProcess(self, data, callback= None):
-		with self._sendCondition:
-			self._lastReqId += 1
-			id = self._lastReqId
-			self._pendingReqs[id] = callback
-			self._parentConn.send( (id, data) )
-			self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
-
-	def startVideo(self, doneCallback = None):
-		if self._process and self._process.exitcode is None:
-			self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
+		if self._process and self._process.is_alive():
+			with self._sendCondition:
+				self._lastReqId += 1
+				id = self._lastReqId
+				self._pendingReqs[id] = callback
+				self._parentConn.send( (id, data) )
+				self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
 
 		else:
-			self._logger.warn('startVideo ignored. No Process is running')
-			if doneCallback:
-				doneCallback(False)
-
-	def stopVideo(self, doneCallback = None):
-		if self._process and self._process.exitcode is None:
-			self._sendReqToProcess({'action': 'stopVideo'}, doneCallback)
-
-		else:
-			self._logger.warn('stopVideo ignored. No Process is running')
-			if doneCallback:
-				doneCallback(False)
-
-	def takePhoto(self, doneCallback, text=None):
-		if self._process and self._process.exitcode is None:
-			def posprocesing(resp):
-				if resp:
-					if 'error' in resp:
-						self._logger.error('Error during photo capture: %s' % resp['error'])
-						doneCallback(None)
-					else:
-						from base64 import b64decode
-						try:
-							doneCallback(b64decode(resp))
-						except TypeError as e:
-							self._logger.error('Invalid returned photo. Received. Error: %s' % e)
-							doneCallback(None)
+			triesLeft = 3
+			while triesLeft > 0:
+				self._logger.debug('Process died. Trying to restart (%d tries left)' % triesLeft)
+				self._startProcess()
+				if self._process and self._process.is_alive():
+					self._sendReqToProcess(data, callback)
+					return
 
 				else:
-					doneCallback(None)
+					triesLeft -= 1
 
-			if text is not None:
-				self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
-			else:
-				self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
+			if triesLeft == 0:
+				self._logger.error('Unable to start pipeline process.')
 
-		else:
-			self._logger.warn('takePhoto ignored. No Process is running')
-			doneCallback(False)
+	def startVideo(self, doneCallback = None):
+		self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
+
+	def stopVideo(self, doneCallback = None):
+		self._sendReqToProcess({'action': 'stopVideo'}, doneCallback)
 
 	def isVideoPlaying(self, doneCallback):
-		if self._process and self._process.exitcode is None:
-			self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
+		self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
 
+	def takePhoto(self, doneCallback, text=None):
+		def posprocesing(resp):
+			if resp:
+				if 'error' in resp:
+					self._logger.error('Error during photo capture: %s' % resp['error'])
+					doneCallback(None)
+				else:
+					from base64 import b64decode
+					try:
+						doneCallback(b64decode(resp))
+					except TypeError as e:
+						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+						doneCallback(None)
+
+			else:
+				doneCallback(None)
+
+		if text is not None:
+			self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
 		else:
-			self._logger.warn('isVideoPlaying ignored. No Process is running')
-			doneCallback(False)
+			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
 
 	def stop(self):
-		if self._process and self._process.exitcode is None:
+		if self._process and self._process.is_alive():
 			self._responseListener.stop()
 			self._sendReqToProcess({'action': 'shutdown'})
 			self._process.join()
