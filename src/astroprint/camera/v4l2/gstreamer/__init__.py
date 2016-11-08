@@ -29,7 +29,7 @@ class GStreamerManager(V4L2Manager):
 
 		super(GStreamerManager, self).__init__(videoDevice)
 
-	def open_camera(self):
+	def _doOpenCamera(self):
 		if self._apPipeline is None:
 			try:
 				self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineClosed)
@@ -42,7 +42,7 @@ class GStreamerManager(V4L2Manager):
 	def _onApPipelineClosed(self):
 		self.freeMemory()
 
-	def close_camera(self):
+	def _doCloseCamera(self):
 		if self._apPipeline:
 			self._apPipeline.stop()
 			self._apPipeline = None
@@ -81,7 +81,7 @@ class GStreamerManager(V4L2Manager):
 
 		return isCameraConnected
 
-	def start_video_stream(self, doneCallback= None):
+	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
@@ -94,7 +94,7 @@ class GStreamerManager(V4L2Manager):
 
 		self._apPipeline.startVideo(doneCallback)
 
-	def stop_video_stream(self, doneCallback= None):
+	def _doStopVideoStream(self, doneCallback= None):
 		if not self._apPipeline or not self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
@@ -120,7 +120,7 @@ class GStreamerManager(V4L2Manager):
 		self.freeMemory()
 		self.reScan()
 
-	def get_pic_async(self, done, text=None):
+	def _doGetPic(self, done, text=None):
 		if self.isCameraConnected():
 			if not self._apPipeline:
 				if not self.open_camera():
@@ -139,12 +139,6 @@ class GStreamerManager(V4L2Manager):
 		self._logger.info('Shutting Down GstreamerManager')
 		self.freeMemory()
 		webRtcManager().shutdown()
-
-	#def _isVideoStreamingAsync(self, onDone):
-	#	if self._apPipeline:
-	#		self._apPipeline.isVideoPlaying(onDone)
-	#	else:
-	#		onDone(False)
 
 	def isVideoStreaming(self):
 		if self._apPipeline:

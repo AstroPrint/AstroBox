@@ -57,7 +57,7 @@ class MjpegManager(V4L2Manager):
 		self._localClients = []
 		self.reScan()
 
-	def open_camera(self):
+	def _doOpenCamera(self):
 		if self.isCameraConnected():
 			if self._streamer:
 				return True
@@ -75,7 +75,7 @@ class MjpegManager(V4L2Manager):
 
 		return False
 
-	def close_camera(self):
+	def _doCloseCamera(self):
 		if self._streamer:
 			if self.isVideoStreaming():
 				self.stop_video_stream()
@@ -104,7 +104,7 @@ class MjpegManager(V4L2Manager):
 		else:
 			return False
 
-	def start_video_stream(self, doneCallback= None):
+	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
@@ -120,7 +120,7 @@ class MjpegManager(V4L2Manager):
 		if doneCallback:
 			doneCallback(result)
 
-	def stop_video_stream(self, doneCallback= None):
+	def _doStopVideoStream(self, doneCallback= None):
 		if not self._streamer or not self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
@@ -139,7 +139,7 @@ class MjpegManager(V4L2Manager):
 	def list_devices(self):
 		pass
 
-	def get_pic_async(self, done, text=None):
+	def _doGetPic(self, done, text):
 		if self.isCameraConnected():
 			if not self._streamer:
 				if not self.open_camera():

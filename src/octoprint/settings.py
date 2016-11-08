@@ -55,7 +55,8 @@ default_settings = {
 		"pixelformat": "YUYV", #This is used by GStreamer Manager
 		"source": "USB",
 		"debug-level": 0,
-		"graphic-debug": False
+		"graphic-debug": False,
+		"inactivitySecs": 90.0 # After 1.5 minutes of inactivity the camera shuts off
 	},
 	"gcodeViewer": {
 		"enabled": True,

@@ -37,22 +37,11 @@ class CameraMacManager(CameraManager):
 			]
 		}
 
-	def open_camera(self):
+	def _doOpenCamera(self):
 		return True
 
-	def get_pic_async(self, done, text=None):
-		threading.Timer(3, self._doGetPicAsync,[done, text]).start()
-
-	def get_pic(self, text=None):
-		fileCount = len(self._files)
-		image = None
-
-		if fileCount:
-			imageFile = self._files[randrange(fileCount)]
-			with open(imageFile, "r") as f:
-				image = f.read()
-
-		return image
+	def _doGetPic(self, done, text=None):
+		threading.Timer(3.0, self._simulateGetPicAsync,[done, text]).start()
 
 	@property
 	def capabilities(self):
@@ -68,5 +57,16 @@ class CameraMacManager(CameraManager):
 	def isResolutionSupported(self, resolution):
 		return resolution == '640x480'
 
-	def _doGetPicAsync(self, done, text):
-		done(self.get_pic(text))
+	def _simulateGetPicAsync(self, done, text):
+		fileCount = len(self._files)
+		image = None
+
+		if fileCount:
+			imageFile = self._files[randrange(fileCount)]
+			with open(imageFile, "r") as f:
+				image = f.read()
+
+		done(image)
+
+	def isVideoStreaming(self):
+		return False

@@ -3,6 +3,7 @@ __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import uuid
+import time
 
 from threading import Event
 
@@ -57,6 +58,10 @@ from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 
+#
+# Thread to take timed timelapse pictures
+#
+
 class TimelapseWorker(threading.Thread):
 	def __init__(self, manager, timelapseId, timelapseFreq):
 		super(TimelapseWorker, self).__init__()
@@ -95,6 +100,57 @@ class TimelapseWorker(threading.Thread):
 	def isPaused(self):
 		return not self._resumeFromPause.isSet()
 
+#
+# Camera inactivity thread
+#
+
+class CameraInactivity(object):
+	def __init__(self, inactivitySecs, onInactive):
+		self._logger = logging.getLogger(__name__ + ':CameraInactivity')
+		self._stopped = False
+		self._inactivitySecs = inactivitySecs
+		self._inactivtyEvent = threading.Event()
+		self._onInactive = onInactive
+		self._thread = None
+
+		self.lastActivity = None
+
+	def start(self):
+		if not self._thread:
+			self._stopped = False
+			self._inactivtyEvent.clear()
+			self._thread = threading.Thread(target= self._threadRun)
+			self._thread.start()
+		else:
+			self._logger.warn('Already running')
+
+	def _threadRun(self):
+		self.lastActivity = time.time()
+		waitForSecs = self._inactivitySecs
+
+		while not self._stopped:
+			self._logger.debug('Waiting %f seconds' % waitForSecs)
+			if not self._inactivtyEvent.wait(waitForSecs):
+				secsSinceLastActivity = time.time() - self.lastActivity
+				self._logger.debug('%f seconds since last activity' % secsSinceLastActivity)
+				if secsSinceLastActivity >= self._inactivitySecs:
+					self._onInactive()
+				else:
+					waitForSecs = self._inactivitySecs - secsSinceLastActivity
+
+		self._thread = None
+
+	def stop(self):
+		if self._thread:
+			self._stopped = True
+			self._inactivtyEvent.set()
+			if self._thread != threading.currentThread():
+				self._thread.join()
+
+#
+# Camera Manager base class
+#
+
 class CameraManager(object):
 	name = None
 
@@ -118,9 +174,11 @@ class CameraManager(object):
 		self.timelapseWorker = None
 		self.timelapseInfo = None
 
-		self.videoType = settings().get(["camera", "encoding"])
-		self.videoSize = settings().get(["camera", "size"])
-		self.videoFramerate = settings().get(["camera", "framerate"])
+		self.videoType = s.get(["camera", "encoding"])
+		self.videoSize = s.get(["camera", "size"])
+		self.videoFramerate = s.get(["camera", "framerate"])
+
+		self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
 
 		if self.isCameraConnected():
 			self.reScan()
@@ -129,6 +187,7 @@ class CameraManager(object):
 		self._logger.info('Shutting Down CameraManager')
 		self._photos = None
 		self.close_camera()
+		self._cameraInactivity = None
 
 		if self.timelapseWorker:
 			self.timelapseWorker.stop()
@@ -317,28 +376,57 @@ class CameraManager(object):
 		else:
 			return None
 
+	def _onInactive(self):
+		if self.isVideoStreaming():
+			#It's still being used so we just update and continue
+			self._cameraInactivity.lastActivity = time.time()
+
+		else:
+			self.close_camera()
+
 	def open_camera(self):
-		return False
+		self._cameraInactivity.start()
+		return self._doOpenCamera()
 
 	def close_camera(self):
-		pass
+		self._cameraInactivity.stop()
+		self._doCloseCamera()
 
 	def start_video_stream(self, doneCallback= None):
-		pass
+		self._cameraInactivity.lastActivity = time.time()
+		self._doStartVideoStream(doneCallback)
 
 	def stop_video_stream(self, doneCallback= None):
+		self._doStopVideoStream(doneCallback)
+
+	def get_pic_async(self, done, text=None):
+		self._cameraInactivity.lastActivity = time.time()
+		self._doGetPic(done, text)
+
+	# Implement these
+
+	def isVideoStreaming(self):
+		pass
+
+	def _doOpenCamera(self):
+		return False
+
+	def _doCloseCamera(self):
+		pass
+
+	def _doStartVideoStream(self, doneCallback):
+		pass
+
+	def _doStopVideoStream(self, doneCallback= None):
+		pass
+
+	def _doGetPic(self, done, text):
 		pass
 
 	def list_camera_info(self):
 		pass
 
 	def list_devices(self):
-		pass
-
-	def get_pic_async(self, done, text=None):
-		pass
-
-	def save_pic(self, filename, text=None):
 		pass
 
 	def settingsStructure(self):

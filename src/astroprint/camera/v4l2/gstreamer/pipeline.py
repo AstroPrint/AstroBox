@@ -50,6 +50,7 @@ class AstroPrintPipeline(object):
 				( self._parentConn, self._processConn )
 			)
 		)
+		self._process.daemon = True
 		self._process.start()
 		onListeningEvent.wait()
 		self._logger.debug('Pipeline Process Started.')

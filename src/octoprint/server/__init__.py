@@ -208,7 +208,7 @@ def getStatus():
 	if printer.isPrinting():
 		currentJob = printer.getCurrentJob()
 		fileName = currentJob["file"]["name"]
-	
+
 	state = Response()
 
 	state.data = json.dumps({
@@ -232,7 +232,7 @@ def getStatus():
 def getUiApiKey():
 
 	from flask import request, abort
-	
+
 	from astroprint.cloud import astroprintCloud
 
 	email = request.values.get('email', None)
