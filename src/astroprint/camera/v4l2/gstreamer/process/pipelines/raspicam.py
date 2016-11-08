@@ -5,16 +5,15 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 
 from .base import GstBasePipeline
-
-from .bins.v4l2_video_srd import RaspicamVideoSrcBin
-from .bins.h264_video_end import H264VideoEncBin
+from .bins.v4l2_video_src import RaspicamVideoSrcBin
+from .bins.h264_video_enc import H264VideoEncBin
 
 class GstRaspicamPipeline(GstBasePipeline):
 	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
 		self._logger = logging.getLogger(__name__)
 		super(GstRaspicamPipeline, self).__init__(device, size, onFatalError, mainLoop, debugLevel)
 
-	def _getVideoSrcBin(pipeline, self, device, size):
+	def _getVideoSrcBin(self, pipeline, device, size):
 		return RaspicamVideoSrcBin(pipeline, device, size)
 
 	def _getVideoEncBin(self):

@@ -67,4 +67,4 @@ class UsbVideoSrcBin(V4L2VideoSrcBin):
 
 class RaspicamVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		return 'video/x-raw,format={ I420, YV12, UYVY, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d' % self._size
+		return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
