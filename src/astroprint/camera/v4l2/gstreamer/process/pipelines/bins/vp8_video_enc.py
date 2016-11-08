@@ -6,7 +6,7 @@ import logging
 
 from gi.repository import Gst
 
-from . import VideoEncBinBase
+from .base_video_enc import VideoEncBinBase
 
 class VP8VideoEncBin(VideoEncBinBase):
 	def __init__(self):
@@ -14,4 +14,21 @@ class VP8VideoEncBin(VideoEncBinBase):
 		super(VP8VideoEncBin, self).__init__()
 
 	def _constructEncChain(self):
-		pass
+		self.__encoderElement = Gst.ElementFactory.make('vp8enc', "vp8_encoder")
+		self.__encoderElement.set_property('target-bitrate', 500000)
+		self.__encoderElement.set_property('keyframe-max-dist', 500)
+		#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
+		self.__encoderElement.set_property('deadline', 1)
+
+		self.__rtpElement = Gst.ElementFactory.make('rtpvp8pay', 'vp8_rtp')
+		self.__rtpElement.set_property('pt', 96)
+
+		self._bin.add(self.__encoderElement)
+		self._bin.add(self.__rtpElement)
+
+		self.__encoderElement.link(self.__rtpElement)
+
+		return self.__encoderElement, self.__rtpElement
+
+	def _getUdpPort(self):
+		return 8005

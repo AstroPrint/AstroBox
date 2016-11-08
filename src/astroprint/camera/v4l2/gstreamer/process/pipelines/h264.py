@@ -4,8 +4,6 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 
-from gi.repository import Gst as gst
-
 from .base import GstBasePipeline
 from .bins.v4l2_video_src import UsbVideoSrcBin
 from .bins.h264_video_enc import H264VideoEncBin

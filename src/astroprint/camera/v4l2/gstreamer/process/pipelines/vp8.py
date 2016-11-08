@@ -5,16 +5,15 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 
 from .base import GstBasePipeline
-
-from .bins.v4l2_video_srd import UsbVideoSrcBin
-from .bins.h264_video_end import VP8VideoEncBin
+from .bins.v4l2_video_src import UsbVideoSrcBin
+from .bins.vp8_video_enc import VP8VideoEncBin
 
 class GstVp8Pipeline(GstBasePipeline):
 	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
 		self._logger = logging.getLogger(__name__)
 		super(GstVp8Pipeline, self).__init__(device, size, onFatalError, mainLoop, debugLevel)
 
-	def _getVideoSrcBin(pipeline, self, device, size):
+	def _getVideoSrcBin(self, pipeline, device, size):
 		return UsbVideoSrcBin(pipeline, device, size)
 
 	def _getVideoEncBin(self):

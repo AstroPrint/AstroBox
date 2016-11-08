@@ -33,3 +33,6 @@ class H264VideoEncBin(VideoEncBinBase):
 		self.__encoderCaps.link(self.__rtpElement)
 
 		return self.__encoderElement, self.__rtpElement
+
+	def _getUdpPort(self):
+		return 8004

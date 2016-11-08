@@ -24,7 +24,7 @@ class VideoEncBinBase(EncoderBin):
 
 		self.__udpSinkElement = Gst.ElementFactory.make('udpsink', 'udp_sink_video')
 		self.__udpSinkElement.set_property('host', '127.0.0.1')
-		self.__udpSinkElement.set_property('port', 8004)
+		self.__udpSinkElement.set_property('port', self._getUdpPort())
 
 		#add to pipeline
 		self._bin.add(self.__queueVideoElement)
