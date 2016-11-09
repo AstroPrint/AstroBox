@@ -21,14 +21,13 @@ from astroprint.camera.v4l2 import V4L2Manager
 class MjpegManager(V4L2Manager):
 	name = 'mjpeg'
 
-	def __init__(self, videoDevice):
+	def __init__(self):
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('MPJEG Camera Manager initialized')
-		self._videoDevice = videoDevice
 		self._streamer = None
 		self._localClients = []
 
-		super(MjpegManager, self).__init__(videoDevice)
+		super(MjpegManager, self).__init__()
 
 	@property
 	def _desiredSettings(self):
@@ -64,7 +63,7 @@ class MjpegManager(V4L2Manager):
 
 			else:
 				try:
-					self._streamer = MJPEGStreamer(self._videoDevice, self._settings['size'], self._settings['framerate'], self._settings['format'])
+					self._streamer = MJPEGStreamer(self.number_of_video_device, self._settings['size'], self._settings['framerate'], self._settings['format'])
 
 					if self._streamer:
 						self.supported_formats = self.cameraInfo['supportedResolutions']
@@ -190,6 +189,7 @@ class MJPEGStreamer(object):
 		self._videoRunning = False
 		self._process = None
 		self._streaming = False
+		self._needsExposure = True
 
 		self._infoArea = cv2.imread(os.path.join(app.static_folder, 'img', 'camera-info-overlay.jpg'), cv2.cv.CV_LOAD_IMAGE_COLOR)
 		self._infoAreaShape = self._infoArea.shape
@@ -246,6 +246,7 @@ class MJPEGStreamer(object):
 			self._process = None
 
 		self._streaming = False
+		self._needsExposure = True
 
 	def stopVideo(self):
 		self.stop()
@@ -260,7 +261,9 @@ class MJPEGStreamer(object):
 			self.startStreamer()
 
 		try:
-			time.sleep(1.8 if self._format == 'x-raw' else 0.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
+			if self._needsExposure and not self.isVideoStreaming():
+				time.sleep(1.8 if self._format == 'x-raw' else 0.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
+				self._needsExposure = False
 
 			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()

@@ -16,14 +16,12 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			number_of_video_device = 0 #/dev/video``0´´
-
 			manager = settings().get(['camera', 'manager'])
 
 			if manager == 'gstreamer':
 				try:
 					from astroprint.camera.v4l2.gstreamer import GStreamerManager
-					_instance = GStreamerManager(number_of_video_device)
+					_instance = GStreamerManager()
 
 				except ImportError, ValueError:
 					#another manager was selected or the gstreamer library is not present on this
@@ -39,7 +37,7 @@ def cameraManager():
 
 			if _instance is None:
 				from astroprint.camera.v4l2.mjpeg import MjpegManager
-				_instance = MjpegManager(number_of_video_device)
+				_instance = MjpegManager()
 
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager

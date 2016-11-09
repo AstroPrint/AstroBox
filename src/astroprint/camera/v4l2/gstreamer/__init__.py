@@ -20,14 +20,13 @@ from astroprint.webrtc import webRtcManager
 class GStreamerManager(V4L2Manager):
 	name = 'gstreamer'
 
-	def __init__(self, videoDevice):
+	def __init__(self):
 		self._apPipeline = None
 		self.pipeline = None
 		self.cameraInfo = None
-		self.number_of_video_device = videoDevice
 		self._logger = logging.getLogger(__name__)
 
-		super(GStreamerManager, self).__init__(videoDevice)
+		super(GStreamerManager, self).__init__()
 
 	def _doOpenCamera(self):
 		if self._apPipeline is None:
