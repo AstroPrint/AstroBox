@@ -177,9 +177,7 @@ class CameraManager(object):
 		self.videoFramerate = s.get(["camera", "framerate"])
 
 		self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
-
-		if self.isCameraConnected():
-			self.reScan()
+		self.reScan()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')

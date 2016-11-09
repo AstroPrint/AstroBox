@@ -51,6 +51,12 @@ class GStreamerManager(V4L2Manager):
 		webRtcManager().stopJanus()
 
 	def reScan(self):
+		if super(GStreamerManager, self).reScan():
+			self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraInfo['name'], self._settings['encoding'] , self._settings['size'], self._settings['source']))
+			return True
+
+		return False
+		'''
 		try:
 			isCameraConnected = self.isCameraConnected()
 			tryingTimes = 1
@@ -79,6 +85,7 @@ class GStreamerManager(V4L2Manager):
 			self._apPipeline = None
 
 		return isCameraConnected
+		'''
 
 	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():

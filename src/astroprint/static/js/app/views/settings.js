@@ -453,23 +453,23 @@ var CameraVideoStreamView = SettingsPage.extend({
   refreshPluggedCamera: function(){
 
     var previousCameraName = this.cameraName;
-
-    this.$('#buttonRefresh').addClass('loading');
+    var button = this.$('#buttonRefresh').addClass('loading');
 
     $.post(API_BASEURL + 'camera/refresh-plugged')
-    .done(_.bind(function(response){
+      .done(_.bind(function(response){
 
-      if(response.isCameraPlugged){
-        this.settings = null;
-        this.cameraName = '';
-        this.show(previousCameraName);
-      } else {
-        this.cameraName = false;
-        this.render();
-      }
-
-      this.$('#buttonRefresh').removeClass('loading');
-    },this));
+        if(response.isCameraPlugged){
+          this.settings = null;
+          this.cameraName = '';
+          this.show(previousCameraName);
+        } else {
+          this.cameraName = false;
+          this.render();
+        }
+      },this))
+      .always(function(){
+        button.removeClass('loading');
+      })
   },
   render: function() {
     this.$el.html(this.template({

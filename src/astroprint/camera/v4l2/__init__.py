@@ -11,15 +11,6 @@ from astroprint.camera import CameraManager
 from octoprint.settings import settings
 
 class V4L2Manager(CameraManager):
-	def __init__(self):
-		if not self.findDevice():
-			self._logger.info('No camera detected')
-			self.supported_formats = None
-			self.cameraName = None
-			self.cameraInfo = None
-
-		super(V4L2Manager, self).__init__(self.cameraInfo)
-
 	def findDevice(self):
 		for d in [0, 1, 2]:
 			self.number_of_video_device = d
@@ -29,6 +20,7 @@ class V4L2Manager(CameraManager):
 				self.setSafeSettings()
 				return True
 
+		self._logger.info('No camera detected')
 		return False
 
 	def setSafeSettings(self):
@@ -304,10 +296,15 @@ class V4L2Manager(CameraManager):
 		return self.supported_formats is not None
 
 	def reScan(self):
-		if not self.findDevice():
-			return self.open_camera()
+		if self.findDevice():
+			return True
 
-		return False
+		else:
+			self.supported_formats = None
+			self.cameraName = None
+			self.cameraInfo = None
+
+			return False
 
 	def isResolutionSupported(self, resolution, format=None):
 
