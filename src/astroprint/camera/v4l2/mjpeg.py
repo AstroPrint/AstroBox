@@ -88,19 +88,13 @@ class MjpegManager(V4L2Manager):
 		if self._streamer:
 			self.close_camera()
 
-		if self.isCameraConnected():
-			self.supported_formats = self._getSupportedResolutions()
+		if super(MjpegManager, self).reScan():
+			self.cameraName = self.getCameraName()
+			self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
 
-			if self.supported_formats is None:
-				return False
-			else:
-				self.cameraName = self.getCameraName()
-				self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
+			self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraName, self._settings['encoding'], self._settings['size'], self._settings['source']))
 
-				self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraName, self._settings['encoding'], self._settings['size'], self._settings['source']))
-
-				return True
-
+			return True
 		else:
 			return False
 
