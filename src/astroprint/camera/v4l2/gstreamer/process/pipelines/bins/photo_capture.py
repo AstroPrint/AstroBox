@@ -115,7 +115,6 @@ class PhotoReqsProcessor(Thread):
 		time.sleep(0.1) #Wait for the pipeline to stabilize with the new values
 
 		sample = None
-		photoBuffer = None
 
 		if not self._alreadyExposed:
 			time.sleep(1.5) #give it time to focus and get light. Only on first photo in the sequence
@@ -129,10 +128,18 @@ class PhotoReqsProcessor(Thread):
 			self._logger.error( "AppSink is not playing. Currently: \033[93m%s\033[0m" % state.value_name.replace('GST_STATE_','') )
 
 		if sample:
-			photoBuffer = sample.get_buffer().map(Gst.MapFlags.READ)[1].data
-			self._logger.debug('Photo Received. Size (%d)' % (len(photoBuffer) if photoBuffer is not None else 0))
+			sampleBuffer = sample.get_buffer()
+			success, mapInfo = sampleBuffer.map(Gst.MapFlags.READ)
 
-		reqCallback(photoBuffer)
+			if success:
+				self._logger.debug('Photo Received. Size (%d)' % mapInfo.size)
+				reqCallback(mapInfo.data)
+				sampleBuffer.unmap(mapInfo)
+				return
+			else:
+				self._logger.error('Unable to read photo buffer')
+
+		reqCallback(None)
 
 	def stop(self):
 		self._stopped = True
