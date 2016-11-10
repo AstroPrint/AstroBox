@@ -19,13 +19,17 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, procP
 	interface = None
 
 	def onFatalError(details):
-		interface.sendResponse(0, {'error': 'fatal_error', 'details': details})
+		if interface:
+			interface.sendResponse(0, {'error': 'fatal_error', 'details': details})
+		else:
+			#There was a fatal error during the creation of the pipeline, interface has not even been created
+			logger.error('Fatal error creating pipeline: %s' % details)
+			onListeningEvent.set()
+			sys.exit(-1)
 
 	try:
 		pipeline = pipelineFactory(device, size, source, encoding, onFatalError, mainLoop, debugLevel)
 	except InvalidGStreamerPipelineException as e:
-		import sys
-
 		logger.error(e)
 		onListeningEvent.set()
 		sys.exit(-1)
@@ -84,8 +88,14 @@ class processInterface(Thread):
 		self._stopped = False
 
 	def run(self):
+		if not self._pipeline.setToPlayAndWait():
+			self._pipeline.tearDown()
+			self._pipeline = None
+			return
+
 		self._onListeningEvent.set() # Inform the client that we're ready
 		self._onListeningEvent = None # unref
+
 		while not self._stopped:
 			self._logger.debug('waiting for commands...')
 			command = self._processConn.recv()

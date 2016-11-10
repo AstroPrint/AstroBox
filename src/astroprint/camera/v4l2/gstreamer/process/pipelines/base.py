@@ -68,22 +68,11 @@ class GstBasePipeline(object):
 	def __fatalErrorManager(self, details):
 		self._onFatalError(details)
 
-	def _attachBin(self, bin, doneCallback= None):
-		if bin.attach(self._videoSrcBin.requestSrcTeePad()):
-			self._setToPlayAndWait(doneCallback)
-
-		elif doneCallback:
-				doneCallback(False)
+	def _attachBin(self, bin):
+		return bin.attach(self._videoSrcBin.requestSrcTeePad())
 
 	def _detachBin(self, bin, doneCallback= None):
-		def onDetached(success):
-			if success:
-				self._setToPlayAndWait(doneCallback)
-
-			elif doneCallback:
-				doneCallback(False)
-
-		bin.detach(onDetached)
+		bin.detach(doneCallback)
 
 	def _stopPipeline(self, doneCallback= None):
 		def onChangeDone():
@@ -95,7 +84,7 @@ class GstBasePipeline(object):
 		self._pipeline.set_state(Gst.State.NULL)
 		onChangeDone()
 
-	def _setToPlayAndWait(self, onPlaying= None):
+	def setToPlayAndWait(self):
 		if self._currentPipelineState != Gst.State.PLAYING:
 			self._pipeline.set_state(Gst.State.PLAYING)
 
@@ -111,8 +100,7 @@ class GstBasePipeline(object):
 		else:
 			result = True
 
-		if onPlaying:
-			onPlaying(result)
+		return result
 
 	def _onNoMorePhotos(self):
 		self._logger.debug('No more photos in Photo Queue')
@@ -151,16 +139,10 @@ class GstBasePipeline(object):
 
 	def takePhoto(self, doneCallback, text=None):
 		if not self._photoCaptureBin.isLinked:
-			def onAttachDone(success):
-				if success:
-					self._photoCaptureBin.addPhotoReq(text, doneCallback )
-				else:
-					doneCallback(False)
-
-				self._photoBinAttachDetachLock.release()
-
-			self._photoBinAttachDetachLock.acquire()
-			self._attachBin(self._photoCaptureBin, onAttachDone)
+			if self._attachBin(self._photoCaptureBin):
+				self._photoCaptureBin.addPhotoReq(text, doneCallback )
+			else:
+				doneCallback(False)
 
 		else:
 			self._photoCaptureBin.addPhotoReq(text, doneCallback)
@@ -172,16 +154,15 @@ class GstBasePipeline(object):
 
 			return
 
-		def onAttached(success):
-			if success:
-				if not self._videoEncBin.isPlaying:
-					self._logger.error('Video Encoding Bin is not playing.')
-					success = False
+		result = False
+		if self._attachBin(self._videoEncBin):
+			if self._videoEncBin.isPlaying:
+				result = True
+			else:
+				self._logger.error('Video Encoding Bin is not playing.')
 
-			if doneCallback:
-				doneCallback(success)
-
-		self._attachBin(self._videoEncBin, onAttached)
+		if doneCallback:
+			doneCallback(result)
 
 	def stopVideo(self, doneCallback= None):
 		if not self.isVideoStreaming():

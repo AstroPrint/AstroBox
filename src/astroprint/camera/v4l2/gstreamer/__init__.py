@@ -5,7 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import time
 
-from threading import Event
+from threading import Event, Condition
 
 from octoprint.events import eventManager, Events
 
@@ -24,19 +24,22 @@ class GStreamerManager(V4L2Manager):
 		self._apPipeline = None
 		self.pipeline = None
 		self.cameraInfo = None
+		self._openCameraCondition = Condition()
+
 		self._logger = logging.getLogger(__name__)
 
 		super(GStreamerManager, self).__init__()
 
 	def _doOpenCamera(self):
-		if self._apPipeline is None:
-			try:
-				self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineClosed)
-			except Exception as e:
-				self._logger.error('Failed to open camera: %s' % e, exc_info= True)
-				return False
+		with self._openCameraCondition:
+			if self._apPipeline is None:
+				try:
+					self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineClosed)
+				except Exception as e:
+					self._logger.error('Failed to open camera: %s' % e, exc_info= True)
+					return False
 
-		return True
+			return True
 
 	def _onApPipelineClosed(self):
 		self.freeMemory()

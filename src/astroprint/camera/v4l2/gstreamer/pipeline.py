@@ -164,18 +164,30 @@ class AstroPrintPipeline(object):
 			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
 
 	def stop(self):
-		if self._process and self._process.is_alive():
-			self._responseListener.stop()
-			self._sendReqToProcess({'action': 'shutdown'})
-			self._process.join()
-			self._process = None
+		self._responseListener.stop()
+		self._sendReqToProcess({'action': 'shutdown'})
+		self._process.join(2.0) #Give it two seconds to exit and kill otherwise
+		if self._process.exitcode is None:
+			self._logger.warn('Process did not shutdown properly. Terminating...')
+			self._process.terminate()
+			self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
+			if self._process.exitcode is None:
+				import os
+				import signal
 
-			#It's possible that stop is called as a result of a response which is
-			#executed in the self._responseListener Thread. You can't join your own thread!
-			if current_thread() != self._responseListener:
-				self._responseListener.join()
+				self._logger.warn('Process did not terminate properly. Sending KILL signal...')
+				os.kill(self._process.pid, signal.SIGKILL)
+				self._process.join()
 
-			self._responseListener = None
+		self._logger.debug('Process terminated')
+		self._process = None
+
+		#It's possible that stop is called as a result of a response which is
+		#executed in the self._responseListener Thread. You can't join your own thread!
+		if current_thread() != self._responseListener:
+			self._responseListener.join()
+
+		self._responseListener = None
 
 #
 # Thread to listen for incoming responses from the process
