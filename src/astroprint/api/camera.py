@@ -74,7 +74,7 @@ def update_timelapse():
 @restricted_access
 def init_janus():
 	#Start session in Janus
-	if webRtcManager().ensureJanusRunning():
+	if webRtcManager().startJanus():
 		return jsonify(SUCCESS)
 
 	abort(500)
