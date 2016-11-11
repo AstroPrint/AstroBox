@@ -188,7 +188,12 @@ class CameraManager(object):
 		self.videoSize = s.get(["camera", "size"])
 		self.videoFramerate = s.get(["camera", "framerate"])
 
-		self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+		inactivitySecs = s.get(["camera", "inactivitySecs"])
+		if inactivitySecs > 0:
+			self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+		else:
+			self._cameraInactivity = None
+
 		self.reScan()
 
 	def shutdown(self):
@@ -390,29 +395,37 @@ class CameraManager(object):
 
 	def open_camera(self):
 		if self._doOpenCamera():
-			self._cameraInactivity.start()
+			if self._cameraInactivity:
+				self._cameraInactivity.start()
 			return True
+
 		else:
 			self._logger.error("Unable to open the camera")
 			return False
 
 	def close_camera(self):
 		if self._doCloseCamera():
-			self._cameraInactivity.stop()
+			if self._cameraInactivity:
+				self._cameraInactivity.stop()
 			return True
+
 		else:
 			self._logger.error("Unable to close the camera")
 			return False
 
 	def start_video_stream(self, doneCallback= None):
-		self._cameraInactivity.lastActivity = time.time()
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
+
 		self._doStartVideoStream(doneCallback)
 
 	def stop_video_stream(self, doneCallback= None):
 		self._doStopVideoStream(doneCallback)
 
 	def get_pic_async(self, done, text=None):
-		self._cameraInactivity.lastActivity = time.time()
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
+
 		self._doGetPic(done, text)
 
 	# Implement these
