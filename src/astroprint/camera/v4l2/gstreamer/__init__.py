@@ -30,74 +30,56 @@ class GStreamerManager(V4L2Manager):
 
 		super(GStreamerManager, self).__init__()
 
+	@property
+	def _gstreamerProcessRunning(self):
+		return self._apPipeline and self._apPipeline.processRunning
+
 	def _doOpenCamera(self):
 		with self._openCameraCondition:
 			if self._apPipeline is None:
 				try:
-					self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineClosed)
+					self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineFataError)
 				except Exception as e:
 					self._logger.error('Failed to open camera: %s' % e, exc_info= True)
 					return False
+
+			self._apPipeline.startProcess()
 
 			return True
 
 	def _doCloseCamera(self):
 		if self._apPipeline:
-			self._apPipeline.stop()
-			self._apPipeline = None
+			self._apPipeline.stopProcess()
 
 		return True
 
-	def _onApPipelineClosed(self):
-		self.freeMemory()
+	def _onApPipelineFataError(self):
+		self._haltCamera()
 
-	def freeMemory(self):
+	def _freeApPipeline(self):
+		if self._apPipeline:
+			self._apPipeline.stop()
+			self._apPipeline = None
+
+	def _haltCamera(self):
 		self.close_camera()
 		webRtcManager().stopJanus()
 
 	def reScan(self):
 		if super(GStreamerManager, self).reScan():
 			self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraInfo['name'], self._settings['encoding'] , self._settings['size'], self._settings['source']))
+			self._freeApPipeline()
+
 			return True
 
 		return False
-		'''
-		try:
-			isCameraConnected = self.isCameraConnected()
-			tryingTimes = 1
-
-			while not isCameraConnected and tryingTimes < 4:#retrying 3 times for searching camera
-				self._logger.info('Camera not found... retrying (%s)' % tryingTimes)
-				isCameraConnected = self.isCameraConnected()
-				time.sleep(1)
-				tryingTimes +=1
-
-			if self._apPipeline:
-				self.freeMemory()
-
-			#if at first time Astrobox were turned on without camera, it is
-			#necessary to refresh the name
-			#print self.cameraInfo
-			#if not self.cameraInfo:#starting Astrobox without camera and rescan for adding one of them
-			#with this line, if you starts Astrobox without camera, it will try to rescan for camera one time
-			#plus, but it is necessary for rescaning a camera after that
-			if isCameraConnected:
-				self.cameraInfo = { "name": self.getCameraName(), "supportedResolutions": self._getSupportedResolutions() }
-				self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraInfo['name'], self._settings['encoding'] , self._settings['size'], self._settings['source']))
-
-		except Exception, error:
-			self._logger.error(error, exc_info=True)
-			self._apPipeline = None
-
-		return isCameraConnected
-		'''
 
 	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
 
-		if not self._apPipeline:
+		if not self._gstreamerProcessRunning:
 			if not self.open_camera():
 				if doneCallback:
 					doneCallback(False)
@@ -106,7 +88,7 @@ class GStreamerManager(V4L2Manager):
 		self._apPipeline.startVideo(doneCallback)
 
 	def _doStopVideoStream(self, doneCallback= None):
-		if not self._apPipeline or not self.isVideoStreaming():
+		if not self._gstreamerProcessRunning or not self.isVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
 
@@ -128,12 +110,12 @@ class GStreamerManager(V4L2Manager):
 		})
 		##
 
-		self.freeMemory()
+		self._haltCamera()
 		self.reScan()
 
 	def _doGetPic(self, done, text=None):
 		if self.isCameraConnected():
-			if not self._apPipeline:
+			if not self._gstreamerProcessRunning:
 				if not self.open_camera():
 					done(None)
 					return
@@ -148,11 +130,12 @@ class GStreamerManager(V4L2Manager):
 
 	def shutdown(self):
 		self._logger.info('Shutting Down GstreamerManager')
-		self.freeMemory()
+		self._freeApPipeline()
+		self._haltCamera()
 		webRtcManager().shutdown()
 
 	def isVideoStreaming(self):
-		if self._apPipeline:
+		if self._gstreamerProcessRunning:
 			waitForDone = Event()
 			respCont = [None]
 
@@ -167,8 +150,6 @@ class GStreamerManager(V4L2Manager):
 
 		else:
 			return False
-
-		#return self._apPipeline and self._apPipeline.isVideoPlaying()
 
 	def startLocalVideoSession(self, sessionId):
 		return webRtcManager().startLocalSession(sessionId)

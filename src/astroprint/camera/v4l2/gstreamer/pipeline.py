@@ -33,12 +33,20 @@ class AstroPrintPipeline(object):
 		self._onFatalError = onFatalError
 		self._responseListener = ProcessResponseListener(self._parentConn, self._onProcessResponse)
 		self._responseListener.start()
-		self._startProcess()
+		self._process = None
 
 	def __del__(self):
 		self._logger.debug('Pipeline Process Controller removed')
 
-	def _startProcess(self):
+	def startProcess(self):
+		if self._process:
+			# This should almost never happen (but it does)
+			# Make sure the previous process is killed before a new one is started
+			self._logger.warn("A previous process was still running, killing it")
+			os.kill(self._process.pid, signal.SIGKILL)
+			self._process.join()
+			self._process = None
+
 		onListeningEvent = Event()
 
 		self._process = Process(
@@ -56,6 +64,68 @@ class AstroPrintPipeline(object):
 		self._process.start()
 		onListeningEvent.wait()
 		self._logger.debug('Pipeline Process Started.')
+
+	def stopProcess(self):
+		if self._process:
+			self._sendReqToProcess({'action': 'shutdown'})
+			self._process.join(2.0) #Give it two seconds to exit and kill otherwise
+			if self._process.exitcode is None:
+				self._logger.warn('Process did not shutdown properly. Terminating...')
+				self._process.terminate()
+				self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
+				if self._process.exitcode is None:
+					self._logger.warn('Process did not terminate properly. Sending KILL signal...')
+					os.kill(self._process.pid, signal.SIGKILL)
+					self._process.join()
+
+			self._logger.debug('Process terminated')
+			self._process = None
+
+	@property
+	def processRunning(self):
+		return self._process and self._process.is_alive()
+
+	def stop(self):
+		self._responseListener.stop()
+		self.stopProcess()
+
+		#It's possible that stop is called as a result of a response which is
+		#executed in the self._responseListener Thread. You can't join your own thread!
+		if current_thread() != self._responseListener:
+			self._responseListener.join()
+
+		self._responseListener = None
+
+	def startVideo(self, doneCallback = None):
+		self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
+
+	def stopVideo(self, doneCallback = None):
+		self._sendReqToProcess({'action': 'stopVideo'}, doneCallback)
+
+	def isVideoPlaying(self, doneCallback):
+		self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
+
+	def takePhoto(self, doneCallback, text=None):
+		def posprocesing(resp):
+			if resp:
+				if 'error' in resp:
+					self._logger.error('Error during photo capture: %s' % resp['error'])
+					doneCallback(None)
+				else:
+					from base64 import b64decode
+					try:
+						doneCallback(b64decode(resp))
+					except TypeError as e:
+						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+						doneCallback(None)
+
+			else:
+				doneCallback(None)
+
+		if text is not None:
+			self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
+		else:
+			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
 
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
@@ -111,7 +181,7 @@ class AstroPrintPipeline(object):
 			self._logger.error("There's no pending request for response %d" % id)
 
 	def _sendReqToProcess(self, data, callback= None):
-		if self._process and self._process.is_alive():
+		if self.processRunning:
 			with self._sendCondition:
 				self._lastReqId += 1
 				id = self._lastReqId
@@ -121,17 +191,11 @@ class AstroPrintPipeline(object):
 
 		else:
 			triesLeft = 3
-			# This should almost never happen (but it does)
-			# Make sure the previous process is killed before a new one is started
-			if self._process and self._process.exitcode is None:
-				os.kill(self._process.pid, signal.SIGKILL)
-				self._process.join()
-				self._process = None
 
 			while triesLeft > 0:
-				self._logger.debug('Process died. Trying to restart (%d tries left)' % triesLeft)
-				self._startProcess()
-				if self._process and self._process.is_alive():
+				self._logger.debug('Process not running. Restarting (%d tries left)' % triesLeft)
+				self.startProcess()
+				if self.processRunning:
 					self._sendReqToProcess(data, callback)
 					return
 
@@ -140,60 +204,8 @@ class AstroPrintPipeline(object):
 
 			if triesLeft == 0:
 				self._logger.error('Unable to re-start pipeline process.')
-
-	def startVideo(self, doneCallback = None):
-		self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
-
-	def stopVideo(self, doneCallback = None):
-		self._sendReqToProcess({'action': 'stopVideo'}, doneCallback)
-
-	def isVideoPlaying(self, doneCallback):
-		self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
-
-	def takePhoto(self, doneCallback, text=None):
-		def posprocesing(resp):
-			if resp:
-				if 'error' in resp:
-					self._logger.error('Error during photo capture: %s' % resp['error'])
-					doneCallback(None)
-				else:
-					from base64 import b64decode
-					try:
-						doneCallback(b64decode(resp))
-					except TypeError as e:
-						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
-						doneCallback(None)
-
-			else:
-				doneCallback(None)
-
-		if text is not None:
-			self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
-		else:
-			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
-
-	def stop(self):
-		self._responseListener.stop()
-		self._sendReqToProcess({'action': 'shutdown'})
-		self._process.join(2.0) #Give it two seconds to exit and kill otherwise
-		if self._process.exitcode is None:
-			self._logger.warn('Process did not shutdown properly. Terminating...')
-			self._process.terminate()
-			self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
-			if self._process.exitcode is None:
-				self._logger.warn('Process did not terminate properly. Sending KILL signal...')
-				os.kill(self._process.pid, signal.SIGKILL)
-				self._process.join()
-
-		self._logger.debug('Process terminated')
-		self._process = None
-
-		#It's possible that stop is called as a result of a response which is
-		#executed in the self._responseListener Thread. You can't join your own thread!
-		if current_thread() != self._responseListener:
-			self._responseListener.join()
-
-		self._responseListener = None
+				if callback:
+					callback({'error': 'no_process', 'details': 'Unable to re-start process'})
 
 #
 # Thread to listen for incoming responses from the process
