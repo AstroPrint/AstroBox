@@ -12,7 +12,7 @@ import signal
 from multiprocessing import Process, Event, Pipe
 from threading import Thread, Condition, current_thread
 
-from blinker import signal
+from blinker import signal as blinkerSignal
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -139,7 +139,7 @@ class AstroPrintPipeline(object):
 				message = 'Fatal error occurred in video streaming (%s)' % data['details'] if 'details' in data else 'unkonwn'
 
 				#signaling for remote peers
-				manage_fatal_error_webrtc = signal('manage_fatal_error_webrtc')
+				manage_fatal_error_webrtc = blinkerSignal('manage_fatal_error_webrtc')
 				manage_fatal_error_webrtc.send('cameraError', message= message)
 
 				#event for local peers
