@@ -270,23 +270,19 @@ class WebRtc(object):
 				if self._JanusProcess is not None:
 					#it's possible that a new client came it while stopping the camera feed
 					#in that case we should not try to stop it
-					if len(self._connectedPeers) == 0:
-						if self._JanusProcess.returncode is None:
-							self._JanusProcess.terminate()
-							self._JanusProcess.wait()
-							self._logger.debug('Janus Stopped')
+					if self._JanusProcess.returncode is None:
+						self._JanusProcess.terminate()
+						self._JanusProcess.wait()
+						self._logger.debug('Janus Stopped')
 
-						self._JanusProcess = None
-						self.sendEventToPeers('stopConnection')
-						self._connectedPeers = {}
+					self._JanusProcess = None
+					self.sendEventToPeers('stopConnection')
+					self._connectedPeers = {}
 
-						#STOP TIMER FOR LOST PEERS
-						self.peersDeadDetacher.cancel()
+					#STOP TIMER FOR LOST PEERS
+					self.peersDeadDetacher.cancel()
 
-						return True
-
-					else:
-						self._logger.debug('Not stopping. One new peer came in')
+					return True
 
 			except Exception as e:
 				self._logger.error("Error stopping Janus. Error: %s" % e)
