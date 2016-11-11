@@ -83,6 +83,7 @@ class MjpegManager(V4L2Manager):
 			self._streamer = None
 
 		self._localClients = []
+		return True
 
 	def reScan(self):
 		if self._streamer:

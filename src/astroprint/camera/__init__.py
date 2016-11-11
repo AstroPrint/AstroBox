@@ -132,7 +132,19 @@ class CameraInactivity(object):
 				secsSinceLastActivity = time.time() - self.lastActivity
 				self._logger.debug('%f seconds since last activity' % secsSinceLastActivity)
 				if secsSinceLastActivity >= self._inactivitySecs:
-					self._onInactive()
+					# it's possible that onInactive detects that video is playing. In that case
+					# we reset the time again so we can check later, as the camera was active on this check.
+					# If not, onInactive will call close_camera which will stop this thread and not
+					# wait anymore
+					waitForSecs = self._inactivitySecs
+					self.lastActivity = time.time()
+
+					try:
+						self._onInactive()
+
+					except Exception as e:
+						self._logger.error('Error while processing inactivity event: %s' % e, exc_info=True)
+
 				else:
 					waitForSecs = self._inactivitySecs - secsSinceLastActivity
 
@@ -373,20 +385,24 @@ class CameraManager(object):
 			return None
 
 	def _onInactive(self):
-		if self.isVideoStreaming():
-			#It's still being used so we just update and continue
-			self._cameraInactivity.lastActivity = time.time()
-
-		else:
+		if not self.isVideoStreaming():
 			self.close_camera()
 
 	def open_camera(self):
-		self._cameraInactivity.start()
-		return self._doOpenCamera()
+		if self._doOpenCamera():
+			self._cameraInactivity.start()
+			return True
+		else:
+			self._logger.error("Unable to open the camera")
+			return False
 
 	def close_camera(self):
-		self._cameraInactivity.stop()
-		self._doCloseCamera()
+		if self._doCloseCamera():
+			self._cameraInactivity.stop()
+			return True
+		else:
+			self._logger.error("Unable to close the camera")
+			return False
 
 	def start_video_stream(self, doneCallback= None):
 		self._cameraInactivity.lastActivity = time.time()

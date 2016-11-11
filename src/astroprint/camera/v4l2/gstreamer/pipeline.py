@@ -6,6 +6,8 @@ import logging
 import json
 import time
 import sys
+import os
+import signal
 
 from multiprocessing import Process, Event, Pipe
 from threading import Thread, Condition, current_thread
@@ -119,6 +121,13 @@ class AstroPrintPipeline(object):
 
 		else:
 			triesLeft = 3
+			# This should almost never happen (but it does)
+			# Make sure the previous process is killed before a new one is started
+			if self._process and self._process.exitcode is None:
+				os.kill(self._process.pid, signal.SIGKILL)
+				self._process.join()
+				self._process = None
+
 			while triesLeft > 0:
 				self._logger.debug('Process died. Trying to restart (%d tries left)' % triesLeft)
 				self._startProcess()
@@ -130,7 +139,7 @@ class AstroPrintPipeline(object):
 					triesLeft -= 1
 
 			if triesLeft == 0:
-				self._logger.error('Unable to start pipeline process.')
+				self._logger.error('Unable to re-start pipeline process.')
 
 	def startVideo(self, doneCallback = None):
 		self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
@@ -172,9 +181,6 @@ class AstroPrintPipeline(object):
 			self._process.terminate()
 			self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
 			if self._process.exitcode is None:
-				import os
-				import signal
-
 				self._logger.warn('Process did not terminate properly. Sending KILL signal...')
 				os.kill(self._process.pid, signal.SIGKILL)
 				self._process.join()

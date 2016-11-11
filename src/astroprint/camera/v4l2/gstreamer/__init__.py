@@ -41,13 +41,15 @@ class GStreamerManager(V4L2Manager):
 
 			return True
 
-	def _onApPipelineClosed(self):
-		self.freeMemory()
-
 	def _doCloseCamera(self):
 		if self._apPipeline:
 			self._apPipeline.stop()
 			self._apPipeline = None
+
+		return True
+
+	def _onApPipelineClosed(self):
+		self.freeMemory()
 
 	def freeMemory(self):
 		self.close_camera()
