@@ -43,8 +43,14 @@ class AstroPrintPipeline(object):
 			# This should almost never happen (but it does)
 			# Make sure the previous process is killed before a new one is started
 			self._logger.warn("A previous process was still running, killing it")
-			os.kill(self._process.pid, signal.SIGKILL)
-			self._process.join()
+			try:
+				os.kill(self._process.pid, signal.SIGKILL)
+				self._process.join()
+			except OSError as e:
+				# error 3: means the pid is not valid, so the process has been killed
+				if e.errno != 3:
+					raise e
+
 			self._process = None
 
 		onListeningEvent = Event()
@@ -75,8 +81,13 @@ class AstroPrintPipeline(object):
 				self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
 				if self._process.exitcode is None:
 					self._logger.warn('Process did not terminate properly. Sending KILL signal...')
-					os.kill(self._process.pid, signal.SIGKILL)
-					self._process.join()
+					try:
+						os.kill(self._process.pid, signal.SIGKILL)
+						self._process.join()
+					except OSError as e:
+						# error 3: means the pid is not valid, so the process has been killed
+						if e.errno != 3:
+							raise e
 
 			self._logger.debug('Process terminated')
 			self._process = None

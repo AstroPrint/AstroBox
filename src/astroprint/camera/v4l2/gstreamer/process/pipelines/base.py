@@ -125,8 +125,13 @@ class GstBasePipeline(object):
 
 			self._busListener.stop()
 
-			self._pipeline.set_state(Gst.State.NULL)
-			Gst.deinit()
+			stateChange, state, pending = self._pipeline.get_state(1)
+			# if it's still trying to change to another state, the following two calls will
+			# block so just kill all of it
+			if stateChange != Gst.StateChangeReturn.ASYNC:
+				self._pipeline.set_state(Gst.State.NULL)
+				Gst.deinit()
+
 			self._videoSrcBin = None
 			self._videoEncBin = None
 			self._photoCaptureBin = None
@@ -136,6 +141,9 @@ class GstBasePipeline(object):
 
 			if self._mainLop.is_running():
 				self._mainLop.quit()
+
+			self._busListener.join()
+			self._logger.debug("Tearing down completed")
 
 	def takePhoto(self, doneCallback, text=None):
 		if not self._photoCaptureBin.isLinked:
