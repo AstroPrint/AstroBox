@@ -18,7 +18,6 @@ def isCameraSupportedByAstrobox():
 
 	return jsonify({"isCameraSupported": cm.settingsStructure() is not None})
 
-
 @api.route("/camera/refresh-plugged", methods=["POST"])
 @restricted_access
 def refreshPluggedCamera():

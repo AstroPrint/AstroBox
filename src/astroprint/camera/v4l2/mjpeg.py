@@ -177,6 +177,7 @@ class MJPEGStreamer(object):
 	_httpPort = 8085
 
 	def __init__(self, videoDevice, size, fps, format):
+		self._logger = logging.getLogger(__name__)
 		self._device = '/dev/video%d' % videoDevice
 		self._size = size
 		self._fps = fps
@@ -256,7 +257,7 @@ class MJPEGStreamer(object):
 		self._needsExposure = True
 
 	def stopVideo(self):
-		self.stop()
+		self._streaming = False
 
 	def isVideoStreaming(self):
 		return self._streaming
@@ -265,18 +266,21 @@ class MJPEGStreamer(object):
 		image = None
 
 		if not self._process:
-			self.startStreamer()
+			if not self.startStreamer():
+				self._logger.error('Unable to start MJPEG Streamer')
+				doneCb(None)
+				return
 
 		try:
 			if self._needsExposure and not self.isVideoStreaming():
-				time.sleep(1.8 if self._format == 'x-raw' else 0.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
+				time.sleep(1.8) # we need to give the camera some time to stabilize the image. 1.8 secs has been tested to work in low end cameras
 				self._needsExposure = False
 
 			response = urllib2.urlopen('http://127.0.0.1:%d?action=snapshot' % self._httpPort)
 			image = response.read()
 
-		except urllib2.URLError:
-			pass
+		except urllib2.URLError as e:
+			self._logger.error(e)
 
 		if image and text:
 			decodedImage = cv2.imdecode(np.fromstring(image, np.uint8), cv2.CV_LOAD_IMAGE_COLOR)
