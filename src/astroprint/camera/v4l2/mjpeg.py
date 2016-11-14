@@ -236,7 +236,19 @@ class MJPEGStreamer(object):
 		if self._process:
 			if self._process.returncode is None:
 				self._process.terminate()
-				self._process.wait()
+				tries = 4
+				while self._process.returncode is None:
+					if tries > 0:
+						tries -= 1
+						time.sleep(0.5)
+						self._process.poll()
+					else:
+						break
+
+				if self._process.returncode is None:
+					self._logger.warn('Unable to terminate nicely, killing the process.')
+					self._process.kill()
+					self._process.wait()
 
 			self._process = None
 

@@ -44,7 +44,7 @@ var CameraControlView = Backbone.View.extend({
 									this.render();
 								} else {
 									this.cameraAvailable = false;
-									this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+									this.videoStreamingError = 'Camera error: Unable to read the camera capabilities. Reconnect the camera and try again...';
 									this.render();
 								}
 						},this))
@@ -214,13 +214,18 @@ var CameraControlViewMJPEG = CameraControlView.extend({
 					promise.resolve();
 				},this));
 
-				videoCont.on('error', _.bind(function() {
+				videoCont.on('error', _.bind(function(e) {
 					videoCont.off('error');
-					this.videoStreamingError = 'Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...';
+					this.videoStreamingError = 'Error while playing video';
 					this.render();
 					promise.reject()
 				},this));
-			}, this));
+			}, this))
+      .fail(_.bind(function(xhr){
+        this.videoStreamingError = 'Unable to start video session. (' + xhr.status + ')';
+        this.render();
+        promise.reject()
+      }, this))
 
 		return promise;
 	},
