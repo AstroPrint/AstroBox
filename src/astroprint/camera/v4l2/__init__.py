@@ -11,22 +11,17 @@ from astroprint.camera import CameraManager
 from octoprint.settings import settings
 
 class V4L2Manager(CameraManager):
-	def __init__(self, number_of_video_device):
-		self.number_of_video_device = number_of_video_device
+	def findDevice(self):
+		for d in [0, 1, 2]:
+			self.number_of_video_device = d
 
-		if self.isCameraConnected():
-			#self.supported_formats = self._getSupportedResolutions()
-			#self.cameraName = self.getCameraName()
-			#self.cameraInfo = { "name": self.cameraName, "supportedResolutions": self.supported_formats }
-			self.setSafeSettings()
+			if self.isCameraConnected():
+				self._logger.info("Camera detected on /dev/video%d" % self.number_of_video_device)
+				self.setSafeSettings()
+				return True
 
-		else:
-			self.supported_formats = None
-			self.cameraName = None
-			self.cameraInfo = None
-			self._logger.info('No Camera detected on /dev/video%d' % number_of_video_device);
-
-		super(V4L2Manager, self).__init__(self.cameraInfo)
+		self._logger.info('No camera detected')
+		return False
 
 	def setSafeSettings(self):
 		self.safeRes = None
@@ -275,11 +270,7 @@ class V4L2Manager(CameraManager):
 
 		except Exception:
 			self._logger.info('Camera error: it is not posible to get the camera capabilities', exc_info=True)
-			self._broadcastFataError('Camera error: it is not posible to get the camera capabilities. Please, try to reconnect the camera and try again...')
 			return None
-
-	def _broadcastFataError(self, msg):
-		pass
 
 	@property
 	def _desiredSettings(self):
@@ -291,14 +282,13 @@ class V4L2Manager(CameraManager):
 		try:
 			device = "/dev/video%d" % self.number_of_video_device
 			if os.path.exists(device):
-				#check that we can write to it
-				fd = open(device, 'r')
-				fd.close()
+				#check that we can interact with it
+				open(device, 'r').close()
 				return True
 
 		except IOError as e:
 			if e.errno != errno.ECOMM:
-				self._logger.error('Error in camera detection: %s' % os.strerror(e.errno))
+				self._logger.error('Error in camera detection: %s (%d)' % (os.strerror(e.errno), e.errno))
 
 		return False
 
@@ -306,7 +296,15 @@ class V4L2Manager(CameraManager):
 		return self.supported_formats is not None
 
 	def reScan(self):
-		return self.open_camera()
+		if self.findDevice():
+			return True
+
+		else:
+			self.supported_formats = None
+			self.cameraName = None
+			self.cameraInfo = None
+
+			return False
 
 	def isResolutionSupported(self, resolution, format=None):
 

@@ -90,7 +90,7 @@ class BoxRouterMessageHandler(object):
 
 			except Exception as e:
 				message = 'Error sending [%s] response: %s' % (request, e)
-				self._logger.error( message )
+				self._logger.error( message , exc_info= True)
 				response = {'error': True, 'message': message }
 
 			if response:

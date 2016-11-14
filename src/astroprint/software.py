@@ -19,16 +19,18 @@ import subprocess
 import threading
 import logging
 import time
+import platform
+import re
 
 from tempfile import mkstemp
-from sys import platform
+from sys import platform as platformStr
 
 from flask.ext.login import current_user
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
-if platform != 'darwin':
+if platformStr != 'darwin':
 	import apt.debfile
 	import apt.progress.base
 	import apt_pkg
@@ -162,7 +164,7 @@ class SoftwareUpdater(threading.Thread):
 					self._progressCb("download", round((downloaded_size / content_length), 2))
 
 			self._logger.info('Release downloaded.')
-			if platform == "linux" or platform == "linux2":
+			if platformStr == "linux" or platformStr == "linux2":
 				self._progressCb("download", 1.0 , "Release downloaded. Preparing...")
 				time.sleep(0.5) #give the message a chance to be sent
 
@@ -459,7 +461,7 @@ class SoftwareManager(object):
 		return False
 
 	def restartServer(self):
-		if platform == "linux" or platform == "linux2":
+		if platformStr == "linux" or platformStr == "linux2":
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
 				if a['action'] == 'astrobox-restart':
@@ -547,6 +549,24 @@ class SoftwareManager(object):
 				pass
 
 		return True
+
+	@property
+	def systemInfo(self):
+		distName, distVersion, id = platform.linux_distribution()
+		system, node, release, version, machine, processor = platform.uname()
+
+		outdated = distName == 'debian' and distVersion < '8.0'
+
+		return {
+			'dist_name': distName,
+			'dist_version': distVersion,
+			'system': system,
+			'release': release,
+			'version': version,
+			'machine': machine,
+			'processor': processor,
+			'outdated': outdated
+		}
 
 	def _checkAuth(self):
 		if current_user and current_user.is_authenticated and not current_user.is_anonymous:

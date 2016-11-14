@@ -263,6 +263,16 @@ i.animate-spin {
 			right: 0;
 		}
 	}
+
+  &.alert {
+    a {
+      color: black;
+
+      &:hover {
+        font-weight: bold
+      }
+    }
+  }
 }
 
 @import

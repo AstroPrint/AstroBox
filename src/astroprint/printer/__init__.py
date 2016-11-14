@@ -303,7 +303,7 @@ class Printer(object):
 			return False
 
 		self._setCurrentZ(None)
-		cameraManager().open_camera()
+		#cameraManager().open_camera()
 
 		kwargs = {
 			'print_file_name': os.path.basename(self._selectedFile['filename'])

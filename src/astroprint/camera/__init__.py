@@ -2,6 +2,11 @@
 __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import uuid
+import time
+
+from threading import Event
+
 from octoprint.settings import settings
 
 # singleton
@@ -11,18 +16,19 @@ def cameraManager():
 	global _instance
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			number_of_video_device = 0 #/dev/video``0´´
-
 			manager = settings().get(['camera', 'manager'])
 
 			if manager == 'gstreamer':
 				try:
 					from astroprint.camera.v4l2.gstreamer import GStreamerManager
-					_instance = GStreamerManager(number_of_video_device)
+					_instance = GStreamerManager()
 
 				except ImportError, ValueError:
 					#another manager was selected or the gstreamer library is not present on this
 					#system, in that case we pick a mjpeg manager
+
+					#Uncomment when debugging to know which error exactly caused it to enter here
+					#logging.error('error', exc_info = True)
 
 					_instance = None
 					s = settings()
@@ -31,7 +37,7 @@ def cameraManager():
 
 			if _instance is None:
 				from astroprint.camera.v4l2.mjpeg import MjpegManager
-				_instance = MjpegManager(number_of_video_device)
+				_instance = MjpegManager()
 
 		elif platform == "darwin":
 			from astroprint.camera.mac import CameraMacManager
@@ -50,6 +56,10 @@ from octoprint.events import eventManager, Events
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 
+#
+# Thread to take timed timelapse pictures
+#
+
 class TimelapseWorker(threading.Thread):
 	def __init__(self, manager, timelapseId, timelapseFreq):
 		super(TimelapseWorker, self).__init__()
@@ -66,7 +76,7 @@ class TimelapseWorker(threading.Thread):
 		lastUpload = 0
 		self._resumeFromPause.set()
 		while not self._stopExecution:
-			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId):
+			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId, async=False):
 				lastUpload = time.time()
 
 			time.sleep(1)
@@ -88,6 +98,69 @@ class TimelapseWorker(threading.Thread):
 	def isPaused(self):
 		return not self._resumeFromPause.isSet()
 
+#
+# Camera inactivity thread
+#
+
+class CameraInactivity(object):
+	def __init__(self, inactivitySecs, onInactive):
+		self._logger = logging.getLogger(__name__ + ':CameraInactivity')
+		self._stopped = False
+		self._inactivitySecs = inactivitySecs
+		self._inactivtyEvent = threading.Event()
+		self._onInactive = onInactive
+		self._thread = None
+
+		self.lastActivity = None
+
+	def start(self):
+		if not self._thread:
+			self._stopped = False
+			self._inactivtyEvent.clear()
+			self._thread = threading.Thread(target= self._threadRun)
+			self._thread.start()
+		else:
+			self._logger.warn('Already running')
+
+	def _threadRun(self):
+		self.lastActivity = time.time()
+		waitForSecs = self._inactivitySecs
+
+		while not self._stopped:
+			self._logger.debug('Waiting %f seconds' % waitForSecs)
+			if not self._inactivtyEvent.wait(waitForSecs):
+				secsSinceLastActivity = time.time() - self.lastActivity
+				self._logger.debug('%f seconds since last activity' % secsSinceLastActivity)
+				if secsSinceLastActivity >= self._inactivitySecs:
+					# it's possible that onInactive detects that video is playing. In that case
+					# we reset the time again so we can check later, as the camera was active on this check.
+					# If not, onInactive will call close_camera which will stop this thread and not
+					# wait anymore
+					waitForSecs = self._inactivitySecs
+					self.lastActivity = time.time()
+
+					try:
+						self._onInactive()
+
+					except Exception as e:
+						self._logger.error('Error while processing inactivity event: %s' % e, exc_info=True)
+
+				else:
+					waitForSecs = self._inactivitySecs - secsSinceLastActivity
+
+		self._thread = None
+
+	def stop(self):
+		if self._thread:
+			self._stopped = True
+			self._inactivtyEvent.set()
+			if self._thread != threading.currentThread():
+				self._thread.join()
+
+#
+# Camera Manager base class
+#
+
 class CameraManager(object):
 	name = None
 
@@ -101,22 +174,33 @@ class CameraManager(object):
 			'encoding': s.get(["camera", "encoding"]),
 			'size': s.get(["camera", "size"]),
 			'framerate': s.get(["camera", "framerate"]),
-			'format': s.get(["camera", "format"])
+			'format': s.get(["camera", "format"]),
+			'source': s.get(["camera", "source"])
 		}
 
 		self._eventManager = eventManager()
+		self._photos = {} # To hold sync photos
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
 
-		self.videoType = settings().get(["camera", "encoding"])
-		self.videoSize = settings().get(["camera", "size"])
-		self.videoFramerate = settings().get(["camera", "framerate"])
-		self.open_camera()
+		self.videoType = s.get(["camera", "encoding"])
+		self.videoSize = s.get(["camera", "size"])
+		self.videoFramerate = s.get(["camera", "framerate"])
+
+		inactivitySecs = s.get(["camera", "inactivitySecs"])
+		if inactivitySecs > 0:
+			self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+		else:
+			self._cameraInactivity = None
+
+		self.reScan()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
+		self._photos = None
 		self.close_camera()
+		self._cameraInactivity = None
 
 		if self.timelapseWorker:
 			self.timelapseWorker.stop()
@@ -125,7 +209,7 @@ class CameraManager(object):
 		global _instance
 		_instance = None
 
-	def addPhotoToTimelapse(self, timelapseId):
+	def addPhotoToTimelapse(self, timelapseId, async= True):
 		#Build text
 		printerData = printerManager().getCurrentData()
 		text = "%d%% - Layer %s%s" % (
@@ -134,20 +218,40 @@ class CameraManager(object):
 			"/%s" % str(printerData['job']['layerCount'] if printerData['job']['layerCount'] else '')
 		)
 
-		picBuf = self.get_pic(text=text)
+		if async is False:
+			waitForPhoto = threading.Event()
+			responseCont = [False] #To allow for changing it inside the callback
 
-		if picBuf:
-			picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
-			#we need to check again as it's possible that this was the last
-			#pic and the timelapse is closed.
-			if picData and self.timelapseInfo:
-				self.timelapseInfo['last_photo'] = picData['url']
-				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
-				return True
+		else:
+			waitForPhoto = None
 
-		return False
+		def onDone(picBuf):
+			result = False
+
+			if picBuf:
+				picData = astroprintCloud().uploadImageFile(timelapseId, picBuf)
+				#we need to check again as it's possible that this was the last
+				#pic and the timelapse is closed.
+				if picData and self.timelapseInfo:
+					self.timelapseInfo['last_photo'] = picData['url']
+					self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+					result = True
+
+			if waitForPhoto and not waitForPhoto.isSet():
+				responseCont[0] = result
+				waitForPhoto.set()
+
+		self.get_pic_async(onDone, text)
+
+		if waitForPhoto:
+			waitForPhoto.wait(7.0) # wait 7.0 secs for the capture of the photo and the upload, otherwise fail
+			return responseCont[0]
+
 
 	def start_timelapse(self, freq):
+		if not self.isCameraConnected():
+			return False
+
 		if freq == '0':
 			return False
 
@@ -158,10 +262,6 @@ class CameraManager(object):
 		selectedFile = printerManager()._selectedFile
 		if not selectedFile:
 			return False
-
-		if not self.isCameraConnected():
-			if not self.open_camera():
-				return False
 
 		timelapseId = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
 		if timelapseId:
@@ -265,16 +365,93 @@ class CameraManager(object):
 	def settingsChanged(self, cameraSettings):
 		self._settings = cameraSettings
 
+	# There are cases where we want the pic to be synchronous
+	# so we leave this version too
+	def get_pic(self, text=None):
+		if self.isCameraConnected():
+			id = uuid.uuid4().hex
+			self._photos[id] = None
+
+			waitEvent = Event()
+
+			def photoDone(photoBuf):
+				if not waitEvent.isSet():
+					self._photos[id] = photoBuf
+					waitEvent.set()
+
+			self.get_pic_async(photoDone, text)
+			waitEvent.wait(5.0) #Wait a max of 5 secs
+
+			photo = self._photos[id]
+			del self._photos[id]
+			return photo
+
+		else:
+			return None
+
+	def _onInactive(self):
+		if not self.isVideoStreaming():
+			self.close_camera()
+
 	def open_camera(self):
-		return False
+		if self.isCameraOpened():
+			return True
+
+		if self._doOpenCamera():
+			if self._cameraInactivity:
+				self._cameraInactivity.start()
+			return True
+
+		else:
+			self._logger.error("Unable to open the camera")
+			return False
 
 	def close_camera(self):
+		if not self.isCameraOpened():
+			return True
+
+		if self._doCloseCamera():
+			if self._cameraInactivity:
+				self._cameraInactivity.stop()
+			return True
+
+		else:
+			self._logger.error("Unable to close the camera")
+			return False
+
+	def start_video_stream(self, doneCallback= None):
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
+
+		self._doStartVideoStream(doneCallback)
+
+	def stop_video_stream(self, doneCallback= None):
+		self._doStopVideoStream(doneCallback)
+
+	def get_pic_async(self, done, text=None):
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
+
+		self._doGetPic(done, text)
+
+	# Implement these
+
+	def isVideoStreaming(self):
 		pass
 
-	def start_video_stream(self):
+	def _doOpenCamera(self):
+		return False
+
+	def _doCloseCamera(self):
 		pass
 
-	def stop_video_stream(self):
+	def _doStartVideoStream(self, doneCallback):
+		pass
+
+	def _doStopVideoStream(self, doneCallback= None):
+		pass
+
+	def _doGetPic(self, done, text):
 		pass
 
 	def list_camera_info(self):
@@ -283,21 +460,16 @@ class CameraManager(object):
 	def list_devices(self):
 		pass
 
-	def get_pic(self, text=None):
-		pass
-
-	def get_pic_async(self, done, text=None):
-		pass
-
-	def save_pic(self, filename, text=None):
-		pass
-
 	def settingsStructure(self):
 		return {}
 
 	#Whether a camera device exists in the platform
 	def isCameraConnected(self):
 		return False
+
+	#Wheter the camera is opened or not
+	def isCameraOpened(self):
+		pass
 
 	#Whether the camera properties have been read
 	def hasCameraProperties(self):

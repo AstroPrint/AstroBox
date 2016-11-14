@@ -453,23 +453,23 @@ var CameraVideoStreamView = SettingsPage.extend({
   refreshPluggedCamera: function(){
 
     var previousCameraName = this.cameraName;
-
-    this.$('#buttonRefresh').addClass('loading');
+    var button = this.$('#buttonRefresh').addClass('loading');
 
     $.post(API_BASEURL + 'camera/refresh-plugged')
-    .done(_.bind(function(response){
+      .done(_.bind(function(response){
 
-      if(response.isCameraPlugged){
-        this.settings = null;
-        this.cameraName = '';
-        this.show(previousCameraName);
-      } else {
-        this.cameraName = false;
-        this.render();
-      }
-
-      this.$('#buttonRefresh').removeClass('loading');
-    },this));
+        if(response.isCameraPlugged){
+          this.settings = null;
+          this.cameraName = '';
+          this.show(previousCameraName);
+        } else {
+          this.cameraName = false;
+          this.render();
+        }
+      },this))
+      .always(function(){
+        button.removeClass('loading');
+      })
   },
   render: function() {
     this.$el.html(this.template({
@@ -901,7 +901,29 @@ var SoftwareUpdateView = SettingsPage.extend({
   events: {
     'click .loading-button.check button': 'onCheckClicked'
   },
+  systemInfo: null,
+  outdatedTemplate: null,
   updateDialog: null,
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.systemInfo) {
+      $.getJSON(API_BASEURL + 'settings/software/system-info', null, _.bind(function(data) {
+        this.systemInfo = data;
+        if (data.outdated) {
+          if (!this.outdatedTemplate) {
+            this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+          }
+          //Show the outdated warning
+          this.$el.prepend( this.outdatedTemplate( data ));
+        }
+      }, this))
+      .fail(function() {
+        noty({text: "There was an error getting System Information.", timeout: 3000});
+      });
+    }
+  },
   onCheckClicked: function(e)
   {
     var loadingBtn = this.$el.find('.loading-button.check');
@@ -938,7 +960,7 @@ var SoftwareUpdateDialog = Backbone.View.extend({
   open: function(data)
   {
     if (!this.contentTemplate) {
-      this.contentTemplate = _.template( $("#software-update-modal-content").html() )
+      this.contentTemplate = _.template( $("#software-update-modal-content").text() )
     }
 
     this.data = data;
