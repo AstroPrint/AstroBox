@@ -40,6 +40,9 @@ class CameraMacManager(CameraManager):
 	def _doOpenCamera(self):
 		return True
 
+	def _doCloseCamera(self):
+		return True
+
 	def _doGetPic(self, done, text=None):
 		threading.Timer(3.0, self._simulateGetPicAsync,[done, text]).start()
 
