@@ -238,6 +238,11 @@ var SocketData = Backbone.Model.extend({
               app.eventManager.trigger('astrobox:videoStreamingEvent',payload);
             break;
 
+            case 'SoftwareUpdateEvent':
+              //We need to release so that the update screen shows up
+              window.location.reload()
+            break;
+
             default:
               console.warn('Unkonwn event received: '+type);
           }

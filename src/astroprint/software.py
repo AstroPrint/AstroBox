@@ -1,6 +1,7 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 # singleton
 _instance = None
@@ -29,6 +30,8 @@ from flask.ext.login import current_user
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
+
+from astroprint.boxrouter import boxrouterManager
 
 if platformStr != 'darwin':
 	import apt.debfile
@@ -147,6 +150,9 @@ class SoftwareUpdater(threading.Thread):
 	def run(self):
 		#We need to give the UI a chance to update before starting so that the message can be sent...
 		self._progressCb("download", 0.0, "Starting download...")
+		#disconnect from the cloud during software upgrade. The reboot will take care of reconnect
+		boxrouterManager().boxrouter_disconnect()
+
 		time.sleep(2)
 		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
 
@@ -469,13 +475,11 @@ class SoftwareManager(object):
 					threading.Timer(1.0, subprocess.Popen, [a['command'].split(' ')]).start()
 					self._logger.info('Restart command scheduled')
 
-					from astroprint.boxrouter import boxrouterManager
 					from astroprint.printer.manager import printerManager
 					from astroprint.camera import cameraManager
 					from astroprint.network.manager import networkManagerShutdown
 
 					#let's be nice about shutthing things down
-					boxrouterManager().boxrouter_disconnect()
 					printerManager().disconnect()
 					cameraManager().close_camera()
 					networkManagerShutdown()
@@ -489,7 +493,6 @@ class SoftwareManager(object):
 	def sendLogs(self, ticketNo=None, message=None):
 		import zipfile
 
-		from astroprint.boxrouter import boxrouterManager
 		from tempfile import gettempdir
 
 		try:
