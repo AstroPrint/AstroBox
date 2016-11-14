@@ -384,6 +384,17 @@ class Settings(object):
 			self._logger.warn("Could not convert %r to a valid integer when getting option %r" % (value, path))
 			return None
 
+	def getString(self, path):
+		value = self.get(path)
+		if value is None:
+			return None
+
+		try:
+			return str(value)
+		except ValueError:
+			self._logger.warn("Could not convert %r to a valid string when getting option %r" % (value, path))
+			return None
+
 	def getFloat(self, path):
 		value = self.get(path)
 		if value is None:

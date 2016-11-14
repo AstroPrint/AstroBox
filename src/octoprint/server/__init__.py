@@ -335,7 +335,7 @@ class Server():
 		self._initSettings(self._configfile, self._basedir)
 		s = settings()
 
-		UI_API_KEY = s.get(['api', 'key'])
+		UI_API_KEY = s.getString(['api', 'key'])
 
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
