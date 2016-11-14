@@ -1,7 +1,7 @@
 # coding=utf-8
-__author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com> based on work by Gina Häußge"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 from flask.ext.principal import identity_changed, Identity
 from tornado.web import StaticFileHandler, HTTPError, RequestHandler, asynchronous
@@ -39,11 +39,11 @@ from astroprint.users import ApiUser
 def restricted_access(func, apiEnabled=True):
 	"""
 	If you decorate a view with this, it will ensure that first setup has been
-	done for OctoPrint's Access Control plus that any conditions of the
+	done for AstroBox's Access Control plus that any conditions of the
 	login_required decorator are met. It also allows to login using the masterkey or any
 	of the user's apikeys if API access is enabled globally and for the decorated view.
 
-	If OctoPrint's Access Control has not been setup yet (indicated by the "firstRun"
+	If AstroBox's Access Control has not been setup yet (indicated by the "firstRun"
 	flag from the settings being set to True and the userManager not indicating
 	that it's user database has been customized from default), the decorator
 	will cause a HTTP 403 status code to be returned by the decorated resource.
@@ -56,30 +56,34 @@ def restricted_access(func, apiEnabled=True):
 	"""
 	@wraps(func)
 	def decorated_view(*args, **kwargs):
-		# if OctoPrint hasn't been set up yet, abort
+		# if AstroBox hasn't been set up yet, abort
 		if settings().getBoolean(["server", "firstRun"]) and (octoprint.server.userManager is None or not octoprint.server.userManager.hasBeenCustomized()):
-			return make_response("OctoPrint isn't setup yet", 403)
+			return make_response("AstroBox isn't setup yet", 403)
 
 		# if API is globally enabled, enabled for this request and an api key is provided that is not the current UI API key, try to use that
 		apikey = getApiKey(request)
-		if settings().get(["api", "enabled"]) and apiEnabled and apikey is not None and apikey != octoprint.server.UI_API_KEY:
-			if apikey == settings().get(["api", "key"]):
-				# master key was used
-				user = ApiUser()
-			else:
-				# user key might have been used
-				user = octoprint.server.userManager.findUser(apikey=apikey)
 
-			if user is None:
-				return make_response("Invalid API key", 401)
-			if login_user(user, remember=False):
-				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+		if settings().get(["api", "enabled"]) and apiEnabled and apikey is not None:
+			if apikey != octoprint.server.UI_API_KEY:
+				if apikey == settings().get(["api", "key"]):
+					# master key was used
+					user = ApiUser()
+				else:
+					# user key might have been used
+					user = octoprint.server.userManager.findUser(apikey=apikey)
+
+				if user is None:
+					return make_response("Invalid API key", 401)
+
+				if login_user(user, remember=False):
+					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+					return func(*args, **kwargs)
+
+			else:
 				return func(*args, **kwargs)
 
-		# call regular login_required decorator
-		#TODO: remove this temporary disablement of login requirement
-		#return login_required(func)(*args, **kwargs)
-		return func(*args, **kwargs)
+		return make_response("Invalid Api Key or API Disabled", 401)
+
 	return decorated_view
 
 
@@ -115,8 +119,7 @@ def getApiKey(request):
 		return request.values["apikey"]
 
 	# Check Tornado GET/POST arguments
-	if hasattr(request, "arguments") and "apikey" in request.arguments \
-		and len(request.arguments["apikey"]) > 0 and len(request.arguments["apikey"].strip()) > 0:
+	if hasattr(request, "arguments") and "apikey" in request.arguments and len(request.arguments["apikey"].strip()) > 0:
 		return request.arguments["apikey"]
 
 	# Check Tornado and Flask headers

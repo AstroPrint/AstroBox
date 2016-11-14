@@ -135,7 +135,7 @@ default_settings = {
 		"subscriptions": []
 	},
 	"api": {
-		"enabled": False,
+		"enabled": True,
 		"key": ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes),
 		"allowCrossOrigin": False
 	},

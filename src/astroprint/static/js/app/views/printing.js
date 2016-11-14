@@ -290,10 +290,6 @@ var PhotoView = CameraViewBase.extend({
 
     loadingBtn.addClass('loading');
 
-    /*var text = Math.floor(printing_progress.percent)+'% - Layer '+(printing_progress.current_layer ? printing_progress.current_layer : '1')+( printing_progress.layer_count ? '/'+printing_progress.layer_count : '');
-
-    var photo = this.takePhoto('?text='+text+'&seq='+this.photoSeq++);
-    */
     if(this.cameraMode == 'photo'){
 
       var img = this.$('.camera-image');
@@ -306,9 +302,7 @@ var PhotoView = CameraViewBase.extend({
         $(this).attr('src', null);
       });
 
-
-      //img.attr('src',photo);
-      img.attr('src', '/camera/snapshot?text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+      img.attr('src', '/camera/snapshot?apikey='+UI_API_KEY+'&text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
     }
   },
   timelapseFreqChanged: function(e)

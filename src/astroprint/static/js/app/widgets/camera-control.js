@@ -135,7 +135,7 @@ var CameraControlView = Backbone.View.extend({
 
 		photoCont = this.getPhotoContainer();
 
-		photoCont.attr('src', '/camera/snapshot?timestamp=' + (Date.now() / 1000));
+		photoCont.attr('src', '/camera/snapshot?apikey='+UI_API_KEY+'&timestamp=' + (Date.now() / 1000));
 
 		photoCont.on('load',function() {
 			photoCont.off('load');

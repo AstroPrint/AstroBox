@@ -1,10 +1,9 @@
 # coding=utf-8
-__author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com> based on work done by Gina Häußge"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import uuid
-import flask
 import json
 import tornado.wsgi
 from sockjs.tornado import SockJSRouter
@@ -76,16 +75,18 @@ def box_identify():
 	br = boxrouterManager()
 	nm = networkManager()
 
-	response = Response()
+	try:
+		origin = request.headers['Origin']
+	except KeyError:
+		origin = None
 
-	response.headers['Access-Control-Allow-Origin'] = request.headers['Origin']
-	response.data = json.dumps({
+	return Response(json.dumps({
 		'id': br.boxId,
 		'name': nm.getHostname(),
 		'version': VERSION
-	})
-
-	return response
+	}), headers= {
+		'Access-Control-Allow-Origin': origin
+	} if origin else None)
 
 @app.route("/")
 def index():
@@ -162,7 +163,7 @@ def index():
 
 @app.route("/discovery.xml")
 def discoveryXml():
-	response = flask.make_response( discoveryManager.getDiscoveryXmlContents() )
+	response = make_response( discoveryManager.getDiscoveryXmlContents() )
 	response.headers['Content-Type'] = 'application/xml'
 	return response
 
@@ -187,6 +188,7 @@ def static_proxy_fonts(path):
 	return app.send_static_file(os.path.join('font', path))
 
 @app.route('/camera/snapshot', methods=["GET"])
+@restricted_access
 def camera_snapshot():
 	cameraMgr = cameraManager()
 	pic_buf = cameraMgr.get_pic(text=request.args.get('text'))
@@ -197,6 +199,7 @@ def camera_snapshot():
 
 
 @app.route("/status", methods=["GET"])
+@restricted_access
 def getStatus():
 
 	printer = printerManager()
@@ -208,9 +211,7 @@ def getStatus():
 		currentJob = printer.getCurrentJob()
 		fileName = currentJob["file"]["name"]
 
-	state = Response()
-
-	state.data = json.dumps({
+	return Response(json.dumps({
 		'id': boxrouterManager().boxId,
 		'name': networkManager().getHostname(),
 		'printing': printer.isPrinting(),
@@ -223,9 +224,7 @@ def getStatus():
 		#'printCapture': cm.timelapseInfo,
 		'remotePrint': True,
 		'capabilities': ['remotePrint'] + cm.capabilities
-	})
-
-	return state
+	}), mimetype='application/json')
 
 @app.route("/apiKey", methods=["POST"])
 def getUiApiKey():
@@ -262,13 +261,9 @@ def getUiApiKey():
 		if userLogged:
 			abort(401)
 
-	#BIG logical ELSE
-	response = Response()
-	response = json.dumps({
+	return Response(json.dumps({
 		'uIApiKey': UI_API_KEY
-	})
-
-	return response
+	}), mimetype= 'application/json')
 
 
 @identity_loaded.connect_via(app)
@@ -421,9 +416,9 @@ class Server():
 				"""
 				wsgi_environ = tornado.wsgi.WSGIContainer.environ(request)
 				with app.request_context(wsgi_environ):
-					app.session_interface.open_session(app, flask.request)
+					app.session_interface.open_session(app, request)
 					loginManager.reload_user()
-					validator(flask.request)
+					validator(request)
 			return f
 
 		self._tornado_app = Application(self._router.urls + [
