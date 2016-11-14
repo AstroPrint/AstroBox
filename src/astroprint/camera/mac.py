@@ -19,6 +19,7 @@ class CameraMacManager(CameraManager):
 		self._logger = logging.getLogger(__name__)
 		self._files = [f for f in glob.glob(os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'),"camera_test*.jpeg"))]
 		self.cameraName = 'Test Camera'
+		self._opened = False
 		self._logger.info('Mac Simulation Camera Manager initialized')
 
 	def settingsStructure(self):
@@ -38,9 +39,11 @@ class CameraMacManager(CameraManager):
 		}
 
 	def _doOpenCamera(self):
+		self._opened = True
 		return True
 
 	def _doCloseCamera(self):
+		self._opened = False
 		return True
 
 	def _doGetPic(self, done, text=None):
@@ -56,6 +59,9 @@ class CameraMacManager(CameraManager):
 
 	def hasCameraProperties(self):
 		return True
+
+	def isCameraOpened(self):
+		return self._opened
 
 	def isResolutionSupported(self, resolution):
 		return resolution == '640x480'

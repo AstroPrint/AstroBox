@@ -394,6 +394,9 @@ class CameraManager(object):
 			self.close_camera()
 
 	def open_camera(self):
+		if self.isCameraOpened():
+			return True
+
 		if self._doOpenCamera():
 			if self._cameraInactivity:
 				self._cameraInactivity.start()
@@ -404,6 +407,9 @@ class CameraManager(object):
 			return False
 
 	def close_camera(self):
+		if not self.isCameraOpened():
+			return True
+
 		if self._doCloseCamera():
 			if self._cameraInactivity:
 				self._cameraInactivity.stop()
@@ -460,6 +466,10 @@ class CameraManager(object):
 	#Whether a camera device exists in the platform
 	def isCameraConnected(self):
 		return False
+
+	#Wheter the camera is opened or not
+	def isCameraOpened(self):
+		pass
 
 	#Whether the camera properties have been read
 	def hasCameraProperties(self):

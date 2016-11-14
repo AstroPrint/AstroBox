@@ -149,6 +149,9 @@ class MjpegManager(V4L2Manager):
 	def isVideoStreaming(self):
 		return self._streamer and self._streamer.isVideoStreaming();
 
+	def isCameraOpened(self):
+		return self._streamer is not None
+
 	def startLocalVideoSession(self, sessionId):
 		self.open_camera()
 		if self._streamer:

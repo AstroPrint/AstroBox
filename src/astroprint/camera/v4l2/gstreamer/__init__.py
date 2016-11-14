@@ -53,6 +53,9 @@ class GStreamerManager(V4L2Manager):
 
 		return True
 
+	def isCameraOpened(self):
+		return self._apPipeline and self._apPipeline.processRunning
+
 	def _onApPipelineFataError(self):
 		self._haltCamera()
 
