@@ -2,6 +2,8 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+#Gst Documenation at: https://lazka.github.io/pgi-docs/
+
 try:
 	import gi
 	gi.require_version('Gst', '1.0')
