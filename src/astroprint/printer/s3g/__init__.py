@@ -366,7 +366,7 @@ class PrinterS3g(Printer):
 						position[1] += steps
 
 					if axis == 'z':
-						steps = int ( self.jogAmountWithPrinterProfile(amount) * self._profile.values['axes']['Z']['steps_per_mm'] )
+						steps = int ( self.jogAmountWithPrinterProfile('z', amount) * self._profile.values['axes']['Z']['steps_per_mm'] )
 						position[2] += steps
 
 					self._comm.queue_extended_point_classic(position, 500)
