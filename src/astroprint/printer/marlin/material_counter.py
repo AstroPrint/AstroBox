@@ -2,6 +2,8 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+import logging
+
 from copy import copy
 
 class MaterialCounter(object):
@@ -10,6 +12,7 @@ class MaterialCounter(object):
 	EXTRUSION_MODE_RELATIVE = 2
 
 	def __init__(self):
+		self._logger = logging.getLogger(__name__)
 		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
 		self._activeTool = "0";
 		self._lastExtruderLengthReset = {"0": 0}
@@ -57,8 +60,11 @@ class MaterialCounter(object):
 			self._lastExtrusion[newTool] = 0
 
 		if self._extrusionMode == self.EXTRUSION_MODE_ABSOLUTE:
-			self.consumedFilament[oldTool] += ( self._lastExtrusion[oldTool] - self._lastExtruderLengthReset[oldTool] )
-			self._lastExtruderLengthReset[oldTool] = self.consumedFilament[oldTool]
+			if oldTool in self.consumedFilament and oldTool in self._lastExtrusion and oldTool in self._lastExtruderLengthReset:
+				self.consumedFilament[oldTool] += ( self._lastExtrusion[oldTool] - self._lastExtruderLengthReset[oldTool] )
+				self._lastExtruderLengthReset[oldTool] = self.consumedFilament[oldTool]
+			else:
+				self._logger.error('Unkonwn previous tool %s when trying to change to new tool %s' % (oldTool, newTool))
 
 		self._activeTool = newTool
 

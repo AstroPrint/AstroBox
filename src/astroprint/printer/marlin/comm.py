@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 __author__ = "AstroPrint Product Team <product@astroprint.com> based on previous work by David Braam & Gina Häußge"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2016 AstroPrint - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import os
 import time
@@ -1276,7 +1276,7 @@ class MachineCom(object):
 			if self._currentTool != tool:
 				oldTool = self._currentTool
 
-				self._materialCounter.changeActiveTool(tool, oldTool)
+				self._materialCounter.changeActiveTool(str(tool), str(oldTool))
 				self._currentTool = tool
 				self._callback.mcToolChange(tool, oldTool)
 		return cmd
