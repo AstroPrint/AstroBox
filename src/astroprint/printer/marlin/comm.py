@@ -2,13 +2,11 @@
 
 from __future__ import absolute_import
 
-__author__ = "Gina Häußge <osd@foosel.net> based on work by David Braam"
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com> based on previous work by David Braam & Gina Häußge"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2013 David Braam - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016 AstroPrint - Released under terms of the AGPLv3 License"
 
 import os
-import glob
 import time
 import re
 import threading
@@ -17,23 +15,14 @@ import serial
 
 from collections import deque
 
-from octoprint.util.avr_isp import stk500v2
-from octoprint.util.avr_isp import ispBase
-
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 from octoprint.util import getExceptionString, getNewTimeout, sanitizeAscii, filterNonAscii
-from octoprint.util.virtual import VirtualPrinter
 from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 from astroprint.printfiles import FileDestinations
 
 from astroprint.printer.marlin.material_counter import MaterialCounter
-
-try:
-	import _winreg
-except:
-	pass
 
 gcodeToEvent = {
 	# pause for user input
@@ -101,7 +90,6 @@ class MachineCom(object):
 		self._serial = None
 		self._baudrateDetectList = callbackObject.baudrateList()
 		self._baudrateDetectRetry = 0
-		self._temperatureRequestExtruder = 0
 		self._temp = {}
 		self._bedTemp = None
 		self._heatingUp = None
@@ -157,7 +145,7 @@ class MachineCom(object):
 
 		# multithreading locks as these functions can be called from different threads
 		self._sendingLock = threading.Lock()
-		self._calculateChecksumLock = threading.Lock()
+		self._newLineNumberLock = threading.Lock()
 
 		self.timerCalculator = None
 		self.timePerLayers =  None
@@ -1035,6 +1023,9 @@ class MachineCom(object):
 
 	def _openSerial(self):
 		if self._port == 'AUTO':
+			from octoprint.util.avr_isp import stk500v2
+			from octoprint.util.avr_isp import ispBase
+
 			self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
 			self._serialLoggerEnabled and self._log("Serial port list: %s" % (str(self._callback.serialList())))
@@ -1057,6 +1048,8 @@ class MachineCom(object):
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				return False
 		elif self._port == 'VIRTUAL':
+			from octoprint.util.virtual import VirtualPrinter
+
 			self._changeState(self.STATE_OPEN_SERIAL)
 			self._serial = VirtualPrinter()
 		else:
@@ -1221,21 +1214,28 @@ class MachineCom(object):
 
 		if cmd is not None:
 			if sendChecksum: # or self._alwaysSendChecksum:
-				lineNumber = self._currentLine
 				self._addToLastLines(cmd)
-				self._currentLine += 1
-				self._doSendWithChecksum(cmd, lineNumber)
+				self._doSendWithChecksum(cmd, self._getNewLineNumber())
 			else:
 				self._doSend(cmd)
+
+	def _getNewLineNumber(self):
+		with self._newLineNumberLock:
+			line = self._currentLine
+			self._currentLine += 1
+			return line
+
+	def _resetLineNumber(self, new):
+		with self._newLineNumberLock:
+			self._currentLine = new
 
 	def _doSendWithChecksum(self, cmd, lineNumber):
 		self._logger.debug("Sending cmd '%s' with lineNumber %r" % (cmd, lineNumber))
 
-		with self._calculateChecksumLock:
-			commandToSend = "N%d %s" % (lineNumber, cmd)
-			checksum = reduce(lambda x,y:x^y, map(ord, commandToSend))
-			commandToSend = "%s*%d" % (commandToSend, checksum)
-			self._doSend(commandToSend)
+		commandToSend = "N%d %s" % (lineNumber, cmd)
+		checksum = reduce(lambda x,y:x^y, map(ord, commandToSend))
+		commandToSend = "%s*%d" % (commandToSend, checksum)
+		self._doSend(commandToSend)
 
 	def _doSend(self, cmd):
 		#make sure sends are done orderly
@@ -1398,7 +1398,7 @@ class MachineCom(object):
 
 		# send M110 command with new line number
 		self._doSendWithChecksum(cmd, newLineNumber)
-		self._currentLine = newLineNumber + 1
+		self._resetLineNumber(newLineNumber + 1)
 
 		# after a reset of the line number we have no way to determine what line exactly the printer now wants
 		self._lastLines.clear()
