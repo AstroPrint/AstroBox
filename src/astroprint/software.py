@@ -20,6 +20,7 @@ import threading
 import logging
 import time
 import platform
+import re
 
 from tempfile import mkstemp
 from sys import platform as platformStr
@@ -564,7 +565,7 @@ class SoftwareManager(object):
 			'version': version,
 			'machine': machine,
 			'processor': processor,
-			'outdated': True #outdated
+			'outdated': outdated
 		}
 
 	def _checkAuth(self):

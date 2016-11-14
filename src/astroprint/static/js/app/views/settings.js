@@ -918,7 +918,6 @@ var SoftwareUpdateView = SettingsPage.extend({
           //Show the outdated warning
           this.$el.prepend( this.outdatedTemplate( data ));
         }
-        console.log(this.systemInfo);
       }, this))
       .fail(function() {
         noty({text: "There was an error getting System Information.", timeout: 3000});
