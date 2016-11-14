@@ -521,6 +521,16 @@
       <div class="content"></div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
+
+    <script type="text/template" id="software-system-outdated-template">
+      <div data-alert class="alert-box alert radius">
+        <h3 style="color:white"><i class="icon-attention"></i> Warning</h3>
+        <p align="left">
+          Your Operating System version (<%= dist_version %>) is <b>outdated</b>. Some features might not work properly after upgrading. We <b>recommend</b> that you update your system by reflashing a new image from our <u><a href="https://www.astroprint.com/downloads" target="_downloads">Downloads Page</a></u>
+        </p>
+      </div>
+    </script>
+
     <script type="text/template" id="software-update-modal-content">
       <h2 class="bold">
         <% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available

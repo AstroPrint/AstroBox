@@ -901,7 +901,30 @@ var SoftwareUpdateView = SettingsPage.extend({
   events: {
     'click .loading-button.check button': 'onCheckClicked'
   },
+  systemInfo: null,
+  outdatedTemplate: null,
   updateDialog: null,
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.systemInfo) {
+      $.getJSON(API_BASEURL + 'settings/software/system-info', null, _.bind(function(data) {
+        this.systemInfo = data;
+        if (data.outdated) {
+          if (!this.outdatedTemplate) {
+            this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+          }
+          //Show the outdated warning
+          this.$el.prepend( this.outdatedTemplate( data ));
+        }
+        console.log(this.systemInfo);
+      }, this))
+      .fail(function() {
+        noty({text: "There was an error getting System Information.", timeout: 3000});
+      });
+    }
+  },
   onCheckClicked: function(e)
   {
     var loadingBtn = this.$el.find('.loading-button.check');
@@ -938,7 +961,7 @@ var SoftwareUpdateDialog = Backbone.View.extend({
   open: function(data)
   {
     if (!this.contentTemplate) {
-      this.contentTemplate = _.template( $("#software-update-modal-content").html() )
+      this.contentTemplate = _.template( $("#software-update-modal-content").text() )
     }
 
     this.data = data;

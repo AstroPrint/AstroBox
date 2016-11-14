@@ -298,3 +298,8 @@ def clearLogs():
 		return jsonify();
 	else:
 		return ("There was an error trying to clear your logs.", 500)
+
+@api.route("/settings/software/system-info", methods=['GET'])
+@restricted_access
+def getSysmteInfo():
+	return jsonify( softwareManager.systemInfo )
