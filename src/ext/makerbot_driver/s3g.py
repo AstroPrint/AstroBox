@@ -839,7 +839,7 @@ class s3g(object):
     def queue_extended_point(self, position, dda_speed, e_distance, feedrate_mm_sec, relative_axes=[]):
         """
         Queue a position: this function chooses the correct movement command based on the print_to_file_type
-        Moves to a certain position over a given duration with either relative or absolute positioning. 
+        Moves to a certain position over a given duration with either relative or absolute positioning.
         Relative vs. Absolute positioning is done on an axis to axis basis.
         @param list position: A 5 dimentional position in steps specifying where each axis should move to
         @param int dda_speed: microseconds per step
@@ -847,11 +847,11 @@ class s3g(object):
         @param float feedrate_mm_sec: the actual feedrate in units of millimeters/second
         @param list relative_axes: Array of axes whose coordinates should be considered relative
         """
-    
+
         if len(position) != s3g.EXTENDED_POINT_LENGTH:
             raise makerbot_driver.PointLengthError(len(position))
 
-        if self.print_to_file_type == 'x3g' : 
+        if self.print_to_file_type == 'x3g' :
             dda_rate = 1000000.0 / float(dda_speed)
             self.queue_extended_point_x3g(position, dda_rate, relative_axes,
                       e_distance, feedrate_mm_sec)

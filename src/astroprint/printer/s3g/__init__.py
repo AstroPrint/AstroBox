@@ -558,6 +558,10 @@ class PrinterS3g(Printer):
 		self._comm.abort_immediately()
 		self._printJob.cancel()
 
+	def resetSerialLogging(self):
+		if self._comm and self._comm.writer:
+			self._comm.writer.resetSerialLogging()
+
 	# ~~~ Internal Callbacks ~~~~
 
 	def printJobCancelled(self):

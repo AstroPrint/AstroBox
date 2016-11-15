@@ -569,3 +569,7 @@ class PrinterMarlin(Printer):
 	def setPause(self, paused):
 		if self._comm:
 			self._comm.setPause(paused)
+
+	def resetSerialLogging(self):
+		if self._comm:
+			self._comm.resetSerialLogging()

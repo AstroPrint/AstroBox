@@ -164,7 +164,11 @@ class MachineCom(object):
 		self.thread.start()
 
 	def __del__(self):
+		self._logger.debug('Printer Comm removed')
 		self.close()
+
+	def resetSerialLogging(self):
+		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 
 	##~~ internal state management
 

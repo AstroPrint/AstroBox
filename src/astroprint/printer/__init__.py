@@ -248,8 +248,12 @@ class Printer(object):
 		serialLogger = logging.getLogger("SERIAL")
 		if active:
 			serialLogger.setLevel(logging.DEBUG)
+			serialLogger.debug("Enabling serial logging")
 		else:
+			serialLogger.debug("Disabling serial logging")
 			serialLogger.setLevel(logging.CRITICAL)
+
+		self.resetSerialLogging()
 
 	def isOperational(self):
 		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
@@ -578,7 +582,10 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
-		raise NotImplementedError();
+		raise NotImplementedError()
+
+	def resetSerialLogging(self):
+		raise NotImplementedError()
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

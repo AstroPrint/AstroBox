@@ -536,8 +536,9 @@ class Server():
 
 		if settings().getBoolean(["serial", "log"]):
 			# enable debug logging to serial.log
-			logging.getLogger("SERIAL").setLevel(logging.DEBUG)
-			logging.getLogger("SERIAL").debug("Enabling serial logging")
+			serialLogger = logging.getLogger("SERIAL")
+			serialLogger.setLevel(logging.DEBUG)
+			serialLogger.debug("Enabling serial logging")
 
 	def cleanup(self):
 		global discoveryManager
