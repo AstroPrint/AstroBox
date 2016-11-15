@@ -10,6 +10,7 @@ from flask import url_for, make_response, request, current_app
 from flask.ext.login import login_required, login_user, current_user
 from werkzeug.utils import redirect
 from sockjs.tornado import SockJSConnection
+from itsdangerous import base64_decode
 
 import datetime
 import stat
@@ -19,9 +20,10 @@ import time
 import os
 import threading
 import logging
+import zlib
+import json
 from functools import wraps
 
-#import octoprint.timelapse
 import octoprint.server
 import octoprint.util as util
 
@@ -134,9 +136,9 @@ def getApiKey(request):
 
 class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
-			  Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
-			  Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS,
-			  Events.GSTREAMER_EVENT, Events.TOOL_CHANGE]
+				Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
+				Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS,
+				Events.GSTREAMER_EVENT, Events.TOOL_CHANGE]
 
 	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
@@ -154,14 +156,63 @@ class PrinterStateConnection(SockJSConnection):
 		self._userManager = userManager
 		self._eventManager = eventManager
 
-	def _getRemoteAddress(self, info):
-		forwardedFor = info.headers.get("X-Forwarded-For")
+	def _getRemoteAddress(self, request):
+		forwardedFor = request.headers.get("X-Forwarded-For")
 		if forwardedFor is not None:
 			return forwardedFor.split(",")[0]
-		return info.ip
+		return request.ip
 
-	def on_open(self, info):
-		remoteAddress = self._getRemoteAddress(info)
+	def _validateApiKey(self, request):
+		apiKey = request.arguments.get("apikey")
+		return ( apiKey and apiKey[0] == octoprint.server.UI_API_KEY )
+
+	def _session_cookie_decoder(self, session_cookie_value):
+		try:
+			compressed = False
+			payload = session_cookie_value
+
+			if payload.startswith(b'.'):
+				compressed = True
+				payload = payload[1:]
+
+			data = payload.split(".")[0]
+
+			data = base64_decode(data)
+			if compressed:
+				data = zlib.decompress(data)
+
+			data = json.loads(data)
+
+			if 'user_id' in data:
+				data = data['user_id']
+				if ' b' in data:
+					data = base64_decode(data[' b'])
+					return data
+
+			return 'not_logged'
+
+		except Exception as e:
+			self._logger.error('Session decoding error {}').format(e)
+			return None
+
+	def on_open(self, request):
+		s = settings()
+		loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+
+		if loggedUsername:
+			session = request.cookies.get('session')
+
+			if session:
+				user_id = self._session_cookie_decoder(session.value)
+				if user_id != loggedUsername:
+					# We only need to do this if the connection is happening from the outside
+					if not self._validateApiKey(request):
+						return False
+
+			else:
+				return False
+
+		remoteAddress = self._getRemoteAddress(request)
 		self._logger.info("New connection from client [IP address: %s, Session id: %s]", remoteAddress, self.session.session_id)
 
 		# connected => update the API key, might be necessary if the client was left open while the server restarted
@@ -172,13 +223,10 @@ class PrinterStateConnection(SockJSConnection):
 
 		printer.registerCallback(self)
 		printer.fileManager.registerCallback(self)
-		#octoprint.timelapse.registerCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
-
-		#octoprint.timelapse.notifyCallbacks(octoprint.timelapse.current)
 
 	def on_close(self):
 		self._logger.info("Client connection closed [Session id: %s]", self.session.session_id)
@@ -188,7 +236,6 @@ class PrinterStateConnection(SockJSConnection):
 		printer.unregisterCallback(self)
 		printer.fileManager.unregisterCallback(self)
 		cameraManager().closeLocalVideoSession(self.session.session_id)
-		#octoprint.timelapse.unregisterCallback(self)
 
 		self._eventManager.fire(Events.CLIENT_CLOSED)
 		for event in PrinterStateConnection.EVENTS:
@@ -306,7 +353,7 @@ class LargeResponseHandler(StaticFileHandler):
 
 		if cache_time > 0:
 			self.set_header("Expires", datetime.datetime.utcnow() +
-									   datetime.timedelta(seconds=cache_time))
+										 datetime.timedelta(seconds=cache_time))
 			self.set_header("Cache-Control", "max-age=" + str(cache_time))
 
 		self.set_extra_headers(path)
