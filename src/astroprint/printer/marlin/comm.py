@@ -468,27 +468,28 @@ class MachineCom(object):
 			return
 
 		if not pause and self.isPaused():
-			self._changeState(self.STATE_PRINTING)
 			#if self.isSdFileSelected():
 			#	self.sendCommand("M24")
 			#else:
+
+			self._changeState(self.STATE_PRINTING)
 
 			#restore position
 			if self._positionWhenPaused:
 				self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
 				#We need to lift the Z axis first in case they lowered it
-				self._sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] + 10 ))
+				self.sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] + 10 ))
 				#Extrude 5 mm
-				self._sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
-				self._sendCommand("G1 E%.4f F200" % (self._positionWhenPaused[3] + 3))
+				self.sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
+				self.sendCommand("G1 E%.4f F200" % (self._positionWhenPaused[3] + 3))
 				#Get back to where you were before pausing
-				self._sendCommand("G1 X%.4f Y%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1] ))
+				self.sendCommand("G1 X%.4f Y%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1] ))
 				#Position the actual Z height
-				self._sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
+				self.sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
 				#reset extrusion to what it was in case we did some extrusion while paused
-				self._sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
+				self.sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
 				#slow down the speed for the first movement
-				self._sendCommand("G1 F1000")
+				self.sendCommand("G1 F1000")
 
 			self._sendNext()
 
@@ -499,11 +500,11 @@ class MachineCom(object):
 			})
 
 		elif pause and self.isPrinting():
-			self._changeState(self.STATE_PAUSED)
 			#if self.isSdFileSelected():
 			#	self.sendCommand("M25") # pause print
 			#else:
 
+			self.sendCommand("M110 N0")
 			self.sendCommand("M106 S0") #Stop fans
 			self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
 			#the head movement out of the way is done on the M114 response.
@@ -513,6 +514,8 @@ class MachineCom(object):
 				"filename": os.path.basename(self._currentFile.getFilename()),
 				"origin": self._currentFile.getFileLocation()
 			})
+
+			self._changeState(self.STATE_PAUSED)
 
 	def getSdFiles(self):
 		pass
