@@ -271,12 +271,6 @@ class PrinterMarlin(Printer):
 			eventManager().fire(Events.PRINT_FAILED, payload)
 			self._selectedFile = None
 
-		self._comm.cancelPrint()
-
-		#don't send home command, some printers don't have stoppers.
-		#self.home(['x','y'])
-		#self.commands(["G92 E0", "G1 X0 Y0 E-2.0 F3000 S1", "G92"]) # this replaces home
-
 		#prepare cancel commands
 		cancelCommands = []
 		for c in self._profileManager.data.get('cancel_gcode'):
@@ -287,14 +281,15 @@ class PrinterMarlin(Printer):
 			if len(c) > 0:
 				cancelCommands.append(c)
 
-		self.commands(cancelCommands or ['G28 X Y']);
+		self.commands((cancelCommands or ['G28 X Y'] ) + ['M110 N0']);
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
 
-	#~~ state monitoring
-
 		self._comm.cleanPrintingVars()
+		self._comm.cancelPrint()
+
+	#~~ state monitoring
 
 	def _setState(self, state):
 		self._state = state
