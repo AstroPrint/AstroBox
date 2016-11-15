@@ -410,9 +410,10 @@ class CameraManager(object):
 		if not self.isCameraOpened():
 			return True
 
+		if self._cameraInactivity:
+			self._cameraInactivity.stop()
+
 		if self._doCloseCamera():
-			if self._cameraInactivity:
-				self._cameraInactivity.stop()
 			return True
 
 		else:
