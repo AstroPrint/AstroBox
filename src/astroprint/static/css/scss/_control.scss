@@ -104,7 +104,7 @@
 		#xy-controls {
 			button.home_z {
 				opacity: 0.1;
-				cursor: not-allowed;				
+				cursor: not-allowed;
 			}
 		}
 	}
@@ -139,7 +139,7 @@
 				background: #ccc;
 			}
 
-			.temp-target, 
+			.temp-target,
 			.current-temp {
 				display: none;
 			}
@@ -197,10 +197,10 @@
 				font-size: rem-calc(20);
 				margin-bottom: 0px;
 
-				&::-webkit-inner-spin-button, 
-				&::-webkit-outer-spin-button { 
-				  -webkit-appearance: none; 
-				  margin: 0; 
+				&::-webkit-inner-spin-button,
+				&::-webkit-outer-spin-button {
+				  -webkit-appearance: none;
+				  margin: 0;
 				}
 			}
 
@@ -294,10 +294,8 @@
 	}
 
 	i.icon-extruder {
-		font-size: 40px;
+		font-size: 25px;
 		color: $success-color;
-		display: inline-block;
-		margin-top: -4px;
 	}
 
 	input, select, .postfix {
@@ -322,10 +320,8 @@
 		}
 	}
 
-	.row.closer {
-		.columns {
-			padding: 0 5px;
-		}
+	.row.closer > .columns {
+		padding: 0 5px;
 	}
 }
 

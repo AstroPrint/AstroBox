@@ -179,7 +179,10 @@ class PrinterMarlin(Printer):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
 	def extrude(self, tool, amount, speed=None):
-		if not speed:
+		if speed:
+			#the UI sends mm/s, we need to transfer it to mm/min
+			speed *= 60
+		else:
 			speed = settings().get(["printerParameters", "movementSpeed", "e"])
 
 		self.commands(["G91", "G1 E%s F%d" % (amount, speed), "G90"])

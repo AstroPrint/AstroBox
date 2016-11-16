@@ -108,12 +108,16 @@ def printerToolCommand():
 			return make_response("Printer is currently printing", 409)
 
 		amount = data["amount"]
+		speed = data.get("speed")
 		if not isinstance(amount, (int, long, float)):
 			return make_response("Not a number for extrusion amount: %r" % amount, 400)
-		pm.extrude(None, amount)
+
+		if speed and not isinstance(speed, (int, long, float)):
+			speed = None
+
+		pm.extrude(None, amount, speed)
 
 	return NO_CONTENT
-
 
 @api.route("/printer/tool", methods=["GET"])
 def printerToolState():

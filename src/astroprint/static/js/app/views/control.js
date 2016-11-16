@@ -280,7 +280,8 @@ var ExtrusionControlView = Backbone.View.extend({
     var events = {
       'click .extrude': 'extrudeTapped',
       'click .retract': 'retractTapped',
-      'change .extrusion-length': 'lengthChanged'
+      'change .extrusion-length': 'lengthChanged',
+      'change .extrusion-speed': 'speedChanged'
     };
 
     if (printer_profile.extruder_count > 1) {
@@ -307,10 +308,20 @@ var ExtrusionControlView = Backbone.View.extend({
 
     if (elem.val() == 'other') {
       elem.addClass('hide');
-      this.$('.other').removeClass('hide').focus();
-      this.$('.other').focus();
+      this.$('.other-length').removeClass('hide').find('input').focus();
     } else {
       this.$('input[name="extrusion-length"]').val(elem.val());
+    }
+  },
+  speedChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-speed').removeClass('hide').find('input').focus();;
+    } else {
+      this.$('input[name="extrusion-speed"]').val(elem.val());
     }
   },
   extruderChanged: function(e)
@@ -340,7 +351,8 @@ var ExtrusionControlView = Backbone.View.extend({
   {
     var data = {
       command: "extrude",
-      amount: this.$el.find('input[name="extrusion-length"]').val() * direction
+      amount: parseInt(this.$el.find('input[name="extrusion-length"]').val() * direction),
+      speed: parseInt(this.$el.find('input[name="extrusion-speed"]').val())
     }
 
     $.ajax({
