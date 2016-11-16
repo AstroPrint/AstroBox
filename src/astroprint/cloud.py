@@ -150,7 +150,6 @@ class AstroPrintCloud(object):
 
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
-
 	def signout(self):
 		from flask import session
 
@@ -253,6 +252,20 @@ class AstroPrintCloud(object):
 			return data["public_key"]
 		else:
 			return None
+
+	def get_login_key(self):
+		r = requests.get(
+			"%s/%s" % (self.apiHost , 'auth/loginKey'),
+			headers={'User-Agent': self._sm.userAgent},
+			auth= self.hmacAuth
+		)
+
+		try:
+			data = r.json()
+		except:
+			data = None
+
+		return data
 
 	def print_files(self, forceCloudSync = False):
 		if self.cloud_enabled() and (not self._print_file_store or forceCloudSync):
