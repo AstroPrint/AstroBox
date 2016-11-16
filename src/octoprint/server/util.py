@@ -205,11 +205,10 @@ class PrinterStateConnection(SockJSConnection):
 			if session:
 				user_id = self._session_cookie_decoder(session.value)
 				if user_id != loggedUsername:
-					# We only need to do this if the connection is happening from the outside
-					if not self._validateApiKey(request):
-						return False
+					return False
 
-			else:
+			# We only need to do this if the connection is happening from the outside
+			elif not self._validateApiKey(request):
 				return False
 
 		remoteAddress = self._getRemoteAddress(request)
