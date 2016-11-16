@@ -34,12 +34,14 @@
 						<i class="icon-3d-printer printer"></i>
 						<i class="icon-exchange server"></i>
 					</div>
+					<ul class="right show-for-large-up"><li><a href="#" target="_blank">My AstroPrint Cloud</a></li></ul>
 				</section>
 			</nav>
 			<aside class="left-off-canvas-menu">
 				<ul class="off-canvas-list" id="main-menu">
 					<li class="header bold"><label>{{astroboxName}}</label></li>
 					<li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
+					<li><a href="#"><i class="icon-rocket"></i> My AstroPrint Cloud</a></li>
 					{% if not user_email %}
 						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
 					{% else %}
@@ -117,7 +119,7 @@
 	{% assets filters="closure_js", output="js/gen/app.js",
 		"js/lib/jquery.js", "js/lib/jquery.ui.widget.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/modernizr.js",
 		"js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js",
-		"js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.equalizer.js", 
+		"js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.equalizer.js",
 		"js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
 		"js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
 		"js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js",
