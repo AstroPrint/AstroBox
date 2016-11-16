@@ -46,6 +46,19 @@ def set_private_key():
 
 	abort(401)
 
+@api.route('/astroprint/login-key', methods=['GET'])
+@restricted_access
+def get_login_key():
+	try:
+		key = astroprintCloud().get_login_key()
+		if key:
+			return jsonify(key)
+
+	except (AstroPrintCloudNoConnectionException, ConnectionError):
+		abort(503, "AstroPrint.com can't be reached")
+
+	abort(401)
+
 @api.route('/astroprint/upload-data', methods=['GET'])
 @restricted_access
 def upload_data():

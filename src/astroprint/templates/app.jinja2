@@ -34,14 +34,14 @@
 						<i class="icon-3d-printer printer"></i>
 						<i class="icon-exchange server"></i>
 					</div>
-					<ul class="right show-for-large-up"><li><a href="#" target="_blank">My AstroPrint Cloud</a></li></ul>
+					<ul class="right show-for-large-up"><li><a class="launch-ap" href="#">My AstroPrint Cloud</a></li></ul>
 				</section>
 			</nav>
 			<aside class="left-off-canvas-menu">
 				<ul class="off-canvas-list" id="main-menu">
 					<li class="header bold"><label>{{astroboxName}}</label></li>
 					<li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
-					<li><a href="#"><i class="icon-rocket"></i> My AstroPrint Cloud</a></li>
+					<li><a class="launch-ap" href="#"><i class="icon-rocket"></i> My AstroPrint Cloud</a></li>
 					{% if not user_email %}
 						<li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
 					{% else %}
@@ -112,7 +112,8 @@
 			paused: {% if paused -%} true {%- else -%} false {%- endif %},
 			print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %},
 			online: {% if online -%} true {%- else -%} false {%- endif %},
-			checkSoftware: {% if checkSoftware -%} true {%- else -%} false {%- endif %}
+			checkSoftware: {% if checkSoftware -%} true {%- else -%} false {%- endif %},
+      userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
 		};
 		var initial_printer_profile = {{ printer_profile | tojson | safe }};
 	</script>

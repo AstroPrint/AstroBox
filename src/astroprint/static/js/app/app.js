@@ -51,7 +51,8 @@ var AstroBoxApp = Backbone.View.extend({
   printerProfile: null,
   events: {
     'click button.turn-off': 'turnOffClicked',
-    'click button.reboot': 'rebootClicked'
+    'click button.reboot': 'rebootClicked',
+    'click a.launch-ap': 'launchAstroPrint'
   },
   initialize: function()
   {
@@ -143,6 +144,28 @@ var AstroBoxApp = Backbone.View.extend({
   {
     this.$('.tab-bar .left-small').hide();
     this.$('.quick-nav').hide();
+  },
+  launchAstroPrint: function(e)
+  {
+    e.preventDefault();
+
+    if (initial_states.userLogged) {
+      if (!this.launchingAp) {
+        this.launchingAp = true;
+        $.getJSON(API_BASEURL+'astroprint/login-key')
+          .done(function(data){
+            location.href = 'https://www.astroprint.com/account/loginKey/'+data.login_key;
+          })
+          .fail(function(){
+            location.href = 'https://www.astroprint.com/account/login';
+          })
+          .always(_.bind(function(){
+            this.launchingAp = false;
+          }, this));
+      }
+    } else {
+      location.href = 'https://www.astroprint.com/account/login';
+    }
   }
 });
 
