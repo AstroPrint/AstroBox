@@ -351,8 +351,8 @@ var ExtrusionControlView = Backbone.View.extend({
   {
     var data = {
       command: "extrude",
-      amount: parseInt(this.$el.find('input[name="extrusion-length"]').val() * direction),
-      speed: parseInt(this.$el.find('input[name="extrusion-speed"]').val())
+      amount: parseFloat(this.$el.find('input[name="extrusion-length"]').val() * direction),
+      speed: parseFloat(this.$el.find('input[name="extrusion-speed"]').val())
     }
 
     $.ajax({
