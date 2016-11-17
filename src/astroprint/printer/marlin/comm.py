@@ -131,7 +131,7 @@ class MachineCom(object):
 		self._regex_minMaxError = re.compile("Error:[0-9]\n")
 		#self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
 		#self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
-		self._regex_M114Response = re.compile("X:(%s) Y:(%s) Z:(%s) E:(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
+		self._regex_M114Response = re.compile("X:(%s)\s?Y:(%s)\s?Z:(%s)\s?E:(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
 
 		# Regex matching temperature entries in line. Groups will be as follows:
 		# - 1: whole tool designator incl. optional toolNumber ("T", "Tn", "B")
