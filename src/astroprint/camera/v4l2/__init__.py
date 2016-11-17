@@ -25,6 +25,7 @@ class V4L2Manager(CameraManager):
 				return True
 
 		self._logger.info('No camera detected')
+		self.number_of_video_device = None
 		return False
 
 	def setSafeSettings(self):
@@ -283,6 +284,10 @@ class V4L2Manager(CameraManager):
 	# from CameraManager
 
 	def isCameraConnected(self):
+		if self.number_of_video_device is None:
+			self._logger.debug('No Camera was found in previous scan')
+			return False
+
 		try:
 			device = "/dev/video%d" % self.number_of_video_device
 			if os.path.exists(device):
@@ -300,6 +305,7 @@ class V4L2Manager(CameraManager):
 			if e.errno != errno.ECOMM:
 				self._logger.error('Error in camera detection: %s (%d)' % (os.strerror(e.errno), e.errno))
 
+		self._logger.debug("Camera on /dev/video%d is not connected " % self.number_of_video_device)
 		return False
 
 	def hasCameraProperties(self):

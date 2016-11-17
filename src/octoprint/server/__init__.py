@@ -220,7 +220,7 @@ def getStatus():
 		'material': None,
 		'operational': printer.isOperational(),
 		'paused': printer.isPaused(),
-		'camera': printer.isCameraConnected(),
+		'camera': cm.isCameraConnected(),
 		#'printCapture': cm.timelapseInfo,
 		'remotePrint': True,
 		'capabilities': ['remotePrint'] + cm.capabilities

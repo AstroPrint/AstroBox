@@ -344,7 +344,6 @@ var CameraVideoStreamView = SettingsPage.extend({
 
         if(response.isCameraConnected){
           if(this.cameraName != response.cameraName){
-            //previousCameraName = this.cameraName;
             this.cameraName = response.cameraName;
           }
 
@@ -363,14 +362,14 @@ var CameraVideoStreamView = SettingsPage.extend({
                     if(response.isResolutionSupported){
                       this.videoSettingsError = null;
                       this.render();
-                      if(previousCameraName){
+                      /*if(previousCameraName){
                         if(!(previousCameraName === this.cameraName)){
                           this.saveData();
                         }
                       } else {
                         this.refreshPluggedCamera();
                         //this.saveData();
-                      }
+                      }*/
                     } else {
                       //setting default settings
                       this.settings.size = this.settingsSizeDefault;
@@ -451,8 +450,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     }
   },
   refreshPluggedCamera: function(){
-
-    var previousCameraName = this.cameraName;
+    //var previousCameraName = this.cameraName;
     var button = this.$('#buttonRefresh').addClass('loading');
 
     $.post(API_BASEURL + 'camera/refresh-plugged')
@@ -461,7 +459,8 @@ var CameraVideoStreamView = SettingsPage.extend({
         if(response.isCameraPlugged){
           this.settings = null;
           this.cameraName = '';
-          this.show(previousCameraName);
+          //this.show(previousCameraName);
+          this.show();
         } else {
           this.cameraName = false;
           this.render();
