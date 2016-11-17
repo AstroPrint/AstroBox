@@ -411,7 +411,7 @@ class PrinterS3g(Printer):
 				#stepsPerMs = mmPerMs * stepsPerMM
 				#msPerStep = pow ( stepsPerMs, -1 )
 
-				msPerStep = int( pow( (speed / 6e+7) * stepsPerMM , -1 ) )
+				msPerStep = abs ( int( 1 / ( (speed / 6e+7) * stepsPerMM ) ) )
 
 				self._comm.queue_extended_point_classic(position, msPerStep)
 
