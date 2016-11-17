@@ -11,6 +11,10 @@ from astroprint.camera import CameraManager
 from octoprint.settings import settings
 
 class V4L2Manager(CameraManager):
+	def __init__(self):
+		self._cameraOpenCheckPerformedForDevice = None
+		super(V4L2Manager, self).__init__()
+
 	def findDevice(self):
 		for d in [0, 1, 2]:
 			self.number_of_video_device = d
@@ -283,8 +287,14 @@ class V4L2Manager(CameraManager):
 			device = "/dev/video%d" % self.number_of_video_device
 			if os.path.exists(device):
 				#check that we can interact with it
-				open(device, 'r').close()
+				if self._cameraOpenCheckPerformedForDevice != self.number_of_video_device:
+					open(device, 'r').close()
+					self._cameraOpenCheckPerformed = self.number_of_video_device
+
 				return True
+
+			else:
+				self._cameraOpenCheckPerformedForDevice = None
 
 		except IOError as e:
 			if e.errno != errno.ECOMM:

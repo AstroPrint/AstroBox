@@ -146,6 +146,10 @@ class Printer(object):
 				#"logs": list(self._log),
 				#"messages": list(self._messages)
 			})
+
+			if 'state' in data and 'flags' in data['state']:
+				data['state']['flags'].update({'camera': self.isCameraConnected()})
+
 			callback.sendCurrentData(data)
 			#callback.sendHistoryData(data)
 		except Exception, err:

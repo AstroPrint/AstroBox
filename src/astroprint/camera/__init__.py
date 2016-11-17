@@ -164,7 +164,7 @@ class CameraInactivity(object):
 class CameraManager(object):
 	name = None
 
-	def __init__(self,cameraInfo=None):
+	def __init__(self):
 
 		#RECTIFYNIG default settings
 
