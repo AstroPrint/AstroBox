@@ -44,7 +44,7 @@ var SocketData = Backbone.Model.extend({
   },
   initialize: function()
   {
-    this.set('printing', initial_states.printing);
+    this.set('printing', initial_states.printing || initial_states.paused);
     this.set('paused', initial_states.paused);
     this.set('online', initial_states.online);
     this.set('print_capture', initial_states.print_capture);

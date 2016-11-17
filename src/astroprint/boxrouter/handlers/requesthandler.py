@@ -27,7 +27,7 @@ class RequestHandler(object):
 		printer = printerManager()
 		cm = cameraManager()
 
-		done({
+		state = {
 			'printing': printer.isPrinting(),
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
@@ -36,7 +36,14 @@ class RequestHandler(object):
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
 			'capabilities': ['remotePrint'] + cm.capabilities
-		})
+		}
+
+		if state['printing'] or state['paused']:
+			#Let's add info about the ongoing print job
+			state['job'] = printer._stateMonitor._jobData
+			state['progress'] = printer._stateMonitor._progress
+
+		done(state)
 
 	def job_info(self, data, clientId, done):
 		done(printerManager()._stateMonitor._jobData)

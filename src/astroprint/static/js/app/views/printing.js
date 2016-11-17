@@ -551,7 +551,7 @@ var CancelPrintDialog = Backbone.View.extend({
           setTimeout(_.bind(function() {
             loadingBtn.removeClass('loading');
             this.close();
-          }, this), 1000);
+          }, this), 1500);
         }
       }
     }, this));
