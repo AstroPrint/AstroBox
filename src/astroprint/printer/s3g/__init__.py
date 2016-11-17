@@ -392,13 +392,28 @@ class PrinterS3g(Printer):
 
 				#find out what axis is this:
 				axis = self._profile.values['tools'][str(tool)]['stepper_axis']
-				steps = int ( amount * self._profile.values['axes'][axis]['steps_per_mm'] )
+				stepsPerMM = int( self._profile.values['axes'][axis]['steps_per_mm'] )
+				steps = int ( amount * stepsPerMM )
 				if axis == 'A':
 					position[3] += steps
 				elif axis == 'B':
 					position[4] += steps
 
-				self._comm.queue_extended_point_classic(position, 3000)
+				if speed:
+					#the UI sends mm/s, we need to transfer it to mm/min
+					speed *= 60
+				else:
+					speed = settings().get(["printerParameters", "movementSpeed", "e"])
+
+				#The speed for s3g is microseconds per step. We need to convert mm/min -> ms/step
+				#6e+7 ms in 1 minute
+				#mmPerMs = speed / 6e+7
+				#stepsPerMs = mmPerMs * stepsPerMM
+				#msPerStep = pow ( stepsPerMs, -1 )
+
+				msPerStep = int( pow( (speed / 6e+7) * stepsPerMM , -1 ) )
+
+				self._comm.queue_extended_point_classic(position, msPerStep)
 
 	def setTemperature(self, type, value):
 		if self._comm:
