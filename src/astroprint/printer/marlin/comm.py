@@ -101,6 +101,8 @@ class MachineCom(object):
 		self._heatupWaitTimeLost = 0.0
 		self._currentTool = 0
 		self._oksAfterHeatingUp = 0
+		self._pauseInProgress = False
+		self._cancelInProgress = False
 
 		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
@@ -251,7 +253,7 @@ class MachineCom(object):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED #or self._state == self.STATE_TRANSFERING_FILE
 
 	def isPrinting(self):
-		return self._state == self.STATE_PRINTING
+		return self._state == self.STATE_PRINTING and not self._cancelInProgress
 
 	def isSdPrinting(self):
 		return self.isSdFileSelected() and self.isPrinting()
@@ -263,7 +265,7 @@ class MachineCom(object):
 		return self._currentFile is not None and isinstance(self._currentFile, StreamingGcodeFileInformation)
 
 	def isPaused(self):
-		return self._state == self.STATE_PAUSED
+		return self._state == self.STATE_PAUSED or self._pauseInProgress
 
 	def isBusy(self):
 		return self.isPrinting() or self.isPaused()
@@ -355,7 +357,7 @@ class MachineCom(object):
 
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
-		if self.isPrinting():
+		if self.isPrinting() or self._pauseInProgress:
 			self._commandQueue.appendleft(cmd)
 		elif self.isOperational():
 			self._sendCommand(cmd)
@@ -374,6 +376,8 @@ class MachineCom(object):
 			self._lastLayerHeight = 0.0
 			self._currentLayer  = 0
 			self._oksAfterHeatingUp = 3
+			self._pauseInProgress = False
+			self.__pauseInProgress = False
 			#self._currentLayer = 1
 			#sefl._lastLayerHeight
 			#self._callback.mcLayerChange(self._tentativeLayer)
@@ -451,8 +455,6 @@ class MachineCom(object):
 		if not self.isOperational():# or self.isStreaming():
 			return
 
-		self._changeState(self.STATE_OPERATIONAL)
-
 		#if self.isSdFileSelected():
 		#	self.sendCommand("M25")    # pause print
 		#	self.sendCommand("M26 S0") # reset position in file to byte 0
@@ -463,35 +465,42 @@ class MachineCom(object):
 			"origin": self._currentFile.getFileLocation(),
 		})
 
+		self._changeState(self.STATE_OPERATIONAL)
+		self._cancelInProgress = False
+		self._pauseInProgress = False
+
 	def setPause(self, pause):
-		if self.isStreaming():
-			return
+		#if self.isStreaming():
+		#	return
 
 		if not pause and self.isPaused():
 			#if self.isSdFileSelected():
 			#	self.sendCommand("M24")
 			#else:
 
+			self._pauseInProgress = False
 			self._changeState(self.STATE_PRINTING)
 
 			#restore position
+
 			if self._positionWhenPaused:
 				self._currentZ = self._positionWhenPaused[2] # To avoid miscounting layers
 				#We need to lift the Z axis first in case they lowered it
-				self.sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] + 10 ))
-				#Extrude 5 mm
-				self.sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
-				self.sendCommand("G1 E%.4f F200" % (self._positionWhenPaused[3] + 3))
+				self._commandQueue.appendleft("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] + 10 ))
 				#Get back to where you were before pausing
-				self.sendCommand("G1 X%.4f Y%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1] ))
+				self._commandQueue.appendleft("G1 X%.4f Y%.4f F9000" % (self._positionWhenPaused[0], self._positionWhenPaused[1] ))
 				#Position the actual Z height
-				self.sendCommand("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
-				#reset extrusion to what it was in case we did some extrusion while paused
-				self.sendCommand("G92 E%.4f" % self._positionWhenPaused[3])
+				self._commandQueue.appendleft("G1 Z%.4f F2000" % ( self._positionWhenPaused[2] ))
 				#slow down the speed for the first movement
-				self.sendCommand("G1 F1000")
+				self._commandQueue.appendleft("G1 F1000")
+				#reset extrusion to what it was in case we did some extrusion while paused minus the retract
+				self._commandQueue.appendleft("G92 E%.4f" % (self._positionWhenPaused[3] - 5))
 
-			self._sendNext()
+				#send the first enqueued command, this will in turn resume file reading when queue is empty
+				self._sendCommand(self._commandQueue.pop(), True)
+			else:
+				self._logger.warn('There was no stored position on resume command')
+				self._sendNext()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
 				"file": self._currentFile.getFilename(),
@@ -504,10 +513,11 @@ class MachineCom(object):
 			#	self.sendCommand("M25") # pause print
 			#else:
 
+			self._pauseInProgress = True
 			self.sendCommand("M110 N0")
 			self.sendCommand("M106 S0") #Stop fans
 			self.sendCommand("M114") # Current position is saved at self._positionWhenPaused
-			#the head movement out of the way is done on the M114 response.
+			#the head movement out of the way and adding the _apCommand_PAUSE to the queue is done on the M114 response when self._pauseInProgress is True
 
 			eventManager().fire(Events.PRINT_PAUSED, {
 				"file": self._currentFile.getFilename(),
@@ -650,19 +660,12 @@ class MachineCom(object):
 				self._bedTemp = (actual, None)
 
 	def cleanPrintingVars(self):
-
 		self.timePerLayers =  None
-
 		self.totalPrintTime = None
-
 		self.layerCount = None
-
 		self.size = None
-
 		self.layer_height = None
-
 		self.total_filament = None
-
 		self.timerCalculator = None
 
 	def cbGCodeAnalyzerReady(self,timePerLayers,totalPrintTime,layerCount,size,layer_height,total_filament,parent):
@@ -716,7 +719,7 @@ class MachineCom(object):
 					timeout = getNewTimeout("communication")
 
 				##~~ Error handling
-				line = self._handleErrors(line)
+				line, lineLower = self._lowerAndHandleErrors(line)
 
 				##~~ SD file list
 				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
@@ -749,7 +752,7 @@ class MachineCom(object):
 					self._callback.mcTempUpdate(self._temp, self._bedTemp)
 
 					#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
-					if not 'ok' in line and self._heatupWaitStartTime != 0:
+					if not 'ok' in lineLower and self._heatupWaitStartTime != 0:
 						t = time.time()
 						self._heatupWaitTimeLost = t - self._heatupWaitStartTime
 						self._heatupWaitStartTime = t
@@ -878,7 +881,7 @@ class MachineCom(object):
 				# 	elif "toggle" in pauseTriggers.keys() and pauseTriggers["toggle"].search(line) is not None:
 				# 		self.setPause(not self.isPaused())
 
-				if self._heatingUp and "ok" in line:
+				if self._heatingUp and "ok" in lineLower:
 					if self._oksAfterHeatingUp == 0:
 						self._heatingUp = False
 						self._callback.mcHeatingUpUpdate(self._heatingUp)
@@ -921,7 +924,7 @@ class MachineCom(object):
 								self._testingBaudrate = True
 							except:
 								self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
-					elif 'ok' in line and 'T:' in line:
+					elif 'ok' in lineLower and 'T:' in line:
 						self._baudrateDetectTestOk += 1
 						if self._baudrateDetectTestOk < 10:
 							self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
@@ -940,12 +943,12 @@ class MachineCom(object):
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
-					if (line == "" or "wait" in line) and startSeen:
+					if (line == "" or "wait" in lineLower) and startSeen:
 						self._sendCommand("M105")
-					elif "start" in line:
+					elif "start" in lineLower:
 						timeout = getNewTimeout("communication")
 						startSeen = True
-					elif "ok" in line and startSeen:
+					elif "ok" in lineLower and startSeen:
 						self._changeState(self.STATE_OPERATIONAL)
 						# if self._sdAvailable:
 						# 	self.refreshSdFiles()
@@ -958,7 +961,7 @@ class MachineCom(object):
 				### Operational
 				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
 					#Request the temperature on comm timeout (every 5 seconds) when we are not printing.
-					if line == "" or "wait" in line:
+					if line == "" or "wait" in lineLower or "ok" in lineLower:
 						if self._resendDelta is not None:
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
@@ -970,7 +973,7 @@ class MachineCom(object):
 					elif line.lower().startswith("resend") or line.lower().startswith("rs"):
 						self._handleResendRequest(line)
 
-					else:
+					elif self._pauseInProgress:
 						positionMatch = self._regex_M114Response.search(line)
 						if positionMatch:
 							self._positionWhenPaused = (
@@ -980,8 +983,9 @@ class MachineCom(object):
 								float(positionMatch.group(4))
 							)
 
-							if self.isPaused():
-								self.sendCommand("G1 F9000 X0 Y0 Z%.4f E%.4f" % (self._positionWhenPaused[2] + 15, self._positionWhenPaused[3] - 5))
+							self.sendCommand("G1 F9000 X0 Y0 Z%.4f E%.4f" % (self._positionWhenPaused[2] + 15, self._positionWhenPaused[3] - 5))
+							self.sendCommand("_apCommand_PAUSE")
+							self._pauseInProgress = False
 
 				### Printing
 				elif self._state == self.STATE_PRINTING:
@@ -1010,17 +1014,16 @@ class MachineCom(object):
 
 						tempRequestTimeout = getNewTimeout("temperature")
 
-					if "ok" in line:
+					if "ok" in lineLower:
 						if self._resendDelta is not None:
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
 							self._sendCommand(self._commandQueue.pop(), True)
 						else:
 							self._sendNext()
-					else:
-						lineLower = line.lower()
-						if lineLower.startswith("resend") or lineLower.startswith("rs"):
-							self._handleResendRequest(line)
+
+					elif lineLower.startswith("resend") or lineLower.startswith("rs"):
+						self._handleResendRequest(line)
 
 			except:
 				self._logger.exception("Something crashed inside the serial connection loop, please report this to AstroPrint:")
@@ -1080,7 +1083,7 @@ class MachineCom(object):
 				return False
 		return True
 
-	def _handleErrors(self, line):
+	def _lowerAndHandleErrors(self, line):
 		# No matter the state, if we see an error, goto the error state and store the error for reference.
 		if line.startswith('Error:'):
 			#Oh YEAH, consistency.
@@ -1106,7 +1109,11 @@ class MachineCom(object):
 				self._errorValue = line[6:]
 				self._changeState(self.STATE_ERROR)
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-		return line
+
+		else:
+			line_lower = line.lower()
+
+		return line, line_lower
 
 	def _readline(self):
 		if self._serial == None:
@@ -1223,6 +1230,11 @@ class MachineCom(object):
 			gcodeHandler = "_gcode_" + gcode
 			if hasattr(self, gcodeHandler):
 				cmd = getattr(self, gcodeHandler)(cmd)
+
+		elif cmd.startswith('_apCommand_'):
+			#see if it's an AstroPrint Command
+			if hasattr(self, cmd):
+				cmd = getattr(self, cmd)(cmd)
 
 		if cmd is not None:
 			if sendChecksum: # or self._alwaysSendChecksum:
@@ -1419,6 +1431,7 @@ class MachineCom(object):
 		return None
 
 	def _gcode_M112(self, cmd): # It's an emergency what todo? Canceling the print should be the minimum
+		self.cleanPrintingVars()
 		self.cancelPrint()
 		return cmd
 
@@ -1433,6 +1446,23 @@ class MachineCom(object):
 	# In Marlin G91 and G90 also change the relative nature of extrusion
 	_gcode_G90 = _gcode_M82 #Set Absolute
 	_gcode_G91 = _gcode_M83 #Set Relative
+
+	#The following are internal commands to ensure an orderly pause and shutdown sequence
+
+	def _apCommand_CANCEL(self, cmd):
+		self.cleanPrintingVars()
+		self.cancelPrint()
+		return None
+
+	def _apCommand_PAUSE(self, cmd):
+		eventManager().fire(Events.PRINT_PAUSED, {
+			"file": self._currentFile.getFilename(),
+			"filename": os.path.basename(self._currentFile.getFilename()),
+			"origin": self._currentFile.getFileLocation()
+		})
+
+		self._changeState(self.STATE_PAUSED)
+		return None
 
 ### MachineCom callback ################################################################################################
 

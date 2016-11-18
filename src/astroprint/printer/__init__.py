@@ -361,15 +361,16 @@ class Printer(object):
 		if self._comm is None:
 			return
 
-		wasPaused = self.isPaused()
+		wasPaused = self._comm.isPaused()
 
-		self.setPause(not wasPaused)
+		self._comm.setPause(not wasPaused)
 
-		#the functions already check if there's a timelapse in progress
-		if wasPaused:
-			cameraManager().resume_timelapse()
-		else:
-			cameraManager().pause_timelapse()
+		cm = cameraManager()
+		if cm.is_timelapse_active():
+			if wasPaused:
+				cm.resume_timelapse()
+			else:
+				cm.pause_timelapse()
 
 	#~~~ Printer callbacks ~~~
 

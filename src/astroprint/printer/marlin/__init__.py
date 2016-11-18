@@ -19,7 +19,6 @@ from octoprint.events import eventManager, Events
 from astroprint.printer import Printer
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printfiles import FileDestinations
-from astroprint.camera import cameraManager
 
 class PrinterMarlin(Printer):
 	driverName = 'marlin'
@@ -231,28 +230,12 @@ class PrinterMarlin(Printer):
 		self.timePercentPreviousLayers = 0
 		self._comm.startPrint()
 
-
-	def togglePausePrint(self):
-		"""
-		 Pause the current printjob.
-		"""
-		if self._comm is None:
-			return
-
-		wasPaused = self._comm.isPaused()
-
-		self._comm.setPause(not wasPaused)
-
-		#the functions already check if there's a timelapse in progress
-		if wasPaused:
-			cameraManager().resume_timelapse()
-		else:
-			cameraManager().pause_timelapse()
-
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
 		 Cancel the current printjob.
 		"""
+
+		self._comm._cancelInProgress = True
 
 		#flush the Queue
 		commandQueue = self._comm._commandQueue
@@ -284,13 +267,12 @@ class PrinterMarlin(Printer):
 			if len(c) > 0:
 				cancelCommands.append(c)
 
-		self.commands((cancelCommands or ['G28 X Y'] ) + ['M110 N0']);
+		self.commands((cancelCommands or ['G28 X Y'] ) + ['M110 N0'] );
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
 
-		self._comm.cleanPrintingVars()
-		self._comm.cancelPrint()
+		self.commands(['_apCommand_CANCEL'])
 
 	#~~ state monitoring
 

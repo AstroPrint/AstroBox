@@ -345,22 +345,29 @@ class CameraManager(object):
 		return True
 
 	def pause_timelapse(self):
-		if self.timelapseWorker and not self.timelapseWorker.isPaused():
-			self.timelapseWorker.pause()
-			self.timelapseInfo['paused'] = True
-			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+		if self.timelapseWorker:
+			if not self.timelapseWorker.isPaused():
+				self.timelapseWorker.pause()
+				self.timelapseInfo['paused'] = True
+				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+
 			return True
 
 		return False
 
 	def resume_timelapse(self):
-		if self.timelapseWorker and self.timelapseWorker.isPaused():
-			self.timelapseWorker.resume()
-			self.timelapseInfo['paused'] = False
-			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+		if self.timelapseWorker:
+			if self.timelapseWorker.isPaused():
+				self.timelapseWorker.resume()
+				self.timelapseInfo['paused'] = False
+				self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
+
 			return True
 
 		return False
+
+	def is_timelapse_active(self):
+		return self.timelapseWorker is not None
 
 	def settingsChanged(self, cameraSettings):
 		self._settings = cameraSettings

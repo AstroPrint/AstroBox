@@ -91,7 +91,7 @@ default_settings = {
 		"movementSpeed": {
 			"x": 6000,
 			"y": 6000,
-			"z": 200,
+			"z": 700,
 			"e": 100
 		},
 		"pauseTriggers": [],
