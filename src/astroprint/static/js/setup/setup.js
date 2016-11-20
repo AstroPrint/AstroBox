@@ -495,31 +495,23 @@ var StepPrinter = StepView.extend({
       method: 'post',
       data: data,
       success: _.bind(function() {
-        //We monitor the connection here for status updates
-        var socket = new SockJS(SOCKJS_URI);
-        socket.onmessage = _.bind(function(e){
-          if (e.type == "message" && e.data.current) {
-            var flags = e.data.current.state.flags;
-            if (flags.operational) {
-              socket.close();
-              this._setConnecting(false);
-              location.href = this.$el.find('.submit-action').attr('href');
-            } else if (flags.error) {
-              noty({text: 'There was an error connecting to the printer.', timeout: 3000});
-              socket.close();
-              this._setConnecting(false);
-            }
+        this.listenTo(setup_view, 'sock-flags', function(flags) {
+          if (flags.operational) {
+            this._setConnecting(false);
+            this.stopListening(setup_view, 'sock-flags');
+            location.href = this.$el.find('.submit-action').attr('href');
+          } else if (flags.error) {
+            this.stopListening(setup_view, 'sock-flags');
+            this._setConnecting(false, true);
           }
         }, this);
       }, this),
       error: _.bind(function(xhr) {
         if (xhr.status == 400 || xhr.status == 401) {
           message = xhr.responseText;
-        } else {
-          message = "There was an error connecting to your printer";
+          noty({text: message, timeout: 3000});
         }
-        noty({text: message, timeout: 3000});
-        this._setConnecting(false);
+        this._setConnecting(false, true);
       }, this)
     });
   },
@@ -557,14 +549,21 @@ var StepPrinter = StepView.extend({
       }, this)
     });
   },
-  _setConnecting: function(connecting)
+  _setConnecting: function(connecting, error)
   {
     if (connecting) {
-      this.$el.find('.loading-button').addClass('loading');
-      this.$el.find('.skip-step').hide();
+      this.$('.loading-button').addClass('loading');
+      this.$('.skip-step').hide();
+    } else if (error) {
+      this.$('.loading-button').removeClass('loading').addClass('error');
+      this.$('.skip-step').hide();
+      setTimeout(_.bind(function(){
+        this.$('.loading-button').removeClass('error');
+        this.$('.skip-step').show();
+      },this), 3000);
     } else {
-      this.$el.find('.loading-button').removeClass('loading');
-      this.$el.find('.skip-step').show();
+      this.$('.loading-button').removeClass('loading');
+      this.$('.skip-step').show();
     }
   },
   retryPortsClicked: function(e)
@@ -652,6 +651,7 @@ var SetupView = Backbone.View.extend({
   _autoReconnecting: false,
   _autoReconnectTrial: 0,
   _autoReconnectTimeouts: [1, 1, 2, 2, 2, 3, 3, 5, 5, 10],
+  previousflags: null,
   initialize: function()
   {
     this.steps = {
@@ -666,20 +666,31 @@ var SetupView = Backbone.View.extend({
 
     this.eventManager = Backbone.Events;
     this.router = new SetupRouter({'setup_view': this});
-    this.connect();
+    this.connect(WS_TOKEN);
   },
-  connect: function()
+  connect: function(token)
   {
-    this._socket = new SockJS(SOCKJS_URI);
+    this._socket = new SockJS(SOCKJS_URI+'?token='+token);
     this._socket.onopen = _.bind(this._onConnect, this);
     this._socket.onclose = _.bind(this._onClose, this);
     this._socket.onmessage = _.bind(this._onMessage, this);
   },
   reconnect: function()
   {
-    this._socket.close();
-    delete this._socket;
-    this.connect();
+    if (this._socket) {
+      this._socket.close();
+      delete this._socket;
+    }
+
+    $.getJSON('/wsToken')
+      .done(_.bind(function(data){
+        if (data && data.ws_token) {
+          this.connect(data.ws_token);
+        }
+      }, this))
+      .fail(_.bind(function(){
+        this._onClose();
+      }, this));
   },
   _onConnect: function()
   {
@@ -688,7 +699,7 @@ var SetupView = Backbone.View.extend({
   },
   _onClose: function(e)
   {
-    if (e.code == 1000) {
+    if (e && e.code == 1000) {
       // it was us calling close
       return;
     }
@@ -702,12 +713,37 @@ var SetupView = Backbone.View.extend({
   },
   _onMessage: function(e)
   {
-    if (e.data && e.data['event']) {
-      var data = e.data['event'];
-      var type = data["type"];
+    for (var prop in e.data) {
+      var data = e.data[prop];
 
-      if (type == 'InternetConnectingStatus') {
-        this.eventManager.trigger('astrobox:InternetConnectingStatus', data["payload"]);
+      switch (prop) {
+        case "connected":
+          // update the current UI API key and send it with any request
+          UI_API_KEY = data["apikey"];
+          $.ajaxSetup({
+            headers: {"X-Api-Key": UI_API_KEY}
+          });
+        break;
+
+        case "event": {
+          var type = data["type"];
+          var payload = data["payload"];
+
+          if (type == 'InternetConnectingStatus') {
+            this.eventManager.trigger('astrobox:InternetConnectingStatus', data["payload"]);
+          }
+        }
+        break;
+
+        case "current": {
+          var flags = data.state.flags;
+
+          if (flags != this.previousflags) {
+            this.trigger('sock-flags', flags);
+            this.previousflags = flags;
+          }
+        }
+        break;
       }
     }
   },

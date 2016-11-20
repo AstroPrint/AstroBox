@@ -57,7 +57,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
   },
   _onClose: function(e)
   {
-    if (e.code == 1000) {
+    if (e && e.code == 1000) {
       // it was us calling close
       return;
     }

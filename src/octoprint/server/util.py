@@ -167,7 +167,8 @@ class PrinterStateConnection(SockJSConnection):
 		loggedUsername = s.get(["cloudSlicer", "loggedUser"])
 
 		if loggedUsername:
-			token = request.arguments.get("token")[0]
+			token = request.arguments.get("token")
+			token = token[0] if token else None
 			tokenContents = octoprint.server.read_ws_token(token)
 			if not tokenContents or tokenContents['public_key'] != self._userManager.findUser(loggedUsername).publicKey:
 				return False
