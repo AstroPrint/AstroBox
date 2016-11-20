@@ -1,8 +1,5 @@
 $.ajaxSetup({
-  cache: false,
-  headers: {
-    "X-Api-Key": UI_API_KEY
-  }
+  cache: false
 });
 
 LoginForm = Backbone.View.extend({
@@ -21,7 +18,10 @@ LoginForm = Backbone.View.extend({
     $.ajax({
       type: 'POST',
       url: '/api/login',
-      data: this.$el.serializeArray()
+      data: this.$el.serializeArray(),
+      headers: {
+        "X-Api-Key": UI_API_KEY
+      }
     })
     .done(function(){
       location.reload();
@@ -45,4 +45,24 @@ LoginForm = Backbone.View.extend({
   }
 });
 
-var form = new LoginForm();
+LockedView = Backbone.View.extend({
+  form: null,
+  initialize: function()
+  {
+    this.form = new LoginForm();
+    this.startPolling();
+  },
+  startPolling: function()
+  {
+    setInterval(_.bind(function(){
+      $.ajax({type:'POST', url: '/accessKeys'})
+        .done(function(data){
+          if (_.isObject(data)) {
+            location.reload();
+          }
+        })
+    }, this), 3000);
+  }
+});
+
+var lockedVide = new LockedView();
