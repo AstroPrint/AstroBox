@@ -1,90 +1,68 @@
 $.ajaxSetup({
-    type: 'POST',
-    cache: false,
-    headers: { 
-    	"X-Api-Key": UI_API_KEY
-    }
+  cache: false
 });
 
 LoginForm = Backbone.View.extend({
-	el: '#login-form',
-	events: {
-		'submit': 'onSubmit'
-	},
-	_socket: null,
-	_autoReconnecting: false,
-	_autoReconnectTrial: 0,
-	_autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
-	initialize: function()
-	{
-		this.connect();
-	},
-	connect: function()
-	{
-        this._socket = new SockJS(SOCKJS_URI);
-        this._socket.onopen = _.bind(this._onConnect, this);
-        this._socket.onclose = _.bind(this._onClose, this);
-        this._socket.onmessage = _.bind(this._onMessage, this);
-	},
-   	reconnect: function() {
-        delete this._socket;
-        this.connect();
-    },
-   	_onConnect: function() {
-        self._autoReconnecting = false;
-        self._autoReconnectTrial = 0;
-    },
-    _onClose: function() {
-        if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
-            var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
-            console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
-            setTimeout(_.bind(this.reconnect, this), timeout * 1000);
-            this._autoReconnectTrial++;
+  el: '#login-form',
+  events: {
+    'submit': 'onSubmit'
+  },
+  onSubmit: function(e)
+  {
+    e.preventDefault();
+
+    var loadingBtn = this.$('.loading-button');
+
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      type: 'POST',
+      url: '/api/login',
+      data: this.$el.serializeArray(),
+      headers: {
+        "X-Api-Key": UI_API_KEY
+      }
+    })
+    .done(function(){
+      location.reload();
+    })
+    .fail(function(xhr){
+      var message = "Unkonwn error. Please refresh the page";
+
+      if (xhr.status == 401) {
+        if (xhr.responseText.toLowerCase() == 'invalid api key') {
+          message = "The access key has changed. Please refresh the page.";
         } else {
-            this._onReconnectFailed();
+          message = "Invalid Password";
         }
-    },
-    _onReconnectFailed: function() {
-		console.error('reconnect failed');
-		//We're going to try to reload a see what happens
-		location.reload();
-    },
-    _onMessage: function(e) {
-    	if (e.data && e.data['event']) {
-            var data = e.data['event'];
-            var type = data["type"];
+      }
 
-            if (type == "LockStatusChanged") {
-            	var payload = data["payload"];
+      noty({text: message , timeout: 3000});
+      loadingBtn.removeClass('loading');
+    });
 
-            	if (!payload) {
-            		location.reload();
-            	}
-            }
-        }
-    },
-	onSubmit: function(e)
-	{
-		e.preventDefault();
-
-		var loadingBtn = this.$('.loading-button');
-
-		loadingBtn.addClass('loading');
-
-		$.ajax({
-			url: '/api/login',
-			data: this.$el.serializeArray()
-		})
-		.done(function(){
-			location.reload();
-		})
-		.fail(function(){
-			noty({text: "Invalid Password", timeout: 3000});
-			loadingBtn.removeClass('loading');
-		});
-
-		return false;
-	}
+    return false;
+  }
 });
 
-var form = new LoginForm();
+LockedView = Backbone.View.extend({
+  form: null,
+  initialize: function()
+  {
+    this.form = new LoginForm();
+    this.startPolling();
+  },
+  startPolling: function()
+  {
+    setInterval(_.bind(function(){
+      $.ajax({type:'POST', url: '/accessKeys'})
+        .done(function(data){
+          if (_.isObject(data)) {
+            location.reload();
+          }
+        })
+    }, this), 3000);
+  }
+});
+
+var lockedVide = new LockedView();

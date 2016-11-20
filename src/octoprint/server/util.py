@@ -162,53 +162,15 @@ class PrinterStateConnection(SockJSConnection):
 			return forwardedFor.split(",")[0]
 		return request.ip
 
-	def _validateApiKey(self, request):
-		apiKey = request.arguments.get("apikey")
-		return ( apiKey and apiKey[0] == octoprint.server.UI_API_KEY )
-
-	def _session_cookie_decoder(self, session_cookie_value):
-		try:
-			compressed = False
-			payload = session_cookie_value
-
-			if payload.startswith(b'.'):
-				compressed = True
-				payload = payload[1:]
-
-			data = payload.split(".")[0]
-
-			data = base64_decode(data)
-			if compressed:
-				data = zlib.decompress(data)
-
-			data = json.loads(data)
-
-			if 'user_id' in data:
-				data = data['user_id']
-				if ' b' in data:
-					data = base64_decode(data[' b'])
-					return data
-
-			return 'not_logged'
-
-		except Exception as e:
-			self._logger.error('Session decoding error {}').format(e)
-			return None
-
 	def on_open(self, request):
 		s = settings()
 		loggedUsername = s.get(["cloudSlicer", "loggedUser"])
 
 		if loggedUsername:
-			session = request.cookies.get('session')
-
-			if session:
-				user_id = self._session_cookie_decoder(session.value)
-				if user_id != loggedUsername:
-					return False
-
-			# We only need to do this if the connection is happening from the outside
-			elif not self._validateApiKey(request):
+			token = request.arguments.get("token")
+			token = token[0] if token else None
+			tokenContents = octoprint.server.read_ws_token(token)
+			if not tokenContents or tokenContents['public_key'] != self._userManager.findUser(loggedUsername).publicKey:
 				return False
 
 		remoteAddress = self._getRemoteAddress(request)

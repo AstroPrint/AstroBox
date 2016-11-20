@@ -106,7 +106,8 @@ def index():
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
 			checkSoftware= swm.shouldCheckForNew,
-			settings=s
+			settings= s,
+			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
@@ -118,7 +119,8 @@ def index():
 			lastCompletionPercent= softwareManager.lastCompletionPercent,
 			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
-			astroboxName= networkManager().getHostname()
+			astroboxName= networkManager().getHostname(),
+			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
@@ -158,7 +160,8 @@ def index():
 			variantData= variantManager().data,
 			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log']),
-			cameraManager= cm.name
+			cameraManager= cm.name,
+			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
 		)
 
 @app.route("/discovery.xml")
@@ -226,10 +229,30 @@ def getStatus():
 		'capabilities': ['remotePrint'] + cm.capabilities
 	}), mimetype='application/json')
 
-@app.route("/apiKey", methods=["POST"])
-def getUiApiKey():
+@app.route("/wsToken", methods=['GET'])
+def getWsToken():
+	publicKey = None
+	userLogged = settings().get(["cloudSlicer", "loggedUser"])
+
+	if userLogged:
+		if current_user.is_anonymous or current_user.get_name() != userLogged:
+			abort(401, "Unauthorized Access")
+
+		user = userManager.findUser(userLogged)
+		if user:
+			publicKey = user.publicKey
+		else:
+			abort(403, 'Invalid Logged User')
+
+	return Response(json.dumps({
+		'ws_token': create_ws_token(publicKey)
+	}))
+
+@app.route("/accessKeys", methods=["POST"])
+def getAccessKeys():
 	from astroprint.cloud import astroprintCloud
 
+	publicKey = None
 	email = request.values.get('email', None)
 	accessKey = request.values.get('accessKey', None)
 
@@ -244,9 +267,9 @@ def getUiApiKey():
 				online = networkManager().isOnline()
 
 				if online:
-					public_key = astroprintCloud().get_public_key(email, accessKey)
+					publicKey = astroprintCloud().get_public_key(email, accessKey)
 
-					if not public_key:
+					if not publicKey:
 						abort(403)
 
 				else:
@@ -262,7 +285,8 @@ def getUiApiKey():
 			abort(401)
 
 	return Response(json.dumps({
-		'uIApiKey': UI_API_KEY
+		'api_key': UI_API_KEY,
+		'ws_token': create_ws_token(publicKey)
 	}), mimetype= 'application/json')
 
 
@@ -278,12 +302,29 @@ def on_identity_loaded(sender, identity):
 	if user.is_admin():
 		identity.provides.add(RoleNeed("admin"))
 
-
 def load_user(id):
 	if userManager is not None:
 		return userManager.findUser(id)
 	return users.DummyUser()
 
+def create_ws_token(public_key= None):
+	from itsdangerous import URLSafeTimedSerializer
+
+	s = URLSafeTimedSerializer(UI_API_KEY)
+	return s.dumps({ 'public_key': public_key })
+
+def read_ws_token(token):
+	if not token:
+		return None
+
+	from itsdangerous import URLSafeTimedSerializer, BadSignature
+
+	s = URLSafeTimedSerializer(UI_API_KEY)
+
+	try:
+		return s.loads(token, max_age= 10)
+	except BadSignature as e:
+		return None
 
 #~~ startup code
 

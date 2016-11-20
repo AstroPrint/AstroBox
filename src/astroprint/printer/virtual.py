@@ -21,7 +21,6 @@ class PrinterVirtual(Printer):
 	_fileManagerClass = PrintFileManagerGcode
 
 	def __init__(self):
-
 		seettings_file = "%s/virtual-printer-settings.yaml" % os.path.dirname(settings()._configfile)
 
 		self._settings = {
@@ -176,6 +175,7 @@ class PrinterVirtual(Printer):
 
 			if self._temperatureChanger:
 				self._temperatureChanger.stop()
+				self._temperatureChanger.join()
 				self._temperatureChanger = None
 
 			self._changeState(self.STATE_CLOSED)
@@ -287,6 +287,9 @@ class PrinterVirtual(Printer):
 
 	def sendRawCommand(self, command):
 		self._logger.info('Raw Command - %s', command)
+
+	def getShortErrorString(self):
+		return "Virtual Error"
 
 	# ~~~~~~ Private Functions ~~~~~~~~~~
 	def _changeState(self, newState):

@@ -66,7 +66,7 @@ var AstroBoxApp = Backbone.View.extend({
     this.eventManager = Backbone.Events;
 
     this.socketData.connectionView = this.connectionView;
-    this.socketData.connect();
+    this.socketData.connect(WS_TOKEN);
     this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
     this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
     this.listenTo(this.socketData, "change:box_reachable", this.onReachableChanged );

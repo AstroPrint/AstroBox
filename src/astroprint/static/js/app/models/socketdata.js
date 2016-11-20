@@ -59,7 +59,7 @@ var SocketData = Backbone.Model.extend({
         }, this));
     }
   },
-  connect: function()
+  connect: function(token)
   {
     this.set('box_reachable', 'checking');
 
@@ -68,15 +68,26 @@ var SocketData = Backbone.Model.extend({
       options["debug"] = true;
     }
 
-    this._socket = new SockJS(SOCKJS_URI, undefined, options);
+    this._socket = new SockJS(SOCKJS_URI+'?token='+token, undefined, options);
     this._socket.onopen = _.bind(this._onConnect, this);
     this._socket.onclose = _.bind(this._onClose, this);
     this._socket.onmessage = _.bind(this._onMessage, this);
   },
   reconnect: function() {
-    this._socket.close();
-    delete this._socket;
-    this.connect();
+    if (this._socket) {
+      this._socket.close();
+      delete this._socket;
+    }
+
+    $.getJSON('/wsToken')
+      .done(_.bind(function(data){
+        if (data && data.ws_token) {
+          this.connect(data.ws_token);
+        }
+      }, this))
+      .fail(_.bind(function(){
+        this._onClose();
+      }, this));
   },
   _onConnect: function() {
     if (this._nextReconnectAttempt) {
@@ -88,7 +99,7 @@ var SocketData = Backbone.Model.extend({
     //Get some initials
   },
   _onClose: function(e) {
-    if (e.code == 1000) {
+    if (e && e.code == 1000) {
       // it was us calling close
       return;
     }

@@ -159,7 +159,7 @@ def save_connection_settings():
 	baudrate = request.values.get('baudrate', None)
 	driver = request.values.get('driver', None)
 
-	if port and ( baudrate or driver == 's3g'):
+	if port and ( baudrate or driver in ['s3g', 'virtual']):
 		s = settings()
 
 		s.set(["serial", "port"], port)

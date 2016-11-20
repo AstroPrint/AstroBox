@@ -1,92 +1,93 @@
 {% extends 'base.jinja2' %}
 
 {% block css %}
-	{% assets filters="scss", output="css/gen/updating.css", 
-		"css/scss/updating.scss" %}
-		<link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
-	{% endassets %}
+  {% assets filters="scss", output="css/gen/updating.css",
+    "css/scss/updating.scss" %}
+    <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}" />
+  {% endassets %}
 {% endblock %}
 
 {% block content %}
 <div id="updating-view" class="row">
-	{% if showForceUpdate %}
-		<div class="small-12 medium-11 large-8 medium-centered large-centered columns info">
-			<h1 class="bold" align="center">System Update</h1>
-			<p>
-				<i class="icon-attention"></i> Your software is currently out of date and needs to be 
-				updated in order to continue using your {{variantData['productName']}}.
-			</p>
-			<p><b>Version</b>: {{ releaseInfo['major'] }}.{{ releaseInfo['minor'] }}({{ releaseInfo['build'] }})</p>
-			<p><b>Release Date</b>: {% if releaseInfo['date'] -%} {{ releaseInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
-			<p>
-				<b>Release Notes:</b>
-				<div class="release-notes">
-					{{ releaseInfo['release_notes'] }}
-				</div>
-			</p>
-			<center>
-				<div class="loading-button">
-					<button class="success radius bold">Install Now</button>
-					<span class="loading button success disabled radius">
-						<i class="icon-rocket-spinner animate-spin"></i> Initiating...
-					</span>
-				</div>
-			</center>
-		</div>
-	{% endif %}
-	<div class="small-12 columns progress-info {%- if showForceUpdate %} hide {%- endif %}">
-		<h1 class="bold" align="center">Software Update in Progress</h1>
-		<div class="progress success round">
-		  <span class="meter" style="width:0%"></span>
-		</div>
-		<h3 align="center" class="message">Downloading release...</h3>
-		<center>
-			<div class="progress-animation">
-				<img class="progress-img" src="/img/progress-animation-4.5.gif"/>
-				<img class="left-img" src="/img/globe.png"/>
-				<img class="right-img" src="/img/astrobox.png"/>
-			</div>
-		</center>
-	</div>
-	<div class="small-12 medium-11 medium-centered large-8 large-centered columns error hide">
-		<h1 class="bold" align="center">System Update Failed</h1>
-		<p>
-			<i class="icon-attention"></i> An error occured and your {{variantData['productName']}} was unable to 
-			complete the update.
-		</p>
-		<div class="row">
-			<div class="small-12 medium-6 columns">
-				<button class="expand radius secondary bold close">Close</button>
-			</div>
-			<div class="small-12 medium-6 columns">
-				<div class="loading-button expand">
-					<button class="expand radius success bold retry">Retry</button>
-					<span class="loading button success expand disabled radius">
-						<i class="icon-rocket-spinner animate-spin"></i> Initiating...
-					</span>
-				</div>
-			</div>
-		</div>
-	</div>
+  {% if showForceUpdate %}
+    <div class="small-12 medium-11 large-8 medium-centered large-centered columns info">
+      <h1 class="bold" align="center">System Update</h1>
+      <p>
+        <i class="icon-attention"></i> Your software is currently out of date and needs to be
+        updated in order to continue using your {{variantData['productName']}}.
+      </p>
+      <p><b>Version</b>: {{ releaseInfo['major'] }}.{{ releaseInfo['minor'] }}({{ releaseInfo['build'] }})</p>
+      <p><b>Release Date</b>: {% if releaseInfo['date'] -%} {{ releaseInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
+      <p>
+        <b>Release Notes:</b>
+        <div class="release-notes">
+          {{ releaseInfo['release_notes'] }}
+        </div>
+      </p>
+      <center>
+        <div class="loading-button">
+          <button class="success radius bold">Install Now</button>
+          <span class="loading button success disabled radius">
+            <i class="icon-rocket-spinner animate-spin"></i> Initiating...
+          </span>
+        </div>
+      </center>
+    </div>
+  {% endif %}
+  <div class="small-12 columns progress-info {%- if showForceUpdate %} hide {%- endif %}">
+    <h1 class="bold" align="center">Software Update in Progress</h1>
+    <div class="progress success round">
+      <span class="meter" style="width:0%"></span>
+    </div>
+    <h3 align="center" class="message">Downloading release...</h3>
+    <center>
+      <div class="progress-animation">
+        <img class="progress-img" src="/img/progress-animation-4.5.gif"/>
+        <img class="left-img" src="/img/globe.png"/>
+        <img class="right-img" src="/img/astrobox.png"/>
+      </div>
+    </center>
+  </div>
+  <div class="small-12 medium-11 medium-centered large-8 large-centered columns error hide">
+    <h1 class="bold" align="center">System Update Failed</h1>
+    <p>
+      <i class="icon-attention"></i> An error occured and your {{variantData['productName']}} was unable to
+      complete the update.
+    </p>
+    <div class="row">
+      <div class="small-12 medium-6 columns">
+        <button class="expand radius secondary bold close">Close</button>
+      </div>
+      <div class="small-12 medium-6 columns">
+        <div class="loading-button expand">
+          <button class="expand radius success bold retry">Retry</button>
+          <span class="loading button success expand disabled radius">
+            <i class="icon-rocket-spinner animate-spin"></i> Initiating...
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block js %}
-	<script type="text/javascript">
-		var UI_API_KEY = "{{ uiApiKey }}";
-		var BASEURL = "{{ url_for('index') }}";
-		var API_BASEURL = BASEURL + "api/";
-		var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-		var RELEASE_ID = "{{ releaseInfo['id'] }}";
-		var updateInfo = {
-			'progress': {{ lastCompletionPercent or 'null' }},
-			'message': "{{ lastMessage or '' }}"
-		}
-	</script>
-	{% assets filters="closure_js", output="js/gen/updating.js", 
-		"js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/updating/updating.js" -%}
-			<script type="text/javascript" src="{{ ASSET_URL }}"></script>
-	{%- endassets %}
-	<script type="text/javascript">
-	</script>
+  <script type="text/javascript">
+    var UI_API_KEY = "{{ uiApiKey }}";
+    var BASEURL = "{{ url_for('index') }}";
+    var API_BASEURL = BASEURL + "api/";
+    var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
+    var RELEASE_ID = "{{ releaseInfo['id'] }}";
+    var WS_TOKEN = "{{ wsToken }}";
+    var updateInfo = {
+      'progress': {{ lastCompletionPercent or 'null' }},
+      'message': "{{ lastMessage or '' }}"
+    }
+  </script>
+  {% assets filters="closure_js", output="js/gen/updating.js",
+    "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/updating/updating.js" -%}
+      <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {%- endassets %}
+  <script type="text/javascript">
+  </script>
 {% endblock %}
