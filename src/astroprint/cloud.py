@@ -405,7 +405,8 @@ class AstroPrintCloud(object):
 				else:
 					#create a print job
 					data = {
-						'box_id': boxrouterManager().boxId
+						'box_id': boxrouterManager().boxId,
+						'product_variant_id': softwareManager().data['variant']['id']
 					}
 
 					if not print_file_id and not print_file_name:
