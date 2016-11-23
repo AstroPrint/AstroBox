@@ -459,12 +459,7 @@ class MachineCom(object):
 		#	self.sendCommand("M25")    # pause print
 		#	self.sendCommand("M26 S0") # reset position in file to byte 0
 
-		eventManager().fire(Events.PRINT_CANCELLED, {
-			"file": self._currentFile.getFilename(),
-			"filename": os.path.basename(self._currentFile.getFilename()),
-			"origin": self._currentFile.getFileLocation(),
-		})
-
+		self.unselectFile()
 		self._changeState(self.STATE_OPERATIONAL)
 		self._cancelInProgress = False
 		self._pauseInProgress = False

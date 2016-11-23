@@ -4,6 +4,7 @@ __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import time
+import os
 import datetime
 import threading
 import logging
@@ -52,8 +53,6 @@ class PrinterMarlin(Printer):
 		self._sdStreaming = False
 		self._sdFilelistAvailable = threading.Event()
 		self._streamingFinishedCallback = None
-
-		self._selectedFile = None
 
 		# comm
 		self._comm = None
@@ -247,6 +246,12 @@ class PrinterMarlin(Printer):
 
 		# mark print as failure
 		if self._selectedFile is not None:
+			eventManager().fire(Events.PRINT_CANCELLED, {
+				"file": self._selectedFile["filename"],
+				"filename": os.path.basename(self._selectedFile["filename"]),
+				"origin": FileDestinations.LOCAL,
+			})
+
 			self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
 			payload = {
 				"file": self._selectedFile["filename"],

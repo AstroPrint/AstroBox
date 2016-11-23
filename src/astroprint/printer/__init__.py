@@ -345,9 +345,9 @@ class Printer(object):
 				activePrintJob = self._currentPrintJobId
 				self._currentPrintJobId = None
 
-			self.executeCancelCommands(disableMotorsAndHeater)
-
 			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
+
+			self.executeCancelCommands(disableMotorsAndHeater)
 
 			return {'print_job_id': activePrintJob}
 
