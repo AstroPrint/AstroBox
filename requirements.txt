@@ -10,8 +10,8 @@ pyserial==2.7
 netaddr==0.7.12
 watchdog==0.8.3
 sarge==0.1.4
-requests==2.9
-requests-toolbelt==0.6.0
+requests==2.12.1
+requests-toolbelt==0.7.0
 flask-compress==1.0.2
 scss==0.8.73
 closure==20140110
