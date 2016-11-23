@@ -24,17 +24,20 @@ var CameraView = CameraViewBase.extend({
   {
     e.preventDefault();
 
+    var target = $(e.currentTarget);
+    var loadingBtn = target.closest('.loading-button');
+
     $('.camera-screen').hide();
-    this.$('.loading-button').addClass('loading');
+    loadingBtn.addClass('loading');
 
     this.buttonEvent()
       .fail(function(){
         $('.camera-screen').show();
         noty({text: "Camera error.", timeout: 3000});
       })
-      .always(_.bind(function(){
-        this.$('.loading-button').removeClass('loading');
-      }, this))
+      .always(function(){
+        loadingBtn.removeClass('loading');
+      });
   },
   getPhotoContainer: function()
   {

@@ -93,6 +93,10 @@
 				.video-off, .video-on {
 					i {
 						padding: 15px;
+
+            &.icon-rocket-spinner {
+              padding: 5px;
+            }
 					}
 				}
 			}

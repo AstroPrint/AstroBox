@@ -117,17 +117,20 @@ var PhotoView = CameraViewBase.extend({
   {
     e.preventDefault();
 
+    var target = $(e.currentTarget);
+    var loadingBtn = target.closest('.loading-button');
+
     $('.icon-3d-object').hide();
-    this.$('.loading-button').addClass('loading');
+    loadingBtn.addClass('loading');
 
     this.buttonEvent()
       .fail(function(){
-      $('.icon-3d-object').show();
-      noty({text: "Camera Error.", timeout: 3000});
+        $('.icon-3d-object').show();
+        noty({text: "Camera Error.", timeout: 3000});
       })
-      .always(_.bind(function(){
-      this.$('.loading-button').removeClass('loading');
-      }, this))
+      .always(function(){
+        loadingBtn.removeClass('loading');
+      });
   },
   getPhotoContainer: function()
   {

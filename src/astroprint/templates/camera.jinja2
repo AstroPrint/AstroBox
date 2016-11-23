@@ -17,7 +17,7 @@
 			<p><b>Did you plug another camera?</b> Did you selected a correct "Video Format" and resolution in settings?</p><p>Please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button
 			</p>
 		</div>
-	<% } else { 
+	<% } else {
 		if(this.cameraNotSupported) { %>
 
 		<div class="panel text-center radius">
@@ -37,7 +37,7 @@
 								<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
 							</div>
 							<div class="small-12 columns text-center">
-								<b>Oops!</b>, You are using <%= navigator.sayswho %>. 
+								<b>Oops!</b>, You are using <%= navigator.sayswho %>.
 								<% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
 									This browser can only stream video in VP8
 									encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
@@ -123,7 +123,10 @@
 									<button class="success radius bold"><i class="icon-videocam-1"></i><span class="hide-for-small">Start Streaming Video</span></button>
 								</div>
 								<div class="small-8 large-6 columns video-on">
-									<button class="secondary radius bold"><i class="icon-stop"></i><span class="hide-for-small">Stop Streaming Video</span></button>
+                  <div class="loading-button">
+									 <button class="secondary radius bold"><i class="icon-stop"></i><span class="hide-for-small">Stop Streaming Video</span></button>
+                   <span class="button secondary disabled loading radius"><i class="icon-rocket-spinner animate-spin"></i> <span class="hide-for-small">Stopping Video...</span></span>
+                  </div>
 								</div>
 							<% } else { %>
 								<div class="small-8 large-6 columns video-off">
