@@ -434,8 +434,8 @@ class AstroprintBoxRouter(object):
 
 			activeConnections = nm.getActiveConnections()
 
-			if activeConnections and ( activeConnections['wired'] or activeConnections['wireless']):
-				preferredConn = activeConnections['wired'] or activeConnections['wireless']
+			if activeConnections and ( activeConnections['wired'] or activeConnections['wireless'] or activeConnections['manual']):
+				preferredConn = activeConnections['wired'] or activeConnections['wireless'] or activeConnections['manual']
 				localIpAddress = preferredConn['ip']
 			else:
 				localIpAddress = None
