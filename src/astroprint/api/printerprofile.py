@@ -9,16 +9,21 @@ from octoprint.server import restricted_access
 
 from astroprint.printerprofile import printerProfileManager
 
-@api.route('/printer-profile', methods=['PATCH'])
+@api.route('/printer-profile', methods=['PATCH', 'GET'])
 @restricted_access
 def printer_profile_patch():
-	changes = request.json
-
-	if 'cancel_gcode' in changes:
-		changes['cancel_gcode'] = changes['cancel_gcode'].strip().split('\n');
-
 	ppm = printerProfileManager()
-	ppm.set(changes)
-	ppm.save()
 
-	return jsonify()
+	if request.method == "PATCH":
+		changes = request.json
+
+		if 'cancel_gcode' in changes:
+			changes['cancel_gcode'] = changes['cancel_gcode'].strip().split('\n');
+
+		ppm.set(changes)
+		ppm.save()
+
+		return jsonify()
+
+	else:
+		return jsonify(ppm.data)
