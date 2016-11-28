@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -13,7 +13,8 @@
   events: _.extend(TempBarView.prototype.events, {
     'click': 'onClicked'
   }),
-  setHandle: function(value) {
+  setHandle: function(value)
+  {
     if (!this.dragging) {
       var position = this._temp2px(value);
       var handle = this.$el.find('.temp-target');
@@ -26,7 +27,8 @@
       }, 800);
     }
   },
-  onTouchMove: function(e) {
+  onTouchMove: function(e)
+  {
     if (this.dragging) {
       e.preventDefault();
       e.stopPropagation();
@@ -46,7 +48,8 @@
       target.css({left: newLeft+'px'});
     }
   },
-  onClicked: function(e) {
+  onClicked: function(e)
+  {
     e.preventDefault();
 
     var target = this.$el.find('.temp-target');
@@ -59,9 +62,11 @@
     this.setHandle(temp);
     this._sendToolCommand('target', this.type, temp);
   },
-  onResize: function() {
+  onResize: function()
+  {
     var container = this.$el;
     var handle = container.find('.temp-target');
+    var currentLine = container.find('.temp-curret-line');
     var currentLabel = container.find('.temp-current');
     var label = container.find('label');
 
@@ -76,8 +81,12 @@
       minLeft: minLeft,
       px4degree: (maxLeft - minLeft) / (this.scale[1] - this.scale[0])
     };
+
+    handle.css({left: this._temp2px(this.actual) + 'px'});
+    currentLine.css({left: ( this._temp2px(this.actual) + handle.innerWidth()/2.0 )+'px'});
   },
-  renderTemps: function(actual, target) {
+  renderTemps: function(actual, target)
+  {
     var handle = this.$el.find('.temp-target');
     var handleWidth = handle.innerWidth();
 
@@ -92,12 +101,14 @@
       this.$el.find('.temp-curret-line').css({left: ( this._temp2px(actual) + handleWidth/2.0 )+'px'});
     }
   },
-  _temp2px: function(temp) {
+  _temp2px: function(temp)
+  {
     var px = temp * this.containerDimensions.px4degree;
 
     return this.containerDimensions.minLeft + px;
   },
-  _px2temp: function(px) {
+  _px2temp: function(px)
+  {
     return Math.round( ( (px - this.containerDimensions.minLeft) / this.containerDimensions.px4degree ) );
   }
 });
@@ -186,13 +197,9 @@ var PhotoView = CameraViewBase.extend({
   },
   render: function()
   {
-
     this.$el.html(this.template());
 
     var imageNode = this.$('.camera-image');
-
-    /////////////////////
-    //image
     var imageUrl = null;
 
     if (this.print_capture && this.print_capture.last_photo) {
@@ -204,7 +211,6 @@ var PhotoView = CameraViewBase.extend({
     if (imageNode.attr('src') != imageUrl) {
       imageNode.attr('src', imageUrl);
     }
-    ////////////////////
 
     if(!this.canStream){
 
@@ -343,7 +349,8 @@ var PrintingView = Backbone.View.extend({
   printing_progress: null,
   paused: null,
   cancelDialog: null,
-  initialize: function() {
+  initialize: function()
+  {
     this.nozzleBar = new TempBarHorizontalView({
       scale: [0, app.printerProfile.get('max_nozzle_temp')],
       el: this.$el.find('.temp-bar.nozzle'),
@@ -417,22 +424,26 @@ var PrintingView = Backbone.View.extend({
       this.bedBar.$el.addClass('hide');
     }
   },
-  onTempsChanged: function(s, value) {
+  onTempsChanged: function(s, value)
+  {
     if (!this.$el.hasClass('hide')) {
       this.nozzleBar.setTemps(value.extruder.actual, value.extruder.target);
       this.bedBar.setTemps(value.bed.actual, value.bed.target);
     }
   },
-  onProgressChanged: function(s, value) {
+  onProgressChanged: function(s, value)
+  {
     this.printing_progress = value;
     this.render();
   },
-  onPausedChanged: function(s, value) {
+  onPausedChanged: function(s, value)
+  {
     this.paused = value;
     this.render();
     this.photoView.render();
   },
-  _formatTime: function(seconds) {
+  _formatTime: function(seconds)
+  {
     if (seconds == null || isNaN(seconds)) {
       return ['--','--','--'];
     }
@@ -447,7 +458,8 @@ var PrintingView = Backbone.View.extend({
     if (seconds < 10) {seconds = "0"+seconds;}
     return [hours, minutes, seconds];
   },
-  show: function() {
+  show: function()
+  {
     this.nozzleBar.onResize();
     this.bedBar.onResize();
     this.printing_progress = app.socketData.get('printing_progress');
@@ -459,14 +471,16 @@ var PrintingView = Backbone.View.extend({
   {
     this.photoView.trigger('message:hide');
   },
-  stopPrint: function(e) {
+  stopPrint: function(e)
+  {
     if (!this.cancelDialog) {
       this.cancelDialog = new CancelPrintDialog({parent: this});
     }
 
     this.cancelDialog.open();
   },
-  togglePausePrint: function(e) {
+  togglePausePrint: function(e)
+  {
     var loadingBtn = $(e.target).closest('.loading-button');
     var wasPaused = app.socketData.get('paused');
 
@@ -480,11 +494,13 @@ var PrintingView = Backbone.View.extend({
       loadingBtn.removeClass('loading');
     });
   },
-  showControlPage: function() {
+  showControlPage: function()
+  {
     app.router.navigate('control', {trigger: true, replace: true});
     this.$el.addClass('hide');
   },
-  _jobCommand: function(command, data, callback) {
+  _jobCommand: function(command, data, callback)
+  {
     $.ajax({
       url: API_BASEURL + "job",
       type: "POST",
@@ -511,10 +527,12 @@ var CancelPrintDialog = Backbone.View.extend({
     'change input[name=reason]': 'onReasonChanged'
   },
   parent: null,
-  initialize: function(params) {
+  initialize: function(params)
+  {
     this.parent = params.parent;
   },
-  open: function() {
+  open: function()
+  {
     this.printJobId = null;
     this.$el.foundation('reveal', 'open');
     this.$("input[name=reason]").prop("checked", false);
@@ -522,10 +540,12 @@ var CancelPrintDialog = Backbone.View.extend({
     this.$('.ask').removeClass('hide');
     this.$('.reasons').addClass('hide').find('h3').removeClass('animated bounceIn');
   },
-  close: function() {
+  close: function()
+  {
     this.$el.foundation('reveal', 'close');
   },
-  onYesClicked: function(e) {
+  onYesClicked: function(e)
+  {
     e.preventDefault();
 
     var loadingBtn = $(e.target).closest('.loading-button');
