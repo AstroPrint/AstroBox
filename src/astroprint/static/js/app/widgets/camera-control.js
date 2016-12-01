@@ -397,6 +397,9 @@ var CameraControlViewWebRTC = CameraControlView.extend({
         var janus = new Janus({
           server: this.serverUrl,
           apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
+          iceServers: [{
+            "url": "stun:turn.astroprint.com:80"
+          }],
           success: _.bind(function() {
             $.ajax({
               url: API_BASEURL + "camera/peer-session",

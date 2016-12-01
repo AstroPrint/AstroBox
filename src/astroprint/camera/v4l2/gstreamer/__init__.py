@@ -57,6 +57,7 @@ class GStreamerManager(V4L2Manager):
 		return self._apPipeline and self._apPipeline.processRunning
 
 	def _onApPipelineFataError(self):
+		self._logger.error('AstroPrint Pipeline Fatal Error called')
 		self._haltCamera()
 
 	def _freeApPipeline(self):
@@ -66,7 +67,7 @@ class GStreamerManager(V4L2Manager):
 
 	def _haltCamera(self):
 		self.close_camera()
-		webRtcManager().stopJanus()
+		webRtcManager().closeAllSessions()
 
 	def reScan(self):
 		if super(GStreamerManager, self).reScan():
