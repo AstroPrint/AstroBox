@@ -19,9 +19,8 @@ import os
 import signal
 import re
 import time
-import uuid
 
-import astroprint.util as processesUtil
+from blinker import signal
 
 from octoprint.settings import settings
 from astroprint.webrtc.janus import Plugin, Session, KeepAlive
@@ -29,8 +28,6 @@ from astroprint.boxrouter import boxrouterManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.util import interval
-
-from blinker import signal
 
 
 class WebRtc(object):
@@ -41,7 +38,6 @@ class WebRtc(object):
 		self._janusStartStopCondition = threading.Condition()
 		self._JanusProcess = None
 		self.videoId = 1
-		initialized = signal('initialized')
 		self.peersDeadDetacher = None
 
 	def shutdown(self):
@@ -70,7 +66,7 @@ class WebRtc(object):
 				if len(self._connectedPeers.keys()) == 0:
 					#last session
 					self.stopJanus()
-					self.stopGStreamer()
+					cameraManager().stop_video_stream()
 
 			return True
 
@@ -92,7 +88,7 @@ class WebRtc(object):
 				#something went wrong, no session started. Do we still need Janus up?
 				if len(self._connectedPeers.keys()) == 0:
 					self.stopJanus()
-					self.stopGStreamer()
+					cameraManager().stop_video_stream()
 
 				return None
 
@@ -117,11 +113,9 @@ class WebRtc(object):
 				if len(self._connectedPeers.keys()) == 0:
 					#last session
 					self.stopJanus()
-					self.stopGStreamer()
-					ready = signal('manage_fatal_error_webrtc')
-					ready.disconnect(self.closeAllSessions)
+					cameraManager().stop_video_stream()
 
-	def closeAllSessions(self,sender,message):
+	def closeAllSessions(self, sender, message):
 		self._logger.info("Closing all streaming sessions")
 
 		for key in self._connectedPeers.keys():
@@ -213,8 +207,8 @@ class WebRtc(object):
 
 			try:
 				self._JanusProcess = subprocess.Popen(
-						args,
-						stdout=subprocess.PIPE
+					args,
+					stdout=subprocess.PIPE
 				)
 
 			except Exception, error:
@@ -236,28 +230,29 @@ class WebRtc(object):
 
 					try:
 						response = session.post(
-								url='http://127.0.0.1:8088',
-								data={
-							 "message":{
-								"request": 'info',
-											"transaction": 'ready'
-									}
+							url= 'http://127.0.0.1:8088',
+							data= {
+							 	"message":{
+									"request": 'info',
+									"transaction": 'ready'
 								}
+							}
 						)
 
 					except Exception, error:
-						#self._logger.warn('Waiting for Janus initialization')
+						self._logger.debug('Waiting for Janus initialization')
 						tryingCounter += 1
 
 						if tryingCounter >= 100:
 							self._logger.error(error)
 							return False
 
-				ready = signal('manage_fatal_error')
+				#Connect the signal for fatal errors when they happen
+				ready = signal('manage_fatal_error_webrtc')
 				ready.connect(self.closeAllSessions)
 
 				#START TIMER FOR LOST PEERS
-				self.peersDeadDetacher = interval(30.0,self.pingPongRounder,None)
+				self.peersDeadDetacher = interval(30.0, self.pingPongRounder, None)
 				self.peersDeadDetacher.start()
 
 				return True
@@ -282,15 +277,15 @@ class WebRtc(object):
 					#STOP TIMER FOR LOST PEERS
 					self.peersDeadDetacher.cancel()
 
+					ready = signal('manage_fatal_error_webrtc')
+					ready.disconnect(self.closeAllSessions)
+
 					return True
 
 			except Exception as e:
 				self._logger.error("Error stopping Janus. Error: %s" % e)
 
 			return False
-
-	def stopGStreamer(self):
-		cameraManager().stop_video_stream()
 
 	def sendEventToPeers(self, type, data=None):
 		for key in self._connectedPeers.keys():
@@ -367,7 +362,6 @@ class ConnectionPeer(object):
 	#	logging.info('STREAMINGPLUGIN ON HANGUP')
 
 	def start(self):
-
 		sem = threading.Event()
 
 		self.streamingPlugin = StreamingPlugin()
@@ -468,7 +462,6 @@ class ConnectionPeer(object):
 		self.session.register_plugin(self.streamingPlugin);
 		self.session.connect();
 
-
 		self.sessionKa = KeepAlive(self.session)
 		self.sessionKa.daemon = True
 		self.sessionKa.start()
@@ -477,14 +470,11 @@ class ConnectionPeer(object):
 		sem.clear()
 
 		if waitingState:
-
 			return self.session.id
 
 		else:
-
 			logging.error("Error initializing Janus: session can not be started")
 			return None
-
 
 	def close(self):
 		#stop the keepalive worker
