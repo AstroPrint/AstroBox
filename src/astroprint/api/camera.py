@@ -106,7 +106,6 @@ def peer_session():
 @api.route("/camera/start-streaming",methods=["POST"])
 @restricted_access
 def start_streaming():
-	#open_camera
-	webRtcManager().startGStreamer()
+	webRtcManager().startVideoStream()
 
 	return jsonify(SUCCESS)

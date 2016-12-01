@@ -164,17 +164,17 @@ class WebRtc(object):
 			self._connectedPeers[sessionId].streamingPlugin.set_session_description(data['type'],data['sdp'])
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
 			#able to serve video
-			self.startGStreamer()
+			self.startVideoStream()
 
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
 		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 
 	def pongCallback(self, data, key):
-
 		if 'pong' != data:
 			if 'error' in data:
 				self._logger.error('Webrtc client lost: %s. Automatic peer session closing...',data['error'])
+
 			self.closePeerSession(key)
 
 	def pingPongRounder(self,params=None):
@@ -183,11 +183,11 @@ class WebRtc(object):
 				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
 				boxrouterManager().sendRequestToClient(self._connectedPeers[key].clientId, 'ping',None,10, self.pongCallback, [key])
 
-	def startGStreamer(self):
-		#Start Gstreamer
+	def startVideoStream(self):
+		#Start Video Stream
 		def startDone(success):
 			if not success:
-				self._logger.error('Managing Gstreamer error in WebRTC object')
+				self._logger.error('Managing GStreamer error in WebRTC object')
 				self.stopJanus()
 
 		cameraManager().start_video_stream(startDone)
@@ -299,8 +299,8 @@ class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
 
 class ConnectionPeer(object):
-
 	def __init__(self, clientId, parent):
+		self._logger = logging.getLogger(__name__ + ':ConnectionPeer')
 		self.session = None
 		self.clientId = clientId
 		self.sessionKa = None
@@ -312,21 +312,22 @@ class ConnectionPeer(object):
 	#def connection_on_opened(self,connection):
 	#	logging.info('CONNECTION ON OPENED')
 
-	#def connection_on_closed(self,connection,**kw):
-	#	logging.info('CONNECTION ON CLOSED')
+	def connection_on_closed(self, connection, **kw):
+		self._logger.warn('Lost connection with Janus')
+		self._parent.closeAllSessions()
 
-	def connection_on_message(self,connection,message):
+	def connection_on_message(self, connection, message):
+		messageToSend = json.loads(str(message))
 
-		messageToReturn = json.loads(str(message))
-
-		if self.session is not None and 'session_id' in messageToReturn and messageToReturn['session_id'] != self.session.id:
+		if self.session is not None and 'session_id' in messageToSend and messageToSend['session_id'] != self.session.id:
 			return
 
-		if 'janus' in messageToReturn and messageToReturn['janus'] == 'hangup':
+		if 'janus' in messageToSend and messageToSend['janus'] == 'hangup':
 			#Finish camera session caused by user or exception
-			self._parent.closePeerSession(messageToReturn['session_id'])
-		elif 'jsep' in messageToReturn:
-			self.sendEventToPeer('getSdp',messageToReturn)
+			self._parent.closePeerSession(messageToSend['session_id'])
+
+		elif 'jsep' in messageToSend:
+			self.sendEventToPeer('getSdp', messageToSend)
 
 	#SESSION
 	#def session_on_connected(self,session,**kw):
@@ -383,25 +384,25 @@ class ConnectionPeer(object):
 		#self.session.cxn_cls.on_opened.connect(self.connection_on_opened)
 
 		#
-			# Signal fired when `Connection` has been closed.
-			#	on_closed = blinker.Signal()
-		#self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
+		# Signal fired when `Connection` has been closed.
+		#	on_closed = blinker.Signal()
+		self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
 
 		#
-			# Signal fired when `Connection` receives a message
-			#	on_message = blinker.Signal()
+		# Signal fired when `Connection` receives a message
+		#	on_message = blinker.Signal()
 		self.session.cxn_cls.on_message.connect(self.connection_on_message)
 
-			##
+		##
 
 
-			#SESSION
-			#self.session
-			#
-			#SIGNALS
-			#
-			# Signal fired when `Session` has been connected.
-			#	on_connected = blinker.Signal()
+		#SESSION
+		#self.session
+		#
+		#SIGNALS
+		#
+		# Signal fired when `Session` has been connected.
+		#	on_connected = blinker.Signal()
 		#self.session.on_connected.connect(self.session_on_connected)
 
 		#
@@ -473,7 +474,7 @@ class ConnectionPeer(object):
 			return self.session.id
 
 		else:
-			logging.error("Error initializing Janus: session can not be started")
+			self._logger.error("Error initializing Janus: session can not be started")
 			return None
 
 	def close(self):
