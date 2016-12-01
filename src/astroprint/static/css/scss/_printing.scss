@@ -1,467 +1,487 @@
 #printing-view {
-	h2 {
-		font-size: rem-calc(28);
-		margin-bottom: 20px;
-	}
+  h2 {
+    font-size: rem-calc(28);
+    margin-bottom: 20px;
+  }
 
-	.progress {
-		position: relative;
-		text-align: left;
-		height: 40px;
+  .progress {
+    position: relative;
+    text-align: left;
+    height: 40px;
 
-		.filename {
-			position: absolute;
-			top: 8px;
-			left: 10px;
-			color: black;
-			font-size: rem-calc(20);
-			max-width: 60%;
-			overflow-x: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-			line-height: rem-calc(25);
-		}
+    .filename {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      color: black;
+      font-size: rem-calc(20);
+      max-width: 60%;
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: rem-calc(25);
+    }
 
-		.progress-label {
-			position: absolute;
-			right: 10px;
-			top: 8px;
-			font-size: rem-calc(20);
-			color: black;
-			line-height: rem-calc(25)
-		}
-	}
+    .progress-label {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      font-size: rem-calc(20);
+      color: black;
+      line-height: rem-calc(25)
+    }
+  }
 
-	.print-info {
-		font-size: rem-calc(42);
-		margin: 10px 0 10px 0;
+  .print-info {
+    font-size: rem-calc(42);
+    margin: 10px 0 10px 0;
 
-		.highlighted {
-			font-size: rem-calc(56);
-			color: $success-color;
-		}
+    .highlighted {
+      font-size: rem-calc(56);
+      color: $success-color;
+    }
 
-		.info {
-			> div {
-				margin: 20px 0;
-			}
-		}
+    .info {
+      > div {
+        margin: 20px 0;
+      }
+    }
 
-		.heating {
-			display: none;
-		}
+    .heating {
+      display: none;
+    }
 
-		.camera-container {
-			padding-top: 75%;
-			position: relative;
-			background: #efefef;
-			overflow: hidden;
+    .camera-container {
+      padding-top: 75%;
+      position: relative;
+      background: #efefef;
+      overflow: hidden;
 
-			i {
-				display: block;
-				position: absolute;
-				top: 50%;
-				left: 50%;
-				margin-left: -42px;
-				margin-top: -30px;
-				font-size: 60px;
-				color: #ccc;
-			}
+      i {
+        display: block;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -42px;
+        margin-top: -30px;
+        font-size: 60px;
+        color: #ccc;
+      }
 
-			img {
-				position:absolute;
-				width: 100%;
-				top: 0;
-				left: 0;
-			}
-		}
+      img {
+        position:absolute;
+        width: 100%;
+        top: 0;
+        left: 0;
+      }
+    }
 
-		$camera-controls-height: 60px;
+    $camera-controls-height: 60px;
 
-		.camera-controls {
-			height: $camera-controls-height;
-			background: #dfdfdf;
+    .camera-controls {
+      height: $camera-controls-height;
+      background: #dfdfdf;
 
-			.loading-button {
-				display: block;
-				height: 70px;
-				width: 70px;
-				margin-top: -15px;
-			}
+      .loading-button {
+        display: block;
+        height: 70px;
+        width: 70px;
+        margin-top: -15px;
+      }
 
-			.loading-button {
-				.video-off, .video-on {
-					i {
-						padding: 15px;
+      .loading-button {
+        .video-off, .video-on {
+          i {
+            padding: 15px;
 
             &.icon-rocket-spinner {
               padding: 5px;
             }
-					}
-				}
-			}
+          }
+        }
+      }
 
-			button, .button.loading {
-				padding: 0;
-				width: 100%;
-				height: 100%;
-				margin: 0;
-			}
+      button, .button.loading {
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
 
-			button.take-pic {
-				i {
-					margin-left: -2px;
-					margin-top: 1px;
-					display: block;
-					font-size: 30px
-				}
-			}
+      button.take-pic {
+        i {
+          margin-left: -2px;
+          margin-top: 1px;
+          display: block;
+          font-size: 30px
+        }
+      }
 
-			.timelapse {
-				position: relative;
-				height: $camera-controls-height;
+      .timelapse {
+        position: relative;
+        height: $camera-controls-height;
 
-				.overlay {
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-					height: 100%;
-				}
+        .overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+        }
 
-				i {
-					font-size: rem-calc(25);
-					color: #505050;
-					left: 15px;
-					position: absolute;
-				}
+        i {
+          font-size: rem-calc(25);
+          color: #505050;
+          left: 15px;
+          position: absolute;
+        }
 
-				.dot {
-					position: absolute;
-					top: 34px;
-					left: 10px;
-					display: inline-block;
-					width: 10px;
-					height: 10px;
-					background-color: $alert-color;
-					@include radius(30px);
-				}
+        .dot {
+          position: absolute;
+          top: 34px;
+          left: 10px;
+          display: inline-block;
+          width: 10px;
+          height: 10px;
+          background-color: $alert-color;
+          @include radius(30px);
+        }
 
-				select {
-					-moz-appearance: window;
-					position: absolute;
-					top: 0;
-					left: 0;
-					width: 100%;
-					height: 100%;
-					margin: 0;
-					padding: 20px 0 0 25px;
-					border: 0;
-					background: none;
-					color: #505050;
-				}
+        select {
+          -moz-appearance: window;
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          margin: 0;
+          padding: 20px 0 0 25px;
+          border: 0;
+          background: none;
+          color: #505050;
+        }
 
-				.no-user & {
-					visibility: hidden;
-				}
-			}
+        .no-user & {
+          visibility: hidden;
+        }
+      }
 
-			.button.loading {
-				i {
-					display: inline-block;
-					font-size: 30px;
-					margin-top: 16px;
-				}
-			}
+      .button.loading {
+        i {
+          display: inline-block;
+          font-size: 30px;
+          margin-top: 16px;
+        }
+      }
 
-			.camera-mode {
-				padding: 0 rem-calc(10) 0 0;
+      .camera-mode {
+        padding: 0 rem-calc(10) 0 0;
 
-				p {
-					color: $charcoal;
-					margin: 0;
+        p {
+          color: $charcoal;
+          margin: 0;
 
-					i {
-						font-size: rem-calc(16);
-						margin: 0 4px 0 5px;
-						text-shadow: -1px 0 1px $white;
+          i {
+            font-size: rem-calc(16);
+            margin: 0 4px 0 5px;
+            text-shadow: -1px 0 1px $white;
 
-						&.icon-picture-1 {
-							margin-left: 0;
-						}
-					}
-				}
+            &.icon-picture-1 {
+              margin-left: 0;
+            }
+          }
+        }
 
 
-				.switch input + label {
-					display: block;
-					width: 65px;
-					height: 28px;
-					border: 1px solid #ccc;
-					background: $steel;
+        .switch input + label {
+          display: block;
+          width: 65px;
+          height: 28px;
+          border: 1px solid #ccc;
+          background: $steel;
 
-					&:after {
-						height: 20px;
-						top: rem-calc(3);
-						left: rem-calc(3);
-					}
-				}
+          &:after {
+            height: 20px;
+            top: rem-calc(3);
+            left: rem-calc(3);
+          }
+        }
 
-				.switch input:checked + label {
+        .switch input:checked + label {
 
-					&:after {
-						left: rem-calc(36);
-					}
-				}
-			}
-		}
-	}
+          &:after {
+            left: rem-calc(36);
+          }
+        }
+      }
+    }
+  }
 
-	.temperatures {
-		margin-bottom: 30px;
+  .temperatures {
+    margin-bottom: 30px;
 
-		.temp-bar {
-			position: relative;
-			height: 50px;
-			width: 100%;
-			background: url('/img/temp_grad_horiz.png') repeat-y #f54c39;
-			background-size: contain;
+    .temp-bar {
+      position: relative;
+      height: 50px;
+      width: 100%;
+      background: url('/img/temp_grad_horiz.png') repeat-y #f54c39;
+      background-size: contain;
 
-			&.nozzle {
-				margin-bottom: 40px;
-			}
+      &.nozzle {
+        margin-bottom: 40px;
+      }
 
-			h3 {
-				font-size: rem-calc(15);
-				position: absolute;
-				right: 5px;
-				top: -23px;
-			}
+      h3 {
+        font-size: rem-calc(15);
+        position: absolute;
+        right: 5px;
+        top: -23px;
+      }
 
-			label {
-				color: white;
-				font-size: rem-calc(20);
-				position: absolute;
-				top: 12px;
-				left: 10px;
-				width: 75px;
-				display: inline-block;
-			}
+      label {
+        color: white;
+        font-size: rem-calc(20);
+        position: absolute;
+        top: 12px;
+        left: 10px;
+        width: 75px;
+        display: inline-block;
+      }
 
-			.temp-current {
-				position: absolute;
-				top: 12px;
-				right: 10px;
-				font-size: rem-calc(20);
-				color: white;
-				width: 50px;
-				text-align: right;
-				display: inline-block;
-			}
+      .temp-current {
+        position: absolute;
+        top: 12px;
+        right: 10px;
+        font-size: rem-calc(20);
+        color: white;
+        width: 50px;
+        text-align: right;
+        display: inline-block;
+      }
 
-			.temp-target {
-				@include radius();
-				background-color: #505050;
-				color: white;
-				display: inline-block;
-				position: absolute;
-				top: -5px;
-				height: 60px;
-				width: 85px;
-				left: 130px;
-				text-align: center;
-				cursor: pointer;
+      .temp-target {
+        @include radius();
+        background-color: #505050;
+        color: white;
+        display: inline-block;
+        position: absolute;
+        top: -5px;
+        height: 60px;
+        width: 85px;
+        left: 130px;
+        text-align: center;
+        cursor: pointer;
 
-				a.temp-edit {
-					padding: 18px 0;
-					text-align: center;
-					width: 40%;
-					display: inline-block;
-					border-right: 1px solid #a5a5a5;
-					color: white;
-					float: left;
-				}
+        a.temp-edit {
+          padding: 18px 0;
+          text-align: center;
+          width: 40%;
+          display: inline-block;
+          border-right: 1px solid #a5a5a5;
+          color: white;
+          float: left;
+        }
 
-				span.label {
-					padding: 18px 0;
-					width: 60%;
-					display: inline-block;
-					float: right;
-				}
+        span.label {
+          padding: 18px 0;
+          width: 60%;
+          display: inline-block;
+          float: right;
+        }
 
-				input {
-					margin-top: 12px;
-					text-align: center;
-					display: inline-block;
-					background: transparent;
-					padding: 5px 2px;
-					color: white;
-					border: none;
-					width: 55%;
-					box-shadow: none;
+        input {
+          margin-top: 12px;
+          text-align: center;
+          display: inline-block;
+          background: transparent;
+          padding: 5px 2px;
+          color: white;
+          border: none;
+          width: 55%;
+          box-shadow: none;
 
-					&::-webkit-inner-spin-button,
-					&::-webkit-outer-spin-button {
-					  -webkit-appearance: none;
-					  margin: 0;
-					}
-				}
+          &::-webkit-inner-spin-button,
+          &::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+        }
 
-				&.moving {
-					background-color: lighten(#505050, 20%);
-				}
-			}
+        &.moving {
+          background-color: lighten(#505050, 20%);
+        }
+      }
 
-			.temp-curret-line {
-				position: absolute;
-				top: 0px;
-				bottom: 0px;
-				left: 153px;
-				width: 4px;
-				background-color: #505050;
-				transition: left 0.5s;
-				-webkit-transition: left 0.5s;
-				-moz-transition: left 0.5s;
+      .temp-curret-line {
+        position: absolute;
+        top: 0px;
+        bottom: 0px;
+        left: 153px;
+        width: 4px;
+        background-color: #505050;
+        transition: left 0.5s;
+        -webkit-transition: left 0.5s;
+        -moz-transition: left 0.5s;
 
-				.triangle_left {
-					position: absolute;
-					top: -13px;
-					left: -5px;
-					-webkit-transform: rotate(90deg);
-					-moz-transform: rotate(90deg);
-					transform: rotate(90deg);
-				}
+        .triangle_left {
+          position: absolute;
+          top: -13px;
+          left: -5px;
+          -webkit-transform: rotate(90deg);
+          -moz-transform: rotate(90deg);
+          transform: rotate(90deg);
+        }
 
-				.triangle_right {
-					position: absolute;
-					bottom: -13px;
-					left: -5px;
-					-webkit-transform: rotate(90deg);
-					-moz-transform: rotate(90deg);
-					transform: rotate(90deg);
-				}
-			}
-		}
-	}
+        .triangle_right {
+          position: absolute;
+          bottom: -13px;
+          left: -5px;
+          -webkit-transform: rotate(90deg);
+          -moz-transform: rotate(90deg);
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
 
-	&.heating-up {
-		.print-info {
-			.heating {
-				display: block;
-				font-size: rem-calc(50);
+  &.heating-up {
+    .print-info {
+      .heating {
+        display: block;
+        font-size: rem-calc(50);
 
-				> div {
-					padding: 40px 0;
-				}
+        > div {
+          padding: 40px 0;
+        }
 
-				i {
-					display: block;
-					margin-bottom: 20px;
-					font-size: rem-calc(70);
-					color: $alert-color;
-				}
-			}
+        i {
+          display: block;
+          margin-bottom: 20px;
+          font-size: rem-calc(70);
+          color: $alert-color;
+        }
+      }
 
-			.info {
-				display: none;
-			}
-		}
+      .info {
+        display: none;
+      }
+    }
 
-		button.pause-print {
-			display: none;
-		}
-	}
+    button.pause-print {
+      display: none;
+    }
+  }
 
-	div.error,
-	div.video-preparing {
-		display:none;
-	}
+  div.video-preparing {
+    display:none;
+  }
 
-	.camera-view {
-	    .video-container {
-	        min-height: 220px;
-	        border: 1px solid $iron;
-	        border-bottom: none;
-	        background: $oil;
-	        @include radius($global-radius $global-radius 0 0);
+  .camera-view {
+    div.video-error {
+      display: none;
+    }
 
-	        .video-off,
-			.no-detection,
-			.video-preparing {
-	            text-align: center;
-	            padding-top: rem-calc(25);
-	        }
+    .video-container {
+      position: relative;
+      min-height: 220px;
+      border: 1px solid $iron;
+      border-bottom: none;
+      background: $oil;
+      @include radius($global-radius $global-radius 0 0);
 
-	        i {
-	            font-size: rem-calc(80);
-				line-height: 1;
-	            color: $base;
-	        }
+      .video-off,
+      .no-detection,
+      .video-preparing {
+        text-align: center;
+        padding-top: rem-calc(25);
+      }
 
-	        h3, h4 {
-	            color: $base;
-				margin: 0;
-	        }
+      i {
+        font-size: rem-calc(80);
+        line-height: 1;
+        color: $base;
+      }
 
-	    }
+      h3, h4 {
+        color: $base;
+        margin: 0;
+      }
+    }
 
-	    .video-on {
-	    	display:none;
-	    }
+    .video-on {
+      display:none;
+    }
 
-	    #video-stream {
+    #video-stream {
+      width: 100%;
+    }
+
+    &.preparing {
+      .video-preparing {
+        display:block;
+      }
+
+      .video-off {
+        display:none;
+      }
+
+      .video-on {
+        display:none;
+      }
+    }
+
+    &.error {
+      .video-container {
+        div.video-text,
+        div.video-off {
+          display:none;
+        }
+
+        div.video-error {
+          display: block;
+          padding-top: 40px;
+          position: absolute;
+          top:0;
+          left:0;
+          width: 100%;
+          height: 100%;
+          background: url('/img/static.gif');
+          i, h3 {
+            position: relative;
+            color: white;
+          }
+
+          .overlay {
+            background: rgba(0,0,0,.5);
+            position: absolute;
+            top: 0;
             width: 100%;
-	    }
+            height: 100%;
+          }
+        }
+      }
+    }
 
-	    &.preparing {
-			.video-preparing {
-				display:block;
-			}
+    &.streaming {
+      .video-preparing{
+        display:none;
+      }
 
-			.video-off {
-				display:none;
-			}
+      .video-off {
+        display:none;
+      }
 
-			.video-on {
-	    			display:none;
-		    	}
-		}
-
-		&.error {
-	    	div.video {
-	    		display:none;
-	    	}
-
-			div.error {
-				display: block;
-				font-size: rem-calc(26);
-				p {
-					font-size: rem-calc(20);
-					margin-top: rem-calc(10);
-				}
-			}
-	    }
-
-	    &.streaming {
-	    	.video-preparing{
-	    		display:none;
-	    	}
-
-	    	.video-off {
-	    		display:none;
-	    	}
-
-	    	.video-on {
-	    		display:block;
-				button {
-					background: $base;
-					&:hover {
-						background: darken($base, 20%);
-					}
-				}
-	    	}
-	    }
-	}
+      .video-on {
+        display:block;
+        button {
+          background: $base;
+          &:hover {
+            background: darken($base, 20%);
+          }
+        }
+      }
+    }
+  }
 }
 
 
@@ -480,17 +500,17 @@
 }
 
 @media #{$medium-up} {
-	#printing-view .temperatures .temp-bar {
-		label {
-			top: 4px;
-			width: 110px;
-			font-size: rem-calc(28);
-		}
+  #printing-view .temperatures .temp-bar {
+    label {
+      top: 4px;
+      width: 110px;
+      font-size: rem-calc(28);
+    }
 
-		.temp-current {
-			top: 4px;
-			width: 100px;
-			font-size: rem-calc(28);
-		}
-	}
+    .temp-current {
+      top: 4px;
+      width: 100px;
+      font-size: rem-calc(28);
+    }
+  }
 }

@@ -14,7 +14,6 @@
             </div>
           <% } else {
             if(this.videoStreamingError){ %>
-
               <div class="panel text-center radius">
                 <i class="icon-camera"></i>
                 <h3 class="bold">Camera error</h3>
@@ -29,7 +28,12 @@
             <% } else { %>
               <% if(this.cameraMode == 'video'){ %>
                 <div class="video-container">
-                  <div class="small-12 columns text-center">
+                  <div class="video-error">
+                    <div class="overlay"></div>
+                    <i class="icon-attention"></i>
+                    <h3 class="bold">Video Error</h3>
+                  </div>
+                  <div class="small-12 columns video-text text-center">
                     <div class="video-off">
                       <i class="icon-videocam-1"></i>
                       <h4 class="bold">Camera Stream Off</h4>
@@ -50,7 +54,6 @@
                   </div>
                 </div>
                 <img class="camera-image" width="100%" style="display:none"/>
-
               <% } else { %>
                 <div class="camera-container">
                   <i class="icon-3d-object"></i>
