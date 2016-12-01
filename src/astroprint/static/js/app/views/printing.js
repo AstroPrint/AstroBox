@@ -153,12 +153,14 @@ var PhotoView = CameraViewBase.extend({
   },
   cameraModeChanged: function(e)
   {
+    var target = $(e.currentTarget);
+    var selectedFreqValue = this.$('#freqSelector').val();
+
     if(this.cameraMode == 'video'){
       this.stopStreaming();
     }
-    var target = $(e.currentTarget);
+
     this.cameraMode = this.cameraModeByValue(target.is(':checked'));
-    var selectedFreqValue = this.$('#freqSelector').val();
     this.render();
     this.$('#freqSelector').val(selectedFreqValue);
   },
@@ -331,6 +333,12 @@ var PhotoView = CameraViewBase.extend({
         noty({text: "There was an error adjusting your print capture.", timeout: 3000});
       });
     }
+  },
+  onPrintingHide: function()
+  {
+    if(this.cameraMode == 'video'){
+      this.stopStreaming();
+    }
   }
 });
 
@@ -469,7 +477,7 @@ var PrintingView = Backbone.View.extend({
   },
   onHide: function()
   {
-    this.photoView.trigger('message:hide');
+    this.photoView.onPrintingHide();
   },
   stopPrint: function(e)
   {
