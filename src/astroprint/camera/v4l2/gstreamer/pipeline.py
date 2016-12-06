@@ -151,7 +151,7 @@ class AstroPrintPipeline(object):
 
 				#signaling for remote peers
 				manage_fatal_error_webrtc = blinkerSignal('manage_fatal_error_webrtc')
-				manage_fatal_error_webrtc.send('cameraError', message= message)
+				manage_fatal_error_webrtc.send(self, message= message)
 
 				#event for local peers
 				eventManager().fire(Events.GSTREAMER_EVENT, {

@@ -105,7 +105,7 @@ class WebRtc(object):
 				if peer:
 					peer.streamingPlugin.send_message({'request':'destroy', 'id': sessionId})
 					peer.close()
-					self.sendEventToPeer(self._connectedPeers[sessionId], 'stopConnection')
+					peer.sendEventToPeer('stopConnection')
 					del self._connectedPeers[sessionId]
 
 				self._logger.info("There are %d peers left.", len(self._connectedPeers))
@@ -115,16 +115,19 @@ class WebRtc(object):
 					self.stopJanus()
 					cameraManager().stop_video_stream()
 
-	def closeAllSessions(self, sender, message):
+	def closeAllSessions(self, sender= None, message= None):
 		self._logger.info("Closing all streaming sessions")
 
-		for key in self._connectedPeers.keys():
-			if self._connectedPeers[key] != 'local':
+		for sessionId in self._connectedPeers.keys():
+			peer = self._connectedPeers[sessionId]
+			#if peer != 'local':
+			if isinstance(peer, ConnectionPeer):
 				if message:
-					self.sendEventToPeer(self._connectedPeers[key], sender, message)
-				self.closePeerSession(key)
+					peer.sendEventToPeer("cameraError", message)
+
+				self.closePeerSession(sessionId)
 			else:
-				self.closeLocalSession(key)
+				self.closeLocalSession(sessionId)
 
 		self.stopJanus()
 
@@ -178,10 +181,15 @@ class WebRtc(object):
 			self.closePeerSession(key)
 
 	def pingPongRounder(self,params=None):
-		for key in self._connectedPeers.keys():
-			if self._connectedPeers[key] != 'local':
-				#sendRequestToClient(self, clientId, type, data, timeout, respCallback)
-				boxrouterManager().sendRequestToClient(self._connectedPeers[key].clientId, 'ping',None,10, self.pongCallback, [key])
+		for sessionId in self._connectedPeers.keys():
+			peer = self._connectedPeers[sessionId]
+			#if peer != 'local':
+			if isinstance(peer, ConnectionPeer):
+				try:
+					boxrouterManager().sendRequestToClient(peer.clientId, 'ping', None, 10, self.pongCallback, [sessionId])
+
+				except:
+					self._logger.error('Error sending ping to peer %s' % (type, peer.clientId), exc_info = True)
 
 	def startVideoStream(self):
 		#Start Video Stream
@@ -288,12 +296,10 @@ class WebRtc(object):
 			return False
 
 	def sendEventToPeers(self, type, data=None):
-		for key in self._connectedPeers.keys():
-			if self._connectedPeers[key] != 'local':
-				self.sendEventToPeer(self._connectedPeers[key], type, data)
-
-	def sendEventToPeer(self, peer, type, data=None):
-		boxrouterManager().sendEventToClient(peer.clientId, type, data)
+		for peer in self._connectedPeers:
+			#if peer != 'local':
+			if isinstance(peer, ConnectionPeer):
+				peer.sendEventToPeer(type, data)
 
 class StreamingPlugin(Plugin):
 	name = 'janus.plugin.streaming'
@@ -490,5 +496,9 @@ class ConnectionPeer(object):
 		self.streamingPlugin = None
 
 	def sendEventToPeer(self, type, data= None):
-		boxrouterManager().sendEventToClient(self.clientId, type, data)
+		try:
+			boxrouterManager().sendEventToClient(self.clientId, type, data)
+
+		except:
+			self._logger.error('Error sending event [%s] to peer %s' % (type, self.clientId), exc_info = True)
 
