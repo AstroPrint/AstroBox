@@ -118,6 +118,7 @@ class CameraInactivity(object):
 			self._stopped = False
 			self._inactivtyEvent.clear()
 			self._thread = threading.Thread(target= self._threadRun)
+			self._thread.daemon = True
 			self._thread.start()
 		else:
 			self._logger.warn('Already running')

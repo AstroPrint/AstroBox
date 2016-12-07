@@ -63,7 +63,7 @@ class WebRtc(object):
 
 				self._logger.info("There are %d peers left.", len(self._connectedPeers))
 
-				if len(self._connectedPeers.keys()) == 0:
+				if len(self._connectedPeers) == 0:
 					#last session
 					self.stopJanus()
 					cameraManager().stop_video_stream()
@@ -225,11 +225,11 @@ class WebRtc(object):
 				self.sendEventToPeers('stopConnection')
 
 			if self._JanusProcess:
-				self._logger.debug('Janus Started')
+				self._logger.debug('Janus Starting...')
 
-				from requests import Session
+				from requests import Session as RequestsSession
 
-				session = Session()
+				session = RequestsSession()
 				response = None
 
 				tryingCounter = 0
@@ -255,6 +255,8 @@ class WebRtc(object):
 							self._logger.error(error)
 							return False
 
+				self._logger.debug('Janus Started.')
+
 				#Connect the signal for fatal errors when they happen
 				ready = signal('manage_fatal_error_webrtc')
 				ready.connect(self.closeAllSessions)
@@ -274,8 +276,21 @@ class WebRtc(object):
 					#it's possible that a new client came it while stopping the camera feed
 					#in that case we should not try to stop it
 					if self._JanusProcess.returncode is None:
+						self._logger.debug('Attempting to terminate the Janus process')
 						self._JanusProcess.terminate()
-						self._JanusProcess.wait()
+
+						attempts = 6
+						while self._JanusProcess.returncode is None and attempts > 0:
+							time.sleep(0.3)
+							self._JanusProcess.poll()
+							attempts -= 1
+
+						if self._JanusProcess.returncode is None:
+							#still not terminated
+							self._logger.debug('Janus didn\'t terminate nicely, let\'s kill it')
+							self._JanusProcess.kill()
+							self._JanusProcess.wait()
+
 						self._logger.debug('Janus Stopped')
 
 					self._JanusProcess = None
@@ -318,9 +333,8 @@ class ConnectionPeer(object):
 	#def connection_on_opened(self,connection):
 	#	logging.info('CONNECTION ON OPENED')
 
-	def connection_on_closed(self, connection, **kw):
-		self._logger.warn('Lost connection with Janus')
-		self._parent.closeAllSessions()
+	#def connection_on_closed(self, connection, **kw):
+	#	self._logger.warn('Lost connection with Janus')
 
 	def connection_on_message(self, connection, message):
 		messageToSend = json.loads(str(message))
@@ -392,7 +406,7 @@ class ConnectionPeer(object):
 		#
 		# Signal fired when `Connection` has been closed.
 		#	on_closed = blinker.Signal()
-		self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
+		#self.session.cxn_cls.on_closed.connect(self.connection_on_closed)
 
 		#
 		# Signal fired when `Connection` receives a message
