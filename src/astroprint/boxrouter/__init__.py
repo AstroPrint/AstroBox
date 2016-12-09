@@ -159,6 +159,7 @@ class AstroprintBoxRouter(object):
 	STATUS_CONNECTING = 'connecting'
 	STATUS_CONNECTED = 'connected'
 	STATUS_ERROR = 'error'
+	ASTROBOX_NAMESPACE_UUID = 'ec35c0da-e6e2-4a50-9c85-3e102fffac48'
 
 	def __init__(self):
 		self._settings = settings()
@@ -215,10 +216,7 @@ class AstroprintBoxRouter(object):
 					self._boxId = f.read()
 
 			if not self._boxId:
-				import uuid
-
-				self._boxId = uuid.uuid4().hex
-
+				self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
 				with open(boxIdFile, 'w') as f:
 					f.write(self._boxId)
 
