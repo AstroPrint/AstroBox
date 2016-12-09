@@ -215,9 +215,10 @@ class AstroprintBoxRouter(object):
 				with open(boxIdFile, 'r') as f:
 					self._boxId = f.read()
 
-			#if not box-id file exists, let's use the new method
 			if not self._boxId:
 				self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
+				with open(boxIdFile, 'w') as f:
+					f.write(self._boxId)
 
 		return self._boxId
 
