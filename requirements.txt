@@ -1,6 +1,6 @@
 flask==0.10.1
 werkzeug==0.9.6
-tornado==4.1
+tornado==4.4.2
 sockjs-tornado==1.0.3
 PyYAML==3.11
 Flask-Login==0.3.2
@@ -17,7 +17,7 @@ scss==0.8.73
 closure==20140110
 python-networkmanager==1.0.1
 netifaces
-ws4py==0.3.4
+ws4py==0.3.5
 usbid==1.0.3
 futures==3.0.4
 blinker==1.4
