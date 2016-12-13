@@ -33,11 +33,11 @@
   }
 
   .print-info {
-    font-size: rem-calc(42);
+    font-size: rem-calc(40);
     margin: 10px 0 10px 0;
 
     .highlighted {
-      font-size: rem-calc(56);
+      font-size: rem-calc(53);
       color: $success-color;
     }
 
@@ -414,6 +414,8 @@
 
     #video-stream {
       width: 100%;
+      height: 100%;
+      background: black;
     }
 
     &.preparing {
@@ -471,8 +473,16 @@
         display:none;
       }
 
+      #videoScreen {
+        position: absolute;
+        top:0;
+        width: 100%;
+        height: 100%;
+      }
+
       .video-on {
         display:block;
+
         button {
           background: $base;
           &:hover {
