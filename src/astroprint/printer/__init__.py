@@ -361,9 +361,9 @@ class Printer(object):
 		if self._comm is None:
 			return
 
-		wasPaused = self._comm.isPaused()
+		wasPaused = self.isPaused()
 
-		self._comm.setPause(not wasPaused)
+		self.setPause(not wasPaused)
 
 		cm = cameraManager()
 		if cm.is_timelapse_active():
