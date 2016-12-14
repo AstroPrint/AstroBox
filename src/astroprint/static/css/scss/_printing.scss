@@ -69,10 +69,11 @@
       }
 
       img {
-        position:absolute;
+        position: absolute;
         width: 100%;
-        top: 0;
+        top: 50%;
         left: 0;
+        transform: translateY(-50%);
       }
     }
 
@@ -412,12 +413,6 @@
       display:none;
     }
 
-    #video-stream {
-      width: 100%;
-      height: 100%;
-      background: black;
-    }
-
     &.preparing {
       .video-preparing {
         display:block;
@@ -478,6 +473,12 @@
         top:0;
         width: 100%;
         height: 100%;
+      }
+
+      #video-stream {
+        width: 100%;
+        height: 100%;
+        background: black;
       }
 
       .video-on {
