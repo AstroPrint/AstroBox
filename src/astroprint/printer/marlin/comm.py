@@ -698,7 +698,6 @@ class MachineCom(object):
 		timeout = getNewTimeout("communication")
 		tempRequestTimeout = getNewTimeout("temperature")
 		sdStatusRequestTimeout = getNewTimeout("sdStatus")
-		startSeen = not settings().getBoolean(["feature", "waitForStartOnConnect"])
 		self._heatingUp = False
 		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
 
@@ -887,7 +886,7 @@ class MachineCom(object):
 						#HEATING
 						self._oksAfterHeatingUp -= 1
 
-						if not self.timerCalculator:
+						if not self.timerCalculator and self._currentFile: # It's possible that we just cancelled the print
 							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,None,self)
 							self.timerCalculator.makeCalcs()
 
@@ -938,31 +937,22 @@ class MachineCom(object):
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
-					if startSeen:
-					 	if line == "" or "wait" in lineLower:
-							self._sendCommand("M105")
+					if line == "" or "wait" in lineLower:
+						self._sendCommand("M105")
 
-						elif "ok" in lineLower:
-							self._changeState(self.STATE_OPERATIONAL)
-							# if self._sdAvailable:
-							# 	self.refreshSdFiles()
-							# else:
-							# 	self.initSdCard()
-							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+					elif "ok" in lineLower:
+						self._changeState(self.STATE_OPERATIONAL)
+						# if self._sdAvailable:
+						# 	self.refreshSdFiles()
+						# else:
+						# 	self.initSdCard()
+						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
 
-						elif "echo" in lineLower:
-							timeout = getNewTimeout("communication")
-
-						elif time.time() > timeout:
-							self._logger.warn('Printer did not respond in time')
-							self.close()
-
-					elif "start" in lineLower:
+					elif "echo" in lineLower or "start" in lineLower:
 						timeout = getNewTimeout("communication")
-						startSeen = True
 
 					elif time.time() > timeout:
-						self._logger.warn('[start] command was not seen in time')
+						self._logger.warn('Printer did not respond in time')
 						self.close()
 
 				### Operational
