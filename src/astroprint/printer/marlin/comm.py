@@ -938,19 +938,31 @@ class MachineCom(object):
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
-					if (line == "" or "wait" in lineLower) and startSeen:
-						self._sendCommand("M105")
+					if startSeen:
+					 	if line == "" or "wait" in lineLower:
+							self._sendCommand("M105")
+
+						elif "ok" in lineLower:
+							self._changeState(self.STATE_OPERATIONAL)
+							# if self._sdAvailable:
+							# 	self.refreshSdFiles()
+							# else:
+							# 	self.initSdCard()
+							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+
+						elif "echo" in lineLower:
+							timeout = getNewTimeout("communication")
+
+						elif time.time() > timeout:
+							self._logger.warn('Printer did not respond in time')
+							self.close()
+
 					elif "start" in lineLower:
 						timeout = getNewTimeout("communication")
 						startSeen = True
-					elif "ok" in lineLower and startSeen:
-						self._changeState(self.STATE_OPERATIONAL)
-						# if self._sdAvailable:
-						# 	self.refreshSdFiles()
-						# else:
-						# 	self.initSdCard()
-						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+
 					elif time.time() > timeout:
+						self._logger.warn('[start] command was not seen in time')
 						self.close()
 
 				### Operational
