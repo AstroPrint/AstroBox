@@ -265,6 +265,13 @@ var ZControlView = MovementControlView.extend({
 var ExtrusionControlView = Backbone.View.extend({
   el: '#extrusion-control',
   template: null,
+  events: {
+    'click .extrude': 'extrudeTapped',
+    'click .retract': 'retractTapped',
+    'change .extrusion-length': 'lengthChanged',
+    'change .extrusion-speed': 'speedChanged',
+    'keydown input.back-to-select': 'onKeyDownBackToSelect'
+  },
   initialize: function()
   {
     this.template = _.template( this.$("#extruder-switch-template").html() );
@@ -277,18 +284,11 @@ var ExtrusionControlView = Backbone.View.extend({
       profile: printer_profile
     }));
 
-    var events = {
-      'click .extrude': 'extrudeTapped',
-      'click .retract': 'retractTapped',
-      'change .extrusion-length': 'lengthChanged',
-      'change .extrusion-speed': 'speedChanged'
-    };
-
     if (printer_profile.extruder_count > 1) {
       events['change .extruder-number'] = "extruderChanged";
     }
 
-    this.delegateEvents(events);
+    this.delegateEvents(this.events);
   },
   extrudeTapped: function()
   {
@@ -308,7 +308,7 @@ var ExtrusionControlView = Backbone.View.extend({
 
     if (elem.val() == 'other') {
       elem.addClass('hide');
-      this.$('.other-length').removeClass('hide').find('input').focus();
+      this.$('.other-length').removeClass('hide').find('input').focus().select();
     } else {
       this.$('input[name="extrusion-length"]').val(elem.val());
     }
@@ -319,7 +319,7 @@ var ExtrusionControlView = Backbone.View.extend({
 
     if (elem.val() == 'other') {
       elem.addClass('hide');
-      this.$('.other-speed').removeClass('hide').find('input').focus();;
+      this.$('.other-speed').removeClass('hide').find('input').focus().select();
     } else {
       this.$('input[name="extrusion-speed"]').val(elem.val());
     }
@@ -327,6 +327,20 @@ var ExtrusionControlView = Backbone.View.extend({
   extruderChanged: function(e)
   {
     this._sendChangeToolCommand($(e.target).val())
+  },
+  onKeyDownBackToSelect: function(e)
+  {
+    if (e.keyCode == 27) { //ESC Key
+      var target = $(e.currentTarget);
+      var select = target.closest('div.select-with-text').find('select');
+
+      //Find out the default value. Middle one
+      var defaultValue = select.find('option[default]').val();
+
+      target.closest('.row').addClass('hide');
+      target.val(defaultValue);
+      select.removeClass('hide').val(defaultValue);
+    }
   },
   _sendChangeToolCommand: function(tool)
   {

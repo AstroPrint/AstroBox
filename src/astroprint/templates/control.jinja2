@@ -66,10 +66,10 @@
 						</div>
 					<% } %>
 
-					<div class="<% if (profile.extruder_count > 1) { %> small-4 <% } else { %> small-6 <% } %>columns">
+					<div class="<% if (profile.extruder_count > 1) { %> small-4 <% } else { %> small-6 <% } %>columns select-with-text">
 						<label class="bold">Amount</label>
 						<select class="extrusion-length">
-							<option value="10" selected>10 mm</option>
+							<option value="10" selected default>10 mm</option>
 							<option value="50">50 mm</option>
 							<option value="100">100 mm</option>
 							<option value="200">200 mm</option>
@@ -77,7 +77,7 @@
 						</select>
 						<div class="row collapse other-length hide">
 							<div class="small-8 columns">
-								<input type="number" value="10" class="expand" name="extrusion-length"/>
+								<input type="number" value="10" class="expand back-to-select" name="extrusion-length"/>
 							</div>
 							<div class="small-4 columns">
 								<span class="postfix radius">mm</span>
@@ -85,17 +85,17 @@
 						</div>
 					</div>
 
-          <div class="<% if (profile.extruder_count > 1) { %> small-5 <% } else { %> small-6 <% } %>columns">
+          <div class="<% if (profile.extruder_count > 1) { %> small-5 <% } else { %> small-6 <% } %>columns select-with-text">
             <label class="bold">Speed</label>
             <select class="extrusion-speed">
               <option value="50">Fast (50 mm/s)</option>
-              <option value="2" selected>Normal (2 mm/s)</option>
+              <option value="2" selected default>Normal (2 mm/s)</option>
               <option value="0.5">Slow (0.5 mm/s)</option>
               <option value="other">Other...</option>
             </select>
             <div class="row collapse other-speed hide">
               <div class="small-7 columns">
-                <input type="number" value="2" class="expand" name="extrusion-speed"/>
+                <input type="number" value="2" class="expand back-to-select" name="extrusion-speed"/>
               </div>
               <div class="small-5 columns">
                 <span class="postfix radius">mm/s</span>
