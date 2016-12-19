@@ -9,7 +9,7 @@ import sys
 import os
 import signal
 
-from multiprocessing import Process, Event, Pipe
+from multiprocessing import Process, Event, Pipe, Value
 from threading import Thread, Condition, current_thread
 
 from blinker import signal as blinkerSignal
@@ -34,26 +34,32 @@ class AstroPrintPipeline(object):
 		self._responseListener = ProcessResponseListener(self._parentConn, self._onProcessResponse)
 		self._responseListener.start()
 		self._process = None
+		self._listening = False
 
 	def __del__(self):
 		self._logger.debug('Pipeline Process Controller removed')
+
+	def _kill(self):
+		try:
+			os.kill(self._process.pid, signal.SIGKILL)
+			self._process.join()
+		except OSError as e:
+			# error 3: means the pid is not valid, so the process has been killed
+			if e.errno != 3:
+				raise e
+
+		self._process = None
 
 	def startProcess(self):
 		if self._process:
 			# This should almost never happen (but it does)
 			# Make sure the previous process is killed before a new one is started
 			self._logger.warn("A previous process was still running, killing it")
-			try:
-				os.kill(self._process.pid, signal.SIGKILL)
-				self._process.join()
-			except OSError as e:
-				# error 3: means the pid is not valid, so the process has been killed
-				if e.errno != 3:
-					raise e
-
-			self._process = None
+			self._kill()
 
 		onListeningEvent = Event()
+		errorState = Value('b', False) #If True, it means the process had an error while starting
+		self._listening = False
 
 		self._process = Process(
 			target= startPipelineProcess,
@@ -63,31 +69,39 @@ class AstroPrintPipeline(object):
 				self._source,
 				self._encoding,
 				onListeningEvent,
+				errorState,
 				( self._parentConn, self._processConn )
 			)
 		)
 		self._process.daemon = True
 		self._process.start()
-		onListeningEvent.wait()
-		self._logger.debug('Pipeline Process Started.')
+		if onListeningEvent.wait(5.0):
+			if errorState.value:
+				self._logger.error('Pipeline Failed to start.')
+				self._kill()
+				self._logger.debug('Pipeline Process killed.')
+
+			else:
+				self._logger.debug('Pipeline Process Started.')
+				self._listening = True
+
+		else:
+			self._logger.debug('Timeout while waiting for pipeline process to start')
+			self._kill()
 
 	def stopProcess(self):
 		if self._process:
-			self._sendReqToProcess({'action': 'shutdown'})
-			self._process.join(2.0) #Give it two seconds to exit and kill otherwise
-			if self._process and self._process.exitcode is None:
+			if self._listening:
+				self._sendReqToProcess({'action': 'shutdown'})
+				self._process.join(2.0) #Give it two seconds to exit and kill otherwise
+
+			if self._process.exitcode is None:
 				self._logger.warn('Process did not shutdown properly. Terminating...')
 				self._process.terminate()
 				self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
 				if self._process.exitcode is None:
 					self._logger.warn('Process did not terminate properly. Sending KILL signal...')
-					try:
-						os.kill(self._process.pid, signal.SIGKILL)
-						self._process.join()
-					except OSError as e:
-						# error 3: means the pid is not valid, so the process has been killed
-						if e.errno != 3:
-							raise e
+					self._kill()
 
 			self._logger.debug('Process terminated')
 			self._process = None
@@ -117,7 +131,7 @@ class AstroPrintPipeline(object):
 		self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
 
 	def takePhoto(self, doneCallback, text=None):
-		def posprocesing(resp):
+		def postprocesing(resp):
 			if resp:
 				if 'error' in resp:
 					self._logger.error('Error during photo capture: %s' % resp['error'])
@@ -134,9 +148,9 @@ class AstroPrintPipeline(object):
 				doneCallback(None)
 
 		if text is not None:
-			self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, posprocesing)
+			self._sendReqToProcess({'action': 'takePhoto', 'data': {'text': text}}, postprocesing)
 		else:
-			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, posprocesing)
+			self._sendReqToProcess({'action': 'takePhoto', 'data': None}, postprocesing)
 
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
@@ -194,26 +208,25 @@ class AstroPrintPipeline(object):
 	def _sendReqToProcess(self, data, callback= None):
 		if self.processRunning:
 			with self._sendCondition:
-				self._lastReqId += 1
-				id = self._lastReqId
-				self._pendingReqs[id] = callback
-				self._parentConn.send( (id, data) )
-				self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
-
-		else:
-			triesLeft = 3
-
-			while triesLeft > 0:
-				self._logger.debug('Process not running. Restarting (%d tries left)' % triesLeft)
-				self.startProcess()
-				if self.processRunning:
-					self._sendReqToProcess(data, callback)
-					return
+				if self._listening:
+					self._lastReqId += 1
+					id = self._lastReqId
+					self._pendingReqs[id] = callback
+					self._parentConn.send( (id, data) )
+					self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
 
 				else:
-					triesLeft -= 1
+					self._logger.debug('Process not listening. There was a problem while starting it.')
+					if callback:
+						callback({'error': 'not_listening', 'details': 'The process is not currently listening to requests'})
 
-			if triesLeft == 0:
+		else:
+			self._logger.debug('Process not running. Trying to restart')
+			self.startProcess()
+			if self.processRunning:
+				self._sendReqToProcess(data, callback)
+
+			else:
 				self._logger.error('Unable to re-start pipeline process.')
 				if callback:
 					callback({'error': 'no_process', 'details': 'Unable to re-start process'})

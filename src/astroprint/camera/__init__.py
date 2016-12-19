@@ -158,6 +158,8 @@ class CameraInactivity(object):
 			if self._thread != threading.currentThread():
 				self._thread.join()
 
+			self._thread = None
+
 #
 # Camera Manager base class
 #
@@ -400,6 +402,11 @@ class CameraManager(object):
 	def _onInactive(self):
 		if not self.isVideoStreaming():
 			self.close_camera()
+
+			# in some cases the camera failed to open and close_camera does nothing so
+			# we need to make sure that the inactivity thread is also stopped here
+			if self._cameraInactivity:
+				self._cameraInactivity.stop()
 
 	def open_camera(self):
 		if self.isCameraOpened():

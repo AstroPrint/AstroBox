@@ -9,7 +9,7 @@ from threading import Thread, Event, Condition
 
 from .pipelines import pipelineFactory, InvalidGStreamerPipelineException
 
-def startPipelineProcess(device, size, source, encoding, onListeningEvent, procPipe, debugLevel=0):
+def startPipelineProcess(device, size, source, encoding, onListeningEvent, errorState, procPipe, debugLevel=0):
 	from gi.repository import GObject
 
 	GObject.threads_init()
@@ -24,15 +24,13 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, procP
 		else:
 			#There was a fatal error during the creation of the pipeline, interface has not even been created
 			logger.error('Fatal error creating pipeline: %s' % details)
-			onListeningEvent.set()
-			sys.exit(-1)
+			raise SystemExit(-1)
 
 	try:
 		pipeline = pipelineFactory(device, size, source, encoding, onFatalError, mainLoop, debugLevel)
 	except InvalidGStreamerPipelineException as e:
 		logger.error(e)
-		onListeningEvent.set()
-		sys.exit(-1)
+		raise SystemExit(-1)
 
 	interface = processInterface(pipeline, procPipe, mainLoop, onListeningEvent)
 
@@ -55,9 +53,8 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, procP
 		interface.join()
 
 		if not onListeningEvent.is_set():
+			errorState.value = True
 			onListeningEvent.set()
-
-		procPipe[1].close()
 
 		logger.debug('Pipeline process ended')
 
@@ -91,7 +88,7 @@ class processInterface(Thread):
 		if not self._pipeline.setToPlayAndWait():
 			self._pipeline.tearDown()
 			self._pipeline = None
-			return
+			raise SystemExit(-1)
 
 		self._onListeningEvent.set() # Inform the client that we're ready
 		self._onListeningEvent = None # unref

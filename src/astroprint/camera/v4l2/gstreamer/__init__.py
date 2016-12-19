@@ -124,10 +124,7 @@ class GStreamerManager(V4L2Manager):
 					done(None)
 					return
 
-			def onDone(photo):
-				done(photo)
-
-			self._apPipeline.takePhoto(onDone, text)
+			self._apPipeline.takePhoto(done, text)
 			return
 
 		done(None)
@@ -150,7 +147,7 @@ class GStreamerManager(V4L2Manager):
 			self._apPipeline.isVideoPlaying(onDone)
 			waitForDone.wait(1.0)
 
-			return respCont[0]
+			return respCont[0] is True
 
 		else:
 			return False
