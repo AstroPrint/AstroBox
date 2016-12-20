@@ -29,6 +29,7 @@ class RequestHandler(object):
 
 		state = {
 			'printing': printer.isPrinting(),
+			'heatingUp': printer.isHeatingUp(),
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
 			'camera': printer.isCameraConnected(),
