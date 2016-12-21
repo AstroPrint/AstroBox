@@ -75,18 +75,14 @@ def box_identify():
 	br = boxrouterManager()
 	nm = networkManager()
 
-	try:
-		origin = request.headers['Origin']
-	except KeyError:
-		origin = None
-
 	return Response(json.dumps({
 		'id': br.boxId,
 		'name': nm.getHostname(),
 		'version': VERSION
-	}), headers= {
-		'Access-Control-Allow-Origin': origin
-	} if origin else None)
+	}),
+	headers= {
+		'Access-Control-Allow-Origin': '*'
+	} if settings().getBoolean(['api', 'allowCrossOrigin']) else None)
 
 @app.route("/")
 def index():
@@ -204,7 +200,6 @@ def camera_snapshot():
 @app.route("/status", methods=["GET"])
 @restricted_access
 def getStatus():
-
 	printer = printerManager()
 	cm = cameraManager()
 
@@ -214,20 +209,26 @@ def getStatus():
 		currentJob = printer.getCurrentJob()
 		fileName = currentJob["file"]["name"]
 
-	return Response(json.dumps({
-		'id': boxrouterManager().boxId,
-		'name': networkManager().getHostname(),
-		'printing': printer.isPrinting(),
-		'fileName': fileName,
-		'printerModel': None,
-		'material': None,
-		'operational': printer.isOperational(),
-		'paused': printer.isPaused(),
-		'camera': cm.isCameraConnected(),
-		#'printCapture': cm.timelapseInfo,
-		'remotePrint': True,
-		'capabilities': ['remotePrint'] + cm.capabilities
-	}), mimetype='application/json')
+	return Response(
+		json.dumps({
+			'id': boxrouterManager().boxId,
+			'name': networkManager().getHostname(),
+			'printing': printer.isPrinting(),
+			'fileName': fileName,
+			'printerModel': None,
+			'material': None,
+			'operational': printer.isOperational(),
+			'paused': printer.isPaused(),
+			'camera': cm.isCameraConnected(),
+			#'printCapture': cm.timelapseInfo,
+			'remotePrint': True,
+			'capabilities': ['remotePrint'] + cm.capabilities
+		}),
+		mimetype= 'application/json',
+		headers= {
+			'Access-Control-Allow-Origin': '*'
+		} if settings().getBoolean(['api', 'allowCrossOrigin']) else None
+	)
 
 @app.route("/wsToken", methods=['GET'])
 def getWsToken():
@@ -244,9 +245,14 @@ def getWsToken():
 		else:
 			abort(403, 'Invalid Logged User')
 
-	return Response(json.dumps({
+	return Response(
+		json.dumps({
 		'ws_token': create_ws_token(publicKey)
-	}))
+		}),
+		headers= {
+			'Access-Control-Allow-Origin': '*'
+		} if settings().getBoolean(['api', 'allowCrossOrigin']) else None
+	)
 
 @app.route("/accessKeys", methods=["POST"])
 def getAccessKeys():
@@ -284,10 +290,16 @@ def getAccessKeys():
 		if userLogged:
 			abort(401)
 
-	return Response(json.dumps({
-		'api_key': UI_API_KEY,
-		'ws_token': create_ws_token(publicKey)
-	}), mimetype= 'application/json')
+	return Response(
+		json.dumps({
+			'api_key': UI_API_KEY,
+			'ws_token': create_ws_token(publicKey)
+		}),
+		mimetype= 'application/json',
+		headers= {
+			'Access-Control-Allow-Origin': '*'
+		} if settings().getBoolean(['api', 'allowCrossOrigin']) else None
+	)
 
 
 @identity_loaded.connect_via(app)
@@ -378,7 +390,7 @@ class Server():
 		logger = logging.getLogger(__name__)
 
 		if s.getBoolean(["accessControl", "enabled"]):
-			userManagerName = settings().get(["accessControl", "userManager"])
+			userManagerName = s.get(["accessControl", "userManager"])
 			try:
 				clazz = util.getClass(userManagerName)
 				userManager = clazz()
