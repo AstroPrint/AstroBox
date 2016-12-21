@@ -6,7 +6,7 @@ __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the A
 import uuid
 import json
 import tornado.wsgi
-from sockjs.tornado import SockJSRouter
+from ext.sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
 from flask.ext.login import LoginManager, current_user, logout_user
 from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
