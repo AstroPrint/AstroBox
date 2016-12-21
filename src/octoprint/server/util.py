@@ -9,7 +9,7 @@ from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from flask import url_for, make_response, request, current_app
 from flask.ext.login import login_required, login_user, current_user
 from werkzeug.utils import redirect
-from sockjs.tornado import SockJSConnection
+from ext.sockjs.tornado import SockJSConnection
 from itsdangerous import base64_decode
 
 import datetime
