@@ -1,6 +1,7 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import threading
 import logging
@@ -438,8 +439,7 @@ class PrinterS3g(Printer):
 
 	def changeTool(self, tool):
 		try:
-			toolNum = int(tool[len("tool"):])
-			self._selectedTool = toolNum
+			self._selectedTool = tool
 		except ValueError:
 			pass
 

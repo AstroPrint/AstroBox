@@ -1,7 +1,7 @@
 # coding=utf-8
-__author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
-__license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__author__ = "AstroPrint Product Team <product@astroprint.com> based on previous work by Gina Häußge"
+__license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import time
 import os
@@ -177,18 +177,22 @@ class PrinterMarlin(Printer):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
 	def extrude(self, tool, amount, speed=None):
-		if speed:
-			#the UI sends mm/s, we need to transfer it to mm/min
-			speed *= 60
-		else:
-			speed = settings().get(["printerParameters", "movementSpeed", "e"])
+		if self._comm:
+			if speed:
+				#the UI sends mm/s, we need to transfer it to mm/min
+				speed *= 60
+			else:
+				speed = settings().get(["printerParameters", "movementSpeed", "e"])
 
-		self.commands(["G91", "G1 E%s F%d" % (amount, speed), "G90"])
+			selectedTool = self._comm.getSelectedTool()
+			if tool is not None and selectedTool != tool:
+				self.commands(["G91", "T%d" % tool, "G1 E%s F%d" % (amount, speed), "T%d" % selectedTool, "G90"])
+			else:
+				self.commands(["G91", "G1 E%s F%d" % (amount, speed), "G90"])
 
 	def changeTool(self, tool):
 		try:
-			toolNum = int(tool[len("tool"):])
-			self.command("T%d" % toolNum)
+			self.command("T%d" % tool)
 		except ValueError:
 			pass
 

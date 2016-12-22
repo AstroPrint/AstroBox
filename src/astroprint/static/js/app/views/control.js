@@ -1,5 +1,5 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -285,7 +285,7 @@ var ExtrusionControlView = Backbone.View.extend({
     }));
 
     if (printer_profile.extruder_count > 1) {
-      events['change .extruder-number'] = "extruderChanged";
+      this.events['change .extruder-number'] = "extruderChanged";
     }
 
     this.delegateEvents(this.events);
@@ -365,8 +365,14 @@ var ExtrusionControlView = Backbone.View.extend({
   {
     var data = {
       command: "extrude",
-      amount: parseFloat(this.$el.find('input[name="extrusion-length"]').val() * direction),
-      speed: parseFloat(this.$el.find('input[name="extrusion-speed"]').val())
+      amount: parseFloat(this.$('input[name="extrusion-length"]').val() * direction),
+      speed: parseFloat(this.$('input[name="extrusion-speed"]').val())
+    }
+
+    var extruder = this.$('select.extruder-number').val();
+
+    if (extruder) {
+      data['tool'] = 'tool'+extruder;
     }
 
     $.ajax({

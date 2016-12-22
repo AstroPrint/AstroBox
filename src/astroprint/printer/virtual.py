@@ -1,6 +1,8 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+
 
 import threading
 import logging
@@ -279,6 +281,9 @@ class PrinterVirtual(Printer):
 
 	def extrude(self, tool, amount, speed=None):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
+
+	def changeTool(self, tool):
+		self._logger.info('Change tool to %s', tool)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
