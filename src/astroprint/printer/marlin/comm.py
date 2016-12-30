@@ -401,7 +401,7 @@ class MachineCom(object):
 			self._sendCommand("M110 N0")
 
 			#start sending gcode from file
-			firstCmd = self._getNextCommand()
+			firstCmd = self._getNextCommandFromFile()
 			if firstCmd:
 				self._commandQueue.appendleft(firstCmd)
 
@@ -495,7 +495,7 @@ class MachineCom(object):
 				self._sendCommand(self._commandQueue.pop(), True)
 			else:
 				self._logger.warn('There was no stored position on resume command')
-				self._sendNext()
+				self._sendNextFileCommand()
 
 			eventManager().fire(Events.PRINT_RESUMED, {
 				"file": self._currentFile.getFilename(),
@@ -1016,8 +1016,8 @@ class MachineCom(object):
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
 							self._sendCommand(self._commandQueue.pop(), True)
-						else:
-							self._sendNext()
+						elif self.isPrinting():
+							self._sendNextFileCommand()
 
 					elif lineLower.startswith("resend") or lineLower.startswith("rs"):
 						self._handleResendRequest(line)
@@ -1136,13 +1136,13 @@ class MachineCom(object):
 
 		return ret
 
-	def _sendNext(self):
-		line = self._getNextCommand()
+	def _sendNextFileCommand(self):
+		line = self._getNextCommandFromFile()
 		if line:
 			self._sendCommand(line, True)
 			self._callback.mcProgress()
 
-	def _getNextCommand(self):
+	def _getNextFileCommand(self):
 		line = self._currentFile.getNext()
 		if line is None:
 			# if self.isStreaming():
