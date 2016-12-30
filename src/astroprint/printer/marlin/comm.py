@@ -401,7 +401,7 @@ class MachineCom(object):
 			self._sendCommand("M110 N0")
 
 			#start sending gcode from file
-			firstCmd = self._getNextCommandFromFile()
+			firstCmd = self._getNextFileCommand()
 			if firstCmd:
 				self._commandQueue.appendleft(firstCmd)
 
@@ -1137,7 +1137,7 @@ class MachineCom(object):
 		return ret
 
 	def _sendNextFileCommand(self):
-		line = self._getNextCommandFromFile()
+		line = self._getNextFileCommand()
 		if line:
 			self._sendCommand(line, True)
 			self._callback.mcProgress()
