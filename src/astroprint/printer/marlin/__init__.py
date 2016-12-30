@@ -71,8 +71,8 @@ class PrinterMarlin(Printer):
 		super(PrinterMarlin, self).rampdown()
 
 	def disableMotorsAndHeater(self):
-		self.setTemperature('bed', 5)
-		self.setTemperature('tool', 5)
+		self.setTemperature('bed', 0)
+		self.setTemperature('tool', 0)
 		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 	#~~ callback handling
