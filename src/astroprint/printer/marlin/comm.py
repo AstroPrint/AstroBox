@@ -1070,9 +1070,9 @@ class MachineCom(object):
 			try:
 				self._serialLoggerEnabled and self._log("Connecting to: %s" % self._port)
 				if self._baudrate == 0:
-					self._serial = serial.Serial(str(self._port), 115200, timeout=0.1, writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "hwFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "hwFlowControl"]))
+					self._serial = serial.Serial(str(self._port), 115200, timeout=0.1, writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "rtsctsFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "dsrdtrFlowControl"]), xonxoff=self._settings.getBoolean(["serial", "swFlowControl"]))
 				else:
-					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=self._settings.getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "hwFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "hwFlowControl"]))
+					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=self._settings.getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "rtsctsFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "dsrdtrFlowControl"]), xonxoff=self._settings.getBoolean(["serial", "swFlowControl"]))
 			except:
 				self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"

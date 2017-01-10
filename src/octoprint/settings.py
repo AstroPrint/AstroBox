@@ -30,7 +30,9 @@ default_settings = {
 		"baudrate": 250000,
 		"autoconnect": True,
 		"log": False,
-		"hwFlowControl": True,
+		"dsrdtrFlowControl": False,
+		"rtsctsFlowControl": False,
+		"swFlowControl": True,
 		"timeout": {
 			"detection": 0.5,
 			"connection": 10,
