@@ -71,11 +71,12 @@ class MachineCom(object):
 		self._logger = logging.getLogger(__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
+		self._settings = settings()
 
 		if port == None:
-			port = settings().get(["serial", "port"])
+			port = self._settings.get(["serial", "port"])
 		if baudrate == None:
-			settingsBaudrate = settings().getInt(["serial", "baudrate"])
+			settingsBaudrate = self._settings.getInt(["serial", "baudrate"])
 			if settingsBaudrate is None:
 				baudrate = 0
 			else:
@@ -104,7 +105,7 @@ class MachineCom(object):
 		self._pauseInProgress = False
 		self._cancelInProgress = False
 
-		#self._alwaysSendChecksum = settings().getBoolean(["feature", "alwaysSendChecksum"])
+		#self._alwaysSendChecksum = self._settings.getBoolean(["feature", "alwaysSendChecksum"])
 		self._currentLine = 1
 		self._resendDelta = None
 		self._lastLines = deque([], 100)
@@ -179,7 +180,7 @@ class MachineCom(object):
 			return
 
 		# if newState == self.STATE_CLOSED or newState == self.STATE_CLOSED_WITH_ERROR:
-		# 	if settings().get(["feature", "sdSupport"]):
+		# 	if self._settings.get(["feature", "sdSupport"]):
 		# 		self._sdFileList = False
 		# 		self._sdFiles = []
 		# 		self._callback.mcSdFiles([])
@@ -340,7 +341,7 @@ class MachineCom(object):
 
 		self._serial = None
 
-		# if settings().get(["feature", "sdSupport"]):
+		# if self._settings.get(["feature", "sdSupport"]):
 		# 	self._sdFileList = []
 
 		if self.isPrinting() or self.isPaused():
@@ -568,7 +569,7 @@ class MachineCom(object):
 		# if not self.isOperational():
 		# 	return
 		# self.sendCommand("M21")
-		# if settings().getBoolean(["feature", "sdAlwaysAvailable"]):
+		# if self._settings.getBoolean(["feature", "sdAlwaysAvailable"]):
 		# 	self._sdAvailable = True
 		# 	self.refreshSdFiles()
 		# 	self._callback.mcSdStateChange(self._sdAvailable)
@@ -679,8 +680,8 @@ class MachineCom(object):
 		self.total_filament = None#total_filament has not got any information
 
 	def _monitor(self):
-		#feedbackControls = settings().getFeedbackControls()
-		#pauseTriggers = settings().getPauseTriggers()
+		#feedbackControls = self._settings.getFeedbackControls()
+		#pauseTriggers = self._settings.getPauseTriggers()
 		#feedbackErrors = []
 
 		#Open the serial port.
@@ -699,7 +700,7 @@ class MachineCom(object):
 		tempRequestTimeout = getNewTimeout("temperature")
 		sdStatusRequestTimeout = getNewTimeout("sdStatus")
 		self._heatingUp = False
-		supportRepetierTargetTemp = settings().getBoolean(["feature", "repetierTargetTemp"])
+		supportRepetierTargetTemp = self._settings.getBoolean(["feature", "repetierTargetTemp"])
 
 		if self._state == self.STATE_CONNECTING:
 			self._sendCommand("M105")
@@ -908,7 +909,7 @@ class MachineCom(object):
 							baudrate = self._baudrateDetectList.pop(0)
 							try:
 								self._serial.baudrate = baudrate
-								self._serial.timeout = settings().getFloat(["serial", "timeout", "detection"])
+								self._serial.timeout = self._settings.getFloat(["serial", "timeout", "detection"])
 								self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
 								self._baudrateDetectRetry = 5
 								self._baudrateDetectTestOk = 0
@@ -925,7 +926,7 @@ class MachineCom(object):
 							self._sendCommand("M105")
 						else:
 							self._sendCommand("M999")
-							self._serial.timeout = settings().getFloat(["serial", "timeout", "connection"])
+							self._serial.timeout = self._settings.getFloat(["serial", "timeout", "connection"])
 							self._changeState(self.STATE_OPERATIONAL)
 							# if self._sdAvailable:
 							# 	self.refreshSdFiles()
@@ -1069,9 +1070,9 @@ class MachineCom(object):
 			try:
 				self._serialLoggerEnabled and self._log("Connecting to: %s" % self._port)
 				if self._baudrate == 0:
-					self._serial = serial.Serial(str(self._port), 115200, timeout=0.1, writeTimeout=10000)
+					self._serial = serial.Serial(str(self._port), 115200, timeout=0.1, writeTimeout=10000, rtscts=self._settings.getFloat(["serial", "hwFlowControl"]), dsrdtr=self._settings.getFloat(["serial", "hwFlowControl"]))
 				else:
-					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=settings().getFloat(["serial", "timeout", "connection"]), writeTimeout=10000)
+					self._serial = serial.Serial(str(self._port), self._baudrate, timeout=self._settings.getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, rtscts=self._settings.getFloat(["serial", "hwFlowControl"]), dsrdtr=self._settings.getFloat(["serial", "hwFlowControl"]))
 			except:
 				self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
@@ -1419,14 +1420,14 @@ class MachineCom(object):
 			newLineNumber = 0
 
 		# send M110 command with new line number
-		self._resetLineNumber(newLineNumber + 1)
 		self._doSendWithChecksum(cmd, newLineNumber)
+		self._resetLineNumber(newLineNumber + 1)
 
 		# after a reset of the line number we have no way to determine what line exactly the printer now wants
 		self._lastLines.clear()
 		self._resendDelta = None
 
-		return cmd
+		return None
 
 	def _gcode_M112(self, cmd): # It's an emergency what todo? Canceling the print should be the minimum
 		self.cleanPrintingVars()
