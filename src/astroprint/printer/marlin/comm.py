@@ -1419,14 +1419,14 @@ class MachineCom(object):
 			newLineNumber = 0
 
 		# send M110 command with new line number
-		self._doSendWithChecksum(cmd, newLineNumber)
 		self._resetLineNumber(newLineNumber + 1)
+		self._doSendWithChecksum(cmd, newLineNumber)
 
 		# after a reset of the line number we have no way to determine what line exactly the printer now wants
 		self._lastLines.clear()
 		self._resendDelta = None
 
-		return None
+		return cmd
 
 	def _gcode_M112(self, cmd): # It's an emergency what todo? Canceling the print should be the minimum
 		self.cleanPrintingVars()
