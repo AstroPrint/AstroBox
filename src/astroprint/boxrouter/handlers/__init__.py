@@ -50,8 +50,8 @@ class BoxRouterMessageHandler(object):
 	def force_event(self, msg):
 		wsClient = self._weakWs()
 
-		if wsClient and wsClient._printerListener:
-			wsClient._printerListener.sendLastUpdate(msg['data'])
+		if wsClient and wsClient._eventSender:
+			wsClient._eventSender.sendLastUpdate(msg['data'])
 
 		return None
 

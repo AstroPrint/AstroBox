@@ -21,26 +21,27 @@ import weakref
 import uuid
 
 from time import sleep, time
-
 from flask.ext.login import current_user
+from ws4py.client.threadedclient import WebSocketClient
+from ws4py.messaging import PingControlMessage
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
-from astroprint.boxrouter.handlers import BoxRouterMessageHandler
 from astroprint.network.manager import networkManager
-from astroprint.boxrouter.printerlistener import PrinterListener
 from astroprint.software import softwareManager
 from astroprint.printer.manager import printerManager
 
-from ws4py.client.threadedclient import WebSocketClient
-from ws4py.messaging import PingControlMessage
+from .handlers import BoxRouterMessageHandler
+from .printerlistener import PrinterListener
+from .events import EventSender
 
 LINE_CHECK_STRING = 'box'
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
 		self._printerListener = None
+		self._eventSender = None
 		self._lastReceived = 0
 		self._lineCheck = None
 		self._error = False
@@ -141,16 +142,26 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		else:
 			self._logger.warn('Unknown message type [%s] received' % msg['type'])
 
+	def broadcastEvent(self, event, data):
+		if self._eventSender:
+			self._eventSender.sendUpdate(event, data)
+
 	def registerEvents(self):
 		if not self._printerListener:
 			self._printerListener = PrinterListener(self)
 			printerManager().registerCallback(self._printerListener)
 
+		if not self._eventSender:
+			self._eventSender = EventSender(self)
+
 	def unregisterEvents(self):
 		if self._printerListener:
 			printerManager().unregisterCallback(self._printerListener)
-			self._printerListener.cleanup()
 			self._printerListener = None
+
+		if self._eventSender:
+			self._eventSender.cleanup()
+			self._eventSender = None
 
 class AstroprintBoxRouter(object):
 	RETRY_SCHEDULE = [2, 2, 4, 10, 20, 30, 60, 120, 240, 480, 3600] #seconds to wait before retrying. When all exahusted it gives up
