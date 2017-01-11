@@ -11,7 +11,6 @@ class PrinterListener(object):
 		pass
 
 	def addTemperature(self, data):
-		print data
 		payload = {}
 
 		if 'bed' in data:
