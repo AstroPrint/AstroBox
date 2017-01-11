@@ -56,6 +56,7 @@ class PrinterVirtual(Printer):
 		self._logger = logging.getLogger(__name__)
 		super(PrinterVirtual, self).__init__()
 
+
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterVirtual, self).selectFile(filename, sd, printAfterSelect):
 			return False
@@ -164,6 +165,10 @@ class PrinterVirtual(Printer):
 				self._changeState(self.STATE_OPERATIONAL)
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
+
+				#set initial temps
+				self.setTemperature('tool0', 25)
+				self.setTemperature('bed', 25)
 
 		t = threading.Timer(self._settings['connection'], doConnect)
 		t.start()
