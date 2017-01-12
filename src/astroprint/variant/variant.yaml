@@ -1,5 +1,5 @@
 networkName: astrobox
-supportLink: mailto:support@astroprint.zendesk.com?subject=AstroBox%20question
+supportLink: "#help"
 suppliesLink: "#supplies"
 productName: "AstroBox"
 productLink: "https://www.astroprint.com/p/astrobox"
@@ -8,12 +8,12 @@ welcomeMsgHeader: 'Welcome to Your <span class="light">Astro</span>Box&trade;'
 welcomeMsgContent: >
  <h2 class="bold">Thanks for purchasing your AstroBox!</h2>
  <p>
-  Your support makes AstroPrint&trade; a reality! In other words, 
+  Your support makes AstroPrint&trade; a reality! In other words,
   you are amazing and you are changing the world for the better!
  </p>
 congratsMsg: <b>Congratulations!</b> Your AstroBox is all set up. Now go print something awesome or if you are feeling generous share the love!
 share:
-   facebook: 
+   facebook:
       link: https://www.astroprint.com
    twitter:
       link: https://www.astroprint.com

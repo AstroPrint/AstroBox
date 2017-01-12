@@ -349,6 +349,24 @@
       "css": "picture-1",
       "code": 105,
       "src": "fontawesome"
+    },
+    {
+      "uid": "ebffa4e734c8379ffee4fbfe49264d94",
+      "css": "lifebuoy",
+      "code": 61901,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "vqyhv5kmwcj9zxq28dhq5npykr2k39co",
+      "css": "basket",
+      "code": 59432,
+      "src": "modernpics"
+    },
+    {
+      "uid": "e15f0d620a7897e2035c18c80142f6d9",
+      "css": "link-ext",
+      "code": 57,
+      "src": "fontawesome"
     }
   ]
 }
