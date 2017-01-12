@@ -197,7 +197,15 @@ class CameraManager(object):
 		else:
 			self._cameraInactivity = None
 
-		self.reScan()
+		self.reScan(False) # We don't broadcast here because printer manager is not initialized yet
+
+	def reScan(self, broadcastChange = True):
+		r = self._doReScan()
+
+		if broadcastChange:
+			printerManager().mcCameraConnectionChanged(r)
+
+		return r
 
 	def shutdown(self):
 		self._logger.info('Shutting Down CameraManager')
@@ -470,6 +478,10 @@ class CameraManager(object):
 	def _doGetPic(self, done, text):
 		pass
 
+	#Initiate a process to look for connected cameras
+	def _doReScan(self):
+		return False
+
 	def list_camera_info(self):
 		pass
 
@@ -489,10 +501,6 @@ class CameraManager(object):
 
 	#Whether the camera properties have been read
 	def hasCameraProperties(self):
-		return False
-
-	#Initiate a process to look for connected cameras
-	def reScan(self):
 		return False
 
 	def isResolutionSupported(self, resolution):

@@ -442,6 +442,10 @@ class Printer(object):
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
 
+	def mcCameraConnectionChanged(self, connected):
+		#self._stateMonitor._state['flags']['camera'] = connected
+		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+
 	#~~~ Print Profile ~~~~
 
 	def jogAmountWithPrinterProfile(self, axis, amount):

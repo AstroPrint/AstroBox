@@ -311,7 +311,7 @@ class V4L2Manager(CameraManager):
 	def hasCameraProperties(self):
 		return self.supported_formats is not None
 
-	def reScan(self):
+	def _doReScan(self):
 		if self.findDevice():
 			return True
 

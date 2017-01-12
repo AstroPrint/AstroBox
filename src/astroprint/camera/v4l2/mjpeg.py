@@ -85,11 +85,11 @@ class MjpegManager(V4L2Manager):
 		self._localClients = []
 		return True
 
-	def reScan(self):
+	def _doReScan(self):
 		if self._streamer:
 			self.close_camera()
 
-		if super(MjpegManager, self).reScan():
+		if super(MjpegManager, self)._doReScan():
 			self.cameraName = self.getCameraName()
 			self.cameraInfo = {"name": self.cameraName, "supportedResolutions": self.supported_formats}
 
