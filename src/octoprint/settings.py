@@ -1,7 +1,7 @@
 # coding=utf-8
-__author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import sys
 import os
@@ -11,7 +11,7 @@ import re
 import uuid
 import shutil
 
-APPNAME="OctoPrint"
+APPNAME="AstroBox"
 
 instance = None
 
@@ -47,7 +47,8 @@ default_settings = {
 		"port": 5000,
 		"firstRun": True,
 		"baseUrl": "",
-		"scheme": ""
+		"scheme": "",
+		"maxUploadSize": 160, #Size in MB for the max allowed file size
 	},
 	"camera": {
 		"manager": "gstreamer",

@@ -481,7 +481,7 @@ class Server():
 			#(r"/downloads/camera/current", UrlForwardHandler, {"url": s.get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
-		self._server = HTTPServer(self._tornado_app, max_buffer_size=167772160) #Allows for uploads up to 160MB
+		self._server = HTTPServer(self._tornado_app, max_buffer_size=1048576 * s.getInt(['server', 'maxUploadSize']))
 		self._server.listen(self._port, address=self._host)
 
 		logger.info("Listening on http://%s:%d" % (self._host, self._port))
