@@ -53,7 +53,7 @@ def save_name():
 			if networkManager().setHostname(name):
 				return jsonify()
 			else:
-				return (500, "There was an error saving the hostname")
+				return make_response("There was an error saving the hostname", 500)
 		else:
 			return NO_CONTENT
 
@@ -83,9 +83,9 @@ def connect_internet():
 			if result:
 				return jsonify(result)
 			else:
-				return ("Network %s not found" % data['id'], 404)
+				return make_response("Network %s not found" % data['id'], 404)
 
-	return ("Invalid Request", 400)
+	return make_response("Invalid Request", 400)
 
 @api.route('/setup/internet', methods=['PUT'])
 @not_setup_only
@@ -99,7 +99,7 @@ def save_hotspot_option():
 			s.save()
 			return jsonify()
 
-	return ("Invalid Request", 400)
+	return make_response("Invalid Request", 400)
 
 @api.route('/setup/astroprint', methods=['GET'])
 @not_setup_only
