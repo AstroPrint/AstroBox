@@ -14,7 +14,6 @@ var TerminalView = Backbone.View.extend({
     this.outputView = new OutputView();
 
     app.eventManager.on("astrobox:commsData", _.bind(function(data) {
-      console.log(data);
       if ( !(data.direction == 'r' && _.contains(this.ignoreReceived, data.data)) ) {
         this.outputView.add(data.direction, data.data);
       }
