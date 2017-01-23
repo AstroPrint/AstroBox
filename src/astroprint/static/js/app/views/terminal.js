@@ -1,7 +1,7 @@
 var TerminalView = Backbone.View.extend({
   el: '#terminal-view',
   outputView: null,
-  //sourceId: null,
+  ignoreReceived: ['wait'],
   events: {
     'submit form': 'onSend',
     'show': 'onShow',
@@ -14,7 +14,10 @@ var TerminalView = Backbone.View.extend({
     this.outputView = new OutputView();
 
     app.eventManager.on("astrobox:commsData", _.bind(function(data) {
-      this.outputView.add(data.direction, data.data);
+      console.log(data);
+      if ( !(data.direction == 'r' && _.contains(this.ignoreReceived, data.data)) ) {
+        this.outputView.add(data.direction, data.data);
+      }
     }, this));
   },
   onClear: function(e)

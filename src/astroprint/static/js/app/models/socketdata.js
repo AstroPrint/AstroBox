@@ -261,7 +261,7 @@ var SocketData = Backbone.Model.extend({
         break;
 
         case 'commsData':
-          app.eventManager.trigger('astrobox:commsData', {direction: data.direction, data: data.data});
+          app.eventManager.trigger('astrobox:commsData', {direction: data.direction, data: data.data.trim()});
         break;
       }
     }
