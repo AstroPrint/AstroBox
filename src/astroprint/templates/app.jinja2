@@ -40,16 +40,17 @@
       <aside class="left-off-canvas-menu">
         <ul class="off-canvas-list" id="main-menu">
           <li class="header bold"><label>{{astroboxName}}</label></li>
+          {% if not user_email %}
+            <li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
+          {% endif %}
           <li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
-          <li><a class="launch-ap" href="#"><i class="icon-rocket"></i> My AstroPrint Cloud</a></li>
           {% if variantData['suppliesLink'] %}
             <li><a href="{{variantData['suppliesLink']}}"><i class="icon-basket"></i> Supplies</a></li>
           {% endif %}
           <li><a href="{{variantData['supportLink']}}"><i class="icon-lifebuoy"></i> Help</a></li>
-          {% if not user_email %}
-            <li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
-          {% else %}
+          {% if user_email %}
             <li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
+            <li><a class="launch-ap" href="#"><i class="icon-rocket"></i> AstroPrint Cloud</a></li>
             <li class="logout"><a href="#"><i class="icon-logout"></i> Sign out <i class="icon-rocket-spinner animate-spin hide"></i></a></li>
           {% endif %}
         </ul>
