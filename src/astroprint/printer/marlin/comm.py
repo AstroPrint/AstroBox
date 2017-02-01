@@ -401,6 +401,9 @@ class MachineCom(object):
 			#reset line counter
 			self._sendCommand("M110 N0")
 
+			#clear the command queue so that it's empty for the print
+			self._commandQueue.clear()
+
 			#start sending gcode from file
 			firstCmd = self._getNextFileCommand()
 			if firstCmd:
