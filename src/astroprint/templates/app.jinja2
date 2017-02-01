@@ -146,7 +146,12 @@
   {% endif %}
   <script type="text/javascript">
     $(document).foundation({
-      offcanvas: { close_on_click: true }
+      offcanvas: { close_on_click: true },
+      abide: {
+        patterns: {
+          hostname: /^[A-Za-z0-9\-]+$/
+        }
+      }
     });
   </script>
 {% endblock %}

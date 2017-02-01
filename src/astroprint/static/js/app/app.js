@@ -171,15 +171,6 @@ var AstroBoxApp = Backbone.View.extend({
 
 app = new AstroBoxApp();
 
-$(document)
-  .foundation({
-  abide: {
-    patterns: {
-    hostname: /^[A-Za-z0-9\-]+$/
-    }
-  }
-});
-
 //ADDITION TO NAVIGATOR OBJECT FOR OBTAINING BROWSER NAME AND VERSION
 navigator.sayswho= (function()
 {
