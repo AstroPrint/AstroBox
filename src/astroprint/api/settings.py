@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
@@ -224,7 +224,8 @@ def resetFactorySettings():
 
 	#replace config.yaml with config.factory
 	config_file = s._configfile
-	os.unlink(config_file)
+	if config_file and os.path.exists(config_file):
+		os.unlink(config_file)
 
 	#remove info about users
 	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
