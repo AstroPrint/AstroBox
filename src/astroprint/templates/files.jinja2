@@ -94,33 +94,33 @@
 					<% if (p.local_only) { %>
 						This file is <b>only</b> stored on this {{variantData['productName']}}
 					<% } else { %>
-						<a href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %></a>
+						<a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
 						/
-						<a href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %></a>
+						<a class="success label round"href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %> <i class="icon-link-ext"></i></a>
 						/
 						<% if (p.settings.info_link) { %>
-							<a href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %></a>
+							<a class="success label round" href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %> <i class="icon-link-ext"></i></a>
 						<% } else { %>
-							<%= p.settings.name %>
+							<span class="success label round"><%= p.settings.name %></span>
 						<% }
 					} %>
 				</div>
 				<div class="print-info">
 					<% if (p.info) { %>
+            <% if (p.info.print_time) { %>
+              <h4 class="bold hl"><i class="icon-stopwatch"></i> <%= time_format(p.info.print_time) %></h4>
+            <% } %>
+            <% if (p.info.filament_volume) { %>
+              <b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume ? (p.info.filament_volume/1000).toFixed(2) : '--' %></span> cm<sup>3</sup> / <span class="hl"><%= p.info.filament_length ? (p.info.filament_length/10).toFixed(2) : '--' %></span> cm<br/>
+            <% } %>
 						<% if (p.info.size) { %>
 							<b>Model Size:</b> <span class="hl"><%= p.info.size.x.toFixed(2) %></span> x <span class="hl"><%= p.info.size.y.toFixed(2) %></span> x <span class="hl"><%= p.info.size.z.toFixed(2) %></span> mm<br/>
 						<% } %>
-						<% if (p.info.print_time) { %>
-							<b>Print Time:</b> <span class="hl"><%= time_format(p.info.print_time) %></span><br/>
-							<% if (p.info.layer_height) { %>
-								<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
-							<% } %>
-							<% if (p.info.layer_count) { %>
-								<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
-							<% } %>
+						<% if (p.info.layer_height) { %>
+							<b>Layer Height:</b> <span class="hl"><%= p.info.layer_height %></span> mm<br/>
 						<% } %>
-						<% if (p.info.filament_volume) { %>
-							<b>Filament Used:</b> <span class="hl"><%= p.info.filament_volume ? (p.info.filament_volume/1000).toFixed(2) : '--' %></span> cm<sup>3</sup>
+						<% if (p.info.layer_count) { %>
+							<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
 						<% } %>
 					<% } else { %>
 						<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
@@ -143,14 +143,14 @@
 	</div>
 	<div class="small-8 large-10 columns middle-section">
 		<h3 class="bold"> <%= p.name %></h3>
+    <%= size_format(p.size) %>
 		<% if (p.info) { %>
 			<% if (p.info.print_time) { %>
-				<i class="icon-stopwatch" title="Print Time"></i> <b><%= time_format(p.info.print_time) %></b>
+				· <i class="icon-stopwatch" title="Print Time"></i> <b><%= time_format(p.info.print_time) %></b>
 			<% } %>
 		<% } else { %>
 			<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 		<% } %>
-    · <%= size_format(p.size) %>
     <% if (p.uploaded_on) { %>
       · <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="dd MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
     <% } %>

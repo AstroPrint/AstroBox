@@ -1,287 +1,288 @@
 @charset "UTF-8";
 
 @import
-	"fonts",
-	"normalize",
-	"fontello",
-	"sprites",
-	"variables",
-	"mixins",
-	"animations",
-	"foundation/settings",
-	"foundation/components/visibility",
-	"foundation/components/top-bar",
-	"foundation/components/alert-boxes",
-	"foundation/components/button-groups",
-	"foundation/components/forms",
-	"foundation/components/offcanvas",
-	"foundation/components/reveal",
-	"foundation/components/progress-bars",
-	"foundation/components/tables",
-	"foundation/components/panels",
-	"foundation/components/side-nav",
-	"foundation/components/switches",
-	"common-main";
+  "fonts",
+  "normalize",
+  "fontello",
+  "sprites",
+  "variables",
+  "mixins",
+  "animations",
+  "foundation/settings",
+  "foundation/components/visibility",
+  "foundation/components/top-bar",
+  "foundation/components/alert-boxes",
+  "foundation/components/button-groups",
+  "foundation/components/forms",
+  "foundation/components/offcanvas",
+  "foundation/components/labels",
+  "foundation/components/reveal",
+  "foundation/components/progress-bars",
+  "foundation/components/tables",
+  "foundation/components/panels",
+  "foundation/components/side-nav",
+  "foundation/components/switches",
+  "common-main";
 
 body, html {
-	height: 100%;
-	overflow: visible;
+  height: 100%;
+  overflow: visible;
 }
 
 .tab-bar {
-	.tab-bar-section.middle {
-		right: 0;
-		text-align: left;
+  .tab-bar-section.middle {
+    right: 0;
+    text-align: left;
 
-		ul {
-			list-style: none;
-			background: $ghost;
-			border-right: $basic-border;
-			border-left: $basic-border;
-			margin-right: 15px;
-			a {
-				color: #999;
-				line-height: rem-calc(50);
-				display: block;
-				padding: 0 15px;
-				font-size: rem-calc(14);
-				&:hover {
-					background: #efefef;
-					color: $charcoal;
-				}
-			}
-		}
-	}
+    ul {
+      list-style: none;
+      background: $ghost;
+      border-right: $basic-border;
+      border-left: $basic-border;
+      margin-right: 15px;
+      a {
+        color: #999;
+        line-height: rem-calc(50);
+        display: block;
+        padding: 0 15px;
+        font-size: rem-calc(14);
+        &:hover {
+          background: #efefef;
+          color: $charcoal;
+        }
+      }
+    }
+  }
 
-	h1.title {
-		float: left;
+  h1.title {
+    float: left;
 
-		img {
-			height: 30px;
-		}
-	}
+    img {
+      height: 30px;
+    }
+  }
 }
 
 .off-canvas-list {
-	.header {
-		label {
-			text-transform: none;
-		}
+  .header {
+    label {
+      text-transform: none;
+    }
 
-		&.bold {
-			label {
-				color: white;
-			}
-		}
-	}
+    &.bold {
+      label {
+        color: white;
+      }
+    }
+  }
 
-	label {
-		display: block;
+  label {
+    display: block;
 
-		&.account {
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			font-size: rem-calc(10);
-		}
-	}
+    &.account {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: rem-calc(10);
+    }
+  }
 }
 
 .left-off-canvas-menu {
-	.turn-off-area {
-		padding-top: 40px;
-	}
+  .turn-off-area {
+    padding-top: 40px;
+  }
 
-	.copy {
-		width: 100%;
-		position: absolute;
-		font-size: rem-calc(10);
-		bottom: 10px;
-		color: white;
+  .copy {
+    width: 100%;
+    position: absolute;
+    font-size: rem-calc(10);
+    bottom: 10px;
+    color: white;
 
-		a {
-			color: white;
-		}
-	}
+    a {
+      color: white;
+    }
+  }
 }
 
 i.animate-spin {
-	line-height: .5;
+  line-height: .5;
 }
 
 #app {
-	height: 100%;
-	overflow: visible;
+  height: 100%;
+  overflow: visible;
 
-	.inner-wrap {
-		min-height: 100%;
-	}
+  .inner-wrap {
+    min-height: 100%;
+  }
 
-	.top-logo-small {
-		float: left;
-		font-size: rem-calc(40);
+  .top-logo-small {
+    float: left;
+    font-size: rem-calc(40);
 
-		a {
-			color: $alert-color;
-		}
-	}
+    a {
+      color: $alert-color;
+    }
+  }
 }
 
 #main {
-	border-top: 1px solid #ccc;
-	-webkit-transform: scale3d(1,1,1);
-	padding-bottom: 55px;
+  border-top: 1px solid #ccc;
+  -webkit-transform: scale3d(1,1,1);
+  padding-bottom: 55px;
 }
 
 #connection-view {
-	float: right;
+  float: right;
 
-	i {
-		font-size: rem-calc(20);
-		padding: 0 5px;
-		display: inline-block;
-		color: #505050;
+  i {
+    font-size: rem-calc(20);
+    padding: 0 5px;
+    display: inline-block;
+    color: #505050;
 
-		&.connected {
-			color: $success-color;
-		}
+    &.connected {
+      color: $success-color;
+    }
 
-		&.failed {
-			color: $alert-color;
-			cursor: pointer;
-		}
+    &.failed {
+      color: $alert-color;
+      cursor: pointer;
+    }
 
-		&.astroprint {
-			.offline & {
-				display: none;
-			}
-		}
-	}
+    &.astroprint {
+      .offline & {
+        display: none;
+      }
+    }
+  }
 
-	a.offline {
-		display: inline-block;
-		height: 100%;
-		padding: 0px 8px;
-		color: #ccc;
+  a.offline {
+    display: inline-block;
+    height: 100%;
+    padding: 0px 8px;
+    color: #ccc;
 
-		img {
-			height: 18px;
-			margin-top: -5px;
-		}
+    img {
+      height: 18px;
+      margin-top: -5px;
+    }
 
-		.online & {
-			display: none;
-		}
-	}
+    .online & {
+      display: none;
+    }
+  }
 }
 
 .reveal-modal {
-	padding: 0;
+  padding: 0;
 
-	h2 {
-		width: 100%;
-		text-align: center;
-		background-color: $success-color;
-		color: white;
-		font-size: rem-calc(22);
-		padding: 15px 40px;
-		margin: 0;
-	}
+  h2 {
+    width: 100%;
+    text-align: center;
+    background-color: $success-color;
+    color: white;
+    font-size: rem-calc(22);
+    padding: 15px 40px;
+    margin: 0;
+  }
 
-	.modal-body {
-		margin: 10px $column-gutter;
+  .modal-body {
+    margin: 10px $column-gutter;
 
-		p {
-			text-align: left;
-		}
-	}
+    p {
+      text-align: left;
+    }
+  }
 
-	.close-reveal-modal {
-		color: white;
-	}
+  .close-reveal-modal {
+    color: white;
+  }
 
-	.modal-content {
-		padding: 20px;
-	}
+  .modal-content {
+    padding: 20px;
+  }
 
-	.modal-actions {
-		padding: 0px 20px;
-	}
+  .modal-actions {
+    padding: 0px 20px;
+  }
 }
 
 .quick-nav {
-	background: #fafafa;
-	border-top: 1px solid #ccc;
-	color: #222;
-	position: fixed;
-	bottom: 0;
-	max-width: 100%;
+  background: #fafafa;
+  border-top: 1px solid #ccc;
+  color: #222;
+  position: fixed;
+  bottom: 0;
+  max-width: 100%;
 
-	ul {
-		list-style: none;
-		display: inline-flex;
-		font-size: rem-calc(22);
-		margin: 0;
+  ul {
+    list-style: none;
+    display: inline-flex;
+    font-size: rem-calc(22);
+    margin: 0;
 
-		li {
-			padding: 2px 10px;
-			border-left: 1px solid #ccc;
+    li {
+      padding: 2px 10px;
+      border-left: 1px solid #ccc;
 
-			&.active {
-				background: #505050;
-				color: #fff;
-			}
+      &.active {
+        background: #505050;
+        color: #fff;
+      }
 
-			a {
-				color: #222;
-				display: block;
-			}
+      a {
+        color: #222;
+        display: block;
+      }
 
-			&:hover,
-			&.active {
-				background: #505050;
-				-webkit-transition: background .25s ease;
-				-moz-transition: background .25s ease;
-				transition: background .25s ease;
+      &:hover,
+      &.active {
+        background: #505050;
+        -webkit-transition: background .25s ease;
+        -moz-transition: background .25s ease;
+        transition: background .25s ease;
 
-				a {
-					color: #fff;
-				}
-			}
-		}
+        a {
+          color: #fff;
+        }
+      }
+    }
 
-		li:last-child {
-			border-right: 1px solid #ccc;
-		}
-	}
+    li:last-child {
+      border-right: 1px solid #ccc;
+    }
+  }
 }
 
 .alert-box {
-	&.new-release {
-		border: 3px dashed $alert-color;
-		background: $ghost;
-		color: $charcoal;
-		font-size: 22px;
+  &.new-release {
+    border: 3px dashed $alert-color;
+    background: $ghost;
+    color: $charcoal;
+    font-size: 22px;
 
-		i {
-			color: $success-color;
-		}
+    i {
+      color: $success-color;
+    }
 
-		a.check {
-			height: initial;
-		    padding: 5px 15px;
-		    margin: 0;
-		    font-size: 14px;
-		    vertical-align: middle;
-		}
+    a.check {
+      height: initial;
+        padding: 5px 15px;
+        margin: 0;
+        font-size: 14px;
+        vertical-align: middle;
+    }
 
-		a.close {
-			font-size: 50px;
-			padding-top:0;
-			top: 30px;
-			right: 0;
-		}
-	}
+    a.close {
+      font-size: 50px;
+      padding-top:0;
+      top: 30px;
+      right: 0;
+    }
+  }
 
   &.alert {
     a {
@@ -295,16 +296,16 @@ i.animate-spin {
 }
 
 @import
-	"noty",
-	"widgets",
-	"control",
-	"home",
-	"files",
-	"settings",
-	"supplies",
+  "noty",
+  "widgets",
+  "control",
+  "home",
+  "files",
+  "settings",
+  "supplies",
   "help",
-	"turnoff",
-	"printing",
-	"terminal",
-	"camera",
-	"unreachable";
+  "turnoff",
+  "printing",
+  "terminal",
+  "camera",
+  "unreachable";
