@@ -52,6 +52,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
             this.file_list_view.file_list.remove(print_file);
           } else {
             print_file.set('local_filename', false);
+            print_file.set('uploaded_on', null);
           }
 
           noty({text: filename+" deleted from your "+PRODUCT_NAME, type:"success", timeout: 3000});
@@ -465,8 +466,10 @@ var PrintFilesListView = Backbone.View.extend({
             print_file.set('local_filename', data.filename);
             print_file.set('print_time', data.print_time);
             print_file.set('layer_count', data.layer_count);
+            print_file.set('uploaded_on', Date.now() / 1000);
 
             print_file_view.render();
+            $.localtime.format(print_file_view.$el);
 
             if (print_file_view.printWhenDownloaded) {
               print_file_view.printWhenDownloaded = false;
