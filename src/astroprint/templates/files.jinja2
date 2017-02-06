@@ -31,7 +31,7 @@
 	<div class="row list-header">
 		<div class="small-12 medium-7 large-8 columns">
 			<h3 class="bold">Printable Files</h3>
-			{%- if user_email %} 
+			{%- if user_email %}
 				<div class="loading-button sync">
 					<button class="tiny success radius sync"><i class="icon-refresh"></i> Sync</button>
 					<span class="tiny success button radius disabled loading"><i class="icon-refresh animate-spin"></i> Sync</span>
@@ -143,14 +143,17 @@
 	</div>
 	<div class="small-8 large-10 columns middle-section">
 		<h3 class="bold"> <%= p.name %></h3>
-		<b><%= size_format(p.size) %></b>
 		<% if (p.info) { %>
 			<% if (p.info.print_time) { %>
-				· <i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %>
+				<i class="icon-stopwatch" title="Print Time"></i> <b><%= time_format(p.info.print_time) %></b>
 			<% } %>
 		<% } else { %>
-			· <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+			<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 		<% } %>
+    · <%= size_format(p.size) %>
+    <% if (p.uploaded_on) { %>
+      · <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="dd MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
+    <% } %>
 	</div>
 	<div class="small-2 large-1 columns right-section">
 		<div class="print-file-options">

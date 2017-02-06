@@ -92,11 +92,13 @@ def designs():
 		for p in cloud_files:
 			p['local_filename'] = None
 			p['last_print'] = None
+			p['uploaded_on'] = None
 			for i in range(len(local_files)):
 				if "cloud_id" in local_files[i] and p['id'] == local_files[i]['cloud_id']:
 					local_file = local_files[i]
 					p['local_filename'] = local_file['name']
 					p['local_only'] = False
+					p['uploaded_on'] = local_file['date']
 
 					if 'prints' in local_file \
 						and 'last' in local_file['prints'] \
@@ -119,6 +121,7 @@ def designs():
 			p['local_filename'] = p['name']
 			p['local_only'] = True
 			p['last_print'] = None
+			p['uploaded_on'] = p['date']
 			if 'gcodeAnalysis' in p:
 				p['info'] = p['gcodeAnalysis']
 				del p['gcodeAnalysis']
