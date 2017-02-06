@@ -100,6 +100,10 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
+		s = settings()
+
+		self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
+
 	@property
 	def fileManager(self):
 		return self._fileManager
@@ -122,12 +126,14 @@ class Printer(object):
 		"""
 		 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
 		"""
+		s = settings()
+
 		return {
 			"ports": self.serialList(),
 			"baudrates": self.baudrateList(),
-			"portPreference": settings().get(["serial", "port"]),
-			"baudratePreference": settings().getInt(["serial", "baudrate"]),
-			"autoconnect": settings().getBoolean(["serial", "autoconnect"])
+			"portPreference": s.get(["serial", "port"]),
+			"baudratePreference": s.getInt(["serial", "baudrate"]),
+			"autoconnect": s.getBoolean(["serial", "autoconnect"])
 		}
 
 	def registerCallback(self, callback):
