@@ -152,7 +152,7 @@
 			<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
 		<% } %>
     <% if (p.uploaded_on) { %>
-      · <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="dd MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
+      · <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
     <% } %>
 	</div>
 	<div class="small-2 large-1 columns right-section">
