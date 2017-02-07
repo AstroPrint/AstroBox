@@ -144,6 +144,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
+			bad_shutdown= True,
 			version= VERSION,
 			commit= swm.commit,
 			printing= printing,

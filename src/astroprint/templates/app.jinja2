@@ -94,6 +94,28 @@
     </div>
   </div>
 
+  {% if bad_shutdown %}
+    <div id="bad-shutdown-modal" class="reveal-modal medium" data-reveal>
+      <h2 class="bold">Improper Shutdown</h2>
+      <div class="modal-content">
+        <div class="warning-outline">
+          <h1 align="center"><i class="icon-attention"></i></h1>
+          <h4 class="bold">Your device was not properly shutdown</h4>
+          <p class="alert">
+            Cutting the power without first doing an ordely shutdown can <b>damage</b> your filesystem and <b>cause problems</b> to your device.
+          </p>
+          <hr/>
+          <p>
+            <b>Next time:</b><br/>
+            Select <b><i class="icon-off"></i> Shutdown</b> from the top left menu (<i class="icon-menu"></i>) and wait a few seconds before cutting the power.
+          </p>
+        </div>
+        <center><button class="secondary radius" onclick="$('#bad-shutdown-modal').foundation('reveal', 'close')">Ok, Got it</button></center>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+  {% endif %}
+
   {%- if not user_email -%} {% include 'login.jinja2' %} {%- endif -%}
 
   <div id="turnoff-view" class="app-view hide" data-fullscreen="1"> {%- include 'turnoff.jinja2' -%} </div>
@@ -153,5 +175,9 @@
         }
       }
     });
+
+    {% if bad_shutdown %}
+      $('#bad-shutdown-modal').foundation('reveal', 'open');
+    {% endif %}
   </script>
 {% endblock %}

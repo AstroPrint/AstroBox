@@ -295,6 +295,33 @@ i.animate-spin {
   }
 }
 
+#bad-shutdown-modal {
+  h1 i {
+    color: $alert-color;
+    font-size: rem-calc(40);
+  }
+
+  h4 {
+    color: $alert-color;
+    text-align: center;
+  }
+
+  p.alert {
+    color: $alert-color;
+  }
+
+  .warning-outline {
+    border: 3px solid $alert-color;
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+  }
+
+  button.secondary {
+    margin-bottom: 0;
+  }
+}
+
 @import
   "noty",
   "widgets",
