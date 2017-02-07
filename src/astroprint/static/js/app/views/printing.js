@@ -19,7 +19,7 @@
       var position = this._temp2px(value);
       var handle = this.$el.find('.temp-target');
 
-      handle.find('span.label').text(value);
+      handle.find('span.target-value').text(value);
       handle.css({transition: 'left 0.5s'});
       handle.css({left: position + 'px'});
       setTimeout(function() {
@@ -44,7 +44,7 @@
       var newLeft = pageX - this.containerDimensions.left - target.innerWidth()/2.0;
       newLeft = Math.min(Math.max(newLeft, this.containerDimensions.minLeft), this.containerDimensions.maxLeft );
 
-      target.find('span.label').text(this._px2temp(newLeft));
+      target.find('span.target-value').text(this._px2temp(newLeft));
       target.css({left: newLeft+'px'});
     }
   },
@@ -91,7 +91,7 @@
     var handleWidth = handle.innerWidth();
 
     if (target !== null) {
-      if (target != handle.find('span.label').text()) {
+      if (target != handle.find('span.target-value').text()) {
         this.setHandle(Math.min(Math.round(target), this.scale[1]));
       }
     }

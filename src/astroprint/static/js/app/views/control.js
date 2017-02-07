@@ -21,7 +21,7 @@ var TempBarVerticalView = TempBarView.extend({
 
       handle.css({transition: 'top 0.5s'});
       handle.css({top: position + 'px'});
-      handle.find('span.label').text(value);
+      handle.find('span.target-value').text(value);
       setTimeout(function() {
         handle.css({transition: ''});
       }, 800);
@@ -45,7 +45,7 @@ var TempBarVerticalView = TempBarView.extend({
       newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
 
       target.css({top: newTop+'px'});
-      target.find('span.label').text(this._px2temp(newTop));
+      target.find('span.target-value').text(this._px2temp(newTop));
     }
   },
   onClicked: function(e)

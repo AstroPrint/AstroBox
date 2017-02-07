@@ -15,8 +15,8 @@ var TempBarView = Backbone.View.extend({
   target: 0,
   actual: 0,
   events: {
-    'touchstart .temp-target span.label': 'onTouchStart',
-    'mousedown .temp-target span.label': 'onTouchStart',
+    'touchstart .temp-target span.target-value': 'onTouchStart',
+    'mousedown .temp-target span.target-value': 'onTouchStart',
     'touchmove': 'onTouchMove',
     'mousemove': 'onTouchMove',
     'touchend .temp-target': 'onTouchEnd',
@@ -48,7 +48,7 @@ var TempBarView = Backbone.View.extend({
       this.scale[1] = value;
       this.onResize();
 
-      var currentTemp = parseInt(this.$el.find('.temp-target span.label').text())
+      var currentTemp = parseInt(this.$el.find('.temp-target span.target-value').text())
 
       if (!isNaN(currentTemp)) {
         this.setHandle(Math.min(currentTemp, value));
@@ -69,7 +69,7 @@ var TempBarView = Backbone.View.extend({
 
     $(e.currentTarget).removeClass('moving');
 
-    this._sendToolCommand('target', this.type, this.$el.find('.temp-target span.label').text());
+    this._sendToolCommand('target', this.type, this.$el.find('.temp-target span.target-value').text());
 
     this.dragging = false;
   },
@@ -80,7 +80,7 @@ var TempBarView = Backbone.View.extend({
 
     var target = $(e.currentTarget);
     var container = target.closest('.temp-target');
-    var label = container.find('span.label');
+    var label = container.find('span.target-value');
     var input = container.find('input');
 
     label.addClass('hide');
@@ -106,7 +106,7 @@ var TempBarView = Backbone.View.extend({
     var input = $(e.target);
 
     input.addClass('hide');
-    input.closest('.temp-target').find('span.label').removeClass('hide');
+    input.closest('.temp-target').find('span.target-value').removeClass('hide');
   },
   _sendToolCommand: function(command, type, temp, successCb, errorCb)
   {
