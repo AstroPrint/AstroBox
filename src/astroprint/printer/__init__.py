@@ -102,7 +102,9 @@ class Printer(object):
 
 		s = settings()
 
-		self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
+		# don't try to connect when the device hasn't been setup
+		if not s.getBoolean(['server', 'firstRun']):
+			self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
 
 	@property
 	def fileManager(self):
