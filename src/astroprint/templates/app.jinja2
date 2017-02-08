@@ -94,7 +94,7 @@
     </div>
   </div>
 
-  {% if bad_shutdown %}
+  {% if show_bad_shutdown %}
     <div id="bad-shutdown-modal" class="reveal-modal medium" data-reveal>
       <h2 class="bold">Improper Shutdown</h2>
       <div class="modal-content">
@@ -176,7 +176,7 @@
       }
     });
 
-    {% if bad_shutdown %}
+    {% if show_bad_shutdown %}
       $('#bad-shutdown-modal').foundation('reveal', 'open');
     {% endif %}
   </script>

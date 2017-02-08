@@ -263,6 +263,8 @@ class SoftwareManager(object):
 		self._updater = None
 		self._infoFile = self._settings.get(['software', 'infoFile']) or "%s/software.yaml" % os.path.dirname(self._settings._configfile)
 		self._logger = logging.getLogger(__name__)
+		self._wasBadShutdown = None
+		self._badShutdownShown = False
 
 		self.lastCompletionPercent = None
 		self.lastMessage = None
@@ -343,6 +345,26 @@ class SoftwareManager(object):
 	@property
 	def shouldCheckForNew(self):
 		return self._settings.get(["software", "lastCheck"]) < ( time.time() - self.softwareCheckInterval )
+
+	@property
+	def wasBadShutdown(self):
+		if self._wasBadShutdown is None:
+			flagFilename = "%s/improper-shutdown" % os.path.dirname(self._settings._configfile)
+			if os.path.exists(flagFilename):
+				self._wasBadShutdown = True
+				os.unlink(flagFilename)
+			else:
+				self._wasBadShutdown = False
+
+		return self._wasBadShutdown
+
+	@property
+	def badShutdownShown(self):
+		if self._badShutdownShown:
+			return True
+		else:
+			self._badShutdownShown = True
+			return False
 
 	def checkForcedUpdate(self):
 		latestInfo = self.checkSoftwareVersion()
