@@ -50,8 +50,7 @@ var AstroBoxApp = Backbone.View.extend({
   turnOffModal: null,
   printerProfile: null,
   events: {
-    'click button.turn-off': 'turnOffClicked',
-    'click a.turn-off': 'turnOffClicked',
+    'click button.turn-off, a.turn-off': 'turnOffClicked',
     'click button.reboot': 'rebootClicked',
     'click a.launch-ap': 'launchAstroPrint'
   },
@@ -101,7 +100,6 @@ var AstroBoxApp = Backbone.View.extend({
         print_capture: null,
         paused: false
       }, {silent: true});
-      //this.$('.tab-bar .left-small, .tab-bar .right-small').show();
       $('body').removeClass('printing');
       this.$('.quick-nav').show();
       this.router.navigate("control", {replace: true, trigger: true});
@@ -145,7 +143,6 @@ var AstroBoxApp = Backbone.View.extend({
   setPrinting: function()
   {
     $('body').addClass('printing');
-    //this.$('.tab-bar .left-small, .tab-bar .right-small').hide();
     this.$('.quick-nav').hide();
   },
   launchAstroPrint: function(e)
