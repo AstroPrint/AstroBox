@@ -31,7 +31,6 @@ body, html {
 
 .tab-bar {
   .tab-bar-section.middle {
-    right: 0;
     text-align: left;
 
     ul {
@@ -52,6 +51,12 @@ body, html {
         }
       }
     }
+  }
+
+  .turn-off {
+    padding: 5px;
+    color: $alert-color;
+    font-size: rem-calc(25);
   }
 
   h1.title {
@@ -317,8 +322,32 @@ i.animate-spin {
     margin-bottom: 10px;
   }
 
+  i.icon-off {
+    color: $alert-color;
+    font-size: rem-calc(25);
+    vertical-align: middle;
+  }
+
   button.secondary {
     margin-bottom: 0;
+  }
+}
+
+/* when in printing state */
+body.printing {
+  .tab-bar {
+    .tab-bar-section.middle {
+      left: 0;
+      right: 0;
+    }
+
+    .left-small {
+      display: none;
+    }
+
+    .right-small {
+      display: none;
+    }
   }
 }
 
