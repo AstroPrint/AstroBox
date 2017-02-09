@@ -507,7 +507,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
                           this.streamingPlugIn.send({"message": body, "jsep": jsep});
                         },this),
                         error: _.bind(function(error) {
-                          console.warn("WebRTC error... " + JSON.stringify(error));
+                          console.error(error);
                           this.setState('error');
                         },this)
                       });
