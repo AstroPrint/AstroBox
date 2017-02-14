@@ -186,18 +186,27 @@ var FileUploadCombined = FileUploadBase.extend({
 
       case 'print':
         this.progress(98);
-        app.router.filesView.refreshPrintFiles(true)
+
+        var hasFilesView = app.router.loadFilesView(false);
+
+        if ( hasFilesView === true) {
+          var promise = app.router.filesView.refreshPrintFiles()
+        } else {
+          var promise = hasFilesView; //in this case it returns a promise
+        }
+
+        promise
           .done(_.bind(function(){
             noty({text: "File uploaded successfully :)", type: 'success', timeout: 3000});
             this.progress(100);
-            app.router.navigate('files', {trigger: true, replace:true});
             app.router.filesView.printFilesListView.storage_control_view.selectStorage('local');
             app.router.filesView.fileInfoByName(data.result.files.local.name);
-            this.onPrintFileUploaded(data.result.files.local);
+            this.onPrintFileUploaded();
           }, this))
           .fail(_.bind(function(err){
             this.failed(err)
-          }, this))
+          }, this));
+
       break;
     }
   },

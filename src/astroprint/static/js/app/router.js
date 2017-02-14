@@ -29,7 +29,8 @@ var AppRouter = Backbone.Router.extend({
     "*notFound": "notFound"
   },
   turningOff: false,
-  execute: function(callback, args) {
+  execute: function(callback, args)
+  {
     if (callback) {
       is_paused = app.socketData.get('paused');
       is_printing = app.socketData.get('printing');
@@ -62,10 +63,7 @@ var AppRouter = Backbone.Router.extend({
   },
   files: function()
   {
-    if (!this.filesView) {
-      this.filesView = new FilesView({forceSync: false});
-    }
-
+    this.loadFilesView(false);
     this.selectView(this.filesView);
     app.selectQuickNav('files');
   },
@@ -115,14 +113,16 @@ var AppRouter = Backbone.Router.extend({
     this.settingsView.menu.changeActive(page || 'printer-connection');
     app.selectQuickNav('settings');
   },
-  terminal: function() {
+  terminal: function()
+  {
     if (!this.terminalView) {
       this.terminalView = new TerminalView();
     }
 
     this.selectView(this.terminalView);
   },
-  camera: function() {
+  camera: function()
+  {
     if (!this.cameraView) {
       this.cameraView = new CameraView();
     }
@@ -130,7 +130,8 @@ var AppRouter = Backbone.Router.extend({
     this.selectView(this.cameraView);
     app.selectQuickNav('camera');
   },
-  selectView: function(view) {
+  selectView: function(view)
+  {
     var currentView = app.$el.find('.app-view.active');
     var targetView = view.$el;
     var targetId = targetView.attr('id');
@@ -183,5 +184,26 @@ var AppRouter = Backbone.Router.extend({
     }
 
     this.selectView(this.helpView);
+  },
+
+  // View Loading outside of navigation
+  loadFilesView: function(syncCloud)
+  {
+    if (this.filesView) {
+      return true;
+    } else {
+      var promise = $.Deferred();
+
+      this.filesView = new FilesView({forceSync: syncCloud, syncCompleted: function(success) {
+        if (success) {
+          promise.resolve()
+        } else {
+          promise.reject('unable_to_refresh');
+        }
+      }});
+
+      return promise;
+    }
+
   }
 });

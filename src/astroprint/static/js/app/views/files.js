@@ -127,7 +127,7 @@ var FileUploadFiles = FileUploadCombined.extend({
     this.resetUploadArea();
     console.error(error);
   },
-  onPrintFileUploaded: function(fileInfo)
+  onPrintFileUploaded: function()
   {
     this.resetUploadArea();
   },

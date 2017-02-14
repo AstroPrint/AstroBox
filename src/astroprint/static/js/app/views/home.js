@@ -47,7 +47,7 @@ var FileUploadDashboard = FileUploadCombined.extend({
     this.container.find('.progress span').html(Math.round(progress)+'<i>%</i>');
     this.circleProgress.circleProgress({value: progress / 100.0});
   },
-  failed: function(error)
+  onError: function(fileType, error)
   {
     this.container.addClass('failed').removeClass('uploading');
 
@@ -72,13 +72,8 @@ var FileUploadDashboard = FileUploadCombined.extend({
 
     console.error(error);
   },
-  success: function(data)
-  {
-    FileUploadCombined.prototype.success.call(this, data);
-
-    if (this.currentFileType != 'design') {
-      this.container.removeClass('uploading');
-    }
+  onPrintFileUploaded: function() {
+    this.container.removeClass('uploading');
   }
 });
 
