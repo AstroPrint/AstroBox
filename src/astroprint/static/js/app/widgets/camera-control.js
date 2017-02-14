@@ -541,8 +541,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
                   }, this);
 
                   videoCont.on("playing", onPlaying);
-
-                  attachMediaStream(videoCont.get(0), stream);
+                  videoCont.get(0).srcObject = stream;
 
                   app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
