@@ -164,7 +164,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 			self._eventSender = None
 
 class AstroprintBoxRouter(object):
-	RETRY_SCHEDULE = [2, 2, 4, 10, 20, 30, 60, 120, 240, 480, 3600] #seconds to wait before retrying. When all exahusted it gives up
+	RETRY_SCHEDULE = [2, 2, 4, 10, 20, 30, 60, 120, 240, 480, 3600, 10800, 28800, 43200, 86400, 86400] #seconds to wait before retrying. When all exahusted it gives up
 
 	STATUS_DISCONNECTED = 'disconnected'
 	STATUS_CONNECTING = 'connecting'
