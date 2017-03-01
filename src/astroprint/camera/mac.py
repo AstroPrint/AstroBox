@@ -47,7 +47,10 @@ class CameraMacManager(CameraManager):
 		return True
 
 	def _doGetPic(self, done, text=None):
-		threading.Timer(3.0, self._simulateGetPicAsync,[done, text]).start()
+		if self.isCameraConnected():
+			threading.Timer(3.0, self._simulateGetPicAsync,[done, text]).start()
+		else:
+			done(None)
 
 	@property
 	def capabilities(self):
