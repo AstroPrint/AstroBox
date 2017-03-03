@@ -66,7 +66,7 @@ from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
-from astroprint.plugin import PluginManager
+from astroprint.plugin import pluginManager
 
 UI_API_KEY = None
 VERSION = None
@@ -353,7 +353,6 @@ class Server():
 		self._allowRoot = allowRoot
 		self._logConf = logConf
 		self._ioLoop = None
-		self._pluginMgr = None
 
 	def stop(self):
 		if self._ioLoop:
@@ -489,8 +488,7 @@ class Server():
 
 		logger.info("Listening on http://%s:%d" % (self._host, self._port))
 
-		self._pluginMgr = PluginManager()
-		self._pluginMgr.loadPlugins()
+		pluginManager().loadPlugins()
 
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):

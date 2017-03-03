@@ -3,15 +3,17 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
-class PrinterCommsService(object):
+from astroprint.plugin import Plugin, PrinterCommsService
 
-	## Implement these functions
+class MarlinComms(Plugin, PrinterCommsService):
 
-	#
-	# Returns a tuple representing the driver name: (id, name).
-	# This will be used in the driver selection box
-	#
+	#Plugin
+	def initialize(self):
+		pass
 
+	# PrinterCommsService
 	@property
 	def driverName(self):
-		raise NotImplementedError()
+		return ('marlin', "GCODE / Marlin Printer")
+
+__plugin_instance__ = MarlinComms()

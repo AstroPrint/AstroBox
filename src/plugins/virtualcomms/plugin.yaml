@@ -1,0 +1,6 @@
+id: com.astroprint.astrobox.plugins.virtualcomms
+name: Virtual Comms Driver
+description:
+  Serial communications for a Virtual Printer. Used for testing
+services:
+  - printerComms
