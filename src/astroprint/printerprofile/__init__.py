@@ -25,6 +25,7 @@ class PrinterProfileManager(object):
 
 		self.data = {
 			'driver': "marlin",
+			'plugin': None,
 			'extruder_count': 1,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
@@ -61,9 +62,9 @@ class PrinterProfileManager(object):
 				if self.data[k] != changes[k]:
 					if k == 'driver':
 						#change printer object
-						from astroprint.printer.manager import printerManager 
+						from astroprint.printer.manager import printerManager
 
-						printerManager(changes['driver']) 
+						printerManager(changes['driver'])
 
 					self.data[k] = self._clean(k, changes[k])
 			else:

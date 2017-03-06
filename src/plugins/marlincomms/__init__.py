@@ -6,14 +6,12 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 from astroprint.plugin import Plugin, PrinterCommsService
 
 class MarlinComms(Plugin, PrinterCommsService):
-
-	#Plugin
-	def initialize(self):
-		pass
-
 	# PrinterCommsService
 	@property
-	def driverName(self):
-		return ('marlin', "GCODE / Marlin Printer")
+	def properties(self):
+		return {
+			'customCancelCommands': True
+		}
+
 
 __plugin_instance__ = MarlinComms()

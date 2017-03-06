@@ -99,8 +99,9 @@
               <label for="settings-printer-driver" class="bold">
                 Driver
                 <select id="settings-printer-driver" name="driver">
-                  <option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
-                  <option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+                  <% _.each(choices, function(p, k) { %>
+                    <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                  <% }) %>
                 </select>
               </label>
               <label for="extruder-count" class="bold">
@@ -154,7 +155,7 @@
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
-              <div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
+              <div class="input-wrapper cancel-gcode<% if (!choices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                 <label for="cancel-gcode" class="bold">
                   Cancel GCODE
                 </label>

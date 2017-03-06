@@ -9,7 +9,10 @@ class SailfishComms(Plugin, PrinterCommsService):
 
 	# PrinterCommsService
 	@property
-	def driverName(self):
-		return ('sailfish', "X3G / Sailfish Printer")
+	def properties(self):
+		return {
+			'customCancelCommands': False
+		}
+
 
 __plugin_instance__ = SailfishComms()

@@ -127,33 +127,46 @@ var PrinterProfileView = SettingsPage.extend({
   el: '#printer-profile',
   template: _.template( $("#printer-profile-settings-page-template").html() ),
   settings: null,
-  initialize: function(params)
-  {
-    SettingsPage.prototype.initialize.call(this, params);
-
-    this.settings = app.printerProfile;
+  choices: [],
+  events: {
+    "invalid.fndtn.abide form": 'invalidForm',
+    "valid.fndtn.abide form": 'validForm',
+    "change input[name='heated_bed']": 'heatedBedChanged',
+    "change select[name='driver']": 'driverChanged'
   },
   show: function() {
-    //Call Super
     SettingsPage.prototype.show.apply(this);
 
-    this.render();
+    if (!this.settings) {
+      this.settings = app.printerProfile;
+      this.getInfo();
+    } else {
+      this.render();
+    }
+  },
+  getInfo: function()
+  {
+    $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
+      if (data) {
+        this.settings.set(data.profile);
+        this.choices = data.choices;
+        this.render(); // This removes the animate-spin from the link
+      } else {
+        noty({text: "No Profile found.", timeout: 3000});
+      }
+    }, this))
+    .fail(function() {
+      noty({text: "There was an error getting printer profile.", timeout: 3000});
+    })
   },
   render: function() {
     this.$el.html(this.template({
-      settings: this.settings.toJSON()
+      settings: this.settings.toJSON(),
+      choices: this.choices
     }));
 
-    this.$el.foundation();
-
+    this.$el.foundation('abide');
     this.$('#extruder-count').val(this.settings.get('extruder_count'));
-
-    this.delegateEvents({
-      "invalid.fndtn.abide form": 'invalidForm',
-      "valid.fndtn.abide form": 'validForm',
-      "change input[name='heated_bed']": 'heatedBedChanged',
-      "change select[name='driver']": 'driverChanged'
-    });
   },
   heatedBedChanged: function(e)
   {
@@ -171,11 +184,8 @@ var PrinterProfileView = SettingsPage.extend({
     var target = $(e.currentTarget);
     var wrapper = this.$('.input-wrapper.cancel-gcode');
 
-    if (target.val() == 's3g') {
-      wrapper.addClass('hide');
-    } else {
-      wrapper.removeClass('hide');
-    }
+    this.settings.set('driver', target.val());
+    this.render();
   },
   invalidForm: function(e)
   {

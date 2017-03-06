@@ -7,11 +7,13 @@ class PrinterCommsService(object):
 
 	## Implement these functions
 
+
 	#
-	# Returns a tuple representing the driver name: (id, name).
-	# This will be used in the driver selection box
+	# Returns a hash with the following members:
+	#
+	# customCancelCommands: Whether the driver support custom GCODE to be send when canceling a print job
 	#
 
 	@property
-	def driverName(self):
+	def properties(self):
 		raise NotImplementedError()

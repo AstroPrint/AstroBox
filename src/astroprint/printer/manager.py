@@ -23,7 +23,7 @@ def printerManager(driver = None):
 		classInfo = {
 			'marlin': ('.marlin', 'PrinterMarlin'),
 			's3g': ('.s3g', 'PrinterS3g'),
-			'virtual': ('.virtual', 'PrinterVirtual')
+			'plugin': ('.plugin', 'PrinterWithPlugin')
 		}[driver]
 
 		module = importlib.import_module(classInfo[0], 'astroprint.printer')

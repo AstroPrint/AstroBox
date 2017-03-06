@@ -9,7 +9,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	# PrinterCommsService
 	@property
-	def driverName(self):
-		return ('virtual', "Virtual Printer")
+	def properties(self):
+		return {
+			'customCancelCommands': True
+		}
 
 __plugin_instance__ = VirtualComms()
