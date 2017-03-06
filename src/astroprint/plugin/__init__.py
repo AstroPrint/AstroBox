@@ -22,7 +22,36 @@ from astroprint.plugin.printer_comms import PrinterCommsService
 class Plugin(object):
 	def __init__(self):
 		self.logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
-		self.initialize()
+		self._definition = None
+
+		#Read it's definition file - plugin.yaml -
+		pluginPath = os.path.dirname(sys.modules[self.__module__].__file__)
+		definitionFile = os.path.join(pluginPath, 'plugin.yaml')
+		if os.path.exists(definitionFile):
+			try:
+				with open(definitionFile, "r") as f:
+					self._definition = yaml.safe_load(f)
+
+			except Exception as e:
+				raise e #Raise parse exception here
+
+			if all(key in self._definition for key in ['id', 'name', 'services']):
+				self.initialize()
+
+			else:
+				raise Exception("Invalid plugin definition found in %s" % definitionFile)
+
+		else:
+			raise Exception("No plugin definition file exists in %s" % pluginPath)
+
+
+	@property
+	def definition(self):
+		return self._definition
+
+	@property
+	def pluginId(self):
+		return self._definition['id']
 
 	# Optional functions for child classes
 
@@ -55,7 +84,7 @@ class PluginManager(object):
 
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()
-		return {pId: self._plugins[pId] for pId in self._plugins if service in self._plugins[pId]['services']}
+		return {pId: self._plugins[pId] for pId in self._plugins if service in self._plugins[pId].definition['services']}
 
 	def _pluginLoaderWorker(self, userPluginsDir):
 		#System Plugins
@@ -76,7 +105,8 @@ class PluginManager(object):
 				sys.path.insert(10, os.path.join(userPluginsDir))
 
 				for d in dirs:
-					self._loadPlugin(userPluginsDir, d)
+					if d[0] != '.': # avoid hidden dirs
+						self._loadPlugin(userPluginsDir, d)
 
 			else:
 				self._logger.warn("User Plugins Folder [%s] is empty" % userPluginsDir)
@@ -90,38 +120,21 @@ class PluginManager(object):
 		return [ name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) ]
 
 	def _loadPlugin(self, pluginsContainer, pluginDir, modulePrefix=''):
-		#We make sure that there's a plugin definition file
-		configFile = os.path.join(os.path.join(pluginsContainer, pluginDir), 'plugin.yaml')
-		if os.path.exists(configFile):
-			try:
-				with open(configFile, "r") as f:
-					config = yaml.safe_load(f)
+		try:
+			plugin = importlib.import_module(modulePrefix + pluginDir)
+			instance = plugin.__plugin_instance__
+			pluginId = instance.pluginId
 
-			except Exception as e:
-				self._logger.error("Failed to parse %s\n---\n%s\n---" % (configFile, e))
-				return
+		except Exception as e:
+			self._logger.error("Failed to initialize %s" % pluginDir, exc_info= True)
+			return
 
-			if 'id' in config:
-				pluginId = config['id']
-				del config['id']
+		if pluginId not in self._plugins:
+			self._logger.info("Loaded %s" % pluginId)
+			self._plugins[pluginId] = instance
 
-				if pluginId not in self._plugins:
-					self._logger.info("Loading %s" % pluginId)
-					self._plugins[pluginId] = config
-
-					try:
-						plugin = importlib.import_module(modulePrefix + pluginDir)
-						self._plugins[pluginId]['instance'] = plugin.__plugin_instance__
-
-					except Exception as e:
-						del self._plugins[pluginId]
-						self._logger.error("Failed to initialize %s" % pluginId, exc_info= True)
-
-				else:
-					self._logger.error("Plugin [%s] has already been loaded" % pluginId)
-
-			else:
-				self._logger.error("No plugin ID found in %s" % configFile)
+		else:
+			self._logger.error("Plugin [%s] has already been loaded" % pluginId)
 
 
 # Singleton management
