@@ -97,7 +97,6 @@ class PluginManager(object):
 		else:
 			self._logger.warn("System Plugins Folder [%s] is empty" % systemPluginsDir)
 
-
 		# User Plugins
 		if os.path.isdir(userPluginsDir):
 			dirs = self._getDirectories(userPluginsDir)
@@ -105,8 +104,7 @@ class PluginManager(object):
 				sys.path.insert(10, os.path.join(userPluginsDir))
 
 				for d in dirs:
-					if d[0] != '.': # avoid hidden dirs
-						self._loadPlugin(userPluginsDir, d)
+					self._loadPlugin(userPluginsDir, d)
 
 			else:
 				self._logger.warn("User Plugins Folder [%s] is empty" % userPluginsDir)
@@ -117,7 +115,8 @@ class PluginManager(object):
 		self._pluginsLoaded.set() # Signal that plugin loading is done
 
 	def _getDirectories(self, path):
-		return [ name for name in os.listdir(path) if os.path.isdir(os.path.join(path, name)) ]
+		#don't return hidden dirs
+		return [ name for name in os.listdir(path) if name[0] != '.' and os.path.isdir(os.path.join(path, name)) ]
 
 	def _loadPlugin(self, pluginsContainer, pluginDir, modulePrefix=''):
 		try:
