@@ -114,6 +114,10 @@ class Printer(object):
 	def currentPrintJobId(self):
 		return self._currentPrintJobId
 
+	@property
+	def shuttingDown(self):
+		return self._shutdown
+
 	def rampdown(self):
 		self._logger.info('Ramping down Printer Manager')
 		self._shutdown = True
@@ -389,7 +393,7 @@ class Printer(object):
 
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		consumedMaterial = self.getTotalConsumedFilament()
 
@@ -452,7 +456,7 @@ class Printer(object):
 
 	def mcCameraConnectionChanged(self, connected):
 		#self._stateMonitor._state['flags']['camera'] = connected
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	#~~~ Print Profile ~~~~
 
@@ -492,9 +496,11 @@ class Printer(object):
 
 	def onMetadataAnalysisFinished(self, event, data):
 		if self._selectedFile:
-			self._setJobData(self._selectedFile["filename"],
-							 self._selectedFile["filesize"],
-							 self._selectedFile["sd"])
+			self._setJobData(
+				self._selectedFile["filename"],
+				self._selectedFile["filesize"],
+				self._selectedFile["sd"]
+			)
 
 	# ~~~ File Management ~~~~
 
@@ -524,6 +530,9 @@ class Printer(object):
 
 	def getCurrentData(self):
 		return self._stateMonitor.getCurrentData()
+
+	def refreshStateData(self):
+		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
 
 	# ~~~ Implement this API ~~~
 

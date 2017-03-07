@@ -16,17 +16,20 @@ def printerManager(driver = None):
 		_instance.rampdown()
 		_instance = None
 
-	if _instance is None:
+	if _instance is None and driver:
 		import importlib
 
-		# driver name to class map. format is (module, classname)
-		classInfo = {
-			'marlin': ('.marlin', 'PrinterMarlin'),
-			's3g': ('.s3g', 'PrinterS3g'),
-			'plugin': ('.plugin', 'PrinterWithPlugin')
-		}[driver]
+		if driver.startswith('plugin:'):
+			from astroprint.printer.plugin import PrinterWithPlugin
+			_instance = PrinterWithPlugin(driver[7:])
 
-		module = importlib.import_module(classInfo[0], 'astroprint.printer')
-		_instance = getattr(module, classInfo[1])()
+		else:
+			classInfo = {
+				'marlin': ('.marlin', 'PrinterMarlin'),
+				's3g': ('.s3g', 'PrinterS3g')
+			}[driver]
+
+			module = importlib.import_module(classInfo[0], 'astroprint.printer')
+			_instance = getattr(module, classInfo[1])()
 
 	return _instance

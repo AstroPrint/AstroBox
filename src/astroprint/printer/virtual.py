@@ -73,7 +73,7 @@ class PrinterVirtual(Printer):
 		})
 
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		self._currentFile = {
 			'filename': filename,
@@ -315,7 +315,7 @@ class PrinterVirtual(Printer):
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def printJobCancelled(self):
 		# reset progress, height, print time
@@ -359,15 +359,22 @@ class TempsChanger(threading.Thread):
 			self._actuals[type] = 0
 
 	def _updateTemps(self):
-		data = { "time": int(time.time()) }
+		tools = {}
+		beds = {}
 
 		for t in self._targets.keys():
-			data[t] = {
-				"actual": self._actuals[t],
-				"target": self._targets[t]
-			}
+			if t.startswith('tool'):
+				tools[t] = {
+					"actual": self._actuals[t],
+					"target": self._targets[t]
+				}
+			elif t.startswith('bed'):
+				beds[t] = {
+					"actual": self._actuals[t],
+					"target": self._targets[t]
+				}
 
-		self._manager._stateMonitor.addTemperature(data)
+		self._manager.mcTempUpdate(tools, beds)
 
 class JobSimulator(threading.Thread):
 	def __init__(self, printerManager, currentFile):

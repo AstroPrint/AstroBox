@@ -385,11 +385,11 @@ class Server():
 		self._initSettings(self._configfile, self._basedir)
 		s = settings()
 
-		UI_API_KEY = s.getString(['api', 'key'])
-
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
+
+		UI_API_KEY = s.getString(['api', 'key'])
 
 		if s.getBoolean(["accessControl", "enabled"]):
 			userManagerName = s.get(["accessControl", "userManager"])
@@ -403,6 +403,8 @@ class Server():
 		VERSION = softwareManager.versionString
 
 		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
+
+		pluginManager().loadPlugins()
 
 		from astroprint.migration import migrateSettings
 		migrateSettings()
@@ -487,8 +489,6 @@ class Server():
 		self._server.listen(self._port, address=self._host)
 
 		logger.info("Listening on http://%s:%d" % (self._host, self._port))
-
-		pluginManager().loadPlugins()
 
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):

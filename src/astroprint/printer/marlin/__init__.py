@@ -287,7 +287,7 @@ class PrinterMarlin(Printer):
 
 	def _setState(self, state):
 		self._state = state
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def _addLog(self, log):
 		self._log.append(log)
@@ -390,7 +390,7 @@ class PrinterMarlin(Printer):
 		self._addMessage(message)
 
 	def mcSdStateChange(self, sdReady):
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcSdFiles(self, files):
 		eventManager().fire(Events.UPDATED_FILES, {"type": "gcode"})
@@ -398,7 +398,7 @@ class PrinterMarlin(Printer):
 
 	def mcFileSelected(self, filename, filesize, sd):
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		if self._printAfterSelect:
 			self.startPrint()
@@ -413,7 +413,7 @@ class PrinterMarlin(Printer):
 
 		self._setJobData(filename, filesize, True)
 		self._setProgressData(0.0, 0, 0, None, 1)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcFileTransferDone(self, filename):
 		self._sdStreaming = False
@@ -426,7 +426,7 @@ class PrinterMarlin(Printer):
 		self._setCurrentZ(None)
 		self._setJobData(None, None, None)
 		self._setProgressData(None, None, None, None, None)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)

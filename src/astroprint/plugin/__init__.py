@@ -12,6 +12,7 @@ import sys
 from threading import Thread, Event
 
 from octoprint.settings import settings
+from octoprint.events import eventManager, Events as SystemEvent
 
 from astroprint.plugin.printer_comms import PrinterCommsService
 
@@ -21,7 +22,7 @@ from astroprint.plugin.printer_comms import PrinterCommsService
 
 class Plugin(object):
 	def __init__(self):
-		self.logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
+		self._logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
 		self._definition = None
 
 		#Read it's definition file - plugin.yaml -
@@ -52,6 +53,21 @@ class Plugin(object):
 	@property
 	def pluginId(self):
 		return self._definition['id']
+
+	#
+	# Directory path where the settings file (config.yaml) is stored
+	#
+
+	@property
+	def settingsDir(self):
+		return os.path.dirname(settings()._configfile)
+
+	#
+	# Helper function for plugins to fire a system event
+	#
+
+	def fireSystemEvent(self, event, data=None):
+		eventManager().fire(event, data)
 
 	# Optional functions for child classes
 
@@ -85,6 +101,13 @@ class PluginManager(object):
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()
 		return {pId: self._plugins[pId] for pId in self._plugins if service in self._plugins[pId].definition['services']}
+
+	def getPlugin(self, pluginId):
+		self._pluginsLoaded.wait()
+		try:
+			return self._plugins[pluginId]
+		except KeyError:
+			raise Exception('Plugin %s is not loaded' % pluginId)
 
 	def _pluginLoaderWorker(self, userPluginsDir):
 		#System Plugins
