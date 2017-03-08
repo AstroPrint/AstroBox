@@ -33,7 +33,7 @@ def printer_profile_patch():
 		result = {
 			'profile': ppm.data,
 			'choices': {
-				("plugin:%s" % k) : { 'name': plugins[k].definition['name'], 'properties': plugins[k].properties }
+				("plugin:%s" % k) : { 'name': plugins[k].definition['name'], 'properties': plugins[k].settingsProperties }
 			for k in plugins }
 		}
 

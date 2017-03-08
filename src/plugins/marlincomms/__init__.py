@@ -8,7 +8,7 @@ from astroprint.plugin import Plugin, PrinterCommsService
 class MarlinComms(Plugin, PrinterCommsService):
 	# PrinterCommsService
 	@property
-	def properties(self):
+	def settingsProperties(self):
 		return {
 			'customCancelCommands': True
 		}

@@ -205,7 +205,7 @@ class PrinterCommsService(object):
 		raise NotImplementedError()
 
 	#
-	# Returns an object witht plugin properties
+	# Returns an object witht plugin properties to configure the settings view
 	#
 	# Return type: object
 	#
@@ -214,7 +214,7 @@ class PrinterCommsService(object):
 
 
 	@property
-	def properties(self):
+	def settingsProperties(self):
 		raise NotImplementedError()
 
 	#

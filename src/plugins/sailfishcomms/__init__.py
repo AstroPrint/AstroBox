@@ -9,7 +9,7 @@ class SailfishComms(Plugin, PrinterCommsService):
 
 	# PrinterCommsService
 	@property
-	def properties(self):
+	def settingsProperties(self):
 		return {
 			'customCancelCommands': False
 		}

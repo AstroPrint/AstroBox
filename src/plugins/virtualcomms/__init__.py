@@ -164,7 +164,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		return ('virtual', None) if self._comm else (None, None)
 
 	@property
-	def properties(self):
+	def settingsProperties(self):
 		return {
 			'customCancelCommands': True
 		}
