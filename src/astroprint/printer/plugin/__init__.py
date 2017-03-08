@@ -89,6 +89,15 @@ class PrinterWithPlugin(Printer):
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		self._plugin.executeCancelCommands(disableMotorsAndHeater)
 
+	def printJobCancelled(self):
+		# reset progress, height, print time
+		self._setProgressData(None, None, None, None, None)
+
+		# mark print as failure
+		if self._currentFile is not None:
+			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			self.unselectFile()
+
 	def getCurrentConnection(self):
 		port, baudrate = self._plugin.currentConnection
 		return self.getStateString(), port, baudrate
