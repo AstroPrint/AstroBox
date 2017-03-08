@@ -214,6 +214,26 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def consumedFilamentSum(self):
 		return sum([self._printJob._consumedFilament[k] for k in self._printJob._consumedFilament.keys()]) if self._printJob else 0
 
+	def setPaused(self, paused):
+		currentFile = self._printerManager.selectedFile
+
+		printFileInfo = {
+			"file": currentFile['filename'],
+			"filename": os.path.basename(currentFile['filename']),
+			"origin": currentFile['origin']
+		}
+
+		if paused:
+			self._changePrinterState(PrinterState.STATE_PAUSED)
+			self.fireSystemEvent(SystemEvent.PRINT_PAUSED, printFileInfo)
+
+		else:
+			self._changePrinterState(PrinterState.STATE_PRINTING)
+			self.fireSystemEvent(SystemEvent.PRINT_RESUMED, printFileInfo)
+
+		if self._printJob:
+			self._printJob.setPaused(paused)
+
 
 class TempsChanger(threading.Thread):
 	def __init__(self, manager):

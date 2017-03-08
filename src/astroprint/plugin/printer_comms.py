@@ -158,6 +158,15 @@ class PrinterCommsService(object):
 		raise NotImplementedError()
 
 	#
+	# Pause/unpause the print jobs
+	#
+	# - paused: whether to pause (true) or resume (false) the print
+	#
+
+	def setPaused(self, paused):
+		raise NotImplementedError()
+
+	#
 	# Returns an objects with the available ports to communicate with a connected printer.
 	#
 	# Return type: objedt
@@ -408,3 +417,15 @@ class PrinterCommsService(object):
 			eventManager().fire(Events.DISCONNECTED)
 
 		self._printerManager.refreshStateData()
+
+	### Better to not override this functions
+
+	#
+	# Pause/unpause the print jobs
+	#
+	# - paused: whether to pause (true) or resume (false) the print
+	#
+
+	@paused.setter
+	def paused(self, paused):
+		self.setPaused(paused)

@@ -346,7 +346,7 @@ class Printer(object):
 		 Cancel the current printjob.
 		"""
 
-		if self._comm and (self.isPrinting() or self.isPaused()):
+		if self.isConnected() and (self.isPrinting() or self.isPaused()):
 			activePrintJob = None;
 
 			cameraManager().stop_timelapse()
@@ -371,7 +371,7 @@ class Printer(object):
 		"""
 		 Pause the current printjob.
 		"""
-		if self._comm is None:
+		if not self.isConnected():
 			return
 
 		wasPaused = self.isPaused()

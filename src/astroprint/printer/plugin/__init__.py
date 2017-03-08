@@ -159,6 +159,9 @@ class PrinterWithPlugin(Printer):
 	def isPaused(self):
 		return self._plugin.paused
 
+	def setPause(self, paused):
+		self._plugin.paused = paused
+
 	def isReady(self):
 		return self._plugin.connected and not self._plugin.printing
 
