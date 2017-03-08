@@ -1,6 +1,0 @@
-id: com.astroprint.astrobox.plugins.sailfishcomms
-name: Sailfish Comms Driver
-description:
-  Serial communications for Sailfish Based Printers
-services:
-  - printerComms
