@@ -42,9 +42,9 @@ class PrinterState():
 		if self._state == self.STATE_CLOSED:
 			return "Closed"
 		if self._state == self.STATE_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Error"
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Error"
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
 		return "?%d?" % (self._state)
@@ -62,21 +62,18 @@ class PrinterCommsService(object):
 	# - port: The name of the port to use
 	# - baudrate: The baudrate to use with the connection
 	#
-
 	def connect(self, port=None, baudrate=None):
 		raise NotImplementedError()
 
 	#
 	# Perform a disconnection from the printer.
 	#
-
 	def disconnect(self, port=None, baudrate=None):
 		raise NotImplementedError()
 
 	#
 	# Start a print job using the currently selected file
 	#
-
 	def startPrint(self):
 		raise NotImplementedError()
 
@@ -85,7 +82,6 @@ class PrinterCommsService(object):
 	#
 	# - disableMotorsAndHeater: whether we need to disable the stepper motors and the heaters
 	#
-
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		raise NotImplementedError()
 
@@ -95,7 +91,6 @@ class PrinterCommsService(object):
 	# - axis: 'x', 'y', 'z'
 	#	- amount: distrance in milimeters
 	#
-
 	def jog(self, axis, amount):
 		raise NotImplementedError()
 
@@ -104,7 +99,6 @@ class PrinterCommsService(object):
 	#
 	# - axes: Array containing one or more of 'x', 'y', 'z'
 	#
-
 	def home(self, axes):
 		raise NotImplementedError()
 
@@ -114,7 +108,6 @@ class PrinterCommsService(object):
 	# - tool: Number describing the extruder
 	# - speed: Percentage speed to set (0-255)
 	#
-
 	def fan(self, tool, speed):
 		raise NotImplementedError()
 
@@ -125,7 +118,6 @@ class PrinterCommsService(object):
 	# - amount: amount in mm to extrude
 	# - speed: speed to move at (mm/s)
 	#
-
 	def extrude(self, tool, amount, speed=None):
 		raise NotImplementedError()
 
@@ -134,7 +126,6 @@ class PrinterCommsService(object):
 	#
 	# - tool: Number describing the extruder
 	#
-
 	def changeTool(self, tool):
 		raise NotImplementedError()
 
@@ -143,8 +134,7 @@ class PrinterCommsService(object):
 	#
 	# - command: The command to sed
 	#
-
-	def sendComand(self, command):
+	def sendCommand(self, command):
 		raise NotImplementedError()
 
 	#
@@ -153,7 +143,6 @@ class PrinterCommsService(object):
 	# - type: tool0, tool1 ... or bed
 	# - value: The value in Celcius
 	#
-
 	def setTemperature(self, type, value):
 		raise NotImplementedError()
 
@@ -162,8 +151,13 @@ class PrinterCommsService(object):
 	#
 	# - paused: whether to pause (true) or resume (false) the print
 	#
-
 	def setPaused(self, paused):
+		raise NotImplementedError()
+
+	#
+	# Called when the serial logging flag has changed, It should be re-checked to adjust to the new setting
+	#
+	def serialLoggingChanged(self):
 		raise NotImplementedError()
 
 	#
@@ -173,8 +167,6 @@ class PrinterCommsService(object):
 	#
 	# - { portId: portName }
 	#
-
-
 	@property
 	def ports(self):
 		raise NotImplementedError()
@@ -185,8 +177,6 @@ class PrinterCommsService(object):
 	# Return type: list of integers
 	#
 	#
-
-
 	@property
 	def baudRates(self):
 		raise NotImplementedError()
@@ -199,7 +189,6 @@ class PrinterCommsService(object):
 	#
 	# - (port, baudrate)
 	#
-
 	@property
 	def currentConnection(self):
 		raise NotImplementedError()
@@ -211,8 +200,6 @@ class PrinterCommsService(object):
 	#
 	# - customCancelCommands: Whether the driver support custom GCODE to be send when canceling a print job
 	#
-
-
 	@property
 	def settingsProperties(self):
 		raise NotImplementedError()
@@ -223,7 +210,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: Class
 	#
-
 	@property
 	def fileManagerClass(self):
 		raise NotImplementedError()
@@ -234,7 +220,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def connected(self):
 		raise NotImplementedError()
@@ -245,7 +230,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def preHeating(self):
 		raise NotImplementedError()
@@ -256,7 +240,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: int
 	#
-
 	@property
 	def printTime(self):
 		raise NotImplementedError()
@@ -267,7 +250,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: int
 	#
-
 	@property
 	def printProgress(self):
 		raise NotImplementedError()
@@ -278,7 +260,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: int
 	#
-
 	@property
 	def printFilePosition(self):
 		raise NotImplementedError()
@@ -288,7 +269,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: object
 	#
-
 	@property
 	def consumedFilamentData(self):
 		raise NotImplementedError()
@@ -298,7 +278,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: object
 	#
-
 	@property
 	def consumedFilamentSum(self):
 		raise NotImplementedError()
@@ -310,7 +289,6 @@ class PrinterCommsService(object):
 	#
 	# - printerManger: the printer manager instance that controls this plugin
 	#
-
 	def initPrinterCommsService(self, printerManager):
 		self.printerState = PrinterState()
 		self._printerManager = printerManager
@@ -322,7 +300,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def allowTerminal(self):
 		return False
@@ -332,7 +309,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def allowSDCardPrinting(self):
 		return False
@@ -342,7 +318,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def paused(self):
 		return self.printerState == PrinterState.STATE_PAUSED
@@ -352,7 +327,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def printing(self):
 		return self.printerState == PrinterState.STATE_PRINTING
@@ -362,7 +336,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def operational(self):
 		return self.connected and (self.printerState == PrinterState.STATE_OPERATIONAL or self.printerState == PrinterState.STATE_PRINTING or self.printerState == PrinterState.STATE_PAUSED)
@@ -372,7 +345,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def conectionError(self):
 		return self.printerState != PrinterState.STATE_CONNECTING and (not self.connected or self.printerState == PrinterState.STATE_ERROR or self.printerState == PrinterState.STATE_CLOSED_WITH_ERROR)
@@ -382,7 +354,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def conectionClosedOrError(self):
 		return not self.connected or self.printerState == PrinterState.STATE_ERROR or self.printerState == PrinterState.STATE_CLOSED_WITH_ERROR or self.printerState == PrinterState.STATE_CLOSED
@@ -392,7 +363,6 @@ class PrinterCommsService(object):
 	#
 	# Return type: boolean
 	#
-
 	@property
 	def streaming(self):
 		return False
@@ -425,7 +395,6 @@ class PrinterCommsService(object):
 	#
 	# - paused: whether to pause (true) or resume (false) the print
 	#
-
 	@paused.setter
 	def paused(self, paused):
 		self.setPaused(paused)

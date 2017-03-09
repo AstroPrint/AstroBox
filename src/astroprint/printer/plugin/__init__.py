@@ -24,7 +24,7 @@ class PrinterWithPlugin(Printer):
 
 	@property
 	def allowTerminal(self):
-		return self._plugin.allowGCodeTerminal()
+		return self._plugin.allowTerminal
 
 	@property
 	def selectedFile(self):
@@ -121,7 +121,7 @@ class PrinterWithPlugin(Printer):
 		self._plugin.setTemperature(type, value)
 
 	def sendRawCommand(self, command):
-		self._plugin.sendComand(command)
+		self._plugin.sendCommand(command)
 
 	def getShortErrorString(self):
 		return "Virtual Error"
@@ -182,3 +182,6 @@ class PrinterWithPlugin(Printer):
 
 	def isConnected(self):
 		return self._plugin.connected
+
+	def resetSerialLogging(self):
+		self._plugin.serialLoggingChanged()

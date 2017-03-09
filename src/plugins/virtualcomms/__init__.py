@@ -7,9 +7,8 @@ import os
 import threading
 import time
 
-from astroprint.plugin import Plugin, PrinterCommsService, SystemEvent
+from astroprint.plugin import Plugin, PrinterCommsService, SystemEvent, PrinterState
 from astroprint.printfiles.gcode import PrintFileManagerGcode
-from astroprint.plugin.printer_comms import PrinterCommsService, PrinterState
 
 class VirtualComms(Plugin, PrinterCommsService):
 	# PrinterCommsService
@@ -141,13 +140,16 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def changeTool(self, tool):
 		self._logger.info('Change tool to %s', tool)
 
-	def sendComand(self, command):
+	def sendCommand(self, command):
 		self._logger.info('Command Sent - %s', command)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
 		if self._temperatureChanger:
 			self._temperatureChanger.setTarget(type, value)
+
+	def serialLoggingChanged(self):
+		pass
 
 	@property
 	def ports(self):
