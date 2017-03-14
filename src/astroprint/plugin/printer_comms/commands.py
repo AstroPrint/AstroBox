@@ -83,8 +83,6 @@ class CommandsComms(ReaderListener):
 	def listPorts(self):
 		import serial.tools.list_ports
 
-		from usbid.device import device_list
-
 		ports = {}
 
 		for p in serial.tools.list_ports.comports():
@@ -106,6 +104,10 @@ class CommandsComms(ReaderListener):
 			self._logger.warn("The serial link was already opened")
 			return True
 
+		if not port:
+			self._logger.error("Port not specified")
+			return False
+
 		self._serialLoggerEnabled and self._serialLogger.debug("Connecting to: %s" % port)
 		try:
 			self._link = serial.Serial(port, baudrate, timeout=self._settings.getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "rtsctsFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "dsrdtrFlowControl"]), xonxoff=self._settings.getBoolean(["serial", "swFlowControl"]))
@@ -113,6 +115,7 @@ class CommandsComms(ReaderListener):
 		except Exception as e:
 			self._logger.error("Unexpected error while opening serial port: %s %s" % (port, e))
 			self._listener.onLinkError("Failed to open serial port")
+			self._link = None
 			return False
 
 		if self._link:
