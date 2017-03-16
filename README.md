@@ -16,7 +16,7 @@ Our issue tracker can be found [on Github](https://github.com/astroprint/astrobo
 Installation instructions
 -------
 
-### Ubuntu
+
 
 * Create an bootable image using the images from [AstroPrint](https://www.astroprint.com/downloads)
 
@@ -26,13 +26,25 @@ Installation instructions
     git clone https://github.com/AstroPrint/AstroBox.git
   </pre>
 
-* If you intent to run from source, you also need to install:
+Additional (to run from source):
+-------
+### Ubuntu
 
-  <pre>
-    $ sudo apt-get install rubygems oracle-java8-jdk
-    $ sudo gem install sass 
-    $ sudo pip install -r requirements.txt
-  </pre>
+<pre>
+  sudo apt-get install rubygems oracle-java8-jdk
+</pre>
+  
+### Mac
+
+<pre>
+  gem install rubygems-update
+</pre>
+  Download and install oracle-java8-jdk from [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
+### Ubuntu/Mac
+<pre>
+  $ sudo gem install sass 
+  $ sudo pip install -r requirements.txt
+</pre>
 
 * You can run the box from source like this:
 
@@ -46,14 +58,17 @@ Setting up the virtual printer
 
 The AstroBox Software comes with a handy virtual printer so that you can test without the need of a real 3D Printer attached. Here's how you can set it up
 
-* Edit the `printer-profile.yaml` file in your settings directory (by default `[AstroBox Directory]/local`). Change the `driver` property to `virtual`.
+* Edit or create, the `printer-profile.yaml` file in your settings directory (by default `[AstroBox Directory]/local`). Change or add the line:
+<pre>
+  driver: virtual
+</pre>
 
 * Edit or create the `virtual-printer-settings.yaml` file in the same directory to guide your printing simulation. All values are in seconds. Here's a sample:
 
 <pre>
-connection: 3.0
-heatingUp: 5.0
-printJob: 10.0
+  connection: 3.0
+  heatingUp: 5.0
+  printJob: 10.0
 </pre>
 
 * Restart AstroBox any time you make changes to these files
