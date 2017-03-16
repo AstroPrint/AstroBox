@@ -197,14 +197,25 @@ def camera_snapshot():
 	else:
 		return 'Camera not ready', 404
 
-@app.route("/ping", methods=["GET"])
-def getPing():
+@app.route("/identify", methods=["GET"])
+def identify_box():
+	s = settings()
+	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+	locked = False
+
+	if loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
+		locked = True
 	return Response(
-		json.dumps(True),
+		json.dumps({
+			'id': boxrouterManager().boxId,
+			'name': networkManager().getHostname(),
+			'software_version': VERSION,
+			'locked': locked
+		}),
 		mimetype= 'application/json',
 		headers= {
 			'Access-Control-Allow-Origin': '*'
-		} if settings().getBoolean(['api', 'allowCrossOrigin']) else None
+		} if s.getBoolean(['api', 'allowCrossOrigin']) else None
 	)
 
 @app.route("/status", methods=["GET"])
