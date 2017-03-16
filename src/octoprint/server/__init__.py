@@ -197,6 +197,15 @@ def camera_snapshot():
 	else:
 		return 'Camera not ready', 404
 
+@app.route("/ping", methods=["GET"])
+def getPing():
+	return Response(
+		json.dumps(True),
+		mimetype= 'application/json',
+		headers= {
+			'Access-Control-Allow-Origin': '*'
+		} if settings().getBoolean(['api', 'allowCrossOrigin']) else None
+	)
 
 @app.route("/status", methods=["GET"])
 @restricted_access
