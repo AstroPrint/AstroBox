@@ -4,14 +4,13 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
-import serial
 import threading
 
 from sys import platform
 
 from collections import deque
 
-from octoprint.settings import settings
+from .transport import TransportEvents
 
 class CommsListener(object):
 	# ~~~~~~~~~~
@@ -48,140 +47,79 @@ class CommsListener(object):
 	def readNextCommand(self):
 		pass
 
-class ReaderListener(object):
-	def onCommandReceived(self, command):
-		pass
 
-	def onReadError(self, error):
-		pass
-
-class CommandsComms(ReaderListener):
-
-	def __init__(self, listener):
+class CommandsComms(TransportEvents):
+	def __init__(self, transport, listener):
 		self._listener = listener
 		self._logger = logging.getLogger(self.__class__.__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
-		self._settings = settings()
-		self._pendingCommandsQ = deque()
-		self._historyQ = deque([], 100)
 
-		self._link = None
-		self._linkReader = None
-		self._port = None
-		self._baudrate = None
+		if transport == 'serial':
+			from .transport.serial_t import SerialCommTransport
+			self._transport = SerialCommTransport(self)
+
+		elif transport == 'usb':
+			from .transport.usb_t import UsbCommTransport
+			self._transport = UsbCommTransport(self)
+
+		else:
+			raise "Invalid transport %s" % transport
+
+		self._sender = CommandSender(self, listener)
+		self._sender.start()
 
 	def __del__(self):
 		self._logger.debug('Object Removed')
 		self.closeLink()
 
 	#
-	# returns an object representing the ports with devices connected in the following format
-	#
-	# { port: product_name }
-	#
-	def listPorts(self):
-		import serial.tools.list_ports
-
-		ports = {}
-
-		for p in serial.tools.list_ports.comports():
-			if p.description != 'n/a':
-				ports[p.device] = p
-
-		return ports
-
-	#
-	# Opens the serial port
-	#
-	# - port (string): the port to open
-	# - baudrate (integer): the baudrate to use (optional)
-	#
-	# Returns (boolean): True is succesful or False if not
-	#
-	def openLink(self, port, baudrate= 115200):
-		if self.isLinkOpen:
-			self._logger.warn("The serial link was already opened")
-			return True
-
-		if not port:
-			self._logger.error("Port not specified")
-			return False
-
-		self._serialLoggerEnabled and self._serialLogger.debug("Connecting to: %s" % port)
-		try:
-			self._link = serial.Serial(port, baudrate, timeout=self._settings.getFloat(["serial", "timeout", "connection"]), writeTimeout=10000, rtscts=self._settings.getBoolean(["serial", "rtsctsFlowControl"]), dsrdtr=self._settings.getBoolean(["serial", "dsrdtrFlowControl"]), xonxoff=self._settings.getBoolean(["serial", "swFlowControl"]))
-
-		except Exception as e:
-			self._logger.error("Unexpected error while opening serial port: %s %s" % (port, e))
-			self._listener.onLinkError("Failed to open serial port")
-			self._link = None
-			return False
-
-		if self._link:
-			self._port = port
-			self._baudrate = baudrate
-			self._linkReader = LinkReader(self._link, self)
-			self._linkReader.start()
-			self._serialLoggerEnabled and self._serialLogger.info("Connected to: %s" % self._link)
-			self._listener.onLinkOpened(self)
-			return True
-
-		else:
-			self._logger.error("Unable to open serial port %s at %d" % (port, baudrate))
-			self._listener.onLinkError("Failed to open serial port")
-			return False
-
-	#
-	# Closes the serial port
+	# Closes the link and performs cleanup
 	#
 	def closeLink(self):
-		if self.isLinkOpen:
-			try:
-				self._linkReader.stop()
-				self._link.close()
-				self._link = None
+		self._sender.stop()
+		self._transport.closeLink()
 
-				#This can be sometimes called from the _linkReader thread.
-				if self._linkReader != threading.current_thread():
-					self._linkReader.join()
-
-				self._linkReader = None
-				self._port = None
-				self._baudrate = None
-
-
-				self._listener.onLinkClosed()
-
-			except OSError as e:
-				#log it but continue
-				self._logger.error('Error closing serial port: %s' % e)
-
-		self._link = None
+	#
+	# Return the transport object
+	#
+	@property
+	def transport(self):
+		return self._transport
 
 	#
 	# Whether the link is open or not
 	#
 	@property
 	def isLinkOpen(self):
-		return self._link and self._link.is_open
+		return self._transport.isLinkOpen
 
 	#
 	# Return the settings of the active connection. (port, baudrate)
 	#
 	@property
 	def connectionSettings(self):
-		return self._port, self._baudrate
+		return self._transport.connSettings
+
+	#
+	# Add the commands to the send queue
+	#
+	def queueCommands(self, commands):
+		for c in commands:
+			self.queueCommand(c)
+
+	#
+	# Add the commmand to the send queue
+	#
+	def queueCommand(self, command):
+		self._sender.addCommand(command)
 
 	def serialLoggingChanged(self):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 
 	def writeOnLink(self, data):
-		self._link.write(data)
-		self._serialLoggerEnabled and self._serialLogger.debug('<<< %s' % data)
-
-	def queueCommand(self, command):
-		raise NotImplementedError()
+		self._transport.write(data)
+		self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
 
 	def startPrint(self, filename):
 		raise NotImplementedError()
@@ -189,38 +127,70 @@ class CommandsComms(ReaderListener):
 	def stopPrint(self):
 		raise NotImplementedError()
 
-	# ~~~~~~~~~~~~~~~~
-	# ReaderListener ~
-	# ~~~~~~~~~~~~~~~~
+	# ~~~~~~~~~~~~~~~~~
+	# TransportEvents ~
+	# ~~~~~~~~~~~~~~~~~
 
-	def onCommandReceived(self, command):
-		self._serialLoggerEnabled and self._serialLogger.debug('>> %s' % command)
+	def onDataReceived(self, data):
+		command = data.strip()
+		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % command)
 		self._listener.onCommandReceived(command)
+		if 'ok' in command:
+			self._sender.sendNext()
 
-	def onReadError(self, error):
-		self.closeLink()
+	def onLinkError(self, error):
+		self._transport.closeLink()
 		self._listener.onLinkError(error)
 
-class LinkReader(threading.Thread):
-	def __init__(self, link, listener):
-		super(LinkReader, self).__init__()
+	def onLinkInfo(self, info):
+		self._serialLoggerEnabled and self._serialLogger.debug(info)
+
+
+class CommandSender(threading.Thread):
+	def __init__(self, comms, eventListener):
+		super(CommandSender, self).__init__()
 		self._stopped = False
-		self._listener = listener
-		self._link = link
+		self._eventListener = eventListener
+		self._comms = comms
+		self._commandQ = deque()
+		self._historyQ = deque([], 100)
+		self._sendEvent = threading.Event()
+		self._readyToSend = False
+		self._addingToQueue = threading.Condition()
 
 	def run(self):
 		while not self._stopped:
-			try:
-				line = self._link.readline()
-			except:
-				line = None
 
+			self._sendEvent.wait()
 			if not self._stopped:
-				if line is None:
-					self._listener.onReadError('Invalid Link')
-					self.stop()
-				else:
-					self._listener.onCommandReceived(line.strip())
+				command = None
+
+				try:
+					command = self._commandQ.pop()
+					self._comms.writeOnLink(command)
+					self._historyQ.appendleft(command)
+				except Exception as e:
+					if command:
+						self._commandQ.append(command) # put back in the queue
+
+					self._eventListener.onLinkError('unable_to_send')
+
+				self._sendEvent.clear()
 
 	def stop(self):
+		self._sendEvent.set()
 		self._stopped = True
+
+	def sendNext(self):
+		if len(self._commandQ):
+			self._sendEvent.set()
+		else:
+			self._readyToSend = True
+
+	def addCommand(self, command):
+		with self._addingToQueue:
+			self._commandQ.appendleft(command)
+
+			if self._readyToSend or len(self._commandQ) == 1:
+				self._sendEvent.set()
+				self._readyToSend = False

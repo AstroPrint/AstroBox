@@ -174,7 +174,7 @@ class PrinterCommsService(object):
 	#
 	# Returns a list of valid baud rates to connect to the printers:
 	#
-	# Return type: list of integers
+	# Return type: list of integers or None if device doesn't need baud rate
 	#
 	#
 	@property

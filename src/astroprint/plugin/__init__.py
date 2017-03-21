@@ -15,6 +15,7 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events as SystemEvent
 
 from astroprint.plugin.printer_comms import PrinterCommsService, PrinterState
+from astroprint.printerprofile import printerProfileManager
 
 #
 # Plugin Base Class
@@ -24,6 +25,8 @@ class Plugin(object):
 	def __init__(self):
 		self._logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
 		self._definition = None
+		self._settings = settings()
+		self._profileManager = printerProfileManager()
 
 		#Read it's definition file - plugin.yaml -
 		pluginPath = os.path.dirname(sys.modules[self.__module__].__file__)
@@ -60,7 +63,7 @@ class Plugin(object):
 
 	@property
 	def settingsDir(self):
-		return os.path.dirname(settings()._configfile)
+		return os.path.dirname(self._settings._configfile)
 
 	#
 	# Helper function for plugins to fire a system event
