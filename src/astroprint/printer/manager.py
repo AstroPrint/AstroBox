@@ -32,4 +32,11 @@ def printerManager(driver = None):
 			module = importlib.import_module(classInfo[0], 'astroprint.printer')
 			_instance = getattr(module, classInfo[1])()
 
+		if _instance:
+			from octoprint.settings import settings
+			#reset port and baud settings
+			s = settings()
+			s.set(['serial', 'port'], None)
+			s.set(['serial', 'baudrate'], None)
+
 	return _instance

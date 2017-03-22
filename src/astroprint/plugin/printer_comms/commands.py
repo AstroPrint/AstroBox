@@ -38,7 +38,7 @@ class CommsListener(object):
 	#
 	# Called when a new command is received from the printer
 	#
-	def onCommandReceived(self):
+	def onCommandReceived(self, command):
 		pass
 
 	#
