@@ -135,7 +135,7 @@ class LinkReader(threading.Thread):
 
 			if not self._stopped:
 				if data is None:
-					self._eventListener.onLinkError('invalid_link')
+					self._eventListener.onLinkError('invalid_link', "Line returned nothing")
 					self.stop()
 				else:
 					for line in data.split('\r\n'):

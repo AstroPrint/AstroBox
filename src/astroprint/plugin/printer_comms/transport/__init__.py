@@ -79,7 +79,7 @@ class TransportEvents(object):
 	#
 	# There was an error on the link
 	#
-	def onLinkError(self, error):
+	def onLinkError(self, error, description=None):
 		pass
 
 	#

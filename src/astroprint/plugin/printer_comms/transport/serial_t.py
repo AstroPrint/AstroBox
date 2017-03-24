@@ -63,7 +63,7 @@ class SerialCommTransport(PrinterCommTransport):
 
 		except Exception as e:
 			self._logger.error("Unexpected error while opening serial port: %s %s" % (port, e))
-			self._eventListener.onLinkError("failed_to_open")
+			self._eventListener.onLinkError("failed_to_open", e)
 			self._link = None
 			return False
 
@@ -78,7 +78,7 @@ class SerialCommTransport(PrinterCommTransport):
 
 		else:
 			self._logger.error("Unable to open serial port %s at %d" % (port, baudrate))
-			self._eventListener.onLinkError("failed_to_open")
+			self._eventListener.onLinkError("failed_to_open", "No link")
 			return False
 
 	#
@@ -139,7 +139,7 @@ class LinkReader(threading.Thread):
 
 			if not self._stopped:
 				if line is None:
-					self._eventListener.onLinkError('invalid_link')
+					self._eventListener.onLinkError('invalid_link', "Line returned nothing")
 					self.stop()
 				else:
 					if line is '':

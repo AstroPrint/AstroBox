@@ -26,7 +26,7 @@ class CommsListener(object):
 	#
 	# Called when the link has an error
 	#
-	def onLinkError(self, error):
+	def onLinkError(self, error, description= None):
 		pass
 
 	#
@@ -138,9 +138,9 @@ class CommandsComms(TransportEvents):
 		if 'ok' in command:
 			self._sender.sendNext()
 
-	def onLinkError(self, error):
+	def onLinkError(self, error, description= None):
 		self._transport.closeLink()
-		self._listener.onLinkError(error)
+		self._listener.onLinkError(error, description)
 
 	def onLinkInfo(self, info):
 		self._serialLoggerEnabled and self._serialLogger.debug(info)
@@ -166,14 +166,14 @@ class CommandSender(threading.Thread):
 				command = None
 
 				try:
-					command = self._commandQ.pop()
+					command = str(self._commandQ.pop())
 					self._comms.writeOnLink(command)
 					self._historyQ.appendleft(command)
 				except Exception as e:
 					if command:
 						self._commandQ.append(command) # put back in the queue
 
-					self._eventListener.onLinkError('unable_to_send')
+					self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command))
 
 				self._sendEvent.clear()
 
