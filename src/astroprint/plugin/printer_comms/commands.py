@@ -48,9 +48,25 @@ class CommsListener(object):
 		pass
 
 	#
-	# Called when a new command is needed from the file. Should return the command
+	# Called when a new command is read from the file while an active print job is ongoing. Should process the command and return it
 	#
-	def readNextCommand(self):
+	# - command: The command read from the file
+	#
+	# - RETURN: an list containing the resulting command sequence after the processing
+	#
+	def onProcessJobCommand(self, command):
+		return [command]
+
+	#
+	# Called when the end of the current file has been reached
+	#
+	def onEndOfFle(self):
+		pass
+
+	#
+	# Called when there's an error in an ogoing print job
+	#
+	def onJobError(self, error):
 		pass
 
 	#
@@ -67,6 +83,7 @@ class CommandsComms(TransportEvents):
 		self._serialLogger = logging.getLogger("SERIAL")
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 		self._statusPoller = None
+		self._printJob = None
 
 		if transport == 'serial':
 			from .transport.serial_t import SerialCommTransport
@@ -91,6 +108,7 @@ class CommandsComms(TransportEvents):
 	#
 	def closeLink(self):
 		self._sender.stop()
+		self._printJob = None
 		self._transport.closeLink()
 
 	#
@@ -113,6 +131,13 @@ class CommandsComms(TransportEvents):
 	@property
 	def connectionSettings(self):
 		return self._transport.connSettings
+
+	#
+	# Return whether there's an active print job
+	#
+	@property
+	def printing(self):
+		return self._printJob is not None
 
 	#
 	# Add the commands to the send queue
@@ -143,9 +168,10 @@ class CommandsComms(TransportEvents):
 	# write 'data' on the underlying link
 	#
 	def writeOnLink(self, data):
-		self._transport.write(data)
-		self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
-		self._listener.onCommandSent(data)
+		if data is not None:
+			self._transport.write(data)
+			self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
+			self._listener.onCommandSent(data)
 
 	#
 	# Starts status poller
@@ -174,13 +200,18 @@ class CommandsComms(TransportEvents):
 	# Starts printing 'filename'
 	#
 	def startPrint(self, filename):
-		raise NotImplementedError()
+		if not self._printJob:
+			self._printJob = JobWorker(filename, self, self._listener)
+			self._printJob.start()
+			#self._printJob.read(1)
 
 	#
 	# Stops current print
 	#
 	def stopPrint(self):
-		raise NotImplementedError()
+		if self._printJob:
+			self._printJob.stop()
+			self._printJob = None
 
 	# ~~~~~~~~~~~~~~~~~
 	# TransportEvents ~
@@ -197,6 +228,10 @@ class CommandsComms(TransportEvents):
 
 		if 'ok' in command:
 			self._sender.sendNext()
+			#when there's an active print job some other things are needed
+			if self.printing:
+				#read the next command
+				self._printJob.read(1)
 
 	def onLinkError(self, error, description= None):
 		self._transport.closeLink()
@@ -204,6 +239,64 @@ class CommandsComms(TransportEvents):
 
 	def onLinkInfo(self, info):
 		self._serialLoggerEnabled and self._serialLogger.debug(info)
+
+
+#~~~~~~ Worker to read commands from file
+
+class JobWorker(threading.Thread):
+	def __init__(self, filename, comm, eventListener): #eventListener is object of interface CommsListener
+		super(JobWorker, self).__init__()
+		self._logger = logging.getLogger(self.__class__.__name__)
+		self._filename = filename
+		self._comm = comm
+		self._eventListener = eventListener
+		self._stopped = False
+		self._fileHandler = None
+		self._readEvent = threading.Event()
+
+	def run(self):
+		while not self._stopped:
+			self._readEvent.wait()
+			addedCommands = 0
+			if not self._stopped:
+				line = self._fileHandler.readline()
+				if line == '':
+					# end of file reached
+					self._eventListener.onEndOfFle()
+					self.stop()
+				else:
+					# strip comments and other wrapping things
+					line = line[:line.find(';')].strip()
+					if line:
+						try:
+							processedCmd = self._eventListener.onProcessJobCommand(line)
+						except:
+							processedCmd = None
+							self._logger.error('Error processing job command', exc_info= True)
+							self._eventListener.onJobError("error_processing_command")
+
+						if processedCmd is not None:
+							self._comm.queueCommands( processedCmd )
+							addedCommands += len(processedCmd)
+
+							if addedCommands == self._maxCommands:
+								self._readEvent.clear()
+
+	def stop(self):
+		self._stopped = True
+		self._fileHandler.close()
+		self._fileHandler = None
+		self._readEvent.set()
+
+	def start(self):
+		#open the file
+		self._fileHandler = open(self._filename, 'r')
+		self._readEvent.clear()
+		super(JobWorker, self).start()
+
+	def read(self, maxCommands):
+		self._maxCommands = maxCommands
+		self._readEvent.set()
 
 
 #~~~~~~ Worker to request status from the printer
@@ -249,7 +342,6 @@ class CommandSender(threading.Thread):
 		self._eventListener = eventListener
 		self._comms = comms
 		self._commandQ = deque()
-		self._historyQ = deque([], 100)
 		self._sendEvent = threading.Event()
 		self._readyToSend = False
 		self._addingToQueue = threading.Condition()
@@ -264,7 +356,7 @@ class CommandSender(threading.Thread):
 				try:
 					command = str(self._commandQ.pop())
 					self._comms.writeOnLink(command)
-					self._historyQ.appendleft(command)
+
 				except Exception as e:
 					if command:
 						self._commandQ.append(command) # put back in the queue
@@ -284,12 +376,13 @@ class CommandSender(threading.Thread):
 			self._readyToSend = True
 
 	def addCommand(self, command):
-		with self._addingToQueue:
-			self._commandQ.appendleft(command)
+		if command is not None:
+			with self._addingToQueue:
+				self._commandQ.appendleft(command)
 
-			if self._readyToSend or len(self._commandQ) == 1:
-				self._sendEvent.set()
-				self._readyToSend = False
+				if self._readyToSend or len(self._commandQ) == 1:
+					self._sendEvent.set()
+					self._readyToSend = False
 
 	def addCommandIfNotExists(self, command):
 		if command not in self._commandQ:

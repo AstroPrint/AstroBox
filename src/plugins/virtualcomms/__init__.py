@@ -94,12 +94,12 @@ class VirtualComms(Plugin, PrinterCommsService):
 		#First we simulate heatup
 		self.setTemperature("tool0", 210)
 		self.setTemperature("bed", 60)
-		self._printerManager.mcHeatingUpUpdate(True)
+		self.reportHeatingUpChange(True)
 		self._heatingUp = True
 
 		def heatupDone():
 			if not self._printerManager.shuttingDown:
-				self._printerManager.mcHeatingUpUpdate(False)
+				self.reportHeatingUpChange(False)
 				self._heatingUp = False
 				self._heatingUpTimer = None
 				self._printJob = JobSimulator(self, self._printerManager, currentFile)
@@ -119,7 +119,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		if self._heatingUpTimer:
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
-			self._printerManager.mcHeatingUpUpdate(False)
+			self.reportHeatingUpChange(False)
 			self.setTemperature("tool0", 0)
 			self.setTemperature("bed", 0)
 			time.sleep(1)

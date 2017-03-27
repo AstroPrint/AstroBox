@@ -291,6 +291,7 @@ class AstroPrintCloud(object):
 			data = r.json()
 		except:
 			data = None
+			self._logger.error('Unable to get file info: %d' % r.status_code , exc_info = True)
 
 		destFile = None
 

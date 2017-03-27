@@ -407,3 +407,11 @@ class PrinterCommsService(object):
 	#
 	def reportTempChange(self, tools, bed):
 		self._printerManager.mcTempUpdate(tools, bed)
+
+	#
+	# Report a Heating Up change
+	#
+	# - heating: Whether the printer is heating up in preparation for a print job
+	#
+	def reportHeatingUpChange(self, heating):
+		self._printerManager.mcHeatingUpUpdate(heating)
