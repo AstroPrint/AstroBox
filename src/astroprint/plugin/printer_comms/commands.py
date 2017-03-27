@@ -53,6 +53,12 @@ class CommsListener(object):
 	def readNextCommand(self):
 		pass
 
+	#
+	# Called when a status command needs to be sent. The implementing class should queue the appropiate commands
+	#
+	def onStatusCommandsNeeded(self):
+		pass
+
 
 class CommandsComms(TransportEvents):
 	def __init__(self, transport, listener):
@@ -60,6 +66,7 @@ class CommandsComms(TransportEvents):
 		self._logger = logging.getLogger(self.__class__.__name__)
 		self._serialLogger = logging.getLogger("SERIAL")
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
+		self._statusPoller = None
 
 		if transport == 'serial':
 			from .transport.serial_t import SerialCommTransport
@@ -120,17 +127,58 @@ class CommandsComms(TransportEvents):
 	def queueCommand(self, command):
 		self._sender.addCommand(command)
 
+	#
+	# Add a command to the queue if it's not already there
+	#
+	def queueCommandIfNotExists(self, command):
+		self._sender.addCommandIfNotExists(command)
+
+	#
+	# Report that the serial logging has changed
+	#
 	def serialLoggingChanged(self):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 
+	#
+	# write 'data' on the underlying link
+	#
 	def writeOnLink(self, data):
 		self._transport.write(data)
 		self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
 		self._listener.onCommandSent(data)
 
+	#
+	# Starts status poller
+	#
+	def startStatusPoller(self, interval=5.0):
+		if not self._statusPoller:
+			self._statusPoller = StatusPoller(self._listener, interval)
+			self._statusPoller.start()
+
+	#
+	# Stops the status poller
+	#
+	def stopStatusPoller(self, interval=5.0):
+		if self._statusPoller:
+			self._statusPoller.stop()
+			self._statusPoller = None
+
+	#
+	# Set Paused of the status poller
+	#
+	def setStatusPollerPaused(self, paused):
+		if self._statusPoller:
+			self._statusPoller.paused = paused
+
+	#
+	# Starts printing 'filename'
+	#
 	def startPrint(self, filename):
 		raise NotImplementedError()
 
+	#
+	# Stops current print
+	#
 	def stopPrint(self):
 		raise NotImplementedError()
 
@@ -141,7 +189,12 @@ class CommandsComms(TransportEvents):
 	def onDataReceived(self, data):
 		command = data.strip()
 		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % command)
-		self._listener.onCommandReceived(command)
+
+		try:
+			self._listener.onCommandReceived(command)
+		except:
+			self._logger.error('Error handling command.', exc_info= True)
+
 		if 'ok' in command:
 			self._sender.sendNext()
 
@@ -152,6 +205,42 @@ class CommandsComms(TransportEvents):
 	def onLinkInfo(self, info):
 		self._serialLoggerEnabled and self._serialLogger.debug(info)
 
+
+#~~~~~~ Worker to request status from the printer
+
+class StatusPoller(threading.Thread):
+	def __init__(self, eventListener, interval=5.0):
+		super(StatusPoller, self).__init__()
+		self._stopped = False
+		self._interval = interval
+		self._eventListener = eventListener
+		self._event = threading.Event()
+		self._pauseEvent = threading.Event()
+		self._pauseEvent.set()
+
+	def run(self):
+		while not self._stopped:
+			self._eventListener.onStatusCommandsNeeded()
+			self._event.wait(self._interval)
+			self._pauseEvent.wait()
+
+	def stop(self):
+		self._stopped = True
+		self._pauseEvent.set()
+		self._event.set()
+
+	@property
+	def paused(self):
+		return not self._pauseEvent.is_set()
+
+	@paused.setter
+	def paused(self, paused):
+		if paused:
+			self._pauseEvent.clear()
+		else:
+			self._pauseEvent.set()
+
+#~~~~~~ Worker to empty the command queue
 
 class CommandSender(threading.Thread):
 	def __init__(self, comms, eventListener):
@@ -201,3 +290,7 @@ class CommandSender(threading.Thread):
 			if self._readyToSend or len(self._commandQ) == 1:
 				self._sendEvent.set()
 				self._readyToSend = False
+
+	def addCommandIfNotExists(self, command):
+		if command not in self._commandQ:
+			self.addCommand(command)

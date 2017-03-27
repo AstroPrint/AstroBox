@@ -56,7 +56,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		def doConnect():
 			if not self._printerManager.shuttingDown:
 				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
-				self._temperatureChanger = TempsChanger(self._printerManager)
+				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
 
 				#set initial temps
@@ -238,9 +238,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 
 class TempsChanger(threading.Thread):
-	def __init__(self, manager):
+	def __init__(self, plugin):
 		self._stopped = False
-		self._manager = manager
+		self._plugin = plugin
 		self._targets = {};
 		self._actuals = {};
 
@@ -258,7 +258,7 @@ class TempsChanger(threading.Thread):
 			self._updateTemps()
 			time.sleep(1)
 
-		self._manager = None
+		self._plugin = None
 
 	def stop(self):
 		self._stopped = True
@@ -279,7 +279,7 @@ class TempsChanger(threading.Thread):
 			elif t.startswith('bed'):
 				bed = ( self._actuals[t], self._targets[t] )
 
-		self._manager.mcTempUpdate(tools, bed)
+		self._plugin.reportTempChange(tools, bed)
 
 class JobSimulator(threading.Thread):
 	def __init__(self, plugin, printerManager, currentFile):

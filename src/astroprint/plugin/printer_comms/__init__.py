@@ -398,3 +398,12 @@ class PrinterCommsService(object):
 	@paused.setter
 	def paused(self, paused):
 		self.setPaused(paused)
+
+	#
+	# Report a temperature change
+	#
+	# - tools: It's an object with the following structure { tool_id<int>: (actual<int>, target<int>)}
+	# - bed: It's a tuple with the following structure (actual<int>, target<int>)
+	#
+	def reportTempChange(self, tools, bed):
+		self._printerManager.mcTempUpdate(tools, bed)
