@@ -42,6 +42,12 @@ class CommsListener(object):
 		pass
 
 	#
+	# Called when a new command is sent to the printer
+	#
+	def onCommandSent(self, command):
+		pass
+
+	#
 	# Called when a new command is needed from the file. Should return the command
 	#
 	def readNextCommand(self):
@@ -120,6 +126,7 @@ class CommandsComms(TransportEvents):
 	def writeOnLink(self, data):
 		self._transport.write(data)
 		self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
+		self._listener.onCommandSent(data)
 
 	def startPrint(self, filename):
 		raise NotImplementedError()
