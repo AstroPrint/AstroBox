@@ -3,7 +3,9 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
-from octoprint.events import eventManager, Events
+import os
+
+from octoprint.events import eventManager, Events as SystemEvent
 
 class PrinterState():
 	STATE_NONE = 0
@@ -83,6 +85,12 @@ class PrinterCommsService(object):
 	# - disableMotorsAndHeater: whether we need to disable the stepper motors and the heaters
 	#
 	def executeCancelCommands(self, disableMotorsAndHeater):
+		raise NotImplementedError()
+
+	#
+	# Send commands to the printer to disable heaters and motors
+	#
+	def disableMotorsAndHeater(self):
 		raise NotImplementedError()
 
 	#
@@ -245,6 +253,16 @@ class PrinterCommsService(object):
 		raise NotImplementedError()
 
 	#
+	# Returns the current layer for the print job
+	#
+	#
+	# Return type: int
+	#
+	@property
+	def currentLayer(self):
+		raise NotImplementedError()
+
+	#
 	# Returns the printing progress in percentage (1-100)
 	#
 	#
@@ -384,7 +402,7 @@ class PrinterCommsService(object):
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
 
 		if newState == PrinterState.STATE_CLOSED:
-			eventManager().fire(Events.DISCONNECTED)
+			eventManager().fire(SystemEvent.DISCONNECTED)
 
 		self._printerManager.refreshStateData()
 
@@ -407,6 +425,44 @@ class PrinterCommsService(object):
 	#
 	def reportTempChange(self, tools, bed):
 		self._printerManager.mcTempUpdate(tools, bed)
+
+	#
+	# Report print job completed
+	#
+	def reportPrintJobCompleted(self):
+		currentFile = self._printerManager.selectedFile
+
+		self._printerManager.mcPrintjobDone()
+		self.disableMotorsAndHeater()
+
+		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+
+		self._printerManager._fileManager.printSucceeded(currentFile['filename'], self.printTime, self.currentLayer)
+		self.fireSystemEvent(SystemEvent.PRINT_DONE, {
+			"file": currentFile['filename'],
+			"filename": os.path.basename(currentFile['filename']),
+			"origin": currentFile['origin'],
+			"time": self.printTime,
+			"layerCount": self.currentLayer
+		})
+
+	#
+	# Report print job failed
+	#
+	def reportPrintJobFailed(self):
+		currentFile = self._printerManager.selectedFile
+
+		self._printerManager.printJobCancelled()
+
+		filename = os.path.basename(currentFile['filename'])
+		self.fireSystemEvent(SystemEvent.PRINT_FAILED, {
+			"file": currentFile['filename'],
+			"filename": filename,
+			"origin": currentFile['origin'],
+			"time": self.printTime,
+			"layerCount":  self.currentLayer
+		})
+		self._printerManager._fileManager.printFailed(filename, self.printTime)
 
 	#
 	# Report a Heating Up change

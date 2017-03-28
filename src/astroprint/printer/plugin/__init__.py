@@ -87,7 +87,25 @@ class PrinterWithPlugin(Printer):
 		self._plugin.startPrint()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
-		self._plugin.executeCancelCommands(disableMotorsAndHeater)
+		if self._currentFile is not None:
+			eventManager().fire(Events.PRINT_CANCELLED, {
+				"file": self._currentFile["filename"],
+				"filename": os.path.basename(self._currentFile["filename"]),
+				"origin": FileDestinations.LOCAL,
+			})
+
+			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			payload = {
+				"file": self._currentFile["filename"],
+				"origin": FileDestinations.LOCAL
+			}
+
+			if 'sd' in self._currentFile and self._currentFile["sd"]:
+				payload["origin"] = FileDestinations.SDCARD
+
+			eventManager().fire(Events.PRINT_FAILED, payload)
+
+			self._plugin.executeCancelCommands(disableMotorsAndHeater)
 
 	def printJobCancelled(self):
 		# reset progress, height, print time
@@ -97,6 +115,7 @@ class PrinterWithPlugin(Printer):
 		if self._currentFile is not None:
 			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
 			self.unselectFile()
+			self._currentFile = None
 
 	def getCurrentConnection(self):
 		port, baudrate = self._plugin.currentConnection

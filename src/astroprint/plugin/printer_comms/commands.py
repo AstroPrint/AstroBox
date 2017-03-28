@@ -38,7 +38,25 @@ class CommsListener(object):
 	#
 	# Called when a new command is received from the printer
 	#
-	def onCommandReceived(self, command):
+	def onResponseReceived(self, command):
+		pass
+
+	#
+	# Called just before a command is going to be send to the printer. It's execution should be really fast.
+	#
+	# - command: the exact data
+	#
+	# - RETURN: The (potentially) modified command
+	#
+	def onBeforeCommandSend(self, command):
+		return command
+
+	#
+	# An AstroPrint Signal has been found on the command Queue.
+	#
+	# - signal: PrintCompleted, PrintPaused, PrintCanceled
+	#
+	def onAPSignalReceived(self, signal):
 		pass
 
 	#
@@ -54,7 +72,7 @@ class CommsListener(object):
 	#
 	# - RETURN: an list containing the resulting command sequence after the processing
 	#
-	def onProcessJobCommand(self, command):
+	def onPreProcessJobCommand(self, command):
 		return [command]
 
 	#
@@ -133,30 +151,43 @@ class CommandsComms(TransportEvents):
 		return self._transport.connSettings
 
 	#
-	# Return whether there's an active print job
+	# Returns whether there's an active print job
 	#
 	@property
 	def printing(self):
 		return self._printJob is not None
 
 	#
+	# Returns the number of commands in queue
+	#
+	@property
+	def commandsInQueue(self):
+		return self._sender.commandsInQueue
+
+	#
 	# Add the commands to the send queue
 	#
-	def queueCommands(self, commands):
+	def queueCommands(self, commands, sendNext= False):
 		for c in commands:
-			self.queueCommand(c)
+			self.queueCommand(c, sendNext)
 
 	#
 	# Add the commmand to the send queue
 	#
-	def queueCommand(self, command):
-		self._sender.addCommand(command)
+	def queueCommand(self, command, sendNext= False):
+		self._sender.addCommand(command, sendNext)
+
+	#
+	# Add an AstroPrint Signal to the Queue. They're send back via the onAPSignalReceived
+	#
+	def queueAPSignal(self, signal):
+		self._sender.addCommand('AP:%s' % str(signal) )
 
 	#
 	# Add a command to the queue if it's not already there
 	#
-	def queueCommandIfNotExists(self, command):
-		self._sender.addCommandIfNotExists(command)
+	def queueCommandIfNotExists(self, command, sendNext= False):
+		self._sender.addCommandIfNotExists(command, sendNext)
 
 	#
 	# Report that the serial logging has changed
@@ -203,7 +234,15 @@ class CommandsComms(TransportEvents):
 		if not self._printJob:
 			self._printJob = JobWorker(filename, self, self._listener)
 			self._printJob.start()
-			#self._printJob.read(1)
+
+	#
+	# Enqueues commands from file into the printing queue
+	#
+	# - count: Number of commands to read
+	#
+	def readCommandsFromFile(self, count):
+		if self._printJob:
+			self._printJob.read(count)
 
 	#
 	# Stops current print
@@ -212,26 +251,23 @@ class CommandsComms(TransportEvents):
 		if self._printJob:
 			self._printJob.stop()
 			self._printJob = None
+			self._sender.clearCommandQueue()
 
 	# ~~~~~~~~~~~~~~~~~
 	# TransportEvents ~
 	# ~~~~~~~~~~~~~~~~~
 
 	def onDataReceived(self, data):
-		command = data.strip()
-		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % command)
+		data = data.strip()
+		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % data)
 
 		try:
-			self._listener.onCommandReceived(command)
+			self._listener.onResponseReceived(data)
 		except:
-			self._logger.error('Error handling command.', exc_info= True)
+			self._logger.error('Error handling response.', exc_info= True)
 
-		if 'ok' in command:
+		if 'ok' in data:
 			self._sender.sendNext()
-			#when there's an active print job some other things are needed
-			if self.printing:
-				#read the next command
-				self._printJob.read(1)
 
 	def onLinkError(self, error, description= None):
 		self._transport.closeLink()
@@ -258,7 +294,7 @@ class JobWorker(threading.Thread):
 		while not self._stopped:
 			self._readEvent.wait()
 			addedCommands = 0
-			if not self._stopped:
+			while not self._stopped:
 				line = self._fileHandler.readline()
 				if line == '':
 					# end of file reached
@@ -269,7 +305,7 @@ class JobWorker(threading.Thread):
 					line = line[:line.find(';')].strip()
 					if line:
 						try:
-							processedCmd = self._eventListener.onProcessJobCommand(line)
+							processedCmd = self._eventListener.onPreProcessJobCommand(line)
 						except:
 							processedCmd = None
 							self._logger.error('Error processing job command', exc_info= True)
@@ -279,14 +315,16 @@ class JobWorker(threading.Thread):
 							self._comm.queueCommands( processedCmd )
 							addedCommands += len(processedCmd)
 
-							if addedCommands == self._maxCommands:
+							if addedCommands >= self._maxCommands:
 								self._readEvent.clear()
+								break
 
 	def stop(self):
-		self._stopped = True
-		self._fileHandler.close()
-		self._fileHandler = None
-		self._readEvent.set()
+		if not self._stopped:
+			self._stopped = True
+			self._fileHandler.close()
+			self._fileHandler = None
+			self._readEvent.set()
 
 	def start(self):
 		#open the file
@@ -344,7 +382,6 @@ class CommandSender(threading.Thread):
 		self._commandQ = deque()
 		self._sendEvent = threading.Event()
 		self._readyToSend = False
-		self._addingToQueue = threading.Condition()
 
 	def run(self):
 		while not self._stopped:
@@ -355,7 +392,15 @@ class CommandSender(threading.Thread):
 
 				try:
 					command = str(self._commandQ.pop())
-					self._comms.writeOnLink(command)
+					if command.startswith( 'AP:' ):
+						signal = command[3:]
+						command = None
+						self._eventListener.onAPSignalReceived( signal )
+					else:
+						command = self._eventListener.onBeforeCommandSend( command )
+
+						if command is not None:
+							self._comms.writeOnLink(command)
 
 				except Exception as e:
 					if command:
@@ -375,15 +420,24 @@ class CommandSender(threading.Thread):
 		else:
 			self._readyToSend = True
 
-	def addCommand(self, command):
+	def addCommand(self, command, sendNext= False):
 		if command is not None:
-			with self._addingToQueue:
+			if sendNext:
+				self._commandQ.append(command)
+			else:
 				self._commandQ.appendleft(command)
 
-				if self._readyToSend or len(self._commandQ) == 1:
-					self._sendEvent.set()
-					self._readyToSend = False
+			if self._readyToSend or len(self._commandQ) == 1:
+				self._sendEvent.set()
+				self._readyToSend = False
 
-	def addCommandIfNotExists(self, command):
+	def addCommandIfNotExists(self, command, sendNext= False):
 		if command not in self._commandQ:
-			self.addCommand(command)
+			self.addCommand(command, sendNext)
+
+	def clearCommandQueue(self):
+		self._commandQ.clear()
+
+	@property
+	def commandsInQueue(self):
+		return len(self._commandQ)

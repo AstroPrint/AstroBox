@@ -109,6 +109,11 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._heatingUpTimer = threading.Timer(self._settings['heatingUp'], heatupDone)
 		self._heatingUpTimer.start()
 
+	def disableMotorsAndHeater(self):
+		self.setTemperature("tool0", 0)
+		self.setTemperature("bed", 0)
+		self._logger.info('Turning down motors')
+
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		if self._printJob:
 			self._printJob.cancel()
@@ -120,10 +125,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
 			self.reportHeatingUpChange(False)
-			self.setTemperature("tool0", 0)
-			self.setTemperature("bed", 0)
-			time.sleep(1)
-			self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+
+		time.sleep(1)
+		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
 	def jog(self, axis, amount):
 		self._logger.info('Jog - Axis: %s, Amount: %s', axis, amount)
@@ -191,6 +195,13 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def printTime(self):
 		if self._printJob:
 			return self._printJob.printTime
+		else:
+			return None
+
+	@property
+	def currentLayer(self):
+		if self._printJob:
+			return self._printJob.currentLayer
 		else:
 			return None
 
@@ -316,26 +327,13 @@ class JobSimulator(threading.Thread):
 
 			time.sleep(1)
 
-		self._plugin._changePrinterState(PrinterState.STATE_OPERATIONAL)
 		self._plugin.setTemperature('tool0', 0)
 		self._plugin.setTemperature('bed', 0)
 
-		payload = {
-			"file": self._file['filename'],
-			"filename": os.path.basename(self._file['filename']),
-			"origin": self._file['origin'],
-			"time": self._timeElapsed,
-			"layerCount": self._currentLayer
-		}
-
 		if self._percentCompleted >= 1:
-			self._pm.mcPrintjobDone()
-			self._pm._fileManager.printSucceeded(payload['filename'], payload['time'], payload['layerCount'])
-			self._plugin.fireSystemEvent(SystemEvent.PRINT_DONE, payload)
+			self._plugin.reportPrintJobCompleted()
 		else:
-			self._pm.printJobCancelled()
-			self._plugin.fireSystemEvent(SystemEvent.PRINT_FAILED, payload)
-			self._pm._fileManager.printFailed(payload['filename'], payload['time'])
+			self._plugin.reportPrintJobFailed()
 
 		self._pm = None
 
@@ -361,5 +359,9 @@ class JobSimulator(threading.Thread):
 	@property
 	def filePos(self):
 		return self._filePos
+
+	@property
+	def currentLayer(self):
+		return self._currentLayer
 
 __plugin_instance__ = VirtualComms()
