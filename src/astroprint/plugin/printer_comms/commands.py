@@ -5,6 +5,9 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 import logging
 import threading
+import os
+import time
+import json
 
 from sys import platform
 
@@ -84,13 +87,19 @@ class CommsListener(object):
 	#
 	# Called when there's an error in an ogoing print job
 	#
-	def onJobError(self, error):
+	def onJobError(self, error, description=None):
 		pass
 
 	#
 	# Called when a status command needs to be sent. The implementing class should queue the appropiate commands
 	#
 	def onStatusCommandsNeeded(self):
+		pass
+
+	#
+	# Called when a job progress is reported
+	#
+	def onPrintJobProgress(self, percentCompleted, filePos):
 		pass
 
 
@@ -180,8 +189,11 @@ class CommandsComms(TransportEvents):
 	#
 	# Add an AstroPrint Signal to the Queue. They're send back via the onAPSignalReceived
 	#
-	def queueAPSignal(self, signal):
-		self._sender.addCommand('AP:%s' % str(signal) )
+	def queueAPSignal(self, signal, data=None ):
+		if data is not None:
+			self._sender.addCommand('AP:%s|%s' % ( str(signal), json.dumps(data)) )
+		else:
+			self._sender.addCommand('AP:%s' % str(signal) )
 
 	#
 	# Add a command to the queue if it's not already there
@@ -253,6 +265,14 @@ class CommandsComms(TransportEvents):
 			self._printJob = None
 			self._sender.clearCommandQueue()
 
+	#~~~~~~~~~~~~~~~~~~~~~~~~~
+	# Events from Job Worker ~
+	#~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	def onEndOfFle(self):
+		self._printJob = None
+		self._listener.onEndOfFle()
+
 	# ~~~~~~~~~~~~~~~~~
 	# TransportEvents ~
 	# ~~~~~~~~~~~~~~~~~
@@ -280,6 +300,8 @@ class CommandsComms(TransportEvents):
 #~~~~~~ Worker to read commands from file
 
 class JobWorker(threading.Thread):
+	_reportProgressInterval = 1.0
+
 	def __init__(self, filename, comm, eventListener): #eventListener is object of interface CommsListener
 		super(JobWorker, self).__init__()
 		self._logger = logging.getLogger(self.__class__.__name__)
@@ -288,18 +310,28 @@ class JobWorker(threading.Thread):
 		self._eventListener = eventListener
 		self._stopped = False
 		self._fileHandler = None
+		self._fileSize = None
 		self._readEvent = threading.Event()
+		self._lastReport = None
 
 	def run(self):
 		while not self._stopped:
+
+			if ( time.time() - self._lastReport ) >= self._reportProgressInterval:
+				filePos = self.filePos
+				percent = filePos / self._fileSize
+				self._eventListener.onPrintJobProgress( percent, filePos )
+				self._lastReport = time.time()
+
 			self._readEvent.wait()
 			addedCommands = 0
 			while not self._stopped:
 				line = self._fileHandler.readline()
 				if line == '':
 					# end of file reached
-					self._eventListener.onEndOfFle()
 					self.stop()
+					self._comm.onEndOfFle()
+
 				else:
 					# strip comments and other wrapping things
 					line = line[:line.find(';')].strip()
@@ -330,11 +362,21 @@ class JobWorker(threading.Thread):
 		#open the file
 		self._fileHandler = open(self._filename, 'r')
 		self._readEvent.clear()
+		self._fileSize = float(os.stat(self._filename).st_size)
+		self._eventListener.onPrintJobProgress(0.0, 0)
+		self._lastReport = time.time()
 		super(JobWorker, self).start()
 
 	def read(self, maxCommands):
 		self._maxCommands = maxCommands
 		self._readEvent.set()
+
+	@property
+	def filePos(self):
+		if self._fileHandler:
+			return self._fileHandler.tell()
+		else:
+			return None
 
 
 #~~~~~~ Worker to request status from the printer
@@ -382,33 +424,49 @@ class CommandSender(threading.Thread):
 		self._commandQ = deque()
 		self._sendEvent = threading.Event()
 		self._readyToSend = False
+		self._sendPending = 0
 
 	def run(self):
 		while not self._stopped:
-
 			self._sendEvent.wait()
+
 			if not self._stopped:
 				command = None
 
 				try:
 					command = str(self._commandQ.pop())
+				except IndexError:
+					self._sendEvent.clear()
+
+				if command:
 					if command.startswith( 'AP:' ):
 						signal = command[3:]
-						command = None
-						self._eventListener.onAPSignalReceived( signal )
+						data = None
+						dataStarts = signal.find('|')
+						if dataStarts >= 0:
+							try:
+								data = json.loads(signal[(dataStarts+1):])
+								signal = signal[:dataStarts]
+
+							except Exception as e:
+								self._eventListener.onJobError('unable_to_parse_signal_data', e)
+								data = None
+								signal = None
+
+						self._eventListener.onAPSignalReceived( signal, data )
+
 					else:
 						command = self._eventListener.onBeforeCommandSend( command )
 
 						if command is not None:
-							self._comms.writeOnLink(command)
+							try:
+								self._comms.writeOnLink(command)
+							except Exception as e:
+								self._commandQ.append(command) # put back in the queue
+								self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command))
 
-				except Exception as e:
-					if command:
-						self._commandQ.append(command) # put back in the queue
+							self._sendEvent.clear()
 
-					self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command))
-
-				self._sendEvent.clear()
 
 	def stop(self):
 		self._sendEvent.set()
@@ -419,6 +477,8 @@ class CommandSender(threading.Thread):
 			self._sendEvent.set()
 		else:
 			self._readyToSend = True
+
+		self._sendPending += 1
 
 	def addCommand(self, command, sendNext= False):
 		if command is not None:

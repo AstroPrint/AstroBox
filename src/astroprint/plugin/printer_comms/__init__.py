@@ -465,6 +465,12 @@ class PrinterCommsService(object):
 		self._printerManager._fileManager.printFailed(filename, self.printTime)
 
 	#
+	# Call this function when print progress has changed
+	#
+	def reportPrintProgressChanged(self):
+		self._printerManager.mcProgress()
+
+	#
 	# Report a Heating Up change
 	#
 	# - heating: Whether the printer is heating up in preparation for a print job
