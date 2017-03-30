@@ -154,9 +154,6 @@ class PrinterWithPlugin(Printer):
 	def getStateString(self):
 		return str(self._plugin.printerState)
 
-	def getPrintTime(self):
-		return self._plugin.printTime
-
 	def getPrintProgress(self):
 		return self._plugin.printProgress
 

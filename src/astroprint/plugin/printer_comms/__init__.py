@@ -243,16 +243,6 @@ class PrinterCommsService(object):
 		raise NotImplementedError()
 
 	#
-	# Returns the elapsed print time in seconds
-	#
-	#
-	# Return type: int
-	#
-	@property
-	def printTime(self):
-		raise NotImplementedError()
-
-	#
 	# Returns the current layer for the print job
 	#
 	#
@@ -431,18 +421,19 @@ class PrinterCommsService(object):
 	#
 	def reportPrintJobCompleted(self):
 		currentFile = self._printerManager.selectedFile
+		printTime = self._printerManager.getPrintTime()
 
 		self._printerManager.mcPrintjobDone()
 		self.disableMotorsAndHeater()
 
 		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
-		self._printerManager._fileManager.printSucceeded(currentFile['filename'], self.printTime, self.currentLayer)
+		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, self.currentLayer)
 		self.fireSystemEvent(SystemEvent.PRINT_DONE, {
 			"file": currentFile['filename'],
 			"filename": os.path.basename(currentFile['filename']),
 			"origin": currentFile['origin'],
-			"time": self.printTime,
+			"time": printTime,
 			"layerCount": self.currentLayer
 		})
 
@@ -451,6 +442,7 @@ class PrinterCommsService(object):
 	#
 	def reportPrintJobFailed(self):
 		currentFile = self._printerManager.selectedFile
+		printTime = self._printerManager.getPrintTime()
 
 		self._printerManager.printJobCancelled()
 
@@ -459,10 +451,10 @@ class PrinterCommsService(object):
 			"file": currentFile['filename'],
 			"filename": filename,
 			"origin": currentFile['origin'],
-			"time": self.printTime,
+			"time": printTime,
 			"layerCount":  self.currentLayer
 		})
-		self._printerManager._fileManager.printFailed(filename, self.printTime)
+		self._printerManager._fileManager.printFailed(filename, printTime)
 
 	#
 	# Call this function when print progress has changed

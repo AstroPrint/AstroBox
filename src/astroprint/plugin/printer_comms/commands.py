@@ -365,6 +365,7 @@ class JobWorker(threading.Thread):
 		self._fileSize = float(os.stat(self._filename).st_size)
 		self._eventListener.onPrintJobProgress(0.0, 0)
 		self._lastReport = time.time()
+
 		super(JobWorker, self).start()
 
 	def read(self, maxCommands):
@@ -377,7 +378,6 @@ class JobWorker(threading.Thread):
 			return self._fileHandler.tell()
 		else:
 			return None
-
 
 #~~~~~~ Worker to request status from the printer
 

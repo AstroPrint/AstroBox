@@ -192,13 +192,6 @@ class VirtualComms(Plugin, PrinterCommsService):
 		return self._preheating
 
 	@property
-	def printTime(self):
-		if self._printJob:
-			return self._printJob.printTime
-		else:
-			return None
-
-	@property
 	def currentLayer(self):
 		if self._printJob:
 			return self._printJob.currentLayer
@@ -297,9 +290,7 @@ class JobSimulator(threading.Thread):
 		self._pm = printerManager
 		self._plugin = plugin
 		self._file = currentFile
-		self._jobLength = plugin._settings['printJob']
 		self._stopped = False
-		self._timeElapsed = 0
 		self._percentCompleted = 0
 		self._filePos = 0
 		self._currentLayer = 0
@@ -310,6 +301,8 @@ class JobSimulator(threading.Thread):
 
 	def run(self):
 		self._pausedEvent.set()
+		timeElapsed = 0
+		jobLength = self._plugin._settings['printJob']
 
 		while not self._stopped and self._percentCompleted < 1:
 			self._pausedEvent.wait()
@@ -317,11 +310,11 @@ class JobSimulator(threading.Thread):
 			if self._stopped:
 				break
 
-			self._timeElapsed += 1
+			timeElapsed += 1
 			self._filePos += 1
 			self._currentLayer += 1
 			self._consumedFilament[0] += 10
-			self._percentCompleted = self._timeElapsed / self._jobLength
+			self._percentCompleted = timeElapsed / jobLength
 			self._pm.mcLayerChange(self._currentLayer)
 			self._pm.mcProgress()
 
@@ -347,10 +340,6 @@ class JobSimulator(threading.Thread):
 			self._pausedEvent.clear()
 		else:
 			self._pausedEvent.set()
-
-	@property
-	def printTime(self):
-		return self._timeElapsed
 
 	@property
 	def progress(self):

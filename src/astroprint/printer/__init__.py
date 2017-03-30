@@ -52,6 +52,9 @@ class Printer(object):
 		self._printTimeLeft = None
 		self._currentLayer = None
 		self._currentPrintJobId = None
+		self._timeStarted = 0
+		self._secsPaused = 0
+		self._pausedSince = None
 
 		self._profileManager = printerProfileManager()
 
@@ -117,6 +120,9 @@ class Printer(object):
 	@property
 	def shuttingDown(self):
 		return self._shutdown
+
+	def getPrintTime(self):
+		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
 
 	def rampdown(self):
 		self._logger.info('Ramping down Printer Manager')
@@ -339,6 +345,10 @@ class Printer(object):
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']
 
+		self._timeStarted = time.time()
+		self._secsPaused = 0
+		self._pausedSince = None
+
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -375,6 +385,13 @@ class Printer(object):
 			return
 
 		wasPaused = self.isPaused()
+
+		if wasPaused:
+			if self._pausedSince is not None:
+				self._secsPaused += ( time.time() - self._pausedSince )
+				self._pausedSince = None
+		else:
+			self._pausedSince = time.time()
 
 		self.setPause(not wasPaused)
 
@@ -567,9 +584,6 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def getStateString(self):
-		raise NotImplementedError()
-
-	def getPrintTime(self):
 		raise NotImplementedError()
 
 	def getConsumedFilament(self):
