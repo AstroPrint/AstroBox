@@ -7,6 +7,8 @@ import os
 
 from octoprint.events import eventManager, Events as SystemEvent
 
+from astroprint.plugin.printer_comms.material_counter import MaterialCounter
+
 class PrinterState():
 	STATE_NONE = 0
 	STATE_OPEN_SERIAL = 1
@@ -262,24 +264,6 @@ class PrinterCommsService(object):
 	def printFilePosition(self):
 		raise NotImplementedError()
 
-	#
-	# Returns the position of the current file being printed
-	#
-	# Return type: object
-	#
-	@property
-	def consumedFilamentData(self):
-		raise NotImplementedError()
-
-	#
-	# Returns the sum of all the filament consumed by all extruders
-	#
-	# Return type: object
-	#
-	@property
-	def consumedFilamentSum(self):
-		raise NotImplementedError()
-
 	## You can override these functions but make sure you call this parent ##
 
 	#
@@ -289,7 +273,10 @@ class PrinterCommsService(object):
 	#
 	def initPrinterCommsService(self, printerManager):
 		self.printerState = PrinterState()
+		self._materialCounter = MaterialCounter()
 		self._printerManager = printerManager
+
+		self._currentTool = 0
 
 	## Optionally implement these funcions if default behaviour is not enough ##
 
@@ -389,6 +376,24 @@ class PrinterCommsService(object):
 	### Better to not override this functions
 
 	#
+	# Returns the position of the current file being printed
+	#
+	# Return type: object
+	#
+	@property
+	def consumedFilamentData(self):
+		return self._materialCounter.consumedFilament
+
+	#
+	# Returns the sum of all the filament consumed by all extruders
+	#
+	# Return type: object
+	#
+	@property
+	def consumedFilamentSum(self):
+		return self._materialCounter.totalConsumedFilament
+
+	#
 	# Pause/unpause the print jobs
 	#
 	# - paused: whether to pause (true) or resume (false) the print
@@ -465,3 +470,12 @@ class PrinterCommsService(object):
 	#
 	def reportHeatingUpChange(self, heating):
 		self._printerManager.mcHeatingUpUpdate(heating)
+
+	#
+	# Report a new active tool
+	#
+	# - newTool: The new tool that just got active
+	# - oldTool: The previously selected tool
+	#
+	def reportToolChange(self, newTool, oldTool):
+		self._printerManager.mcToolChange(newTool, oldTool)
