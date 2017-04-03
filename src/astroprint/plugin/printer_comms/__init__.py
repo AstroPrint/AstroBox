@@ -243,16 +243,6 @@ class PrinterCommsService(object):
 		raise NotImplementedError()
 
 	#
-	# Returns the current layer for the print job
-	#
-	#
-	# Return type: int
-	#
-	@property
-	def currentLayer(self):
-		raise NotImplementedError()
-
-	#
 	# Returns the printing progress in percentage (1-100)
 	#
 	#
@@ -422,19 +412,20 @@ class PrinterCommsService(object):
 	def reportPrintJobCompleted(self):
 		currentFile = self._printerManager.selectedFile
 		printTime = self._printerManager.getPrintTime()
+		currentLayer = self._printerManager.getCurrentLayer()
 
 		self._printerManager.mcPrintjobDone()
 		self.disableMotorsAndHeater()
 
 		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
-		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, self.currentLayer)
+		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, currentLayer)
 		self.fireSystemEvent(SystemEvent.PRINT_DONE, {
 			"file": currentFile['filename'],
 			"filename": os.path.basename(currentFile['filename']),
 			"origin": currentFile['origin'],
 			"time": printTime,
-			"layerCount": self.currentLayer
+			"layerCount": currentLayer
 		})
 
 	#
@@ -451,8 +442,7 @@ class PrinterCommsService(object):
 			"file": currentFile['filename'],
 			"filename": filename,
 			"origin": currentFile['origin'],
-			"time": printTime,
-			"layerCount":  self.currentLayer
+			"time": printTime
 		})
 		self._printerManager._fileManager.printFailed(filename, printTime)
 
@@ -461,6 +451,12 @@ class PrinterCommsService(object):
 	#
 	def reportPrintProgressChanged(self):
 		self._printerManager.mcProgress()
+
+	#
+	# Call this function when there a layer change
+	#
+	def reportNewLayer(self):
+		self._printerManager.reportNewLayer()
 
 	#
 	# Report a Heating Up change

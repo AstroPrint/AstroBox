@@ -192,13 +192,6 @@ class VirtualComms(Plugin, PrinterCommsService):
 		return self._preheating
 
 	@property
-	def currentLayer(self):
-		if self._printJob:
-			return self._printJob.currentLayer
-		else:
-			return None
-
-	@property
 	def printProgress(self):
 		if self._printJob:
 			return self._printJob.progress
@@ -293,7 +286,6 @@ class JobSimulator(threading.Thread):
 		self._stopped = False
 		self._percentCompleted = 0
 		self._filePos = 0
-		self._currentLayer = 0
 		self._pausedEvent = threading.Event()
 		self._consumedFilament = {0: 0}
 
@@ -302,6 +294,7 @@ class JobSimulator(threading.Thread):
 	def run(self):
 		self._pausedEvent.set()
 		timeElapsed = 0
+		currentLayer = 0
 		jobLength = self._plugin._settings['printJob']
 
 		while not self._stopped and self._percentCompleted < 1:
@@ -311,12 +304,13 @@ class JobSimulator(threading.Thread):
 				break
 
 			timeElapsed += 1
+			currentLayer += 1
+
 			self._filePos += 1
-			self._currentLayer += 1
 			self._consumedFilament[0] += 10
 			self._percentCompleted = timeElapsed / jobLength
-			self._pm.mcLayerChange(self._currentLayer)
-			self._pm.mcProgress()
+			self._plugin.reportNewLayer()
+			self._plugin.reportPrintProgressChanged()
 
 			time.sleep(1)
 
@@ -348,9 +342,5 @@ class JobSimulator(threading.Thread):
 	@property
 	def filePos(self):
 		return self._filePos
-
-	@property
-	def currentLayer(self):
-		return self._currentLayer
 
 __plugin_instance__ = VirtualComms()

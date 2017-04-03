@@ -46,7 +46,7 @@ class Printer(object):
 		self._comm = None
 		self._selectedFile = None
 		self._printAfterSelect = False
-		self._currentZ = None
+		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._printTime = None
 		self._printTimeLeft = None
@@ -123,6 +123,9 @@ class Printer(object):
 
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
+
+	def getCurrentLayer(self):
+		return max(1, self._currentLayer)
 
 	def rampdown(self):
 		self._logger.info('Ramping down Printer Manager')
@@ -299,6 +302,7 @@ class Printer(object):
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
 
+	#This should probably be deprecated
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
 		self._stateMonitor.setCurrentZ(self._currentZ)
@@ -307,15 +311,15 @@ class Printer(object):
 		self._progress = progress
 		self._printTime = printTime
 		self._printTimeLeft = printTimeLeft
-		self._currentLayer = currentLayer
+		#self._currentLayer = currentLayer
 
 		self._stateMonitor.setProgress({
-			"completion": self._progress * 100 if self._progress is not None else None,
-			"currentLayer": self._currentLayer,
+			"completion": progress * 100 if progress is not None else None,
+			"currentLayer": currentLayer,
 			"filamentConsumed": self.getConsumedFilament(),
 			"filepos": filepos,
-			"printTime": int(self._printTime) if self._printTime is not None else None,
-			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
+			"printTime": int(printTime) if printTime is not None else None,
+			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
 		})
 
 	def startPrint(self):
@@ -330,7 +334,6 @@ class Printer(object):
 			return False
 
 		self._setCurrentZ(None)
-		#cameraManager().open_camera()
 
 		kwargs = {
 			'print_file_name': os.path.basename(self._selectedFile['filename'])
@@ -348,6 +351,8 @@ class Printer(object):
 		self._timeStarted = time.time()
 		self._secsPaused = 0
 		self._pausedSince = None
+
+		self._currentLayer = 0
 
 		return True
 
@@ -420,6 +425,7 @@ class Printer(object):
 
 		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
 
+	# This should be deprecated, there's no a layer change event
 	def mcZChange(self, newZ):
 		"""
 		 Callback method for the comm object, called upon change of the z-layer.
@@ -435,6 +441,11 @@ class Printer(object):
 	def mcToolChange(self, newTool, oldTool):
 		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
+	def reportNewLayer(self):
+		self._currentLayer += 1
+		eventManager().fire(Events.LAYER_CHANGE, {"layer": self.getCurrentLayer()})
+
+	#This function should be deprecated
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
 		self._currentLayer = layer;
@@ -466,7 +477,7 @@ class Printer(object):
 			else:
 				estimatedTimeLeft = self._estimatedPrintTime / 60
 
-		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
+		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
@@ -643,7 +654,7 @@ class StateMonitor(object):
 		self._jobData = None
 		self._gcodeData = None
 		self._sdUploadData = None
-		self._currentZ = None
+		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._stop = False
 
@@ -678,6 +689,7 @@ class StateMonitor(object):
 		self._addMessageCallback(message)
 		self._changeEvent.set()
 
+	#This should probably be deprecated
 	def setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
 		self._changeEvent.set()
@@ -725,7 +737,7 @@ class StateMonitor(object):
 		return {
 			"state": self._state,
 			"job": self._jobData,
-			"currentZ": self._currentZ,
+			"currentZ": self._currentZ, # this should probably be deprecated
 			"progress": self._progress,
 			"offsets": self._offsets
 		}
