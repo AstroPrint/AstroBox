@@ -265,6 +265,20 @@ class CommandsComms(TransportEvents):
 			self._printJob = None
 			self._sender.clearCommandQueue()
 
+	#
+	# Pauses the current print job
+	#
+	def pausePrintJob(self):
+		if self._printJob:
+			self._sender.storeCommands()
+
+	#
+	# Resumes the current print job
+	#
+	def resumePrintJob(self):
+		if self._printJob:
+			self._sender.restoreCommands()
+
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Events from Job Worker ~
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -425,6 +439,7 @@ class CommandSender(threading.Thread):
 		self._sendEvent = threading.Event()
 		self._readyToSend = False
 		self._sendPending = 0
+		self._storedCommands = None
 
 	def run(self):
 		while not self._stopped:
@@ -471,6 +486,17 @@ class CommandSender(threading.Thread):
 	def stop(self):
 		self._sendEvent.set()
 		self._stopped = True
+
+	def storeCommands(self):
+		self._storedCommands = list(self._commandQ)
+		self._commandQ.clear()
+
+	def restoreCommands(self):
+		if self._storedCommands:
+			for c in self._storedCommands:
+				self._commandQ.appendleft(c)
+
+			self._storedCommands = None
 
 	def sendNext(self):
 		if len(self._commandQ):
