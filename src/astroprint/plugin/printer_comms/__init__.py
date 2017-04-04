@@ -8,6 +8,7 @@ import os
 from octoprint.events import eventManager, Events as SystemEvent
 
 from astroprint.plugin.printer_comms.material_counter import MaterialCounter
+from astroprint.plugin.printer_comms.commands import CommandPluginInterface
 
 class PrinterState():
 	STATE_NONE = 0
@@ -56,7 +57,7 @@ class PrinterState():
 	def __eq__(self, value):
 		return self._state == value
 
-class PrinterCommsService(object):
+class PrinterCommsService(CommandPluginInterface):
 
 	## Implement these functions ##
 
@@ -272,11 +273,13 @@ class PrinterCommsService(object):
 	# - printerManger: the printer manager instance that controls this plugin
 	#
 	def initPrinterCommsService(self, printerManager):
-		self.printerState = PrinterState()
+		self._printerState = PrinterState()
 		self._materialCounter = MaterialCounter()
 		self._printerManager = printerManager
 
 		self._currentTool = 0
+		self._currentZ = 0
+		self._lastLayerHeight = 0
 
 	## Optionally implement these funcions if default behaviour is not enough ##
 
@@ -288,6 +291,19 @@ class PrinterCommsService(object):
 	@property
 	def allowTerminal(self):
 		return False
+
+	#
+	# Returns the printer state
+	#
+	# Return type: printer state
+	#
+	@property
+	def printerState(self):
+		return self._printerState
+
+	@printerState.setter
+	def printerState(self, state):
+		self._printerState = state
 
 	#
 	# Returns a boolean representing whether the driver allows printing from the printer's SD Card
@@ -479,3 +495,45 @@ class PrinterCommsService(object):
 	#
 	def reportToolChange(self, newTool, oldTool):
 		self._printerManager.mcToolChange(newTool, oldTool)
+
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	# CommandPluginInterface     ~
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+	@property
+	def currentZ(self):
+		return self._currentZ
+
+	@property
+	def lastLayerHeight(self):
+		return self._lastLayerHeight
+
+	def onWaitForTemperature(self):
+		self.preHeating = True
+
+	def onZMovement(self, z):
+		if self._currentZ != z:
+			self._currentZ = z
+
+	def onExtrusionAfterZMovement(self):
+		if self.printerState == PrinterState.STATE_PRINTING:
+			if self._currentZ > self._lastLayerHeight:
+				self.reportNewLayer()
+
+			self._lastLayerHeight = self._currentZ
+
+	def onExtrusionModeChanged(self, mode):
+		self._materialCounter.changeExtrusionMode(mode)
+
+	def onExtrusionLengthReset(self, value):
+		# At the moment this command is only relevant in Absolute Extrusion Mode
+		if self._materialCounter.extrusionMode == MaterialCounter.EXTRUSION_MODE_ABSOLUTE:
+			self._materialCounter.resetExtruderLength(value)
+
+	def onToolChanged(self, tool):
+		if self._currentTool != tool:
+			oldTool = self._currentTool
+
+			self._materialCounter.changeActiveTool(str(tool), str(oldTool))
+			self._currentTool = tool
+			self.reportToolChange(tool, oldTool)

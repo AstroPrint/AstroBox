@@ -15,10 +15,15 @@ from collections import deque
 
 from .transport import TransportEvents
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CommsListener: Callback interface for CommandsComms Users
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 class CommsListener(object):
-	# ~~~~~~~~~~
-	# Implment these functions in the children class to respond to the events
-	# ~~~~~~~~~~
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	# Implment these functions in the children class to respond to the events ~
+	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 	#
 	# Called when the link has been opened
@@ -45,38 +50,28 @@ class CommsListener(object):
 		pass
 
 	#
-	# Called just before a command is going to be send to the printer. It's execution should be really fast.
-	#
-	# - command: the exact data
-	#
-	# - RETURN: The (potentially) modified command
-	#
-	def onBeforeCommandSend(self, command):
-		return command
-
-	#
-	# An AstroPrint Signal has been found on the command Queue.
+	# A Signal has been found on the command Queue.
 	#
 	# - signal: PrintCompleted, PrintPaused, PrintCanceled
 	#
-	def onAPSignalReceived(self, signal):
+	def onSignalReceived(self, signal):
 		pass
 
 	#
-	# Called when a new command is sent to the printer
+	# Called when a new data is sent to the printer
 	#
-	def onCommandSent(self, command):
+	def onDataSent(self, data):
 		pass
 
 	#
-	# Called when a new command is read from the file while an active print job is ongoing. Should process the command and return it
+	# Called when a new line is read from the file while an active print job is ongoing. Should process the line and return a list of command objects
 	#
-	# - command: The command read from the file
+	# - line: The command read from the file
 	#
-	# - RETURN: an list containing the resulting command sequence after the processing
+	# - RETURN: an list containing the resulting command object sequence after the translation, or None if the line is to be ignored
 	#
-	def onPreProcessJobCommand(self, command):
-		return [command]
+	def onFileLineRead(self, line):
+		return None
 
 	#
 	# Called when the end of the current file has been reached
@@ -102,6 +97,212 @@ class CommsListener(object):
 	def onPrintJobProgress(self, percentCompleted, filePos):
 		pass
 
+
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Command Pluging Events and requests   ~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class CommandPluginInterface(object):
+	# ~~~~~~~~~~~~~ Data Requests ~~~~~~
+
+	#
+	# Returns a type PrinterState with the current state of the printer
+	#
+	@property
+	def printerState(self):
+		raise NotImplementedError()
+
+	#
+	# Returns the current Z value
+	#
+	@property
+	def currentZ(self):
+		raise NotImplementedError()
+
+	#
+	# Returns the last known layer height
+	#
+	@property
+	def lastLayerHeight(self):
+		raise NotImplementedError()
+
+	# ~~~~~~~~~~~~~ Events ~~~~~~~~~~~~~
+
+	#
+	# Called when a heat and wait command is sent to the printer
+	#
+	def onWaitForTemperature(self):
+		pass
+
+	#
+	# Called when a Z movement command is detected
+	#
+	def onZMovement(self, currentZ):
+		pass
+
+	#
+	# Called when a Z movement command is detected
+	#
+	def onZMovement(self, currentZ):
+		pass
+
+	#
+	# Called when first Extrusion is detected after the last Z Movement
+	#
+	def onExtrusionAfterZMovement(self):
+		pass
+
+	#
+	# Called when the extrusion mode changes
+	#
+	# - mode: a value from MaterialCounter: EXTRUSION_MODE_ABSOLUTE or EXTRUSION_MODE_RELATIVE
+	#
+	def onExtrusionModeChanged(self, mode):
+		pass
+
+	#
+	# Called when the extrusion length is reset
+	#
+	# - value: The value to which is reset
+	#
+	def onExtrusionLengthReset(self, value):
+		pass
+
+	#
+	# Called when a new tool is selected
+	#
+	# - tool: The id of the new tool selected
+	#
+	def onToolChanged(self, tool):
+		pass
+
+	#
+	# Called when a command was sent that requests current position
+	#
+	def onCurrentPositionRequested(self):
+		pass
+
+
+
+
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Command: Base class for the command object
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class Command(object):
+	def __init__(self, command):
+		self._command = command
+		self._encoded = None
+
+	def __eq__(self, otherCmd):
+		return otherCmd == self._command
+
+	#
+	# This function is called when the command is ready to be put in the command
+	#
+	@property
+	def command(self):
+		return self._command
+
+	#
+	# Returns the encoded command as it's supposed to be sent over to the printer
+	#
+	@property
+	def encodedCommand(self):
+		if not self._encoded is None:
+			self._encoded = self.doEncodeCommand()
+
+		return self._encoded
+
+	#
+	# Force and encode command. This is called right after adding the command to the queue
+	#
+	def encode(self):
+		self._encoded = self.doEncodeCommand()
+
+	# Implements these functions if the default is not enough
+
+	#
+	# Do the translating of the command and potentially split in several other commands
+	#
+	# Returns: a list of commands to be put in the queue, False if there's no translation, or None if the command sholdn't be put in the queue
+	#
+	def translateCommand(self):
+		return False # Means the command doesn't change
+		#return None # Means the command shouldn't be put in the queue
+
+	#
+	# Do the actual encode implementation
+	#
+	# Returns: the encoded command
+	#
+	def doEncodeCommand(self):
+		return self._command
+
+	#
+	# Called just before the command is going to be sent to the printer
+	#
+	# Returns: False if you want to stop the send
+	#
+	def onBeforeCommandSend(self):
+		pass
+
+	#
+	# Implement what happens when the command was sent to the printer
+	#
+	def onCommandSent(self):
+		pass
+
+	#
+	# Implement what should happen when the command is about to be added to the queue
+	#
+	# Return: False if you want to stop the send
+	#
+	def onBeforeCommandAddToQueue(self):
+		pass
+
+	#
+	# Implement what should happen when the command is added to the command queue
+	#
+	def onCommandAddedToQueue(self):
+		pass
+
+
+
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Signal: Class for signal objects
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+class Signal(object):
+	def __init__(self, signalType, data):
+		self._type = signalType
+		self._data = data
+
+	@property
+	def type(self):
+		return self._type
+
+	@property
+	def data(self):
+		return self._data
+
+
+
+
+
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# CommandsComms: Helper class for command based communications protocols
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 class CommandsComms(TransportEvents):
 	def __init__(self, transport, listener):
@@ -187,13 +388,10 @@ class CommandsComms(TransportEvents):
 		self._sender.addCommand(command, sendNext)
 
 	#
-	# Add an AstroPrint Signal to the Queue. They're send back via the onAPSignalReceived
+	# Add a Signal to the Queue. They're send back via the onSignalReceived
 	#
-	def queueAPSignal(self, signal, data=None ):
-		if data is not None:
-			self._sender.addCommand('AP:%s|%s' % ( str(signal), json.dumps(data)) )
-		else:
-			self._sender.addCommand('AP:%s' % str(signal) )
+	def queueSignal(self, signal, data=None ):
+		self._sender.addCommand(Signal(signal, data))
 
 	#
 	# Add a command to the queue if it's not already there
@@ -214,7 +412,7 @@ class CommandsComms(TransportEvents):
 		if data is not None:
 			self._transport.write(data)
 			self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
-			self._listener.onCommandSent(data)
+			self._listener.onDataSent(data)
 
 	#
 	# Starts status poller
@@ -348,22 +546,23 @@ class JobWorker(threading.Thread):
 
 				else:
 					# strip comments and other wrapping things
-					line = line[:line.find(';')].strip()
-					if line:
-						try:
-							processedCmd = self._eventListener.onPreProcessJobCommand(line)
-						except:
-							processedCmd = None
-							self._logger.error('Error processing job command', exc_info= True)
-							self._eventListener.onJobError("error_processing_command")
+					#line = line[:line.find(';')].strip()
+					#if line:
+					try:
+						#processedCmd = self._eventListener.onPreProcessJobCommand(line)
+						commandObjs = self._eventListener.onFileLineRead(line)
+					except:
+						commandObjs = None
+						self._logger.error('Error processing job command', exc_info= True)
+						self._eventListener.onJobError("error_processing_command")
 
-						if processedCmd is not None:
-							self._comm.queueCommands( processedCmd )
-							addedCommands += len(processedCmd)
+					if commandObjs is not None:
+						self._comm.queueCommands( commandObjs )
+						addedCommands += len(commandObjs)
 
-							if addedCommands >= self._maxCommands:
-								self._readEvent.clear()
-								break
+						if addedCommands >= self._maxCommands:
+							self._readEvent.clear()
+							break
 
 	def stop(self):
 		if not self._stopped:
@@ -432,6 +631,7 @@ class StatusPoller(threading.Thread):
 class CommandSender(threading.Thread):
 	def __init__(self, comms, eventListener):
 		super(CommandSender, self).__init__()
+		self._logger = logging.getLogger(self.__class__.__name__)
 		self._stopped = False
 		self._eventListener = eventListener
 		self._comms = comms
@@ -449,39 +649,28 @@ class CommandSender(threading.Thread):
 				command = None
 
 				try:
-					command = str(self._commandQ.pop())
+					command = self._commandQ.pop()
 				except IndexError:
 					self._sendEvent.clear()
 
 				if command:
-					if command.startswith( 'AP:' ):
-						signal = command[3:]
-						data = None
-						dataStarts = signal.find('|')
-						if dataStarts >= 0:
+					if isinstance(command, Command):
+						if command.onBeforeCommandSend() is not False:
 							try:
-								data = json.loads(signal[(dataStarts+1):])
-								signal = signal[:dataStarts]
-
-							except Exception as e:
-								self._eventListener.onJobError('unable_to_parse_signal_data', e)
-								data = None
-								signal = None
-
-						self._eventListener.onAPSignalReceived( signal, data )
-
-					else:
-						command = self._eventListener.onBeforeCommandSend( command )
-
-						if command is not None:
-							try:
-								self._comms.writeOnLink(command)
+								self._comms.writeOnLink(command.encodedCommand)
+								command.onCommandSent()
 							except Exception as e:
 								self._commandQ.append(command) # put back in the queue
-								self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command))
+								self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
 							self._sendEvent.clear()
 
+					elif isinstance(command, Signal):
+						#This is a signal placed in the queue, we tell the event listener and move on
+						self._eventListener.onSignalReceived( command.type, command.data )
+
+					else:
+						self._logger.warn("The following invalid command type was found in the queue: %r" % command)
 
 	def stop(self):
 		self._sendEvent.set()
@@ -508,14 +697,18 @@ class CommandSender(threading.Thread):
 
 	def addCommand(self, command, sendNext= False):
 		if command is not None:
-			if sendNext:
-				self._commandQ.append(command)
-			else:
-				self._commandQ.appendleft(command)
+			if command.onBeforeCommandAddToQueue() is not False:
+				if sendNext:
+					self._commandQ.append(command)
+				else:
+					self._commandQ.appendleft(command)
 
-			if self._readyToSend or len(self._commandQ) == 1:
-				self._sendEvent.set()
-				self._readyToSend = False
+				command.encode()
+				command.onCommandAddedToQueue()
+
+				if self._readyToSend or len(self._commandQ) == 1:
+					self._sendEvent.set()
+					self._readyToSend = False
 
 	def addCommandIfNotExists(self, command, sendNext= False):
 		if command not in self._commandQ:
