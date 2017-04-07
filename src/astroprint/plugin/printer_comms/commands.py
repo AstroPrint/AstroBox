@@ -215,7 +215,7 @@ class Command(object):
 	#
 	@property
 	def encodedCommand(self):
-		if not self._encoded is None:
+		if self._encoded is None:
 			self._encoded = self.doEncodeCommand()
 
 		return self._encoded
@@ -251,7 +251,7 @@ class Command(object):
 	# Returns: False if you want to stop the send
 	#
 	def onBeforeCommandSend(self):
-		pass
+		return True
 
 	#
 	# Implement what happens when the command was sent to the printer
@@ -265,7 +265,7 @@ class Command(object):
 	# Return: False if you want to stop the send
 	#
 	def onBeforeCommandAddToQueue(self):
-		pass
+		return True
 
 	#
 	# Implement what should happen when the command is added to the command queue
@@ -282,8 +282,10 @@ class Command(object):
 # Signal: Class for signal objects
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-class Signal(object):
+class Signal(Command):
 	def __init__(self, signalType, data):
+		super(Signal, self).__init__(None)
+
 		self._type = signalType
 		self._data = data
 
@@ -410,7 +412,7 @@ class CommandsComms(TransportEvents):
 	#
 	def writeOnLink(self, data):
 		if data is not None:
-			self._transport.write(data)
+			self._transport.write(str(data))
 			self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
 			self._listener.onDataSent(data)
 
@@ -528,7 +530,6 @@ class JobWorker(threading.Thread):
 
 	def run(self):
 		while not self._stopped:
-
 			if ( time.time() - self._lastReport ) >= self._reportProgressInterval:
 				filePos = self.filePos
 				percent = filePos / self._fileSize
@@ -545,11 +546,7 @@ class JobWorker(threading.Thread):
 					self._comm.onEndOfFle()
 
 				else:
-					# strip comments and other wrapping things
-					#line = line[:line.find(';')].strip()
-					#if line:
 					try:
-						#processedCmd = self._eventListener.onPreProcessJobCommand(line)
 						commandObjs = self._eventListener.onFileLineRead(line)
 					except:
 						commandObjs = None
@@ -650,24 +647,26 @@ class CommandSender(threading.Thread):
 
 				try:
 					command = self._commandQ.pop()
+
 				except IndexError:
 					self._sendEvent.clear()
 
 				if command:
-					if isinstance(command, Command):
+					if isinstance(command, Signal):
+						#This is a signal placed in the queue, we tell the event listener and move on
+						self._eventListener.onSignalReceived( command.type, command.data )
+
+					elif isinstance(command, Command):
 						if command.onBeforeCommandSend() is not False:
 							try:
 								self._comms.writeOnLink(command.encodedCommand)
+								self._sendPending -= 1
 								command.onCommandSent()
 							except Exception as e:
-								self._commandQ.append(command) # put back in the queue
 								self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
-							self._sendEvent.clear()
-
-					elif isinstance(command, Signal):
-						#This is a signal placed in the queue, we tell the event listener and move on
-						self._eventListener.onSignalReceived( command.type, command.data )
+							if self._sendPending <= 0:
+								self._sendEvent.clear()
 
 					else:
 						self._logger.warn("The following invalid command type was found in the queue: %r" % command)
