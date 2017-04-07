@@ -635,7 +635,6 @@ class CommandSender(threading.Thread):
 		self._commandQ = deque()
 		self._sendEvent = threading.Event()
 		self._readyToSend = False
-		self._sendPending = 0
 		self._storedCommands = None
 
 	def run(self):
@@ -660,13 +659,11 @@ class CommandSender(threading.Thread):
 						if command.onBeforeCommandSend() is not False:
 							try:
 								self._comms.writeOnLink(command.encodedCommand)
-								self._sendPending -= 1
 								command.onCommandSent()
 							except Exception as e:
 								self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
-							if self._sendPending <= 0:
-								self._sendEvent.clear()
+							self._sendEvent.clear()
 
 					else:
 						self._logger.warn("The following invalid command type was found in the queue: %r" % command)
@@ -691,8 +688,6 @@ class CommandSender(threading.Thread):
 			self._sendEvent.set()
 		else:
 			self._readyToSend = True
-
-		self._sendPending += 1
 
 	def addCommand(self, command, sendNext= False):
 		if command is not None:
