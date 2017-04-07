@@ -239,7 +239,11 @@ class NetworkManagerEvents(threading.Thread):
 						if self._activeDevice:
 							self._currentIpv4Address = self._activeDevice.Ip4Address
 
-						self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+						try:
+							self._devicePropertiesListener = d.Dhcp4Config.connect_to_signal('PropertiesChanged', self.activeDeviceConfigChanged)
+						except AttributeError:
+							logger.warn('DHCP4 Config not avaialable')
+
 						logger.info('Active Connection is now %s (%s)' % (d.IpInterface, self._currentIpv4Address))
 
 						self._online = True
