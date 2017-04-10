@@ -48,8 +48,12 @@ class UsbCommTransport(PrinterCommTransport):
 						'product_id': device.getProductID(),
 						'product_name': device.getProduct()
 					}
+
 		except usb1.USBErrorPipe as e:
 			self._logger.error("USB Error: %s", e)
+
+		except usb1.USBErrorIO:
+			self._logger.error("USB Link can't be opened")
 
 		return ports
 
@@ -129,6 +133,11 @@ class LinkReader(threading.Thread):
 			except usb1.USBErrorTimeout:
 				self._eventListener.onLinkInfo('timeout')
 				continue
+
+			except usb1.USBErrorIO:
+				self._eventListener.onLinkError('usb_disconnected', "Line lost")
+				self.stop()
+				return
 
 			except Exception as e:
 				data = None
