@@ -525,6 +525,9 @@ class PrinterCommsService(CommandPluginInterface):
 	def onExtrusionModeChanged(self, mode):
 		self._materialCounter.changeExtrusionMode(mode)
 
+	def onExtrusion(self, value):
+		self._materialCounter.reportExtrusion(value)
+
 	def onExtrusionLengthReset(self, value):
 		# At the moment this command is only relevant in Absolute Extrusion Mode
 		if self._materialCounter.extrusionMode == MaterialCounter.EXTRUSION_MODE_ABSOLUTE:

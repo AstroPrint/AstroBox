@@ -172,6 +172,14 @@ class CommandPluginInterface(object):
 		pass
 
 	#
+	# Called when extrusion is detected
+	#
+	# - value: mm of filament extruded
+	#
+	def onExtrusion(self, value):
+		pass
+
+	#
 	# Called when a new tool is selected
 	#
 	# - tool: The id of the new tool selected
