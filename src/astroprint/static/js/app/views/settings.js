@@ -84,7 +84,13 @@ var PrinterConnectionView = SettingsPage.extend({
 
     if (connectionData.port) {
       this.$('.loading-button.test-connection').addClass('loading');
-      this.$('.connection-status').removeClass('failed connected').addClass('connecting');
+      this.$('.connection-status').removeClass('failed connected');
+
+      if (app.socketData.get('printer').status != 'connected') {
+        this.$('.connection-status').addClass('connecting');
+      } else {
+        this.$('.connection-status').addClass(app.socketData.get('printer').status);
+      }
 
       $.ajax({
         url: API_BASEURL + "connection",
