@@ -85,23 +85,25 @@ var PrinterConnectionView = SettingsPage.extend({
     if (connectionData.port) {
       this.$('.loading-button.test-connection').addClass('loading');
       this.$('.connection-status').removeClass('failed connected').addClass('connecting');
+
       $.ajax({
         url: API_BASEURL + "connection",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=UTF-8",
-        data: JSON.stringify({
-          "command": "connect",
-          "driver": connectionData.driver,
-          "port": connectionData.port,
-          "baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
-          "autoconnect": true,
-          "save": true
-        })
+        data: JSON.stringify(_.extend(connectionData, {
+          command: "connect",
+          autoconnect: true,
+          save: true
+        }))
       })
-      .fail(function(){
+      .fail(_.bind(function(){
         noty({text: "There was an error testing connection settings.", timeout: 3000});
-      });
+        this.$('.connection-status').removeClass('connecting').addClass('failed');
+      },this ))
+      .always(_.bind(function(){
+        this.$('.loading-button.test-connection').removeClass('loading');
+      }, this))
     }
   },
   printerStatusChanged: function(s, value)
