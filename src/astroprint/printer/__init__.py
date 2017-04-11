@@ -159,21 +159,26 @@ class Printer(object):
 		if callback in self._callbacks:
 			self._callbacks.remove(callback)
 
+	@property
+	def registeredCallbacks(self):
+		return self._callbacks
+
+	@registeredCallbacks.setter
+	def registeredCallbacks(self, callbacks):
+		self._callbacks = callbacks
+
 	def _sendInitialStateUpdate(self, callback):
 		try:
 			data = self._stateMonitor.getCurrentData()
 			data.update({
-				"temps": list(self._temps),
-				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
-				#"logs": list(self._log),
-				#"messages": list(self._messages)
+				"temps": list(self._temps)
 			})
 
 			if 'state' in data and 'flags' in data['state']:
 				data['state']['flags'].update({'camera': self.isCameraConnected()})
 
 			callback.sendCurrentData(data)
-			#callback.sendHistoryData(data)
+
 		except Exception, err:
 			import sys
 			sys.stderr.write("ERROR: %s\n" % str(err))
@@ -311,7 +316,6 @@ class Printer(object):
 		self._progress = progress
 		self._printTime = printTime
 		self._printTimeLeft = printTimeLeft
-		#self._currentLayer = currentLayer
 
 		self._stateMonitor.setProgress({
 			"completion": progress * 100 if progress is not None else None,

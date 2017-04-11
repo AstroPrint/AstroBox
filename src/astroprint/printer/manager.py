@@ -12,7 +12,10 @@ _instance = None
 def printerManager(driver = None):
 	global _instance
 
+	transferredCallbacks = None
+
 	if driver is not None and _instance is not None and _instance.driverName != driver:
+		transferredCallbacks = _instance.registeredCallbacks
 		_instance.rampdown()
 		_instance = None
 
@@ -38,5 +41,9 @@ def printerManager(driver = None):
 			s = settings()
 			s.set(['serial', 'port'], None)
 			s.set(['serial', 'baudrate'], None)
+
+			#transfer callbacks if any
+			if transferredCallbacks:
+				_instance.registeredCallbacks = transferredCallbacks
 
 	return _instance
