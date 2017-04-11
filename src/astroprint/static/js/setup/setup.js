@@ -486,6 +486,9 @@ var StepPrinter = StepView.extend({
     this.$('form').html(this.template({
       settings: settings
     }));
+
+    //Select the proper driver
+    this.$('#settings-printer-driver').val(settings.driver);
   },
   onSubmit: function(data)
   {
