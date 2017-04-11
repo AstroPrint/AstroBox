@@ -28,7 +28,7 @@ class CommsListener(object):
 	#
 	# Called when the link has been opened
 	#
-	def onLinkOpened(self, link):
+	def onLinkOpened(self):
 		pass
 
 	#
@@ -322,6 +322,7 @@ class CommandsComms(TransportEvents):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 		self._statusPoller = None
 		self._printJob = None
+		self._sender = None
 
 		if transport == 'serial':
 			from .transport.serial_t import SerialCommTransport
@@ -334,9 +335,6 @@ class CommandsComms(TransportEvents):
 		else:
 			raise "Invalid transport %s" % transport
 
-		self._sender = CommandSender(self, listener)
-		self._sender.start()
-
 	def __del__(self):
 		self._logger.debug('Object Removed')
 		self.closeLink()
@@ -345,8 +343,11 @@ class CommandsComms(TransportEvents):
 	# Closes the link and performs cleanup
 	#
 	def closeLink(self):
-		self._sender.stop()
-		self._printJob = None
+		if self.printing:
+			self.stopPrint()
+
+		self.stopStatusPoller()
+		self.stopSender()
 		self._transport.closeLink()
 
 	#
@@ -435,10 +436,26 @@ class CommandsComms(TransportEvents):
 	#
 	# Stops the status poller
 	#
-	def stopStatusPoller(self, interval=5.0):
+	def stopStatusPoller(self):
 		if self._statusPoller:
 			self._statusPoller.stop()
 			self._statusPoller = None
+
+	#
+	# Starts sender
+	#
+	def startSender(self):
+		if not self._sender:
+			self._sender = CommandSender(self, self._listener)
+			self._sender.start()
+
+	#
+	# Stops the sender
+	#
+	def stopSender(self):
+		if self._sender:
+			self._sender.stop()
+			self._sender = None
 
 	#
 	# Set Paused of the status poller
@@ -512,8 +529,15 @@ class CommandsComms(TransportEvents):
 			self._sender.sendNext()
 
 	def onLinkError(self, error, description= None):
-		self._transport.closeLink()
 		self._listener.onLinkError(error, description)
+		self._transport.closeLink()
+
+	def onLinkClosed(self):
+		self._listener.onLinkClosed()
+
+	def onLinkOpened(self):
+		self.startSender()
+		self._listener.onLinkOpened()
 
 	def onLinkInfo(self, info):
 		self._serialLoggerEnabled and self._serialLogger.debug(info)

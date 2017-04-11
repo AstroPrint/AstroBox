@@ -73,12 +73,12 @@ class UsbCommTransport(PrinterCommTransport):
 				self._port_id = port_id
 				self._sendEP = sendEndpoint
 				self._receiveEP = receiveEndpoint
-				self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener)
+				self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
 				self._linkReader.start()
-				self._serialLoggerEnabled and self._serialLogger.info("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
+				self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
 				self._eventListener.onLinkOpened()
 
-			return self.isLinkOpen
+			return True
 
 		return False
 
@@ -93,15 +93,26 @@ class UsbCommTransport(PrinterCommTransport):
 			self._dev_handle = None
 			self._context = None
 			self._port_id = None
+			self._linkReader = None
 
 			self._eventListener.onLinkClosed()
+			self._serialLoggerEnabled and self._serialLogger.debug("(X) Link Closed")
 
 	# ~~~~~~~ From PrinterCommTransport ~~~~~~~~~~
 
 	def write(self, data):
 		if self._dev_handle:
-			self._dev_handle.claimInterface(0)
-			self._dev_handle.bulkWrite(self._sendEP, data)
+			try:
+				self._dev_handle.bulkWrite(self._sendEP, data)
+				return True
+
+			except usb1.USBErrorOther:
+				self._logger.warn('Unable to send: %r' % data)
+				return False
+
+			except Exception:
+				self._logger.error("Error sending %r" % data, exc_info= True)
+				return False
 
 	@property
 	def isLinkOpen(self):
@@ -116,12 +127,13 @@ class UsbCommTransport(PrinterCommTransport):
 #
 
 class LinkReader(threading.Thread):
-	def __init__(self, devHandle, receiveEP, eventListener):
+	def __init__(self, devHandle, receiveEP, eventListener, transport):
 		super(LinkReader, self).__init__()
 		self._stopped = False
 		self._eventListener = eventListener
 		self._devHandle = devHandle
 		self._receiveEP = receiveEP
+		self._transport = transport
 
 	def run(self):
 		while not self._stopped:
@@ -135,8 +147,7 @@ class LinkReader(threading.Thread):
 				continue
 
 			except usb1.USBErrorIO:
-				self._eventListener.onLinkError('usb_disconnected', "Line lost")
-				self.stop()
+				self._eventListener.onLinkError('io_error', "Line seesm down")
 				return
 
 			except Exception as e:
