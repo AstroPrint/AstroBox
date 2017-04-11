@@ -23,6 +23,7 @@ class UsbCommTransport(PrinterCommTransport):
 		self._sendEP = None
 		self._receiveEP = None
 		self._linkReader = None
+		self._hasError = False
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -69,16 +70,20 @@ class UsbCommTransport(PrinterCommTransport):
 
 				self._context = usb1.USBContext()
 				self._dev_handle = self._context.openByVendorIDAndProductID(vid, pid, skip_on_error=True)
-				self._dev_handle.claimInterface(0)
-				self._port_id = port_id
-				self._sendEP = sendEndpoint
-				self._receiveEP = receiveEndpoint
-				self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
-				self._linkReader.start()
-				self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
-				self._eventListener.onLinkOpened()
+				if self._dev_handle is not None:
+					self._hasError = False
+					self._dev_handle.claimInterface(0)
+					self._port_id = port_id
+					self._sendEP = sendEndpoint
+					self._receiveEP = receiveEndpoint
+					self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
+					self._linkReader.start()
+					self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
+					self._eventListener.onLinkOpened()
+					return True
 
-			return True
+			else:
+				return True #It was already opened
 
 		return False
 
@@ -110,6 +115,11 @@ class UsbCommTransport(PrinterCommTransport):
 				self._logger.warn('Unable to send: %r' % data)
 				return False
 
+			except ( usb1.USBErrorIO, usb1.USBErrorPipe, usb1.USBErrorNotFound):
+				self._hasError = True
+				self._eventListener.onLinkError('io_error', "Line seems down")
+				return False
+
 			except Exception:
 				self._logger.error("Error sending %r" % data, exc_info= True)
 				return False
@@ -117,6 +127,10 @@ class UsbCommTransport(PrinterCommTransport):
 	@property
 	def isLinkOpen(self):
 		return self._dev_handle is not None
+
+	@property
+	def canTransmit(self):
+		return not self._hasError
 
 	@property
 	def connSettings(self):
@@ -147,7 +161,8 @@ class LinkReader(threading.Thread):
 				continue
 
 			except usb1.USBErrorIO:
-				self._eventListener.onLinkError('io_error', "Line seesm down")
+				self._transport._hasError = True
+				self._eventListener.onLinkError('io_error', "Line seems down")
 				return
 
 			except Exception as e:

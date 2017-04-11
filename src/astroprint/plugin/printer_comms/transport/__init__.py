@@ -44,6 +44,13 @@ class PrinterCommTransport(object):
 		raise NotImplementedError()
 
 	#
+	# Check whether the transport link is able to send/receive data
+	#
+	@property
+	def canTransmit(self):
+		raise NotImplementedError()
+
+	#
 	# Returns a tuple with the settings used for the active connection (port, baudrate)
 	#
 	# baudrate is optional and can be None, port is None is no connection is active

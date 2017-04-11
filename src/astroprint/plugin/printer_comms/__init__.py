@@ -441,7 +441,7 @@ class PrinterCommsService(CommandPluginInterface):
 		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
 		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, currentLayer)
-		self.fireSystemEvent(SystemEvent.PRINT_DONE, {
+		self.eventManager().fire(SystemEvent.PRINT_DONE, {
 			"file": currentFile['filename'],
 			"filename": os.path.basename(currentFile['filename']),
 			"origin": currentFile['origin'],
@@ -459,7 +459,7 @@ class PrinterCommsService(CommandPluginInterface):
 		self._printerManager.printJobCancelled()
 
 		filename = os.path.basename(currentFile['filename'])
-		self.fireSystemEvent(SystemEvent.PRINT_FAILED, {
+		self.eventManager().fire(SystemEvent.PRINT_FAILED, {
 			"file": currentFile['filename'],
 			"filename": filename,
 			"origin": currentFile['origin'],

@@ -116,6 +116,10 @@ class SerialCommTransport(PrinterCommTransport):
 		return self._link and self._link.is_open
 
 	@property
+	def canTransmit(self):
+		return self.isLinkOpen
+
+	@property
 	def connSettings(self):
 		return self._port, self._baudrate
 

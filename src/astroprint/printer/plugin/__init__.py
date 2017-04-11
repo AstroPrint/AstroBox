@@ -6,6 +6,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import os
 
 from octoprint.events import eventManager, Events
+from octoprint.settings import settings
 
 from astroprint.printer import Printer
 from astroprint.plugin import pluginManager
@@ -35,7 +36,26 @@ class PrinterWithPlugin(Printer):
 		return self._plugin.fileManagerClass()
 
 	def connect(self, port=None, baudrate=None):
-		return self._plugin.connect(port, baudrate)
+		if self._plugin.connect(port, baudrate):
+			s = settings()
+			savedPort = s.get(["serial", "port"])
+			savedBaudrate = s.getInt(["serial", "baurate"])
+			needsSave = False
+
+			if port != savedPort:
+				s.set(["serial", "port"], port)
+				needsSave = True
+
+			if baudrate != savedBaudrate:
+				s.set(["serial", "baudrate"], baudrate)
+				needsSave = True
+
+			if needsSave:
+				s.save()
+
+			return True
+		else:
+			return False
 
 	def disconnect(self):
 		return self._plugin.disconnect()

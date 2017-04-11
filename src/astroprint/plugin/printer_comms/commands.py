@@ -364,6 +364,15 @@ class CommandsComms(TransportEvents):
 	def isLinkOpen(self):
 		return self._transport.isLinkOpen
 
+
+	#
+	# Whether the link is valid and can still be used to send/receive data
+	#
+	@property
+	def canLinkTransmit(self):
+		return self._transport.canTransmit
+
+
 	#
 	# Return the settings of the active connection. (port, baudrate)
 	#
@@ -383,7 +392,7 @@ class CommandsComms(TransportEvents):
 	#
 	@property
 	def commandsInQueue(self):
-		return self._sender.commandsInQueue
+		return self._sender.commandsInQueue if self._sender else 0
 
 	#
 	# Add the commands to the send queue
@@ -396,19 +405,22 @@ class CommandsComms(TransportEvents):
 	# Add the commmand to the send queue
 	#
 	def queueCommand(self, command, sendNext= False):
-		self._sender.addCommand(command, sendNext)
+		if self._sender:
+			self._sender.addCommand(command, sendNext)
 
 	#
 	# Add a Signal to the Queue. They're send back via the onSignalReceived
 	#
 	def queueSignal(self, signal, data=None ):
-		self._sender.addCommand(Signal(signal, data))
+		if self._sender:
+			self._sender.addCommand(Signal(signal, data))
 
 	#
 	# Add a command to the queue if it's not already there
 	#
 	def queueCommandIfNotExists(self, command, sendNext= False):
-		self._sender.addCommandIfNotExists(command, sendNext)
+		if self._sender:
+			self._sender.addCommandIfNotExists(command, sendNext)
 
 	#
 	# Report that the serial logging has changed
@@ -488,20 +500,21 @@ class CommandsComms(TransportEvents):
 		if self._printJob:
 			self._printJob.stop()
 			self._printJob = None
-			self._sender.clearCommandQueue()
+			if self._sender:
+				self._sender.clearCommandQueue()
 
 	#
 	# Pauses the current print job
 	#
 	def pausePrintJob(self):
-		if self._printJob:
+		if self._printJob and self._sender:
 			self._sender.storeCommands()
 
 	#
 	# Resumes the current print job
 	#
 	def resumePrintJob(self):
-		if self._printJob:
+		if self._printJob and self._sender:
 			self._sender.restoreCommands()
 
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -526,7 +539,8 @@ class CommandsComms(TransportEvents):
 			self._logger.error('Error handling response.', exc_info= True)
 
 		if 'ok' in data:
-			self._sender.sendNext()
+			if self._sender:
+				self._sender.sendNext()
 
 	def onLinkError(self, error, description= None):
 		self._listener.onLinkError(error, description)
