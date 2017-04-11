@@ -18,7 +18,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		seettings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
 
-		self._settings = {
+		self._vpSettings = {
 			'connection': 1.0,
 			'heatingUp': 2.0,
 			'printJob': 10.0
@@ -39,7 +39,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 						a[key] = b[key]
 
 			if config:
-				merge_dict(self._settings, config)
+				merge_dict(self._vpSettings, config)
 
 		self._printing = False
 		self._heatingUp = False
@@ -63,7 +63,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 				self.setTemperature('tool0', 25)
 				self.setTemperature('bed', 25)
 
-		t = threading.Timer(self._settings['connection'], doConnect)
+		t = threading.Timer(self._vpSettings['connection'], doConnect)
 		t.start()
 
 	def disconnect(self):
@@ -106,7 +106,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 				self._printJob.start()
 
 		self._printJob = None
-		self._heatingUpTimer = threading.Timer(self._settings['heatingUp'], heatupDone)
+		self._heatingUpTimer = threading.Timer(self._vpSettings['heatingUp'], heatupDone)
 		self._heatingUpTimer.start()
 
 	def disableMotorsAndHeater(self):
@@ -295,7 +295,7 @@ class JobSimulator(threading.Thread):
 		self._pausedEvent.set()
 		timeElapsed = 0
 		currentLayer = 0
-		jobLength = self._plugin._settings['printJob']
+		jobLength = self._plugin._vpSettings['printJob']
 
 		while not self._stopped and self._percentCompleted < 1:
 			self._pausedEvent.wait()
