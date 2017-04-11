@@ -103,11 +103,11 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
-		s = settings()
+		#s = settings()
 
 		# don't try to connect when the device hasn't been setup
-		if not s.getBoolean(['server', 'firstRun']):
-			self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
+		#if not s.getBoolean(['server', 'firstRun']):
+		#	self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
 
 	@property
 	def fileManager(self):
