@@ -3,6 +3,8 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+from octoprint.settings import settings
+
 # singleton
 _instance = None
 
@@ -16,17 +18,24 @@ def printerManager(driver = None):
 
 	if driver is not None and _instance is not None and _instance.driverName != driver:
 		transferredCallbacks = _instance.registeredCallbacks
+
+		#reset port and baud settings
+		s = settings()
+		s.set(['serial', 'port'], None)
+		s.set(['serial', 'baudrate'], None)
+
 		_instance.rampdown()
 		_instance = None
 
 	if _instance is None and driver:
-		import importlib
 
 		if driver.startswith('plugin:'):
 			from astroprint.printer.plugin import PrinterWithPlugin
 			_instance = PrinterWithPlugin(driver[7:])
 
 		else:
+			import importlib
+
 			classInfo = {
 				'marlin': ('.marlin', 'PrinterMarlin'),
 				's3g': ('.s3g', 'PrinterS3g')
@@ -36,12 +45,6 @@ def printerManager(driver = None):
 			_instance = getattr(module, classInfo[1])()
 
 		if _instance:
-			from octoprint.settings import settings
-			#reset port and baud settings
-			s = settings()
-			s.set(['serial', 'port'], None)
-			s.set(['serial', 'baudrate'], None)
-
 			#transfer callbacks if any
 			if transferredCallbacks:
 				_instance.registeredCallbacks = transferredCallbacks
