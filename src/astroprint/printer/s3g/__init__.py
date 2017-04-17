@@ -422,7 +422,7 @@ class PrinterS3g(Printer):
 				try:
 					if type.startswith("tool"):
 						value = min(value, self._profileManager.data.get('max_nozzle_temp'))
-						if settings().getInt(["printerParameters", "numExtruders"]) > 1:
+						if self._profileManager.data.get('extruder_count') > 1:
 							try:
 								toolNum = int(type[len("tool"):])
 								self._comm.set_toolhead_temperature(toolNum, value)

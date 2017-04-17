@@ -202,7 +202,7 @@ class PrinterMarlin(Printer):
 	def setTemperature(self, type, value):
 		if type.startswith("tool"):
 			value = min(value, self._profileManager.data.get('max_nozzle_temp'))
-			if settings().getInt(["printerParameters", "numExtruders"]) > 1:
+			if self._profileManager.data.get('extruder_count') > 1:
 				try:
 					toolNum = int(type[len("tool"):])
 					self.command("M104 T%d S%f" % (toolNum, value))

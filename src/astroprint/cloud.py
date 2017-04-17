@@ -190,7 +190,7 @@ class AstroPrintCloud(object):
 				signature = binascii.b2a_base64(hashed.digest())[:-1]
 
 				redirect_url = "%s/design/uploaded?public_key=%s&req=%s&sig=%s" % (
-					self.apiHost.replace('api', 'www'),
+					self.apiHost.replace('api', 'cloud'),
 					publicKey,
 					quote_plus(request),
 					quote_plus(signature))

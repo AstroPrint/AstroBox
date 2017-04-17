@@ -154,17 +154,17 @@ var AstroBoxApp = Backbone.View.extend({
         this.launchingAp = true;
         $.getJSON(API_BASEURL+'astroprint/login-key')
           .done(function(data){
-            location.href = 'https://www.astroprint.com/account/loginKey/'+data.login_key;
+            location.href = 'https://cloud.astroprint.com/account/loginKey/'+data.login_key;
           })
           .fail(function(){
-            location.href = 'https://www.astroprint.com/account/login';
+            location.href = 'https://cloud.astroprint.com/account/login';
           })
           .always(_.bind(function(){
             this.launchingAp = false;
           }, this));
       }
     } else {
-      location.href = 'https://www.astroprint.com/account/login';
+      location.href = 'https://cloud.astroprint.com/account/login';
     }
   }
 });
