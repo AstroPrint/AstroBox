@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import v4l2
@@ -349,18 +349,22 @@ class V4L2Manager(CameraManager):
 	def settingsStructure(self,format=None):
 		desired = self._desiredSettings
 
-		if len(desired['frameSizes']) > 0:#at least, one resolution of this camera is supported
+		if len(desired['frameSizes']) > 0: #at least, one resolution of this camera is supported
 			if not self.supported_formats:
 				self.supported_formats = self._getSupportedResolutions()
 
-			pixelformats = [x['pixelformat'] for x in self.supported_formats]
+			if self.supported_formats:
+				pixelformats = [x['pixelformat'] for x in self.supported_formats]
 
-			for o in desired['cameraOutput']:
-				if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
-					(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) :
-						desired['cameraOutput'].remove(o)
+				for o in desired['cameraOutput']:
+					if 	(o['value'] == 'x-mjpeg' and 'MJPG' not in pixelformats) or \
+						(o['value'] == 'x-raw' and 'YUYV' not in pixelformats) :
+							desired['cameraOutput'].remove(o)
 
-			return desired
+				return desired
 
-		else:#less resolution supported by Astrobox is not supported by this camera
+			else: #
+				return None
+
+		else: #less resolution supported by Astrobox is not supported by this camera
 			return None
