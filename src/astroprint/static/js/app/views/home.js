@@ -55,7 +55,7 @@ var FileUploadDashboard = FileUploadCombined.extend({
       this.container.removeClass('failed');
     }, this), 3000);
 
-    var message = 'There was an error uploading your file';
+    var message = error
 
     switch(error) {
       //case 'invalid_data':
@@ -65,6 +65,10 @@ var FileUploadDashboard = FileUploadCombined.extend({
       case 'http_error_401':
         message = 'An AstroPrint account is needed to upload designs';
         $('#login-modal').foundation('reveal', 'open');
+      break;
+
+      case null:
+        message = 'There was an error uploading your file';
       break;
     }
 

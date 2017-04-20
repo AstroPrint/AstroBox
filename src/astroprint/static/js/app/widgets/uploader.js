@@ -96,7 +96,7 @@ var FileUploadBase = Backbone.View.extend({
   },
   onUploadFail: function(e, data)
   {
-    this.failed("There was an error uploading your file: "+ data.errorThrown);
+    this.failed(data.jqXHR.responseText ? data.jqXHR.responseText : null);
   },
   onUploadAlways: function(e, data)
   {
@@ -204,7 +204,7 @@ var FileUploadCombined = FileUploadBase.extend({
             this.onPrintFileUploaded();
           }, this))
           .fail(_.bind(function(err){
-            this.failed(err)
+            this.failed(err);
           }, this));
 
       break;
