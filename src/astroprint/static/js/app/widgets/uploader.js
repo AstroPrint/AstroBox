@@ -14,7 +14,9 @@ var FileUploadBase = Backbone.View.extend({
   uploadData: {},
   initialize: function(options)
   {
-    this.$el.fileupload();
+    this.$el.fileupload({
+      dropZone: options.dropZone ? options.dropZone : this.$el
+    });
   },
   beforeSubmit: function(e, data)
   {

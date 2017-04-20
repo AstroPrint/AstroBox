@@ -147,7 +147,7 @@ var UploadView = Backbone.View.extend({
   uploadBtn: null,
   progressBar: null,
   buttonContainer: null,
-  initialize: function()
+  initialize: function(options)
   {
     this.progressBar = this.$('.upload-progress');
     this.buttonContainer = this.$('.upload-buttons');
@@ -155,7 +155,8 @@ var UploadView = Backbone.View.extend({
     this.uploadBtn = new FileUploadFiles({
       el: "#files-view .file-upload-view .file-upload",
       progressBar: this.$('.upload-progress'),
-      buttonContainer: this.$('.file-upload-button')
+      buttonContainer: this.$('.file-upload-button'),
+      dropZone: options.dropZone
     });
 
     this.render();
@@ -540,7 +541,10 @@ var FilesView = Backbone.View.extend({
   },
   initialize: function(options)
   {
-    this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
+    this.uploadView = new UploadView({
+      el: this.$el.find('.file-upload-view'),
+      dropZone: this.$el
+    });
     this.printFilesListView = new PrintFilesListView({
       el: this.$el.find('.design-list'),
       forceSync: options.forceSync,

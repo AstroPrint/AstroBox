@@ -91,7 +91,10 @@ var HomeView = Backbone.View.extend({
   },
   initialize: function()
   {
-    this.uploadBtn = new FileUploadDashboard({el: "#home-view #app-container .upload-btn .file-upload"});
+    this.uploadBtn = new FileUploadDashboard({
+      el: "#home-view #app-container .upload-btn .file-upload",
+      dropZone: this.$el
+    });
     this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
     this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
 
