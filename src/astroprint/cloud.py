@@ -278,24 +278,41 @@ class AstroPrintCloud(object):
 
 		printFile = fileManager.getFileByCloudId(print_file_id)
 
-		if printFile:
-			self._logger.info('Print file %s is already on the box as %s' % (print_file_id, printFile))
-			successCb(printFile, True)
-			return True
-
-		#The file wasn't there so let's go get it
-		progressCb(1)
-
 		try:
 			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None
 
-		destFile = None
+		if printFile:
+			self._logger.info('Print file %s is already on the box as %s' % (print_file_id, printFile))
 
-		if data and "download_url" in data and "name" in data and "info" in data:
+			if data and "printFileName" in data:
+				pm = printerManager()
+				localPrintFileName = pm.fileManager.getPrintFileName(printFile)
+
+				if data["printFileName"] != localPrintFileName:
+					pm.fileManager.setPrintFileName(printFile, data["printFileName"])
+
+			successCb(printFile, True)
+			return True
+
+		#The file wasn't there so let's go get it
+		progressCb(1)
+
+		destFile = None
+		printFileName = None
+
+		if data and "download_url" in data and (("name" in data) or ("filename" in data)) and "info" in data:
 			progressCb(2)
+
+			if "filename" in data:
+				destFile = fileManager.getAbsolutePath(data['filename'], mustExist=False)
+				printFileName = data["printFileName"]
+
+			else:
+				destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
+				printFileName = data["name"]
 
 			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 
@@ -305,6 +322,7 @@ class AstroPrintCloud(object):
 					'destFile': destFile,
 					'printFileId': print_file_id,
 					'printFileInfo': data['info'],
+					'printFileName': printFileName,
 					'progressCb': progressCb,
 					'successCb': successCb,
 					'errorCb': errorCb

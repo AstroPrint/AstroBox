@@ -44,6 +44,7 @@ class DownloadWorker(threading.Thread):
 			item = downloadQueue.get()
 
 			printFileId = item['printFileId']
+			printFileName = item['printFileName']
 			progressCb = item['progressCb']
 			successCb = item['successCb']
 			errorCb = item['errorCb']
@@ -81,6 +82,7 @@ class DownloadWorker(threading.Thread):
 					else:
 						fileInfo = {
 							'id': printFileId,
+							'printFileName': printFileName,
 							'info': item['printFileInfo']
 						}
 

@@ -254,6 +254,22 @@ var PrintFileView = Backbone.View.extend({
           data: JSON.stringify({command: "select", print: true})
       })
       .done(_.bind(function() {
+        if (this.print_file.attributes.printFileName == null) {
+          $.ajax({
+            url: '/api/files/local/'+filename+'/rename/'+this.print_file.attributes.name,
+            type: "POST",
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8"
+          })
+          .fail(function(xhr) {
+            var error = null;
+            if (xhr.status == 409) {
+              error = xhr.responseText;
+            }
+            noty({text: error ? error : "There was an error starting the print", timeout: 3000});
+            loadingBtn.removeClass('loading');
+          });
+        }
         setTimeout(function(){
           loadingBtn.removeClass('loading');
         },2000);
