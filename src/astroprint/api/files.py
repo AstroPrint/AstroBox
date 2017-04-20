@@ -160,8 +160,6 @@ def uploadPrintFile(target):
 	except IOError:
 		return make_response("Your filesystem seems to be corrupt", 500)
 
-	return make_response("Your filesystem seems to be corrupt", 500)
-
 	if filename is None:
 		return make_response("Could not upload the file %s" % file.filename, 500)
 
