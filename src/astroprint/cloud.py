@@ -356,10 +356,20 @@ class AstroPrintCloud(object):
 
 		if status_code == 201:
 			data = r.json()
-			return data['print_id']
+			return {
+				"error": False,
+				"print_id": data['print_id']
+			}
+
+		if status_code == 402:
+			return {
+				"error": "no_storage"
+			}
 
 		else:
-			return None
+			return {
+				"error": "unable_to_create"
+			}
 
 
 	def uploadImageFile(self, print_id, imageBuf):

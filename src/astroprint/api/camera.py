@@ -3,7 +3,7 @@ __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import octoprint.util as util
-from flask import jsonify, request, abort
+from flask import jsonify, request, abort, make_response
 from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 from octoprint.settings import settings
@@ -61,7 +61,12 @@ def update_timelapse():
 				return jsonify(SUCCESS)
 
 		else:
-			if cm.start_timelapse(freq):
+			timeLapse = cm.start_timelapse(freq)
+			if timeLapse == 'no_storage':
+				return make_response("Not enough space", 402)
+			elif timeLapse == 'unable_to_create':
+				abort (500)
+			elif timeLapse:
 				return jsonify(SUCCESS)
 
 	else:

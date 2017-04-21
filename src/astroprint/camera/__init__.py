@@ -274,10 +274,13 @@ class CameraManager(object):
 		if not selectedFile:
 			return False
 
-		timelapseId = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
-		if timelapseId:
+		printCapture = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
+		if printCapture and printCapture['error']:
+			return printCapture['error']
+
+		if printCapture:
 			self.timelapseInfo = {
-				'id': timelapseId,
+				'id': printCapture['print_id'],
 				'freq': freq,
 				'paused': False,
 				'last_photo': None
@@ -285,7 +288,7 @@ class CameraManager(object):
 
 			if freq == 'layer':
 				# send first pic and subscribe to layer change events
-				self.addPhotoToTimelapse(timelapseId)
+				self.addPhotoToTimelapse(printCapture['print_id'])
 				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
 
 			else:
