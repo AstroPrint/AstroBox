@@ -1017,7 +1017,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
   clearLogDialog: null,
   settings: null,
   events: {
-    'change #serial-logs': 'serialLogChanged'
+    'change #serial-logs': 'serialLogChanged',
+    'change #apikey-regenerate': 'regenerateApiKeyChange'
   },
   initialize: function(params)
   {
@@ -1048,6 +1049,25 @@ var SoftwareAdvancedView = SettingsPage.extend({
       size_format: app.utils.sizeFormat
     }));
   },
+  regenerateApiKeyChange: function(e)
+  {
+    var target = $(e.currentTarget);
+    var active = target.is(':checked');
+
+    $.ajax({
+      url: '/api/settings/software/advanced/apikey',
+      method: 'PUT',
+      data: JSON.stringify({
+        'regenerate': active
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .fail(function(){
+      noty({text: "There was an error changing key regeneration.", timeout: 3000});
+      target.prop('checked', !active);
+    });
+  },
   serialLogChanged: function(e)
   {
     var target = $(e.currentTarget);
@@ -1071,6 +1091,7 @@ var SoftwareAdvancedView = SettingsPage.extend({
     })
     .fail(function(){
       noty({text: "There was an error changing serial logs.", timeout: 3000});
+      target.prop('checked', !active);
     });
   }
 });

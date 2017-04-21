@@ -183,13 +183,38 @@ def cameraSettings():
 @restricted_access
 def getAdvancedSoftwareSettings():
 	s = settings()
+
 	logsDir = s.getBaseFolder("logs")
 
 	return jsonify(
-		apiKey= UI_API_KEY,
+		apiKey= {
+			"key": UI_API_KEY,
+			"regenerate": s.getBoolean(['api','regenerate'])
+		},
 		serialActivated= s.getBoolean(['serial', 'log']),
 		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
 	)
+
+@api.route("/settings/software/advanced/apikey", methods=["PUT"])
+@restricted_access
+def changeApiKeySettings():
+	data = request.json
+
+	if data and 'regenerate' in data:
+		s = settings()
+		s.setBoolean(['api', 'regenerate'], data['regenerate'])
+
+		if data['regenerate']:
+			s.set(['api', 'key'], None)
+		else:
+			s.set(['api', 'key'], UI_API_KEY)
+
+		s.save()
+
+		return jsonify();
+
+	else:
+		return ("Wrong data sent in.", 400)
 
 @api.route("/settings/software/settings", methods=["DELETE"])
 @restricted_access
