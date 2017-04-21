@@ -1,4 +1,4 @@
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 
 # singleton
@@ -77,7 +77,7 @@ class AstroPrintCloud(object):
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
-		self._print_file_store = None
+		self._print_file_store = []
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
 

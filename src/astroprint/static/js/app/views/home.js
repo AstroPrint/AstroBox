@@ -55,7 +55,7 @@ var FileUploadDashboard = FileUploadCombined.extend({
       this.container.removeClass('failed');
     }, this), 3000);
 
-    var message = 'There was an error uploading your file';
+    var message = error
 
     switch(error) {
       //case 'invalid_data':
@@ -65,6 +65,10 @@ var FileUploadDashboard = FileUploadCombined.extend({
       case 'http_error_401':
         message = 'An AstroPrint account is needed to upload designs';
         $('#login-modal').foundation('reveal', 'open');
+      break;
+
+      case null:
+        message = 'There was an error uploading your file';
       break;
     }
 
@@ -87,7 +91,10 @@ var HomeView = Backbone.View.extend({
   },
   initialize: function()
   {
-    this.uploadBtn = new FileUploadDashboard({el: "#home-view #app-container .upload-btn .file-upload"});
+    this.uploadBtn = new FileUploadDashboard({
+      el: "#home-view #app-container .upload-btn .file-upload",
+      dropZone: this.$el
+    });
     this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
     this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
 
