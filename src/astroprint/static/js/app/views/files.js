@@ -262,11 +262,7 @@ var PrintFileView = Backbone.View.extend({
             contentType: "application/json; charset=UTF-8"
           })
           .fail(function(xhr) {
-            var error = null;
-            if (xhr.status == 409) {
-              error = xhr.responseText;
-            }
-            noty({text: error ? error : "There was an error starting the print", timeout: 3000});
+            noty({text: "There was an error rename the printfile", timeout: 3000});
             loadingBtn.removeClass('loading');
           });
         }
