@@ -8,7 +8,6 @@ import os
 import yaml
 import logging
 import re
-import uuid
 import shutil
 
 APPNAME="AstroBox"
@@ -140,7 +139,8 @@ default_settings = {
 	},
 	"api": {
 		"enabled": True,
-		"key": ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes),
+		"key": None,
+		"regenerate": True,
 		"allowCrossOrigin": True
 	},
 	"terminalFilters": [

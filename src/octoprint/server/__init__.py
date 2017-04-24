@@ -384,7 +384,10 @@ class Server():
 		self._initSettings(self._configfile, self._basedir)
 		s = settings()
 
-		UI_API_KEY = s.getString(['api', 'key'])
+		if not s.getBoolean(['api', 'regenerate']) and s.getString(['api', 'key']):
+			UI_API_KEY = s.getString(['api', 'key'])
+		else:
+			UI_API_KEY = ''.join('%02X' % ord(z) for z in uuid.uuid4().bytes)
 
 		# then initialize logging
 		self._initLogging(self._debug, self._logConf)
