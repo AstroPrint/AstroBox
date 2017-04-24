@@ -433,6 +433,17 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		return None
 
+	def storedWifiNetworks(self):
+		result = []
+
+		for c in self._nm.Settings.ListConnections():
+			settings = c.GetSettings()
+			if '802-11-wireless' in settings:
+				result.append(settings)
+
+		return result
+
+
 	def forgetWifiNetworks(self):
 		conns = self._nm.Settings.ListConnections()
 

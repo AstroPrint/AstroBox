@@ -179,6 +179,48 @@
       line-height: 1.2em;
     }
   }
+
+  .stored-wifis {
+    > .row {
+      padding: 5px 0;
+
+      &:nth-child(even) {
+        background: #fafafa;
+      }
+
+      .name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .action i {
+        color: $alert-color;
+      }
+
+      .active i {
+        visibility: hidden;
+      }
+
+      &.active {
+        .active i {
+          visibility: inherit;
+        }
+      }
+    }
+  }
+}
+
+#delete-stored-wifi-modal {
+  .active {
+    display: none;
+  }
+
+  &.active {
+    .active {
+      display: block
+    }
+  }
 }
 
 #network-name {

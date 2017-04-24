@@ -75,8 +75,19 @@ def getNetworkSettings():
 
 	return jsonify({
 		'networks': nm.getActiveConnections(),
-		'hasWifi': nm.hasWifi()
+		'hasWifi': nm.hasWifi(),
+		'storedWifiNetworks': nm.storedWifiNetworks()
 	})
+
+@api.route("/settings/network/stored-wifi/<string:networkId>", methods=["DELETE"])
+@restricted_access
+def deleteStoredWiFiNetwork(networkId):
+	nm = networkManager()
+
+	if nm.deleteStoredWifiNetwork(networkId):
+		return jsonify()
+	else:
+		return ("Network Not Found", 404)
 
 @api.route("/settings/network/active", methods=["POST"])
 @restricted_access
