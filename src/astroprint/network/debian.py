@@ -436,13 +436,27 @@ class DebianNetworkManager(NetworkManagerBase):
 	def storedWifiNetworks(self):
 		result = []
 
+		activeConnections = [c.Uuid for c in NetworkManager.NetworkManager.ActiveConnections]
+
 		for c in self._nm.Settings.ListConnections():
-			settings = c.GetSettings()
-			if '802-11-wireless' in settings:
-				result.append(settings)
+			s = c.GetSettings()
+			if '802-11-wireless' in s and 'connection' in s:
+				result.append({
+					'id': s['connection']['uuid'],
+					'name': s['802-11-wireless']['ssid'],
+					'active': s['connection']['uuid'] in activeConnections
+				})
 
 		return result
 
+	def deleteStoredWifiNetwork(self, networkId):
+		for c in self._nm.Settings.ListConnections():
+			s = c.GetSettings()
+			if 'connection' in s and s['connection']['uuid'] == networkId:
+				c.Delete()
+				return True
+
+		return False
 
 	def forgetWifiNetworks(self):
 		conns = self._nm.Settings.ListConnections()

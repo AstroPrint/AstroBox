@@ -427,10 +427,10 @@
           </div>
         </div>
       <% } %>
-      <% if (settings.storedWifiNetworks) { %>
+      <% if (settings.storedWifiNetworks.length > 0) { %>
         <hr/>
         <div class="stored-wifis">
-          <h3 class="bold">Stored WiFi Networks</h3>
+          <h3 class="bold">Known WiFi Networks</h3>
           <% _.each(settings.storedWifiNetworks, function(c) { %>
             <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
               <div class="columns small-2 large-1 active">
