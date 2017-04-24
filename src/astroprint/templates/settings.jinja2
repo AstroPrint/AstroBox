@@ -403,6 +403,7 @@
         <div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
       <% } %>
       <% if (settings.hasWifi) { %>
+        <hr/>
         <div class="connection">
           <h3 class="bold">Wireless Connection</h3>
           <% if (settings.networks.wireless) { %>
@@ -426,7 +427,55 @@
           </div>
         </div>
       <% } %>
+      <% if (settings.storedWifiNetworks.length > 0) { %>
+        <hr/>
+        <div class="stored-wifis">
+          <h3 class="bold">Known WiFi Networks</h3>
+          <% _.each(settings.storedWifiNetworks, function(c) { %>
+            <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
+              <div class="columns small-2 large-1 active">
+                <i class="icon-exchange" title="Currently Connected"></i>
+              </div>
+              <div class="columns small-8 large-10 name">
+                <%= c.name %>
+              </div>
+              <div class="columns small-2 large-1 action">
+                <a href="" title="Delete Network"><i class="icon-trash"></i></a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
     </script>
+
+    <div id="delete-stored-wifi-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Stored WiFi Network</h2>
+      <div class="modal-body">
+        <p>
+          This will delete the stored WiFi Network <span class="name bold"></span>. Your box won't be able to automatically connect to it again.
+        </p>
+        <p class="active panel">
+          This is your <b>active network</b>, please ensure your hotspot is on or a wired connection exists before deleting or you might not be able
+          to connect to your box after deletion.
+        </p>
+        <p>
+          Are you sure you want to delete <span class="name bold"></span>?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Delete Network</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
     <script type="text/template" id="wifi-network-modal-row">
       <table>
       <% _.each(networks, function(n, idx) { %>

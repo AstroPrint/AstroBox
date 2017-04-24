@@ -198,9 +198,14 @@ class NetworkManagerEvents(threading.Thread):
 
 			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
 				logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )
+
+				#It has reached and end state.
+				self._activatingConnection = None
+				if self._monitorActivatingListener:
+					self._monitorActivatingListener.remove()
+					self._monitorActivatingListener = None
+
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
-				# we should probably remove the connection
-				self._activatingConnection.Delete()
 
 			elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
 				if self._monitorActivatingListener:
@@ -427,6 +432,31 @@ class DebianNetworkManager(NetworkManagerBase):
 				}
 
 		return None
+
+	def storedWifiNetworks(self):
+		result = []
+
+		activeConnections = [c.Uuid for c in NetworkManager.NetworkManager.ActiveConnections]
+
+		for c in self._nm.Settings.ListConnections():
+			s = c.GetSettings()
+			if '802-11-wireless' in s and 'connection' in s:
+				result.append({
+					'id': s['connection']['uuid'],
+					'name': s['802-11-wireless']['ssid'],
+					'active': s['connection']['uuid'] in activeConnections
+				})
+
+		return result
+
+	def deleteStoredWifiNetwork(self, networkId):
+		for c in self._nm.Settings.ListConnections():
+			s = c.GetSettings()
+			if 'connection' in s and s['connection']['uuid'] == networkId:
+				c.Delete()
+				return True
+
+		return False
 
 	def forgetWifiNetworks(self):
 		conns = self._nm.Settings.ListConnections()
