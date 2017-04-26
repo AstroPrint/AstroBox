@@ -57,6 +57,12 @@ class NetworkManager(object):
 	def forgetWifiNetworks(self):
 		return None
 
+	def storedWifiNetworks(self):
+		return []
+
+	def deleteStoredWifiNetwork(self, networkId):
+		return None
+
 	def isHotspotActive(self):
 		return None
 

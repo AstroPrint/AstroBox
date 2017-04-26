@@ -110,7 +110,7 @@ var FileUploadFiles = FileUploadCombined.extend({
   },
   onError: function(type, error)
   {
-    var message = 'There was an error uploading your file';
+    var message = error;
 
     switch(error) {
       //case 'invalid_data':
@@ -120,6 +120,10 @@ var FileUploadFiles = FileUploadCombined.extend({
       case 'http_error_401':
         message = 'An AstroPrint account is needed to upload designs';
         $('#login-modal').foundation('reveal', 'open');
+      break;
+
+      case null:
+        message = 'There was an error uploading your file';
       break;
     }
 
@@ -143,7 +147,7 @@ var UploadView = Backbone.View.extend({
   uploadBtn: null,
   progressBar: null,
   buttonContainer: null,
-  initialize: function()
+  initialize: function(options)
   {
     this.progressBar = this.$('.upload-progress');
     this.buttonContainer = this.$('.upload-buttons');
@@ -151,7 +155,8 @@ var UploadView = Backbone.View.extend({
     this.uploadBtn = new FileUploadFiles({
       el: "#files-view .file-upload-view .file-upload",
       progressBar: this.$('.upload-progress'),
-      buttonContainer: this.$('.file-upload-button')
+      buttonContainer: this.$('.file-upload-button'),
+      dropZone: options.dropZone
     });
 
     this.render();
@@ -536,7 +541,10 @@ var FilesView = Backbone.View.extend({
   },
   initialize: function(options)
   {
-    this.uploadView = new UploadView({el: this.$el.find('.file-upload-view')});
+    this.uploadView = new UploadView({
+      el: this.$el.find('.file-upload-view'),
+      dropZone: this.$el
+    });
     this.printFilesListView = new PrintFilesListView({
       el: this.$el.find('.design-list'),
       forceSync: options.forceSync,

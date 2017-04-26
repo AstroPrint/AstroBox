@@ -556,14 +556,17 @@ var InternetConnectionView = SettingsPage.extend({
   el: '#internet-connection',
   template: _.template( $("#internet-connection-settings-page-template").html() ),
   networksDlg: null,
+  storedWifiDeleteDlg: null,
   settings: null,
   events: {
-    'click .loading-button.list-networks button': 'listNetworksClicked'
+    'click .loading-button.list-networks button': 'listNetworksClicked',
+    'click .stored-wifis .row .action': 'onDeleteNetworkClicked'
   },
   initialize: function(params) {
     SettingsPage.prototype.initialize.apply(this, arguments);
 
     this.networksDlg = new WiFiNetworksDialog({parent: this});
+    this.storedWifiDeleteDlg = new DeleteWifiNetworkDialog();
   },
   show: function() {
     //Call Super
@@ -651,7 +654,8 @@ var InternetConnectionView = SettingsPage.extend({
 
     return promise;
   },
-  listNetworksClicked: function(e) {
+  listNetworksClicked: function(e)
+  {
     var el = $(e.target).closest('.loading-button');
 
     el.addClass('loading');
@@ -676,6 +680,84 @@ var InternetConnectionView = SettingsPage.extend({
     complete(function(){
       el.removeClass('loading');
     });
+  },
+  onDeleteNetworkClicked: function(e)
+  {
+    e.preventDefault();
+    var row = $(e.currentTarget).closest('.row');
+
+    this.storedWifiDeleteDlg.open({
+      id: row.data('id'),
+      name: row.find('.name').text(),
+      active: row.hasClass('active')
+    })
+      .done(function(deleted) {
+        if (deleted) {
+          row.remove();
+        }
+      })
+      .fail(function() {
+        noty({text: "Unable to Delete Stored Network"});
+      });
+  }
+});
+
+var DeleteWifiNetworkDialog = Backbone.View.extend({
+  el: '#delete-stored-wifi-modal',
+  networkId: null,
+  promise: null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'close': 'onClose'
+  },
+  open: function(info)
+  {
+    this.promise = $.Deferred();
+    this.networkId = info.id;
+    this.$('.name').text(info.name);
+
+    if (info.active) {
+      this.$el.addClass('active');
+    } else {
+      this.$el.removeClass('active');
+    }
+
+    this.$el.foundation('reveal', 'open');
+    return this.promise;
+  },
+  onClose: function()
+  {
+    if (this.promise.state() == 'pending') {
+      this.promise.resolve(false);
+    }
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function(e)
+  {
+    e.preventDefault()
+
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + "settings/network/stored-wifi/" + this.networkId,
+      type: "DELETE",
+    })
+      .done(_.bind(function(){
+        this.promise.resolve(true);
+      }, this))
+      .fail(_.bind(function(){
+        this.promise.reject();
+      }, this))
+      .always(_.bind(function() {
+        loadingBtn.removeClass('loading');
+        this.doClose();
+      },this));
   }
 });
 
@@ -683,18 +765,21 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
   el: '#wifi-network-password-modal',
   events: {
     'click button.connect': 'connectClicked',
-    'submit form': 'connect'
+    'submit form': 'connect',
+    'change #show-password': 'onShowPasswordChanged'
   },
   template: _.template($('#wifi-network-password-modal-template').html()),
   parent: null,
-  initialize: function(params) {
+  initialize: function(params)
+  {
     this.parent = params.parent;
   },
   render: function(wifiInfo)
   {
     this.$el.html( this.template({wifi: wifiInfo}) );
   },
-  open: function(wifiInfo) {
+  open: function(wifiInfo)
+  {
     this.render(wifiInfo);
     this.$el.foundation('reveal', 'open', {
       close_on_background_click: false,
@@ -704,13 +789,27 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
       this.$el.find('.network-password-field').focus();
     }, this));
   },
-  connectClicked: function(e) {
+  connectClicked: function(e)
+  {
     e.preventDefault();
 
     var form = this.$('form');
     form.submit();
   },
-  connect: function(e) {
+  onShowPasswordChanged: function(e)
+  {
+    var target = $(e.currentTarget);
+    var checked = target.is(':checked');
+    var field = this.$('input[name=password]');
+
+    if (checked) {
+      field.attr('type', 'text');
+    } else {
+      field.attr('type', 'password');
+    }
+  },
+  connect: function(e)
+  {
     e.preventDefault()
     var form = $(e.currentTarget);
 
@@ -1017,7 +1116,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
   clearLogDialog: null,
   settings: null,
   events: {
-    'change #serial-logs': 'serialLogChanged'
+    'change #serial-logs': 'serialLogChanged',
+    'change #apikey-regenerate': 'regenerateApiKeyChange'
   },
   initialize: function(params)
   {
@@ -1048,6 +1148,25 @@ var SoftwareAdvancedView = SettingsPage.extend({
       size_format: app.utils.sizeFormat
     }));
   },
+  regenerateApiKeyChange: function(e)
+  {
+    var target = $(e.currentTarget);
+    var active = target.is(':checked');
+
+    $.ajax({
+      url: '/api/settings/software/advanced/apikey',
+      method: 'PUT',
+      data: JSON.stringify({
+        'regenerate': active
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .fail(function(){
+      noty({text: "There was an error changing key regeneration.", timeout: 3000});
+      target.prop('checked', !active);
+    });
+  },
   serialLogChanged: function(e)
   {
     var target = $(e.currentTarget);
@@ -1071,6 +1190,7 @@ var SoftwareAdvancedView = SettingsPage.extend({
     })
     .fail(function(){
       noty({text: "There was an error changing serial logs.", timeout: 3000});
+      target.prop('checked', !active);
     });
   }
 });

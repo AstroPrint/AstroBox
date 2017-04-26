@@ -155,7 +155,11 @@ def uploadPrintFile(target):
 		if selectAfterUpload or printAfterSelect or (currentFilename == filename and currentOrigin == destination):
 			printerManager().selectFile(absFilename, destination == FileDestinations.SDCARD, printAfterSelect)
 
-	filename, done = printer.fileManager.addFile(file, target, fileProcessingFinished)
+	try:
+		filename, done = printer.fileManager.addFile(file, target, fileProcessingFinished)
+	except IOError:
+		return make_response("Your filesystem seems to be corrupt", 500)
+
 	if filename is None:
 		return make_response("Could not upload the file %s" % file.filename, 500)
 

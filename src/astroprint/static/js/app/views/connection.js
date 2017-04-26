@@ -122,7 +122,9 @@ var ConnectionView = Backbone.View.extend({
       break;
     }
 
-    element.data('title', titleText);
+    if (titleText) {
+      element.data('title', titleText);
+    }
   },
   setPrinterConnection: function(className)
   {
@@ -138,14 +140,18 @@ var ConnectionView = Backbone.View.extend({
 
       case 'connected':
         titleText = 'Connected to printer';
+        $('html').addClass('printer-connected');
       break;
 
       case 'failed':
+        $('html').removeClass('printer-connected');
         titleText = 'The printer is not connected';
       break;
     }
 
-    element.data('title', titleText);
+    if (titleText) {
+      element.data('title', titleText);
+    }
   },
   setAstroprintConnection: function(className)
   {
@@ -168,7 +174,9 @@ var ConnectionView = Backbone.View.extend({
       break;
     }
 
-    element.data('title', titleText);
+    if (titleText) {
+      element.data('title', titleText);
+    }
   },
   printerTapped: function(e)
   {

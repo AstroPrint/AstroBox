@@ -25,6 +25,19 @@ class MacDevNetworkManager(NetworkManagerBase):
 			'manual': None
 		}
 
+	def storedWifiNetworks(self):
+		return [
+			{'id': '1', 'name': 'Test Connection 1', 'active': True},
+			{'id': '2', 'name': 'Test Connection 2', 'active': False},
+			{'id': '3', 'name': 'Test Connection 3', 'active': False}
+		]
+
+	def deleteStoredWifiNetwork(self, networkId):
+		return ( networkId in [c['id'] for c in self.storedWifiNetworks()] )
+
+	def hasWifi(self):
+		return False
+
 	def isOnline(self):
 		return True
 
