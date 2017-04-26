@@ -260,19 +260,6 @@ def printFileCommand(filename, target):
 
 	return NO_CONTENT
 
-@api.route("/files/<string:target>/<path:filename>/rename/<string:printfilename>", methods=["POST"])
-@restricted_access
-def renamePrintFile(target, filename, printfilename):
-	if not target in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
-		return make_response("Unknown target: %s" % target, 404)
-
-	if not _verifyFileExists(target, filename):
-		return make_response("File not found on '%s': %s" % (target, filename), 404)
-
-	printerManager().fileManager.setPrintFileName(filename, printfilename)
-
-	return jsonify()
-
 @api.route("/files/<string:target>/<path:filename>", methods=["DELETE"])
 @restricted_access
 def deletePrintFile(filename, target):
