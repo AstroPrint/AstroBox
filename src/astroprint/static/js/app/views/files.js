@@ -198,6 +198,10 @@ var PrintFileView = Backbone.View.extend({
       this.$el.addClass('remote');
     }
 
+    if (print_file.printFileName) {
+      print_file.name = print_file.printFileName;
+    }
+
     this.$el.empty();
     this.downloadProgress = null;
     this.$el.html(this.template({
@@ -259,18 +263,6 @@ var PrintFileView = Backbone.View.extend({
           data: JSON.stringify({command: "select", print: true})
       })
       .done(_.bind(function() {
-        if (this.print_file.attributes.printFileName == null) {
-          $.ajax({
-            url: '/api/files/local/'+filename+'/rename/'+this.print_file.attributes.name,
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8"
-          })
-          .fail(function(xhr) {
-            noty({text: "There was an error rename the printfile", timeout: 3000});
-            loadingBtn.removeClass('loading');
-          });
-        }
         setTimeout(function(){
           loadingBtn.removeClass('loading');
         },2000);
