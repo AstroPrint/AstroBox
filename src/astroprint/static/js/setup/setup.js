@@ -330,7 +330,8 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
   events: {
     'click button.connect': 'connectClicked',
     'submit form': 'connectClicked',
-    'click a.cancel': 'cancelClicked'
+    'click a.cancel': 'cancelClicked',
+    'change #show-password': 'onShowPasswordChanged'
   },
   parent: null,
   template: _.template($('#wifi-network-password-modal-template').html()),
@@ -379,6 +380,18 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
   {
     e.preventDefault();
     this.$el.foundation('reveal', 'close');
+  },
+  onShowPasswordChanged: function(e)
+  {
+    var target = $(e.currentTarget);
+    var checked = target.is(':checked');
+    var field = this.$('input[name=password]');
+
+    if (checked) {
+      field.attr('type', 'text');
+    } else {
+      field.attr('type', 'password');
+    }
   }
 });
 

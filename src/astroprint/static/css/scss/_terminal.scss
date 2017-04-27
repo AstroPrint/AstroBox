@@ -21,6 +21,7 @@
     margin: 20px 0 0;
     padding: 10px 0;
     border: 1px solid #ccc;
+    user-select: text;
     @include radius($global-radius $global-radius 0 0);
 
     div {
@@ -35,7 +36,8 @@
       border-left: 10px solid $secondary-color;
 
       i {
-          color: lighten(#92278f, 30%);
+        color: lighten(#92278f, 30%);
+        user-select: none;
       }
 
       &.failed {

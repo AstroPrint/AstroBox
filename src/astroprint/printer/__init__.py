@@ -233,6 +233,7 @@ class Printer(object):
 		layerCount = None
 		cloudId = None
 		renderedImage = None
+		printFilename = None
 
 		if filename:
 			# Use a string for mtime because it could be float and the
@@ -258,9 +259,13 @@ class Printer(object):
 				if printFile:
 					renderedImage = printFile['images']['square']
 
+			if fileData is not None and "printFileName" in fileData.keys():
+				printFileName = fileData["printFileName"]
+
 		self._stateMonitor.setJobData({
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
+				"printFileName": printFileName,
 				"origin": FileDestinations.LOCAL,
 				"size": filesize,
 				"date": date,

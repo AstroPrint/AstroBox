@@ -1,13 +1,14 @@
 # coding=utf-8
 from octoprint.server.util import getApiKey, getUserForApiKey
 
-__author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "AstroPrint Product Team <product@3dagogo.com> based on the work by Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
 import netaddr
 import sarge
+import threading
+import time
 
 from flask import Blueprint, request, jsonify, abort, current_app, session, make_response
 from flask.ext.login import login_user, logout_user, current_user
@@ -168,21 +169,26 @@ def performSystemAction():
 				command = availableAction["command"]
 				if command:
 					logger = logging.getLogger(__name__)
-
 					logger.info("Performing command: %s" % command)
-					try:
-						p = sarge.run(command, stderr=sarge.Capture())
-						if p.returncode != 0:
-							returncode = p.returncode
-							stderr_text = p.stderr.text
-							logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
-							return make_response(("Command failed with return code %i: %s" % (returncode, stderr_text), 500, []))
-						else:
-							return OK
 
-					except Exception, e:
-						logger.warn("Command failed: %s" % e)
-						return make_response(("Command failed: %s" % e, 500, []))
+					def executeCommand(command, logger):
+						time.sleep(0.5) #add a small delay to make sure the response is sent
+						try:
+							p = sarge.run(command, stderr=sarge.Capture())
+							if p.returncode != 0:
+								returncode = p.returncode
+								stderr_text = p.stderr.text
+								logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+							else:
+								logger.info("Command executed sucessfully")
+
+						except Exception, e:
+							logger.warn("Command failed: %s" % e)
+
+					executeThread = threading.Thread(target=executeCommand, args=(command, logger))
+					executeThread.start()
+
+					return OK
 
 				else:
 					break
