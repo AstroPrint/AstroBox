@@ -394,8 +394,6 @@ class Server():
 		self._initLogging(self._debug, self._logConf)
 		logger = logging.getLogger(__name__)
 
-		UI_API_KEY = s.getString(['api', 'key'])
-
 		if s.getBoolean(["accessControl", "enabled"]):
 			userManagerName = s.get(["accessControl", "userManager"])
 			try:
