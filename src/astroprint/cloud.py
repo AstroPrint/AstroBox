@@ -77,7 +77,7 @@ class AstroPrintCloud(object):
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
 		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
-		self._print_file_store = []
+		self._print_file_store = None
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
 
@@ -268,7 +268,7 @@ class AstroPrintCloud(object):
 		return data
 
 	def print_files(self, forceCloudSync = False):
-		if self.cloud_enabled() and (not self._print_file_store or forceCloudSync):
+		if self.cloud_enabled() and (self._print_file_store is None or forceCloudSync):
 			self._sync_print_file_store()
 
 		return json.dumps(self._print_file_store)
@@ -276,37 +276,64 @@ class AstroPrintCloud(object):
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
 		fileManager = printerManager().fileManager
 
-		printFile = fileManager.getFileByCloudId(print_file_id)
-
-		if printFile:
-			self._logger.info('Print file %s is already on the box as %s' % (print_file_id, printFile))
-			successCb(printFile, True)
-			return True
-
-		#The file wasn't there so let's go get it
-		progressCb(1)
-
 		try:
 			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
 			data = r.json()
 		except:
 			data = None
 
-		destFile = None
+		printFile = fileManager.getFileByCloudId(print_file_id)
 
-		if data and "download_url" in data and "name" in data and "info" in data:
+		if printFile:
+			self._logger.info('Print file %s is already on the box as %s' % (print_file_id, printFile))
+
+			if data and "printFileName" in data:
+				pm = printerManager()
+				localPrintFileName = pm.fileManager.getPrintFileName(printFile)
+
+				if data["printFileName"] != localPrintFileName:
+					pm.fileManager.setPrintFileName(printFile, data["printFileName"])
+					#update printFileName for this printFile in the collection
+					for x in self._print_file_store:
+						if x['id'] == print_file_id:
+							x['printFileName'] = data["printFileName"]
+							break
+
+			successCb(printFile, True)
+			return True
+
+		#The file wasn't there so let's go get it
+		progressCb(1)
+
+		destFile = None
+		printFileName = None
+
+		if data and "download_url" in data and (("name" in data) or ("filename" in data)) and "info" in data:
 			progressCb(2)
+
+			if "filename" in data:
+				destFile = fileManager.getAbsolutePath(data['filename'], mustExist=False)
+				printFileName = data["printFileName"]
+
+			else:
+				destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
+				printFileName = data["name"]
 
 			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 
 			if destFile:
+				def onSuccess(pf, error):
+					self._print_file_store = None
+					successCb(pf, error)
+
 				downloadManager().startDownload({
 					'downloadUrl': data["download_url"],
 					'destFile': destFile,
 					'printFileId': print_file_id,
 					'printFileInfo': data['info'],
+					'printFileName': printFileName,
 					'progressCb': progressCb,
-					'successCb': successCb,
+					'successCb': onSuccess,
 					'errorCb': errorCb
 				})
 

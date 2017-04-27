@@ -381,8 +381,8 @@ var PrintingView = Backbone.View.extend({
     var filenameNode = this.$('.progress .filename');
 
     if (this.printing_progress) {
-      if (filenameNode.text() != this.printing_progress.filename) {
-        filenameNode.text(this.printing_progress.filename);
+      if (filenameNode.text() != this.printing_progress.printFileName) {
+        filenameNode.text(this.printing_progress.printFileName);
       }
 
       //progress bar

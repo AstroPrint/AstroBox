@@ -339,6 +339,7 @@ class PrintFilesManager(object):
 		self._metadata[filename] = {
 			"cloud_id": fileInfo["id"],
 			"gcodeAnalysis": fileInfo["info"],
+			"printFileName": fileInfo["printFileName"],
 			"prints": {
 				"success": 0,
 				"failure": 0,
@@ -440,9 +441,14 @@ class PrintFilesManager(object):
 		if absolutePath is None:
 			return None
 
+		printFileName = None
+		if filename in self._metadata.keys() and 'printFileName' in self._metadata[filename].keys():
+			printFileName = self._metadata[filename]['printFileName']
+
 		statResult = os.stat(absolutePath)
 		fileData = {
 			"name": filename,
+			"printFileName": printFileName,
 			"size": statResult.st_size,
 			"origin": FileDestinations.LOCAL,
 			"date": int(statResult.st_ctime)
@@ -506,6 +512,33 @@ class PrintFilesManager(object):
 		filename = self._getBasicFilename(filename)
 		self._metadata[filename] = metadata
 		self._metadataDirty = True
+
+	def getPrintFileName(self, filename):
+		filename = self._getBasicFilename(filename)
+		if filename in self._metadata.keys():
+			return self._metadata[filename]["printFileName"]
+		else:
+			return {
+				"printFileName": None
+			}
+
+	def setPrintFileName(self, filename, printFileName):
+		filename = self._getBasicFilename(filename)
+		absolutePath = self.getAbsolutePath(filename)
+		if absolutePath is None:
+			return
+
+		metadata = self.getFileMetadata(filename)
+		if metadata is None:
+			return
+
+		if "printFileName" in metadata.keys():
+			metadata["printFileName"] = printFileName
+		else:
+			metadata["printFileName"] = filename
+
+		self.setFileMetadata(filename, metadata)
+		self._saveMetadata()
 
 	#~~ print job data
 

@@ -468,8 +468,8 @@ var ControlView = Backbone.View.extend({
   {
     var el = this.$('.back-to-print .filename');
 
-    if (printingProgress && printingProgress.filename && printingProgress.filename != el.text()) {
-      el.text(printingProgress.filename)
+    if (printingProgress && printingProgress.printFileName && printingProgress.printFileName != el.text()) {
+      el.text(printingProgress.printFileName)
     }
   },
   onPausedChanged: function(model, paused)
