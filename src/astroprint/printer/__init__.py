@@ -215,7 +215,7 @@ class Printer(object):
 		layerCount = None
 		cloudId = None
 		renderedImage = None
-		printFilename = None
+		printFileName = None
 
 		if filename:
 			# Use a string for mtime because it could be float and the
