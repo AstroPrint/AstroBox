@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import threading
@@ -76,7 +76,7 @@ class DownloadWorker(threading.Thread):
 								break
 
 					if self._cancelled:
-						self._manager._logger.warn('Download cancelled for %s' % printFileId)
+						self._manager._logger.warn('Download canceled for %s' % printFileId)
 						errorCb(destFile, 'cancelled')
 
 					else:
@@ -101,7 +101,7 @@ class DownloadWorker(threading.Thread):
 			except Exception as e:
 				if "'NoneType' object has no attribute 'recv'" == str(e):
 					#This is due to a problem in the underlying library when calling r.close in the cancel routine
-					self._manager._logger.warn('Download cancelled for %s' % printFileId)
+					self._manager._logger.warn('Download canceled for %s' % printFileId)
 					errorCb(destFile, 'cancelled')
 				else:
 					self._manager._logger.error('Download exception for %s: %s' % (printFileId, e))
@@ -117,7 +117,7 @@ class DownloadWorker(threading.Thread):
 			if self._activeRequest:
 				self._activeRequest.close()
 
-			self._manager._logger.warn('Download cancelled requested for %s' % self.activeDownload)
+			self._manager._logger.warn('Download canceled requested for %s' % self.activeDownload)
 			self._cancelled = True
 
 

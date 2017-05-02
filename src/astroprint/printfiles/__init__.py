@@ -402,24 +402,21 @@ class PrintFilesManager(object):
 		if absolutePath is None:
 			return None
 
-		printFileName = None
-		if filename in self._metadata and 'printFileName' in self._metadata[filename]:
-			printFileName = self._metadata[filename]['printFileName']
-
 		statResult = os.stat(absolutePath)
 		fileData = {
 			"name": filename,
-			"printFileName": printFileName,
+			"printFileName": None,
 			"size": statResult.st_size,
 			"origin": FileDestinations.LOCAL,
 			"date": int(statResult.st_ctime)
 		}
 
 		# enrich with additional metadata from analysis if available
-		if filename in self._metadata:
-			for key in self._metadata[filename].keys():
+		fmd = self._metadata.get(filename)
+		if fmd:
+			for key in fmd.keys():
 				if key == "prints":
-					val = self._metadata[filename][key]
+					val = fmd[key]
 					last = None
 					if "last" in val and val["last"] is not None:
 						last = {
@@ -435,7 +432,7 @@ class PrintFilesManager(object):
 					}
 					fileData["prints"] = prints
 				else:
-					fileData[key] = self._metadata[filename][key]
+					fileData[key] = fmd[key]
 
 		return fileData
 
@@ -443,23 +440,26 @@ class PrintFilesManager(object):
 		if filename:
 			filename = self._getBasicFilename(filename)
 
-			if filename in self._metadata and 'cloud_id' in self._metadata[filename]:
-				return self._metadata[filename]['cloud_id']
+			fmd = self._metadata.get(filename)
+			if fmd:
+				return fmd.get('cloud_id')
 
 		return None
 
 	def getFileByCloudId(self, cloudId):
 		if cloudId:
 			for f in self._metadata:
-				if 'cloud_id' in self._metadata[f] and self._metadata[f]['cloud_id'] == cloudId:
+				fCloudId = self._metadata[f].get('cloud_id')
+				if fCloudId == cloudId:
 					return f
 
 		return None
 
 	def getFileMetadata(self, filename):
 		filename = self._getBasicFilename(filename)
-		if filename in self._metadata:
-			return self._metadata[filename]
+		fmd = self._metadata.get(filename)
+		if fmd:
+			return fmd
 		else:
 			return {
 				"prints": {
@@ -476,12 +476,13 @@ class PrintFilesManager(object):
 
 	def getPrintFileName(self, filename):
 		filename = self._getBasicFilename(filename)
-		if filename in self._metadata and "printFileName" in self._metadata[filename]:
-			return self._metadata[filename]["printFileName"]
+
+		fmd = self.getFileMetadata(filename)
+
+		if "printFileName" in fmd:
+			return fmd["printFileName"]
 		else:
-			return {
-				"printFileName": None
-			}
+			return { "printFileName": None }
 
 	def setPrintFileName(self, filename, printFileName):
 		filename = self._getBasicFilename(filename)
@@ -499,7 +500,6 @@ class PrintFilesManager(object):
 			metadata["printFileName"] = filename
 
 		self.setFileMetadata(filename, metadata)
-		self._saveMetadata()
 
 	#~~ print job data
 
