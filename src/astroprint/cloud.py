@@ -294,10 +294,11 @@ class AstroPrintCloud(object):
 				if data["printFileName"] != localPrintFileName:
 					pm.fileManager.setPrintFileName(printFile, data["printFileName"])
 					#update printFileName for this printFile in the collection
-					for x in self._print_file_store:
-						if x['id'] == print_file_id:
-							x['printFileName'] = data["printFileName"]
-							break
+					if self._print_file_store:
+						for x in self._print_file_store:
+							if x['id'] == print_file_id:
+								x['printFileName'] = data["printFileName"]
+								break
 
 			successCb(printFile, True)
 			return True
