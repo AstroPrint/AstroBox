@@ -229,7 +229,7 @@ var PrintFileView = Backbone.View.extend({
 
     $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
       .fail(function(){
-        noty({text: "Couldn't download the print file.", timeout: 3000});
+        noty({text: "There was an error starting the download.", timeout: 3000});
       });
   },
   cancelDownloadClicked: function(evt)
@@ -490,9 +490,11 @@ var PrintFilesListView = Backbone.View.extend({
 
         case 'error':
         {
-          progressContainer.removeClass('downloading');
-          noty({text: "Couldn't download the print file.", timeout: 3000});
+          progressContainer.removeClass('downloading').addClass('failed');
           console.error('Error downloading file: '+data.reason);
+          setTimeout(function(){
+            progressContainer.removeClass('failed');
+          },3000);
         }
         break;
 

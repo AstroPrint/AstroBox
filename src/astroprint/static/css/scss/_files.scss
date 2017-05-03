@@ -97,7 +97,8 @@
         position: relative;
         height: 67px;
 
-        .download-progress {
+        .download-progress,
+        .download-failed {
           display: none;
         }
 
@@ -127,6 +128,19 @@
               right: 0;
               text-align: center;
               font-size: rem-calc(12)
+            }
+          }
+
+          .download {
+            display: none;
+          }
+        }
+
+        &.failed {
+          .download-failed {
+            display: block;
+            i {
+              color: $alert-color;
             }
           }
 
