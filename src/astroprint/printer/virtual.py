@@ -112,6 +112,7 @@ class PrinterVirtual(Printer):
 
 		#First we simulate heatup
 		self.setTemperature("tool0", 210)
+		self.setTemperature("tool1", 100)
 		self.setTemperature("bed", 60)
 		self.mcHeatingUpUpdate(True)
 		self._heatingUp = True
@@ -144,6 +145,7 @@ class PrinterVirtual(Printer):
 			self._heatingUpTimer = None
 			self.mcHeatingUpUpdate(False)
 			self.setTemperature("tool0", 0)
+			self.setTemperature("tool1", 0)
 			self.setTemperature("bed", 0)
 			time.sleep(1)
 			self._changeState(self.STATE_OPERATIONAL)
@@ -168,6 +170,7 @@ class PrinterVirtual(Printer):
 
 				#set initial temps
 				self.setTemperature('tool0', 25)
+				self.setTemperature('tool1', 10)
 				self.setTemperature('bed', 25)
 
 		t = threading.Timer(self._settings['connection'], doConnect)
