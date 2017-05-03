@@ -42,6 +42,18 @@
     }
   }
 
+  .design-list {
+    .local-loading {
+      display: none;
+
+      &.loading {
+        display: block;
+        margin: 15px 0;
+        font-size: rem-calc(30);
+      }
+    }
+  }
+
   .design-list-container {
     margin-bottom: 55px;
 
