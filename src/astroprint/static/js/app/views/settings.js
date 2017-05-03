@@ -765,18 +765,21 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
   el: '#wifi-network-password-modal',
   events: {
     'click button.connect': 'connectClicked',
-    'submit form': 'connect'
+    'submit form': 'connect',
+    'change #show-password': 'onShowPasswordChanged'
   },
   template: _.template($('#wifi-network-password-modal-template').html()),
   parent: null,
-  initialize: function(params) {
+  initialize: function(params)
+  {
     this.parent = params.parent;
   },
   render: function(wifiInfo)
   {
     this.$el.html( this.template({wifi: wifiInfo}) );
   },
-  open: function(wifiInfo) {
+  open: function(wifiInfo)
+  {
     this.render(wifiInfo);
     this.$el.foundation('reveal', 'open', {
       close_on_background_click: false,
@@ -786,13 +789,27 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
       this.$el.find('.network-password-field').focus();
     }, this));
   },
-  connectClicked: function(e) {
+  connectClicked: function(e)
+  {
     e.preventDefault();
 
     var form = this.$('form');
     form.submit();
   },
-  connect: function(e) {
+  onShowPasswordChanged: function(e)
+  {
+    var target = $(e.currentTarget);
+    var checked = target.is(':checked');
+    var field = this.$('input[name=password]');
+
+    if (checked) {
+      field.attr('type', 'text');
+    } else {
+      field.attr('type', 'password');
+    }
+  },
+  connect: function(e)
+  {
     e.preventDefault()
     var form = $(e.currentTarget);
 

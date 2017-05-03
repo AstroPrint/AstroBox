@@ -59,7 +59,7 @@
 </div>
 
 <script type="text/template" id="printfile-info-template">
-	<h2 class="bold"><%= p.name %></h2>
+  <h2 class="bold"><%= p.printFileName ? p.printFileName : p.name %></h2>
 	<div class="modal-content">
 		<div class="row">
 			<% if (p.images.square) { %>
@@ -142,7 +142,7 @@
 		<% } %>
 	</div>
 	<div class="small-8 large-10 columns middle-section">
-		<h3 class="bold"> <%= p.name %></h3>
+    <h3 class="bold"> <%= p.name %></h3>
     <%= size_format(p.size) %>
 		<% if (p.info) { %>
 			<% if (p.info.print_time) { %>

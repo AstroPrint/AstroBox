@@ -198,6 +198,10 @@ var PrintFileView = Backbone.View.extend({
       this.$el.addClass('remote');
     }
 
+    if (print_file.printFileName) {
+      print_file.name = print_file.printFileName;
+    }
+
     this.$el.empty();
     this.downloadProgress = null;
     this.$el.html(this.template({

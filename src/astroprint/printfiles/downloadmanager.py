@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import threading
@@ -32,7 +32,7 @@ class DownloadWorker(threading.Thread):
 		self._daemon = True
 		self._manager = manager
 		self._activeRequest = None
-		self._cancelled = False
+		self._canceled = False
 		self.activeDownload = False
 
 		super(DownloadWorker, self).__init__()
@@ -42,8 +42,11 @@ class DownloadWorker(threading.Thread):
 
 		while True:
 			item = downloadQueue.get()
+			if item == 'shutdown':
+				return
 
 			printFileId = item['printFileId']
+			printFileName = item['printFileName']
 			progressCb = item['progressCb']
 			successCb = item['successCb']
 			errorCb = item['errorCb']
@@ -64,23 +67,24 @@ class DownloadWorker(threading.Thread):
 
 					with open(destFile, 'wb') as fd:
 						for chunk in r.iter_content(100000): #download 100kb at a time
-							if self._cancelled: #check right after reading
+							if self._canceled: #check right after reading
 								break
 
 							downloaded_size += len(chunk)
 							fd.write(chunk)
 							progressCb(2 + round((downloaded_size / content_length) * 98.0, 1))
 
-							if self._cancelled: #check again before going to read next chunk
+							if self._canceled: #check again before going to read next chunk
 								break
 
-					if self._cancelled:
-						self._manager._logger.warn('Download cancelled for %s' % printFileId)
+					if self._canceled:
+						self._manager._logger.warn('Download canceled for %s' % printFileId)
 						errorCb(destFile, 'cancelled')
 
 					else:
 						fileInfo = {
 							'id': printFileId,
+							'printFileName': printFileName,
 							'info': item['printFileInfo']
 						}
 
@@ -99,14 +103,14 @@ class DownloadWorker(threading.Thread):
 			except Exception as e:
 				if "'NoneType' object has no attribute 'recv'" == str(e):
 					#This is due to a problem in the underlying library when calling r.close in the cancel routine
-					self._manager._logger.warn('Download cancelled for %s' % printFileId)
+					self._manager._logger.warn('Download canceled for %s' % printFileId)
 					errorCb(destFile, 'cancelled')
 				else:
 					self._manager._logger.error('Download exception for %s: %s' % (printFileId, e))
 					errorCb(destFile, 'The device is unable to download the print file')
 
 			self.activeDownload = False
-			self._cancelled = False
+			self._canceled = False
 			self._activeRequest = None
 			downloadQueue.task_done()
 
@@ -115,8 +119,8 @@ class DownloadWorker(threading.Thread):
 			if self._activeRequest:
 				self._activeRequest.close()
 
-			self._manager._logger.warn('Download cancelled requested for %s' % self.activeDownload)
-			self._cancelled = True
+			self._manager._logger.warn('Download canceled requested for %s' % self.activeDownload)
+			self._canceled = True
 
 
 class DownloadManager(object):
@@ -142,3 +146,10 @@ class DownloadManager(object):
 				return True
 
 		return False
+
+	def shutdown(self):
+		self._logger.info('Shutting down Download Manager...')
+		for w in self._workers:
+			self.queue.put('shutdown')
+			if w.activeDownload:
+				w.cancel()
