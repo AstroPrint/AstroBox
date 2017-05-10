@@ -107,6 +107,16 @@
     </div>
   </div>
 
+  <div id="temp-control-template">
+  </div>
+
+<script type="text/template" id="semi-circle-template">
+  <div class="progress-temp-circle">
+    <div class="target-selector">199</div>
+    <div class="current">3</div>
+  </div>
+</script>
+
   {%- macro temp_control(class, label) %}
     <div class="temp-control-cont {{class}}">
       <span class="current-temp-top bold">- -</span>
@@ -150,3 +160,4 @@
     <b>Please, connect a 3D Printer via USB.</b>
   </div>
 </div>
+

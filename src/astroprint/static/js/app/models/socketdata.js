@@ -29,9 +29,11 @@ var SocketData = Backbone.Model.extend({
         actual: 0,
         target: 0
       },
-      extruder: {
-        actual: 0,
-        target: 0
+      extruders: {
+        0:{actual: 0,
+        target: 0},
+        1:{actual: 0,
+        target: 0}
       }
     },
     astroprint: {
@@ -42,6 +44,7 @@ var SocketData = Backbone.Model.extend({
     },
     print_capture: null
   },
+  extruder_count: null,
   initialize: function()
   {
     this.set('printing', initial_states.printing || initial_states.paused);
@@ -97,6 +100,9 @@ var SocketData = Backbone.Model.extend({
     this._autoReconnectTrial = 0;
     this.set('box_reachable', 'reachable');
     //Get some initials
+    if (this.extruder_count == null) {
+      this.extruder_count = (app.printerProfile.toJSON())['extruder_count'];
+    }
   },
   _onClose: function(e) {
     if (e && e.code == 1000) {
@@ -142,12 +148,21 @@ var SocketData = Backbone.Model.extend({
 
         case "current": {
           var flags = data.state.flags;
-
           if (data.temps.length) {
             var temps = data.temps[data.temps.length-1];
+            var extruders = [];
+            var tool = null;
+
+            for (var i = 0; i < this.extruder_count; i++) {
+              if (temps['tool' + i]) {
+                tool = { "current": temps['tool' + i].actual, "target": temps['tool' + i].target }
+                extruders[i] = tool ;
+              }
+            }
+
             this.set('temps', {
               bed: temps.bed,
-              extruder: temps.tool0
+              extruders: extruders
             });
           }
 

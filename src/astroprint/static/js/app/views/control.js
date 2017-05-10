@@ -3,6 +3,152 @@
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+var ControlTempView = Backbone.View.extend({
+  className: 'control-temps small-12 columns',
+  el: '#temp-control-template',
+  semiCircleTemp_views: {},
+  extruders_count: null,
+  initialize: function()
+  {
+    /* Change default circle for semi circle*/
+    // Arc layout
+    $.circleProgress.defaults.arcCoef = 0.5; // range: 0..1
+    $.circleProgress.defaults.startAngle = 0.5 * Math.PI;
+
+    $.circleProgress.defaults.drawArc = function (v) {
+      var ctx = this.ctx,
+        r = this.radius,
+        t = this.getThickness(),
+        c = this.arcCoef,
+        a = this.startAngle + (1 - c) * Math.PI;
+
+      v = Math.max(0, Math.min(1, v));
+
+      ctx.save();
+      ctx.beginPath();
+
+      if (!this.reverse) {
+        ctx.arc(r, r, r - t / 2, a, a + 2 * c * Math.PI * v);
+      } else {
+        ctx.arc(r, r, r - t / 2, a + 2 * c * Math.PI, a + 2 * c * (1 - v) * Math.PI, a);
+      }
+
+      ctx.lineWidth = t;
+      ctx.lineCap = this.lineCap;
+      ctx.strokeStyle = this.arcFill;
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    $.circleProgress.defaults.drawEmptyArc = function (v) {
+      var ctx = this.ctx,
+        r = this.radius,
+        t = this.getThickness(),
+        c = this.arcCoef,
+        a = this.startAngle + (1 - c) * Math.PI;
+
+      v = Math.max(0, Math.min(1, v));
+
+      if (v < 1) {
+        ctx.save();
+        ctx.beginPath();
+
+        if (v <= 0) {
+          ctx.arc(r, r, r - t / 2, a, a + 2 * c * Math.PI);
+        } else {
+          if (!this.reverse) {
+            ctx.arc(r, r, r - t / 2, a + 2 * c * Math.PI * v, a + 2 * c * Math.PI);
+          } else {
+            ctx.arc(r, r, r - t / 2, a, a + 2 * c * (1 - v) * Math.PI);
+          }
+        }
+
+        ctx.lineWidth = t;
+
+        ctx.strokeStyle = this.emptyFill;
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    /* End semicircle*/
+
+    this.extruders_count = (app.printerProfile.toJSON()).extruder_count;
+
+    var semiCircleTemp = null;
+    this.$el.empty();
+
+    var initialsTemps = app.socketData.attributes.temps;
+
+    //extruders
+    for (var i = 0; i < this.extruders_count; i++) {
+
+      semiCircleTemp = new SemiCircleTempView({'tool': i, 'temps': initialsTemps['extruders'][i]});
+      this.semiCircleTemp_views[i] = semiCircleTemp;
+      this.$el.prepend(semiCircleTemp.render().el);
+    }
+    //bed
+    semiCircleTemp = new SemiCircleTempView({'tool': null, 'temps': initialsTemps['bed']});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.prepend(semiCircleTemp.render().el);
+  },
+  updateTemps: function(value) {
+    var temps = {};
+    for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
+      if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
+        temps = {'current': value.bed.actual, 'target': value.bed.target};
+      } else {
+        temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
+      }
+      (this.semiCircleTemp_views[i]).updateValues(temps);
+    }
+  }
+});
+var SemiCircleTempView = Backbone.View.extend({
+  className: 'semi-circle-temps small-12 columns',
+  folder: null,
+  template: _.template( $("#semi-circle-template").html() ),
+  initialize: function(params)
+  {
+    var tool = params.tool;
+
+    if (tool != null) {
+      this.$el.attr('id', 'tool'+tool);
+    } else {
+      this.$el.attr('id', 'bed');
+    }
+
+    if (this.el.id == 'bed') {
+      console.log("cama caliente",(app.printerProfile.toJSON()).heated_bed);
+      if ((app.printerProfile.toJSON()).heated_bed) {
+        $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_bed_temp')) * 100) / 100 });
+        this.$el.removeClass('disabled');
+      } else {
+        this.$el.addClass('disabled');
+      }
+    } else {
+      $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
+    }
+  },
+  render: function ()
+  {
+    this.$el.empty();
+    this.$el.html( this.template( { } ) );
+
+    $("#"+ this.el.id).circleProgress({
+      arcCoef: 0.55,
+      size: 180,
+      thickness: 20,
+      fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+    });
+
+    //this.updateValues();
+    return this;
+  },
+  updateValues: function (temps)
+  {
+    $("#"+ this.el.id).circleProgress({ value: Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
+  }
+});
 
 var TempBarVerticalView = TempBarView.extend({
   containerDimensions: null,
@@ -431,6 +577,7 @@ var ControlView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
+  prueba: null,
   initialize: function()
   {
     this.tempView = new TempView();
@@ -439,14 +586,17 @@ var ControlView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
+    this.prueba = new ControlTempView();
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
   },
   updateTemps: function(s, value)
   {
+    console.log("value", value)
     if (!this.$el.hasClass('hide')) {
-      this.tempView.updateBars(value);
+      this.prueba.updateTemps(value);
+      //this.tempView.updateBars(value);
     }
   },
   render: function()
@@ -455,6 +605,7 @@ var ControlView = Backbone.View.extend({
 
     this.extrusionView.render();
     this.tempView.render();
+    this.prueba.render();
   },
   resumePrinting: function(e)
   {

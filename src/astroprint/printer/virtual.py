@@ -409,6 +409,7 @@ class JobSimulator(threading.Thread):
 
 		self._pm._changeState(self._pm.STATE_OPERATIONAL)
 		self._pm.setTemperature('tool0', 0)
+		self._pm.setTemperature('tool1', 0)
 		self._pm.setTemperature('bed', 0)
 
 		payload = {
