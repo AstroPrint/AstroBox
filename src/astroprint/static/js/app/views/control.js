@@ -93,6 +93,7 @@ var ControlTempView = Backbone.View.extend({
   },
   updateTemps: function(value) {
     var temps = {};
+
     for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
       if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
         temps = {'current': value.bed.actual, 'target': value.bed.target};
@@ -105,8 +106,16 @@ var ControlTempView = Backbone.View.extend({
 });
 var SemiCircleTempView = Backbone.View.extend({
   className: 'semi-circle-temps small-12 columns',
-  folder: null,
+  lastSent: null,
+  lastSentTimestamp: null,
+  waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
+  events: {
+    'click button.temp-off': 'turnOff',
+    'click .temp-target a.temp-edit': 'onEditClicked',
+    'change .temp-target input': 'onTempFieldChanged',
+    'blur .temp-target input': 'onTempFieldBlur'
+  },
   initialize: function(params)
   {
     var tool = params.tool;
@@ -120,12 +129,14 @@ var SemiCircleTempView = Backbone.View.extend({
     if (this.el.id == 'bed') {
       console.log("cama caliente",(app.printerProfile.toJSON()).heated_bed);
       if ((app.printerProfile.toJSON()).heated_bed) {
+        //$("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_bed_temp')) * 100) / 100 });
         $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_bed_temp')) * 100) / 100 });
         this.$el.removeClass('disabled');
       } else {
         this.$el.addClass('disabled');
       }
     } else {
+      //$("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
       $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
     }
   },
@@ -144,9 +155,151 @@ var SemiCircleTempView = Backbone.View.extend({
     //this.updateValues();
     return this;
   },
+  onTempFieldBlur: function(e)
+  {
+    var input = $(e.target);
+
+    input.addClass('hide');
+    input.closest('.temp-target').find('span.target-value').removeClass('hide');
+  },
   updateValues: function (temps)
   {
     $("#"+ this.el.id).circleProgress({ value: Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
+  },
+  turnOff: function()
+  {
+    console.log("estoy pulsando off");
+    this._sendToolCommand('target', this.el.id, 0);
+    this.setHandle(0);
+  },
+  onEditClicked: function(e)
+  {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("estoy en edit", e);
+
+    var target = $(e.currentTarget);
+    var container = target.closest('.temp-target');
+    var label = container.find('span.target-value');
+    var input = container.find('input');
+
+    label.addClass('hide');
+    input.removeClass('hide');
+    input.val(label.text());
+    setTimeout(function(){input.focus().select()},100);
+  },
+  onTempFieldChanged: function(e)
+  {
+    var input = $(e.target);
+    var value = input.val();
+
+    if (value != this.lastSent && !isNaN(value) ) {
+      //value = Math.min(Math.max(value, this.scale[0]), this.scale[1]);
+      $("#"+ this.el.id).circleProgress({ value: Math.round((value / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
+
+      this._sendToolCommand('target', this.el.id, value);
+      input.blur();
+
+    }
+  },
+  setTemps: function(actual, target)
+  {
+    console.log("setTemps")
+    var now = new Date().getTime();
+
+    if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
+      target = this.lastSent;
+    }
+
+    if (isNaN(actual)) {
+      actual = null;
+    }
+
+    if (isNaN(target)) {
+      target = null;
+    }
+
+    this.target = target;
+    this.actual = actual;
+    this.renderTemps(actual, target);
+  },
+  renderTemps: function(actual, target)
+  {
+    console.log("renderTemps",this.$el.find('.temp-target'))
+    var handleHeight = this.$el.find('.temp-target').innerHeight();
+
+    if (actual !== null) {
+      this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
+      this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+    }
+
+    if (target !== null) {
+      this.setHandle(Math.min(Math.round(target), this.scale[1]));
+    }
+  },
+  _sendToolCommand: function(command, type, temp, successCb, errorCb)
+  {
+    /*console.log("_sendToolCommand")
+    console.log("command", command)
+    console.log("type",type)
+    console.log("temp", temp)
+    console.log("successCb",successCb)
+    console.log("errorCb", errorCb)*/
+    if (temp == this.lastSent) return;
+
+    var data = {
+      command: command
+    };
+
+    var endpoint;
+    if (type == "bed") {
+      if ("target" == command) {
+        data["target"] = parseInt(temp);
+      } else if ("offset" == command) {
+        data["offset"] = parseInt(temp);
+      } else {
+        return;
+      }
+
+      endpoint = "bed";
+    } else {
+      var group;
+      if ("target" == command) {
+        group = "targets";
+      } else if ("offset" == command) {
+        group = "offsets";
+      } else {
+        return;
+      }
+      data[group] = {};
+      data[group][type] = parseInt(temp);
+
+      endpoint = "tool";
+    }
+
+    $.ajax({
+      url: API_BASEURL + "printer/" + endpoint,
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data),
+      success: function() { if (successCb !== undefined) successCb(); },
+      error: function() { if (errorCb !== undefined) errorCb(); }
+    });
+
+    this.lastSentTimestamp = new Date().getTime();
+    this.lastSent = temp;
+  },
+  setHandle: function(value)
+  {
+    if (!this.dragging) {
+      var handle = this.$el.find('.temp-target');
+      handle.find('span.target-value').text(value);
+      setTimeout(function() {
+        handle.css({transition: ''});
+      }, 800);
+    }
   }
 });
 
@@ -196,10 +349,12 @@ var TempBarVerticalView = TempBarView.extend({
   },
   onClicked: function(e)
   {
+    console.log("entra aqui")
     e.preventDefault();
     var target = this.$el.find('.temp-target');
     var newTop = e.pageY - this.containerDimensions.top - target.innerHeight()/2.0;
-
+    console.log("target", target)
+    console.log("newTop", newTop)
     newTop = Math.min( Math.max(newTop, 0), this.containerDimensions.maxTop );
 
     var temp = this._px2temp(newTop);
@@ -285,8 +440,9 @@ var TempView = Backbone.View.extend({
   },
   updateBars: function(value)
   {
-    if (value.extruder) {
-      this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
+    console.log("updateBars", value.extruders['0'])
+    if (value.extruders['0']) {
+      this.nozzleTempBar.setTemps(value.extruders['0'].current, value.extruders['0'].target);
     }
 
     if (value.bed) {
@@ -593,10 +749,9 @@ var ControlView = Backbone.View.extend({
   },
   updateTemps: function(s, value)
   {
-    console.log("value", value)
     if (!this.$el.hasClass('hide')) {
       this.prueba.updateTemps(value);
-      //this.tempView.updateBars(value);
+      this.tempView.updateBars(value);
     }
   },
   render: function()

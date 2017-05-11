@@ -110,12 +110,19 @@
   <div id="temp-control-template">
   </div>
 
-<script type="text/template" id="semi-circle-template">
-  <div class="progress-temp-circle">
-    <div class="target-selector">199</div>
-    <div class="current">3</div>
-  </div>
-</script>
+  <script type="text/template" id="semi-circle-template">
+      <div class="progress-temp-circle">
+        <div class="target-selector"></div>
+        <div class="current"></div>
+      </div>
+      <button class="temp-off secondary small radius expand">OFF</button>
+      <div class="temp-target radius bold">
+        <a class="temp-edit"><i class="icon-pencil"></i></a>
+        <span class="target-value">- -</span>
+        <input type="number" class="hide"/>
+      </div>
+  </script>
+
 
   {%- macro temp_control(class, label) %}
     <div class="temp-control-cont {{class}}">
