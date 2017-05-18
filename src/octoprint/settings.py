@@ -91,7 +91,6 @@ default_settings = {
 			]
 	},
 	"printerParameters": {
-		"infoFile": None,
 		"movementSpeed": {
 			"x": 6000,
 			"y": 6000,
@@ -431,6 +430,9 @@ class Settings(object):
 			os.makedirs(folder)
 
 		return folder
+
+	def getConfigFolder(self):
+		return os.path.dirname(self._configfile)
 
 	def getFeedbackControls(self):
 		feedbackControls = []

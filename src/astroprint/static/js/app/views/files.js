@@ -229,7 +229,7 @@ var PrintFileView = Backbone.View.extend({
 
     $.getJSON('/api/astroprint/print-files/'+this.print_file.get('id')+'/download')
       .fail(function(){
-        noty({text: "Couldn't download the print file.", timeout: 3000});
+        noty({text: "There was an error starting the download.", timeout: 3000});
       });
   },
   cancelDownloadClicked: function(evt)
@@ -325,6 +325,7 @@ var PrintFilesListView = Backbone.View.extend({
   file_list: null,
   refresh_threshold: 1000, //don't allow refreshes faster than this (in ms)
   last_refresh: 0,
+  refreshing: false,
   events: {
     'click .list-header button.sync': 'forceSync'
   },
@@ -384,51 +385,54 @@ var PrintFilesListView = Backbone.View.extend({
 
     if (this.last_refresh == 0 || this.last_refresh < (now - this.refresh_threshold) ) {
       this.last_refresh = now;
-      var loadingBtn = this.$('.loading-button.sync');
 
-      if (!loadingBtn.hasClass('loading')) {
-        loadingBtn.addClass('loading');
-
-        var success = _.bind(function() {
-          this.print_file_views = [];
-          this.file_list.each(_.bind(function(print_file, idx) {
-            var print_file_view = new PrintFileView({
-              list: this,
-              print_file: print_file,
-              attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
-            });
-            print_file_view.render();
-            this.print_file_views.push( print_file_view );
-          }, this));
-
-          this.$('.design-list-container').empty();
-          this.render();
-          loadingBtn.removeClass('loading');
-
-          if (_.isFunction(doneCb)) {
-            doneCb(true);
-          }
-
-        }, this);
-
-        var error = function() {
-          noty({text: "There was an error retrieving design list", timeout: 3000});
-          loadingBtn.removeClass('loading');
-
-          if (_.isFunction(doneCb)) {
-            doneCb(false);
-          }
-        };
+      if ( !this.refreshing ) {
+        this.refreshing = true;
 
         if (syncCloud) {
-          var syncPromise = this.file_list.syncCloud({success: success, error: error});
+          var loadingArea = this.$('.loading-button.sync');
+          var syncPromise = this.file_list.syncCloud();
         } else {
-          var syncPromise = this.file_list.fetch({success: success, error: error});
+          var loadingArea = this.$('.local-loading');
+          var syncPromise = this.file_list.fetch();
         }
 
-        syncPromise.done(_.bind(function(){
-          $.localtime.format(this.$el);
-        }, this));
+        loadingArea.addClass('loading');
+        syncPromise
+          .done(_.bind(function(){
+            this.print_file_views = [];
+            this.file_list.each(_.bind(function(print_file, idx) {
+              var print_file_view = new PrintFileView({
+                list: this,
+                print_file: print_file,
+                attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
+              });
+              print_file_view.render();
+              this.print_file_views.push( print_file_view );
+            }, this));
+
+            this.$('.design-list-container').empty();
+            this.render();
+
+            if (_.isFunction(doneCb)) {
+              doneCb(true);
+            }
+
+            $.localtime.format(this.$el);
+
+            loadingArea.removeClass('loading');
+            this.refreshing = false;
+          }, this))
+          .fail(_.bind(function(){
+            noty({text: "There was an error retrieving print files", timeout: 3000});
+
+            if (_.isFunction(doneCb)) {
+              doneCb(false);
+            }
+
+            loadingArea.removeClass('loading');
+            this.refreshing = false;
+          }, this));
       }
     }
   },
@@ -490,9 +494,11 @@ var PrintFilesListView = Backbone.View.extend({
 
         case 'error':
         {
-          progressContainer.removeClass('downloading');
-          noty({text: "Couldn't download the print file.", timeout: 3000});
+          progressContainer.removeClass('downloading').addClass('failed');
           console.error('Error downloading file: '+data.reason);
+          setTimeout(function(){
+            progressContainer.removeClass('failed');
+          },3000);
         }
         break;
 

@@ -1,6 +1,7 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
+__copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 # singleton
 _instance = None
@@ -14,13 +15,17 @@ def printerProfileManager():
 import os
 import yaml
 import logging
+import shutil
 
 from octoprint.settings import settings
 
 class PrinterProfileManager(object):
 	def __init__(self):
 		self._settings = settings()
-		self._infoFile = self._settings.get(['printerParameters', 'infoFile']) or "%s/printer-profile.yaml" % os.path.dirname(self._settings._configfile)
+
+		configDir = self._settings.getConfigFolder()
+
+		self._infoFile = "%s/printer-profile.yaml" % configDir
 		self._logger = logging.getLogger(__name__)
 
 		self.data = {
@@ -35,7 +40,11 @@ class PrinterProfileManager(object):
 		}
 
 		if not os.path.isfile(self._infoFile):
-			open(self._infoFile, 'w').close()
+			factoryFile = "%s/printer-profile.factory" % configDir
+			if os.path.isfile(factoryFile):
+				shutil.copy(factoryFile, self._infoFile)
+			else:
+				open(self._infoFile, 'w').close()
 
 		if self._infoFile:
 			config = None

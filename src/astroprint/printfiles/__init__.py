@@ -1,6 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo. 3DaGogo, Inc <daniel@astroprint.com>"
-__author__ = "Gina Häußge <osd@foosel.net>"
+__author__ = "AstroPrint Product Team <product@astroprint.com> based on work by Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import os
@@ -69,7 +68,7 @@ class PrintFilesManager(object):
 				continue
 
 			fileData = self.getFileData(filename)
-			if fileData is not None and "gcodeAnalysis" in fileData.keys():
+			if fileData is not None and "gcodeAnalysis" in fileData:
 				continue
 
 			self._metadataAnalyzer.addFileToBacklog(filename)
@@ -168,44 +167,6 @@ class PrintFilesManager(object):
 				continue
 
 			updated = False
-			# if "estimatedPrintTime" in metadata["gcodeAnalysis"]:
-			# 	estimatedPrintTime = metadata["gcodeAnalysis"]["estimatedPrintTime"]
-			# 	if isinstance(estimatedPrintTime, (str, unicode)):
-			# 		match = re.match(printTimeRe, estimatedPrintTime)
-			# 		if match:
-			# 			metadata["gcodeAnalysis"]["estimatedPrintTime"] = int(match.group(1)) * hoursToSeconds + int(match.group(2)) * minutesToSeconds + int(match.group(3))
-			# 			self._metadataDirty = True
-			# 			updated = True
-			# if "filament" in metadata["gcodeAnalysis"]:
-			# 	filament = metadata["gcodeAnalysis"]["filament"]
-			# 	if isinstance(filament, (str, unicode)):
-			# 		match = re.match(filamentRe, filament)
-			# 		if match:
-			# 			metadata["gcodeAnalysis"]["filament"] = {
-			# 				"tool0": {
-			# 					"length": int(float(match.group(1)) * 1000)
-			# 				}
-			# 			}
-			# 			if match.group(3) is not None:
-			# 				metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-			# 					"volume": float(match.group(3))
-			# 				})
-			# 			self._metadataDirty = True
-			# 			updated = True
-			# 	elif isinstance(filament, dict) and ("length" in filament.keys() or "volume" in filament.keys()):
-			# 		metadata["gcodeAnalysis"]["filament"] = {
-			# 			"tool0": {}
-			# 		}
-			# 		if "length" in filament.keys():
-			# 			metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-			# 				"length": filament["length"]
-			# 			})
-			# 		if "volume" in filament.keys():
-			# 			metadata["gcodeAnalysis"]["filament"]["tool0"].update({
-			# 				"volume": filament["volume"]
-			# 			})
-			# 		self._metadataDirty = True
-			# 		updated = True
 
 			if updated:
 				updateCount += 1
@@ -316,7 +277,7 @@ class PrintFilesManager(object):
 
 		filename = self._getBasicFilename(absolutePath)
 
-		if filename in self._metadata.keys():
+		if filename in self._metadata:
 			# delete existing metadata entry, since the file is going to get overwritten
 			del self._metadata[filename]
 			self._metadataDirty = True
@@ -384,7 +345,7 @@ class PrintFilesManager(object):
 		self.removeFileFromMetadata(filename)
 
 	def removeFileFromMetadata(self, filename):
-		if filename in self._metadata.keys():
+		if filename in self._metadata:
 			del self._metadata[filename]
 			self._metadataDirty = True
 			self._saveMetadata()
@@ -441,24 +402,21 @@ class PrintFilesManager(object):
 		if absolutePath is None:
 			return None
 
-		printFileName = None
-		if filename in self._metadata.keys() and 'printFileName' in self._metadata[filename].keys():
-			printFileName = self._metadata[filename]['printFileName']
-
 		statResult = os.stat(absolutePath)
 		fileData = {
 			"name": filename,
-			"printFileName": printFileName,
+			"printFileName": None,
 			"size": statResult.st_size,
 			"origin": FileDestinations.LOCAL,
 			"date": int(statResult.st_ctime)
 		}
 
 		# enrich with additional metadata from analysis if available
-		if filename in self._metadata.keys():
-			for key in self._metadata[filename].keys():
+		fmd = self._metadata.get(filename)
+		if fmd:
+			for key in fmd.keys():
 				if key == "prints":
-					val = self._metadata[filename][key]
+					val = fmd[key]
 					last = None
 					if "last" in val and val["last"] is not None:
 						last = {
@@ -474,7 +432,7 @@ class PrintFilesManager(object):
 					}
 					fileData["prints"] = prints
 				else:
-					fileData[key] = self._metadata[filename][key]
+					fileData[key] = fmd[key]
 
 		return fileData
 
@@ -482,23 +440,26 @@ class PrintFilesManager(object):
 		if filename:
 			filename = self._getBasicFilename(filename)
 
-			if filename in self._metadata.keys() and 'cloud_id' in self._metadata[filename].keys():
-				return self._metadata[filename]['cloud_id']
+			fmd = self._metadata.get(filename)
+			if fmd:
+				return fmd.get('cloud_id')
 
 		return None
 
 	def getFileByCloudId(self, cloudId):
 		if cloudId:
-			for f in self._metadata.keys():
-				if 'cloud_id' in self._metadata[f] and self._metadata[f]['cloud_id'] == cloudId:
+			for f in self._metadata:
+				fCloudId = self._metadata[f].get('cloud_id')
+				if fCloudId == cloudId:
 					return f
 
 		return None
 
 	def getFileMetadata(self, filename):
 		filename = self._getBasicFilename(filename)
-		if filename in self._metadata.keys():
-			return self._metadata[filename]
+		fmd = self._metadata.get(filename)
+		if fmd:
+			return fmd
 		else:
 			return {
 				"prints": {
@@ -515,12 +476,13 @@ class PrintFilesManager(object):
 
 	def getPrintFileName(self, filename):
 		filename = self._getBasicFilename(filename)
-		if filename in self._metadata.keys():
-			return self._metadata[filename]["printFileName"]
+
+		fmd = self.getFileMetadata(filename)
+
+		if "printFileName" in fmd:
+			return fmd["printFileName"]
 		else:
-			return {
-				"printFileName": None
-			}
+			return { "printFileName": None }
 
 	def setPrintFileName(self, filename, printFileName):
 		filename = self._getBasicFilename(filename)
@@ -532,13 +494,12 @@ class PrintFilesManager(object):
 		if metadata is None:
 			return
 
-		if "printFileName" in metadata.keys():
+		if "printFileName" in metadata:
 			metadata["printFileName"] = printFileName
 		else:
 			metadata["printFileName"] = filename
 
 		self.setFileMetadata(filename, metadata)
-		self._saveMetadata()
 
 	#~~ print job data
 
@@ -586,32 +547,6 @@ class PrintFilesManager(object):
 
 		self.setFileMetadata(filename, metadata)
 		self._saveMetadata()
-
-	def changeLastPrintSuccess(self, filename, succeeded):
-		filename = self._getBasicFilename(filename)
-		absolutePath = self.getAbsolutePath(filename)
-		if absolutePath is None:
-			return
-
-		metadata = self.getFileMetadata(filename)
-		if metadata is None:
-			return
-
-		if "prints" in metadata.keys():
-			if "last" in metadata.keys() and metadata["prints"]["last"] is not None:
-				currentSucceeded = metadata["prints"]["last"]["success"]
-				if currentSucceeded != succeeded:
-					metadata["prints"]["last"]["success"] = succeeded
-					if currentSucceeded:
-						# last print job was counted as success but actually failed
-						metadata["prints"]["success"] -= 1
-						metadata["prints"]["failure"] += 1
-					else:
-						# last print job was counted as a failure but actually succeeded
-						metadata["prints"]["success"] += 1
-						metadata["prints"]["failure"] -= 1
-					self.setFileMetadata(filename, metadata)
-					self._saveMetadata()
 
 	#~~ analysis control
 

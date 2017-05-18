@@ -62,6 +62,7 @@ from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
@@ -603,6 +604,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
+		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()
 		discoveryManager = None
