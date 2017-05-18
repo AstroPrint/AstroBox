@@ -3,7 +3,7 @@
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
-var ControlTempView = Backbone.View.extend({
+var TempView = Backbone.View.extend({
   className: 'control-temps small-12 columns',
   el: '#temp-control-template',
   semiCircleTemp_views: {},
@@ -238,7 +238,6 @@ var SemiCircleTempView = Backbone.View.extend({
     }
 
     if (value != this.lastSent && !isNaN(value) ) {
-      this.$(".progress-temp-circle").circleProgress('value', Math.round((value / maxValue) * 100) / 100 );
       this._sendToolCommand('target', this.el.id, value);
       input.blur();
     }
@@ -438,52 +437,7 @@ var TempBarVerticalView = TempBarView.extend({
   }
 });
 
-var TempView = Backbone.View.extend({
-  el: '#temp-control',
-  nozzleTempBar: null,
-  bedTempBar: null,
-  initialize: function()
-  {
-    this.nozzleTempBar = new TempBarVerticalView({
-      scale: [0, app.printerProfile.get('max_nozzle_temp')],
-      el: this.$el.find('.temp-control-cont.nozzle'),
-      type: 'tool0'
-    });
-    this.bedTempBar = new TempBarVerticalView({
-      scale: [0, app.printerProfile.get('max_bed_temp')],
-      el: this.$el.find('.temp-control-cont.bed'),
-      type: 'bed'
-    });
-  },
-  render: function()
-  {
-    var profile = app.printerProfile.toJSON();
 
-    this.nozzleTempBar.setMax(profile.max_nozzle_temp);
-
-    if (profile.heated_bed) {
-      this.bedTempBar.setMax(profile.max_bed_temp);
-      this.bedTempBar.$el.removeClass('disabled');
-    } else {
-      this.bedTempBar.$el.addClass('disabled');
-    }
-  },
-  resetBars: function()
-  {
-    this.nozzleTempBar.onResize();
-    this.bedTempBar.onResize();
-  },
-  updateBars: function(value)
-  {
-    if (value.extruders['0']) {
-      this.nozzleTempBar.setTemps(value.extruders['0'].current, value.extruders['0'].target);
-    }
-
-    if (value.bed) {
-      this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
-    }
-  }
-});
 
 var DistanceControl = Backbone.View.extend({
   el: '#distance-control',
@@ -767,7 +721,6 @@ var ControlView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
-  prueba: null,
   initialize: function()
   {
     this.tempView = new TempView();
@@ -776,7 +729,6 @@ var ControlView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
-    this.prueba = new ControlTempView();
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
@@ -784,8 +736,7 @@ var ControlView = Backbone.View.extend({
   updateTemps: function(s, value)
   {
     if (!this.$el.hasClass('hide')) {
-      this.prueba.updateTemps(value);
-      this.tempView.updateBars(value);
+      this.tempView.updateTemps(value);
     }
   },
   render: function()
@@ -794,7 +745,6 @@ var ControlView = Backbone.View.extend({
 
     this.extrusionView.render();
     this.tempView.render();
-    this.prueba.render();
   },
   resumePrinting: function(e)
   {
