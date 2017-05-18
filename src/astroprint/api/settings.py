@@ -5,6 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import os
 import time
+import json
 
 from flask import request, abort, jsonify, make_response
 
@@ -12,6 +13,7 @@ from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.plugin import pluginManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
@@ -189,6 +191,57 @@ def cameraSettings():
 		source= s.get(['camera', 'source']),
 		structure= cm.settingsStructure()
 	)
+
+@api.route("/settings/software/plugins", methods=["GET"])
+@restricted_access
+def getSoftwarePlugins():
+	pm = pluginManager()
+
+	response = []
+
+	for pId, p in pm.plugins.iteritems():
+		response.append({
+			'id': p.pluginId,
+			'name': p.name,
+			'version': p.version,
+			'can_remove': not p.systemPlugin,
+			'verified': p.verified
+		})
+
+	r = make_response(json.dumps(response), 200)
+	r.headers['Content-Type'] = 'application/json'
+
+	return r
+
+@api.route("/settings/software/plugins", methods=["POST"])
+@restricted_access
+def uploadSoftwarePlugin():
+	if not "file" in request.files.keys():
+		return make_response("No file included", 400)
+
+	file = request.files["file"]
+
+	pm = pluginManager()
+	r = pm.checkFile(file)
+
+	if 'error' in r:
+		return make_response(r['error'], 500)
+	else:
+		return jsonify(r)
+
+@api.route("/settings/software/plugins/install", methods=["POST"])
+@restricted_access
+def installSoftwarePlugin():
+	data = request.json
+	file = data.get('file', None)
+	if file:
+		pm = pluginManager()
+		if pm.installFile(file):
+			return jsonify()
+		else:
+			return make_response('Unable to Install', 500)
+
+	return make_response('Invalid Request', 400)
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access

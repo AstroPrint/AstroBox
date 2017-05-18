@@ -8,6 +8,10 @@ import os
 import yaml
 import importlib
 import sys
+import zipfile
+
+from werkzeug.utils import secure_filename
+from tempfile import gettempdir
 
 from threading import Thread, Event
 
@@ -17,12 +21,17 @@ from octoprint.events import eventManager, Events as SystemEvent
 from astroprint.plugin.printer_comms import PrinterCommsService, PrinterState
 from astroprint.printerprofile import printerProfileManager
 
+PLUGIN_API_VERSION = 1
+REQUIRED_PLUGIN_KEYS = ['id', 'name', 'services', 'version', 'min_api_version']
+
 #
 # Plugin Base Class
 #
 
 class Plugin(object):
 	def __init__(self):
+		self.systemPlugin = False
+
 		self._logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
 		self._definition = None
 		self._settings = settings()
@@ -39,8 +48,13 @@ class Plugin(object):
 			except Exception as e:
 				raise e #Raise parse exception here
 
-			if all(key in self._definition for key in ['id', 'name', 'services']):
-				self.initialize()
+			if all(key in self._definition for key in REQUIRED_PLUGIN_KEYS):
+				min_api_version = int(self._definition['min_api_version'])
+
+				if PLUGIN_API_VERSION >= min_api_version:
+					self.initialize()
+				else:
+					raise Exception("AstroBox API version [%d] is lower than minimum required by %s [%d]" % (PLUGIN_API_VERSION, self._definition['id'], min_api_version))
 
 			else:
 				raise Exception("Invalid plugin definition found in %s" % definitionFile)
@@ -56,6 +70,18 @@ class Plugin(object):
 	@property
 	def pluginId(self):
 		return self._definition['id']
+
+	@property
+	def name(self):
+		return self._definition['name']
+
+	@property
+	def version(self):
+		return self._definition['version']
+
+	@property
+	def verified(self):
+		return self._definition.get('verified', False)
 
 	#
 	# Directory path where the settings file (config.yaml) is stored
@@ -88,12 +114,91 @@ class Plugin(object):
 class PluginManager(object):
 	def __init__(self):
 		self._logger = logging.getLogger("PluginManager")
+		self._logger.info('Plugin Manager Initialized with Api Version: %d' % PLUGIN_API_VERSION)
 		self._loaderWorker = None
 		self._plugins = {}
 		self._pluginsLoaded = Event()
 
+	@property
+	def plugins(self):
+		return self._plugins
+
+	def checkFile(self, file):
+		filename = file.filename
+
+		if not ('.' in filename and filename.rsplit('.', 1)[1].lower() in ['zip']):
+			return {'error':'invalid_file'}
+
+		savedFile = os.path.join(gettempdir(), secure_filename(file.filename))
+		try:
+			file.save(savedFile)
+			zip_ref = zipfile.ZipFile(savedFile, 'r')
+			pluginInfo = zip_ref.open('plugin.yaml', 'r')
+			definition = yaml.safe_load(pluginInfo)
+
+		except KeyError:
+			zip_ref.close()
+			os.unlink(savedFile)
+			return {'error':'invalid_plugin_file'}
+
+		except:
+			zip_ref.close()
+			os.unlink(savedFile)
+			self._logger.error('Error checking uploaded Zip file', exc_info=True)
+			return {'error':'error_checking_file'}
+
+		zip_ref.close()
+
+		if not all(key in definition for key in REQUIRED_PLUGIN_KEYS):
+			os.unlink(savedFile)
+			return {'error':'invalid_plugin_definition'}
+
+		#Check if the min_api_version is valid
+		min_api_version = int(definition['min_api_version'])
+		if PLUGIN_API_VERSION < min_api_version:
+			os.unlink(savedFile)
+			return {'error':'incompatible_plugin', 'api_version': min_api_version}
+
+		response = {
+			'tmp_file': savedFile,
+			'definition': definition
+		}
+
+		#Check if the plugin is already installed
+		plugin = self.getPlugin(definition['id'])
+		if plugin:
+			if plugin.version == definition['version']:
+				response['warning'] = 'already_installed'
+			elif plugin.version > definition['version']:
+				response['warning'] = 'newer_installed'
+				response['version'] = plugin.version
+
+		return response
+
+	def installFile(self, filename):
+		if os.path.isfile(filename):
+			userPluginsDir = settings().getBaseFolder('userPlugins')
+
+			#extract the contents of the plugin in it's directory
+			zip_ref = zipfile.ZipFile(filename, 'r')
+			pluginInfo = zip_ref.open('plugin.yaml', 'r')
+			definition = yaml.safe_load(pluginInfo)
+
+			pluginId = definition.get('id')
+			if pluginId:
+				pluginDir = os.path.join(userPluginsDir, pluginId.replace('.','_'))
+				zip_ref.extractall(pluginDir)
+				zip_ref.close()
+				return self._loadPlugin(pluginId.replace('.','_')) is not None
+
+			zip_ref.close()
+
+		return False
+
 	def loadPlugins(self):
-		userPluginsDir = settings().get(['folder', 'userPlugins'])
+		userPluginsDir = settings().getBaseFolder('userPlugins')
+
+		sys.path.insert(10, userPluginsDir)
 
 		if userPluginsDir:
 			self._loaderWorker = Thread(target=self._pluginLoaderWorker, args=(userPluginsDir,))
@@ -107,10 +212,7 @@ class PluginManager(object):
 
 	def getPlugin(self, pluginId):
 		self._pluginsLoaded.wait()
-		try:
-			return self._plugins[pluginId]
-		except KeyError:
-			raise Exception('Plugin %s is not loaded' % pluginId)
+		return self._plugins.get(pluginId)
 
 	def _pluginLoaderWorker(self, userPluginsDir):
 		#System Plugins
@@ -118,7 +220,9 @@ class PluginManager(object):
 		dirs = self._getDirectories(systemPluginsDir)
 		if dirs:
 			for d in dirs:
-				self._loadPlugin(systemPluginsDir, d, 'plugins.')
+				p = self._loadPlugin(d, 'plugins.')
+				if p is not None:
+					p.systemPlugin = True
 
 		else:
 			self._logger.warn("System Plugins Folder [%s] is empty" % systemPluginsDir)
@@ -127,10 +231,8 @@ class PluginManager(object):
 		if os.path.isdir(userPluginsDir):
 			dirs = self._getDirectories(userPluginsDir)
 			if dirs:
-				sys.path.insert(10, os.path.join(userPluginsDir))
-
 				for d in dirs:
-					self._loadPlugin(userPluginsDir, d)
+					self._loadPlugin(d)
 
 			else:
 				self._logger.warn("User Plugins Folder [%s] is empty" % userPluginsDir)
@@ -144,7 +246,7 @@ class PluginManager(object):
 		#don't return hidden dirs
 		return [ name for name in os.listdir(path) if name[0] != '.' and os.path.isdir(os.path.join(path, name)) ]
 
-	def _loadPlugin(self, pluginsContainer, pluginDir, modulePrefix=''):
+	def _loadPlugin(self, pluginDir, modulePrefix=''):
 		try:
 			plugin = importlib.import_module(modulePrefix + pluginDir)
 			instance = plugin.__plugin_instance__
@@ -154,12 +256,9 @@ class PluginManager(object):
 			self._logger.error("Failed to initialize %s" % pluginDir, exc_info= True)
 			return
 
-		if pluginId not in self._plugins:
-			self._logger.info("Loaded %s" % pluginId)
-			self._plugins[pluginId] = instance
-
-		else:
-			self._logger.error("Plugin [%s] has already been loaded" % pluginId)
+		self._logger.info("Loaded %s, version: %s" % (pluginId, instance.version))
+		self._plugins[pluginId] = instance
+		return instance
 
 
 # Singleton management

@@ -308,7 +308,6 @@ var NetworkNameView = SettingsPage.extend({
       attrs[elem.attr('name')] = elem.val();
     });
 
-
     $.ajax({
       url: API_BASEURL + 'settings/network/name',
       type: 'POST',
@@ -572,7 +571,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 var InternetConnectionView = SettingsPage.extend({
   el: '#internet-connection',
-  template: _.template( $("#internet-connection-settings-page-template").html() ),
+  template: null,
   networksDlg: null,
   storedWifiDeleteDlg: null,
   settings: null,
@@ -589,6 +588,10 @@ var InternetConnectionView = SettingsPage.extend({
   show: function() {
     //Call Super
     SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#internet-connection-settings-page-template").html() )
+    }
 
     if (!this.settings) {
       $.getJSON(API_BASEURL + 'settings/network', null, _.bind(function(data) {
@@ -1009,6 +1012,170 @@ var WifiHotspotView = SettingsPage.extend({
 });
 
 /********************
+* Software - Plugins
+*********************/
+
+var SoftwarePluginsView = SettingsPage.extend({
+  el: '#software-plugins',
+  template: null,
+  events: {
+  },
+  pluginsInfo: null,
+  uploader: null,
+  template: null,
+  initialize: function(opts)
+  {
+    SettingsPage.prototype.initialize.apply(this, arguments);
+    this.uploader = new PluginUploader({
+      el: this.$('input.file-upload'),
+      progressBar: this.$('.upload-progress'),
+      buttonContainer: this.$('.upload-buttons'),
+      installedCallback: _.bind(this.onPluginInstalled,this)
+    });
+  },
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#software-plugings-settings-page-template").html() )
+    }
+
+    if (!this.pluginsInfo) {
+      this.refeshPlugins()
+        .done( _.bind(function(data){
+          this.pluginsInfo = data;
+          this.render();
+        }, this))
+    }
+  },
+  refeshPlugins: function()
+  {
+    return $.getJSON(API_BASEURL + 'settings/software/plugins')
+      .fail(function(xhr){
+        noty({text: "There was an error getting Plugin Information.", timeout: 3000});
+        console.error("Request failed with: " + xhr.status);
+      })
+  },
+  render: function()
+  {
+    this.$('.installed').html(this.template({
+      plugins: this.pluginsInfo
+    }));
+  },
+  onPluginInstalled: function()
+  {
+    this.refeshPlugins()
+      .done( _.bind(function(data){
+        this.pluginsInfo = data;
+        this.render();
+      }, this))
+  }
+});
+
+var PluginUploader = FileUploadBase.extend({
+  progressBar: null,
+  buttonContainer: null,
+  installedCallback: null,
+  initialize: function(options)
+  {
+    FileUploadBase.prototype.initialize.call(this, options);
+
+    this.progressBar = options.progressBar;
+    this.buttonContainer = options.buttonContainer;
+    this.$el.attr('accept', '.zip');
+    this.acceptFileTypes = /(\.|\/)(zip)$/i;
+    this.uploadUrl = API_BASEURL + 'settings/software/plugins';
+    this.installedCallback = options.installedCallback;
+  },
+  started: function(data)
+  {
+    if (data.files && data.files.length > 0) {
+      this.buttonContainer.hide();
+      this.progressBar.show();
+      FileUploadBase.prototype.started.call(this, data);
+    }
+  },
+  failed: function(error)
+  {
+    var message = null;
+    switch(error) {
+      case 'invalid_file':
+        message = 'The file is not a valid plugin'
+      break;
+
+      case 'invalid_plugin_file':
+        message = 'The plugin file has errors'
+      break;
+
+      case 'error_checking_file':
+        message = 'There was an error checking the plugin file'
+      break;
+
+      case 'invalid_plugin_definition':
+        message = 'The plugin definition file is not valid'
+      break;
+
+      case 'incompatible_plugin':
+        message = 'The API version used by the plugin is not compatible.'
+      break;
+    }
+
+    this.onError(message);
+  },
+  success: function(data)
+  {
+    console.log(data.result);
+    if (data.result.tmp_file) {
+      $.ajax({
+        url: API_BASEURL + 'settings/software/plugins/install',
+        method: 'POST',
+        type: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          file: data.result.tmp_file
+        })
+      })
+        .done(_.bind(function(){
+          this.onPrintFileUploaded();
+          this.installedCallback();
+        }, this))
+        .fail(_.bind(function(){
+          this.onError('Unable to install plugin');
+        }, this))
+    } else {
+      this.onError('Unable to install plugin');
+    }
+  },
+  progress: function(progress, message)
+  {
+    var intPercent = Math.round(progress);
+
+    this.progressBar.find('.meter').css('width', intPercent+'%');
+    if (!message) {
+      message = "Uploading ("+intPercent+"%)";
+    }
+    this.progressBar.find('.progress-message span').text(message);
+  },
+  onError: function(error)
+  {
+    noty({text: error ? error : 'There was an error uploading your file', timeout: 3000});
+    this.resetUploadArea();
+    console.error(error);
+  },
+  onPrintFileUploaded: function()
+  {
+    this.resetUploadArea();
+  },
+  resetUploadArea: function()
+  {
+    this.progressBar.hide();
+    this.buttonContainer.show();
+    this.progress(0);
+  }
+});
+
+/********************
 * Software - Update
 *********************/
 
@@ -1370,8 +1537,9 @@ var SettingsView = Backbone.View.extend({
       'internet-connection': new InternetConnectionView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
+      'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
-      'software-advanced': new SoftwareAdvancedView({parent: this})
+      'software-advanced': new SoftwareAdvancedView({parent: this}),
     };
     this.menu = new SettingsMenu({subviews: this.subviews});
   },
