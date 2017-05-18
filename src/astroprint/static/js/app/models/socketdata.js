@@ -24,18 +24,7 @@ var SocketData = Backbone.Model.extend({
       percent: 0.0,
       time_left: 0
     },
-    temps: {
-      bed: {
-        actual: 0,
-        target: 0
-      },
-      extruders: {
-        0:{actual: 0,
-        target: 0},
-        1:{actual: 0,
-        target: 0}
-      }
-    },
+    temps: {},
     astroprint: {
       status: null
     },

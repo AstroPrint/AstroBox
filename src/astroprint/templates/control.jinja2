@@ -107,60 +107,41 @@
     </div>
   </div>
 
-  <div id="temp-control-template">
+  <div id="temp-control-template" class="medium-12 large-5 column">
   </div>
-
-  <script type="text/template" id="semi-circle-template">
-      <div class="progress-temp-circle">
-        <div class="target-selector"></div>
-        <div class="current"></div>
-      </div>
-      <button class="temp-off secondary small radius expand">OFF</button>
-      <div class="temp-target radius bold">
-        <a class="temp-edit"><i class="icon-pencil"></i></a>
-        <span class="target-value">- -</span>
-        <input type="number" class="hide"/>
-      </div>
-  </script>
-
-
-  {%- macro temp_control(class, label) %}
-    <div class="temp-control-cont {{class}}">
-      <span class="current-temp-top bold">- -</span>
-      <div class="temp-bar">
-        <label class="bold">{{label}}</label>
-        <div class="current-temp">
-          <div class="triangle_left"></div>
-          <div class="triangle_right"></div>
-        </div>
-        <div class="temp-target radius bold">
-          <a class="temp-edit"><i class="icon-pencil"></i></a>
-          <span class="target-value">- -</span>
-          <input type="number" class="hide"/>
-        </div>
-      </div>
-      <button class="temp-off secondary small radius expand">OFF</button>
-    </div>
-  {%- endmacro %}
-
-  <div class="medium-12 large-5 columns" id="temp-control">
-    <div class="row">
-      <div class="small-4 columns" align="center">
-        {{ temp_control('nozzle', 'Nozzle')}}
-      </div>
-      <div class="small-4 columns fan-control">
-        <div class="fan-control-push" align="center">
-          Current Temp (&deg;C)
-        </div>
+  <div id="fan-control" class="medium-12 large-5 large-offset-8 column">
+    <div class="medium-12 large-5 column fan-control">
         <h2 class="bold">Fans <span class="fan_icon"></span></h2>
         <button class="radius small success expand fan-on">ON</button>
         <button class="radius small secondary expand fan-off">OFF</button>
-      </div>
-      <div class="small-4 columns" align="center">
-        {{ temp_control('bed', 'Bed')}}
-      </div>
     </div>
   </div>
+
+  <script type="text/template" id="semi-circle-template">
+    <div class="temp-container">
+      <div class="row">
+        <div class="small-12 columns" align="center">
+          <span class="name"></span>
+          <div class="small-12 columns circle-container" align="center">
+            <div class="progress-temp-circle">
+              <div class="target-selector"></div>
+              <div class="current"></div>
+            </div>
+          </div>
+          <div class="small-12 columns buttons-container">
+            <div class="small-2 columns" align="left">
+              <button class="temp-off secondary small radius expand"><i class="icon-snow"></i>OFF</button>
+            </div>
+            <div class="temp-target radius bold">
+              <a class="temp-edit"><i class="icon-pencil"></i></a>
+              <span class="target-value">- -</span>
+              <input class="hide"/>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </script>
 
   <div class="no-connection-overlay">
     <i class="icon-usb"></i>

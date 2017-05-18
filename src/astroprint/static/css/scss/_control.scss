@@ -165,151 +165,83 @@ html.no-printer {
 	}
 }
 
-#temp-control {
-	.current-temp-top {
-		text-align: center;
-		margin-bottom: 10px;
-		font-size: rem-calc(60);
-		color: $alert-color;
-	}
+#temp-control-template{
+  .semi-circle-temps {
+    .temp-container {
+      position: relative;
 
-	.temp-control-cont {
-		max-width: 110px;
+      .name {
+        background: grey;
+      }
 
-		&.disabled {
-			.temp-bar {
-				background: #ccc;
-			}
+      .circle-container{
+        margin-bottom: -160px;
 
-			.temp-target,
-			.current-temp {
-				display: none;
-			}
+        .progress-temp-circle {
+          margin-top: 15px;
 
-			.current-temp-top {
-				color: #ccc;
-			}
-		}
-	}
+          .current {
+            position: relative;
+            top: -134px;
+            font-size: 38px;
+            font-weight: bold;
+            color: #f05251;
+            width: 50%;
+            margin: 0 auto;
+          }
+        }
+      }
 
-	.temp-bar {
-		height: 356px;
-		background: url(/img/temp_gradient.png) repeat-x;
-		position: relative;
-		margin-bottom: 19px;
+      .buttons-container {
+        position: relative;
+        left: 50px;
+        margin-top: 20px;
 
-		.temp-target {
-			position: absolute;
-			left: -5%;
-			top: 20px;
-			background-color: #505050;
-			text-align: center;
-			color: white;
-			width: 110%;
-			font-size: rem-calc(20);
-			border-radius: $global-radius;
-			cursor: pointer;
+        i.icon-snow {
+          font-size: 25px;
+          color: $success-color;
+        }
 
-			a.temp-edit {
-				padding: 10px 0;
-				text-align: center;
-				width: 30%;
-				display: inline-block;
-				border-right: 1px solid #a5a5a5;
-				color: white;
-				float: left;
-			}
+        input {
+          position: relative;
+          left: 2px;
+          height: 25px;
+          width: 45px;
+        }
+      }
 
-			span.target-value {
-				padding: 10px 0;
-				width: 70%;
-				display: inline-block;
-				float: right;
-			}
+      .target-selector {
+        width: 24px;
+        height: 5px;
+        border-radius: 24px;
+        background: #000;
+        position: relative;
+        top: -98px;
+        left: -80px;
+        transform-origin: 93px 2px;
+        transform: rotate(0deg);
+        transition:transform 2s;
+      }
+    }
+  }
+}
 
-			input {
-				margin-top:5px;
-				text-align: center;
-				display: inline-block;
-				background: transparent;
-				color: white;
-				border: none;
-				width: 65%;
-				box-shadow: none;
-				font-size: rem-calc(20);
-				margin-bottom: 0px;
+#fan-control {
+  .fan-control {
+    text-align: center;
+  }
 
-				&::-webkit-inner-spin-button,
-				&::-webkit-outer-spin-button {
-				  -webkit-appearance: none;
-				  margin: 0;
-				}
-			}
+  .fan-control {
+    h2 {
+      margin-bottom: 20px;
+    }
 
-			&.moving {
-				background-color: lighten(#505050, 20%);
-			}
-		}
-
-		.current-temp {
-			position: absolute;
-			left: -5%;
-			height: 6px;
-			top: 100px;
-			background-color: #505050;
-			width: 110%;
-			transition: top 0.5s;
-			-webkit-transition: top 0.5s;
-			-moz-transition: top 0.5s;
-
-			.triangle_left {
-				position: absolute;
-				left: -8px;
-				top: -6px;
-			}
-
-			.triangle_right {
-				position: absolute;
-				right: -8px;
-				top: -6px;
-			}
-
-		}
-
-		label {
-			text-align: center;
-			color: white;
-			position: absolute;
-			bottom: 0px;
-			padding: 5px;
-			left: 0;
-			width: 100%;
-			font-size: rem-calc(28);
-		}
-	}
-
-	.fan-control,
-	.temp-control-cont {
-		text-align: center;
-	}
-
-	.fan-control-push {
-		font-size: rem-calc(17);
-		padding-top: 17px;
-		height: 348px;
-	}
-
-	.fan-control {
-		h2 {
-			margin-bottom: 20px;
-		}
-
-		.fan_icon {
-			display: inline-block;
-			vertical-align: middle;
-			margin-left: 5px;
-		}
-	}
+    .fan_icon {
+      display: inline-block;
+      vertical-align: middle;
+      margin-left: 5px;
+    }
+  }
 }
 
 #extrusion-control {

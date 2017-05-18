@@ -10,6 +10,35 @@ var ControlTempView = Backbone.View.extend({
   extruders_count: null,
   initialize: function()
   {
+    this.createSemiCircle();
+
+    this.extruders_count = (app.printerProfile.toJSON()).extruder_count;
+
+    var semiCircleTemp = null;
+    this.$el.empty();
+
+    //extruders
+    for (var i = 0; i < this.extruders_count; i++) {
+      semiCircleTemp = new SemiCircleTempView({'tool': i});
+      this.semiCircleTemp_views[i] = semiCircleTemp;
+      this.$el.append(this.semiCircleTemp_views[i].render().el);
+    }
+    //bed
+    semiCircleTemp = new SemiCircleTempView({'tool': null});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.append(this.semiCircleTemp_views[this.extruders_count].render().el);
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      if (i == this.extruders_count) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
+      } else {
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+      }
+      this.semiCircleTemp_views[i].drawSemiCircle();
+    }
+
+  },
+  createSemiCircle: function() {
     /* Change default circle for semi circle*/
     // Arc layout
     $.circleProgress.defaults.arcCoef = 0.5; // range: 0..1
@@ -71,25 +100,6 @@ var ControlTempView = Backbone.View.extend({
       }
     };
     /* End semicircle*/
-
-    this.extruders_count = (app.printerProfile.toJSON()).extruder_count;
-
-    var semiCircleTemp = null;
-    this.$el.empty();
-
-    var initialsTemps = app.socketData.attributes.temps;
-
-    //extruders
-    for (var i = 0; i < this.extruders_count; i++) {
-
-      semiCircleTemp = new SemiCircleTempView({'tool': i, 'temps': initialsTemps['extruders'][i]});
-      this.semiCircleTemp_views[i] = semiCircleTemp;
-      this.$el.prepend(semiCircleTemp.render().el);
-    }
-    //bed
-    semiCircleTemp = new SemiCircleTempView({'tool': null, 'temps': initialsTemps['bed']});
-    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-    this.$el.prepend(semiCircleTemp.render().el);
   },
   updateTemps: function(value) {
     var temps = {};
@@ -108,6 +118,8 @@ var SemiCircleTempView = Backbone.View.extend({
   className: 'semi-circle-temps small-12 columns',
   lastSent: null,
   lastSentTimestamp: null,
+  target: 0,
+  actual: 0,
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
   events: {
@@ -127,17 +139,11 @@ var SemiCircleTempView = Backbone.View.extend({
     }
 
     if (this.el.id == 'bed') {
-      console.log("cama caliente",(app.printerProfile.toJSON()).heated_bed);
       if ((app.printerProfile.toJSON()).heated_bed) {
-        //$("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_bed_temp')) * 100) / 100 });
-        $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_bed_temp')) * 100) / 100 });
         this.$el.removeClass('disabled');
       } else {
         this.$el.addClass('disabled');
       }
-    } else {
-      //$("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
-      $("#"+ this.el.id).circleProgress({ value: Math.round((params.temps.actual / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
     }
   },
   render: function ()
@@ -145,15 +151,17 @@ var SemiCircleTempView = Backbone.View.extend({
     this.$el.empty();
     this.$el.html( this.template( { } ) );
 
-    $("#"+ this.el.id).circleProgress({
+    return this;
+  },
+  drawSemiCircle: function ()
+  {
+    $(".progress-temp-circle").circleProgress({
+      value: 0,
       arcCoef: 0.55,
       size: 180,
       thickness: 20,
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
-
-    //this.updateValues();
-    return this;
   },
   onTempFieldBlur: function(e)
   {
@@ -164,11 +172,35 @@ var SemiCircleTempView = Backbone.View.extend({
   },
   updateValues: function (temps)
   {
-    $("#"+ this.el.id).circleProgress({ value: Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
+    if (temps.current != this.actual) {
+      if (this.el.id == 'bed') {
+        this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_bed_temp')) * 100) / 100 );
+      } else {
+        this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 );
+      }
+
+      var now = new Date().getTime();
+
+      if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
+        target = this.lastSent;
+      }
+
+      if (isNaN(temps.current)) {
+        temps.current = null;
+      }
+
+      if (isNaN(temps.target)) {
+        temps.target = null;
+      }
+
+      this.target = temps.target;
+      this.actual = temps.current;
+      //this.renderTemps(temps.current, temps.target);
+      this.setTemps(temps.current, temps.target);
+    }
   },
   turnOff: function()
   {
-    console.log("estoy pulsando off");
     this._sendToolCommand('target', this.el.id, 0);
     this.setHandle(0);
   },
@@ -176,8 +208,6 @@ var SemiCircleTempView = Backbone.View.extend({
   {
     e.preventDefault();
     e.stopPropagation();
-
-    console.log("estoy en edit", e);
 
     var target = $(e.currentTarget);
     var container = target.closest('.temp-target');
@@ -193,19 +223,28 @@ var SemiCircleTempView = Backbone.View.extend({
   {
     var input = $(e.target);
     var value = input.val();
+    var maxValue = null;
+
+    if(this.el.id == 'bed') {
+      maxValue = app.printerProfile.get('max_bed_temp');
+    } else {
+      maxValue = app.printerProfile.get('max_nozzle_temp')
+    }
+
+    if (value < 0) {
+      value = 0;
+    } else if (value > maxValue) {
+      value = maxValue;
+    }
 
     if (value != this.lastSent && !isNaN(value) ) {
-      //value = Math.min(Math.max(value, this.scale[0]), this.scale[1]);
-      $("#"+ this.el.id).circleProgress({ value: Math.round((value / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 });
-
+      this.$(".progress-temp-circle").circleProgress('value', Math.round((value / maxValue) * 100) / 100 );
       this._sendToolCommand('target', this.el.id, value);
       input.blur();
-
     }
   },
   setTemps: function(actual, target)
   {
-    console.log("setTemps")
     var now = new Date().getTime();
 
     if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
@@ -226,26 +265,27 @@ var SemiCircleTempView = Backbone.View.extend({
   },
   renderTemps: function(actual, target)
   {
-    console.log("renderTemps",this.$el.find('.temp-target'))
-    var handleHeight = this.$el.find('.temp-target').innerHeight();
-
+    var handleHeight = this.$el.find('.current').innerHeight();
     if (actual !== null) {
-      this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
-      this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
+      this.$el.find('.current').html(Math.round(actual)+'&deg;');
     }
 
     if (target !== null) {
-      this.setHandle(Math.min(Math.round(target), this.scale[1]));
+      this.$el.find('.target-value').html(Math.round(target)+'&deg;');
+
+      if ( this.el.id == 'bed') {
+        ($("#"+ this.el.id).find('.target-selector')).css({
+          transform:'rotate('+ (target *(198/app.printerProfile.get('max_bed_temp'))-9) +'deg)'});
+
+      } else {
+        $("#"+ this.el.id).find('.target-selector').css({
+          transform:'rotate('+ (target *(198/app.printerProfile.get('max_nozzle_temp'))-9) +'deg)'});
+      }
+
     }
   },
   _sendToolCommand: function(command, type, temp, successCb, errorCb)
   {
-    /*console.log("_sendToolCommand")
-    console.log("command", command)
-    console.log("type",type)
-    console.log("temp", temp)
-    console.log("successCb",successCb)
-    console.log("errorCb", errorCb)*/
     if (temp == this.lastSent) return;
 
     var data = {
@@ -293,13 +333,11 @@ var SemiCircleTempView = Backbone.View.extend({
   },
   setHandle: function(value)
   {
-    if (!this.dragging) {
-      var handle = this.$el.find('.temp-target');
-      handle.find('span.target-value').text(value);
-      setTimeout(function() {
-        handle.css({transition: ''});
-      }, 800);
-    }
+    var handle = this.$el.find('.temp-target');
+    handle.find('span.target-value').text(value);
+    setTimeout(function() {
+      handle.css({transition: ''});
+    }, 800);
   }
 });
 
@@ -349,12 +387,9 @@ var TempBarVerticalView = TempBarView.extend({
   },
   onClicked: function(e)
   {
-    console.log("entra aqui")
     e.preventDefault();
     var target = this.$el.find('.temp-target');
     var newTop = e.pageY - this.containerDimensions.top - target.innerHeight()/2.0;
-    console.log("target", target)
-    console.log("newTop", newTop)
     newTop = Math.min( Math.max(newTop, 0), this.containerDimensions.maxTop );
 
     var temp = this._px2temp(newTop);
@@ -440,7 +475,6 @@ var TempView = Backbone.View.extend({
   },
   updateBars: function(value)
   {
-    console.log("updateBars", value.extruders['0'])
     if (value.extruders['0']) {
       this.nozzleTempBar.setTemps(value.extruders['0'].current, value.extruders['0'].target);
     }
@@ -688,7 +722,7 @@ var ExtrusionControlView = Backbone.View.extend({
 });
 
 var FanControlView = Backbone.View.extend({
-  el: '#temp-control .fan-control',
+  el: '.fan-control',
   events: {
     'click button.fan-on': "fanOn",
     'click button.fan-off': "fanOff"
