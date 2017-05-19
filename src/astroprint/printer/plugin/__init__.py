@@ -12,16 +12,31 @@ from astroprint.printer import Printer
 from astroprint.plugin import pluginManager
 from astroprint.printfiles import FileDestinations
 
+class NoPluginException(Exception):
+	pass
+
 class PrinterWithPlugin(Printer):
 	driverName = 'plugin'
 
 	def __init__(self, pluginId):
-		self._plugin = pluginManager().getPlugin(pluginId)
+		#Register to plugin remove events
+		pm = pluginManager()
+
+		self._plugin = pm.getPlugin(pluginId)
+		if self._plugin is None:
+			raise NoPluginException
+
 		self._plugin.initPrinterCommsService(self)
+
+		pm.addEventListener('ON_PLUGIN_REMOVED', self.onPluginRemoved)
 
 		self._currentFile = None
 
 		super(PrinterWithPlugin, self).__init__()
+
+	def rampdown(self):
+		pluginManager().removeEventListener('ON_PLUGIN_REMOVED', self.onPluginRemoved)
+		super(PrinterWithPlugin, self).rampdown()
 
 	@property
 	def allowTerminal(self):
@@ -221,3 +236,12 @@ class PrinterWithPlugin(Printer):
 
 	def resetSerialLogging(self):
 		self._plugin.serialLoggingChanged()
+
+	# Plugin Manager Event Listener
+	def onPluginRemoved(self, plugin):
+		if plugin.pluginId == self._plugin.pluginId:
+			# We just lost the active comms plugin so we'll pick the default one now
+			from astroprint.printer.manager import DEFAULT_MANAGER
+
+			self._profileManager.set({'driver': DEFAULT_MANAGER})
+			self._profileManager.save()

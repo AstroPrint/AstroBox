@@ -11,6 +11,8 @@ _instance = None
 # This object is recreated when the driver is changed in the printer profile page.
 # DO NOT store a reference to the result of printerManager in any persistant object.
 
+DEFAULT_MANAGER = 'marlin'
+
 def printerManager(driver = None):
 	global _instance
 
@@ -30,8 +32,17 @@ def printerManager(driver = None):
 	if _instance is None and driver:
 
 		if driver.startswith('plugin:'):
-			from astroprint.printer.plugin import PrinterWithPlugin
-			_instance = PrinterWithPlugin(driver[7:])
+			from astroprint.printer.plugin import PrinterWithPlugin, NoPluginException
+
+			try:
+				_instance = PrinterWithPlugin(driver[7:])
+
+			except NoPluginException:
+				#The plugin is gone. Pick the default
+				from astroprint.printerprofile import printerProfileManager
+				ppm = printerProfileManager()
+				ppm.set({'driver': DEFAULT_MANAGER})
+				ppm.save()
 
 		else:
 			import importlib

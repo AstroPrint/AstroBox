@@ -127,10 +127,41 @@ class PluginManager(object):
 		self._loaderWorker = None
 		self._plugins = {}
 		self._pluginsLoaded = Event()
+		self._eventListeners = {}
 
 	@property
 	def plugins(self):
 		return self._plugins
+
+	#
+	# Events are:
+	#
+	# - ON_PLUGIN_REMOVED: Called when a plugin is removed
+	#			plugin: The plugin that was removed
+	#
+	def addEventListener(self, event, listener):
+		if event in self._eventListeners:
+			self._eventListeners[event].append(listener)
+		else:
+			self._eventListeners[event] = [listener]
+
+	def removeEventListener(self, event, listener=None):
+		if event in self._eventListeners:
+			if listener:
+				if listener in self._eventListeners[event]:
+					del self._eventListeners[event][self._eventListeners[event].index(listener)]
+
+			else:
+				del self._eventListeners[event]
+
+	def _fireEvent(self, event, params):
+		if event in self._eventListeners:
+			for e in self._eventListeners[event]:
+				try:
+					e(*params)
+				except Exception as e:
+					self._logger.error('Error in event Listener for [%s]' % event, exc_info=True)
+
 
 	def checkFile(self, file):
 		filename = file.filename
@@ -214,7 +245,8 @@ class PluginManager(object):
 			userPluginsDir = settings().getBaseFolder('userPlugins')
 			shutil.rmtree( os.path.join(userPluginsDir, pId.replace('.','_')) )
 
-			#Tell all the listeners to the manager's [onPlugingRemoved] event
+			#Tell all the listeners to the manager's [ON_PLUGIN_REMOVED] event
+			self._fireEvent('ON_PLUGIN_REMOVED', [plugin])
 
 			self._logger.info("Removed --> %s, version: %s" % (plugin.pluginId, plugin.version))
 
