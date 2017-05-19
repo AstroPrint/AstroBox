@@ -229,6 +229,29 @@ def uploadSoftwarePlugin():
 	else:
 		return jsonify(r)
 
+@api.route("/settings/software/plugins", methods=["DELETE"])
+@restricted_access
+def removeSoftwarePlugin():
+	data = request.json
+	pId = data.get('id', None)
+
+	if pId:
+		pm = pluginManager()
+		r = pm.removePlugin(pId)
+
+		if 'error' in r:
+			error = r['error']
+
+			if error == 'not_found':
+				return make_response('Not Found', 404)
+			else:
+				return make_response(error, 500)
+
+		else:
+			return jsonify(r)
+
+	return make_response('Invalid Request', 400)
+
 @api.route("/settings/software/plugins/install", methods=["POST"])
 @restricted_access
 def installSoftwarePlugin():

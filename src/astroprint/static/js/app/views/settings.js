@@ -1019,10 +1019,12 @@ var SoftwarePluginsView = SettingsPage.extend({
   el: '#software-plugins',
   template: null,
   events: {
+    "click .installed .row a.delete-link": "onRemoveClicked"
   },
   pluginsInfo: null,
   uploader: null,
   template: null,
+  deleteDlg: null,
   initialize: function(opts)
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
@@ -1042,16 +1044,16 @@ var SoftwarePluginsView = SettingsPage.extend({
     }
 
     if (!this.pluginsInfo) {
-      this.refeshPlugins()
-        .done( _.bind(function(data){
-          this.pluginsInfo = data;
-          this.render();
-        }, this))
+      this.refeshPlugins();
     }
   },
   refeshPlugins: function()
   {
     return $.getJSON(API_BASEURL + 'settings/software/plugins')
+      .done( _.bind(function(data){
+        this.pluginsInfo = data;
+        this.render();
+      },this))
       .fail(function(xhr){
         noty({text: "There was an error getting Plugin Information.", timeout: 3000});
         console.error("Request failed with: " + xhr.status);
@@ -1065,13 +1067,21 @@ var SoftwarePluginsView = SettingsPage.extend({
   },
   onPluginInstalled: function()
   {
-    this.refeshPlugins()
-      .done( _.bind(function(data){
-        this.pluginsInfo = data;
-        this.render();
-      }, this))
+    this.refeshPlugins();
+  },
+  onRemoveClicked: function(e)
+  {
+    e.preventDefault();
+
+    if (!this.deleteDlg) {
+      this.deleteDlg = new DeletePluginDialog({parent: this});
+    }
+
+    var row = $(e.currentTarget).closest('.row');
+    this.deleteDlg.open(row.data('plugin-id'), row.data('plugin-name'));
   }
 });
+
 
 var PluginUploader = FileUploadBase.extend({
   progressBar: null,
@@ -1101,23 +1111,26 @@ var PluginUploader = FileUploadBase.extend({
     var message = null;
     switch(error) {
       case 'invalid_file':
-        message = 'The file is not a valid plugin'
+        message = 'The file is not a valid plugin';
       break;
 
       case 'invalid_plugin_file':
-        message = 'The plugin file has errors'
+        message = 'The plugin file has errors';
       break;
 
       case 'error_checking_file':
-        message = 'There was an error checking the plugin file'
+        message = 'There was an error checking the plugin file';
       break;
 
       case 'invalid_plugin_definition':
-        message = 'The plugin definition file is not valid'
+        message = 'The plugin definition file is not valid';
       break;
 
       case 'incompatible_plugin':
-        message = 'The API version used by the plugin is not compatible.'
+        message = 'The API version used by the plugin is not compatible.';
+
+      case 'already_installed':
+        message = "The Plugin is already installed. Please remove old version first.";
       break;
     }
 
@@ -1172,6 +1185,61 @@ var PluginUploader = FileUploadBase.extend({
     this.progressBar.hide();
     this.buttonContainer.show();
     this.progress(0);
+  }
+});
+
+var DeletePluginDialog = Backbone.View.extend({
+  el: '#delete-plugin-modal',
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'open.fndtn.reveal': 'onOpen'
+  },
+  parent: null,
+  id: null,
+  name: null,
+  initialize: function(options)
+  {
+    this.parent = options.parent;
+  },
+  open: function(id, name)
+  {
+    this.id = id;
+    this.name = name;
+
+    this.$('.name').text(name);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function()
+  {
+    var loadingBtn = this.$('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + 'settings/software/plugins',
+      type: 'DELETE',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify({id: this.id})
+    })
+      .done(_.bind(function(){
+        this.parent.refeshPlugins();
+        this.doClose();
+      }, this))
+      .fail(function(){
+        loadingBtn.addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000);
+      })
+      .always(function(){
+        loadingBtn.removeClass('loading');
+      });
   }
 });
 

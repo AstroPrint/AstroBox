@@ -594,7 +594,7 @@
     <script type="text/template" id="software-plugings-settings-page-template">
       <% if (plugins.length) { %>
         <% _.each(plugins, function(p){ %>
-          <div class="row">
+          <div class="row" data-plugin-id="<%= p.id %>" data-plugin-name="<%= p.name %>">
             <div class="small-10 columns name">
               <%= p.name %>
               <% if (p.verified) { %><i class="icon-ok-circled" title="Verified Plugin"></i><% } %>
@@ -602,7 +602,7 @@
             </div>
             <div class="small-2 columns" align="center">
               <% if (p.can_remove) { %>
-                <a href="" title="Remove"><i class="icon-trash"></i></a>
+                <a href="#" title="Remove" class="delete-link"><i class="icon-trash"></i></a>
               <% } %>
             </div>
           </div>
@@ -614,6 +614,31 @@
         </div>
       <% } %>
     </script>
+
+    <div id="delete-plugin-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Plugin</h2>
+      <div class="modal-body">
+        <p>
+          This will permanently delete the plugin: <b class="name"></b>.
+        </p>
+        <p>
+          Are you sure you want to delete <b class="name"></b>?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">No</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Yes, Delete</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+            <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
 
     <div class="show-for-small zebra">
       <a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>

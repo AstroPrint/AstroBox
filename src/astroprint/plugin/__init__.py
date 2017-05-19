@@ -9,6 +9,7 @@ import yaml
 import importlib
 import sys
 import zipfile
+import shutil
 
 from werkzeug.utils import secure_filename
 from tempfile import gettempdir
@@ -106,6 +107,14 @@ class Plugin(object):
 	def initialize(self):
 		pass
 
+	# Events: Implement if needed
+
+	#
+	# Called just before the plugin is to be removed
+	#
+	def onRemove(self):
+		pass
+
 
 #
 # Plugin Manager
@@ -159,19 +168,15 @@ class PluginManager(object):
 			os.unlink(savedFile)
 			return {'error':'incompatible_plugin', 'api_version': min_api_version}
 
+		plugin = self.getPlugin(definition['id'])
+		if plugin:
+			os.unlink(savedFile)
+			return {'error':'already_installed'}
+
 		response = {
 			'tmp_file': savedFile,
 			'definition': definition
 		}
-
-		#Check if the plugin is already installed
-		plugin = self.getPlugin(definition['id'])
-		if plugin:
-			if plugin.version == definition['version']:
-				response['warning'] = 'already_installed'
-			elif plugin.version > definition['version']:
-				response['warning'] = 'newer_installed'
-				response['version'] = plugin.version
 
 		return response
 
@@ -194,6 +199,29 @@ class PluginManager(object):
 			zip_ref.close()
 
 		return False
+
+	def removePlugin(self, pId):
+		plugin = self.getPlugin(pId)
+
+		if plugin:
+			#Tell the plugin
+			plugin.onRemove()
+
+			#remove from the internal structure
+			del self._plugins[pId]
+
+			#remove the files from its directory
+			userPluginsDir = settings().getBaseFolder('userPlugins')
+			shutil.rmtree( os.path.join(userPluginsDir, pId.replace('.','_')) )
+
+			#Tell all the listeners to the manager's [onPlugingRemoved] event
+
+			self._logger.info("Removed --> %s, version: %s" % (plugin.pluginId, plugin.version))
+
+			return {'removed': pId}
+
+		else:
+			return {'error': 'not_found'}
 
 	def loadPlugins(self):
 		userPluginsDir = settings().getBaseFolder('userPlugins')
@@ -256,7 +284,7 @@ class PluginManager(object):
 			self._logger.error("Failed to initialize %s" % pluginDir, exc_info= True)
 			return
 
-		self._logger.info("Loaded %s, version: %s" % (pluginId, instance.version))
+		self._logger.info("Loaded --> %s, version: %s" % (pluginId, instance.version))
 		self._plugins[pluginId] = instance
 		return instance
 
