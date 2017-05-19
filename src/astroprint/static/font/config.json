@@ -393,6 +393,12 @@
       "css": "usb",
       "code": 62087,
       "src": "fontawesome"
+    },
+    {
+      "uid": "d26795657ef6fb008bee4d54c358f7c8",
+      "css": "snow",
+      "code": 59433,
+      "src": "typicons"
     }
   ]
 }

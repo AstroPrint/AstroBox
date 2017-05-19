@@ -157,6 +157,11 @@
   </div>
 </div>
 
+
+<div id="temp-control-template" class="small-12 column">
+</div>
+
+
 {%- macro temp_control(class, label) %}
   <div class="temp-bar {{class}}">
     <h3 class="bold">Current Temp (&deg;C)</h3>
@@ -174,13 +179,13 @@
   </div>
 {%- endmacro %}
 
-<div class="row temperatures">
+<!--div class="row temperatures">
   <div class="small-12 columns">
     <h2 class="bold">Printer Temperature</h2>
     {{ temp_control('nozzle', 'Nozzle')}}
     {{ temp_control('bed', 'Bed')}}
   </div>
-</div>
+</div-->
 <div class="row">
   <div class="small-12 medium-4 columns" align="center">
     <div class="loading-button expand">
