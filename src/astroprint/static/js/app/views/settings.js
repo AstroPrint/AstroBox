@@ -1065,9 +1065,13 @@ var SoftwarePluginsView = SettingsPage.extend({
       plugins: this.pluginsInfo
     }));
   },
-  onPluginInstalled: function()
+  onPluginInstalled: function(data)
   {
     this.refeshPlugins();
+
+    if (data.definition.services.indexOf("printerComms") >= 0) {
+      this.cleanPrinterProfile();
+    }
   },
   onRemoveClicked: function(e)
   {
@@ -1079,6 +1083,10 @@ var SoftwarePluginsView = SettingsPage.extend({
 
     var row = $(e.currentTarget).closest('.row');
     this.deleteDlg.open(row.data('plugin-id'), row.data('plugin-name'));
+  },
+  cleanPrinterProfile: function()
+  {
+    this.parent.cleanPrinterProfile()
   }
 });
 
@@ -1138,7 +1146,6 @@ var PluginUploader = FileUploadBase.extend({
   },
   success: function(data)
   {
-    console.log(data.result);
     if (data.result.tmp_file) {
       $.ajax({
         url: API_BASEURL + 'settings/software/plugins/install',
@@ -1151,7 +1158,7 @@ var PluginUploader = FileUploadBase.extend({
       })
         .done(_.bind(function(){
           this.onPrintFileUploaded();
-          this.installedCallback();
+          this.installedCallback(data.result);
         }, this))
         .fail(_.bind(function(){
           this.onError('Unable to install plugin');
@@ -1227,9 +1234,13 @@ var DeletePluginDialog = Backbone.View.extend({
       dataType: 'json',
       data: JSON.stringify({id: this.id})
     })
-      .done(_.bind(function(){
+      .done(_.bind(function(data){
         this.parent.refeshPlugins();
         this.doClose();
+
+        if (data.services.indexOf('printerComms') >= 0) {
+          this.parent.cleanPrinterProfile();
+        }
       }, this))
       .fail(function(){
         loadingBtn.addClass('failed');
@@ -1597,7 +1608,8 @@ var SettingsView = Backbone.View.extend({
   el: '#settings-view',
   menu: null,
   subviews: null,
-  initialize: function() {
+  initialize: function()
+  {
     this.subviews = {
       'printer-connection': new PrinterConnectionView({parent: this}),
       'printer-profile': new PrinterProfileView({parent: this}),
@@ -1611,7 +1623,12 @@ var SettingsView = Backbone.View.extend({
     };
     this.menu = new SettingsMenu({subviews: this.subviews});
   },
-  onShow: function() {
+  onShow: function()
+  {
     this.subviews['printer-connection'].show();
+  },
+  cleanPrinterProfile: function()
+  {
+    this.subviews['printer-profile'].settings = null;
   }
 });

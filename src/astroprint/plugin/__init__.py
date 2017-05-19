@@ -84,6 +84,10 @@ class Plugin(object):
 	def verified(self):
 		return self._definition.get('verified', False)
 
+	@property
+	def services(self):
+		return self._definition['services']
+
 	#
 	# Directory path where the settings file (config.yaml) is stored
 	#
@@ -161,7 +165,6 @@ class PluginManager(object):
 					e(*params)
 				except Exception as e:
 					self._logger.error('Error in event Listener for [%s]' % event, exc_info=True)
-
 
 	def checkFile(self, file):
 		filename = file.filename
@@ -250,7 +253,7 @@ class PluginManager(object):
 
 			self._logger.info("Removed --> %s, version: %s" % (plugin.pluginId, plugin.version))
 
-			return {'removed': pId}
+			return {'removed': pId, 'services': plugin.services}
 
 		else:
 			return {'error': 'not_found'}
