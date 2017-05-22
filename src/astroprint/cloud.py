@@ -274,6 +274,13 @@ class AstroPrintCloud(object):
 		return json.dumps(self._print_file_store)
 
 	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
+		dm = downloadManager()
+
+		if dm.isDownloading(print_file_id):
+			#We just return, there's already a download for this file in process
+			#which means that the events will be issued for that one.
+			return True
+
 		fileManager = printerManager().fileManager
 
 		try:
@@ -327,7 +334,7 @@ class AstroPrintCloud(object):
 					self._print_file_store = None
 					successCb(pf, error)
 
-				downloadManager().startDownload({
+				dm.startDownload({
 					'downloadUrl': data["download_url"],
 					'destFile': destFile,
 					'printFileId': print_file_id,
