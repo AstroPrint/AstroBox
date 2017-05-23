@@ -1,0 +1,92 @@
+#temp-control-template{
+  .semi-circle-temps {
+    .temp-container {
+      position: relative;
+
+      .name {
+        background: #c5c5c5;
+      }
+
+      .circle-container{
+        margin-bottom: -135px;
+
+        .progress-temp-circle {
+          position: relative;
+          top: 15px;
+
+          .current {
+            position: relative;
+            top: -134px;
+            font-size: 38px;
+            font-weight: bold;
+            color: #f05251;
+            width: 50%;
+            margin: 0 auto;
+          }
+        }
+      }
+
+      .buttons-container {
+        position: relative;
+        top: 20px;
+
+        button.temp-off {
+          outline: 0;
+          background: #00bff3;
+          width: 38px;
+          height: 38px;
+          border-radius: 50px;
+          left: 15px;
+        }
+
+        i.icon-snow {
+          position: relative;
+          top: -5px;
+          font-size: 20px;
+          color: white;
+        }
+
+        .temp-target {
+          .label-target, .target-value {
+            color: #c5c5c5;
+          }
+          .target-value {
+            left: -10px;
+          }
+
+          .temp-edit {
+            outline: 0;
+            background: #333;
+            padding: 4px 10px;
+
+            i.icon-pencil {
+              font-size: 20px;
+              color: white;
+            }
+
+          }
+
+          input {
+            position: absolute;
+            right: 90px;
+            height: 38px;
+            width: 60px;
+          }
+        }
+      }
+
+      .target-selector {
+        width: 24px;
+        height: 5px;
+        border-radius: 24px;
+        background: #000;
+        position: relative;
+        top: -98px;
+        left: -80px;
+        transform-origin: 93px 2px;
+        transform: rotate(0deg);
+        transition:transform 2s;
+      }
+    }
+  }
+}

@@ -119,6 +119,9 @@
     </div>
   {% endif %}
 
+  <div id="semicircle-view" class="app-view hide"> {%- include 'widget.jinja2' -%} </div>
+
+
   {%- if not user_email -%} {% include 'login.jinja2' %} {%- endif -%}
 
   <div id="turnoff-view" class="app-view hide" data-fullscreen="1"> {%- include 'turnoff.jinja2' -%} </div>
@@ -156,8 +159,9 @@
     "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
     "js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
     "js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js", "js/lib/jquery.localtime.min.js",
+    "js/lib/slick.min.js",
     "js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/printerprofile.js",
-    "js/app/widgets/tempbarview.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
+    "js/app/widgets/tempbarview.js", "js/app/widgets/tempsemicircleview.js", "js/app/widgets/semicircleprogress.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
     "js/app/views/home.js", "js/app/views/files.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js",
     "js/app/views/turnoff.js", "js/app/views/reboot.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js", "js/app/views/supplies.js", "js/app/views/help.js",
     "js/app/router.js",

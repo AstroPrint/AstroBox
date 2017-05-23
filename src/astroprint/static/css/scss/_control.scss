@@ -165,63 +165,36 @@ html.no-printer {
 	}
 }
 
-#temp-control-template{
-  .semi-circle-temps {
-    .temp-container {
+
+#temp-control-template {
+  #extruders {
+
+    margin-bottom: -50px;
+
+    .slick-arrow {
+      font-size: 40px;
+      padding-bottom: -20px;
+    }
+
+    .slick-dots {
       position: relative;
-
-      .name {
-        background: grey;
+      top: -70px;
+      li button:before {
+        font-size: 30px;
       }
+    }
 
-      .circle-container{
-        margin-bottom: -160px;
+    z-index: 9999;
+    .icon-angle-left {
+      position: absolute;
+      margin-top: 75px;
+      margin-left: 25px;
+    }
 
-        .progress-temp-circle {
-          margin-top: 15px;
-
-          .current {
-            position: relative;
-            top: -134px;
-            font-size: 38px;
-            font-weight: bold;
-            color: #f05251;
-            width: 50%;
-            margin: 0 auto;
-          }
-        }
-      }
-
-      .buttons-container {
-        position: relative;
-        left: 50px;
-        margin-top: 20px;
-
-        i.icon-snow {
-          font-size: 25px;
-          color: $success-color;
-        }
-
-        input {
-          position: relative;
-          left: 2px;
-          height: 25px;
-          width: 45px;
-        }
-      }
-
-      .target-selector {
-        width: 24px;
-        height: 5px;
-        border-radius: 24px;
-        background: #000;
-        position: relative;
-        top: -98px;
-        left: -80px;
-        transform-origin: 93px 2px;
-        transform: rotate(0deg);
-        transition:transform 2s;
-      }
+    .icon-angle-right {
+      position: relative;
+      top: -130px;
+      right: -300px;
     }
   }
 }

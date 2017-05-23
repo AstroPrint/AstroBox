@@ -334,7 +334,235 @@ var PhotoView = CameraViewBase.extend({
   }
 });
 
+
 var PrintingView = Backbone.View.extend({
+el: '#printing-view',
+  events: {
+    'click button.stop-print': 'stopPrint',
+    'click button.pause-print': 'togglePausePrint',
+    'click button.controls': 'showControlPage',
+    'show': 'show',
+    'hide': 'onHide'
+  },
+  semiCircleTemp_views: {},
+  extruders_count: null,
+  photoView: null,
+  printing_progress: null,
+  paused: null,
+  cancelDialog: null,
+  initialize: function()
+  {
+    new SemiCircleProgress();
+
+    this.extruders_count = (app.printerProfile.toJSON()).extruder_count;
+
+    var semiCircleTemp = null;
+    this.$el.find('#temp-control-template').empty();
+
+    //extruders
+    for (var i = 0; i < this.extruders_count; i++) {
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
+      this.semiCircleTemp_views[i] = semiCircleTemp;
+
+      this.$el.find('#temp-control-template').append(this.semiCircleTemp_views[i].render().el);
+      this.semiCircleTemp_views[i].renderTemps(0, 0);
+    }
+    //bed
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.find('#temp-control-template').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+    this.semiCircleTemp_views[this.extruders_count].renderTemps(0, 0);
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      if (i == this.extruders_count) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
+      } else {
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+      }
+      //this.semiCircleTemp_views[i].drawSemiCircle();
+
+      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
+        value: 0,
+        arcCoef: 0.55,
+        size: 180,
+        thickness: 20,
+        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+      });
+    }
+
+
+    this.printing_progress = app.socketData.get('printing_progress');
+    this.paused = app.socketData.get('paused');
+
+    this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
+    this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
+    this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
+
+    this.photoView = new PhotoView({parent: this});
+  },
+  render: function()
+  {
+    //Progress data
+    var filenameNode = this.$('.progress .filename');
+
+    if (this.printing_progress) {
+      if (filenameNode.text() != this.printing_progress.printFileName) {
+        filenameNode.text(this.printing_progress.printFileName);
+      }
+
+      //progress bar
+      this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
+      this.$el.find('.progress .progress-label').text(this.printing_progress.percent+'%');
+
+      //time
+      var time = this._formatTime(this.printing_progress.time_left);
+      this.$el.find('.estimated-hours').text(time[0]);
+      this.$el.find('.estimated-minutes').text(time[1]);
+      this.$el.find('.estimated-seconds').text(time[2]);
+
+      //layers
+      this.$el.find('.current-layer').text(this.printing_progress.current_layer);
+      if (this.printing_progress.layer_count) {
+        this.$el.find('.layer-count').text(this.printing_progress.layer_count);
+      }
+
+      //heating up
+      if (this.printing_progress.heating_up) {
+        this.$el.addClass("heating-up");
+      } else {
+        this.$el.removeClass("heating-up");
+      }
+    }
+
+    //Paused state
+    var pauseBtn = this.$el.find('button.pause-print');
+    var controlBtn = this.$el.find('button.controls');
+
+    if (this.paused) {
+      pauseBtn.html('<i class="icon-play"></i> Resume Print');
+      controlBtn.show();
+    } else {
+      pauseBtn.html('<i class="icon-pause"></i> Pause Print');
+      controlBtn.hide();
+    }
+
+    var profile = app.printerProfile.toJSON();
+
+    //this.nozzleBar.setMax(profile.max_nozzle_temp);
+
+    if (profile.heated_bed) {
+      //this.bedBar.setMax(profile.max_bed_temp);
+
+      //this.$el.removeClass('hide');
+    } else {
+
+      //this.$el.addClass('hide');
+    }
+  },
+  onTempsChanged: function(s, value)
+  {
+    //if (!this.$el.hasClass('hide')) {
+      var temps = {};
+
+      for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
+        if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
+          temps = {'current': value.bed.actual, 'target': value.bed.target};
+        } else {
+          temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
+        }
+        (this.semiCircleTemp_views[i]).updateValues(temps);
+      }
+    //}
+  },
+  onProgressChanged: function(s, value)
+  {
+    this.printing_progress = value;
+    this.render();
+  },
+  onPausedChanged: function(s, value)
+  {
+    this.paused = value;
+    this.render();
+    this.photoView.render();
+  },
+  _formatTime: function(seconds)
+  {
+    if (seconds == null || isNaN(seconds)) {
+      return ['--','--','--'];
+    }
+
+    var sec_num = parseInt(seconds, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return [hours, minutes, seconds];
+  },
+  show: function()
+  {
+    /*for (var i = 0; i <= this.extruders_count; i++) {
+      this.semiCircleTemp_views[i].render();
+    }*/
+
+    this.printing_progress = app.socketData.get('printing_progress');
+    this.paused = app.socketData.get('paused');
+    this.render();
+    this.photoView.render();
+  },
+  onHide: function()
+  {
+    this.photoView.onPrintingHide();
+  },
+  stopPrint: function(e)
+  {
+    if (!this.cancelDialog) {
+      this.cancelDialog = new CancelPrintDialog({parent: this});
+    }
+
+    this.cancelDialog.open();
+  },
+  togglePausePrint: function(e)
+  {
+    var loadingBtn = $(e.target).closest('.loading-button');
+    var wasPaused = app.socketData.get('paused');
+
+    loadingBtn.addClass('loading');
+    this._jobCommand('pause', null, function(data){
+      if (data && _.has(data, 'error')) {
+        console.error(data.error);
+      } else {
+        app.socketData.set('paused', !wasPaused);
+      }
+      loadingBtn.removeClass('loading');
+    });
+  },
+  showControlPage: function()
+  {
+    app.router.navigate('control', {trigger: true, replace: true});
+    this.$el.addClass('hide');
+  },
+  _jobCommand: function(command, data, callback)
+  {
+    $.ajax({
+      url: API_BASEURL + "job",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(_.extend({command: command}, data))
+    }).
+    done(function(data){
+      if (callback) callback(data);
+    }).
+    fail(function(error) {
+      if (callback) callback({error:error.responseText});
+    });
+  }
+});
+
+var PrintingView0 = Backbone.View.extend({
   el: '#printing-view',
   events: {
     'click button.stop-print': 'stopPrint',
