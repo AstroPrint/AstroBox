@@ -168,8 +168,7 @@ html.no-printer {
 
 #temp-control-template {
   #extruders {
-
-    margin-bottom: -50px;
+      margin-bottom: -50px;
 
     .slick-arrow {
       font-size: 40px;
@@ -184,8 +183,8 @@ html.no-printer {
       }
     }
 
-    z-index: 9999;
     .icon-angle-left {
+      z-index: 9999;
       position: absolute;
       margin-top: 75px;
       margin-left: 25px;
@@ -200,6 +199,9 @@ html.no-printer {
 }
 
 #fan-control {
+
+  margin-top: 35px;
+
   .fan-control {
     text-align: center;
   }
