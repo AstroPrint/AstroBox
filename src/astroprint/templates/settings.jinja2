@@ -43,6 +43,10 @@
     <script type="text/template" id="printer-connection-settings-page-template">
       <div class="row">
         <div class="small-12">
+          <label class="bold">
+            Printer Communications Driver
+            <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+          </label>
           <label for="settings-serial-port" class="bold">
             USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
             <% if (settings.serial.portOptions.length > 0) { %>

@@ -8,7 +8,6 @@ from octoprint.server.api import api
 from octoprint.server import restricted_access
 
 from astroprint.printerprofile import printerProfileManager
-from astroprint.plugin import pluginManager
 
 @api.route('/printer-profile', methods=['PATCH', 'GET'])
 @restricted_access
@@ -28,18 +27,7 @@ def printer_profile_patch():
 
 	else:
 
-		plugins = pluginManager().getPluginsByService('printerComms')
-
-		result = {
+		return jsonify( {
 			'profile': ppm.data,
-			'choices': {
-				("plugin:%s" % k) : { 'name': plugins[k].definition['name'], 'properties': plugins[k].settingsProperties }
-			for k in plugins }
-		}
-
-		result['choices'].update({
-			'marlin': {'name': 'GCODE - Marlin / Repetier Firmware', 'properties': {'customCancelCommands': True}},
-			's3g': {'name': 'X3G - Sailfish / Makerbot Firmware',  'properties': {'customCancelCommands': False}}
-		})
-
-		return jsonify( result )
+			'choices': ppm.driverChoices()
+		} )

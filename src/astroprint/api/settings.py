@@ -14,6 +14,7 @@ from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.plugin import pluginManager
+from astroprint.printerprofile import printerProfileManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
@@ -34,8 +35,14 @@ def handlePrinterSettings():
 
 			s.save()
 
+	driverInfo = printerProfileManager().driverChoices().get(pm.driverName)
+	driverName = pm.driverName
+	if driverInfo:
+		driverName = driverInfo['name']
+
 	return jsonify({
 		"driver": pm.driverName,
+		"driverName": driverName,
 		"serial": {
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
