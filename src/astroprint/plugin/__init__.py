@@ -315,6 +315,10 @@ class PluginManager(object):
 			instance = plugin.__plugin_instance__
 			pluginId = instance.pluginId
 
+		except ImportError:
+			self._logger.warn("Directory [ %s ] doesn't contain a plugin" % pluginDir)
+			return
+
 		except Exception as e:
 			self._logger.error("Failed to initialize %s" % pluginDir, exc_info= True)
 			return
