@@ -17,9 +17,6 @@ def printer_profile_patch():
 	if request.method == "PATCH":
 		changes = request.json
 
-		if 'cancel_gcode' in changes:
-			changes['cancel_gcode'] = changes['cancel_gcode'].strip().split('\n');
-
 		ppm.set(changes)
 		ppm.save()
 
