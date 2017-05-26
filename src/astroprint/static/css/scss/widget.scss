@@ -1,13 +1,17 @@
 #temp-control-template{
+
   .semi-circle-temps {
     .temp-container {
-      position: relative;
-
+      /*position: relative;
+      width: 420px;
+      height: 220px;*/
       .name {
         background: #c5c5c5;
       }
 
       .circle-container{
+        /*width: 360px;
+        height: 250px;*/
         margin-bottom: -135px;
 
         .progress-temp-circle {
@@ -27,27 +31,36 @@
       }
 
       .buttons-container {
-        position: relative;
-        top: 20px;
+        /*width: 400px;
+        height: 50px;*/
+        //position: relative;
+        //top: 20px;
+        margin-top: 20px;
 
-        button.temp-off {
-          outline: 0;
-          background: #00bff3;
-          width: 38px;
-          height: 38px;
-          border-radius: 50px;
-          left: 15px;
+        .container-off {
+          left: -15px;
+          button.temp-off {
+            outline: 0;
+            background: #00bff3;
+            width: 38px;
+            height: 38px;
+            border-radius: 50px;
+            left: 15px;
+          }
+          i.icon-snow {
+            &:before {
+              position: relative;
+              top: -5px;
+              font-size: 20px;
+              color: white;
+            }
+          }
         }
-
-        i.icon-snow {
-          position: relative;
-          top: -5px;
-          font-size: 20px;
-          color: white;
-        }
-
         .temp-target {
+          right: -20px;
+
           .label-target, .target-value {
+            left: -10px;
             color: #c5c5c5;
           }
           .target-value {
@@ -55,22 +68,28 @@
           }
 
           .temp-edit {
+            width: 38px;
+            height: 38px;
+            left: 20px;
+
             outline: 0;
             border-radius: 3px;
             background: #333;
             padding: 4px 10px;
 
             i.icon-pencil {
-              font-size: 20px;
-              color: white;
-              position: relative;
-              left: -2px;
+              &:before {
+                font-size: 20px;
+                color: white;
+                position: relative;
+                left: -2px;
+              }
             }
           }
 
           input {
             position: absolute;
-            right: 90px;
+            right: 76px;
             height: 38px;
             width: 60px;
           }

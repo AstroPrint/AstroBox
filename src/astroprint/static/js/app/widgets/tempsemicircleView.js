@@ -33,11 +33,8 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   render: function ()
   {
-    //this.$el.empty();
-
-    this.$el.html(this.template({
-      type: this.el.id
-    }));
+    //this.$el.empty()
+    this.$el.html(this.template());
 
     if (this.type == 'bed') {
       if ((app.printerProfile.toJSON()).heated_bed) {
@@ -55,17 +52,6 @@ var TempSemiCircleView = Backbone.View.extend({
 
     return this;
   },
-  /*drawSemiCircle: function ()
-  {
-    console.log("drawSemiCircle", this);
-    $(".progress-temp-circle").circleProgress({
-      value: 0,
-      arcCoef: 0.55,
-      size: 180,
-      thickness: 20,
-      fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
-    });
-  },*/
   onTempFieldBlur: function(e)
   {
     var input = $(e.target);
@@ -178,14 +164,13 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.find('.target-value').html(Math.round(target)+'&deg;');
 
       if ( this.type == 'bed') {
-        ($("#"+ this.el.id).find('.target-selector')).css({
+        this.$el.find('.target-selector').css({
           transform:'rotate('+ (target *(198/app.printerProfile.get('max_bed_temp'))-9) +'deg)'});
 
       } else {
-        $("#"+ this.el.id).find('.target-selector').css({
+        this.$el.find('.target-selector').css({
           transform:'rotate('+ (target *(198/app.printerProfile.get('max_nozzle_temp'))-9) +'deg)'});
       }
-
     }
   },
   _sendToolCommand: function(command, type, temp, successCb, errorCb)
@@ -242,6 +227,5 @@ var TempSemiCircleView = Backbone.View.extend({
     setTimeout(function() {
       handle.css({transition: ''});
     }, 800);
-  },
-  drawSemiCircle: function (){}
+  }
 });

@@ -1,7 +1,7 @@
 <script type="text/template" id="semi-circle-template">
-  <div class="temp-container">
-    <div class="row">
-      <span class="name small-12 columns" align="center"></span>
+  <div class="temp-container row">
+    <span class="name small-12 columns" align="center"></span>
+    <div class="small-12 columns" align="center">
       <div class="row circle-container" align="center">
         <div class="progress-temp-circle">
           <div class="target-selector"></div>
@@ -13,10 +13,12 @@
           <button class="temp-off secondary small radius expand"><i class="icon-snow"></i></button>
         </div>
         <div class="small-8 columns temp-target radius bold">
-          <span class="small-3 columns label-target" align="left">Target </span>
-          <span class="small-3 columns target-value">- -</span>
-          <input type="number" class="hide" align="right"/>
-          <a class="small-2 columns temp-edit" align="right"><i class="icon-pencil"></i></a>
+          <div class="row">
+            <span class="small-3 columns label-target" align="center">Target </span>
+            <span class="small-2 columns target-value" align="left">- -</span>
+            <input type="number" class="hide" align="right"/>
+            <a class="small-3 columns temp-edit" align="right"><i class="icon-pencil"></i></a>
+          </div>
         </div>
       </div>
     </div>

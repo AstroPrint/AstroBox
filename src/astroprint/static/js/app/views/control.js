@@ -8,55 +8,113 @@ var TempView = Backbone.View.extend({
   el: '#temp-control-template',
   semiCircleTemp_views: {},
   extruders_count: null,
+  socketTemps: null,
+  heated_bed: null,
   initialize: function()
   {
     new SemiCircleProgress();
 
-    this.extruders_count = (app.printerProfile.toJSON()).extruder_count;
+    var profile = app.printerProfile.toJSON();
+    this.extruders_count = profile.extruder_count;
+    this.heated_bed = profile.heated_bed;
+  },
+  renderCircleTemps: function() {
+
+    this.$el.find('#extruders').empty();
+    if (this.heated_bed) {
+      this.$el.find('#bed').empty();
+    }
+
+    if (app.socketData.attributes.temps != this.socketTemps) {
+      this.socketTemps = app.socketData.attributes.temps;
+    }
+    var temps = null;
 
     var semiCircleTemp = null;
-    //this.$el.empty();
-
     //extruders
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
       this.$el.find('#extruders').append(this.semiCircleTemp_views[i].render().el);
-      this.semiCircleTemp_views[i].renderTemps(0, 0);
-    }
-    //bed
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
-    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-    this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
-    this.semiCircleTemp_views[this.extruders_count].renderTemps(0, 0);
 
-    for (var i = 0; i <= this.extruders_count; i++) {
-      if (i == this.extruders_count) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
-        console.log(this.semiCircleTemp_views[i].$el.find('.bed').find('.name').length);
+      if (this.socketTemps.lenght > 0) {
+        temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
       } else {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
-        console.log(this.semiCircleTemp_views[i].$el.find('.extruders').find('.name').length);
+        temps = {current: 0, target: 0};
       }
 
-      //this.semiCircleTemp_views[i].drawSemiCircle();
-      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
-        value: 0,
-        arcCoef: 0.55,
-        size: 180,
-        thickness: 20,
-        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+      this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
+    }
+
+    //bed
+    if (this.heated_bed) {
+      semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+      this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+      this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+
+      if (this.socketTemps.lenght > 0) {
+        temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
+      } else {
+        temps = {current: 0, target: 0};
+      }
+
+      this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
+    }
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      if ((i == this.extruders_count) && this.heated_bed) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
+      } else if ((i != this.extruders_count) || this.heated_bed) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+      }
+
+      if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
+        $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
+          value: temps.current,
+          arcCoef: 0.55,
+          size: 180,
+          thickness: 20,
+          fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+        });
+      }
+    }
+
+    /*if (this.slider == null) {
+      this.slider = this.$('#extruders0').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        dots: true,
+        adaptiveHeight: true
+      });
+    } else {
+      console.log("no hago nada");
+      //this.slider.slick("destroy");
+    }*/
+
+    if(this.extruders_count > 1) {
+      if(this.$('#extruders').hasClass('slick-initialized')) {
+        this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
+      }
+
+      this.$('#extruders').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        dots: true,
+        adaptiveHeight: true
       });
     }
 
-    this.$('#extruders').slick({
-      arrows: true,
-      prevArrow: '<i class="icon-angle-left"></i>',
-      nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: 1,
-      slidesToScroll: 1,
-      dots: true
-    });
+    if (this.socketTemps.length > 0){
+      this.updateTemps(this.socketTemps);
+    }
+
+
   },
   updateTemps: function(value) {
     var temps = {};

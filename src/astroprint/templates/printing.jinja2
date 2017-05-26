@@ -157,35 +157,11 @@
   </div>
 </div>
 
-
-<div id="temp-control-template" class="small-12 column">
+<div id="temp-control-template" class="row">
+  <div id="extruders" class="small-12 medium-8 column" align="left"></div>
+  <div id="bed" class="small-12 medium-4 column" align="right"></div>
 </div>
 
-
-{%- macro temp_control(class, label) %}
-  <div class="temp-bar {{class}}">
-    <h3 class="bold">Current Temp (&deg;C)</h3>
-    <label class="bold">{{label}}</label>
-    <div class="temp-curret-line">
-      <div class="triangle_left"></div>
-      <div class="triangle_right"></div>
-    </div>
-    <div class="temp-target bold">
-      <a class="temp-edit"><i class="icon-pencil"></i></a>
-      <span class="target-value">- -</span>
-      <input type="number" class="hide"/>
-    </div>
-    <div class="temp-current bold">--</div>
-  </div>
-{%- endmacro %}
-
-<!--div class="row temperatures">
-  <div class="small-12 columns">
-    <h2 class="bold">Printer Temperature</h2>
-    {{ temp_control('nozzle', 'Nozzle')}}
-    {{ temp_control('bed', 'Bed')}}
-  </div>
-</div-->
 <div class="row">
   <div class="small-12 medium-4 columns" align="center">
     <div class="loading-button expand">

@@ -168,6 +168,8 @@ html.no-printer {
 
 #temp-control-template {
   #extruders {
+      width: 300px;
+      height: 230px;
       margin-bottom: -50px;
 
     .slick-arrow {
@@ -183,25 +185,26 @@ html.no-printer {
       }
     }
 
-    .icon-angle-left {
+    /*.icon-angle-left {
       z-index: 9999;
       position: absolute;
-      margin-top: 75px;
-      margin-left: 25px;
+      margin-top: 40px;
+      margin-left: 18px;
+
     }
 
     .icon-angle-right {
       position: relative;
-      top: -130px;
-      right: -300px;
-    }
+      top: -152px;
+      right: -314px;
+    }*/
+  }
+  #bed {
+    margin-top: -4px;
   }
 }
 
 #fan-control {
-
-  margin-top: 35px;
-
   .fan-control {
     text-align: center;
   }

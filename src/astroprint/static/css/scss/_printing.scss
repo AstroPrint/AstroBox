@@ -218,6 +218,47 @@
     }
   }
 
+  #temp-control-template {
+    margin-bottom: 15px;
+
+    #extruders {
+        margin-bottom: -50px;
+
+      .slick-arrow {
+        font-size: 40px;
+        padding-bottom: -20px;
+      }
+
+      .slick-dots {
+        position: relative;
+        top: -70px;
+        li button:before {
+          font-size: 30px;
+        }
+      }
+
+      .icon-angle-left {
+        &:before {
+          z-index: 9999;
+          position: absolute;
+          margin-top: 75px;
+          margin-left: 25px;
+        }
+      }
+
+      .icon-angle-right {
+        &:before {
+          position: relative;
+          top: -130px;
+          right: -300px;
+        }
+      }
+    }
+    #bed {
+      margin-top: 0px;
+    }
+  }
+
   .temperatures {
     margin-bottom: 30px;
 

@@ -159,7 +159,7 @@ var AppRouter = Backbone.Router.extend({
 
         if (targetId == 'control-view') {
           console.log("router")
-          this.controlView.tempView.render();
+          this.controlView.tempView.renderCircleTemps();
         }
       }
 
