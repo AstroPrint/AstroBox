@@ -110,7 +110,7 @@
               <label for="settings-printer-driver" class="bold">
                 Driver
                 <select id="settings-printer-driver" name="driver">
-                  <% _.each(choices, function(p, k) { %>
+                  <% _.each(driverChoices, function(p, k) { %>
                     <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
                   <% }) %>
                 </select>
@@ -166,11 +166,11 @@
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
-              <div class="input-wrapper cancel-gcode<% if (!choices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
+              <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                 <label for="cancel-gcode" class="bold">
                   Cancel GCODE
                 </label>
-                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%=settings.cancel_gcode.join('\n')%></textarea>
+                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
               </div>
               <hr/>
               <div class="loading-button">

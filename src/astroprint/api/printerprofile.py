@@ -27,7 +27,7 @@ def printer_profile_patch():
 
 	else:
 
-		return jsonify( {
-			'profile': ppm.data,
-			'choices': ppm.driverChoices()
-		} )
+		result = ppm.data.copy()
+		result.update( {"driverChoices": ppm.driverChoices()} )
+
+		return jsonify( result )

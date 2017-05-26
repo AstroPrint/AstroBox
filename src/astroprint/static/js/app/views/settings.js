@@ -135,7 +135,7 @@ var PrinterProfileView = SettingsPage.extend({
   el: '#printer-profile',
   template: _.template( $("#printer-profile-settings-page-template").html() ),
   settings: null,
-  choices: [],
+  driverChoices: [],
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
@@ -156,8 +156,9 @@ var PrinterProfileView = SettingsPage.extend({
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
+        this.driverChoices = data.driverChoices;
+        delete data.driverChoices;
         this.settings.set(data.profile);
-        this.choices = data.choices;
         this.render(); // This removes the animate-spin from the link
       } else {
         noty({text: "No Profile found.", timeout: 3000});
@@ -170,7 +171,7 @@ var PrinterProfileView = SettingsPage.extend({
   render: function() {
     this.$el.html(this.template({
       settings: this.settings.toJSON(),
-      choices: this.choices
+      driverChoices: this.driverChoices
     }));
 
     this.$el.foundation('abide');

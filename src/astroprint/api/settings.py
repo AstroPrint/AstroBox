@@ -23,6 +23,7 @@ from octoprint.server.api import api
 def handlePrinterSettings():
 	s = settings()
 	pm = printerManager()
+	ppm = printerProfileManager()
 	connectionOptions = pm.getConnectionOptions()
 
 	if request.method == "POST":
@@ -35,13 +36,13 @@ def handlePrinterSettings():
 
 			s.save()
 
-	driverInfo = printerProfileManager().driverChoices().get(pm.driverName)
-	driverName = pm.driverName
+	driverName = ppm.data['driver']
+	driverInfo = ppm.driverChoices().get(driverName)
 	if driverInfo:
 		driverName = driverInfo['name']
 
 	return jsonify({
-		"driver": pm.driverName,
+		"driver": ppm.data['driver'],
 		"driverName": driverName,
 		"serial": {
 			"port": connectionOptions["portPreference"],
