@@ -324,6 +324,11 @@ class CommandsComms(TransportEvents):
 		self._printJob = None
 		self._sender = None
 
+		#This is used to make sure requests and responses and received in the proper order
+		#without this in some cases the response is dispatched to the listener before the
+		#command is acknoledged to be sent.
+		self._listenerTrafficCondition = threading.Condition()
+
 		if transport == 'serial':
 			from .transport.serial_t import SerialCommTransport
 			self._transport = SerialCommTransport(self)
@@ -429,13 +434,28 @@ class CommandsComms(TransportEvents):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 
 	#
+	# Sends next command in queue
+	#
+	def sendNextCommandInQueue(self):
+		if self._sender:
+			self._sender.sendNext()
+
+	#
+	# Indicates to the sender that it can send the next command it gets in the queue
+	#
+	def setReadytoSend(self):
+		if self._sender:
+			self._sender.setReadytoSend()
+
+	#
 	# write 'data' on the underlying link
 	#
 	def writeOnLink(self, data):
 		if data is not None:
-			self._transport.write(str(data))
-			self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
-			self._listener.onDataSent(data)
+			with self._listenerTrafficCondition:
+				self._transport.write(str(data))
+				self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
+				self._listener.onDataSent(data)
 
 	#
 	# Starts status poller
@@ -530,17 +550,18 @@ class CommandsComms(TransportEvents):
 	# ~~~~~~~~~~~~~~~~~
 
 	def onDataReceived(self, data):
-		data = data.strip()
-		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % data)
+		with self._listenerTrafficCondition:
+			data = data.strip()
+			self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % data)
 
-		try:
-			self._listener.onResponseReceived(data)
-		except:
-			self._logger.error('Error handling response.', exc_info= True)
+			try:
+				self._listener.onResponseReceived(data)
+			except:
+				self._logger.error('Error handling response.', exc_info= True)
 
-		if 'ok' in data:
-			if self._sender:
-				self._sender.sendNext()
+		#if 'ok' in data:
+		#	if self._sender:
+		#		self._sender.sendNext()
 
 	def onLinkError(self, error, description= None):
 		self._listener.onLinkError(error, description)
@@ -680,7 +701,7 @@ class CommandSender(threading.Thread):
 		self._comms = comms
 		self._commandQ = deque()
 		self._sendEvent = threading.Event()
-		self._readyToSend = False
+		self._readyToSend = True
 		self._storedCommands = None
 
 	def run(self):
@@ -735,6 +756,9 @@ class CommandSender(threading.Thread):
 		else:
 			self._readyToSend = True
 
+	def setReadytoSend(self):
+		self._readyToSend = True
+
 	def addCommand(self, command, sendNext= False):
 		if command is not None:
 			if command.onBeforeCommandAddToQueue() is not False:
@@ -746,7 +770,7 @@ class CommandSender(threading.Thread):
 				command.encode()
 				command.onCommandAddedToQueue()
 
-				if self._readyToSend or len(self._commandQ) == 1:
+				if self._readyToSend: #or len(self._commandQ) == 1:
 					self._sendEvent.set()
 					self._readyToSend = False
 

@@ -24,6 +24,7 @@ class UsbCommTransport(PrinterCommTransport):
 		self._receiveEP = None
 		self._linkReader = None
 		self._hasError = False
+		self._writeCondition = threading.Condition()
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -108,14 +109,16 @@ class UsbCommTransport(PrinterCommTransport):
 	def write(self, data):
 		if self._dev_handle:
 			try:
-				self._dev_handle.bulkWrite(self._sendEP, data)
-				return True
+				with self._writeCondition:
+					self._dev_handle.bulkWrite(self._sendEP, data)
+					return True
 
 			except usb1.USBErrorOther:
 				self._logger.warn('Unable to send: %r' % data)
 				return False
 
-			except ( usb1.USBErrorIO, usb1.USBErrorPipe, usb1.USBErrorNotFound):
+			except ( usb1.USBErrorIO, usb1.USBErrorPipe, usb1.USBErrorNotFound) as e:
+				self._logger.error("Exception [%s] sending data: %r" % (e, data))
 				self._hasError = True
 				self._eventListener.onLinkError('io_error', "Line seems down")
 				return False
@@ -152,8 +155,8 @@ class LinkReader(threading.Thread):
 	def run(self):
 		while not self._stopped:
 			try:
-				data = None
-				data = self._devHandle.bulkRead(self._receiveEP, 4096, timeout=2000)
+				#data = None
+				data = self._devHandle.bulkRead(self._receiveEP, 65536, timeout=2500) #64k buffer, 2.5 secs
 				data = data.decode('ascii').strip()
 
 			except usb1.USBErrorTimeout:
@@ -166,6 +169,7 @@ class LinkReader(threading.Thread):
 				return
 
 			except Exception as e:
+				self._transport._logger.error('Exception while reading from port: %s' % e)
 				data = None
 
 			if not self._stopped:
