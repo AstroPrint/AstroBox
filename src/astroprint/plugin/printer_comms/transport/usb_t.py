@@ -7,6 +7,8 @@ import usb1
 import logging
 import threading
 
+from Queue import Queue, Empty
+
 from . import PrinterCommTransport
 
 class UsbCommTransport(PrinterCommTransport):
@@ -22,9 +24,9 @@ class UsbCommTransport(PrinterCommTransport):
 		self._port_id = None
 		self._sendEP = None
 		self._receiveEP = None
-		#self._linkReader = None
+		self._linkReader = None
 		self._hasError = False
-		self._writeCondition = threading.Condition()
+		self._writeLock = threading.Lock()
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -77,8 +79,8 @@ class UsbCommTransport(PrinterCommTransport):
 					self._port_id = port_id
 					self._sendEP = sendEndpoint
 					self._receiveEP = receiveEndpoint
-					#self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
-					#self._linkReader.start()
+					self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
+					self._linkReader.start()
 					self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
 					self._eventListener.onLinkOpened()
 					return True
@@ -93,13 +95,13 @@ class UsbCommTransport(PrinterCommTransport):
 	#
 	def closeLink(self):
 		if self._dev_handle:
-			#self._linkReader.stop()
+			self._linkReader.stop()
 			self._dev_handle.close()
 			self._context.close()
 			self._dev_handle = None
 			self._context = None
 			self._port_id = None
-			#self._linkReader = None
+			self._linkReader = None
 
 			self._eventListener.onLinkClosed()
 			self._serialLoggerEnabled and self._serialLogger.debug("(X) Link Closed")
@@ -109,8 +111,10 @@ class UsbCommTransport(PrinterCommTransport):
 	def write(self, data):
 		if self._dev_handle:
 			try:
-				with self._writeCondition:
+				with self._writeLock:
+					#print "before writing"
 					self._dev_handle.bulkWrite(self._sendEP, data)
+					#print "raw write: %r" % data
 					return True
 
 			except usb1.USBErrorOther:
@@ -126,30 +130,6 @@ class UsbCommTransport(PrinterCommTransport):
 			except Exception:
 				self._logger.error("Error sending %r" % data, exc_info= True)
 				return False
-
-	def read(self):
-		try:
-			#data = None
-			data = self._dev_handle.bulkRead(self._receiveEP, 65536, timeout=2500) #64k buffer, 2.5 secs
-			data = data.decode('ascii').strip()
-
-		except usb1.USBErrorTimeout:
-			self._eventListener.onLinkInfo('read_timeout')
-			return self.read()
-
-		except usb1.USBErrorIO:
-			self._hasError = True
-			self._eventListener.onLinkError('io_error', "Line seems down")
-			data = None
-
-		except Exception as e:
-			self._logger.error('Exception while reading from port: %s' % e)
-			data = None
-
-		if data is None:
-			self._eventListener.onLinkError('invalid_link', "Line returned nothing")
-
-		return data
 
 	@property
 	def isLinkOpen(self):
@@ -167,7 +147,7 @@ class UsbCommTransport(PrinterCommTransport):
 # Class to read from serial port
 #
 
-'''class LinkReader(threading.Thread):
+class LinkReader(threading.Thread):
 	def __init__(self, devHandle, receiveEP, eventListener, transport):
 		super(LinkReader, self).__init__()
 		self._stopped = False
@@ -180,11 +160,13 @@ class UsbCommTransport(PrinterCommTransport):
 		while not self._stopped:
 			try:
 				#data = None
-				data = self._devHandle.bulkRead(self._receiveEP, 65536, timeout=2500) #64k buffer, 2.5 secs
-				data = data.decode('ascii').strip()
+				#print "before reading"
+				data = self._devHandle.bulkRead(self._receiveEP, 4096, timeout=3000) #3 secs
+				#print "Raw Read: %r" % data
 
 			except usb1.USBErrorTimeout:
-				self._eventListener.onLinkInfo('timeout')
+				#print "timeout"
+				self._eventListener.onLinkInfo('read_timeout')
 				continue
 
 			except usb1.USBErrorIO:
@@ -201,10 +183,7 @@ class UsbCommTransport(PrinterCommTransport):
 					self._eventListener.onLinkError('invalid_link', "Line returned nothing")
 					self.stop()
 				else:
-					for line in data.split('\r\n'):
-						self._eventListener.onDataReceived(line)
+					self._eventListener.onDataReceived(data)
 
 	def stop(self):
 		self._stopped = True
-'''
-

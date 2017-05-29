@@ -39,6 +39,7 @@ class CommsListener(object):
 
 	#
 	# Called when the link has an info message (for example read_timeout)
+	# You can't send from this function on the same thread or it will block the receiver
 	#
 	def onLinkInfo(self, info):
 		pass
@@ -214,6 +215,8 @@ class Command(object):
 		self._command = command
 		self._encoded = None
 		self._completed = False
+		self._received = False
+		self.isQueued = False
 
 	def __eq__(self, otherCmd):
 		return otherCmd == self._command
@@ -234,6 +237,10 @@ class Command(object):
 			self._encoded = self.doEncodeCommand()
 
 		return self._encoded
+
+	@property
+	def received(self):
+		return self._received
 
 	@property
 	def completed(self):
@@ -414,6 +421,20 @@ class CommandsComms(TransportEvents):
 		return self._sender.commandsInQueue if self._sender else 0
 
 	#
+	# Returns the last command that was sent
+	#
+	#@property
+	#def lastQueueCommandSent(self):
+	#	return self._sender.lastQueueCommandSent if self._sender else None
+
+	#
+	# Inidicates whether serial logs is enabled
+	#
+	@property
+	def serialLogEnabled(self):
+		return self._serialLoggerEnabled
+
+	#
 	# Add the commands to the send queue
 	#
 	def queueCommands(self, commands, sendNext= False):
@@ -474,18 +495,9 @@ class CommandsComms(TransportEvents):
 	def writeOnLink(self, data):
 		if data is not None:
 			#with self._listenerTrafficCondition:
-			self._transport.write(str(data))
-			self._serialLoggerEnabled and self._serialLogger.debug('S: %r' % data)
+			self._transport.write(data)
+			self._serialLoggerEnabled and self.writeToSerialLog('S: %r' % data)
 			self._listener.onDataSent(data)
-
-
-	#
-	# read and returns data on the underlying link
-	#
-	def readFromLink(self):
-		data = self._transport.read()
-		self._serialLoggerEnabled and self._serialLogger.debug('R: %r' % data)
-		return data
 
 	#
 	# Starts status poller
@@ -567,6 +579,12 @@ class CommandsComms(TransportEvents):
 		if self._printJob and self._sender:
 			self._sender.restoreCommands()
 
+	#
+	# Writes to serial logs if enabled
+	#
+	def writeToSerialLog(self, message):
+		self._serialLogger.debug(message)
+
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Events from Job Worker ~
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -593,12 +611,14 @@ class CommandsComms(TransportEvents):
 		#	if self._sender:
 		#		self._sender.sendNext()
 
-	#def onDataReceived(self, data):
-	#	try:
-	#		return self._listener.onResponseReceived(data)
-	#	except:
-	#		self._logger.error('Error handling response.', exc_info= True)
-	#		return None
+	def onDataReceived(self, data):
+		try:
+			responses = self._listener.onResponseReceived(data)
+			for r in responses:
+				if self._sender:
+					self._sender.onCommandResponse(r)
+		except:
+			self._logger.error('Error handling data received.', exc_info= True)
 
 	def onLinkError(self, error, description= None):
 		self._listener.onLinkError(error, description)
@@ -613,7 +633,7 @@ class CommandsComms(TransportEvents):
 
 	def onLinkInfo(self, info):
 		self._listener.onLinkInfo(info)
-		self._serialLoggerEnabled and self._serialLogger.debug(info)
+		self._serialLoggerEnabled and self.writeToSerialLog(info)
 
 
 #~~~~~~ Worker to read commands from file
@@ -741,7 +761,10 @@ class CommandSender(threading.Thread):
 		self._sendEvent = threading.Event()
 		self._readyToSend = True
 		self._storedCommands = None
-		self._responses = []
+		self._commandQLock = threading.Lock()
+		self._pendingCommandsLock = threading.Lock()
+		#self._lastQCommandSent = None
+		self._pendingCommands = []
 
 	def run(self):
 		while not self._stopped:
@@ -751,7 +774,8 @@ class CommandSender(threading.Thread):
 				command = None
 
 				try:
-					command = self._commandQ.pop()
+					with self._commandQLock:
+						command = self._commandQ.pop()
 
 				except IndexError:
 					self._sendEvent.clear()
@@ -763,9 +787,11 @@ class CommandSender(threading.Thread):
 
 					elif isinstance(command, Command):
 						self.sendCommand(command)
+						#self._lastQCommandSent = command
 
-						if len(self._commandQ) == 0:
-							self._sendEvent.clear()
+
+						#if len(self._commandQ) == 0:
+						self._sendEvent.clear()
 
 					else:
 						self._logger.warn("The following invalid command type was found in the queue: %r" % command)
@@ -773,39 +799,50 @@ class CommandSender(threading.Thread):
 	def sendCommand(self, command):
 		if command.onBeforeCommandSend() is not False:
 			try:
-				self._comms.writeOnLink(command.encodedCommand)
-				command.onCommandSent()
-				while not command.completed:
-					#response = self._comms.readFromLink()
-					response = self.readResponse()
-					if response is None:
-						break
+				with self._pendingCommandsLock:
+					self._comms.writeOnLink(command.encodedCommand)
+					self._pendingCommands.insert(0, command)
+					#print "%s added to pendingCommands " % command.gcode
 
-					command.onResponse(response)
+				command.onCommandSent()
+
+
+				#while not command.completed:
+					#response = self._comms.readFromLink()
+				#	response = self.readResponse()
+				#	if response is None:
+				#		break
+
+				#	command.onResponse(response)
 
 			except Exception as e:
 				self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
-	def readResponse(self):
-		if not len(self._responses):
-			data = self._comms.readFromLink()
-			if data:
-				self._responses = self._eventListener.onResponseReceived(data)
-				if self._responses is None:
-					return None
-			else:
-				return None
+	def onCommandResponse(self, data):
+		self._comms.serialLogEnabled and self._comms.writeToSerialLog('R: %r' % data)
 
-		return self._responses.pop(0)
+		if data:
+			data = data.decode('ascii').strip()
+			with self._pendingCommandsLock:
+				for c in self._pendingCommands:
+					if c.onResponse(data):
+						if c.completed:
+							self._pendingCommands.remove(c)
+
+							if c.isQueued:
+								self.sendNext()
+
+						break
 
 	def stop(self):
+		self._pendingCommands = []
 		self._sendEvent.set()
 		self._stopped = True
-		self._responses = []
 
 	def storeCommands(self):
-		self._storedCommands = list(self._commandQ)
-		self._commandQ.clear()
+		with self._commandQLock:
+			self._storedCommands = list(self._commandQ)
+			self._commandQ.clear()
 
 	def restoreCommands(self):
 		if self._storedCommands:
@@ -826,10 +863,13 @@ class CommandSender(threading.Thread):
 	def addCommand(self, command, sendNext= False):
 		if command is not None:
 			if command.onBeforeCommandAddToQueue() is not False:
-				if sendNext:
-					self._commandQ.append(command)
-				else:
-					self._commandQ.appendleft(command)
+				with self._commandQLock:
+					if sendNext:
+						self._commandQ.append(command)
+					else:
+						self._commandQ.appendleft(command)
+
+					command.isQueued = True
 
 				command.encode()
 				command.onCommandAddedToQueue()
@@ -843,8 +883,13 @@ class CommandSender(threading.Thread):
 			self.addCommand(command, sendNext)
 
 	def clearCommandQueue(self):
-		self._commandQ.clear()
+		with self._commandQLock:
+			self._commandQ.clear()
 
 	@property
 	def commandsInQueue(self):
 		return len(self._commandQ)
+
+	#@property
+	#def lastQueueCommandSent(self):
+	#	return self._lastQCommandSent
