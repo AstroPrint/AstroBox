@@ -79,7 +79,7 @@ class UsbCommTransport(PrinterCommTransport):
 					self._port_id = port_id
 					self._sendEP = sendEndpoint
 					self._receiveEP = receiveEndpoint
-					self._linkReader = LinkReader(self._dev_handle, receiveEndpoint, self._eventListener, self)
+					self._linkReader = LinkReader(self._dev_handle, self._context, receiveEndpoint, self._eventListener, self)
 					self._linkReader.start()
 					self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
 					self._eventListener.onLinkOpened()
@@ -96,6 +96,7 @@ class UsbCommTransport(PrinterCommTransport):
 	def closeLink(self):
 		if self._dev_handle:
 			self._linkReader.stop()
+			self._dev_handle.releaseInterface(0)
 			self._dev_handle.close()
 			self._context.close()
 			self._dev_handle = None
@@ -147,7 +148,7 @@ class UsbCommTransport(PrinterCommTransport):
 # Class to read from serial port
 #
 
-class LinkReader(threading.Thread):
+'''class LinkReader(threading.Thread):
 	def __init__(self, devHandle, receiveEP, eventListener, transport):
 		super(LinkReader, self).__init__()
 		self._stopped = False
@@ -186,4 +187,59 @@ class LinkReader(threading.Thread):
 					self._eventListener.onDataReceived(data)
 
 	def stop(self):
+		self._stopped = True'''
+
+
+class LinkReader(threading.Thread):
+	def __init__(self, devHandle, context, receiveEP, eventListener, transport):
+		super(LinkReader, self).__init__()
+		self._stopped = False
+		self._eventListener = eventListener
+		self._devHandle = devHandle
+		self._receiveEP = receiveEP
+		self._transport = transport
+		self._context = context
+		self._transferList = []
+
+	def run(self):
+		for _ in xrange(2):
+			transfer = self._devHandle.getTransfer()
+			transfer.setBulk(
+				self._receiveEP,
+				4096,
+				callback=self.processReceivedData,
+			)
+			transfer.submit()
+			self._transferList.append(transfer)
+
+		while any(x.isSubmitted() for x in self._transferList) and not self._stopped:
+			try:
+				self._context.handleEvents()
+			except usb1.USBErrorInterrupted:
+				pass
+
+	def processReceivedData(self, transfer):
+		status = transfer.getStatus()
+		if status == usb1.TRANSFER_COMPLETED:
+			data = transfer.getBuffer()[:transfer.getActualLength()]
+			self._eventListener.onDataReceived(data)
+			transfer.submit()
+		elif status == usb1.TRANSFER_TIMED_OUT:
+			self._eventListener.onLinkInfo('read_timeout')
+			transfer.submit()
+		else:
+			print "status: %r" % status
+			return
+
+	def stop(self):
 		self._stopped = True
+
+		for x in self._transferList:
+			if x.isSubmitted():
+				try:
+					x.cancel()
+				except usb1.USBErrorNotFound:
+					pass
+
+		self.join()
+

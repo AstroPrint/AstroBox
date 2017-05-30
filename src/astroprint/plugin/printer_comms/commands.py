@@ -612,6 +612,8 @@ class CommandsComms(TransportEvents):
 		#		self._sender.sendNext()
 
 	def onDataReceived(self, data):
+		self._serialLoggerEnabled and self.writeToSerialLog('R: %r' % data)
+
 		try:
 			responses = self._listener.onResponseReceived(data)
 			for r in responses:
@@ -798,8 +800,9 @@ class CommandSender(threading.Thread):
 	def sendCommand(self, command):
 		if command.onBeforeCommandSend() is not False:
 			try:
-				self._pendingCommands.append(command)
 				self._comms.writeOnLink(command.encodedCommand)
+				self._pendingCommands.appendleft(command)
+
 				#print "%s added to pendingCommands " % command.gcode
 
 				command.onCommandSent()
@@ -814,14 +817,14 @@ class CommandSender(threading.Thread):
 				#	command.onResponse(response)
 
 			except Exception as e:
-				self._pendingCommands.remove(command)
+				#self._pendingCommands.popleft()
 				self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
 	def onCommandResponse(self, data):
-		self._comms.serialLogEnabled and self._comms.writeToSerialLog('R: %r' % data)
 
 		if data:
 			data = data.decode('ascii').strip()
+
 			for c in self._pendingCommands:
 				if c.onResponse(data):
 					if c.completed:
@@ -832,8 +835,9 @@ class CommandSender(threading.Thread):
 
 					break
 
+
 	def stop(self):
-		self._pendingCommands = []
+		self._pendingCommands.clear()
 		self._sendEvent.set()
 		self._stopped = True
 
@@ -880,6 +884,7 @@ class CommandSender(threading.Thread):
 
 	def clearCommandQueue(self):
 		self._commandQ.clear()
+		self._pendingCommands.clear()
 
 	@property
 	def commandsInQueue(self):
