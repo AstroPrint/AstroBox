@@ -689,9 +689,9 @@ class JobWorker(threading.Thread):
 	def stop(self):
 		if not self._stopped:
 			self._stopped = True
+			self._readEvent.set()
 			self._fileHandler.close()
 			self._fileHandler = None
-			self._readEvent.set()
 
 	def start(self):
 		#open the file
@@ -761,10 +761,10 @@ class CommandSender(threading.Thread):
 		self._sendEvent = threading.Event()
 		self._readyToSend = True
 		self._storedCommands = None
-		self._commandQLock = threading.Lock()
-		self._pendingCommandsLock = threading.Lock()
+		#self._commandQLock = threading.Lock()
+		#self._pendingCommandsLock = threading.Lock()
 		#self._lastQCommandSent = None
-		self._pendingCommands = []
+		self._pendingCommands = deque()
 
 	def run(self):
 		while not self._stopped:
@@ -774,8 +774,7 @@ class CommandSender(threading.Thread):
 				command = None
 
 				try:
-					with self._commandQLock:
-						command = self._commandQ.pop()
+					command = self._commandQ.pop()
 
 				except IndexError:
 					self._sendEvent.clear()
@@ -799,10 +798,9 @@ class CommandSender(threading.Thread):
 	def sendCommand(self, command):
 		if command.onBeforeCommandSend() is not False:
 			try:
-				with self._pendingCommandsLock:
-					self._comms.writeOnLink(command.encodedCommand)
-					self._pendingCommands.insert(0, command)
-					#print "%s added to pendingCommands " % command.gcode
+				self._pendingCommands.append(command)
+				self._comms.writeOnLink(command.encodedCommand)
+				#print "%s added to pendingCommands " % command.gcode
 
 				command.onCommandSent()
 
@@ -816,6 +814,7 @@ class CommandSender(threading.Thread):
 				#	command.onResponse(response)
 
 			except Exception as e:
+				self._pendingCommands.remove(command)
 				self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
 
 	def onCommandResponse(self, data):
@@ -823,16 +822,15 @@ class CommandSender(threading.Thread):
 
 		if data:
 			data = data.decode('ascii').strip()
-			with self._pendingCommandsLock:
-				for c in self._pendingCommands:
-					if c.onResponse(data):
-						if c.completed:
-							self._pendingCommands.remove(c)
+			for c in self._pendingCommands:
+				if c.onResponse(data):
+					if c.completed:
+						self._pendingCommands.remove(c)
 
-							if c.isQueued:
-								self.sendNext()
+						if c.isQueued:
+							self.sendNext()
 
-						break
+					break
 
 	def stop(self):
 		self._pendingCommands = []
@@ -840,9 +838,8 @@ class CommandSender(threading.Thread):
 		self._stopped = True
 
 	def storeCommands(self):
-		with self._commandQLock:
-			self._storedCommands = list(self._commandQ)
-			self._commandQ.clear()
+		self._storedCommands = list(self._commandQ)
+		self._commandQ.clear()
 
 	def restoreCommands(self):
 		if self._storedCommands:
@@ -863,11 +860,10 @@ class CommandSender(threading.Thread):
 	def addCommand(self, command, sendNext= False):
 		if command is not None:
 			if command.onBeforeCommandAddToQueue() is not False:
-				with self._commandQLock:
-					if sendNext:
-						self._commandQ.append(command)
-					else:
-						self._commandQ.appendleft(command)
+				if sendNext:
+					self._commandQ.append(command)
+				else:
+					self._commandQ.appendleft(command)
 
 					command.isQueued = True
 
@@ -883,8 +879,7 @@ class CommandSender(threading.Thread):
 			self.addCommand(command, sendNext)
 
 	def clearCommandQueue(self):
-		with self._commandQLock:
-			self._commandQ.clear()
+		self._commandQ.clear()
 
 	@property
 	def commandsInQueue(self):

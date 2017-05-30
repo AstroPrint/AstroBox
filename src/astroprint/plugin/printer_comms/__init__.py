@@ -431,12 +431,13 @@ class PrinterCommsService(CommandPluginInterface):
 	# Report print job completed
 	#
 	def reportPrintJobCompleted(self):
+		self.disableMotorsAndHeater()
+
 		currentFile = self._printerManager.selectedFile
 		printTime = self._printerManager.getPrintTime()
 		currentLayer = self._printerManager.getCurrentLayer()
 
 		self._printerManager.mcPrintjobDone()
-		self.disableMotorsAndHeater()
 
 		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 

@@ -122,6 +122,8 @@ class PrinterWithPlugin(Printer):
 		self._plugin.startPrint()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
+		self._plugin.executeCancelCommands(disableMotorsAndHeater)
+
 		if self._currentFile is not None:
 			eventManager().fire(Events.PRINT_CANCELLED, {
 				"file": self._currentFile["filename"],
@@ -140,7 +142,6 @@ class PrinterWithPlugin(Printer):
 
 			eventManager().fire(Events.PRINT_FAILED, payload)
 
-			self._plugin.executeCancelCommands(disableMotorsAndHeater)
 
 	def printJobCancelled(self):
 		# reset progress, height, print time
