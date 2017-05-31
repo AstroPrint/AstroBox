@@ -806,9 +806,7 @@ class CommandSender(threading.Thread):
 
 	def restoreCommands(self):
 		if self._storedCommands:
-			for c in self._storedCommands:
-				self._commandQ.appendleft(c)
-
+			self._commandQ.extend(self._storedCommands)
 			self._storedCommands = None
 
 	def sendNext(self):

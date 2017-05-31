@@ -4,6 +4,7 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import usb1
+import libusb1
 import logging
 import threading
 
@@ -96,9 +97,15 @@ class UsbCommTransport(PrinterCommTransport):
 	def closeLink(self):
 		if self._dev_handle:
 			self._linkReader.stop()
-			self._dev_handle.releaseInterface(0)
-			self._dev_handle.close()
-			self._context.close()
+
+			try:
+				self._dev_handle.releaseInterface(0)
+			except ( usb1.USBErrorNoDevice, usb1.USBErrorNotFound):
+				pass
+
+			#self._context.close()
+			#self._dev_handle.close()
+
 			self._dev_handle = None
 			self._context = None
 			self._port_id = None
@@ -120,7 +127,7 @@ class UsbCommTransport(PrinterCommTransport):
 				self._eventListener.onLinkInfo('write_timeout')
 				transfer.submit()
 			else:
-				self._eventListener.onLinkError('usb_error', status.name)
+				self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
 
 		if self._dev_handle:
 			transfer = self._dev_handle.getTransfer()
@@ -185,8 +192,8 @@ class LinkReader(threading.Thread):
 		elif status == usb1.TRANSFER_TIMED_OUT:
 			self._eventListener.onLinkInfo('read_timeout')
 			transfer.submit()
-		else:
-			self._eventListener.onLinkError('usb_error', status.name)
+		elif not self._stopped:
+			self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
 
 	def stop(self):
 		self._stopped = True
@@ -195,8 +202,5 @@ class LinkReader(threading.Thread):
 			if x.isSubmitted():
 				try:
 					x.cancel()
-				except usb1.USBErrorNotFound:
+				except ( usb1.USBErrorNotFound, usb1.USBErrorNoDevice ):
 					pass
-
-		self.join()
-
