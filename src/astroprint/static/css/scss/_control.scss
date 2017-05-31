@@ -167,10 +167,13 @@ html.no-printer {
 
 
 #temp-control-template {
+  .progress-temp-circle {
+    left: 2%;
+  }
+
   #extruders {
-      width: 300px;
-      height: 230px;
-      margin-bottom: -50px;
+    height: 245px;
+    margin-bottom: 0px;
 
     .slick-arrow {
       font-size: 40px;
@@ -185,22 +188,24 @@ html.no-printer {
       }
     }
 
-    /*.icon-angle-left {
+    .icon-angle-left {
       z-index: 9999;
       position: absolute;
-      margin-top: 40px;
-      margin-left: 18px;
+      top: 39%;
+      left: 5%;
+      //margin-top: 40px;
+      //margin-left: 18px;
 
     }
 
     .icon-angle-right {
       position: relative;
-      top: -152px;
-      right: -314px;
-    }*/
+      top: -124px;
+      right: -85%;
+    }
   }
   #bed {
-    margin-top: -4px;
+    height: 220px;
   }
 }
 

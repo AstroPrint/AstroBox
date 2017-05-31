@@ -20,20 +20,17 @@ var TempSemiCircleView = Backbone.View.extend({
     this.enableOff = params.enableOff;
 
     if (tool != null) {
-      //this.$el.addClass('small-12 medium-6 columns');
       this.type = 'tool';
       this.$el.attr('id', 'tool'+tool);
 
     } else {
-      this.$el.addClass('small-12 medium-12 columns');
-
       this.type = 'bed';
       this.$el.attr('id', 'bed');
     }
   },
   render: function ()
   {
-    //this.$el.empty()
+    //this.$el.empty();
     this.$el.html(this.template());
 
     if (this.type == 'bed') {
@@ -44,25 +41,20 @@ var TempSemiCircleView = Backbone.View.extend({
       }
     }
 
-    if (this.enableOff) {
-      this.$el.find('.container-off').removeClass('hide');
-    } else {
-      this.$el.find('.container-off').addClass('hide');
-    }
-
+    this.enableTurnOff(this.enableOff);
     return this;
   },
   onTempFieldBlur: function(e)
   {
     var input = $(e.target);
 
-    input.addClass('hide');
+    //input.addClass('hide');
     input.closest('.temp-target').find('a.temp-edit').removeClass('hide');
 
   },
   updateValues: function (temps)
   {
-    if (temps.current != this.actual) {
+    if (this.$(".progress-temp-circle").length && temps.current) {
       if (this.type == 'bed') {
         this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_bed_temp')) * 100) / 100 );
       } else {
@@ -85,7 +77,6 @@ var TempSemiCircleView = Backbone.View.extend({
 
       this.target = temps.target;
       this.actual = temps.current;
-      //this.renderTemps(temps.current, temps.target);
       this.setTemps(temps.current, temps.target);
     }
   },
@@ -227,5 +218,13 @@ var TempSemiCircleView = Backbone.View.extend({
     setTimeout(function() {
       handle.css({transition: ''});
     }, 800);
+  },
+  enableTurnOff: function(value)
+  {
+    if (value) {
+      this.$el.find('.container-off').removeClass('hide');
+    } else {
+      this.$el.find('.container-off').addClass('hide');
+    }
   }
 });

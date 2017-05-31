@@ -2,16 +2,16 @@
 
   .semi-circle-temps {
     .temp-container {
-      /*position: relative;
-      width: 420px;
-      height: 220px;*/
+      position: relative;
+      //width: 320px;
+      height: 220px;
       .name {
         background: #c5c5c5;
       }
 
       .circle-container{
-        /*width: 360px;
-        height: 250px;*/
+        max-width: 360px;
+        height: 250px;
         margin-bottom: -135px;
 
         .progress-temp-circle {
@@ -31,10 +31,8 @@
       }
 
       .buttons-container {
-        /*width: 400px;
-        height: 50px;*/
-        //position: relative;
-        //top: 20px;
+        max-width: 360px;
+        height: 50px;
         margin-top: 20px;
 
         .container-off {
@@ -89,7 +87,7 @@
 
           input {
             position: absolute;
-            right: 76px;
+            right: 60px;
             height: 38px;
             width: 60px;
           }

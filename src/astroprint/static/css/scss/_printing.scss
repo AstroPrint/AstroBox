@@ -222,7 +222,9 @@
     margin-bottom: 15px;
 
     #extruders {
-        margin-bottom: -50px;
+      //margin-bottom: -50px;
+      height: 245px;
+      margin-bottom: 0px;
 
       .slick-arrow {
         font-size: 40px;
@@ -238,24 +240,20 @@
       }
 
       .icon-angle-left {
-        &:before {
-          z-index: 9999;
-          position: absolute;
-          margin-top: 75px;
-          margin-left: 25px;
-        }
+        z-index: 9999;
+        position: absolute;
+        top: 39%;
+        left: 2%;
       }
 
       .icon-angle-right {
-        &:before {
-          position: relative;
-          top: -130px;
-          right: -300px;
-        }
+        position: relative;
+        //top: -124px;
+        right: -45%;
       }
     }
     #bed {
-      margin-top: 0px;
+      height: 245px;
     }
   }
 

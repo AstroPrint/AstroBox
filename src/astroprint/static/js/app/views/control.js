@@ -7,6 +7,7 @@ var TempView = Backbone.View.extend({
   className: 'control-temps small-12 columns',
   el: '#temp-control-template',
   semiCircleTemp_views: {},
+  extrudersSlide: null,
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
@@ -17,13 +18,10 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-  },
-  renderCircleTemps: function() {
+    console.log("initialize CONTROLjs")
+    this.renderCircleTemps();
 
-    this.$el.find('#extruders').empty();
-    if (this.heated_bed) {
-      this.$el.find('#bed').empty();
-    }
+    /*console.log("initialize TEMPVIEW")
 
     if (app.socketData.attributes.temps != this.socketTemps) {
       this.socketTemps = app.socketData.attributes.temps;
@@ -79,21 +77,6 @@ var TempView = Backbone.View.extend({
       }
     }
 
-    /*if (this.slider == null) {
-      this.slider = this.$('#extruders0').slick({
-        arrows: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        dots: true,
-        adaptiveHeight: true
-      });
-    } else {
-      console.log("no hago nada");
-      //this.slider.slick("destroy");
-    }*/
-
     if(this.extruders_count > 1) {
       if(this.$('#extruders').hasClass('slick-initialized')) {
         this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
@@ -112,6 +95,106 @@ var TempView = Backbone.View.extend({
 
     if (this.socketTemps.length > 0){
       this.updateTemps(this.socketTemps);
+    }*/
+
+  },
+  renderCircleTemps: function() {
+
+        console.log("renderCircleTemps");
+
+    /*this.$el.find('#extruders').empty();
+    if (this.heated_bed) {
+      this.$el.find('#bed').empty();
+    }*/
+
+    if (app.socketData.attributes.temps != this.socketTemps) {
+      this.socketTemps = app.socketData.attributes.temps;
+    }
+    var temps = null;
+
+    var semiCircleTemp = null;
+    //extruders
+    for (var i = 0; i < this.extruders_count; i++) {
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
+      this.semiCircleTemp_views[i] = semiCircleTemp;
+      this.$el.find('#extruders').append(this.semiCircleTemp_views[i].render().el);
+
+      if (this.socketTemps.lenght > 0) {
+        temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
+      } else {
+        temps = {current: 0, target: 0};
+      }
+
+      this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
+    }
+
+    //bed
+    if (this.heated_bed) {
+      semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+      this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+      this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+
+      if (this.socketTemps.lenght > 0) {
+        temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
+      } else {
+        temps = {current: 0, target: 0};
+      }
+
+      this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
+    }
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      if ((i == this.extruders_count) && this.heated_bed) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
+      } else if ((i != this.extruders_count) || this.heated_bed) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+      }
+
+      if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
+        $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
+          value: temps.current,
+          arcCoef: 0.55,
+          size: 180,
+          thickness: 20,
+          fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+        });
+      }
+    }
+
+    /*if(this.extruders_count > 1) {
+      if(this.$('#extruders').hasClass('slick-initialized')) {
+        this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
+      }
+
+      this.$('#extruders').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        dots: true,
+        adaptiveHeight: true
+      });
+    }*/
+
+    if (this.$('#extruders').hasClass('slick-initialized')) {
+      console.log("antes del unslick")
+      this.extrudersSlide.slick('getSlick').unslick();
+    }/* else {
+      console.log("primera vez")*/
+      this.extrudersSlide = this.$('#extruders').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        dots: true,
+        adaptiveHeight: true
+      });
+    //}
+
+    if (this.socketTemps.length > 0){
+      this.updateTemps(this.socketTemps);
     }
 
 
@@ -126,6 +209,54 @@ var TempView = Backbone.View.extend({
         temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
       }
       (this.semiCircleTemp_views[i]).updateValues(temps);
+    }
+  },
+  show: function()
+  {
+    console.log("entro en show")
+    if ( Object.keys(this.semiCircleTemp_views).length ) {
+      var socketTemps = app.socketData.attributes.temps;
+
+      for (var i = 0; i <= this.extruders_count; i++) {
+        if (i != this.extruders_count) {
+          if (_.has(socketTemps, 'extruders')) {
+            temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
+          } else {
+            temps = {current: 0, target: 0};
+          }
+        } else {
+          if (i == this.extruders_count) {
+            if (_.has(socketTemps, 'bed')) {
+              temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
+            } else {
+              temps = {current: 0, target: 0};
+            }
+          }
+        }
+
+        if ($("#control-view").hasClass('print-paused')) {
+          this.semiCircleTemp_views[i].enableTurnOff(false);
+        } else {
+          this.semiCircleTemp_views[i].enableTurnOff(true);
+        }
+
+        this.semiCircleTemp_views[i].updateValues(temps);
+      }
+
+      if (this.$('#extruders').hasClass('slick-initialized')) {
+        console.log("antes del unslick")
+        this.extrudersSlide.slick('getSlick').unslick();
+      }
+      this.extrudersSlide = this.$('#extruders').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: 1,
+        slidesToScroll: 1,
+        dots: true,
+        adaptiveHeight: true
+      });
+
     }
   }
 });
@@ -435,7 +566,8 @@ var ControlView = Backbone.View.extend({
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
-    this.tempView.render();
+    console.log("desde render")
+    //this.tempView.show();
   },
   resumePrinting: function(e)
   {

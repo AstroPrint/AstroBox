@@ -3,116 +3,6 @@
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
-
- var TempBarHorizontalView = TempBarView.extend({
-  containerDimensions: null,
-  scale: null,
-  type: null,
-  dragging: false,
-  lastSent: null,
-  events: _.extend(TempBarView.prototype.events, {
-    'click': 'onClicked'
-  }),
-  setHandle: function(value)
-  {
-    if (!this.dragging) {
-      var position = this._temp2px(value);
-      var handle = this.$el.find('.temp-target');
-
-      handle.find('span.target-value').text(value);
-      handle.css({transition: 'left 0.5s'});
-      handle.css({left: position + 'px'});
-      setTimeout(function() {
-        handle.css({transition: ''});
-      }, 800);
-    }
-  },
-  onTouchMove: function(e)
-  {
-    if (this.dragging) {
-      e.preventDefault();
-      e.stopPropagation();
-
-      var target = this.$('.temp-target');
-
-      if (e.type == 'mousemove') {
-        var pageX = e.originalEvent.pageX;
-      } else {
-        var pageX = e.originalEvent.changedTouches[0].clientX;
-      }
-
-      var newLeft = pageX - this.containerDimensions.left - target.innerWidth()/2.0;
-      newLeft = Math.min(Math.max(newLeft, this.containerDimensions.minLeft), this.containerDimensions.maxLeft );
-
-      target.find('span.target-value').text(this._px2temp(newLeft));
-      target.css({left: newLeft+'px'});
-    }
-  },
-  onClicked: function(e)
-  {
-    e.preventDefault();
-
-    var target = this.$el.find('.temp-target');
-
-    var newLeft = e.pageX - this.containerDimensions.left - target.innerWidth()/2.0;
-    newLeft = Math.min(Math.max(newLeft, this.containerDimensions.minLeft), this.containerDimensions.maxLeft);
-
-    var temp = this._px2temp(newLeft);
-
-    this.setHandle(temp);
-    this._sendToolCommand('target', this.type, temp);
-  },
-  onResize: function()
-  {
-    var container = this.$el;
-    var handle = container.find('.temp-target');
-    var currentLine = container.find('.temp-curret-line');
-    var currentLabel = container.find('.temp-current');
-    var label = container.find('label');
-
-    var width = container.width();
-    var maxLeft = currentLabel.position().left - handle.innerWidth();
-    var minLeft = label.innerWidth();
-
-    this.containerDimensions = {
-      left: container.offset().left,
-      width: width,
-      maxLeft: maxLeft,
-      minLeft: minLeft,
-      px4degree: (maxLeft - minLeft) / (this.scale[1] - this.scale[0])
-    };
-
-    handle.css({left: this._temp2px(this.actual) + 'px'});
-    currentLine.css({left: ( this._temp2px(this.actual) + handle.innerWidth()/2.0 )+'px'});
-  },
-  renderTemps: function(actual, target)
-  {
-    var handle = this.$el.find('.temp-target');
-    var handleWidth = handle.innerWidth();
-
-    if (target !== null) {
-      if (target != handle.find('span.target-value').text()) {
-        this.setHandle(Math.min(Math.round(target), this.scale[1]));
-      }
-    }
-
-    if (actual !== null) {
-      this.$el.find('.temp-current').html(Math.round(actual)+'&deg;');
-      this.$el.find('.temp-curret-line').css({left: ( this._temp2px(actual) + handleWidth/2.0 )+'px'});
-    }
-  },
-  _temp2px: function(temp)
-  {
-    var px = temp * this.containerDimensions.px4degree;
-
-    return this.containerDimensions.minLeft + px;
-  },
-  _px2temp: function(px)
-  {
-    return Math.round( ( (px - this.containerDimensions.minLeft) / this.containerDimensions.px4degree ) );
-  }
-});
-
 var PhotoView = CameraViewBase.extend({
   el: "#printing-view .camera-view",
   template: _.template( this.$("#photo-printing-template").html()),
@@ -345,6 +235,7 @@ el: '#printing-view',
     'hide': 'onHide'
   },
   semiCircleTemp_views: {},
+  extrudersSlide: null,
   extruders_count: null,
   heated_bed: null,
   slidesToShow: 1,
@@ -358,58 +249,24 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
-    if (this.extruder_count > 3) {
-      this.slidesToShow = 3;
+
+    if (this.extruders_count > 2) {
+      this.slidesToShow = 2;
     } else {
-      this.slidesToShow = this.extruder_count;
+      this.slidesToShow = this.extruders_count;
     }
     this.heated_bed = profile.heated_bed;
 
-    /*var semiCircleTemp = null;
-    //this.$el.find('#temp-control-template').empty();
-
-    //extruders
-    for (var i = 0; i < this.extruders_count; i++) {
-      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
-      this.semiCircleTemp_views[i] = semiCircleTemp;
-
-      this.$el.find('#temp-control-template').find('#extruders').append(this.semiCircleTemp_views[i].render().el);
-      this.semiCircleTemp_views[i].renderTemps(0, 0);
-    }
-    //bed
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
-    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-    this.$el.find('#temp-control-template').find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
-    this.semiCircleTemp_views[this.extruders_count].renderTemps(0, 0);
-
-    for (var i = 0; i <= this.extruders_count; i++) {
-      if (i == this.extruders_count) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
-      } else {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
-      }
-      //this.semiCircleTemp_views[i].drawSemiCircle();
-
-      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
-        value: 0,
-        arcCoef: 0.55,
-        size: 180,
-        thickness: 20,
-        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
-      });
-    }
-
-    this.$('#extruders').slick({
-      arrows: true,
-      prevArrow: '<i class="icon-angle-left"></i>',
-      nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: 1,
-      slidesToScroll: 1,
-      dots: true
-    });*/
-
+    /*console.log("TENGO QUE REDIBUJAR?",Object.keys(this.semiCircleTemp_views).length);
+    if ( !Object.keys(this.semiCircleTemp_views).length ) {
+      console.log("Printing initialize renderCircleTemps");
+      this.renderCircleTemps();
+    } else {
+      console.log("Printing initialize ya existe llamo a showTemps");
+      this.showTemps();
+    }*/
+    console.log("initialize renderCircleTemps");
     this.renderCircleTemps();
-
 
     this.printing_progress = app.socketData.get('printing_progress');
     this.paused = app.socketData.get('paused');
@@ -468,8 +325,6 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
 
-    //this.nozzleBar.setMax(profile.max_nozzle_temp);
-
     if (profile.heated_bed) {
       //this.bedBar.setMax(profile.max_bed_temp);
 
@@ -480,12 +335,10 @@ el: '#printing-view',
     }
   },
   renderCircleTemps: function() {
-    this.$el.find('#extruders').empty();
+    /*this.$el.find('#extruders').empty();
     if (this.heated_bed) {
       this.$el.find('#bed').empty();
-    }
-
-    console.log("this.$el.find('#extruders')", this.$el.find('#extruders').length)
+    }*/
 
     var socketTemps = app.socketData.attributes.temps;
     var temps = null;
@@ -495,15 +348,14 @@ el: '#printing-view',
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
       this.semiCircleTemp_views[i] = semiCircleTemp;
+
       this.$el.find('#extruders').append(this.semiCircleTemp_views[i].render().el);
 
-      if (socketTemps.lenght > 0) {
+      if (_.has(socketTemps, 'extruders')) {
         temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
       } else {
         temps = {current: 0, target: 0};
       }
-
-      this.semiCircleTemp_views[i].updateValues(temps);
     }
     //bed
     if (this.heated_bed) {
@@ -511,13 +363,11 @@ el: '#printing-view',
       this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
       this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
-      if (socketTemps.lenght > 0) {
-        temps = {current: socketTemps.bed.current, target: socketTemps.bed.target};
+      if (_.has(socketTemps, 'bed')) {
+        temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
       } else {
         temps = {current: 0, target: 0};
       }
-
-      this.semiCircleTemp_views[this.extruders_count].updateValues(temps);
     }
 
     for (var i = 0; i <= this.extruders_count; i++) {
@@ -536,22 +386,58 @@ el: '#printing-view',
           fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
         });
       }
+      this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    if(this.extruders_count > 1) {
-      if(this.$('#extruders').hasClass('slick-initialized')) {
-        this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
-      }
-
-      this.$('#extruders').slick({
+    /*if(this.extrudersSlide != null) {
+      console.log("hhhhh", this.extrudersSlide)
+      this.extrudersSlide.slick('getSlick').reinit();
+    } else {
+      console.log("dddd")
+      this.extrudersSlide = this.$('#extruders').slick({
         arrows: true,
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
         slidesToShow: this.slidesToShow,
         slidesToScroll: 1,
-        dots: true
+        dots: true,
+        //variableWidth: true,
+        //adaptiveHeight: true,
+        responsive: [{
+          breakpoint: 550,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1
+          }
+        }]
       });
-    }
+    }*/
+
+    console.log("ESTA?", this.$('#extruders').hasClass('slick-initialized'));
+    //if(this.extruders_count > 1) {
+      if(this.$('#extruders').hasClass('slick-initialized')) {
+        //this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
+        console.log("antes del unslick")
+        this.extrudersSlide.slick('getSlick').unslick();
+      }
+
+      this.extrudersSlide = this.$('#extruders').slick({
+        arrows: true,
+        prevArrow: '<i class="icon-angle-left"></i>',
+        nextArrow: '<i class="icon-angle-right"></i>',
+        slidesToShow: this.slidesToShow,
+        slidesToScroll: 1,
+        dots: true,
+        responsive: [{
+          breakpoint: 550,
+          settings: {
+            slidesToShow: 1,
+            slidesToScroll: 1
+          }
+        }]
+      });
+    //}
+
 
     if (socketTemps.length > 0){
       this.updateTemps(socketTemps);
@@ -600,202 +486,56 @@ el: '#printing-view',
     if (seconds < 10) {seconds = "0"+seconds;}
     return [hours, minutes, seconds];
   },
-  show: function()
+  showTemps: function()
   {
-    /*for (var i = 0; i <= this.extruders_count; i++) {
-      this.semiCircleTemp_views[i].render();
-    }*/
-    console.log("PRINTING entra por SHOW");
-    this.printing_progress = app.socketData.get('printing_progress');
-    this.paused = app.socketData.get('paused');
-    this.render();
-    this.photoView.render();
-  },
-  onHide: function()
-  {
-    this.photoView.onPrintingHide();
-  },
-  stopPrint: function(e)
-  {
-    if (!this.cancelDialog) {
-      this.cancelDialog = new CancelPrintDialog({parent: this});
-    }
+    var socketTemps = app.socketData.attributes.temps;
 
-    this.cancelDialog.open();
-  },
-  togglePausePrint: function(e)
-  {
-    var loadingBtn = $(e.target).closest('.loading-button');
-    var wasPaused = app.socketData.get('paused');
-
-    loadingBtn.addClass('loading');
-    this._jobCommand('pause', null, function(data){
-      if (data && _.has(data, 'error')) {
-        console.error(data.error);
+    for (var i = 0; i <= this.extruders_count; i++) {
+      if (i != this.extruders_count) {
+        if (_.has(socketTemps, 'extruders')) {
+          temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
+        } else {
+          temps = {current: 0, target: 0};
+        }
       } else {
-        app.socketData.set('paused', !wasPaused);
-      }
-      loadingBtn.removeClass('loading');
-    });
-  },
-  showControlPage: function()
-  {
-    app.router.navigate('control', {trigger: true, replace: true});
-    this.$el.addClass('hide');
-  },
-  _jobCommand: function(command, data, callback)
-  {
-    $.ajax({
-      url: API_BASEURL + "job",
-      type: "POST",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: JSON.stringify(_.extend({command: command}, data))
-    }).
-    done(function(data){
-      if (callback) callback(data);
-    }).
-    fail(function(error) {
-      if (callback) callback({error:error.responseText});
-    });
-  }
-});
+          if (_.has(socketTemps, 'bed')) {
+            temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
+          } else {
+            temps = {current: 0, target: 0};
+          }
 
-var PrintingView0 = Backbone.View.extend({
-  el: '#printing-view',
-  events: {
-    'click button.stop-print': 'stopPrint',
-    'click button.pause-print': 'togglePausePrint',
-    'click button.controls': 'showControlPage',
-    'show': 'show',
-    'hide': 'onHide'
-  },
-  nozzleBar: null,
-  bedBar: null,
-  photoView: null,
-  printing_progress: null,
-  paused: null,
-  cancelDialog: null,
-  initialize: function()
-  {
-    this.nozzleBar = new TempBarHorizontalView({
-      scale: [0, app.printerProfile.get('max_nozzle_temp')],
-      el: this.$el.find('.temp-bar.nozzle'),
-      type: 'tool0'
-    });
-    this.bedBar = new TempBarHorizontalView({
-      scale: [0, app.printerProfile.get('max_bed_temp')],
-      el: this.$el.find('.temp-bar.bed'),
-      type: 'bed'
+      }
+      this.semiCircleTemp_views[i].updateValues(temps);
+    }
+
+
+    if (this.$('#extruders').hasClass('slick-initialized')) {
+      console.log("antes del unslick")
+      this.extrudersSlide.slick('getSlick').unslick();
+    }
+    this.extrudersSlide = this.$('#extruders').slick({
+      arrows: true,
+      prevArrow: '<i class="icon-angle-left"></i>',
+      nextArrow: '<i class="icon-angle-right"></i>',
+      slidesToShow: this.slidesToShow,
+      slidesToScroll: 1,
+      dots: true,
+      responsive: [{
+        breakpoint: 550,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }]
     });
 
-    this.printing_progress = app.socketData.get('printing_progress');
-    this.paused = app.socketData.get('paused');
-
-    this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
-    this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
-    this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
-
-    this.photoView = new PhotoView({parent: this});
-  },
-  render: function()
-  {
-    //Progress data
-    var filenameNode = this.$('.progress .filename');
-
-    if (this.printing_progress) {
-      if (filenameNode.text() != this.printing_progress.printFileName) {
-        filenameNode.text(this.printing_progress.printFileName);
-      }
-
-      //progress bar
-      this.$el.find('.progress .meter').css('width', this.printing_progress.percent+'%');
-      this.$el.find('.progress .progress-label').text(this.printing_progress.percent+'%');
-
-      //time
-      var time = this._formatTime(this.printing_progress.time_left);
-      this.$el.find('.estimated-hours').text(time[0]);
-      this.$el.find('.estimated-minutes').text(time[1]);
-      this.$el.find('.estimated-seconds').text(time[2]);
-
-      //layers
-      this.$el.find('.current-layer').text(this.printing_progress.current_layer);
-      if (this.printing_progress.layer_count) {
-        this.$el.find('.layer-count').text(this.printing_progress.layer_count);
-      }
-
-      //heating up
-      if (this.printing_progress.heating_up) {
-        this.$el.addClass("heating-up");
-      } else {
-        this.$el.removeClass("heating-up");
-      }
-    }
-
-    //Paused state
-    var pauseBtn = this.$el.find('button.pause-print');
-    var controlBtn = this.$el.find('button.controls');
-
-    if (this.paused) {
-      pauseBtn.html('<i class="icon-play"></i> Resume Print');
-      controlBtn.show();
-    } else {
-      pauseBtn.html('<i class="icon-pause"></i> Pause Print');
-      controlBtn.hide();
-    }
-
-    var profile = app.printerProfile.toJSON();
-
-    this.nozzleBar.setMax(profile.max_nozzle_temp);
-
-    if (profile.heated_bed) {
-      this.bedBar.setMax(profile.max_bed_temp);
-      this.bedBar.$el.removeClass('hide');
-    } else {
-      this.bedBar.$el.addClass('hide');
-    }
-  },
-  onTempsChanged: function(s, value)
-  {
-    if (!this.$el.hasClass('hide')) {
-      this.nozzleBar.setTemps(value.extruder.actual, value.extruder.target);
-      this.bedBar.setTemps(value.bed.actual, value.bed.target);
-    }
-  },
-  onProgressChanged: function(s, value)
-  {
-    this.printing_progress = value;
-    this.render();
-  },
-  onPausedChanged: function(s, value)
-  {
-    this.paused = value;
-    this.render();
-    this.photoView.render();
-  },
-  _formatTime: function(seconds)
-  {
-    if (seconds == null || isNaN(seconds)) {
-      return ['--','--','--'];
-    }
-
-    var sec_num = parseInt(seconds, 10); // don't forget the second param
-    var hours   = Math.floor(sec_num / 3600);
-    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
-
-    if (hours   < 10) {hours   = "0"+hours;}
-    if (minutes < 10) {minutes = "0"+minutes;}
-    if (seconds < 10) {seconds = "0"+seconds;}
-    return [hours, minutes, seconds];
   },
   show: function()
   {
-    this.nozzleBar.onResize();
-    this.bedBar.onResize();
     this.printing_progress = app.socketData.get('printing_progress');
     this.paused = app.socketData.get('paused');
     this.render();
+    this.showTemps();
     this.photoView.render();
   },
   onHide: function()
