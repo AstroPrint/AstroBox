@@ -109,28 +109,28 @@ class UsbCommTransport(PrinterCommTransport):
 
 	# ~~~~~~~ From PrinterCommTransport ~~~~~~~~~~
 
-	def write(self, data):
+	def write(self, data, completed= None):
+
+		def processWrite(transfer):
+			status = transfer.getStatus()
+			if status == usb1.TRANSFER_COMPLETED:
+				if completed:
+					completed()
+			elif status == usb1.TRANSFER_TIMED_OUT:
+				self._eventListener.onLinkInfo('write_timeout')
+				transfer.submit()
+			else:
+				self._eventListener.onLinkError('usb_error', status.name)
+
 		if self._dev_handle:
-			try:
-				with self._writeLock:
-					#print "before writing"
-					self._dev_handle.bulkWrite(self._sendEP, data)
-					#print "raw write: %r" % data
-					return True
+			transfer = self._dev_handle.getTransfer()
+			transfer.setBulk(
+				self._sendEP,
+				data,
+				callback=processWrite,
+			)
+			transfer.submit()
 
-			except usb1.USBErrorOther:
-				self._logger.warn('Unable to send: %r' % data)
-				return False
-
-			except ( usb1.USBErrorIO, usb1.USBErrorPipe, usb1.USBErrorNotFound) as e:
-				self._logger.error("Exception [%s] sending data: %r" % (e, data))
-				self._hasError = True
-				self._eventListener.onLinkError('io_error', "Line seems down")
-				return False
-
-			except Exception:
-				self._logger.error("Error sending %r" % data, exc_info= True)
-				return False
 
 	@property
 	def isLinkOpen(self):
@@ -147,48 +147,6 @@ class UsbCommTransport(PrinterCommTransport):
 #
 # Class to read from serial port
 #
-
-'''class LinkReader(threading.Thread):
-	def __init__(self, devHandle, receiveEP, eventListener, transport):
-		super(LinkReader, self).__init__()
-		self._stopped = False
-		self._eventListener = eventListener
-		self._devHandle = devHandle
-		self._receiveEP = receiveEP
-		self._transport = transport
-
-	def run(self):
-		while not self._stopped:
-			try:
-				#data = None
-				#print "before reading"
-				data = self._devHandle.bulkRead(self._receiveEP, 4096, timeout=3000) #3 secs
-				#print "Raw Read: %r" % data
-
-			except usb1.USBErrorTimeout:
-				#print "timeout"
-				self._eventListener.onLinkInfo('read_timeout')
-				continue
-
-			except usb1.USBErrorIO:
-				self._transport._hasError = True
-				self._eventListener.onLinkError('io_error', "Line seems down")
-				return
-
-			except Exception as e:
-				self._transport._logger.error('Exception while reading from port: %s' % e)
-				data = None
-
-			if not self._stopped:
-				if data is None:
-					self._eventListener.onLinkError('invalid_link', "Line returned nothing")
-					self.stop()
-				else:
-					self._eventListener.onDataReceived(data)
-
-	def stop(self):
-		self._stopped = True'''
-
 
 class LinkReader(threading.Thread):
 	def __init__(self, devHandle, context, receiveEP, eventListener, transport):
@@ -228,8 +186,7 @@ class LinkReader(threading.Thread):
 			self._eventListener.onLinkInfo('read_timeout')
 			transfer.submit()
 		else:
-			print "status: %r" % status
-			return
+			self._eventListener.onLinkError('usb_error', status.name)
 
 	def stop(self):
 		self._stopped = True
