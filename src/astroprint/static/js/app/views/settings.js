@@ -209,6 +209,8 @@ var PrinterProfileView = SettingsPage.extend({
       attrs[elem.attr('name')] = value;
     });
 
+    attrs.cancel_gcode = attrs.cancel_gcode.trim().split('\n');
+
     this.settings.save(attrs, {
       patch: true,
       success: _.bind(function() {

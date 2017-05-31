@@ -263,6 +263,11 @@ def resetFactorySettings():
 	if config_file and os.path.exists(config_file):
 		os.unlink(config_file)
 
+	#replace printer-profile.yaml with printer-profile.factory
+	p_profile_file = "%s/printer-profile.yaml" % s.getConfigFolder()
+	if os.path.exists(p_profile_file):
+		os.unlink(p_profile_file)
+
 	#remove info about users
 	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
 	if user_file and os.path.exists(user_file):

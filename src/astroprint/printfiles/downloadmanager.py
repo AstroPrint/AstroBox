@@ -136,6 +136,13 @@ class DownloadManager(object):
 			self._workers.append( w )
 			w.start()
 
+	def isDownloading(self, printFileId):
+		for w in self._workers:
+			if w.activeDownload == printFileId:
+				return True
+
+		return False
+
 	def startDownload(self, item):
 		self.queue.put(item)
 
