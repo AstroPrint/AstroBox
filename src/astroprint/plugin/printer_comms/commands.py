@@ -345,11 +345,6 @@ class CommandsComms(TransportEvents):
 		self._printJob = None
 		self._sender = None
 
-		#This is used to make sure requests and responses and received in the proper order
-		#without this in some cases the response is dispatched to the listener before the
-		#command is acknoledged to be sent.
-		#self._listenerTrafficCondition = threading.Condition()
-
 		if transport == 'serial':
 			from .transport.serial_t import SerialCommTransport
 			self._transport = SerialCommTransport(self)
@@ -518,14 +513,14 @@ class CommandsComms(TransportEvents):
 	def startSender(self):
 		if not self._sender:
 			self._sender = CommandSender(self, self._listener)
-			self._sender.start()
+			#self._sender.start()
 
 	#
 	# Stops the sender
 	#
 	def stopSender(self):
 		if self._sender:
-			self._sender.stop()
+			#self._sender.stop()
 			self._sender = None
 
 	#
@@ -597,13 +592,11 @@ class CommandsComms(TransportEvents):
 	def onDataReceived(self, data):
 		self._serialLoggerEnabled and self.writeToSerialLog('R: %r' % data)
 
-		try:
-			#responses = self._listener.onResponseReceived(data)
-			#for r in responses:
-			if self._sender:
+		if self._sender:
+			try:
 				self._sender.onCommandResponse(data)
-		except:
-			self._logger.error('Error handling data received.', exc_info= True)
+			except:
+				self._logger.error('Error handling data received.', exc_info= True)
 
 	def onLinkError(self, error, description= None):
 		self._listener.onLinkError(error, description)
@@ -735,24 +728,26 @@ class StatusPoller(threading.Thread):
 
 #~~~~~~ Worker to empty the command queue
 
-class CommandSender(threading.Thread):
+#class CommandSender(threading.Thread):
+class CommandSender(object):
 	def __init__(self, comms, eventListener):
-		super(CommandSender, self).__init__()
+		#super(CommandSender, self).__init__()
 		self._logger = logging.getLogger(self.__class__.__name__)
 		self._stopped = False
 		self._eventListener = eventListener
 		self._comms = comms
 		self._commandQ = deque()
-		self._sendEvent = threading.Event()
+		#self._sendEvent = threading.Event()
 		self._readyToSend = True
 		self._storedCommands = None
 		self._pendingCommands = deque()
+		self._lock = threading.Lock()
+		#self._commandProcessingLock = threading.Lock()
 
-	def run(self):
+	'''def run(self):
 		while not self._stopped:
-			#print "waiting with %d in Q..." % len(self._commandQ)
+			time.sleep(1.0)
 			self._sendEvent.wait()
-			#print "about to read next"
 
 			if not self._stopped:
 				command = None
@@ -773,34 +768,78 @@ class CommandSender(threading.Thread):
 						self._sendEvent.clear()
 
 					else:
-						self._logger.warn("The following invalid command type was found in the queue: %r" % command)
+						self._logger.warn("The following invalid command type was found in the queue: %r" % command)'''
+
+	def fireNextCommand(self):
+		self._readyToSend = False
+
+		try:
+			command = self._commandQ.pop()
+			#print "  Got %s from Q" % ( "signal %s" % command.type if isinstance(command, Signal) else command.gcode )
+
+		except IndexError:
+			#print " *** No command could be popped"
+			self._readyToSend = True
+			return
+
+		if command:
+			if isinstance(command, Signal):
+				#This is a signal placed in the queue, we tell the event listener and move on
+				self._eventListener.onSignalReceived( command.type, command.data )
+				self.fireNextCommand()
+
+			elif isinstance(command, Command):
+				#print "  sending %s" % command.gcode
+				self.sendCommand(command)
+				#print "  sent %s, left in Q (%d)" % (command.gcode, len(self._commandQ))
+
+			else:
+				self._logger.warn("The following invalid command type was found in the queue: %r" % command)
+
 
 	def sendCommand(self, command):
 		if command.onBeforeCommandSend() is not False:
 			try:
 				self._comms.writeOnLink(command.encodedCommand, command.onCommandSent)
-				self._pendingCommands.appendleft(command)
+				with self._lock:
+					self._pendingCommands.appendleft(command)
 
 			except Exception as e:
 				self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
+
+		else:
+			self.sendNext()
 
 	def onCommandResponse(self, data):
 		if data:
 			data = data.decode('ascii').strip()
 
+			toBeRemoved = None
+			sendNext = False
+
+			#print "Got response %r" % data
+
 			for c in self._pendingCommands:
 				if c.onResponse(data):
 					if c.completed:
-						self._pendingCommands.remove(c)
+						toBeRemoved = c
 
 						if c.isQueued:
-							self.sendNext()
+							sendNext = True
+
 					break
 
-	def stop(self):
-		self._pendingCommands.clear()
-		self._sendEvent.set()
-		self._stopped = True
+			if toBeRemoved:
+				self._pendingCommands.remove(toBeRemoved)
+
+			if sendNext:
+				#print "Command completed %s" % toBeRemoved.gcode
+				self.sendNext()
+
+	#def stop(self):
+	#	self._pendingCommands.clear()
+	#	#self._sendEvent.set()
+	#	self._stopped = True
 
 	def storeCommands(self):
 		self._storedCommands = list(self._commandQ)
@@ -812,30 +851,42 @@ class CommandSender(threading.Thread):
 			self._storedCommands = None
 
 	def sendNext(self):
-		if len(self._commandQ):
-			self._sendEvent.set()
-		else:
-			self._readyToSend = True
+		with self._lock:
+			sendAllowed = self._readyToSend or all([( not c.isQueued ) for c in self._pendingCommands])
+
+		#print "Should we send?"
+		if sendAllowed:
+			#print "  Yes"
+			self.fireNextCommand()
+		#else:
+		#	print "  No. because %r" % [c.gcode for c in self._pendingCommands ]
+				#self._sendEvent.set()
+			#else:
+			#	self._readyToSend = True
 
 	def setReadytoSend(self):
-		self._readyToSend = True
+		self.sendNext()
+		#self._readyToSend = True
 
 	def addCommand(self, command, sendNext= False):
-		if command is not None:
-			if command.onBeforeCommandAddToQueue() is not False:
-				if sendNext:
-					self._commandQ.append(command)
-				else:
-					self._commandQ.appendleft(command)
+		if command is not None and command.onBeforeCommandAddToQueue() is not False:
+			if sendNext:
+				self._commandQ.append(command)
+			else:
+				self._commandQ.appendleft(command)
 
-					command.isQueued = True
+			#print "Q length (%d). added %s" % (len(self._commandQ), (  "signal %s" % command.type if isinstance(command, Signal) else command.gcode ))
 
-				command.encode()
-				command.onCommandAddedToQueue()
+			command.encode()
+			command.isQueued = True
 
-				if self._readyToSend or len(self._commandQ) == 1:
-					self._sendEvent.set()
-					self._readyToSend = False
+			command.onCommandAddedToQueue()
+
+			if self._readyToSend or len(self._commandQ) == 1:
+				#self._sendEvent.set()
+				#self.fireNextCommand()
+				self.sendNext()
+				#self._readyToSend = False
 
 	def addCommandIfNotExists(self, command, sendNext= False):
 		if command not in self._commandQ:
