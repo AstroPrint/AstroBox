@@ -68,23 +68,27 @@ class UsbCommTransport(PrinterCommTransport):
 	def openLink(self, port_id, sendEndpoint, receiveEndpoint):
 		if port_id is not None:
 			if self._dev_handle is None:
-				port_parts = port_id.split(':') #port id is "vid:pid"
-				vid = int(port_parts[0])
-				pid = int(port_parts[1])
+				try:
+					port_parts = port_id.split(':') #port id is "vid:pid"
+					vid = int(port_parts[0])
+					pid = int(port_parts[1])
 
-				self._context = usb1.USBContext()
-				self._dev_handle = self._context.openByVendorIDAndProductID(vid, pid, skip_on_error=True)
-				if self._dev_handle is not None:
-					self._hasError = False
-					self._dev_handle.claimInterface(0)
-					self._port_id = port_id
-					self._sendEP = sendEndpoint
-					self._receiveEP = receiveEndpoint
-					self._linkReader = LinkReader(self._dev_handle, self._context, receiveEndpoint, self._eventListener, self)
-					self._linkReader.start()
-					self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
-					self._eventListener.onLinkOpened()
-					return True
+					self._context = usb1.USBContext()
+					self._dev_handle = self._context.openByVendorIDAndProductID(vid, pid, skip_on_error=True)
+					if self._dev_handle is not None:
+						self._hasError = False
+						self._dev_handle.claimInterface(0)
+						self._port_id = port_id
+						self._sendEP = sendEndpoint
+						self._receiveEP = receiveEndpoint
+						self._linkReader = LinkReader(self._dev_handle, self._context, receiveEndpoint, self._eventListener, self)
+						self._linkReader.start()
+						self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
+						self._eventListener.onLinkOpened()
+						return True
+
+				except usb1.USBErrorBusy:
+					return False
 
 			else:
 				return True #It was already opened
@@ -96,7 +100,8 @@ class UsbCommTransport(PrinterCommTransport):
 	#
 	def closeLink(self):
 		if self._dev_handle:
-			self._linkReader.stop()
+			if self._linkReader:
+				self._linkReader.stop()
 
 			try:
 				self._dev_handle.releaseInterface(0)
