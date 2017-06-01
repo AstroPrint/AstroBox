@@ -1,6 +1,14 @@
 #temp-control-template{
 
   .semi-circle-temps {
+
+    /*&#bed{
+      .temp-container .buttons-container .temp-target input  {
+        //right: 51px;
+        right: 22%;
+      }
+    }*/
+
     .temp-container {
       position: relative;
       //width: 320px;
@@ -68,7 +76,6 @@
           .temp-edit {
             width: 38px;
             height: 38px;
-            left: 20px;
 
             outline: 0;
             border-radius: 3px;
@@ -80,14 +87,13 @@
                 font-size: 20px;
                 color: white;
                 position: relative;
-                left: -2px;
+                left: -5px;
               }
             }
           }
 
           input {
             position: absolute;
-            right: 60px;
             height: 38px;
             width: 60px;
           }
@@ -108,4 +114,6 @@
       }
     }
   }
+
+
 }

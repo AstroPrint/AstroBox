@@ -10,7 +10,7 @@ var TempSemiCircleView = Backbone.View.extend({
   enableOff: true,
   events: {
     'click button.temp-off': 'turnOff',
-    'click .temp-target a.temp-edit': 'onEditClicked',
+    'click .temp-target button.temp-edit': 'onEditClicked',
     'change .temp-target input': 'onTempFieldChanged',
     'blur .temp-target input': 'onTempFieldBlur'
   },
@@ -48,8 +48,8 @@ var TempSemiCircleView = Backbone.View.extend({
   {
     var input = $(e.target);
 
-    //input.addClass('hide');
-    input.closest('.temp-target').find('a.temp-edit').removeClass('hide');
+    input.addClass('hide');
+    input.closest('.temp-target').find('button.temp-edit').removeClass('hide');
 
   },
   updateValues: function (temps)
@@ -93,7 +93,7 @@ var TempSemiCircleView = Backbone.View.extend({
     var target = $(e.currentTarget);
     var container = target.closest('.temp-target');
     var label = container.find('span.target-value');
-    var button = container.find('a.temp-edit');
+    var button = container.find('button.temp-edit');
     var input = container.find('input');
 
     button.addClass('hide');

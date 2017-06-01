@@ -413,31 +413,25 @@ el: '#printing-view',
       });
     }*/
 
-    console.log("ESTA?", this.$('#extruders').hasClass('slick-initialized'));
-    //if(this.extruders_count > 1) {
-      if(this.$('#extruders').hasClass('slick-initialized')) {
-        //this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
-        console.log("antes del unslick")
-        this.extrudersSlide.slick('getSlick').unslick();
-      }
+    if(this.$('#extruders').hasClass('slick-initialized')) {
+      this.extrudersSlide.slick('getSlick').unslick();
+    }
 
-      this.extrudersSlide = this.$('#extruders').slick({
-        arrows: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        slidesToShow: this.slidesToShow,
-        slidesToScroll: 1,
-        dots: true,
-        responsive: [{
-          breakpoint: 550,
-          settings: {
-            slidesToShow: 1,
-            slidesToScroll: 1
-          }
-        }]
-      });
-    //}
-
+    this.extrudersSlide = this.$('#extruders').slick({
+      arrows: true,
+      prevArrow: '<i class="icon-angle-left"></i>',
+      nextArrow: '<i class="icon-angle-right"></i>',
+      slidesToShow: this.slidesToShow,
+      slidesToScroll: 1,
+      dots: true,
+      responsive: [{
+        breakpoint: 550,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }]
+    });
 
     if (socketTemps.length > 0){
       this.updateTemps(socketTemps);
@@ -446,18 +440,16 @@ el: '#printing-view',
   },
   onTempsChanged: function(s, value)
   {
-    //if (!this.$el.hasClass('hide')) {
-      var temps = {};
+    var temps = {};
 
-      for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
-        if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
-          temps = {'current': value.bed.actual, 'target': value.bed.target};
-        } else {
-          temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
-        }
-        (this.semiCircleTemp_views[i]).updateValues(temps);
+    for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
+      if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
+        temps = {'current': value.bed.actual, 'target': value.bed.target};
+      } else {
+        temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
       }
-    //}
+      (this.semiCircleTemp_views[i]).updateValues(temps);
+    }
   },
   onProgressChanged: function(s, value)
   {
@@ -488,9 +480,11 @@ el: '#printing-view',
   },
   showTemps: function()
   {
+    var semiCircleCount = Object.keys(this.semiCircleTemp_views).length;
     var socketTemps = app.socketData.attributes.temps;
 
-    for (var i = 0; i <= this.extruders_count; i++) {
+
+    for (var i = 0; i < semiCircleCount; i++) {
       if (i != this.extruders_count) {
         if (_.has(socketTemps, 'extruders')) {
           temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
@@ -498,21 +492,22 @@ el: '#printing-view',
           temps = {current: 0, target: 0};
         }
       } else {
+        if (i == this.extruders_count && this.heated_bed) {
           if (_.has(socketTemps, 'bed')) {
             temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
           } else {
             temps = {current: 0, target: 0};
           }
-
+        }
       }
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
 
     if (this.$('#extruders').hasClass('slick-initialized')) {
-      console.log("antes del unslick")
       this.extrudersSlide.slick('getSlick').unslick();
     }
+
     this.extrudersSlide = this.$('#extruders').slick({
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',

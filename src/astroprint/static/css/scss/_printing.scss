@@ -221,8 +221,17 @@
   #temp-control-template {
     margin-bottom: 15px;
 
+    .semi-circle-temps {
+      .temp-container .buttons-container .temp-target {
+          right: 0px;
+      }
+    }
+
+    .progress-temp-circle {
+      left: 0%;
+    }
+
     #extruders {
-      //margin-bottom: -50px;
       height: 245px;
       margin-bottom: 0px;
 
@@ -248,7 +257,6 @@
 
       .icon-angle-right {
         position: relative;
-        //top: -124px;
         right: -45%;
       }
     }
