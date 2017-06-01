@@ -598,10 +598,10 @@ class CommandsComms(TransportEvents):
 		self._serialLoggerEnabled and self.writeToSerialLog('R: %r' % data)
 
 		try:
-			responses = self._listener.onResponseReceived(data)
-			for r in responses:
-				if self._sender:
-					self._sender.onCommandResponse(r)
+			#responses = self._listener.onResponseReceived(data)
+			#for r in responses:
+			if self._sender:
+				self._sender.onCommandResponse(data)
 		except:
 			self._logger.error('Error handling data received.', exc_info= True)
 
@@ -750,7 +750,9 @@ class CommandSender(threading.Thread):
 
 	def run(self):
 		while not self._stopped:
+			#print "waiting with %d in Q..." % len(self._commandQ)
 			self._sendEvent.wait()
+			#print "about to read next"
 
 			if not self._stopped:
 				command = None

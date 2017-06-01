@@ -129,7 +129,11 @@ class UsbCommTransport(PrinterCommTransport):
 				if completed:
 					completed()
 			elif status == usb1.TRANSFER_TIMED_OUT:
-				self._eventListener.onLinkInfo('write_timeout')
+				try:
+					self._eventListener.onLinkInfo('write_timeout')
+				except Exception as e:
+					self._logger.error('Error sending timeout: %s' % e, exc_info=True)
+
 				transfer.submit()
 			else:
 				self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
@@ -169,10 +173,11 @@ class LinkReader(threading.Thread):
 		self._receiveEP = receiveEP
 		self._transport = transport
 		self._context = context
+		self._logger = logging.getLogger(self.__class__.__name__)
 		self._transferList = []
 
 	def run(self):
-		for _ in xrange(2):
+		for _ in xrange(5):
 			transfer = self._devHandle.getTransfer()
 			transfer.setBulk(
 				self._receiveEP,
@@ -192,10 +197,19 @@ class LinkReader(threading.Thread):
 		status = transfer.getStatus()
 		if status == usb1.TRANSFER_COMPLETED:
 			data = transfer.getBuffer()[:transfer.getActualLength()]
-			self._eventListener.onDataReceived(data)
+
+			try:
+				self._eventListener.onDataReceived(data)
+			except Exception as e:
+				self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
+
 			transfer.submit()
 		elif status == usb1.TRANSFER_TIMED_OUT:
-			self._eventListener.onLinkInfo('read_timeout')
+			try:
+				self._eventListener.onLinkInfo('read_timeout')
+			except Exception as e:
+				self._logger.error('Error sending timeout: %s' % e, exc_info=True)
+
 			transfer.submit()
 		elif not self._stopped:
 			self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
