@@ -28,7 +28,9 @@ class UsbCommTransport(PrinterCommTransport):
 		self._receiveEP = None
 		self._linkReader = None
 		self._hasError = False
+		self._incomingQueue = None
 		self._writeTransfers = []
+		self._writeLock = threading.Lock()
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -82,7 +84,9 @@ class UsbCommTransport(PrinterCommTransport):
 						self._port_id = port_id
 						self._sendEP = sendEndpoint
 						self._receiveEP = receiveEndpoint
-						self._linkReader = LinkReader(self._dev_handle, self._context, receiveEndpoint, self._eventListener, self)
+						self._incomingQueue = IncomingQueue(self._eventListener)
+						self._incomingQueue.start()
+						self._linkReader = LinkReader(self._dev_handle, self._context, receiveEndpoint, self._eventListener, self._incomingQueue, self)
 						self._linkReader.start()
 						self._serialLoggerEnabled and self._serialLogger.debug("Connected to USB Device -> Vendor: 0x%04x, Product: 0x%04x" % (vid, pid))
 						self._eventListener.onLinkOpened()
@@ -114,6 +118,10 @@ class UsbCommTransport(PrinterCommTransport):
 				self._linkReader.stop()
 				self._linkReader = None
 
+			if self._incomingQueue:
+				self._incomingQueue.stop()
+				self._incomingQueue = None
+
 			try:
 				self._dev_handle.releaseInterface(0)
 			except ( usb1.USBErrorNoDevice, usb1.USBErrorNotFound):
@@ -123,7 +131,6 @@ class UsbCommTransport(PrinterCommTransport):
 			self._context = None
 			self._port_id = None
 
-
 			self._eventListener.onLinkClosed()
 			self._serialLoggerEnabled and self._serialLogger.debug("(X) Link Closed")
 
@@ -131,26 +138,28 @@ class UsbCommTransport(PrinterCommTransport):
 
 	def write(self, data, completed= None):
 		if self._dev_handle:
-			transfer = None
-			for t in self._writeTransfers:
-				if not t.isSubmitted():
-					transfer = t
-					break
+			with self._writeLock:
+				transfer = None
+				for t in self._writeTransfers:
+					if not t.isSubmitted():
+						transfer = t
+						break
 
-			if transfer:
-				transfer.setBuffer(data)
-				transfer.setUserData(completed)
-			else:
-				transfer = self._dev_handle.getTransfer()
-				transfer.setBulk(
-					self._sendEP,
-					data,
-					callback= self._processWrite,
-					user_data= completed
-				)
-				self._writeTransfers.append(transfer)
+				if transfer:
+					transfer.setBuffer(data)
+					transfer.setUserData(completed)
+					transfer.submit()
 
-			transfer.submit()
+				else:
+					transfer = self._dev_handle.getTransfer()
+					transfer.setBulk(
+						self._sendEP,
+						data,
+						callback= self._processWrite,
+						user_data= completed
+					)
+					self._writeTransfers.append(transfer)
+					transfer.submit()
 
 	@property
 	def isLinkOpen(self):
@@ -175,12 +184,12 @@ class UsbCommTransport(PrinterCommTransport):
 				completed()
 
 		elif status == usb1.TRANSFER_TIMED_OUT:
+			transfer.submit()
+
 			try:
 				self._eventListener.onLinkInfo('write_timeout')
 			except Exception as e:
 				self._logger.error('Error sending timeout: %s' % e, exc_info=True)
-
-			transfer.submit()
 
 		elif status == usb1.TRANSFER_STALL:
 			try:
@@ -197,13 +206,14 @@ class UsbCommTransport(PrinterCommTransport):
 #
 
 class LinkReader(threading.Thread):
-	def __init__(self, devHandle, context, receiveEP, eventListener, transport):
+	def __init__(self, devHandle, context, receiveEP, eventListener, incomingQueue, transport):
 		super(LinkReader, self).__init__()
 		self._stopped = False
 		self._eventListener = eventListener
 		self._devHandle = devHandle
 		self._receiveEP = receiveEP
 		self._transport = transport
+		self._incomingQueue = incomingQueue
 		self._context = context
 		self._logger = logging.getLogger(self.__class__.__name__)
 		self._transferList = []
@@ -231,10 +241,11 @@ class LinkReader(threading.Thread):
 			data = transfer.getBuffer()[:transfer.getActualLength()]
 			transfer.submit()
 			if data:
-				try:
-					self._eventListener.onDataReceived(data)
-				except Exception as e:
-					self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
+				self._incomingQueue.addResponse(data)
+				#try:
+				#	self._eventListener.onDataReceived(data)
+				#except Exception as e:
+				#	self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
 
 		elif status == usb1.TRANSFER_TIMED_OUT:
 			transfer.submit()
@@ -268,7 +279,7 @@ class LinkReader(threading.Thread):
 # Class to queue incoming commands
 #
 
-'''class IncomingQueue(threading.Thread):
+class IncomingQueue(threading.Thread):
 	def __init__(self, eventListener):
 		super(IncomingQueue, self).__init__()
 		self._stopped = False
@@ -298,4 +309,4 @@ class LinkReader(threading.Thread):
 
 	def stop(self):
 		self._stopped = True
-		self._reportResponse.set()'''
+		self._reportResponse.set()
