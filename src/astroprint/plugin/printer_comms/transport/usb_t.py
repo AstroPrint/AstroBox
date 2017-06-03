@@ -8,7 +8,7 @@ import libusb1
 import logging
 import threading
 
-from Queue import Queue, Empty
+from collections import deque
 
 from . import PrinterCommTransport
 
@@ -27,7 +27,7 @@ class UsbCommTransport(PrinterCommTransport):
 		self._receiveEP = None
 		self._linkReader = None
 		self._hasError = False
-		self._writeLock = threading.Lock()
+		self._writeTransfer = None
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -100,21 +100,26 @@ class UsbCommTransport(PrinterCommTransport):
 	#
 	def closeLink(self):
 		if self._dev_handle:
+
+			if self._writeTransfer and self._writeTransfer.isSubmitted():
+				try:
+					self._writeTransfer.cancel()
+				except usb1.USBErrorNotFound:
+					pass
+
 			if self._linkReader:
 				self._linkReader.stop()
+				self._linkReader = None
 
 			try:
 				self._dev_handle.releaseInterface(0)
 			except ( usb1.USBErrorNoDevice, usb1.USBErrorNotFound):
 				pass
 
-			#self._context.close()
-			#self._dev_handle.close()
-
 			self._dev_handle = None
 			self._context = None
 			self._port_id = None
-			self._linkReader = None
+
 
 			self._eventListener.onLinkClosed()
 			self._serialLoggerEnabled and self._serialLogger.debug("(X) Link Closed")
@@ -129,23 +134,31 @@ class UsbCommTransport(PrinterCommTransport):
 				if completed:
 					completed()
 			elif status == usb1.TRANSFER_TIMED_OUT:
+				transfer.submit()
+
 				try:
 					self._eventListener.onLinkInfo('write_timeout')
 				except Exception as e:
 					self._logger.error('Error sending timeout: %s' % e, exc_info=True)
 
-				transfer.submit()
+			elif status == usb1.TRANSFER_STALL:
+				try:
+					self._dev_handle.clearHalt(self._sendEP)
+					transfer.submit()
+				except usb1.USBErrorOther:
+					self._eventListener.onLinkError('usb_error', "sender error while clearing Halt: %s" % libusb1.libusb_transfer_status(status))
+
 			else:
-				self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
+				self._eventListener.onLinkError('usb_error', "sender error: %s" % libusb1.libusb_transfer_status(status))
 
 		if self._dev_handle:
-			transfer = self._dev_handle.getTransfer()
-			transfer.setBulk(
+			self._writeTransfer = self._dev_handle.getTransfer()
+			self._writeTransfer.setBulk(
 				self._sendEP,
 				data,
 				callback=processWrite,
 			)
-			transfer.submit()
+			self._writeTransfer.submit()
 
 
 	@property
@@ -197,22 +210,30 @@ class LinkReader(threading.Thread):
 		status = transfer.getStatus()
 		if status == usb1.TRANSFER_COMPLETED:
 			data = transfer.getBuffer()[:transfer.getActualLength()]
-
-			try:
-				self._eventListener.onDataReceived(data)
-			except Exception as e:
-				self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
-
 			transfer.submit()
+			if data:
+				try:
+					self._eventListener.onDataReceived(data)
+				except Exception as e:
+					self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
+
 		elif status == usb1.TRANSFER_TIMED_OUT:
+			transfer.submit()
+
 			try:
 				self._eventListener.onLinkInfo('read_timeout')
 			except Exception as e:
 				self._logger.error('Error sending timeout: %s' % e, exc_info=True)
 
-			transfer.submit()
+		elif status == usb1.TRANSFER_STALL:
+			try:
+				self._devHandle.clearHalt(self._receiveEP)
+				transfer.submit()
+			except usb1.USBErrorOther:
+				self._eventListener.onLinkError('usb_error', "receiver error clearing Halt: %s" % libusb1.libusb_transfer_status(status))
+
 		elif not self._stopped:
-			self._eventListener.onLinkError('usb_error', libusb1.libusb_transfer_status(status))
+			self._eventListener.onLinkError('usb_error', "receiver error: %s" % libusb1.libusb_transfer_status(status))
 
 	def stop(self):
 		self._stopped = True
@@ -223,3 +244,39 @@ class LinkReader(threading.Thread):
 					x.cancel()
 				except ( usb1.USBErrorNotFound, usb1.USBErrorNoDevice ):
 					pass
+
+#
+# Class to queue incoming commands
+#
+
+'''class IncomingQueue(threading.Thread):
+	def __init__(self, eventListener):
+		super(IncomingQueue, self).__init__()
+		self._stopped = False
+		self._reportResponse = threading.Event()
+		self._eventListener = eventListener
+		self._queue = deque()
+
+	def run(self):
+		while not self._stopped:
+			self._reportResponse.wait()
+			if not self._stopped:
+				try:
+					response = self._queue.pop()
+				except IndexError:
+					self._reportResponse.clear()
+					continue
+
+				if response:
+					try:
+						self._eventListener.onDataReceived(response)
+					except Exception as e:
+						self._logger.error('Error processing received data [%r]: %s' % (data, e), exc_info=True)
+
+	def addResponse(self, response):
+		self._queue.appendleft(response)
+		self._reportResponse.set()
+
+	def stop(self):
+		self._stopped = True
+		self._reportResponse.set()'''
