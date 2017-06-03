@@ -7,6 +7,7 @@ import usb1
 import libusb1
 import logging
 import threading
+import time
 
 from collections import deque
 
@@ -27,7 +28,7 @@ class UsbCommTransport(PrinterCommTransport):
 		self._receiveEP = None
 		self._linkReader = None
 		self._hasError = False
-		self._writeTransfer = None
+		self._writeTransfers = []
 
 	#
 	# returns an object representing the USB devices connected in the following format
@@ -101,11 +102,13 @@ class UsbCommTransport(PrinterCommTransport):
 	def closeLink(self):
 		if self._dev_handle:
 
-			if self._writeTransfer and self._writeTransfer.isSubmitted():
+			for t in self._writeTransfers:
 				try:
-					self._writeTransfer.cancel()
+					t.cancel()
 				except usb1.USBErrorNotFound:
 					pass
+
+			self._writeTransfers = []
 
 			if self._linkReader:
 				self._linkReader.stop()
@@ -127,39 +130,27 @@ class UsbCommTransport(PrinterCommTransport):
 	# ~~~~~~~ From PrinterCommTransport ~~~~~~~~~~
 
 	def write(self, data, completed= None):
-
-		def processWrite(transfer):
-			status = transfer.getStatus()
-			if status == usb1.TRANSFER_COMPLETED:
-				if completed:
-					completed()
-			elif status == usb1.TRANSFER_TIMED_OUT:
-				transfer.submit()
-
-				try:
-					self._eventListener.onLinkInfo('write_timeout')
-				except Exception as e:
-					self._logger.error('Error sending timeout: %s' % e, exc_info=True)
-
-			elif status == usb1.TRANSFER_STALL:
-				try:
-					self._dev_handle.clearHalt(self._sendEP)
-					transfer.submit()
-				except usb1.USBErrorOther:
-					self._eventListener.onLinkError('usb_error', "sender error while clearing Halt: %s" % libusb1.libusb_transfer_status(status))
-
-			else:
-				self._eventListener.onLinkError('usb_error', "sender error: %s" % libusb1.libusb_transfer_status(status))
-
 		if self._dev_handle:
-			self._writeTransfer = self._dev_handle.getTransfer()
-			self._writeTransfer.setBulk(
-				self._sendEP,
-				data,
-				callback=processWrite,
-			)
-			self._writeTransfer.submit()
+			transfer = None
+			for t in self._writeTransfers:
+				if not t.isSubmitted():
+					transfer = t
+					break
 
+			if transfer:
+				transfer.setBuffer(data)
+				transfer.setUserData(completed)
+			else:
+				transfer = self._dev_handle.getTransfer()
+				transfer.setBulk(
+					self._sendEP,
+					data,
+					callback= self._processWrite,
+					user_data= completed
+				)
+				self._writeTransfers.append(transfer)
+
+			transfer.submit()
 
 	@property
 	def isLinkOpen(self):
@@ -172,6 +163,34 @@ class UsbCommTransport(PrinterCommTransport):
 	@property
 	def connSettings(self):
 		return self._port_id, None
+
+	#
+	# private
+	#
+	def _processWrite(self, transfer):
+		status = transfer.getStatus()
+		if status == usb1.TRANSFER_COMPLETED:
+			completed = transfer.getUserData()
+			if completed:
+				completed()
+
+		elif status == usb1.TRANSFER_TIMED_OUT:
+			try:
+				self._eventListener.onLinkInfo('write_timeout')
+			except Exception as e:
+				self._logger.error('Error sending timeout: %s' % e, exc_info=True)
+
+			transfer.submit()
+
+		elif status == usb1.TRANSFER_STALL:
+			try:
+				self._dev_handle.clearHalt(self._sendEP)
+				transfer.submit()
+			except usb1.USBErrorOther:
+				self._eventListener.onLinkError('usb_error', "sender error while clearing Halt: %s" % libusb1.libusb_transfer_status(status))
+
+		else:
+			self._eventListener.onLinkError('usb_error', "sender error: %s" % libusb1.libusb_transfer_status(status))
 
 #
 # Class to read from serial port
