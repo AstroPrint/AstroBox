@@ -42,6 +42,8 @@
         max-width: 360px;
         height: 50px;
         margin-top: 20px;
+        position: relative;
+        left: -4%;
 
         .container-off {
           left: -15px;
@@ -53,6 +55,7 @@
             border-radius: 50px;
             left: 15px;
           }
+
           i.icon-snow {
             &:before {
               position: relative;
@@ -88,6 +91,20 @@
                 color: white;
                 position: relative;
                 left: -5px;
+              }
+            }
+            .icon-rocket-spinner {
+              display: none;
+              position: relative;
+              left: -2px;
+            }
+
+            &.loading {
+              .icon-rocket-spinner {
+                display: inline-block;
+              }
+              .icon-pencil {
+                display: none;
               }
             }
           }

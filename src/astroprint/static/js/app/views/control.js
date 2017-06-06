@@ -18,16 +18,9 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-    console.log("initialize CONTROLjs")
     this.renderCircleTemps();
   },
   renderCircleTemps: function() {
-    console.log("renderCircleTemps");
-    /*this.$el.find('#extruders').empty();
-    if (this.heated_bed) {
-      this.$el.find('#bed').empty();
-    }*/
-
     if (app.socketData.attributes.temps != this.socketTemps) {
       this.socketTemps = app.socketData.attributes.temps;
     }
@@ -82,37 +75,20 @@ var TempView = Backbone.View.extend({
       }
     }
 
-    /*if(this.extruders_count > 1) {
-      if(this.$('#extruders').hasClass('slick-initialized')) {
-        this.$('#extruders').removeClass("slick-initialized", "slick-slider", "slick-dotted");
-      }
-
-      this.$('#extruders').slick({
-        arrows: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        dots: true,
-        adaptiveHeight: true
-      });
-    }*/
-
     if (this.$('#extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick")
       this.extrudersSlide.slick('getSlick').unslick();
-    }/* else {
-      console.log("primera vez")*/
-      this.extrudersSlide = this.$('#extruders').slick({
-        arrows: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        dots: true,
-        adaptiveHeight: true
-      });
-    //}
+    }
+    this.extrudersSlide = this.$('#extruders').slick({
+      arrows: true,
+      prevArrow: '<i class="icon-angle-left"></i>',
+      nextArrow: '<i class="icon-angle-right"></i>',
+      slidesToShow: 1,
+      slidesToScroll: 1,
+      dots: true,
+      infinite: false,
+      adaptiveHeight: true
+    });
 
     if (this.socketTemps.length > 0){
       this.updateTemps(this.socketTemps);
@@ -174,6 +150,7 @@ var TempView = Backbone.View.extend({
         nextArrow: '<i class="icon-angle-right"></i>',
         slidesToShow: 1,
         slidesToScroll: 1,
+        infinite: false,
         dots: true,
         adaptiveHeight: true
       });

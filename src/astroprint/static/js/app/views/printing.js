@@ -257,15 +257,6 @@ el: '#printing-view',
     }
     this.heated_bed = profile.heated_bed;
 
-    /*console.log("TENGO QUE REDIBUJAR?",Object.keys(this.semiCircleTemp_views).length);
-    if ( !Object.keys(this.semiCircleTemp_views).length ) {
-      console.log("Printing initialize renderCircleTemps");
-      this.renderCircleTemps();
-    } else {
-      console.log("Printing initialize ya existe llamo a showTemps");
-      this.showTemps();
-    }*/
-    console.log("initialize renderCircleTemps");
     this.renderCircleTemps();
 
     this.printing_progress = app.socketData.get('printing_progress');
@@ -322,24 +313,8 @@ el: '#printing-view',
       pauseBtn.html('<i class="icon-pause"></i> Pause Print');
       controlBtn.hide();
     }
-
-    var profile = app.printerProfile.toJSON();
-
-    if (profile.heated_bed) {
-      //this.bedBar.setMax(profile.max_bed_temp);
-
-      //this.$el.removeClass('hide');
-    } else {
-
-      //this.$el.addClass('hide');
-    }
   },
   renderCircleTemps: function() {
-    /*this.$el.find('#extruders').empty();
-    if (this.heated_bed) {
-      this.$el.find('#bed').empty();
-    }*/
-
     var socketTemps = app.socketData.attributes.temps;
     var temps = null;
     var semiCircleTemp = null;
@@ -389,30 +364,6 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    /*if(this.extrudersSlide != null) {
-      console.log("hhhhh", this.extrudersSlide)
-      this.extrudersSlide.slick('getSlick').reinit();
-    } else {
-      console.log("dddd")
-      this.extrudersSlide = this.$('#extruders').slick({
-        arrows: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        slidesToShow: this.slidesToShow,
-        slidesToScroll: 1,
-        dots: true,
-        //variableWidth: true,
-        //adaptiveHeight: true,
-        responsive: [{
-          breakpoint: 550,
-          settings: {
-            slidesToShow: 1,
-            slidesToScroll: 1
-          }
-        }]
-      });
-    }*/
-
     if(this.$('#extruders').hasClass('slick-initialized')) {
       this.extrudersSlide.slick('getSlick').unslick();
     }
@@ -424,6 +375,7 @@ el: '#printing-view',
       slidesToShow: this.slidesToShow,
       slidesToScroll: 1,
       dots: true,
+      infinite: false,
       responsive: [{
         breakpoint: 550,
         settings: {
@@ -515,6 +467,7 @@ el: '#printing-view',
       slidesToShow: this.slidesToShow,
       slidesToScroll: 1,
       dots: true,
+      infinite: false,
       responsive: [{
         breakpoint: 550,
         settings: {

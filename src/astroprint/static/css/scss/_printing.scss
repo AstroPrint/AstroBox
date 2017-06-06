@@ -222,8 +222,13 @@
     margin-bottom: 15px;
 
     .semi-circle-temps {
-      .temp-container .buttons-container .temp-target {
+      .temp-container .buttons-container {
+        .temp-target {
+          .target {
+            left: 3%;
+          }
           right: 0px;
+        }
       }
     }
 
@@ -238,6 +243,11 @@
       .slick-arrow {
         font-size: 40px;
         padding-bottom: -20px;
+      }
+
+      .slick-disabled {
+        opacity: 0;
+        pointer-events:none;
       }
 
       .slick-dots {

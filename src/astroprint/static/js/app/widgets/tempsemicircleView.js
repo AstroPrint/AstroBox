@@ -30,7 +30,6 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   render: function ()
   {
-    //this.$el.empty();
     this.$el.html(this.template());
 
     if (this.type == 'bed') {
@@ -80,10 +79,15 @@ var TempSemiCircleView = Backbone.View.extend({
       this.setTemps(temps.current, temps.target);
     }
   },
-  turnOff: function()
+  turnOff: function(e)
   {
-    this._sendToolCommand('target', this.el.id, 0);
-    this.setHandle(0);
+    var turnOffButton = $(e.currentTarget);
+    if (!turnOffButton.hasClass("animate-spin")) {
+      turnOffButton.addClass("animate-spin");
+
+      this._sendToolCommand('target', this.el.id, 0);
+      this.setHandle(0);
+    }
   },
   onEditClicked: function(e)
   {
@@ -120,6 +124,8 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     if (value != this.lastSent && !isNaN(value) ) {
+      var loadingBtn = this.$('.temp-edit');
+      loadingBtn.addClass('loading');
       this._sendToolCommand('target', this.el.id, value);
       input.blur();
     }
@@ -152,6 +158,11 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     if (target !== null) {
+      var loadingBtn = this.$('.temp-edit');
+      if(loadingBtn.hasClass('loading') ){
+        loadingBtn.removeClass('loading');
+      }
+
       this.$el.find('.target-value').html(Math.round(target)+'&deg;');
 
       if ( this.type == 'bed') {
@@ -215,8 +226,14 @@ var TempSemiCircleView = Backbone.View.extend({
   {
     var handle = this.$el.find('.temp-target');
     handle.find('span.target-value').text(value);
+
+    var turnOffButton = this.$el.find('.temp-off');
+
     setTimeout(function() {
       handle.css({transition: ''});
+      if (turnOffButton.hasClass("animate-spin")) {
+        turnOffButton.removeClass("animate-spin");
+      }
     }, 800);
   },
   enableTurnOff: function(value)
