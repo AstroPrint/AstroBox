@@ -345,7 +345,7 @@ el: '#printing-view',
       }
     }
 
-    for (var i = 0; i <= this.extruders_count; i++) {
+    for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
       if ((i == this.extruders_count) && this.heated_bed) {
         this.semiCircleTemp_views[i].$el.find('.name').text("BED");
       } else if (this.heated_bed) {
