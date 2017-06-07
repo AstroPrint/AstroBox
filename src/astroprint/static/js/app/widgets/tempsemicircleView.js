@@ -86,7 +86,10 @@ var TempSemiCircleView = Backbone.View.extend({
       turnOffButton.addClass("animate-spin");
 
       this._sendToolCommand('target', this.el.id, 0);
-      this.setHandle(0);
+
+      var target = this.$el.find('.temp-target');
+      target.find('span.target-value').html(0+'&deg;');
+
     }
   },
   onEditClicked: function(e)
@@ -158,6 +161,12 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     if (target !== null) {
+
+      var turnOffButton = this.$el.find('.temp-off');
+      if (turnOffButton.hasClass("animate-spin")) {
+        turnOffButton.removeClass("animate-spin");
+      }
+
       var loadingBtn = this.$('.temp-edit');
       if(loadingBtn.hasClass('loading') ){
         loadingBtn.removeClass('loading');
@@ -221,20 +230,6 @@ var TempSemiCircleView = Backbone.View.extend({
 
     this.lastSentTimestamp = new Date().getTime();
     this.lastSent = temp;
-  },
-  setHandle: function(value)
-  {
-    var handle = this.$el.find('.temp-target');
-    handle.find('span.target-value').text(value);
-
-    var turnOffButton = this.$el.find('.temp-off');
-
-    setTimeout(function() {
-      handle.css({transition: ''});
-      if (turnOffButton.hasClass("animate-spin")) {
-        turnOffButton.removeClass("animate-spin");
-      }
-    }, 800);
   },
   enableTurnOff: function(value)
   {
