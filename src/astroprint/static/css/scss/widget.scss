@@ -2,16 +2,9 @@
 
   .semi-circle-temps {
 
-    /*&#bed{
-      .temp-container .buttons-container .temp-target input  {
-        //right: 51px;
-        right: 22%;
-      }
-    }*/
-
     .temp-container {
       position: relative;
-      //width: 320px;
+      width: 320px;
       height: 220px;
       .name {
         background: #c5c5c5;
@@ -69,7 +62,7 @@
           right: -20px;
 
           .label-target, .target-value {
-            left: -10px;
+            left: -20%;
             color: #c5c5c5;
           }
           .target-value {

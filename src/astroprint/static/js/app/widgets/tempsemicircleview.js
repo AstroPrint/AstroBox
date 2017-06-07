@@ -27,6 +27,7 @@ var TempSemiCircleView = Backbone.View.extend({
       this.type = 'bed';
       this.$el.attr('id', 'bed');
     }
+    this.$el.attr('align', 'center');
   },
   render: function ()
   {
