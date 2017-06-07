@@ -348,8 +348,8 @@ el: '#printing-view',
     for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
       if ((i == this.extruders_count) && this.heated_bed) {
         this.semiCircleTemp_views[i].$el.find('.name').text("BED");
-      } else if (this.heated_bed) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+      } else if (i < this.extruders_count) {
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extruder #" + (i+1));
       }
 
       if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {

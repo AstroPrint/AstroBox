@@ -61,7 +61,7 @@ var TempView = Backbone.View.extend({
       if ((i == this.extruders_count) && this.heated_bed) {
         this.semiCircleTemp_views[i].$el.find('.name').text("BED");
       } else if ((i != this.extruders_count) || this.heated_bed) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extrusor #" + (i+1));
+        this.semiCircleTemp_views[i].$el.find('.name').text("Extruder #" + (i+1));
       }
 
       if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
