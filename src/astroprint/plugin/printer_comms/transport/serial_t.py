@@ -107,9 +107,11 @@ class SerialCommTransport(PrinterCommTransport):
 
 		self._link = None
 
-	def write(self, data):
+	def write(self, data, completed= None):
 		if self._link:
 			self._link.write(data)
+			if completed:
+				completed()
 
 	@property
 	def isLinkOpen(self):

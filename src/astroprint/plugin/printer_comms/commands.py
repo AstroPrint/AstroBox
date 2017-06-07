@@ -51,9 +51,9 @@ class CommsListener(object):
 		pass
 
 	#
-	# Called when a new command is received from the printer
+	# Called when a new response that wasn't handled bu a commmand is received from the printer
 	#
-	def onResponseReceived(self, command):
+	def onUnhandledResponse(self, command):
 		pass
 
 	#
@@ -779,6 +779,7 @@ class CommandSender(object):
 
 			toBeRemoved = None
 			sendNext = False
+			handled = False
 
 			for c in self._pendingCommands:
 				if c.onResponse(data):
@@ -788,7 +789,11 @@ class CommandSender(object):
 						if c.isQueued:
 							sendNext = True
 
+					handled = True
 					break
+
+			if not handled:
+				self._eventListener.onUnhandledResponse(data)
 
 			if toBeRemoved:
 				self._pendingCommands.remove(toBeRemoved)

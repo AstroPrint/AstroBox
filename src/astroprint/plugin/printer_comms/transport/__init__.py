@@ -33,7 +33,10 @@ class PrinterCommTransport(object):
 	#
 	# Writes data into the transport layer
 	#
-	def write(self, data, binary= False):
+	# data: the data to write
+	#	completed: an optiona callback function that indicates the write was done
+	#
+	def write(self, data, completed= None):
 		raise NotImplementedError()
 
 	#
