@@ -306,6 +306,13 @@ class PrinterCommsService(CommandPluginInterface):
 		self._printerState = state
 
 	#
+	# Returns the id of the currently selected extruder
+	#
+	@property
+	def currentTool(self):
+		return self._currentTool
+
+	#
 	# Returns a boolean representing whether the driver allows printing from the printer's SD Card
 	#
 	# Return type: boolean

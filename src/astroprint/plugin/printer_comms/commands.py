@@ -216,7 +216,7 @@ class Command(object):
 		self._encoded = None
 		self._completed = False
 		self._received = False
-		self.isQueued = False
+		self.isQueued = False #Indicates that the command is queued
 
 	def __eq__(self, otherCmd):
 		return otherCmd == self._command
