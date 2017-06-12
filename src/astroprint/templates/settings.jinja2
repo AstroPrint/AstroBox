@@ -77,7 +77,7 @@
             <% if (settings.serial.baudrateOptions.length > 1) { %>
               <select id="settings-baudrate" name="baudrate">
                 <% _.each(settings.serial.baudrateOptions, function(e) { %>
-                  <option value="<%= e %>"<%= settings.serial.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+                  <option value="<%= e %>"<%= settings.serial.baudrate == e ? ' selected' : '' %>><%= e %></option>
                 <% }) %>
               </select>
             <% } else { %>
