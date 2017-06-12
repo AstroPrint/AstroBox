@@ -575,6 +575,14 @@ class CommandsComms(TransportEvents):
 	def writeToSerialLog(self, message):
 		self._serialLogger.debug(message)
 
+	#
+	# Returns a response that was consumed back to be processed again
+	#
+	def injectCommandResponse(self, data):
+		if self._sender:
+			self._sender.onCommandResponse(data)
+
+
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
 	# Events from Job Worker ~
 	#~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -591,10 +599,7 @@ class CommandsComms(TransportEvents):
 		self._serialLoggerEnabled and self.writeToSerialLog('R: %r' % data)
 
 		if self._sender:
-			try:
-				self._sender.onCommandResponse(data)
-			except:
-				self._logger.error('Error handling data received.', exc_info= True)
+			self._sender.onCommandResponse(data)
 
 	def onLinkError(self, error, description= None):
 		self._listener.onLinkError(error, description)
@@ -775,31 +780,35 @@ class CommandSender(object):
 
 	def onCommandResponse(self, data):
 		if data:
-			data = data.decode('ascii').strip()
+			try:
+				data = data.decode('ascii').strip()
 
-			toBeRemoved = None
-			sendNext = False
-			handled = False
+				toBeRemoved = None
+				sendNext = False
+				handled = False
 
-			for c in self._pendingCommands:
-				if c.onResponse(data):
-					if c.completed:
-						toBeRemoved = c
+				for c in self._pendingCommands:
+					if c.onResponse(data):
+						if c.completed:
+							toBeRemoved = c
 
-						if c.isQueued:
-							sendNext = True
+							if c.isQueued:
+								sendNext = True
 
-					handled = True
-					break
+						handled = True
+						break
 
-			if not handled:
-				self._eventListener.onUnhandledResponse(data)
+				if not handled:
+					self._eventListener.onUnhandledResponse(data)
 
-			if toBeRemoved:
-				self._pendingCommands.remove(toBeRemoved)
+				if toBeRemoved:
+					self._pendingCommands.remove(toBeRemoved)
 
-			if sendNext:
-				self.sendNext()
+				if sendNext:
+					self.sendNext()
+
+			except:
+				self._logger.error('Error handling data received.', exc_info= True)
 
 	def storeCommands(self):
 		self._storedCommands = list(self._commandQ)
