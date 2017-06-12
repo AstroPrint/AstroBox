@@ -7,6 +7,7 @@ import serial
 import logging
 import threading
 
+from sys import platform
 from octoprint.settings import settings
 
 from . import PrinterCommTransport
@@ -30,13 +31,20 @@ class SerialCommTransport(PrinterCommTransport):
 		self._baudrate = None
 
 	def listAvailablePorts(self):
-		import serial.tools.list_ports
-
 		ports = {}
+		if platform.startswith('linux'):
+			from usbid.device import device_list
 
-		for p in serial.tools.list_ports.comports():
-			if p.description != 'n/a':
-				ports[p.device] = p
+			for p in device_list():
+				if p.tty:
+					ports['/dev/%s' % p.tty] = p.nameProduct
+
+		else:
+			import serial.tools.list_ports
+
+			for p in serial.tools.list_ports.comports():
+				if p.description != 'n/a':
+					ports[p.device] = p.description
 
 		return ports
 
@@ -108,10 +116,35 @@ class SerialCommTransport(PrinterCommTransport):
 		self._link = None
 
 	def write(self, data, completed= None):
-		if self._link:
-			self._link.write(data)
-			if completed:
-				completed()
+		retriesLeft = 5
+		while True:
+			try:
+				if self._link:
+					self._link.write(data)
+					if completed:
+						completed()
+
+				else:
+					self._logger.error("Link has gone away")
+
+				break
+
+			except serial.SerialTimeoutException:
+				retriesLeft -= 1
+
+				if retriesLeft == 0:
+					self._serialLoggerEnabled and self._serialLogger.info("No more retries left. Closing the connection")
+					self._eventListener.onLinkError('unable_to_send', "Line returned nothing")
+					break
+
+				else:
+					self._serialLoggerEnabled and self._serialLogger.info("Serial Timeout while sending data. Retries left: %d" % retriesLeft)
+					time.sleep(0.5)
+
+			except Exception as e:
+				self._serialLoggerEnabled and self._serialLogger.info("Unexpected error while writing serial port: %s" % e)
+				self._eventListener.onLinkError('unable_to_send', str(e))
+				break
 
 	@property
 	def isLinkOpen(self):

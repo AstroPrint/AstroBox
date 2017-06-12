@@ -34,7 +34,7 @@ default_settings = {
 		"swFlowControl": True,
 		"timeout": {
 			"detection": 0.5,
-			"connection": 10,
+			"connection": 30.0,
 			"communication": 8,
 			"temperature": 5,
 			"sdStatus": 1
