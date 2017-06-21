@@ -16,19 +16,11 @@ class PrinterListener(object):
 		if 'bed' in data:
 			payload['bed'] = { 'actual': data['bed']['actual'], 'target': data['bed']['target'] }
 
-		extruders = []
-		val = None
-
 		if data:
-			for key in data.keys():
-				if key == 'bed':
+			for key in sorted(data.keys()):
+				if key == 'bed' or key[:4] == 'tool':
 					payload[key] = data[key]
-				elif key != 'time':
-					val = data[key]
-					extruders.insert(len(extruders),val)
 
-				if extruders:
-					payload['extruders'] = extruders
 		self._socket.broadcastEvent('temp_update', payload)
 
 	def addLog(self, data):
