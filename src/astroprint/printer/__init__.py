@@ -506,16 +506,17 @@ class Printer(object):
 	#~~~ Data processing functions ~~~
 
 	def _addTemperatureData(self, temp, bedTemp):
-		currentTimeUtc = int(time.time())
-
 		data = {
-			"time": currentTimeUtc
+			"time": int(time.time())
 		}
-		for tool in temp.keys():
-			data["tool%d" % tool] = {
-				"actual": temp[tool][0],
-				"target": temp[tool][1]
-			}
+
+		if temp is not None:
+			for tool in temp.keys():
+				data["tool%d" % tool] = {
+					"actual": temp[tool][0],
+					"target": temp[tool][1]
+				}
+
 		if bedTemp is not None and isinstance(bedTemp, tuple):
 			data["bed"] = {
 				"actual": bedTemp[0],
