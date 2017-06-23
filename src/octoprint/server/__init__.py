@@ -204,6 +204,7 @@ def camera_snapshot():
 def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
+	softwareManager = swManager()
 
 	fileName = None
 
@@ -224,7 +225,7 @@ def getStatus():
 			'camera': cm.isCameraConnected(),
 			#'printCapture': cm.timelapseInfo,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities
 		}),
 		mimetype= 'application/json',
 		headers= {

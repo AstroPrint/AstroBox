@@ -17,6 +17,7 @@ from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.webrtc import webRtcManager
+from astroprint.software import softwareManager as swManager
 
 class RequestHandler(object):
 	def __init__(self, wsClient):
@@ -26,6 +27,7 @@ class RequestHandler(object):
 	def initial_state(self, data, clientId, done):
 		printer = printerManager()
 		cm = cameraManager()
+		softwareManager = swManager()
 
 		state = {
 			'printing': printer.isPrinting(),
@@ -36,7 +38,7 @@ class RequestHandler(object):
 			'printCapture': cm.timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities
 		}
 
 		if state['printing'] or state['paused']:
