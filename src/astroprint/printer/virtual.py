@@ -12,7 +12,7 @@ import os
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printer import Printer
 from astroprint.printfiles import FileDestinations
-
+from astroprint.printerprofile import printerProfileManager
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
@@ -111,8 +111,9 @@ class PrinterVirtual(Printer):
 		})
 
 		#First we simulate heatup
-		self.setTemperature("tool0", 210)
-		self.setTemperature("tool1", 100)
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self.setTemperature('tool'+str(i), 210)
 		self.setTemperature("bed", 60)
 		self.mcHeatingUpUpdate(True)
 		self._heatingUp = True
@@ -144,8 +145,11 @@ class PrinterVirtual(Printer):
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
 			self.mcHeatingUpUpdate(False)
-			self.setTemperature("tool0", 0)
-			self.setTemperature("tool1", 0)
+
+			extruder_count = (printerProfileManager().data.get('extruder_count'))
+			for i in range(extruder_count):
+				self.setTemperature('tool'+str(i), 0)
+
 			self.setTemperature("bed", 0)
 			time.sleep(1)
 			self._changeState(self.STATE_OPERATIONAL)
@@ -169,8 +173,9 @@ class PrinterVirtual(Printer):
 				self._temperatureChanger.start()
 
 				#set initial temps
-				self.setTemperature('tool0', 25)
-				self.setTemperature('tool1', 10)
+				extruder_count = (printerProfileManager().data.get('extruder_count'))
+				for i in range(extruder_count):
+					self.setTemperature('tool'+str(i), 25)
 				self.setTemperature('bed', 25)
 
 		t = threading.Timer(self._settings['connection'], doConnect)
@@ -408,8 +413,10 @@ class JobSimulator(threading.Thread):
 			time.sleep(1)
 
 		self._pm._changeState(self._pm.STATE_OPERATIONAL)
-		self._pm.setTemperature('tool0', 0)
-		self._pm.setTemperature('tool1', 0)
+
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self.setTemperature('tool'+str(i), 0)
 		self._pm.setTemperature('bed', 0)
 
 		payload = {
