@@ -196,8 +196,8 @@ class UsbCommTransport(PrinterCommTransport):
 			try:
 				self._dev_handle.clearHalt(self._sendEP)
 				transfer.submit()
-			except usb1.USBErrorOther:
-				self._eventListener.onLinkError('usb_error', "sender error while clearing Halt: %s" % libusb1.libusb_transfer_status(status))
+			except usb1.USBErrorOther as e:
+				self._eventListener.onLinkError('usb_error', "sender error while clearing Halt: %s" % e)
 
 		else:
 			self._eventListener.onLinkError('usb_error', "sender error: %s" % libusb1.libusb_transfer_status(status))
@@ -261,8 +261,8 @@ class LinkReader(threading.Thread):
 			try:
 				self._devHandle.clearHalt(self._receiveEP)
 				transfer.submit()
-			except usb1.USBErrorOther:
-				self._eventListener.onLinkError('usb_error', "receiver error clearing Halt: %s" % libusb1.libusb_transfer_status(status))
+			except usb1.USBErrorOther as e:
+				self._eventListener.onLinkError('usb_error', "receiver error clearing Halt: %s" % e)
 
 		elif not self._stopped:
 			self._eventListener.onLinkError('usb_error', "receiver error: %s" % libusb1.libusb_transfer_status(status))
