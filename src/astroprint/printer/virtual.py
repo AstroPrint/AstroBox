@@ -416,7 +416,7 @@ class JobSimulator(threading.Thread):
 
 		extruder_count = (printerProfileManager().data.get('extruder_count'))
 		for i in range(extruder_count):
-			self.setTemperature('tool'+str(i), 0)
+			self._pm.setTemperature('tool'+str(i), 0)
 		self._pm.setTemperature('bed', 0)
 
 		payload = {
