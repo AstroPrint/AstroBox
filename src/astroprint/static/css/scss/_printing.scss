@@ -509,6 +509,14 @@
     }
   }
 }
+#upgrade-plan{
+  .reveal-content img {
+    height: 60px;
+    text-align: center;
+    padding-bottom: 10px;
+    margin-top: 10px;
+  }
+}
 
 @media #{$medium-up} {
   #printing-view .temperatures .temp-bar {
