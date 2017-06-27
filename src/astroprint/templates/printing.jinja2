@@ -65,7 +65,7 @@
               <div class="row collapse">
                 <div class="small-4 columns" align="center">
                   <div class="timelapse">
-                    <i class="icon-picture"></i>
+                    <i id="printIcon" class="icon-picture"></i>
                     <select id="freqSelector" class="bold" align="center">
                       <option value="0">Off</option>
                       <option value="layer">Ea. layer</option>
@@ -75,6 +75,11 @@
                       <option value="900">15 mins</option>
                       <option value="1800">30 mins</option>
                     </select>
+                    <span class="dot"></span>
+                    <div class="overlay" style="display:none"></div>
+                  </div>
+                  <div class="locked hide" data-reveal-id="upgrade-plan">
+                    <i class="icon-lock"></i>
                     <span class="dot"></span>
                     <div class="overlay" style="display:none"></div>
                   </div>
@@ -245,4 +250,21 @@
     </div>
   </div>
   <a class="close-reveal-modal">&#215;</a>
+</div>
+
+<div id="upgrade-plan" class="reveal-modal medium radius" data-reveal align="center">
+  <h2 class="bold">Upgrade plan.</h2>
+  <div class="modal-body">
+    <div class="ask">
+      <div class="reveal-content">
+        <p>Your current account storage is full and we're unable to create this timelapse. Please upgrade your plan to get more space.</p>
+      </div>
+      <div class="button-container">
+        <button class="radius secondary left no" onclick="$('#upgrade-plan').foundation('reveal', 'close')">No</button>
+        <a href="https://cloud.astroprint.com/pricing" target="_blank" class="success right radius button">Upgrade Plan</a>
+        <div class="clearfix"></div>
+      </div>
+    </div>
+     <a class="close-reveal-modal">&#215;</a>
+  </div>
 </div>
