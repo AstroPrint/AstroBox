@@ -78,7 +78,7 @@
                     <span class="dot"></span>
                     <div class="overlay" style="display:none"></div>
                   </div>
-                  <div class="locked" hidden data-reveal-id="upgrade-plan">
+                  <div class="locked hide" data-reveal-id="upgrade-plan">
                     <i class="icon-lock"></i>
                     <span class="dot"></span>
                     <div class="overlay" style="display:none"></div>
@@ -257,13 +257,11 @@
   <div class="modal-body">
     <div class="ask">
       <div class="reveal-content">
-        <p>We are sorry but your current plan storage is full. If you want to upload pictures to your cloud please upgrade your plan.</p>
+        <p>Your current account storage is full and we're unable to create this timelapse. Please upgrade your plan to get more space.</p>
       </div>
       <div class="button-container">
         <button class="radius secondary left no" onclick="$('#upgrade-plan').foundation('reveal', 'close')">No</button>
-        <div class="loading-button right yes">
-          <a href="https://cloud.astroprint.com/pricing" target="_blank"><button class="success radius yes">Upgrade Plan</button></a>
-        </div>
+        <a href="https://cloud.astroprint.com/pricing" target="_blank" class="success right radius button">Upgrade Plan</a>
         <div class="clearfix"></div>
       </div>
     </div>

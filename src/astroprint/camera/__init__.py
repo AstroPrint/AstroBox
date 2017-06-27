@@ -261,10 +261,10 @@ class CameraManager(object):
 
 	def start_timelapse(self, freq):
 		if not self.isCameraConnected():
-			return False
+			return 'no_camera'
 
 		if freq == '0':
-			return False
+			return 'invalid_frequency'
 
 		if self.timelapseWorker:
 			self.stop_timelapse()
@@ -272,13 +272,13 @@ class CameraManager(object):
 		#check that there's a print ongoing otherwise don't start
 		selectedFile = printerManager()._selectedFile
 		if not selectedFile:
-			return False
+			return 'no_print_file_selected'
 
 		printCapture = astroprintCloud().startPrintCapture(os.path.split(selectedFile["filename"])[1])
-		if printCapture and printCapture['error']:
+		if printCapture['error']:
 			return printCapture['error']
 
-		if printCapture:
+		else:
 			self.timelapseInfo = {
 				'id': printCapture['print_id'],
 				'freq': freq,
@@ -295,7 +295,7 @@ class CameraManager(object):
 				try:
 					freq = float(freq)
 				except ValueError:
-					return False
+					return 'invalid_frequency'
 
 				self.timelapseInfo['freq'] = freq
 				self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
@@ -303,9 +303,9 @@ class CameraManager(object):
 
 			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 
-			return True
+			return 'success'
 
-		return False
+		return 'unkonwn_error'
 
 	def update_timelapse(self, freq):
 		if self.timelapseInfo and self.timelapseInfo['freq'] != freq:

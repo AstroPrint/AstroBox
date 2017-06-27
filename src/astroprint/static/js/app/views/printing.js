@@ -322,15 +322,15 @@ var PhotoView = CameraViewBase.extend({
         }
       }).done ( (data)=> {
       })
-      .fail(function(data){
+      .fail(_.bind(function(data){
         if (data.status == 402){
-          $(".timelapse").hide();
-          $(".locked").show();
+          this.$(".timelapse").addClass('hide');
+          this.$(".locked").removeClass('hide');
           $('#upgrade-plan').foundation('reveal', 'open');
         } else {
           noty({text: "There was an error adjusting your print capture.", timeout: 3000});
         }
-      });
+      }, this));
     }
   },
   onPrintingHide: function()
