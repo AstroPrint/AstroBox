@@ -110,24 +110,24 @@
 	}
 
   .no-connection-overlay {
-    display: block;
-    position: absolute;
-    height: 100%;
-    width: 100%;
-    background: rgba(0,0,0,0.7);
-    color: white;
-    text-align: center;
-    font-size: rem-calc(30);
-    border-radius: 3px;
-    padding: 5px;
+    display: none;
 
-    i {
-      font-size: rem-calc(80);
+    html.no-printer & {
       display: block;
-    }
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      text-align: center;
+      font-size: rem-calc(30);
+      border-radius: 3px;
+      padding: 5px;
 
-    html.printer-connected & {
-      display: none
+      i {
+        font-size: rem-calc(80);
+        display: block;
+      }
     }
   }
 }

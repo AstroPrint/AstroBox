@@ -260,7 +260,6 @@ def printFileCommand(filename, target):
 
 	return NO_CONTENT
 
-
 @api.route("/files/<string:target>/<path:filename>", methods=["DELETE"])
 @restricted_access
 def deletePrintFile(filename, target):

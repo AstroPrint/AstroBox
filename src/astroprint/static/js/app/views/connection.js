@@ -140,11 +140,11 @@ var ConnectionView = Backbone.View.extend({
 
       case 'connected':
         titleText = 'Connected to printer';
-        $('html').addClass('printer-connected');
+        $('html').removeClass('no-printer');
       break;
 
       case 'failed':
-        $('html').removeClass('printer-connected');
+        $('html').addClass('no-printer');
         titleText = 'The printer is not connected';
       break;
     }

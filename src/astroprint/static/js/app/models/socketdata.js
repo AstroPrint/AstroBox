@@ -26,12 +26,12 @@ var SocketData = Backbone.Model.extend({
     },
     temps: {
       bed: {
-        actual: 0,
-        target: 0
+        actual: null,
+        target: null
       },
       extruder: {
-        actual: 0,
-        target: 0
+        actual: null,
+        target: null
       }
     },
     astroprint: {
@@ -179,8 +179,11 @@ var SocketData = Backbone.Model.extend({
             var progress = data.progress;
             var job = data.job;
 
+            var printFileName = job.file.printFileName ? job.file.printFileName : job.file.name
+
             this.set('printing_progress', {
               filename: job.file.name,
+              printFileName: printFileName,
               rendered_image: job.file.rendered_image,
               layer_count: job.layerCount,
               current_layer: progress.currentLayer,

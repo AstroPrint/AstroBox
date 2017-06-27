@@ -124,6 +124,13 @@ var PhotoView = CameraViewBase.extend({
   parent: null,
   print_capture: null,
   photoSeq: 0,
+  initialize: function(options)
+  {
+    this.print_capture = app.socketData.get('print_capture');
+    this.parent = options.parent;
+    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+    this.initCamera();
+  },
   onCameraBtnClicked: function(e)
   {
     e.preventDefault();
@@ -177,12 +184,6 @@ var PhotoView = CameraViewBase.extend({
 
     this.render();
   },
-  initialize: function(options)
-  {
-    this.print_capture = app.socketData.get('print_capture');
-    this.parent = options.parent;
-    this.initCamera();
-  },
   cameraInitialized: function()
   {
     CameraViewBase.prototype.cameraInitialized.call(this);
@@ -190,7 +191,6 @@ var PhotoView = CameraViewBase.extend({
     app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
     this.listenTo(app.socketData, 'change:print_capture', this.onPrintCaptureChanged);
-    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
     this.listenTo(app.socketData, 'change:camera', this.onCameraChanged);
 
     this.onCameraChanged(app.socketData, app.socketData.get('camera'));
@@ -215,29 +215,12 @@ var PhotoView = CameraViewBase.extend({
     }
 
     if(!this.canStream){
-
-      /*var imageNode = this.$('.camera-image');
-
-      //image
-      var imageUrl = null;
-
-      if (this.print_capture && this.print_capture.last_photo) {
-        imageUrl = this.print_capture.last_photo;
-      } else if (this.parent.printing_progress && this.parent.printing_progress.rendered_image) {
-        imageUrl = this.parent.printing_progress.rendered_image;
-      }
-
-      if (imageNode.attr('src') != imageUrl) {
-        imageNode.attr('src', imageUrl);
-      }*/
-
       //print capture button
       if (this.print_capture && (!this.print_capture.paused || this.print_capture.freq == 'layer')) {
         this.$('.timelapse .dot').addClass('blink-animation');
       } else {
         this.$('.timelapse .dot').removeClass('blink-animation');
       }
-
     }
 
     //overaly
@@ -283,16 +266,25 @@ var PhotoView = CameraViewBase.extend({
   },
   onPrintingProgressChanged: function(s, value)
   {
-    if (this.cameraMode == 'photo' && !this.$('.camera-image').attr('src') && value && value.rendered_image) {
-      //This allows the change to propagate
-      setTimeout(_.bind(function(){
-        //this.render();
-        if(value && value.last_photo){
-          var img = this.$('.camera-image');
-           img.attr('src',value.last_photo);
+    var imgCont = this.$('.camera-image');
+    var imgSrc = imgCont.attr('src');
+
+    //This allows the change to propagate
+    setTimeout(_.bind(function(){
+      if (!imgSrc && value) {
+        if (this.cameraAvailable) {
+          if (this.cameraMode == 'photo') {
+            if (value.last_photo) {
+              imgCont.attr('src', value.last_photo);
+            } else if (value.rendered_image) {
+              imgCont.attr('src', value.rendered_image);
+            }
+          }
+        } else if (imgSrc != value.rendered_image) {
+          imgCont.attr('src', value.rendered_image);
         }
-      },this), 1);
-    }
+      }
+    }, this), 1);
   },
   refreshPhoto: function(e)
   {
@@ -376,11 +368,15 @@ var PrintingView = Backbone.View.extend({
       el: this.$el.find('.temp-bar.bed'),
       type: 'bed'
     });
-    this.photoView = new PhotoView({parent: this});
+
+    this.printing_progress = app.socketData.get('printing_progress');
+    this.paused = app.socketData.get('paused');
 
     this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
+
+    this.photoView = new PhotoView({parent: this});
   },
   render: function()
   {
@@ -388,8 +384,8 @@ var PrintingView = Backbone.View.extend({
     var filenameNode = this.$('.progress .filename');
 
     if (this.printing_progress) {
-      if (filenameNode.text() != this.printing_progress.filename) {
-        filenameNode.text(this.printing_progress.filename);
+      if (filenameNode.text() != this.printing_progress.printFileName) {
+        filenameNode.text(this.printing_progress.printFileName);
       }
 
       //progress bar

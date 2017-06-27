@@ -56,7 +56,7 @@ def connectionCommand():
 				return make_response("Invalid port: %s" % port, 400)
 
 		if "baudrate" in data:
-			baudrate = data["baudrate"]
+			baudrate = int(data["baudrate"])
 			if baudrate:
 				baudrates = options["baudrates"]
 				if baudrates and baudrate not in baudrates:
@@ -80,5 +80,5 @@ def connectionCommand():
 		pm.disconnect()
 
 	return NO_CONTENT
-	
+
 
