@@ -31,7 +31,7 @@ var TempView = Backbone.View.extend({
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
-      this.$el.find('#extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('.extruders').append(this.semiCircleTemp_views[i].render().el);
 
       if (this.socketTemps.lenght > 0) {
         temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
@@ -46,7 +46,7 @@ var TempView = Backbone.View.extend({
     if (this.heated_bed) {
       semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
       this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-      this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+      this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
       if (this.socketTemps.lenght > 0) {
         temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
@@ -75,11 +75,11 @@ var TempView = Backbone.View.extend({
       }
     }
 
-    if (this.$('#extruders').hasClass('slick-initialized')) {
+    if (this.$('.extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick")
       this.extrudersSlide.slick('getSlick').unslick();
     }
-    this.extrudersSlide = this.$('#extruders').slick({
+    this.extrudersSlide = this.$('.extruders').slick({
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
@@ -140,11 +140,11 @@ var TempView = Backbone.View.extend({
         this.semiCircleTemp_views[i].updateValues(temps);
       }
 
-      if (this.$('#extruders').hasClass('slick-initialized')) {
+      if (this.$('.extruders').hasClass('slick-initialized')) {
         this.extrudersSlide.slick('getSlick').unslick();
       }
 
-      this.extrudersSlide = this.$('#extruders').slick({
+      this.extrudersSlide = this.$('.extruders').slick({
         arrows: true,
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
@@ -464,8 +464,6 @@ var ControlView = Backbone.View.extend({
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
-    console.log("desde render")
-    //this.tempView.show();
   },
   resumePrinting: function(e)
   {

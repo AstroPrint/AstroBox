@@ -324,7 +324,7 @@ el: '#printing-view',
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
       this.semiCircleTemp_views[i] = semiCircleTemp;
 
-      this.$el.find('#extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('.extruders').append(this.semiCircleTemp_views[i].render().el);
 
       if (_.has(socketTemps, 'extruders')) {
         temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
@@ -336,7 +336,7 @@ el: '#printing-view',
     if (this.heated_bed) {
       semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
       this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-      this.$el.find('#bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+      this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
       if (_.has(socketTemps, 'bed')) {
         temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
@@ -364,11 +364,11 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    if(this.$('#extruders').hasClass('slick-initialized')) {
+    if(this.$('.extruders').hasClass('slick-initialized')) {
       this.extrudersSlide.slick('getSlick').unslick();
     }
 
-    this.extrudersSlide = this.$('#extruders').slick({
+    this.extrudersSlide = this.$('.extruders').slick({
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
@@ -456,11 +456,11 @@ el: '#printing-view',
     }
 
 
-    if (this.$('#extruders').hasClass('slick-initialized')) {
+    if (this.$('.extruders').hasClass('slick-initialized')) {
       this.extrudersSlide.slick('getSlick').unslick();
     }
 
-    this.extrudersSlide = this.$('#extruders').slick({
+    this.extrudersSlide = this.$('.extruders').slick({
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',

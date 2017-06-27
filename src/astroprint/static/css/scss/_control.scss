@@ -167,9 +167,13 @@ html.no-printer {
 
 
 #temp-control-template {
-  #extruders {
+  .extruders {
     height: 245px;
     margin-bottom: 0px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+    color: #ccc;
+    background: #fafafa;
 
     .slick-arrow {
       font-size: 40px;
@@ -202,8 +206,12 @@ html.no-printer {
       right: -85%;
     }
   }
-  #bed {
+  .bed {
     height: 220px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+    color: #ccc;
+    background: #fafafa;
   }
 }
 

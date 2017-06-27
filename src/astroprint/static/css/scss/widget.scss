@@ -4,10 +4,12 @@
 
     .temp-container {
       position: relative;
+      max-width: 100%;
       width: 320px;
       height: 220px;
       .name {
         background: #c5c5c5;
+        color: black;
       }
 
       .graphic-container {
