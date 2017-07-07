@@ -59,7 +59,7 @@ def handleNetworkName():
 	return jsonify(name=nm.getHostname())
 
 @api.route("/settings/network/wifi-networks", methods=["GET"])
-@restricted_access
+#@restricted_access
 def getWifiNetworks():
 	networks = networkManager().getWifiNetworks()
 
@@ -69,7 +69,7 @@ def getWifiNetworks():
 		return jsonify({'message': "Unable to get WiFi networks"})
 
 @api.route("/settings/network", methods=["GET"])
-@restricted_access
+#@restricted_access
 def getNetworkSettings():
 	nm = networkManager()
 
@@ -90,7 +90,7 @@ def deleteStoredWiFiNetwork(networkId):
 		return ("Network Not Found", 404)
 
 @api.route("/settings/network/active", methods=["POST"])
-@restricted_access
+#@restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
 		data = request.json
