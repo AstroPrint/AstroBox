@@ -143,6 +143,7 @@ class PrinterVirtual(Printer):
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
 			self.mcHeatingUpUpdate(False)
+			self._heatingUp = False
 			self.setTemperature("tool0", 0)
 			self.setTemperature("bed", 0)
 			time.sleep(1)
