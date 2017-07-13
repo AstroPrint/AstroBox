@@ -268,6 +268,11 @@ def resetFactorySettings():
 	if os.path.exists(p_profile_file):
 		os.unlink(p_profile_file)
 
+	#remove box-id so it's re-created on bootup
+	boxIdFile = "%s/box-id" % s.getConfigFolder()
+	if os.path.exists(boxIdFile):
+		os.unlink(boxIdFile)
+
 	#remove info about users
 	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
 	if user_file and os.path.exists(user_file):

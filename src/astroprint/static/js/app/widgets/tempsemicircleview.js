@@ -118,7 +118,7 @@ var TempSemiCircleView = Backbone.View.extend({
     if(this.type == 'bed') {
       maxValue = app.printerProfile.get('max_bed_temp');
     } else {
-      maxValue = app.printerProfile.get('max_nozzle_temp')
+      maxValue = app.printerProfile.get('max_nozzle_temp');
     }
 
     if (value < 0) {
