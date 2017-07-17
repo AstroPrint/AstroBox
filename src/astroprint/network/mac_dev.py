@@ -8,7 +8,7 @@ from astroprint.network import NetworkManager as NetworkManagerBase
 
 class MacDevNetworkManager(NetworkManagerBase):
 	def __init__(self):
-		self.name = "julian-astrobox-dev"
+		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
 		super(MacDevNetworkManager, self).__init__()
 
