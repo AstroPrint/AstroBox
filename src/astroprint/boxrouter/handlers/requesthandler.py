@@ -72,10 +72,11 @@ class RequestHandler(object):
 					return
 
 			else:
-				if not cm.start_timelapse(freq):
+				r = cm.start_timelapse(freq)
+				if r != 'success':
 					done({
 						'error': True,
-						'message': 'Error creating the print capture'
+						'message': 'Error creating the print capture: %s' % r
 					})
 					return
 		else:
@@ -216,6 +217,9 @@ class RequestHandler(object):
 # Printer Command Group Handler
 
 class PrinterCommandHandler(object):
+	def connect(self, data, clientId, done):
+		done(printerManager().connect())
+
 	def pause(self, data, clientId, done):
 		printerManager().togglePausePrint()
 		done(None)
