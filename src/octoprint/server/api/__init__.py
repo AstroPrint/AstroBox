@@ -226,7 +226,7 @@ def login():
 					if astroprintCloud().signin(username, password):
 				except (AstroPrintCloudNoConnectionException, ConnectionError):
 					return make_response(("AstroPrint.com can't be reached", 503, []))
-		return make_response(("User unknown or password incorrect", 401, []))
+			return make_response(("User unknown or password incorrect", 401, []))
 	elif "passive" in request.values.keys():
 		user = current_user
 		if user is not None and not user.is_anonymous:
