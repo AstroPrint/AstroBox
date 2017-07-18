@@ -40,6 +40,10 @@ from astroprint.api import printerprofile as api_astroprint_printerprofile
 from astroprint.api import printer as api_astroprint_printer
 from astroprint.api import connection as api_astroprint_connection
 from astroprint.api import files as api_astroprint_files
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
+from requests import ConnectionError
+
+
 
 VERSION = "1.0"
 
@@ -212,10 +216,16 @@ def login():
 
 		user = octoprint.server.userManager.findUser(username)
 		if user is not None:
-			if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
-				login_user(user, remember=remember)
-				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
-				return jsonify(user.asDict())
+			if user.has_password():
+				if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
+					login_user(user, remember=remember)
+					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+					return jsonify(user.asDict())
+			else :
+				try:
+					if astroprintCloud().signin(username, password):
+				except (AstroPrintCloudNoConnectionException, ConnectionError):
+					return make_response(("AstroPrint.com can't be reached", 503, []))
 		return make_response(("User unknown or password incorrect", 401, []))
 	elif "passive" in request.values.keys():
 		user = current_user

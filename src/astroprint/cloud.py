@@ -87,7 +87,6 @@ class AstroPrintCloud(object):
 	def signin(self, email, password):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
-
 		user = None
 		userLoggedIn = False
 
@@ -114,6 +113,57 @@ class AstroPrintCloud(object):
 		else:
 			user = userManager.findUser(email)
 			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
+
+		if userLoggedIn:
+			login_user(user, remember=True)
+			userId = user.get_id()
+
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
+			boxrouterManager().boxrouter_connect()
+
+			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+
+			#let the singleton be recreated again, so new credentials are taken into use
+			global _instance
+			_instance = None
+
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
+			return True
+
+		elif not online:
+			raise AstroPrintCloudNoConnectionException()
+
+		return False
+
+	def signinWithKey(self, email, private_key):
+		from octoprint.server import userManager
+		from astroprint.network.manager import networkManager
+
+		user = None
+		userLoggedIn = False
+
+		online = networkManager().isOnline()
+
+		if online:
+			public_key = self.get_public_key(email, private_key)
+
+			if public_key:
+				#Let's protect the box now:
+				user = userManager.findUser(email)
+
+				if user:
+					userManager.changeCloudAccessKeys(email, public_key, private_key)
+				else:
+					user = userManager.addUser(email, None, public_key, private_key, True)
+
+				userLoggedIn = True
+
+		else:
+			user = userManager.findUser(email)
+			userLoggedIn = user and user.check_privateKey(private_key)
 
 		if userLoggedIn:
 			login_user(user, remember=True)
