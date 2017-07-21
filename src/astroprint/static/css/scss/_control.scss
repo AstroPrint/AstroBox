@@ -1,3 +1,10 @@
+
+.controls-container{
+  margin-bottom: 0px;
+  @include radius($global-radius);
+  background: #fafafa;
+}
+
 #xy-controls,
 #z-controls  {
 	margin-bottom: 20px;
@@ -5,28 +12,57 @@
 	button {
 		display: inline-block;
 		margin-bottom: 0;
-		border: 0;
-		background-color: transparent;
+    position: relative;
+    background: $oil;
+    box-shadow: 0 10px darken($oil, 40%);
+    padding: 0;
+    width: 66px;
+    height: 56px;
+    border-radius: 8px;
 
-		&:hover, &:active {
-			background-color: transparent;
-		}
+		&:hover{
+      background-color: lighten($oil,5%);
+    }
+
+    &:active {
+      background-color: darken($oil,10%);
+      top: 47px !important;
+      box-shadow: none;
+    }
 	}
 }
 
 #xy-controls {
 	.control_bg_xy {
 		position: relative;
-		display: inline-block;
+    perspective: 500px;
+    perspective-origin: 50% 50%;
+    width: 100%;
+    height: 200px;
+    max-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    & > *{
+      -webkit-transform: rotateX(40deg); /* Chrome, Safari, Opera */
+      transform: rotateX(40deg);
+    }
 
 		button {
-			position: absolute;
+      position: absolute;
+      width: 66px;
+      height: 66px;
+      border-radius: 5px;
+
 			&.home_z {
 				top: 70px;
-				left: 50%;
-				margin-left: -34px;
-				transform: rotateX(30deg);
+        height: 36px;
+        width: 50px;
+
+        &:active{
+          top: 77px !important;
+        }
 			}
 
 			&.control_btn_x_plus {
@@ -36,31 +72,77 @@
 
 			&.control_btn_x_minus {
 				top: 40px;
-				left: 30px;
+        left: 30px;
+        i:before{
+          transform: rotate(-180deg);
+        }
 			}
 
 			&.control_btn_y_minus {
-				bottom: 0px;
-				left: 50%;
-				margin-left: -66px;
+				bottom: 25px;
+          i:before{
+            transform: rotate(90deg);
+          }
 			}
 
 			&.control_btn_y_plus {
 				top: 5px;
-				left: 50%;
-				margin-left: -52px;
+          i:before{
+            transform: rotate(-90deg);
+          }
+
+          &:active{
+            top: 12px !important;
+          }
 			}
 		}
-	}
+  }
+
+  .bed-mesh{
+    width: 70%;
+    height: 87%;
+    border: 2px solid #e0e0e0;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    background: rgba(66, 66, 66, 0.07) url(/img/mesh-backg.svg) right no-repeat;
+    background-size: 300px;
+  }
 }
 
 #z-controls {
 	button.home_z {
-		margin: 30px 0;
-	}
+    margin: 20px 0;
+    height: 36px;
+    width: 50px;
+  }
+
+  .control_btn_z_plus i:before{
+    -ms-transform: rotate(-90deg); /* IE 9 */
+    -webkit-transform: rotate(-90deg); /* Chrome, Safari, Opera */
+    transform: rotate(-90deg);
+  }
+
+  .control_btn_z_minus i:before{
+    -ms-transform: rotate(90deg); /* IE 9 */
+    -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+    transform: rotate(90deg);
+  }
+
+  button{
+    &:active {
+      background-color: darken($oil,10%);
+      top: 12px !important;
+      box-shadow: none;
+    }
+  }
 }
 
 #control-view {
+  :focus{
+    outline: 0;
+  }
+
 	h1 {
 		background: #fafafa url("/img/subtle_zebra_3d.png") 0 0 repeat;
 		border-bottom: 1px solid #ccc;
@@ -160,7 +242,7 @@ html.no-printer {
 		padding: 0;
 		li button {
 			margin-bottom: 0;
-			font-size: rem-calc(25);
+			font-size: rem-calc(20);
 		}
 	}
 }
@@ -169,8 +251,6 @@ html.no-printer {
 #temp-control-template {
   .extruders {
     height: 245px;
-    margin-bottom: 0px;
-    border: 1px solid #ccc;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
@@ -208,10 +288,13 @@ html.no-printer {
   }
   .bed {
     height: 220px;
-    border: 1px solid #ccc;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
+
+    img{
+      height: 18px;
+    }
   }
 }
 

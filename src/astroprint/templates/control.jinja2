@@ -11,31 +11,32 @@
       Printing paused: <div class="filename bold"></div>
     </div>
   </div>
-  <div class="medium-12 large-7 columns">
+  <div class="medium-12 large-7 columns controls-container">
     <div class="row">
       <div class="small-12 medium-7 columns" id="xy-controls" align="center">
         <h2 class="bold">Horizontal</h2>
         <div class="control_bg_xy" align="center">
-          <button class="control_btn_y_plus"></button><br/>
-          <button class="control_btn_x_minus"></button> <button class="home_z"></button> <button class="control_btn_x_plus"></button><br/>
-          <button class="control_btn_y_minus"></button>
+          <button class="control_btn_y_plus"><i class="icon-right-open"></i></button>
+          <button class="control_btn_x_minus"><i class="icon-right-open"></i></button> <button class="home_z"></button> <button class="control_btn_x_plus"><i class="icon-right-open"></i></button>
+          <button class="control_btn_y_minus"><i class="icon-right-open"></i></button>
+          <div class="bed-mesh"></div>
         </div>
       </div>
       <div class="small-12 medium-5 columns" id="z-controls">
         <h2 class="bold" align="center">Vertical</h2>
         <center>
-          <button class="control_btn_z_plus"></button><br/>
+          <button class="control_btn_z_plus"><i class="icon-right-open"></i></button><br/>
           <button class="home_z"></button><br/>
-          <button class="control_btn_z_minus"></button>
+          <button class="control_btn_z_minus"><i class="icon-right-open"></i></button>
         </center>
       </div>
       <div class="small-12 columns" id="distance-control">
         <center>
           <ul class="button-group radius">
-            <li><button class="small bold secondary" data-value="0.1">0.1</button></li>
-            <li><button class="small bold secondary" data-value="1">1</button></li>
-            <li><button class="small bold success" data-value="10">10</button></li>
-            <li><button class="small bold secondary" data-value="100">100</button></li>
+            <li><button class="tiny bold secondary" data-value="0.1">0.1</button></li>
+            <li><button class="tiny bold secondary" data-value="1">1</button></li>
+            <li><button class="tiny bold success" data-value="10">10</button></li>
+            <li><button class="tiny bold secondary" data-value="100">100</button></li>
           </ul>
         </center>
       </div>
@@ -57,7 +58,7 @@
         <script type="text/template" id="extruder-switch-template">
           <% if (profile.extruder_count > 1) { %>
             <div class="small-3 columns">
-              <label class="bold">Nozzle</label>
+              <label class="bold">Extruder</label>
               <select class="extruder-number">
                 <% for(var i=0; i<profile.extruder_count; i++) { %>
                   <option value="<%= i %>"><%= i+1 %></option>
@@ -107,13 +108,15 @@
     </div>
   </div>
 
-  <div id="temp-control-template" class="medium-12 large-5 column">
+  <div id="temp-control-template" class="medium-12 large-5 column temp-container">
     <div class="row">
       <div class="small-12 column">
         <div class="extruders"></div>
       </div>
       <div class="small-12 column">
-        <div class="bed"></div>
+        <div class="bed">
+          <img src="/img/icon-bed.svg"/>
+        </div>
       </div>
     </div>
   </div>
