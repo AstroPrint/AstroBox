@@ -58,11 +58,11 @@ var TempView = Backbone.View.extend({
     }
 
     for (var i = 0; i <= this.extruders_count; i++) {
-      if ((i == this.extruders_count) && this.heated_bed) {
+      /*if ((i == this.extruders_count) && this.heated_bed) {
         this.semiCircleTemp_views[i].$el.find('.name').text("BED");
       } else if ((i != this.extruders_count) || this.heated_bed) {
         this.semiCircleTemp_views[i].$el.find('.name').text("Extruder #" + (i+1));
-      }
+      }*/
 
       if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
         $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
@@ -152,7 +152,11 @@ var TempView = Backbone.View.extend({
         slidesToScroll: 1,
         infinite: false,
         dots: true,
-        adaptiveHeight: true
+        adaptiveHeight: true,
+        customPaging : function(slider, i) {
+          var thumb = $(slider.$slides[i]).data();
+          return '<a>'+i+'</a>';
+        }
       });
 
     }
@@ -405,11 +409,15 @@ var FanControlView = Backbone.View.extend({
   {
     this._setFanSpeed(255);
     this.$('.fan_icon').addClass('animate-spin');
+    this.$('.fans').removeClass('fan-on').addClass('fan-off');
+    this.$('.fans').text('OFF');
   },
   fanOff: function()
   {
     this._setFanSpeed(0);
     this.$('.fan_icon').removeClass('animate-spin');
+    this.$('.fans').removeClass('fan-off').addClass('fan-on');
+    this.$('.fans').text('ON');
   },
   _setFanSpeed: function(speed)
   {

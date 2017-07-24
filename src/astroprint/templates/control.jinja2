@@ -40,7 +40,8 @@
           </ul>
         </center>
       </div>
-      <div class="small-12 columns" id="extrusion-control">
+      <div class="clearfix"></div>
+      <div class="small-12 large-7 columns" id="extrusion-control">
         <h2 class="bold"><i class="icon-extruder"></i> Filament Extruder</h2>
         <div class="small-12 medium-7 columns">
           <div class="row extruder-switch closer"></div>
@@ -105,25 +106,29 @@
           </div>
         </script>
       </div>
+
+      <div id="fan-control" class="small-12 large-5 column">
+        <div class="small-12 large-12 column fan-control">
+            <h2 class="large-5 column bold">Fans <span class="fan_icon"></span></h2>
+            <button class="large-3 column radius small success fan-on fans" align="left">ON</button>
+            <!--button class="large-3 large-offset-1 column radius small secondary fan-off" align="right">OFF</button-->
+        </div>
+      </div>
     </div>
   </div>
 
   <div id="temp-control-template" class="medium-12 large-4 column temp-container">
-    <div class="row">
-      <div class="small-12 column">
-        <div class="extruders clearfix"></div>
+    <div class="heading-box bold">Set temperatures</div>
+      <div class="row">
+        <div class="small-12 column">
+          <div class="extruder-subeheading">Extruders</div>
+          <div class="extruders clearfix"></div>
+        </div>
+        <div class="small-12 column">
+          <div class="bed-subeheading">Bed</div>
+          <div class="bed text-center clearfix"></div>
+        </div>
       </div>
-      <div class="small-12 column">
-        <div class="bed text-center clearfix"></div>
-      </div>
-    </div>
-  </div>
-  <div id="fan-control" class="small-12 large-5 column">
-    <div class="small-12 large-12 column fan-control">
-        <h2 class="large-5 column bold">Fans <span class="fan_icon"></span></h2>
-        <button class="large-3 column radius small success fan-on" align="left">ON</button>
-        <button class="large-3 large-offset-1 column radius small secondary fan-off" align="right">OFF</button>
-    </div>
   </div>
 
   <div class="no-connection-overlay">
