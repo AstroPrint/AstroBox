@@ -154,13 +154,12 @@ class AstroPrintCloud(object):
 				#Let's protect the box now:
 				user = userManager.findUser(email)
 
-				if user:
+				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
 				else:
-					user = userManager.addUser(email, None, public_key, private_key, True)
-
-				userLoggedIn = True
-
+					return {
+						'error': 'no_user',
+					}
 		else:
 			user = userManager.findUser(email)
 			userLoggedIn = user and user.check_privateKey(private_key)
