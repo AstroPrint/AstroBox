@@ -44,8 +44,13 @@ def set_private_key():
 
 	elif email and private_key:
 		try:
-			if astroprintCloud().signinWithKey(email, private_key):
-				return jsonify(SUCCESS)
+			cloudInfo = astroprintCloud().signinWithKey(email, private_key)
+
+			if cloudInfo:
+				if cloudInfo is True:
+					return jsonify(SUCCESS)
+				else:
+					return jsonify(cloudInfo)
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")

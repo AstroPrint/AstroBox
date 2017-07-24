@@ -156,9 +156,10 @@ class AstroPrintCloud(object):
 
 				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
+					userLoggedIn = True
 				else:
 					return {
-						'error': 'no_user',
+						'error': 'no_user'
 					}
 		else:
 			user = userManager.findUser(email)
@@ -180,7 +181,6 @@ class AstroPrintCloud(object):
 			_instance = None
 
 			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
-
 			return True
 
 		elif not online:
