@@ -268,9 +268,15 @@ html.no-printer {
     .slick-dots {
       position: relative;
       top: -70px;
-      li button:before {
-        font-size: 30px;
+      li{
+        button{
+          background-image:url(/img/mesh-backg.svg) center no-repeat !important;
+        }
+        button:before {
+          font-size: 30px;
+        }
       }
+
     }
 
     .icon-angle-left {
