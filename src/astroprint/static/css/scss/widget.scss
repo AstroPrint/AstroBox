@@ -8,15 +8,17 @@
       width: 320px;
       height: 220px;
       .name {
-        background: #c5c5c5;
-        color: black;
+        color: $steel;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 12px;
       }
 
       .graphic-container {
         .circle-container{
           max-width: 360px;
-          height: 250px;
-          margin-bottom: -135px;
+          margin-top: 10px;
+          height: 125px;
 
           .progress-temp-circle {
             position: relative;
@@ -77,9 +79,18 @@
           .temp-target {
             right: -20px;
 
-            .label-target, .target-value {
+            .label-target{
+              text-transform: uppercase;
+              font-size: 14px;
+              letter-spacing: 1px;
               left: -20%;
+              margin-bottom: -3px;
               color: #c5c5c5;
+            }
+            .target-value {
+              left: -20%;
+              color: $oil;
+              font-size: 20px;
             }
             .target-value {
               left: -10px;

@@ -212,6 +212,7 @@
       }
     }
   }
+
 }
 
 html.no-printer {
@@ -250,10 +251,11 @@ html.no-printer {
 
 #temp-control-template {
   .extruders {
-    height: 245px;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
+    padding: 15px 0;
+    height: 320px;
 
     .slick-arrow {
       font-size: 40px;
@@ -266,14 +268,21 @@ html.no-printer {
     }
 
     .slick-dots {
-      position: relative;
-      top: -70px;
+      top: 35px;
+      left: 0;
+      height: 36px;
+
       li{
+        width: 35px;
+        height: 35px;
+
         button{
-          background-image:url(/img/mesh-backg.svg) center no-repeat !important;
+          background:url(/img/icon-extruder.svg) center no-repeat !important;
+          width: 35px;
+          height: 35px;
         }
         button:before {
-          font-size: 30px;
+          font-size: 16px;
         }
       }
 
@@ -282,24 +291,33 @@ html.no-printer {
     .icon-angle-left {
       z-index: 9999;
       position: absolute;
-      top: 39%;
-      left: 5%;
+      top: 30px;
+      left: 0;
     }
 
     .icon-angle-right {
-      position: relative;
-      top: -124px;
-      right: -85%;
+      position: absolute;
+      top: 30px;
+      right: 0;
+      z-index: 9999;
+    }
+
+    img.icon-bed{
+      display: none;
+    }
+
+    .semi-circle-temps .temp-container .graphic-container .circle-container{
+      margin-top: 60px;
     }
   }
   .bed {
-    height: 220px;
+    padding: 15px;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
 
     img{
-      height: 18px;
+      height: 27px;
     }
   }
 }
