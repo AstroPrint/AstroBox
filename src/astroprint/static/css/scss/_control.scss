@@ -105,7 +105,7 @@
     position: absolute;
     z-index: -1;
     top: 0;
-    background: rgba(66, 66, 66, 0.07) url(/img/mesh-backg.svg) right no-repeat;
+    background: rgba(66, 66, 66, 0.04) url(/img/mesh-backg.svg) right no-repeat;
     background-size: 300px;
   }
 }
@@ -150,8 +150,9 @@
 		margin: 0 0 10px 0;
 	}
 
-	h2 {
-		font-size: rem-calc(20);
+	h5 {
+    color: darkgray;
+    margin-top: 15px;
 	}
 
 	.back-to-print {
@@ -264,8 +265,8 @@ html.no-printer {
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
-    padding: 15px 0;
-    height: 320px;
+    padding-bottom: 15px;
+    height: 295px;
     margin-bottom: 0;
 
     .slick-arrow {
@@ -279,7 +280,7 @@ html.no-printer {
     }
 
     .slick-dots {
-      top: 35px;
+      top: 0;
       left: 0;
       height: 36px;
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
@@ -317,7 +318,7 @@ html.no-printer {
 
     .icon-angle-right {
       position: absolute;
-      top: 30px;
+      top: 5px;
       right: 0;
       z-index: 9999;
     }
@@ -327,7 +328,7 @@ html.no-printer {
     }
   }
   .bed {
-    padding: 15px;
+    padding-bottom: 15px;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
@@ -335,6 +336,12 @@ html.no-printer {
     img{
       height: 27px;
     }
+  }
+  .temp-subheading{
+    padding:5px 20px;
+    letter-spacing: 1px;
+    background: #fafafa;
+    font-size: 14px;
   }
 }
 
