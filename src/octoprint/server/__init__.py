@@ -73,17 +73,19 @@ VERSION = None
 
 @app.route('/astrobox/identify', methods=['GET'])
 def box_identify():
-	br = boxrouterManager()
 	nm = networkManager()
+	s = settings()
 
 	return Response(json.dumps({
-		'id': br.boxId,
+		'id': boxrouterManager().boxId,
 		'name': nm.getHostname(),
-		'version': VERSION
+		'version': VERSION,
+		'firstRun': s.getBoolean(["server", "firstRun"]),
+		'online': nm.isOnline()
 	}),
 	headers= {
 		'Access-Control-Allow-Origin': '*'
-	} if settings().getBoolean(['api', 'allowCrossOrigin']) else None)
+	} if s.getBoolean(['api', 'allowCrossOrigin']) else None)
 
 @app.route("/")
 def index():
@@ -123,7 +125,6 @@ def index():
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
 		if current_user.is_authenticated:
 			logout_user()
-
 		return render_template(
 			"locked.jinja2",
 			username= loggedUsername,

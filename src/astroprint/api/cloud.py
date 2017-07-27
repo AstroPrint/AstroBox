@@ -32,6 +32,7 @@ def cloud_slicer_logout():
 def set_private_key():
 	email = request.values.get('email', None)
 	password = request.values.get('password', None)
+	private_key = request.values.get('private_key', None)
 
 	if email and password:
 		try:
@@ -41,6 +42,18 @@ def set_private_key():
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
 
+	elif email and private_key:
+		try:
+			cloudInfo = astroprintCloud().signinWithKey(email, private_key)
+
+			if cloudInfo:
+				if cloudInfo is True:
+					return jsonify(SUCCESS)
+				else:
+					return jsonify(cloudInfo)
+
+		except (AstroPrintCloudNoConnectionException, ConnectionError):
+			abort(503, "AstroPrint.com can't be reached")
 	else:
 		abort(400)
 
