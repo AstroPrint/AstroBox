@@ -3,7 +3,7 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: #fafafa;
-  padding: 0 30px 20px 30px;
+  padding: 0 30px 24px 30px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -26,7 +26,6 @@
   input, select, .postfix {
     height: 42px;
     border-width: 2px;
-    max-width: 240px;
     margin: 0 auto;
   }
 
@@ -38,14 +37,14 @@
   }
 
   select.fan-speed{
-    font-size: 32px;
+    font-size: 30px;
     border: 0;
     padding-top: 3px;
     overflow: visible;
-    background-size: 42px 10px;
-    max-width: 122px;
+    background-size: 30px 10px;
+    max-width: 120px;
     padding-left: 0;
-    margin-left: 20px;
+    text-align-last: center;
   }
   select.extruder-number{
     border: 0;
@@ -192,6 +191,8 @@
 }
 
 #z-controls {
+  height: 231px;
+
 	button.home_z {
     margin: 20px 0;
     height: 36px;
@@ -300,7 +301,7 @@
 
   .heading-box{
     background: $oil;
-    padding: 6px;
+    padding: 5px;
     color: white;
     text-align: center;
     text-transform: uppercase;
@@ -358,7 +359,7 @@ html.no-printer {
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     height: 250px;
 
     .slick-arrow {
@@ -420,7 +421,7 @@ html.no-printer {
     }
   }
   .bed {
-    padding-bottom: 15px;
+    padding-bottom: 10px;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
@@ -432,7 +433,7 @@ html.no-printer {
     }
   }
   .temp-subheading{
-    padding:5px 20px;
+    padding:5px 20px 2px 20px;
     letter-spacing: 1px;
     background: #fafafa;
     font-size: 14px;
@@ -504,15 +505,11 @@ html.no-printer {
 
   button{
     background: $oil;
+    margin-top: 15px;
   }
 }
 
 @media #{$medium-up} {
-	#extrusion-control {
-		button {
-			margin-top: 15px;
-		}
-	}
 
 	.row.closer > .columns {
 		padding: 0 5px;
@@ -528,4 +525,10 @@ html.no-printer {
 			padding: 5px 0;
 		}
 	}
+}
+
+@media #{$small-only} {
+  .controls-container {
+      padding: 0 0 24px 0;
+  }
 }
