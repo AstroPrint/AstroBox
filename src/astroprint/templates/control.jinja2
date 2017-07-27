@@ -13,8 +13,9 @@
   </div>
   <div class="medium-12 large-8 columns controls-container">
     <div class="row">
-    <div class="heading-box bold">Set temperatures</div>
-      <div class="small-12 medium-7 columns" id="xy-controls" align="center">
+    <div class="heading-box bold">Movement controls</div>
+
+      <div class="small-12 medium-7 columns medium-offset-1" id="xy-controls" align="center">
         <h5>Horizontal (XY)</h5>
         <div class="control_bg_xy" align="center">
           <button class="control_btn_y_plus"><i class="icon-right-open"></i></button>
@@ -23,7 +24,7 @@
           <div class="bed-mesh"></div>
         </div>
       </div>
-      <div class="small-12 medium-5 columns" id="z-controls">
+      <div class="small-12 medium-2 columns" id="z-controls">
         <h5 align="center">Vertical (Z)</h5>
         <center>
           <button class="control_btn_z_plus"><i class="icon-right-open"></i></button><br/>
@@ -31,8 +32,10 @@
           <button class="control_btn_z_minus"><i class="icon-right-open"></i></button>
         </center>
       </div>
+
       <div class="small-12 columns" id="distance-control">
         <center>
+          <h2>Set movement distance</h2>
           <ul class="button-group radius">
             <li><button class="tiny bold secondary" data-value="0.1">0.1</button></li>
             <li><button class="tiny bold secondary" data-value="1">1</button></li>
@@ -42,12 +45,22 @@
         </center>
       </div>
       <div class="clearfix"></div>
-      <div class="small-12 large-7 columns" id="extrusion-control">
-        <h2 class="bold"><i class="icon-extruder"></i> Filament Extruder</h2>
-        <div class="small-12 medium-7 columns">
+
+    <div class="text-center extruder-heading">
+      <img class="extruder-icon" src="/img/icon-extruder.svg"/>
+      <select class="extruder-number bold">
+        <!--% for(var i=0; i<profile.extruder_count; i++) { %-->
+          <option value="1">Extruder 1</option>
+          <option value="2">Extruder 2</option>
+          <option value="3">Extruder 3</option>
+        <!--% } %-->
+      </select>
+    </div>
+      <div class="small-12 large-8 columns border-right" id="extrusion-control">
+        <div class="small-12 columns">
           <div class="row extruder-switch closer"></div>
         </div>
-        <div class="small-12 medium-5 columns">
+        <div class="small-12 columns">
           <div class="row closer">
             <div class="small-6 columns">
               <button class="small radius expand success extrude">Extrude</button>
@@ -58,6 +71,7 @@
           </div>
         </div>
         <script type="text/template" id="extruder-switch-template">
+
           <% if (profile.extruder_count > 1) { %>
             <div class="small-3 columns">
               <label class="bold">Extruder</label>
@@ -69,8 +83,14 @@
             </div>
           <% } %>
 
+          <div class="small-2 columns">
+            <div class="icon-window">
+            <i class="icon-extruder"></i>
+            </div>
+          </div>
+
           <div class="<% if (profile.extruder_count > 1) { %> small-4 <% } else { %> small-6 <% } %>columns select-with-text">
-            <label class="bold">Amount</label>
+            <label>Amount</label>
             <select class="extrusion-length">
               <option value="10" selected default>10 mm</option>
               <option value="50">50 mm</option>
@@ -88,8 +108,8 @@
             </div>
           </div>
 
-          <div class="<% if (profile.extruder_count > 1) { %> small-5 <% } else { %> small-6 <% } %>columns select-with-text">
-            <label class="bold">Speed</label>
+          <div class="small-6 columns select-with-text">
+            <label>Speed</label>
             <select class="extrusion-speed">
               <option value="50">Fast (50 mm/s)</option>
               <option value="2" selected default>Normal (2 mm/s)</option>
@@ -108,18 +128,31 @@
         </script>
       </div>
 
-      <div id="fan-control" class="small-12 large-5 column">
+      <div id="fan-control" class="small-12 large-4 column text-center">
         <div class="fan-control">
-            <h2 class="large-5 column bold">Fans <span class="fan_icon"></span></h2>
-            <button class="large-3 column radius small success fan-on fans" align="left">ON</button>
-            <!--button class="large-3 large-offset-1 column radius small secondary fan-off" align="right">OFF</button-->
+            <div class="large-12 column bold text-left">
+              <i class="icon-fan fan_icon "></i>
+              <button class="large-6 column radius small success fan-on fans right bold">ON</button>
+            </div>
+
+            <div class="large-12 column">
+              <label class="text-center">Fan speed</label>
+              <select class="fan-speed">
+                <option value="10" selected default>10 %</option>
+                <option value="30">30 %</option>
+                <option value="50">50 %</option>
+                <option value="100">100 %</option>
+                <option value="other">Other...</option>
+              </select>
+              <!--button class="large-3 large-offset-1 column radius small secondary fan-off" align="right">OFF</button-->
+            </div>
         </div>
       </div>
     </div>
   </div>
 
   <div id="temp-control-template" class="medium-12 large-4 column temp-container">
-    <div class="heading-box bold">Set temperatures</div>
+    <div class="heading-box bold">Temperatures</div>
       <div class="row">
         <div class="small-12 column">
           <div class="temp-subheading text-center">Extruders</div>
