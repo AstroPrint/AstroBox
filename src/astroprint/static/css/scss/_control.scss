@@ -446,7 +446,7 @@ html.no-printer {
     border: 2px solid $oil;
     background: transparent;
     color: $oil;
-    margin-bottom: 19px;
+    margin-bottom: 20px;
 
     &:hover{
       background: $oil;
@@ -463,6 +463,10 @@ html.no-printer {
   .fan-off{
     background: $oil;
     border: 2px solid $oil;
+  }
+  .fans{
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 
