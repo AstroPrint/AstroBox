@@ -250,25 +250,6 @@
         pointer-events:none;
       }
 
-      .slick-dots {
-        position: relative;
-        top: -70px;
-        li button:before {
-          font-size: 30px;
-        }
-      }
-
-      .icon-angle-left {
-        z-index: 9999;
-        position: absolute;
-        top: 39%;
-        left: 2%;
-      }
-
-      .icon-angle-right {
-        position: relative;
-        right: -45%;
-      }
     }
     .bed {
       height: 245px;
@@ -550,6 +531,37 @@
       }
     }
   }
+
+  .slick-dots {
+      top: 0;
+      left: 0;
+      height: 36px;
+      font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+
+      li{
+        margin: 0;
+        width: initial;
+        height: initial;
+
+        a{
+          background:url(/img/icon-extruder.svg) center no-repeat !important;
+          padding: 2px 15px 10px 15px;
+          color:$oil;
+        }
+
+        &.slick-active a{
+          background:url(/img/icon-extruder-active.svg) center no-repeat !important;
+          color: white;
+          padding: 5px 18px 14px 18px;
+        }
+
+        button:before {
+          font-size: 16px;
+        }
+      }
+
+    }
+
 }
 
 

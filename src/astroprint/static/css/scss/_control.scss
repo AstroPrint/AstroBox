@@ -343,8 +343,17 @@ html.no-printer {
 	}
 }
 
-
+#control-view{
+    .temp-target{
+    @extend.no-paddingleft;
+  }
+}
 #temp-control-template {
+  .no-paddingleft{
+    padding-left: 0;
+  }
+
+
   .extruders {
     @include radius($global-radius);
     color: #ccc;
@@ -395,13 +404,13 @@ html.no-printer {
     .icon-angle-left {
       z-index: 9999;
       position: absolute;
-      top: 100px;
+      top: -15px;
       left: 0;
     }
 
     .icon-angle-right {
       position: absolute;
-      top: 100px;
+      top: -15px;
       right: 0;
       z-index: 9999;
     }
@@ -417,7 +426,9 @@ html.no-printer {
     background: #fafafa;
 
     img{
-      height: 27px;
+      height: 36px;
+      padding-top: 5px;
+      margin-bottom: 12px;
     }
   }
   .temp-subheading{

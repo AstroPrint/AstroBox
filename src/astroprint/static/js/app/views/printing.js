@@ -383,6 +383,10 @@ el: '#printing-view',
       slidesToScroll: 1,
       dots: true,
       infinite: false,
+      customPaging : function(slider, i) {
+          var thumb = $(slider.$slides[i]).data();
+          return '<a>'+i+'</a>';
+        },
       responsive: [{
         breakpoint: 550,
         settings: {
@@ -474,6 +478,10 @@ el: '#printing-view',
       slidesToShow: this.slidesToShow,
       slidesToScroll: 1,
       dots: true,
+      customPaging : function(slider, i) {
+        var thumb = $(slider.$slides[i]).data();
+        return '<a>'+i+'</a>';
+      },
       infinite: false,
       responsive: [{
         breakpoint: 550,
