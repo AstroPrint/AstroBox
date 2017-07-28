@@ -457,7 +457,7 @@ html.no-printer {
     display: none;
   }
 
-  #bed{
+  .no-bed {
     cursor:not-allowed !important;
 
     .semi-circle-temps, span,{

@@ -43,6 +43,11 @@ var TempView = Backbone.View.extend({
     }
 
     //bed
+    if (this.heated_bed) {
+      this.$el.find('#bed-container').removeClass('no-bed');
+    } else {
+      this.$el.find('#bed-container').addClass('no-bed');
+    }
     semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
     this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
     this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
