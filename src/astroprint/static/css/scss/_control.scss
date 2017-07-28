@@ -19,9 +19,10 @@
   label{
     color: darkgrey;
     text-transform: uppercase;
-    font-size: 12px;
+    font-size: 11px;
     margin-bottom: -1px;
-    letter-spacing: 1px;
+    font-family: sans-serif;
+    letter-spacing: 1.5px;
   }
 
   input, select, .postfix {
@@ -75,7 +76,7 @@
   .extruder-heading{
     background: #efefef;
     margin: 0 -15px;
-    margin-bottom: 17px;
+    margin-bottom: 21px;
   }
 
   .border-right{
@@ -336,13 +337,14 @@ html.no-printer {
 
 #distance-control {
   margin-bottom: 20px;
+  margin-top: 5px;
 
 	ul {
 		display: inline-block;
 		padding: 0;
 		li button {
 			margin-bottom: 0;
-			font-size: rem-calc(20);
+			font-size: rem-calc(22);
 		}
 	}
 }
@@ -353,6 +355,12 @@ html.no-printer {
   }
 }
 #temp-control-template {
+  hr {
+    border: dashed #DDDDDD;
+    border-width: 2px 0 0;
+    margin: 0;
+  }
+
   .no-paddingleft{
     padding-left: 0;
     }
@@ -361,7 +369,7 @@ html.no-printer {
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
-    margin-bottom: 5px;
+    margin-bottom: 0;
     height: 250px;
 
     .slick-arrow {
@@ -379,6 +387,10 @@ html.no-printer {
       left: 0;
       height: 36px;
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+
+      li:not(.slick-active){
+        opacity:0.5;
+      }
 
       li{
         margin: 0;
@@ -507,7 +519,7 @@ html.no-printer {
     font-size: 40px;
     top: 12px;
     position: relative;
-		color: $iron;
+		color: $oil;
 	}
 
 

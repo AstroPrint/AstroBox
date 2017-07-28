@@ -92,7 +92,7 @@
           <!--div class="<% if (profile.extruder_count > 1) { %> small-4 <% } else { %> small-6 <% } %>columns select-with-text"-->
           <div class="small-12 medium-4 columns select-with-text">
             <label>Amount</label>
-            <select class="extrusion-length">
+            <select class="extrusion-length bold">
               <option value="10" selected default>10 mm</option>
               <option value="50">50 mm</option>
               <option value="100">100 mm</option>
@@ -111,7 +111,7 @@
 
           <div class="small-12 medium-6 columns select-with-text">
             <label>Speed</label>
-            <select class="extrusion-speed">
+            <select class="extrusion-speed bold">
               <option value="50">Fast (50 mm/s)</option>
               <option value="2" selected default>Normal (2 mm/s)</option>
               <option value="0.5">Slow (0.5 mm/s)</option>
@@ -160,6 +160,7 @@
           <div class="extruders clearfix"></div>
         </div>
         <div class="small-12 column" id="bed">
+          <hr>
           <div class="temp-subheading text-center"><span>Bed</span></div>
           <div class="bed text-center clearfix"></div>
         </div>
