@@ -352,8 +352,7 @@ html.no-printer {
 #temp-control-template {
   .no-paddingleft{
     padding-left: 0;
-  }
-
+    }
 
   .extruders {
     @include radius($global-radius);
@@ -437,6 +436,20 @@ html.no-printer {
     letter-spacing: 1px;
     background: #fafafa;
     font-size: 14px;
+  }
+
+  .no-bed{
+    cursor:not-allowed;
+
+    .semi-circle-temps, span,{
+      opacity: 0.3;
+    }
+    button{
+      background: grey !important;
+    }
+    .current{
+      color: grey !important;
+    }
   }
 }
 
