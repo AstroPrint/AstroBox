@@ -37,11 +37,12 @@
   }
 
   select.fan-speed{
-    font-size: 30px;
     border: 0;
     padding-top: 3px;
+    font-size: 22px;
+    padding-top: 3px;
     overflow: visible;
-    background-size: 30px 10px;
+    background-size: 30px 8px;
     max-width: 120px;
     padding-left: 0;
     text-align-last: center;
@@ -438,18 +439,19 @@ html.no-printer {
     font-size: 14px;
   }
 
-  .no-bed{
-    cursor:not-allowed;
+  .blocked-view{
+    display: none;
+  }
+
+  #bed{
+    cursor:not-allowed !important;
 
     .semi-circle-temps, span,{
       opacity: 0.3;
+      -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+      filter: grayscale(100%);
     }
-    button{
-      background: grey !important;
-    }
-    .current{
-      color: grey !important;
-    }
+
   }
 }
 
