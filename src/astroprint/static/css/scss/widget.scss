@@ -18,7 +18,7 @@
         .circle-container{
           max-width: 360px;
           margin-top: 10px;
-          height: 125px;
+          height: 123px;
 
           .progress-temp-circle {
             position: relative;
@@ -39,7 +39,8 @@
 
             .current {
               position: relative;
-              top: -134px;
+              top: -142px;
+              padding-left: 10px;
               font-size: 38px;
               font-weight: bold;
               color: #f05251;

@@ -3,7 +3,7 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: #fafafa;
-  padding: 0 30px 24px 30px;
+  padding: 0 30px 15px 30px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -20,6 +20,7 @@
     color: darkgrey;
     text-transform: uppercase;
     font-size: 12px;
+    margin-bottom: -1px;
     letter-spacing: 1px;
   }
 
@@ -38,14 +39,15 @@
 
   select.fan-speed{
     border: 0;
-    padding-top: 3px;
     font-size: 22px;
-    padding-top: 3px;
-    overflow: visible;
-    background-size: 30px 8px;
-    max-width: 120px;
+    padding-top: 0px;
+    background-size: 23px 8px;
+    max-width: 107px;
+    background-position: 100% 11px;
     padding-left: 0;
     text-align-last: center;
+    padding-right: 0;
+    margin-left: -15px;
   }
   select.extruder-number{
     border: 0;
@@ -73,7 +75,7 @@
   .extruder-heading{
     background: #efefef;
     margin: 0 -15px;
-    margin-bottom: 20px;
+    margin-bottom: 17px;
   }
 
   .border-right{
@@ -457,6 +459,7 @@ html.no-printer {
 
 #fan-control {
   text-align: center;
+  margin-top: 10px;
 
   .fan-on{
     border: 2px solid $oil;
