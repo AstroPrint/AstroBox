@@ -466,6 +466,10 @@ html.no-printer {
       filter: grayscale(100%);
     }
 
+    button[disabled]{
+      cursor: not-allowed;
+    }
+
   }
 }
 
