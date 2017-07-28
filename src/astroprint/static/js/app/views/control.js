@@ -36,49 +36,40 @@ var TempView = Backbone.View.extend({
       if (this.socketTemps.lenght > 0) {
         temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
       } else {
-        temps = {current: 0, target: 0};
+        temps = {current: null, target: null};
       }
 
       this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
     }
 
     //bed
-    if (this.heated_bed) {
-      semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
-      this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-      this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
-      if (this.socketTemps.lenght > 0) {
-        temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
-      } else {
-        temps = {current: 0, target: 0};
-      }
-
-      this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
+    if (this.socketTemps.lenght > 0) {
+      temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
+    } else {
+      temps = {current: null, target: null};
     }
 
-    for (var i = 0; i <= this.extruders_count; i++) {
-      /*if ((i == this.extruders_count) && this.heated_bed) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
-      } else if ((i != this.extruders_count) || this.heated_bed) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extruder #" + (i+1));
-      }*/
+    this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
 
-      if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
-        $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
-          value: temps.current,
-          arcCoef: 0.55,
-          size: 180,
-          thickness: 20,
-          fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
-        });
-      }
+    for (var i = 0; i <= this.extruders_count; i++) {
+      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
+        value: temps.current,
+        arcCoef: 0.55,
+        size: 180,
+        thickness: 20,
+        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+      });
     }
 
     if (this.$('.extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick")
       this.extrudersSlide.slick('getSlick').unslick();
     }
+
     this.extrudersSlide = this.$('.extruders').slick({
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
@@ -87,7 +78,11 @@ var TempView = Backbone.View.extend({
       slidesToScroll: 1,
       dots: true,
       infinite: false,
-      adaptiveHeight: true
+      adaptiveHeight: true,
+      customPaging : function(slider, i) {
+        var thumb = $(slider.$slides[i]).data();
+        return '<a>'+(i+1)+'</a><br><span>222</span>';
+      }
     });
 
     if (this.socketTemps.length > 0){
@@ -119,15 +114,13 @@ var TempView = Backbone.View.extend({
           if (_.has(socketTemps, 'extruders')) {
             temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
           } else {
-            temps = {current: 0, target: 0};
+            temps = {current: null, target: null};
           }
         } else {
-          if (i == this.extruders_count && this.heated_bed) {
-            if (_.has(socketTemps, 'bed')) {
-              temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
-            } else {
-              temps = {current: 0, target: 0};
-            }
+          if (_.has(socketTemps, 'bed')) {
+            temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
+          } else {
+            temps = {current: null, target: null};
           }
         }
 
@@ -155,7 +148,8 @@ var TempView = Backbone.View.extend({
         adaptiveHeight: true,
         customPaging : function(slider, i) {
           var thumb = $(slider.$slides[i]).data();
-          return '<a>'+i+'</a>';
+          var tempId = "temp-" + i;
+          return '<a>'+(i+1)+'</a><br><span class="all-temps" id='+tempId+'></span>';
         }
       });
 

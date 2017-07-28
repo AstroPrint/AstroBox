@@ -35,9 +35,7 @@ var TempSemiCircleView = Backbone.View.extend({
 
     if (this.type == 'bed') {
       (this.$el.find('.icon-bed')).attr('src','img/icon-bed.svg');
-      /*this.$(".progress-temp-circle")
-this.$el.attr('id', 'tool'+tool);
-      src="/img/icon-bed.svg"*/
+
       if ((app.printerProfile.toJSON()).heated_bed) {
         this.$el.removeClass('disabled');
       } else {
