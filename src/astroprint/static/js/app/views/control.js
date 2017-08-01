@@ -32,6 +32,7 @@ var TempView = Backbone.View.extend({
     var temps = null;
 
     var semiCircleTemp = null;
+
     //extruders
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
@@ -50,7 +51,7 @@ var TempView = Backbone.View.extend({
 
       this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
       var tempId = "temp-" + i;
-      this.navExtruders_views[i] = '<h4>' + (i+1) + '<br><span class="all-temps" id='+ tempId +'></span></h4>';
+      this.navExtruders_views[i] = '<h4 id='+ tempId +'>' + (i+1) + '<br><span class="all-temps"></span></h4>';
       this.$el.find('.nav-extruders').append(this.navExtruders_views[i]);
     }
 
@@ -134,7 +135,9 @@ var TempView = Backbone.View.extend({
   },
   updateTemps: function(value) {
     var temps = {};
-    this.$el.find('.nav-extruders').empty();
+    //console.log(this.$el.find('.nav-extruders').length)
+    //this.$el.find('.nav-extruders').empty();
+    //console.log(this.$el.find('.nav-extruders').length)
 
     for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
       if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
@@ -143,19 +146,24 @@ var TempView = Backbone.View.extend({
         temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
       }
       (this.semiCircleTemp_views[i]).updateValues(temps);
-      if (this.$('.nav-extruders').hasClass('slick-initialized')) {
+      /*if (this.$('.nav-extruders').hasClass('slick-initialized')) {
         console.log("antes del unslick UPDATE nav")
         this.$('.nav-extruders').slick('getSlick').unslick();
         //this.$('.nav-extruders').slick('unslick');
-      }
+      }*/
 
       if (this.semiCircleTemp_views[i].type == 'tool') {
-        var search = 'temp-'+i+'>';
-        var position = this.navExtruders_views[i].indexOf(search) + (search.length);
+        var search = '#temp-'+i;
+        /*var position = this.navExtruders_views[i].indexOf(search) + (search.length);
         this.navExtruders_views[i] = [this.navExtruders_views[i].slice(0, position), this.semiCircleTemp_views[i].actual, this.navExtruders_views[i].slice(position)].join('');
-        this.$el.find('.nav-extruders').append(this.navExtruders_views[i]);
+        console.log("esto",this.navExtruders_views[i])
+        console.log("estoo",$(this.navExtruders_views[i]))*/
+        //console.log("search",this.$el.find(search));
+        this.$el.find(search).find('.all-temps').text(this.semiCircleTemp_views[i].actual);
+        //console.log(this.$el.find('.nav-extruders').length)
+
       }
-      this.$('.nav-extruders').slick({
+      /*this.$('.nav-extruders').slick({
         slidesToShow: 5,
         slidesToScroll: 1,
         arrows: true,
@@ -166,7 +174,7 @@ var TempView = Backbone.View.extend({
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
         asNavFor: this.$('.extruders')
-      });
+      });*/
 
 
     }
