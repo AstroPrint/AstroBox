@@ -370,7 +370,7 @@ html.no-printer {
     color: #ccc;
     background: #fafafa;
     margin-bottom: 0;
-    height: 250px;
+       height: 215px;
 
     .slick-arrow {
       font-size: 40px;
@@ -383,11 +383,7 @@ html.no-printer {
       pointer-events:none;
     }
 
-    .slick-dots {
-      top: 0;
-      left: 0;
-      height: 36px;
-      font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+    /*.slick-dots {
 
       li:not(.slick-active){
         opacity:0.5;
@@ -415,12 +411,50 @@ html.no-printer {
         }
       }
 
+    }*/
+
+    .semi-circle-temps .temp-container .graphic-container .circle-container{
+      margin-top: 22px;
+    }
+  }
+
+  .nav-extruders{
+    background-color: #fafafa;
+
+    h4{
+      background:url(/img/icon-extruder.svg) top no-repeat !important;
+      font-size: rem-calc(18);
+      font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+      min-height: 57px;
+      cursor: pointer;
+      color: $oil;
+      opacity: 0.6;
+      margin: 0 2px;
+      width: 40px !important;
+
+      &.slick-current{
+        background:url(/img/icon-extruder-active.svg) top no-repeat !important;
+        color: $white;
+        opacity: 1;
+        span{
+          color: $red;
+        }
+      }
+
+      span{
+        font-family: sans-serif;
+        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+        position: relative;
+        top: 12px;
+        font-size: 16px;
+        cursor: initial !important;
+      }
     }
 
     .icon-angle-left {
       z-index: 9999;
       position: absolute;
-      top: -15px;
+      top: -15px;min-height: 57px;
       left: 0;
     }
 
@@ -431,10 +465,8 @@ html.no-printer {
       z-index: 9999;
     }
 
-    .semi-circle-temps .temp-container .graphic-container .circle-container{
-      margin-top: 60px;
-    }
   }
+
   .bed {
     padding-bottom: 10px;
     @include radius($global-radius);
