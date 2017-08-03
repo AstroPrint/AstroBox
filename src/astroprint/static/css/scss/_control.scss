@@ -420,17 +420,37 @@ html.no-printer {
 
   .nav-extruders{
     background-color: #fafafa;
+    .slick-track{
+      &.no-center{
+        transform: translate3d(0px, 0px, 0px) !important;
+        -webkit-transition: 500ms ease !important;
+        -moz-transition: 500ms ease !important;
+        -o-transition: 500ms ease !important;
+        transition: 500ms ease !important;
+      }
+    }
 
     h4{
-      background:url(/img/icon-extruder.svg) top no-repeat !important;
+      /*background:url(/img/icon-extruder.svg) top no-repeat !important;
       font-size: rem-calc(18);
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
       min-height: 57px;
       cursor: pointer;
       color: $oil;
       opacity: 0.6;
-      margin: 0 2px;
-      width: 40px !important;
+      margin: 0 2px;*/
+
+      .extrusor-number {
+        width: 40px !important;
+        background:url(/img/icon-extruder.svg) top no-repeat !important;
+        font-size: rem-calc(18);
+        font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+        min-height: 57px;
+        cursor: pointer;
+        color: $oil;
+        opacity: 0.6;
+        margin: 0 2px;
+      }
 
       &.slick-current{
         background:url(/img/icon-extruder-active.svg) top no-repeat !important;
