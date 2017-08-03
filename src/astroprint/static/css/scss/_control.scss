@@ -414,29 +414,26 @@ html.no-printer {
     }*/
 
     .semi-circle-temps .temp-container .graphic-container .circle-container{
-      margin-top: 22px;
+      margin-top: 15px;
     }
   }
 
   .nav-extruders{
     background-color: #fafafa;
+    padding: 0px 25px;
+    .slick-list{
+      padding: 0px !important;
+    }
+
     .slick-track{
       border: 1px solid red;
-      -webkit-transition: transform 1s ease !important;
-      -moz-transition: transform 1s ease !important;
-      -o-transition: transform 1s ease !important;
-      transition: transform 1s ease !important;
+      -webkit-transition: transform 500ms ease !important;
+      -moz-transition: transform 500ms ease !important;
+      -o-transition: transform 500ms ease !important;
+      transition: transform 500ms ease !important;
 
       &.no-center{
         transform: translate3d(0px, 0px, 0px) !important;
-
-
-        .extrusor-number{
-
-        }
-
-
-
       }
     }
 
@@ -449,6 +446,7 @@ html.no-printer {
       color: $oil;
       opacity: 0.6;
       margin: 0 2px;*/
+      text-align: center;
 
       .extrusor-number {
         background:url(/img/icon-extruder.svg) top no-repeat !important;
@@ -457,26 +455,32 @@ html.no-printer {
         cursor: pointer;
         color: $oil;
         opacity: 0.6;
+        display: block;
+        height: 36px;
       }
 
-      &.slick-current{
+      .all-temps{
+        font-family: sans-serif;
+        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        height: 24px;
+        position: relative;
+        display: block;
+        top: 4px;
+      }
+
+      &.slick-current .extrusor-number{
         background:url(/img/icon-extruder-active.svg) top no-repeat !important;
-        color: $white;
         opacity: 1;
-        span{
+        color: white;
+        +.all-temps{
           color: $red;
+          font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
         }
       }
 
-      span{
-        font-family: sans-serif;
-        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-        position: relative;
-        top: 12px;
-        font-size: 16px;
-        cursor: initial !important;
-      }
     }
+
 
     .icon-angle-left {
       z-index: 9999;
