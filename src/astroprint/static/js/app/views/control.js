@@ -97,6 +97,7 @@ var TempView = Backbone.View.extend({
       infinite: false,
       adaptiveHeight: true,
       fade: true,
+      arrows: false,
       asNavFor: this.$('.nav-extruders')
     });
     this.$('.nav-extruders').slick({
@@ -185,6 +186,7 @@ var TempView = Backbone.View.extend({
         infinite: false,
         adaptiveHeight: true,
         fade: true,
+        arrows: false,
         asNavFor: this.$('.nav-extruders')
       });
       this.$('.nav-extruders').slick({

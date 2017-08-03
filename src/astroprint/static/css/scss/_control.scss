@@ -384,37 +384,6 @@ html.no-printer {
       opacity: 0;
       pointer-events:none;
     }
-
-    /*.slick-dots {
-
-      li:not(.slick-active){
-        opacity:0.5;
-      }
-
-      li{
-        margin: 0;
-        width: initial;
-        height: initial;
-
-        a{
-          background:url(/img/icon-extruder.svg) center no-repeat !important;
-          padding: 2px 15px 10px 15px;
-          color:$oil;
-        }
-
-        &.slick-active a{
-          background:url(/img/icon-extruder-active.svg) center no-repeat !important;
-          color: white;
-          padding: 5px 18px 14px 18px;
-        }
-
-        button:before {
-          font-size: 16px;
-        }
-      }
-
-    }*/
-
   }
 
   .nav-extruders{
