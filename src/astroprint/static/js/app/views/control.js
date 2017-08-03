@@ -46,7 +46,7 @@ var TempView = Backbone.View.extend({
       this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
       //nav-extruders
       var tempId = "temp-" + i;
-      this.navExtruders_views[i] = '<h4 id='+ tempId +'><span class="extrusor-number">' + (i+1) + '</span><br><span class="all-temps"></span></h4>';
+      this.navExtruders_views[i] = '<h4 id='+ tempId +'><span class="extrusor-number">' + (i+1) + '</span><span class="all-temps"></span></h4>';
       this.$el.find('.nav-extruders').append(this.navExtruders_views[i]);
     }
 
@@ -204,14 +204,13 @@ var TempView = Backbone.View.extend({
       this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
 
       // On before slide change
-      this.$('.nav-extruders').on('afterChange', _.bind(function(event, slick, currentSlide){
-        if (currentSlide > (this.navSlideToShow/2)) {
+      this.$('.nav-extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
+        if (nextSlide > (this.navSlideToShow/2)) {
           this.$('.nav-extruders').find('.slick-track').removeClass(this.classNoCenter);
         } else {
           this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
         }
       }, this));
-
     }
   }
 });
