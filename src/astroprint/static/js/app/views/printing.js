@@ -376,10 +376,12 @@ el: '#printing-view',
     }
 
     this.extrudersSlide = this.$('.extruders').slick({
+      centerMode: true,
+      centerPadding: '10px',
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: this.slidesToShow,
+      slidesToShow: 3,
       slidesToScroll: 1,
       dots: true,
       infinite: false,
@@ -472,10 +474,12 @@ el: '#printing-view',
     }
 
     this.extrudersSlide = this.$('.extruders').slick({
+      centerMode: true,
+      centerPadding: '10px',
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: this.slidesToShow,
+      slidesToShow: 3,
       slidesToScroll: 1,
       dots: true,
       customPaging : function(slider, i) {
