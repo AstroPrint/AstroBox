@@ -359,6 +359,8 @@ html.no-printer {
     border: dashed #DDDDDD;
     border-width: 2px 0 0;
     margin: 0;
+    padding-bottom: 10px;
+    background: #fafafa;
   }
 
   .no-paddingleft{
@@ -370,7 +372,7 @@ html.no-printer {
     color: #ccc;
     background: #fafafa;
     margin-bottom: 0;
-       height: 215px;
+    height: 185px;
 
     .slick-arrow {
       font-size: 40px;
@@ -413,20 +415,16 @@ html.no-printer {
 
     }*/
 
-    .semi-circle-temps .temp-container .graphic-container .circle-container{
-      margin-top: 15px;
-    }
   }
 
   .nav-extruders{
     background-color: #fafafa;
-    padding: 0px 25px;
+    padding: 0px 30px;
     .slick-list{
       padding: 0px !important;
     }
 
     .slick-track{
-      border: 1px solid red;
       -webkit-transition: transform 500ms ease !important;
       -moz-transition: transform 500ms ease !important;
       -o-transition: transform 500ms ease !important;
@@ -438,15 +436,12 @@ html.no-printer {
     }
 
     h4{
-      /*background:url(/img/icon-extruder.svg) top no-repeat !important;
-      font-size: rem-calc(18);
-      font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-      min-height: 57px;
-      cursor: pointer;
-      color: $oil;
-      opacity: 0.6;
-      margin: 0 2px;*/
+      opacity: 0.5;
       text-align: center;
+
+      &.slick-current{
+        opacity: 1;
+      }
 
       .extrusor-number {
         background:url(/img/icon-extruder.svg) top no-repeat !important;
@@ -454,7 +449,6 @@ html.no-printer {
         font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
         cursor: pointer;
         color: $oil;
-        opacity: 0.6;
         display: block;
         height: 36px;
       }
@@ -471,8 +465,13 @@ html.no-printer {
 
       &.slick-current .extrusor-number{
         background:url(/img/icon-extruder-active.svg) top no-repeat !important;
-        opacity: 1;
         color: white;
+        height: 46px;
+        font-size: 24px;
+        padding-top: 2px;
+        margin-top: -3px;
+        opacity: 1;
+
         +.all-temps{
           color: $red;
           font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
@@ -481,19 +480,31 @@ html.no-printer {
 
     }
 
-
-    .icon-angle-left {
+    .slick-arrow{
+      color: $oil;
       z-index: 9999;
       position: absolute;
-      top: -15px;min-height: 57px;
-      left: 0;
+      top: -7px;
+      cursor: pointer;
+      font-size: rem-calc(30);
+    }
+
+    .icon-angle-left {
+      left: -7px;
+
+      &.slick-disabled{
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
     }
 
     .icon-angle-right {
-      position: absolute;
-      top: -15px;
-      right: 0;
-      z-index: 9999;
+      right: -7px;
+
+      &.slick-disabled{
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
     }
 
   }
@@ -512,9 +523,13 @@ html.no-printer {
   }
   .temp-subheading{
     padding:5px 20px 2px 20px;
-    letter-spacing: 1px;
     background: #fafafa;
-    font-size: 14px;
+    color: darkgrey;
+    text-transform: uppercase;
+    font-size: 12px;
+    margin-bottom: -1px;
+    font-family: sans-serif;
+    letter-spacing: 1.5px;
   }
 
   .blocked-view{

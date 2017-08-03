@@ -17,12 +17,11 @@
       .graphic-container {
         .circle-container{
           max-width: 360px;
-          margin-top: 10px;
-          height: 123px;
+          height: 116px;
 
           .progress-temp-circle {
             position: relative;
-            top: 10px;
+            top: 5px;
 
             .target-selector {
               width: 24px;
@@ -39,9 +38,9 @@
 
             .current {
               position: relative;
-              top: -142px;
+              top: -145px;
               padding-left: 8px;
-              font-size: 38px;
+              font-size: 40px;
               font-weight: bold;
               color: #f05251;
               width: 50%;
@@ -90,7 +89,7 @@
             .target-value {
               left: -20%;
               color: $oil;
-              font-size: 20px;
+              font-size: 18px;
             }
             .target-value {
               left: -10px;
