@@ -460,14 +460,14 @@ el: '#printing-view',
         if (_.has(socketTemps, 'extruders')) {
           temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
         } else {
-          temps = {current: 0, target: 0};
+          temps = {current: null, target: null};
         }
       } else {
         if (i == this.extruders_count && this.heated_bed) {
           if (_.has(socketTemps, 'bed')) {
             temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
           } else {
-            temps = {current: 0, target: 0};
+            temps = {current: null, target: null};
           }
         }
       }
