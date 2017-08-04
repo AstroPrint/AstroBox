@@ -237,10 +237,11 @@
     }
 
     .extruders {
-      height: 245px;
+      height: 265px;
       margin-bottom: 0px;
 
       .slick-track{
+        margin-top: 74px;
         -webkit-transition: transform 500ms ease !important;
         -moz-transition: transform 500ms ease !important;
         -o-transition: transform 500ms ease !important;
@@ -251,9 +252,31 @@
         }
       }
 
-      .slick-arrow {
-        font-size: 40px;
-        padding-bottom: -20px;
+      .slick-arrow{
+        color: $oil;
+        z-index: 9999;
+        position: absolute;
+        top: -7px;
+        cursor: pointer;
+        font-size: rem-calc(30);
+      }
+
+      .icon-angle-left {
+        left: -7px;
+
+        &.slick-disabled{
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+      }
+
+      .icon-angle-right {
+        right: -7px;
+
+        &.slick-disabled{
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
       }
 
       .slick-disabled {
@@ -546,7 +569,7 @@
   .slick-dots {
       top: 0;
       left: 0;
-      height: 79px;
+      height: 62px;
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
 
       li{
@@ -596,6 +619,12 @@
       }
 
     }
+
+  #temp-control-template .bed img {
+    height: 41px;
+    padding-top: 10px;
+    margin-bottom: 31px;
+  }
 
 }
 

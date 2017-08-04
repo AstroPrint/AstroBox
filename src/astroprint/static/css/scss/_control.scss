@@ -479,7 +479,7 @@ html.no-printer {
   }
 
   .bed {
-    padding-bottom: 10px;
+    padding-bottom: 15px;
     @include radius($global-radius);
     color: #ccc;
     background: #fafafa;
