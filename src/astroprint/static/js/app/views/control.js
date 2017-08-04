@@ -21,6 +21,10 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
+    if (this.extruders_count != 1){
+      this.classNoCenter = 'no-center';
+    }
+
     this.renderCircleTemps();
   },
   renderCircleTemps: function() {
@@ -48,10 +52,6 @@ var TempView = Backbone.View.extend({
       var tempId = "temp-" + i;
       this.navExtruders_views[i] = '<h4 id='+ tempId +'><span class="extrusor-number">' + (i+1) + '</span><span class="all-temps"></span></h4>';
       this.$el.find('.nav-extruders').append(this.navExtruders_views[i]);
-    }
-
-    if (this.extruders_count != 1){
-      this.classNoCenter = 'no-center';
     }
 
     //bed
@@ -133,7 +133,11 @@ var TempView = Backbone.View.extend({
 
       if (this.semiCircleTemp_views[i].type == 'tool') {
         var search = '#temp-'+i;
-        this.$el.find(search).find('.all-temps').text(this.semiCircleTemp_views[i].actual);
+        var tempValue = '- -';
+        if (this.semiCircleTemp_views[i].actual != null) {
+          tempValue = this.semiCircleTemp_views[i].actual + 'º';
+        }
+        this.$el.find(search).find('.all-temps').text(tempValue);
       }
 
     }
@@ -174,7 +178,7 @@ var TempView = Backbone.View.extend({
         //this.extrudersSlide.slick('getSlick').unslick();
         this.$('.extruders').slick('unslick');
       }
-        if (this.$('.nav-extruders').hasClass('slick-initialized')) {
+      if (this.$('.nav-extruders').hasClass('slick-initialized')) {
         console.log("antes del unslick SHOW nav")
         //this.$('.nav-extruders').slick('getSlick').unslick();
         this.$('.nav-extruders').slick('unslick');

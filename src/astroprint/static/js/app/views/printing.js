@@ -242,10 +242,9 @@ el: '#printing-view',
     'hide': 'onHide'
   },
   semiCircleTemp_views: {},
-  extrudersSlide: null,
   extruders_count: null,
   heated_bed: null,
-  slidesToShow: 1,
+  slidesToShow: null,
   photoView: null,
   printing_progress: null,
   paused: null,
@@ -257,11 +256,11 @@ el: '#printing-view',
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
 
-    if (this.extruders_count > 2) {
-      this.slidesToShow = 2;
-    } else {
-      this.slidesToShow = this.extruders_count;
+    this.slidesToShow = 3;
+    if (this.extruders_count != 1){
+      this.classNoCenter = 'no-center';
     }
+
     this.heated_bed = profile.heated_bed;
 
     this.renderCircleTemps();
@@ -336,7 +335,7 @@ el: '#printing-view',
       if (_.has(socketTemps, 'extruders')) {
         temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
       } else {
-        temps = {current: 0, target: 0};
+        temps = {current: null, target: null};
       }
     }
     //bed
@@ -348,7 +347,7 @@ el: '#printing-view',
       if (_.has(socketTemps, 'bed')) {
         temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
       } else {
-        temps = {current: 0, target: 0};
+        temps = {current: null, target: null};
       }
     }
 
@@ -371,24 +370,26 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    if(this.$('.extruders').hasClass('slick-initialized')) {
-      this.extrudersSlide.slick('getSlick').unslick();
+    if (this.$('.extruders').hasClass('slick-initialized')) {
+      console.log("antes del unslick RenderCircleTemps extruders")
+      //this.extrudersSlide.slick('getSlick').unslick();
+      this.$('.extruders').slick('unslick');
     }
 
-    this.extrudersSlide = this.$('.extruders').slick({
+    this.$('.extruders').slick({
       centerMode: true,
       centerPadding: '10px',
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: 3,
+      slidesToShow: this.slidesToShow,
       slidesToScroll: 1,
       dots: true,
       infinite: false,
       customPaging : function(slider, i) {
-          var thumb = $(slider.$slides[i]).data();
-          return '<a>'+i+'</a>';
-        },
+        var tempId = "temp-" + i;
+        return '<div id='+ tempId +'><a class="extrusor-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
+      },
       responsive: [{
         breakpoint: 550,
         settings: {
@@ -397,10 +398,6 @@ el: '#printing-view',
         }
       }]
     });
-
-    if (socketTemps.length > 0){
-      this.updateTemps(socketTemps);
-    }
 
   },
   onTempsChanged: function(s, value)
@@ -414,6 +411,15 @@ el: '#printing-view',
         temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
       }
       (this.semiCircleTemp_views[i]).updateValues(temps);
+
+      if (this.semiCircleTemp_views[i].type == 'tool') {
+        var search = '#temp-'+i;
+        var tempValue = '--';
+        if (this.semiCircleTemp_views[i].actual != null) {
+          tempValue = this.semiCircleTemp_views[i].actual + 'º';
+        }
+        this.$el.find(search).find('.all-temps').text(tempValue);
+      }
     }
   },
   onProgressChanged: function(s, value)
@@ -470,21 +476,23 @@ el: '#printing-view',
 
 
     if (this.$('.extruders').hasClass('slick-initialized')) {
-      this.extrudersSlide.slick('getSlick').unslick();
+      console.log("antes del unslick ShowTemps extruders")
+      //this.extrudersSlide.slick('getSlick').unslick();
+      this.$('.extruders').slick('unslick');
     }
 
-    this.extrudersSlide = this.$('.extruders').slick({
+    this.$('.extruders').slick({
       centerMode: true,
       centerPadding: '10px',
       arrows: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: 3,
+      slidesToShow: this.slidesToShow,
       slidesToScroll: 1,
       dots: true,
       customPaging : function(slider, i) {
-        var thumb = $(slider.$slides[i]).data();
-        return '<a>'+i+'</a>';
+        var tempId = "temp-" + i;
+        return '<div id='+ tempId +'><a class="extrusor-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
       },
       infinite: false,
       responsive: [{
@@ -495,6 +503,18 @@ el: '#printing-view',
         }
       }]
     });
+
+    this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+
+    // On before slide change
+    this.$('.extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
+      console.log('nextSlide',nextSlide);
+      if (nextSlide > (this.slidesToShow/2)) {
+        this.$('.extruders').find('.slick-track').removeClass(this.classNoCenter);
+      } else {
+        this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+      }
+    }, this));
 
   },
   show: function()

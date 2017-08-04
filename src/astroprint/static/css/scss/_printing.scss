@@ -240,6 +240,17 @@
       height: 245px;
       margin-bottom: 0px;
 
+      .slick-track{
+        -webkit-transition: transform 500ms ease !important;
+        -moz-transition: transform 500ms ease !important;
+        -o-transition: transform 500ms ease !important;
+        transition: transform 500ms ease !important;
+
+        &.no-center{
+          transform: translate3d(0px, 0px, 0px) !important;
+        }
+      }
+
       .slick-arrow {
         font-size: 40px;
         padding-bottom: -20px;
