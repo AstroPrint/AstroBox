@@ -546,7 +546,7 @@
   .slick-dots {
       top: 0;
       left: 0;
-      height: 36px;
+      height: 79px;
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
 
       li{
@@ -558,13 +558,37 @@
           background:url(/img/icon-extruder.svg) center no-repeat !important;
           padding: 2px 15px 10px 15px;
           color:$oil;
+          opacity: 0.5;
+          text-align: center;
+          display: block;
+          margin: 0 3px;
         }
 
-        &.slick-active a{
-          background:url(/img/icon-extruder-active.svg) center no-repeat !important;
-          color: white;
-          padding: 5px 18px 14px 18px;
+        &.slick-active{
+          a{
+            background: url(/img/icon-extruder-active.svg) top no-repeat !important;
+            color: white;
+            height: 40px;
+            font-size: 23px;
+            padding:0px 18px 0px 18px;
+            opacity: 1;
+          }
+
+          .all-temps{
+            color: #f05251;
+            font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+          }
         }
+
+      .all-temps{
+        font-family: sans-serif;
+        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        height: 24px;
+        position: relative;
+        display: block;
+        top: 4px;
+      }
 
         button:before {
           font-size: 16px;
