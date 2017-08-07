@@ -370,7 +370,7 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    if (this.$('.extruders').hasClass('slick-initialized')) {
+    /*if (this.$('.extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick RenderCircleTemps extruders")
       //this.extrudersSlide.slick('getSlick').unslick();
       this.$('.extruders').slick('unslick');
@@ -397,7 +397,7 @@ el: '#printing-view',
           slidesToScroll: 1
         }
       }]
-    });
+    });*/
 
   },
   onTempsChanged: function(s, value)
@@ -504,11 +504,30 @@ el: '#printing-view',
       }]
     });
 
+
+    if (this.extruders_count <= this.slidesToShow){
+      this.$('.extruders').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
+      this.$('.extruders').slick('slickSetOption', 'variableWidth', true, true);
+      console.log("slidesToShow", (this.extruders_count));
+
+      //for (var i = 0; i < this.extruders_count; i++) {
+        this.$('.extruders').find('.slick-dots a').on('click', function(){
+              console.log("click ");
+              return false;
+        });
+
+            /*$('#carousel').slick('slickSetOption', 'slidesToShow', 0 , true)
+                  .find('.slider-item').addClass('slider-item-1');
+            $('.slick-dots a').on('click', function(){
+              return false;
+            });*/
+      //}
+    }
+
     this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
 
     // On before slide change
     this.$('.extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
-      console.log('nextSlide',nextSlide);
       if (nextSlide > (this.slidesToShow/2)) {
         this.$('.extruders').find('.slick-track').removeClass(this.classNoCenter);
       } else {
