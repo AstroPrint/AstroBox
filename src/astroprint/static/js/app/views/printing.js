@@ -465,6 +465,7 @@ el: '#printing-view',
         var tempId = "temp-" + i;
         return '<div id='+ tempId +'><a class="extrusor-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
       },
+      focusOnSelect: true,
       infinite: false,
       responsive: [{
         breakpoint: 550,
