@@ -97,7 +97,6 @@ var TempSemiCircleView = Backbone.View.extend({
   onEditClicked: function(e)
   {
     e.preventDefault();
-    e.stopPropagation();
 
     var target = $(e.currentTarget);
     var container = target.closest('.temp-target');
