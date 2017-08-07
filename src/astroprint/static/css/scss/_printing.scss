@@ -226,6 +226,7 @@
         .temp-target {
           .target {
             left: 3%;
+            padding: 0;
           }
           right: 0px;
         }
@@ -254,21 +255,31 @@
         .slick-slide{
           -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
           filter: grayscale(100%);
-          transform: scale(0.9);
           max-width: 200px;
           cursor: move;
+            .circle-container{
+              opacity: 0.5;
+              transform: scale(0.8);
+              transition: all 500ms ease;
+            }
 
           &.slick-current{
             -webkit-filter: initial;
             filter: initial;
-            transform: scale(1);
-            transition: all 500ms ease;
+              .circle-container{
+                transform: scale(1);
+                opacity: 1;
+                transition: all 500ms ease;
+              }
           }
 
           &:hover{
-            -webkit-filter: initial;
-            filter: initial;
             transition: all 500ms ease;
+
+              .circle-container{
+                opacity: 0.8;
+                transition: all 500ms ease;
+              }
           }
         }
       }

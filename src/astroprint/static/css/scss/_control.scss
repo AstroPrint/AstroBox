@@ -3,7 +3,7 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: #fafafa;
-  padding: 0 30px 15px 30px;
+  padding: 31px 30px 15px 30px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -78,6 +78,16 @@
   .border-right{
     border-right: 1px dashed gainsboro;
   }
+
+  .heading-box{
+    position: absolute;
+    right: 0;
+    top: 0px;
+    left: 0;
+    width: 100%;
+  }
+
+
 }
 
 #xy-controls,
@@ -222,6 +232,8 @@
 }
 
 #control-view {
+  >.row:first-child{overflow: hidden;}
+
   :focus{
     outline: 0;
   }
@@ -356,7 +368,7 @@ html.no-printer {
     border: dashed #DDDDDD;
     border-width: 2px 0 0;
     margin: 0;
-    padding-bottom: 10px;
+    padding-bottom: 17px;
     background: #fafafa;
   }
 
@@ -597,16 +609,18 @@ html.no-printer {
 		padding: 0 5px;
   }
 
-  #temp-control-template {
+}
+
+@media #{$medium-only} {
+ #temp-control-template {
     padding-right: 0;
-    margin-top: 20px;
+    margin-top: 30px;
     padding: 0;
 
     .nav-extruders {
       padding: 0px 25%;
     }
   }
-
 }
 
 @media #{$large-up} {
@@ -620,13 +634,13 @@ html.no-printer {
   }
 
   #temp-control-template .nav-extruders {
-    padding: 0px 50px;
+    padding: 0px 8%;
   }
 }
 
 @media #{$small-only} {
   .controls-container {
-      padding: 0 0 24px 0;
+      padding:31px 0 24px 0;
   }
 
   #temp-control-template {
