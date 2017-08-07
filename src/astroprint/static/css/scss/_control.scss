@@ -69,10 +69,6 @@
     height: 22px;
   }
 
-  .heading-box{
-    margin: 0 -15px;
-  }
-
   .extruder-heading{
     background: #efefef;
     margin: 0 -15px;
@@ -232,7 +228,7 @@
 
 	h1 {
 		background: #fafafa url("/img/subtle_zebra_3d.png") 0 0 repeat;
-		border-bottom: 1px solid #ccc;
+		border-bottom: 1px solid #e6e6e6;
 		font-size: rem-calc(25);
 		margin: 0 0 10px 0;
 	}
@@ -355,6 +351,7 @@ html.no-printer {
   }
 }
 #temp-control-template {
+  padding-right: 0;
   hr {
     border: dashed #DDDDDD;
     border-width: 2px 0 0;
@@ -389,6 +386,7 @@ html.no-printer {
   .nav-extruders{
     background-color: #fafafa;
     padding: 0px 30px;
+
     .slick-list{
       padding: 0px !important;
     }
@@ -398,9 +396,12 @@ html.no-printer {
       -moz-transition: transform 500ms ease !important;
       -o-transition: transform 500ms ease !important;
       transition: transform 500ms ease !important;
+          display: flex;
+    justify-content: center;
 
       &.no-center{
-        transform: translate3d(0px, 0px, 0px) !important;
+        transform: initial !important;
+    margin: 0 auto;
       }
     }
 
@@ -429,20 +430,19 @@ html.no-printer {
         height: 24px;
         position: relative;
         display: block;
-        top: 4px;
+        top: 1px;
       }
 
       &.slick-current .extrusor-number{
         background:url(/img/icon-extruder-active.svg) top no-repeat !important;
         color: white;
-        height: 46px;
+        height: 50px;
         font-size: 24px;
         padding-top: 2px;
-        margin-top: -3px;
         opacity: 1;
 
         +.all-temps{
-          color: $red;
+          display: none;
           font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
         }
       }
@@ -453,7 +453,7 @@ html.no-printer {
       color: $oil;
       z-index: 9999;
       position: absolute;
-      top: -7px;
+      top: 0;
       cursor: pointer;
       font-size: rem-calc(30);
     }
@@ -595,22 +595,41 @@ html.no-printer {
 
 	.row.closer > .columns {
 		padding: 0 5px;
-	}
+  }
+
+  #temp-control-template {
+    padding-right: 0;
+    margin-top: 20px;
+    padding: 0;
+
+    .nav-extruders {
+      padding: 0px 25%;
+    }
+  }
+
 }
 
 @media #{$large-up} {
 	#control-view {
 		h1 {
 			@include side-radius(bottom);
-			border: 1px solid #ccc;
+			border: 1px solid #e6e6e6;
 			border-top: none;
 			padding: 5px 0;
 		}
-	}
+  }
+
+  #temp-control-template .nav-extruders {
+    padding: 0px 50px;
+  }
 }
 
 @media #{$small-only} {
   .controls-container {
       padding: 0 0 24px 0;
+  }
+
+  #temp-control-template {
+    padding-left: 0;
   }
 }

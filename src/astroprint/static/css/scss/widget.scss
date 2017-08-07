@@ -20,7 +20,6 @@
           height: 116px;
 
           .progress-temp-circle {
-            margin-top: 10px;
 
             .target-selector {
               width: 24px;
@@ -37,7 +36,7 @@
 
             .current {
               position: relative;
-              top: -145px;
+              top: -150px;
               padding-left: 8px;
               font-size: 40px;
               font-weight: bold;
@@ -52,7 +51,7 @@
           max-width: 360px;
           height: 50px;
           position: relative;
-          top: 5px;
+          top: -6px;
           left: -4%;
 
           .container-off {
