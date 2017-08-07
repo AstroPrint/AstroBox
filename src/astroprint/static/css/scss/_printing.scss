@@ -250,6 +250,27 @@
         &.no-center{
           transform: translate3d(0px, 0px, 0px) !important;
         }
+
+        .slick-slide{
+          -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+          filter: grayscale(100%);
+          transform: scale(0.9);
+          max-width: 200px;
+          cursor: move;
+
+          &.slick-current{
+            -webkit-filter: initial;
+            filter: initial;
+            transform: scale(1);
+            transition: all 500ms ease;
+          }
+
+          &:hover{
+            -webkit-filter: initial;
+            filter: initial;
+            transition: all 500ms ease;
+          }
+        }
       }
 
       .slick-arrow{
