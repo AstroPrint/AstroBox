@@ -370,35 +370,6 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-    /*if (this.$('.extruders').hasClass('slick-initialized')) {
-      console.log("antes del unslick RenderCircleTemps extruders")
-      //this.extrudersSlide.slick('getSlick').unslick();
-      this.$('.extruders').slick('unslick');
-    }
-
-    this.$('.extruders').slick({
-      centerMode: true,
-      centerPadding: '10px',
-      arrows: true,
-      prevArrow: '<i class="icon-angle-left"></i>',
-      nextArrow: '<i class="icon-angle-right"></i>',
-      slidesToShow: this.slidesToShow,
-      slidesToScroll: 1,
-      dots: true,
-      infinite: false,
-      customPaging : function(slider, i) {
-        var tempId = "temp-" + i;
-        return '<div id='+ tempId +'><a class="extrusor-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
-      },
-      responsive: [{
-        breakpoint: 550,
-        settings: {
-          slidesToShow: 1,
-          slidesToScroll: 1
-        }
-      }]
-    });*/
-
   },
   onTempsChanged: function(s, value)
   {
@@ -518,11 +489,16 @@ el: '#printing-view',
 
     // On before slide change
     this.$('.extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
-      if (nextSlide > (this.slidesToShow/2)) {
-        this.$('.extruders').find('.slick-track').removeClass(this.classNoCenter);
-      } else {
+      if (this.extruders_count <= this.slidesToShow) {
         this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+      } else {
+        if (nextSlide > (this.slidesToShow/2)) {
+          this.$('.extruders').find('.slick-track').removeClass(this.classNoCenter);
+        } else {
+          this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+        }
       }
+
     }, this));
 
   },
