@@ -337,39 +337,37 @@ el: '#printing-view',
       } else {
         temps = {current: null, target: null};
       }
+      this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
     }
+
     //bed
     if (this.heated_bed) {
-      semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
-      this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
-      this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
-
-      if (_.has(socketTemps, 'bed')) {
-        temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
-      } else {
-        temps = {current: null, target: null};
-      }
+      this.$el.find('#bed-container').removeClass('no-bed');
+    } else {
+      this.$el.find('#bed-container').addClass('no-bed');
     }
 
-    for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
-      if ((i == this.extruders_count) && this.heated_bed) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("BED");
-      } else if (i < this.extruders_count) {
-        this.semiCircleTemp_views[i].$el.find('.name').text("Extruder #" + (i+1));
-      }
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
-      if (i != this.extruders_count ||  (i == this.extruders_count && this.heated_bed)) {
-        $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
-          value: temps.current,
-          arcCoef: 0.55,
-          size: 180,
-          thickness: 20,
-          fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
-        });
-      }
-      this.semiCircleTemp_views[i].updateValues(temps);
+    if (_.has(socketTemps, 'bed')) {
+      temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
+    } else {
+      temps = {current: null, target: null};
     }
 
+    this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
+        value: temps.current,
+        arcCoef: 0.55,
+        size: 180,
+        thickness: 20,
+        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+      });
+    }
   },
   onTempsChanged: function(s, value)
   {

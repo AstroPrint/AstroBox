@@ -320,6 +320,21 @@
     .bed {
       height: 245px;
     }
+
+    .no-bed {
+      cursor:not-allowed !important;
+
+      .semi-circle-temps, span,{
+        opacity: 0.3;
+        -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+        filter: grayscale(100%);
+      }
+
+      button[disabled]{
+        cursor: not-allowed;
+      }
+
+    }
   }
 
   .temperatures {
