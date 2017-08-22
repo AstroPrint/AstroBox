@@ -1,34 +1,33 @@
 #printing-view {
   h2 {
     font-size: rem-calc(28);
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   .progress {
     position: relative;
     text-align: left;
-    height: 40px;
+    height: 15px;
+    margin-top: 50px;
 
     .filename {
       position: absolute;
-      top: 8px;
-      left: 10px;
-      color: black;
+      top: -25px;
+      left: 0;
+      color: rgba(0, 0, 0, 0.2);
       font-size: rem-calc(20);
       max-width: 60%;
       overflow-x: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      line-height: rem-calc(25);
     }
 
     .progress-label {
       position: absolute;
-      right: 10px;
-      top: 8px;
-      font-size: rem-calc(20);
-      color: black;
-      line-height: rem-calc(25)
+      right: 0;
+      top: -50px;
+      font-size: rem-calc(40);
+      color: $oil;
     }
   }
 
@@ -37,13 +36,24 @@
     margin: 10px 0 10px 0;
 
     .highlighted {
-      font-size: rem-calc(53);
+      font-size: rem-calc(40);
       color: $success-color;
     }
 
     .info {
+      background: $ghost;
+      box-shadow: 2px 1px 2px 0px rgba(0, 0, 0, 0.07);
+      height: 280px;
+
       > div {
         margin: 20px 0;
+      }
+
+      h2 {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
       }
     }
 
@@ -221,6 +231,9 @@
   #temp-control-template {
     margin-bottom: 15px;
 
+    .end{
+      padding-right: 0;
+    }
     .semi-circle-temps {
       .temp-container .buttons-container {
         .temp-target {
@@ -249,38 +262,53 @@
         transition: transform 500ms ease !important;
 
         &.no-center{
-          transform: translate3d(0px, 0px, 0px) !important;
+           transform: initial !important;
+          max-width: 617px;
+          margin: 74px auto 0 auto;
+          white-space: nowrap;
+
+          .slick-slide{
+            margin: 0 auto;
+            float: none;
+            display: inline-block;
+          }
         }
 
         .slick-slide{
           -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
           filter: grayscale(100%);
-          max-width: 200px;
-          cursor: move;
+          max-width: 206px;
+          cursor: pointer;
             .circle-container{
               opacity: 0.5;
               transform: scale(0.8);
               transition: all 500ms ease;
             }
 
-          &.slick-current{
-            -webkit-filter: initial;
-            filter: initial;
+          &:hover{
+            transition: all 500ms ease;
+
               .circle-container{
-                transform: scale(1);
                 opacity: 1;
                 transition: all 500ms ease;
               }
           }
 
-          &:hover{
-            transition: all 500ms ease;
+          &.slick-current{
+            -webkit-filter: initial;
+            filter: initial;
 
-              .circle-container{
-                opacity: 0.8;
-                transition: all 500ms ease;
-              }
+            .circle-container{
+              transform: scale(1);
+              opacity: 1;
+              transition: all 500ms ease;
+            }
           }
+
+            &:focus{
+              outline: 0;
+            }
+
         }
       }
 
@@ -318,7 +346,7 @@
 
     }
     .bed {
-      height: 245px;
+      height: 265px;
     }
 
     .no-bed {
@@ -497,6 +525,8 @@
   }
 
   .camera-view {
+    padding-right: 0;
+
     div.video-error {
       display: none;
     }

@@ -1,5 +1,32 @@
-<div class="row print-info">
+<div class="row print-info clearfix">
   <h2 class="bold" align="center">Printing</h2>
+  <div class="info columns small-12 large-8">
+    <div class="small-12 columns">
+      <div class="progress success radius">
+        <span class="filename"></span>
+        <span class="progress-label bold"></span>
+        <span class="meter" style="width: 0%"></span>
+      </div>
+    </div>
+    <div class="small-12 medium-6 columns" align="center">
+      <h2 class="bold">Time Remaining</h2>
+      <div class="bold">
+        <span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
+      </div>
+    </div>
+    <div class="small-12 medium-6 columns" align="center">
+      <h2 class="bold">Printing Layer</h2>
+      <div>
+        <span class="current-layer highlighted bold">-</span> of <span class="highlighted bold layer-count">-</span>
+      </div>
+    </div>
+  </div>
+  <div class="heating">
+    <div class="small-12 large-8 columns" align="center">
+      <i class="icon-temperatire blink-animation"></i>
+      <b>Heating up...</b>
+    </div>
+  </div>
     <div class="small-12 large-4 columns camera-view" align="center">
       <script type="text/template" id="photo-printing-template">
         <% if(this.cameraAvailable) {
@@ -133,37 +160,10 @@
         <% } %>
       </script>
     </div>
-  <div class="info">
-    <div class="small-12 large-8 columns">
-      <div class="progress success radius">
-        <span class="meter" style="width: 0%"></span>
-        <span class="filename"></span>
-        <span class="progress-label"></span>
-      </div>
-    </div>
-    <div class="small-12 medium-6 large-4 columns" align="center">
-      <h2 class="bold">Time Remaining</h2>
-      <div class="bold">
-        <span class="highlighted estimated-hours">--</span>:<span class="highlighted estimated-minutes">--</span>:<span class="highlighted estimated-seconds">--</span>
-      </div>
-    </div>
-    <div class="small-12 medium-6 large-4 columns" align="center">
-      <h2 class="bold">Printing Layer</h2>
-      <div class="bold">
-        <span class="current-layer highlighted">-</span> of <span class="highlighted layer-count">-</span>
-      </div>
-    </div>
-  </div>
-  <div class="heating">
-    <div class="small-12 large-8 columns" align="center">
-      <i class="icon-temperatire blink-animation"></i>
-      <b>Heating up...</b>
-    </div>
-  </div>
 </div>
 
 <div id="temp-control-template" class="row">
-  <div class="small-12 large-8 column" align="center">
+  <div class="small-12 large-8 column end" align="center">
     <div class="temp-subheading text-center">Extruders</div>
     <div class="extruders"></div>
   </div>

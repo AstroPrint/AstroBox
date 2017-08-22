@@ -352,7 +352,7 @@ html.no-printer {
 		padding: 0;
 		li button {
 			margin-bottom: 0;
-			font-size: rem-calc(22);
+			font-size: rem-calc(18);
 		}
 	}
 }
@@ -432,7 +432,7 @@ html.no-printer {
         cursor: pointer;
         color: $oil;
         display: block;
-        height: 36px;
+        height: 34px;
       }
 
       .all-temps{
@@ -465,13 +465,13 @@ html.no-printer {
       color: $oil;
       z-index: 9999;
       position: absolute;
-      top: 0;
+      top: -7px;
       cursor: pointer;
       font-size: rem-calc(30);
     }
 
     .icon-angle-left {
-      left: -7px;
+      left: 12px;
 
       &.slick-disabled{
         opacity: 0.3;
@@ -480,7 +480,7 @@ html.no-printer {
     }
 
     .icon-angle-right {
-      right: -7px;
+      right: 14px;
 
       &.slick-disabled{
         opacity: 0.3;
@@ -634,7 +634,7 @@ html.no-printer {
   }
 
   #temp-control-template .nav-extruders {
-    padding: 0px 8%;
+    padding: 0px 15%;
   }
 }
 
@@ -645,5 +645,14 @@ html.no-printer {
 
   #temp-control-template {
     padding-left: 0;
+
+    .nav-extruders .icon-angle-left {
+    left: -5px;
+    }
+
+   .nav-extruders .icon-angle-right {
+    right: -5px;
+    }
   }
+
 }
