@@ -2,7 +2,7 @@
 .controls-container{
   margin-bottom: 0px;
   @include radius($global-radius);
-  background: #fafafa;
+  background: $white;
   padding: 31px 30px 15px 30px;
 
   .extruder-number{
@@ -72,7 +72,7 @@
   .extruder-heading{
     background: #efefef;
     margin: 0 -15px;
-    margin-bottom: 21px;
+    margin-bottom: 20px;
   }
 
   .border-right{
@@ -201,8 +201,7 @@
 }
 
 #z-controls {
-  height: 231px;
-
+  height: 222px;
 	button.home_z {
     margin: 20px 0;
     height: 36px;
@@ -248,8 +247,8 @@
 	h5 {
     color: #cecece;
     font-size: 14px;
-    margin-top: 10px;
-    margin-bottom: 5px;
+    margin-top: 5px;
+    margin-bottom: 0px;
 	}
 
 	.back-to-print {
@@ -344,8 +343,8 @@ html.no-printer {
 }
 
 #distance-control {
-  margin-bottom: 20px;
-  margin-top: 5px;
+  margin-bottom: 32px;
+  margin-top: -5px;
 
 	ul {
 		display: inline-block;
@@ -369,7 +368,7 @@ html.no-printer {
     border-width: 2px 0 0;
     margin: 0;
     padding-bottom: 17px;
-    background: #fafafa;
+    background: $white;
   }
 
   .no-paddingleft{
@@ -378,8 +377,8 @@ html.no-printer {
 
   .extruders {
     @include radius($global-radius);
-    color: #ccc;
-    background: #fafafa;
+    color: $iron;
+    background: $white;
     margin-bottom: 0;
     height: 185px;
 
@@ -396,7 +395,7 @@ html.no-printer {
   }
 
   .nav-extruders{
-    background-color: #fafafa;
+    background-color: $white;
     padding: 0px 30px;
 
     .slick-list{
@@ -493,8 +492,8 @@ html.no-printer {
   .bed {
     padding-bottom: 15px;
     @include radius($global-radius);
-    color: #ccc;
-    background: #fafafa;
+    color: $iron;
+    background: $white;
 
     img{
       height: 36px;
@@ -504,7 +503,7 @@ html.no-printer {
   }
   .temp-subheading{
     padding:5px 20px 2px 20px;
-    background: #fafafa;
+    background: $white;
     color: darkgrey;
     text-transform: uppercase;
     font-size: 12px;

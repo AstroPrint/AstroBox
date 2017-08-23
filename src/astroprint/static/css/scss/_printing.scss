@@ -1,10 +1,43 @@
 #printing-view {
+
+  .temp-subheading{
+    padding-top: 8px;
+    box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
+  }
+  .controls{
+    background: $jet;
+  }
   h2 {
     font-size: rem-calc(28);
-    margin-bottom: 10px;
+    margin: 0 0 8px 0;
   }
 
+  .buttons-box{
+
+    button{
+      margin-bottom: 10px;
+      margin-top: 0;
+      letter-spacing: 0.5px;
+
+      &.controls{
+        box-shadow: 0 7px black;
+        padding-bottom: 10px;
+
+        &:active{
+          background-color: #1a1a1a;
+          top: 7px !important;
+          box-shadow: none;
+          position: relative;
+        }
+      }
+
+      &:focus{
+        outline: 0;
+      }
+    }
+  }
   .progress {
+    background-color: rgba(240, 82, 81, 0.1);
     position: relative;
     text-align: left;
     height: 15px;
@@ -14,8 +47,8 @@
       position: absolute;
       top: -25px;
       left: 0;
-      color: rgba(0, 0, 0, 0.2);
-      font-size: rem-calc(20);
+      color: rgba(0, 0, 0, 0.25);
+      font-size: rem-calc(16);
       max-width: 60%;
       overflow-x: hidden;
       text-overflow: ellipsis;
@@ -25,28 +58,32 @@
     .progress-label {
       position: absolute;
       right: 0;
-      top: -50px;
-      font-size: rem-calc(40);
+      top: -45px;
+      font-size: rem-calc(36);
       color: $oil;
     }
   }
 
   .print-info {
     font-size: rem-calc(40);
-    margin: 10px 0 10px 0;
+    margin: 10px 0 20px 0;
 
     .highlighted {
       font-size: rem-calc(40);
       color: $success-color;
+
+      &.layer-count{
+        color: $red;
+      }
     }
 
     .info {
-      background: $ghost;
-      box-shadow: 2px 1px 2px 0px rgba(0, 0, 0, 0.07);
-      height: 280px;
+      background: $white;
+      box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
+      min-height: 280px;
 
       > div {
-        margin: 20px 0;
+        margin: 11px 0;
       }
 
       h2 {
@@ -62,9 +99,9 @@
     }
 
     .camera-container {
-      padding-top: 75%;
+      min-height: 220px;
       position: relative;
-      background: #efefef;
+      background: $oil;
       overflow: hidden;
 
       i {
@@ -232,7 +269,6 @@
     margin-bottom: 15px;
 
     .end{
-      padding-right: 0;
     }
     .semi-circle-temps {
       .temp-container .buttons-container {
@@ -251,8 +287,9 @@
     }
 
     .extruders {
-      height: 265px;
+      height: 250px;
       margin-bottom: 0px;
+      box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
 
       .slick-track{
         margin-top: 74px;
@@ -261,23 +298,9 @@
         -o-transition: transform 500ms ease !important;
         transition: transform 500ms ease !important;
 
-        &.no-center{
-           transform: initial !important;
-          max-width: 617px;
-          margin: 74px auto 0 auto;
-          white-space: nowrap;
-
-          .slick-slide{
-            margin: 0 auto;
-            float: none;
-            display: inline-block;
-          }
-        }
-
         .slick-slide{
           -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
           filter: grayscale(100%);
-          max-width: 206px;
           cursor: pointer;
             .circle-container{
               opacity: 0.5;
@@ -346,7 +369,8 @@
 
     }
     .bed {
-      height: 265px;
+      height: 250px;
+      box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
     }
 
     .no-bed {
@@ -496,17 +520,21 @@
     .print-info {
       .heating {
         display: block;
-        font-size: rem-calc(50);
+        font-size: rem-calc(40);
+        color: $red;
+        height: 280px;
 
         > div {
           padding: 40px 0;
         }
 
-        i {
+        i.icon-temperatire {
           display: block;
-          margin-bottom: 20px;
           font-size: rem-calc(70);
-          color: $alert-color;
+        }
+
+        .columns{
+          padding-top: 0;
         }
       }
 
@@ -525,7 +553,7 @@
   }
 
   .camera-view {
-    padding-right: 0;
+    padding: 0;
 
     div.video-error {
       display: none;
@@ -644,6 +672,7 @@
   }
 
   .slick-dots {
+      padding: 0px 30px;
       top: 0;
       left: 0;
       height: 62px;
@@ -728,6 +757,26 @@
   }
 }
 
+@media #{$large-up} {
+    .camera-view {
+      padding-right: 0 !important;
+      padding-left: 0.9375rem !important;
+    }
+
+    #printing-view #temp-control-template{
+      .end{
+        padding-right: 6px;
+      }
+
+      .extruders .icon-angle-right {
+        right: 20px;
+      }
+      .extruders .icon-angle-left {
+        left: 20px;
+      }
+    }
+}
+
 @media #{$medium-up} {
   #printing-view .temperatures .temp-bar {
     label {
@@ -740,6 +789,41 @@
       top: 4px;
       width: 100px;
       font-size: rem-calc(28);
+    }
+  }
+
+  .slick-track{
+    &.no-center{
+      transform: initial !important;
+      margin: 74px auto 0 auto;
+
+      .slick-slide{
+        margin: 0 auto;
+        float: none;
+        display: inline-block;
+      }
+    }
+  }
+}
+
+@media #{$small-up} {
+  #printing-view{
+      template .end {
+        padding-right: 0.9375rem;
+    }
+  }
+
+}
+
+@media #{$small-only} {
+  #printing-view #temp-control-template{
+    .extruders{
+      height: 320px;
+      border-bottom: 2px dashed gainsboro;
+
+      .slick-track{
+        margin-top: 135px;
+      }
     }
   }
 }
