@@ -178,6 +178,9 @@ class PrinterVirtual(Printer):
 		return self._comm
 
 	def disconnect(self):
+		if self._printJob:
+			self._printJob.cancel()
+
 		if self._comm:
 			self._comm = False
 
