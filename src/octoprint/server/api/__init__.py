@@ -168,11 +168,12 @@ def performSystemAction():
 	if "action" in request.values.keys():
 		action = request.values["action"]
 		available_actions = s().get(["system", "actions"])
+		logger = logging.getLogger(__name__)
+
 		for availableAction in available_actions:
 			if availableAction["action"] == action:
 				command = availableAction["command"]
 				if command:
-					logger = logging.getLogger(__name__)
 					logger.info("Performing command: %s" % command)
 
 					def executeCommand(command, logger):
@@ -195,14 +196,17 @@ def performSystemAction():
 					return OK
 
 				else:
-					break
+					logger.warn("Action %s is misconfigured" % action)
+					return ("Misconfigured action", 500)
 
-	return ("Command not found", 404)
+		logger.warn("No suitable action in config for: %s" % action)
+		return ("Command not found", 404)
+
+	else:
+		return ("Invalid data", 400)
 
 
 #~~ Login/user handling
-
-
 @api.route("/login", methods=["POST"])
 def login():
 	if octoprint.server.userManager is not None and "user" in request.values.keys() and "pass" in request.values.keys():
