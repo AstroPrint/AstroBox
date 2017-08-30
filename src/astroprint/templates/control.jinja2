@@ -46,50 +46,40 @@
       </div>
       <div class="clearfix"></div>
 
-    <div class="text-center extruder-heading">
-      <img class="extruder-icon" src="/img/icon-extruder.svg"/>
-      <select class="extruder-number bold">
-        <!--% for(var i=0; i<profile.extruder_count; i++) { %-->
-          <option value="1">Extruder 1</option>
-          <option value="2">Extruder 2</option>
-          <option value="3">Extruder 3</option>
-        <!--% } %-->
-      </select>
-    </div>
-      <div class="small-12 medium-8 large-8 columns border-right" id="extrusion-control">
+      <div class="small-12 columns" id="extrusion-control">
         <div class="small-12 columns">
           <div class="row extruder-switch closer"></div>
         </div>
-        <div class="small-12 columns">
-          <div class="row closer">
-            <div class="small-6 columns">
-              <button class="small radius expand success extrude">Extrude</button>
-            </div>
-            <div class="small-6 columns">
-              <button class="small radius expand success retract">Retract</button>
+        <div class="small-12 medium-8 large-8 columns border-right">
+          <div class="small-12 columns">
+            <div class="row closer">
+              <div class="small-6 columns">
+                <button class="small radius expand success extrude">Extrude</button>
+              </div>
+              <div class="small-6 columns">
+                <button class="small radius expand success retract">Retract</button>
+              </div>
             </div>
           </div>
         </div>
         <script type="text/template" id="extruder-switch-template">
 
-          <% if (profile.extruder_count > 1) { %>
-            <div class="small-3 columns">
-              <label class="bold">Extruder</label>
-              <select class="extruder-number">
+            <div class="text-center extruder-heading">
+              <img class="extruder-icon" src="/img/icon-extruder.svg"/>
+              <select class="extruder-number bold">
                 <% for(var i=0; i<profile.extruder_count; i++) { %>
-                  <option value="<%= i %>"><%= i+1 %></option>
+                  <option value="<%= i %>">Extruder <%= i+1 %></option>
                 <% } %>
               </select>
             </div>
-          <% } %>
 
+        <div class="small-12 medium-8 large-8 columns">
           <div class="small-12 medium-2 large-2 columns text-center">
             <div class="icon-window">
             <i class="icon-extruder"></i>
             </div>
           </div>
 
-          <!--div class="<% if (profile.extruder_count > 1) { %> small-4 <% } else { %> small-6 <% } %>columns select-with-text"-->
           <div class="small-12 medium-4 columns select-with-text">
             <label>Amount</label>
             <select class="extrusion-length bold">
@@ -126,6 +116,7 @@
               </div>
             </div>
           </div>
+        </div>
         </script>
       </div>
 
@@ -139,13 +130,19 @@
             <div class="small-12 column">
               <label class="text-center">Fan speed</label>
               <select class="fan-speed">
-                <option value="10" selected default>10%</option>
-                <option value="30">30%</option>
+                <option value="10">10%</option>
                 <option value="50">50%</option>
-                <option value="100">100%</option>
+                <option value="100" selected default>100%</option>
                 <option value="other">Other...</option>
               </select>
-              <!--button class="large-3 large-offset-1 column radius small secondary fan-off" align="right">OFF</button-->
+              <div class="row collapse other-fan-speed hide">
+                <div class="small-8 columns">
+                  <input type="number" value="100" max=100 min=0 class="expand back-to-select other-fan-speed" name="fan-speed"/>
+                </div>
+                <div class="small-4 columns">
+                  <span class="postfix radius">%</span>
+                </div>
+              </div>
             </div>
         </div>
       </div>

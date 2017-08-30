@@ -461,11 +461,16 @@ var FanControlView = Backbone.View.extend({
   el: '.fan-control',
   events: {
     'click button.fan-on': "fanOn",
-    'click button.fan-off': "fanOff"
+    'click button.fan-off': "fanOff",
+    'change .fan-speed': 'speedChanged',
+    'change .other-fan-speed input': 'onSpeedFieldChanged'
   },
   fanOn: function()
   {
-    this._setFanSpeed(255);
+    var speedValue = this.$el.find('.fan-speed').val();
+    speedValue = (speedValue == 'other') ? (this.$('input[name="fan-speed"]').val() / 100) : (speedValue / 100);
+
+    this._setFanSpeed(255 * speedValue);
     this.$('.fan_icon').addClass('animate-spin');
     this.$('.fans').removeClass('fan-on').addClass('fan-off');
     this.$('.fans').text('OFF');
@@ -479,9 +484,10 @@ var FanControlView = Backbone.View.extend({
   },
   _setFanSpeed: function(speed)
   {
+    console.log("FAN SPEED", speed)
     var data = {
       command: "set",
-      tool: 0,
+      tool:  $('.extruder-number').val(),
       speed: speed
     }
 
@@ -492,6 +498,22 @@ var FanControlView = Backbone.View.extend({
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify(data)
     });
+  },
+  speedChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-fan-speed').removeClass('hide').find('input').focus().select();
+    } else {
+      this.$('input[name="fan-speed"]').val(elem.val());
+      this.fanOn();
+    }
+  },
+  onSpeedFieldChanged: function(e) {
+    this.fanOn();
+    $(e.target).blur();
   }
 });
 
