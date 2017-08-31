@@ -467,13 +467,54 @@ var FanControlView = Backbone.View.extend({
   },
   fanOn: function()
   {
+    var isSpeed0 = false;
     var speedValue = this.$el.find('.fan-speed').val();
-    speedValue = (speedValue == 'other') ? (this.$('input[name="fan-speed"]').val() / 100) : (speedValue / 100);
 
-    this._setFanSpeed(255 * speedValue);
-    this.$('.fan_icon').addClass('animate-spin');
-    this.$('.fans').removeClass('fan-on').addClass('fan-off');
-    this.$('.fans').text('OFF');
+    if (speedValue == 'other') {
+      if (this.$('input[name="fan-speed"]').val() > 100) {
+        this.$('input[name="fan-speed"]').val('100');
+      } else if (this.$('input[name="fan-speed"]').val() <= 0){
+        this.$('input[name="fan-speed"]').val('0');
+        isSpeed0 = true;
+        this.fanOff();
+      }
+      speedValue = (this.$('input[name="fan-speed"]').val() / 100);
+    } else {
+      speedValue = speedValue / 100;
+    }
+
+    if (!isSpeed0) {
+      var speedClass = '';
+
+      switch(true) {
+        case (speedValue <= 0.25):
+            speedClass = 'speed-25';
+            break;
+        case (speedValue <= 0.50):
+            speedClass = 'speed-50';
+            break;
+        case (speedValue <= 0.75):
+            speedClass = 'speed-75';
+            break;
+        default:
+            speedClass = 'speed-100';
+      }
+
+      this.$('.variable-speed').addClass('animated bounceIn');
+      this.$('.variable-speed').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+          this.$('.variable-speed').removeClass('bounceIn');
+      }.bind(this));
+
+      this._setFanSpeed(255 * speedValue);
+      this.$('.fan_icon').addClass('animate-spin');
+      this.$('.fan_icon').removeClass (function (index, className) {
+          return (className.match (/\bspeed-\S+/g) || []).join(' ');
+      });
+      this.$('.fan_icon').addClass(speedClass);
+      this.$('.fans').removeClass('fan-on').addClass('fan-off');
+      this.$('.fans').text('OFF');
+    }
+
   },
   fanOff: function()
   {
