@@ -532,7 +532,9 @@ html.no-printer {
 
 #fan-control {
   text-align: center;
-  margin-top: -140px;
+  position: absolute;
+  right: 0;
+  bottom: 11px;
 
   .border-left{
     border-left: 1px dashed gainsboro;
@@ -552,7 +554,10 @@ html.no-printer {
 
   .fan_icon {
     position: relative;
-    top: 12px;
+    top: 17px;
+    color: $charcoal;
+    display: block;
+    margin-bottom: 24px;
 
     &:before{
       font-size: 40px;
@@ -578,16 +583,16 @@ html.no-printer {
 
   i.animate-spin {
     &.speed-100 {
-      animation: spin 1s infinite linear;
+      animation: spin 1.3s infinite linear;
     }
     &.speed-75 {
-      animation: spin 2s infinite linear;
+      animation: spin 1.75s infinite linear;
     }
     &.speed-50 {
-      animation: spin 3s infinite linear;
+      animation: spin 2.2s infinite linear;
     }
     &.speed-25 {
-      animation: spin 4s infinite linear;
+      animation: spin 3s infinite linear;
     }
   }
 
@@ -608,14 +613,16 @@ html.no-printer {
 	label {
 		white-space: nowrap;
 		overflow: hidden;
-		text-overflow: ellipsis;
+    text-overflow: ellipsis;
+    margin-top: 5px;
 	}
 
 	i.icon-extruder {
-    font-size: 40px;
-    top: 9px;
+    font-size: 38px;
+    top: 8px;
     position: relative;
-    color: $oil;
+    color: $charcoal;
+
       &:before{
         margin: 0;
       }
@@ -639,7 +646,7 @@ html.no-printer {
 
   div.extruder-heading{
     background: #e2e2e2;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
   }
   select{
     -moz-appearance: none;
@@ -695,13 +702,13 @@ html.no-printer {
   }
 
   #fan-control{
-    margin-top: 0;
+    position: relative;
+    bottom: 0;
   }
 
   #extrusion-control
     .no-paddingright{
       padding-right: 0.9375rem;
     }
-
 
 }
