@@ -576,6 +576,21 @@ html.no-printer {
     border-color: white;
   }
 
+  i.animate-spin {
+    &.speed-100 {
+      animation: spin 1s infinite linear;
+    }
+    &.speed-75 {
+      animation: spin 2s infinite linear;
+    }
+    &.speed-50 {
+      animation: spin 3s infinite linear;
+    }
+    &.speed-25 {
+      animation: spin 4s infinite linear;
+    }
+  }
+
 }
 
 #extrusion-control {
