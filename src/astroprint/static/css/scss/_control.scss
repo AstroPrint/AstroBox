@@ -3,7 +3,7 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
-  padding: 31px 30px 15px 30px;
+  padding: 31px 30px 10px 30px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -48,7 +48,6 @@
     padding-left: 0;
     text-align-last: center;
     padding-right: 0;
-    margin-bottom: 15px;
     -moz-appearance: none;
     border: 2px solid gainsboro;
   }
@@ -69,12 +68,6 @@
 
   .extruder-icon{
     height: 22px;
-  }
-
-  .extruder-heading{
-    background: #efefef;
-    margin: 0 -15px;
-    margin-bottom: 20px;
   }
 
   .heading-box{
@@ -413,7 +406,11 @@ html.no-printer {
 
       &.no-center{
         transform: initial !important;
-    margin: 0 auto;
+        margin: 0 auto;
+      }
+
+      h4{
+        margin: 0;
       }
     }
 
@@ -535,7 +532,7 @@ html.no-printer {
 
 #fan-control {
   text-align: center;
-  margin-top: -140px !important;
+  margin-top: -140px;
 
   .border-left{
     border-left: 1px dashed gainsboro;
@@ -545,7 +542,7 @@ html.no-printer {
     border: 2px solid $oil;
     background: transparent;
     color: $oil;
-    margin-bottom: 20px;
+    margin-top: 16px;
 
     &:hover{
       background: $oil;
@@ -565,10 +562,18 @@ html.no-printer {
   .fan-off{
     background: $oil;
     border: 2px solid $oil;
+    margin-top: 16px;
   }
   .fans{
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 14px;
+  }
+
+  .other-fan-speed .postfix{
+    background: transparent;
+    border-left: none;
+    color: #e2e2e2;
+    font-size: 22px;
+    border-color: white;
   }
 }
 
@@ -611,20 +616,13 @@ html.no-printer {
   }
 
   div.extruder-heading{
-    background: #efefef;
-    margin: 0 0px;
+    background: #e2e2e2;
+    margin: 0 -15px;
     margin-bottom: 20px;
   }
 
 }
 
-@media #{$medium-up} {
-
-	.row.closer > .columns {
-		padding: 0 5px;
-  }
-
-}
 
 @media #{$medium-only} {
  #temp-control-template {
@@ -654,9 +652,6 @@ html.no-printer {
 }
 
 @media #{$small-only} {
-  .controls-container {
-      padding:31px 0 24px 0;
-  }
 
   #temp-control-template {
     padding-left: 0;
