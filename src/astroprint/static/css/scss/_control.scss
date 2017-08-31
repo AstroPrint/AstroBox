@@ -336,14 +336,14 @@ html.no-printer {
 }
 
 #distance-control {
-  margin-bottom: 32px;
-  margin-top: -5px;
+  margin-bottom: 28px;
+  padding: 0;
 
 	ul {
 		display: inline-block;
 		padding: 0;
 		li button {
-			margin-bottom: 0;
+			margin-bottom: 1px;
 			font-size: rem-calc(18);
 		}
 	}
@@ -575,11 +575,15 @@ html.no-printer {
     font-size: 22px;
     border-color: white;
   }
+
 }
 
 #extrusion-control {
   padding: 0;
 
+  .no-paddingright{
+    padding-right: 0;
+  }
 	.columns {
 		&.padded-top {
 			padding-top: 21px;
@@ -594,9 +598,12 @@ html.no-printer {
 
 	i.icon-extruder {
     font-size: 40px;
-    top: 12px;
+    top: 9px;
     position: relative;
-		color: $oil;
+    color: $oil;
+      &:before{
+        margin: 0;
+      }
 	}
 
 
@@ -617,10 +624,15 @@ html.no-printer {
 
   div.extruder-heading{
     background: #e2e2e2;
-    margin: 0 -15px;
     margin-bottom: 20px;
   }
+  select{
+    -moz-appearance: none;
+  }
 
+  .icon-container{
+    padding: 0;
+  }
 }
 
 
@@ -653,6 +665,8 @@ html.no-printer {
 
 @media #{$small-only} {
 
+  .border-left{border-left: 0 !important;}
+
   #temp-control-template {
     padding-left: 0;
 
@@ -668,5 +682,11 @@ html.no-printer {
   #fan-control{
     margin-top: 0;
   }
+
+  #extrusion-control
+    .no-paddingright{
+      padding-right: 0.9375rem;
+    }
+
 
 }
