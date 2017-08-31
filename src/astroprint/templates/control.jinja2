@@ -18,10 +18,13 @@
       <div class="small-12 medium-8 columns medium-offset-0" id="xy-controls" align="center">
         <h5>Horizontal (XY)</h5>
         <div class="control_bg_xy" align="center">
-          <button class="control_btn_y_plus"><i class="icon-right-open"></i></button>
-          <button class="control_btn_x_minus"><i class="icon-right-open"></i></button> <button class="home_z"><i class="icon-home"></i></button> <button class="control_btn_x_plus"><i class="icon-right-open"></i></button>
-          <button class="control_btn_y_minus"><i class="icon-right-open"></i></button>
-          <div class="bed-mesh"></div>
+          <div class="bed-mesh">
+            <button class="control_btn_y_plus"><i class="icon-right-open"></i></button>
+            <button class="control_btn_x_minus"><i class="icon-right-open"></i></button>
+            <button class="home_z"><i class="icon-home"></i></button>
+            <button class="control_btn_x_plus"><i class="icon-right-open"></i></button>
+            <button class="control_btn_y_minus"><i class="icon-right-open"></i></button>
+          </div>
         </div>
       </div>
       <div class="small-12 medium-2 columns" id="z-controls">
@@ -50,7 +53,7 @@
         <div class="small-12 columns">
           <div class="row extruder-switch closer"></div>
         </div>
-        <div class="small-12 medium-8 large-8 columns border-right">
+        <div class="small-12 medium-8 large-8 columns">
           <div class="small-12 columns">
             <div class="row closer">
               <div class="small-6 columns">
@@ -121,21 +124,24 @@
       </div>
 
       <div id="fan-control" class="small-12 medium-4 large-4 column text-center">
-        <div class="fan-control">
-            <div class="small-12 column bold text-left">
-              <i class="icon-fan fan_icon "></i>
-              <button class="small-8 medium-6 large-6 column radius tiny success fans right bold fan-on">ON</button>
-            </div>
+        <div class="fan-control clearfix">
 
-            <div class="small-12 column">
-              <label class="text-center">Fan speed</label>
-              <select class="fan-speed">
-                <option value="10">10%</option>
-                <option value="50">50%</option>
-                <option value="100" selected default>100%</option>
-                <option value="other">Other...</option>
-              </select>
-              <div class="row collapse other-fan-speed hide">
+            <div class="row bold text-left border-left clearfix">
+              <div class="columns small-4 left">
+                <i class="icon-fan fan_icon"></i>
+              </div>
+              <div class="small-8 right columns">
+                <label>Fan speed</label>
+                <select class="fan-speed right bold">
+                  <option value="10">10%</option>
+                  <option value="50">50%</option>
+                  <option value="100" selected default>100%</option>
+                  <option value="other">Other...</option>
+                </select>
+
+                <button class="small-12 medium-8 column radius tiny success fans right bold fan-on expand">ON</button>
+              </div>
+              <div class="row other-fan-speed hide">
                 <div class="small-8 columns">
                   <input type="number" value="100" max=100 min=0 class="expand back-to-select other-fan-speed" name="fan-speed"/>
                 </div>
@@ -144,6 +150,7 @@
                 </div>
               </div>
             </div>
+
         </div>
       </div>
     </div>

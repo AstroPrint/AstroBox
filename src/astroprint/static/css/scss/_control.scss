@@ -29,6 +29,7 @@
     height: 42px;
     border-width: 2px;
     margin: 0 auto;
+    cursor: pointer;
   }
 
   .extruder-switch{
@@ -40,15 +41,16 @@
 
   select.fan-speed{
     border: 0;
-    font-size: 22px;
-    padding-top: 0px;
-    background-size: 23px 8px;
-    max-width: 107px;
-    background-position: 100% 11px;
+    font-size: 20px;
+    /* padding-top: 0px; */
+    background-size: 23px 5px;
+    background-position: 100% 16px;
     padding-left: 0;
     text-align-last: center;
     padding-right: 0;
-    margin-left: -15px;
+    margin-bottom: 15px;
+    -moz-appearance: none;
+    border: 2px solid gainsboro;
   }
   select.extruder-number{
     border: 0;
@@ -116,13 +118,12 @@
 	.control_bg_xy {
 		position: relative;
     perspective: 500px;
+    -webkit-perspective: 500px;
     perspective-origin: 50% 50%;
+    -webkit-perspective-origin:50% 50%;
     width: 100%;
     height: 200px;
-    max-width: 300px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: 200px;
 
     & > *{
       -webkit-transform: rotateX(40deg); /* Chrome, Safari, Opera */
@@ -136,7 +137,8 @@
       border-radius: 5px;
 
 			&.home_z {
-				top: 70px;
+        top: 70px;
+        left: 73px;
         height: 36px;
         width: 50px;
         font-size: 18px;
@@ -148,19 +150,21 @@
 
 			&.control_btn_x_plus {
 				top: 53px;
-				right: 52px;
+        right: -11px;
 			}
 
 			&.control_btn_x_minus {
 				top: 53px;
-        left: 52px;
+        left: -10px;
         i:before{
           transform: rotate(-180deg);
         }
 			}
 
 			&.control_btn_y_minus {
-				bottom: 31px;
+        bottom: -11px;
+        left: 70px;
+
           i:before{
             transform: rotate(90deg);
           }
@@ -171,7 +175,8 @@
 			}
 
 			&.control_btn_y_plus {
-				top: 11px;
+        top: -11px;
+        left: 70px;
           i:before{
             transform: rotate(-90deg);
           }
@@ -184,10 +189,10 @@
   }
 
   .bed-mesh{
-    width: 70%;
-    height: 87%;
+    width: 200px;
+    height: 178px;
+
     border: 2px solid #e0e0e0;
-    position: absolute;
     z-index: -1;
     top: 0;
     background: rgba(66, 66, 66, 0.04) url(/img/mesh-backg.svg) right no-repeat;
@@ -307,7 +312,7 @@
 
   .heading-box{
     background: $oil;
-    padding: 5px;
+    padding: 3px;
     color: white;
     text-align: center;
     text-transform: uppercase;
@@ -402,8 +407,9 @@ html.no-printer {
       -moz-transition: transform 500ms ease !important;
       -o-transition: transform 500ms ease !important;
       transition: transform 500ms ease !important;
-          display: flex;
-    justify-content: center;
+      display: flex;
+      justify-content: center;
+      height: 60px;
 
       &.no-center{
         transform: initial !important;
@@ -423,8 +429,8 @@ html.no-printer {
         background:url(/img/icon-extruder.svg) top no-repeat !important;
         font-size: rem-calc(18);
         font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-        cursor: pointer;
         color: $oil;
+        cursor: pointer;
         display: block;
         height: 34px;
       }
@@ -529,7 +535,11 @@ html.no-printer {
 
 #fan-control {
   text-align: center;
-  //margin-top: 10px;
+  margin-top: -140px !important;
+
+  .border-left{
+    border-left: 1px dashed gainsboro;
+  }
 
   .fan-on{
     border: 2px solid $oil;
@@ -544,6 +554,9 @@ html.no-printer {
   }
 
   .fan_icon {
+    position: relative;
+    top: 12px;
+
     &:before{
       font-size: 40px;
     }
@@ -560,6 +573,7 @@ html.no-printer {
 }
 
 #extrusion-control {
+  padding: 0;
 
 	.columns {
 		&.padded-top {
@@ -602,9 +616,6 @@ html.no-printer {
     margin-bottom: 20px;
   }
 
-  .border-right{
-    border-right: 1px dashed gainsboro;
-  }
 }
 
 @media #{$medium-up} {
@@ -657,6 +668,10 @@ html.no-printer {
    .nav-extruders .icon-angle-right {
     right: -5px;
     }
+  }
+
+  #fan-control{
+    margin-top: 0;
   }
 
 }

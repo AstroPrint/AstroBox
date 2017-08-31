@@ -80,7 +80,7 @@
     .info {
       background: $white;
       box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
-      min-height: 280px;
+      height: 280px;
 
       > div {
         margin: 11px 0;
@@ -694,6 +694,9 @@
         }
 
         &.slick-active{
+          position: relative;
+          top: 8px;
+
           a{
             background: url(/img/icon-extruder-active.svg) top no-repeat !important;
             color: white;
@@ -705,6 +708,7 @@
 
           .all-temps{
             color: #f05251;
+            opacity: 0;
             font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
           }
         }
