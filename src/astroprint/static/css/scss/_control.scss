@@ -101,7 +101,7 @@
 
     &:active {
       background-color: darken($oil,10%);
-      top: 62px !important;
+      top: 65px !important;
       box-shadow: none;
     }
 	}
@@ -137,7 +137,7 @@
         font-size: 18px;
 
         &:active{
-          top: 77px !important;
+          top: 65px !important;
         }
 			}
 
@@ -163,7 +163,7 @@
           }
 
           &:active{
-            top: 123px !important;
+            top: 141px !important;
           }
 			}
 
@@ -175,7 +175,7 @@
           }
 
           &:active{
-            top: 20px !important;
+            top: 0 !important;
           }
 			}
 		}
@@ -238,7 +238,7 @@
 	}
 
 	h5 {
-    color: #cecece;
+    color: darkgrey;
     font-size: 14px;
     margin-top: 5px;
     margin-bottom: 0px;
@@ -561,6 +561,7 @@ html.no-printer {
 
     &:before{
       font-size: 40px;
+      margin: 0;
     }
   }
 
