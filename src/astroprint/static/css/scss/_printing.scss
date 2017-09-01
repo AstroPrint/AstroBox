@@ -40,7 +40,7 @@
     }
   }
   .progress {
-    background-color: rgba(240, 82, 81, 0.1);
+    background-color: rgba(240, 82, 81, 0.2);
     position: relative;
     text-align: left;
     height: 15px;
@@ -48,11 +48,10 @@
 
     .filename {
       position: absolute;
-      top: -25px;
+      top: 13px;
       left: 0;
-      color: rgba(0, 0, 0, 0.25);
-      font-size: rem-calc(16);
-      max-width: 60%;
+      color: rgba(0, 0, 0, 0.3);
+      font-size: rem-calc(14);
       overflow-x: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -63,13 +62,13 @@
       right: 0;
       top: -45px;
       font-size: rem-calc(36);
-      color: $oil;
+      color: $green;
     }
   }
 
   .print-info {
     font-size: rem-calc(40);
-    margin: 10px 0 20px 0;
+    margin: 10px 0 0 0;
 
     .highlighted {
       font-size: rem-calc(40);
@@ -84,9 +83,10 @@
       background: $white;
       box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
       min-height: 281px;
+      margin-bottom: 20px;
 
       > div {
-        margin: 11px 0;
+        margin: 10px 0;
       }
 
       h2 {
@@ -294,7 +294,7 @@
       margin-bottom: 0px;
       box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
 
-img.icon-bed{display: none;}
+      img.icon-bed{display: none;}
 
       .slick-track{
         margin-top: 74px;
@@ -338,6 +338,18 @@ img.icon-bed{display: none;}
             }
 
         }
+
+      }
+
+      .slick-slide{
+        .current{animation-iteration-count: initial;}
+      }
+
+
+      .slick-slide{
+        &.slick-current{
+          .current{animation-iteration-count: infinite;}
+        }
       }
 
       .slick-arrow{
@@ -347,6 +359,10 @@ img.icon-bed{display: none;}
         top: -7px;
         cursor: pointer;
         font-size: rem-calc(30);
+
+        &.arrow-disabled {
+          opacity: 0 !important;
+        }
       }
 
       .icon-angle-left {
@@ -559,6 +575,7 @@ img.icon-bed{display: none;}
 
   .camera-view {
     padding: 0;
+    margin-bottom: 20px;
 
     div.video-error {
       display: none;
@@ -677,16 +694,18 @@ img.icon-bed{display: none;}
   }
 
   .slick-dots {
-      padding: 0px 30px;
+      padding: 0px 10px;
       top: 0;
       left: 0;
-      height: 62px;
+      bottom: initial;
       font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+      padding-top: 4px;
 
       li{
         margin: 0;
         width: initial;
         height: initial;
+        vertical-align:top;
 
         a{
           background:url(/img/icon-extruder.svg) center no-repeat !important;
@@ -699,13 +718,12 @@ img.icon-bed{display: none;}
         }
 
         &.slick-active{
-          position: relative;
-          top: 8px;
+          height: 66px;
 
           a{
             background: url(/img/icon-extruder-active.svg) top no-repeat !important;
             color: white;
-            height: 40px;
+            height: 50px;
             font-size: 23px;
             padding:0px 18px 0px 18px;
             opacity: 1;
@@ -719,13 +737,13 @@ img.icon-bed{display: none;}
         }
 
       .all-temps{
-        font-family: sans-serif;
         font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
         font-size: 16px;
         height: 24px;
         position: relative;
         display: block;
-        top: 4px;
+        top: 2px;
+        color: #b9b9b9;
       }
 
         button:before {
