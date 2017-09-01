@@ -12,6 +12,9 @@
     margin: 0 0 8px 0;
   }
 
+  .bottom-space{
+    margin-bottom: 20px;
+  }
   .buttons-box{
 
     button{
@@ -80,7 +83,7 @@
     .info {
       background: $white;
       box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
-      height: 280px;
+      min-height: 281px;
 
       > div {
         margin: 11px 0;
@@ -291,6 +294,8 @@
       margin-bottom: 0px;
       box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
 
+img.icon-bed{display: none;}
+
       .slick-track{
         margin-top: 74px;
         -webkit-transition: transform 500ms ease !important;
@@ -304,7 +309,7 @@
           cursor: pointer;
             .circle-container{
               opacity: 0.5;
-              transform: scale(0.8);
+              transform: scale(0.75);
               transition: all 500ms ease;
             }
 
@@ -322,7 +327,7 @@
             filter: initial;
 
             .circle-container{
-              transform: scale(1);
+              transform: scale(0.95);
               opacity: 1;
               transition: all 500ms ease;
             }
@@ -800,6 +805,9 @@
     &.no-center{
       transform: initial !important;
       margin: 74px auto 0 auto;
+      max-width: 600px;
+      display: block;
+      white-space: nowrap;
 
       .slick-slide{
         margin: 0 auto;
@@ -808,6 +816,20 @@
       }
     }
   }
+
+  /*.slick-track{
+    &.no-center{
+      transform: translate3d(40px, 0px, 0px) !important;
+
+      .slick-slide{
+        margin: 0 auto;
+        float: none;
+        display: inline-block;
+      }
+    }
+  }*/
+
+
 }
 
 @media #{$small-up} {
