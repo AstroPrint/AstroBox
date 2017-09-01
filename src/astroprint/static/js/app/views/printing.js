@@ -485,10 +485,11 @@ el: '#printing-view',
       });
     }
 
-    // disable right arrow when extruders_count = 1
+    // disable arrows when extruders_count = 1
     if (this.extruders_count == 1) {
-      this.$el.find('.slick-slider').find('.slick-arrow.icon-angle-right').addClass('slick-disabled');
+      this.$el.find('.slick-slider').find('.slick-arrow').addClass('arrow-disabled');
     }
+
     this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
 
     // On before slide change
