@@ -475,6 +475,7 @@ el: '#printing-view',
     });
 
 
+    // needed to show the 'dots' (extruders) always
     if (this.extruders_count <= this.slidesToShow){
       this.$('.extruders').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
       this.$('.extruders').slick('slickSetOption', 'variableWidth', true, true);
@@ -484,6 +485,10 @@ el: '#printing-view',
       });
     }
 
+    // disable right arrow when extruders_count = 1
+    if (this.extruders_count == 1) {
+      this.$el.find('.slick-slider').find('.slick-arrow.icon-angle-right').addClass('slick-disabled');
+    }
     this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
 
     // On before slide change
