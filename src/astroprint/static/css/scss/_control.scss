@@ -526,7 +526,7 @@ html.no-printer {
     button[disabled]{
       cursor: not-allowed;
     }
-
+    .current{animation: initial !important;}
   }
 }
 
