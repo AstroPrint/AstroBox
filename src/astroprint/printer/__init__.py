@@ -417,6 +417,7 @@ class Printer(object):
 		self._setCurrentZ(newZ)
 
 	def mcToolChange(self, newTool, oldTool):
+		self._stateMonitor.setCurrentTool(newTool)
 		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
 	def mcLayerChange(self, layer):
@@ -628,6 +629,7 @@ class StateMonitor(object):
 		self._currentZ = None
 		self._progress = None
 		self._stop = False
+		self._currentTool = 0
 
 		self._offsets = {}
 
@@ -680,6 +682,10 @@ class StateMonitor(object):
 		self._offsets = offsets
 		self._changeEvent.set()
 
+	def setCurrentTool(self, currentTool):
+		self._currentTool = currentTool
+		self._changeEvent.set()
+
 	def _work(self):
 		while True:
 			self._changeEvent.wait()
@@ -709,5 +715,6 @@ class StateMonitor(object):
 			"job": self._jobData,
 			"currentZ": self._currentZ,
 			"progress": self._progress,
-			"offsets": self._offsets
+			"offsets": self._offsets,
+			"tool": self._currentTool
 		}

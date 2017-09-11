@@ -24,6 +24,8 @@ class PrinterVirtual(Printer):
 
 	def __init__(self):
 		seettings_file = "%s/virtual-printer-settings.yaml" % os.path.dirname(settings()._configfile)
+		self._previousSelectedTool = 0
+		self._currentSelectedTool = 0
 
 		self._settings = {
 			'connection': 1.0,
@@ -277,6 +279,9 @@ class PrinterVirtual(Printer):
 
 		return self.getStateString(), 'virtual', 0
 
+	def getSelectedTool(self):
+		return self._currentSelectedTool
+
 	def getConsumedFilament(self):
 		return self._printJob._consumedFilament if self._printJob else 0
 
@@ -296,7 +301,10 @@ class PrinterVirtual(Printer):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
 
 	def changeTool(self, tool):
-		self._logger.info('Change tool to %s', tool)
+		self._previousSelectedTool = self._currentSelectedTool
+		self._currentSelectedTool = tool
+		self._logger.info('Change tool from %s to %s', self._previousSelectedTool, tool)
+		self.mcToolChange(tool, self._previousSelectedTool)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
