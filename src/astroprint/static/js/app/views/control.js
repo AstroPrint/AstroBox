@@ -135,7 +135,7 @@ var TempView = Backbone.View.extend({
         var search = '#temp-'+i;
         var tempValue = '- -';
         if (this.semiCircleTemp_views[i].actual != null) {
-          tempValue = this.semiCircleTemp_views[i].actual + 'º';
+          tempValue = Math.round(this.semiCircleTemp_views[i].actual) + 'º';
         }
         this.$el.find(search).find('.all-temps').text(tempValue);
       }
