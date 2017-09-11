@@ -591,7 +591,7 @@ var ControlView = Backbone.View.extend({
   render: function()
   {
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
-
+    console.log("render",app.socketData);
     this.extrusionView.render();
     /*var currentTool = $('.extruder-number').val();
     this.extrusionView._sendChangeToolCommand(currentTool);*/

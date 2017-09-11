@@ -34,6 +34,7 @@ var SocketData = Backbone.Model.extend({
     print_capture: null
   },
   extruder_count: null,
+  tool: 0,
   initialize: function()
   {
     this.set('printing', initial_states.printing || initial_states.paused);
@@ -197,6 +198,8 @@ var SocketData = Backbone.Model.extend({
               heating_up: flags.heatingUp
             });
           }
+
+          this.set('tool', data.tool);
         }
         break;
 
