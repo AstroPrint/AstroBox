@@ -90,7 +90,7 @@ class GstBasePipeline(object):
 		if self._currentPipelineState != Gst.State.PLAYING:
 			self._pipeline.set_state(Gst.State.PLAYING)
 
-			if waitToReachState(self._pipeline, Gst.State.PLAYING, 1.5, 2):
+			if waitToReachState(self._pipeline, Gst.State.PLAYING, 3.0, 3):
 				self._logger.debug( "Succesfully changed pipeline state to \033[93mPLAYING\033[0m")
 				self._currentPipelineState = Gst.State.PLAYING
 				result = True
