@@ -404,6 +404,8 @@
         filter: grayscale(100%);
       }
 
+      .current{animation-iteration-count: initial;}
+
       button[disabled]{
         cursor: not-allowed;
       }
@@ -835,20 +837,6 @@
       }
     }
   }
-
-  /*.slick-track{
-    &.no-center{
-      transform: translate3d(40px, 0px, 0px) !important;
-
-      .slick-slide{
-        margin: 0 auto;
-        float: none;
-        display: inline-block;
-      }
-    }
-  }*/
-
-
 }
 
 @media #{$small-up} {

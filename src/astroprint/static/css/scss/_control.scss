@@ -369,6 +369,8 @@ html.no-printer {
     }
 
   .extruders {
+    img.icon-bed{display: none;}
+
     @include radius($global-radius);
     color: $iron;
     background: $white;
@@ -522,6 +524,8 @@ html.no-printer {
       -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
       filter: grayscale(100%);
     }
+
+    .current{animation-iteration-count: initial;}
 
     button[disabled]{
       cursor: not-allowed;

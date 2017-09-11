@@ -249,6 +249,7 @@ el: '#printing-view',
   printing_progress: null,
   paused: null,
   cancelDialog: null,
+  classNoCenter: null,
   initialize: function()
   {
     new SemiCircleProgress();

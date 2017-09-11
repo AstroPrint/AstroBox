@@ -34,8 +34,6 @@ var TempSemiCircleView = Backbone.View.extend({
     this.$el.html(this.template());
 
     if (this.type == 'bed') {
-      (this.$el.find('.icon-bed')).attr('src','img/icon-bed.svg');
-
       if (!(app.printerProfile.toJSON()).heated_bed) {
         this.$el.find('.temp-off').attr('disabled','disabled');
         this.$el.find('.temp-edit').attr('disabled','disabled');

@@ -512,7 +512,7 @@ var FanControlView = Backbone.View.extend({
       });
       this.$('.fan_icon').addClass(speedClass);
       this.$('.fans').removeClass('fan-on').addClass('fan-off');
-      this.$('.fans').text('OFF');
+      this.$('.fans').text('Turn OFF');
     }
 
   },
@@ -593,6 +593,8 @@ var ControlView = Backbone.View.extend({
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
+    /*var currentTool = $('.extruder-number').val();
+    this.extrusionView._sendChangeToolCommand(currentTool);*/
   },
   resumePrinting: function(e)
   {
@@ -613,6 +615,7 @@ var ControlView = Backbone.View.extend({
   onPausedChanged: function(model, paused)
   {
     if (paused) {
+      console.log("app.socketData",app.socketData);
       this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
       this.$el.addClass('print-paused');
     } else {
