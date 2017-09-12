@@ -58,7 +58,7 @@
 
             <div class="text-center extruder-heading">
               <img class="extruder-icon" src="/img/icon-extruder.svg"/>
-              <select class="extruder-number bold">
+              <select class="extruder-number bold no-selected">
                 <% for(var i=0; i<profile.extruder_count; i++) { %>
                   <option value="<%= i %>">Extruder <%= i+1 %></option>
                 <% } %>

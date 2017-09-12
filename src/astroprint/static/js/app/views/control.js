@@ -570,6 +570,7 @@ var ControlView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
+  currentTool: null,
   initialize: function()
   {
     this.tempView = new TempView();
@@ -584,6 +585,14 @@ var ControlView = Backbone.View.extend({
   },
   updateTemps: function(s, value)
   {
+    if (!($('.extruder-number').val() == app.socketData.attributes.tool)) {
+      this.currentTool = app.socketData.attributes.tool;
+      $('.extruder-number').val(this.currentTool);
+      if ($('.extruder-number').hasClass('no-selected')) {
+        $('.extruder-number').removeClass('no-selected');
+      }
+    }
+
     if (!this.$el.hasClass('hide')) {
       this.tempView.updateTemps(value);
     }
@@ -591,10 +600,8 @@ var ControlView = Backbone.View.extend({
   render: function()
   {
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
-    console.log("render",app.socketData);
+
     this.extrusionView.render();
-    /*var currentTool = $('.extruder-number').val();
-    this.extrusionView._sendChangeToolCommand(currentTool);*/
   },
   resumePrinting: function(e)
   {

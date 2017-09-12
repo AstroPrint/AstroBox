@@ -51,6 +51,7 @@
     -moz-appearance: none;
     border: 2px solid gainsboro;
   }
+
   select.extruder-number{
     border: 0;
     font-size: 15px;
@@ -64,6 +65,10 @@
     padding-bottom: 0;
     max-width: 160px;
     letter-spacing: 1px;
+    opacity: 1;
+    &.no-selected {
+      opacity: 0;
+    }
   }
 
   .extruder-icon{

@@ -31,10 +31,10 @@ var SocketData = Backbone.Model.extend({
     printer: {
       status: null
     },
-    print_capture: null
+    print_capture: null,
+    tool: null,
   },
   extruder_count: null,
-  tool: 0,
   initialize: function()
   {
     this.set('printing', initial_states.printing || initial_states.paused);
