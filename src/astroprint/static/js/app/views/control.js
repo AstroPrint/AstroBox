@@ -39,7 +39,7 @@ var TempView = Backbone.View.extend({
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
-      this.$el.find('.extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('#slide-extruders').append(this.semiCircleTemp_views[i].render().el);
 
       if (this.socketTemps.lenght > 0) {
         temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
@@ -82,16 +82,16 @@ var TempView = Backbone.View.extend({
       });
     }
 
-    if (this.$('.extruders').hasClass('slick-initialized')) {
+    if (this.$('#slide-extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick")
-      this.$('.extruders').slick('getSlick').unslick();
+      this.$('#slide-extruders').slick('getSlick').unslick();
     }
     if (this.$('.nav-extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick")
       this.$('.nav-extruders').slick('getSlick').unslick();
     }
 
-    this.$('.extruders').slick({
+    this.$('#slide-extruders').slick({
       slidesToShow: 1,
       slidesToScroll: 1,
       infinite: false,
@@ -110,7 +110,7 @@ var TempView = Backbone.View.extend({
       focusOnSelect: true,
       prevArrow: '<i class="icon-angle-left"></i>',
       nextArrow: '<i class="icon-angle-right"></i>',
-      asNavFor: this.$('.extruders')
+      asNavFor: this.$('#slide-extruders')
     });
 
     if (this.socketTemps.length > 0){
@@ -173,10 +173,10 @@ var TempView = Backbone.View.extend({
         this.semiCircleTemp_views[i].updateValues(temps);
       }
 
-      if (this.$('.extruders').hasClass('slick-initialized')) {
+      if (this.$('#slide-extruders').hasClass('slick-initialized')) {
         console.log("antes del unslick SHOW extruders")
         //this.extrudersSlide.slick('getSlick').unslick();
-        this.$('.extruders').slick('unslick');
+        this.$('#slide-extruders').slick('unslick');
       }
       if (this.$('.nav-extruders').hasClass('slick-initialized')) {
         console.log("antes del unslick SHOW nav")
@@ -184,7 +184,7 @@ var TempView = Backbone.View.extend({
         this.$('.nav-extruders').slick('unslick');
       }
 
-      this.$('.extruders').slick({
+      this.$('#slide-extruders').slick({
         slidesToShow: 1,
         slidesToScroll: 1,
         infinite: false,
@@ -204,7 +204,7 @@ var TempView = Backbone.View.extend({
         focusOnSelect: true,
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
-        asNavFor: this.$('.extruders')
+        asNavFor: this.$('#slide-extruders')
       });
 
       this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
@@ -585,9 +585,12 @@ var ControlView = Backbone.View.extend({
   },
   updateTemps: function(s, value)
   {
-    if (!($('.extruder-number').val() == app.socketData.attributes.tool)) {
+    if (!($('.extruder-number').val() == app.socketData.attributes.tool) || this.currentTool == null) {
       this.currentTool = app.socketData.attributes.tool;
       $('.extruder-number').val(this.currentTool);
+
+      $('#slide-extruders').slick('slickGoTo', this.currentTool, false);
+
       if ($('.extruder-number').hasClass('no-selected')) {
         $('.extruder-number').removeClass('no-selected');
       }
