@@ -173,6 +173,9 @@ var TempView = Backbone.View.extend({
         this.semiCircleTemp_views[i].updateValues(temps);
       }
 
+      this.$('#slide-extruders').slick('refresh');
+      this.$('.nav-extruders').slick('refresh');
+
       /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
         console.log("1 antes del unslick SHOW extruders")
         //this.extrudersSlide.slick('getSlick').unslick();
@@ -358,13 +361,19 @@ var ExtrusionControlView = Backbone.View.extend({
       profile: printer_profile
     }));
 
-    $('.extruder-number').val(currentTool);
+    if (currentTool != null) {
+      console.log("----asigno ExtrusionControlView")
+      console.log("cambia el tool", currentTool)
 
-    $('#slide-extruders').slick('slickGoTo', currentTool, false);
+      $('.extruder-number').val(currentTool);
 
-    if ($('.extruder-number').hasClass('no-selected')) {
-      $('.extruder-number').removeClass('no-selected');
+      $('#slide-extruders').slick('slickGoTo', currentTool, false);
+
+      if ($('.extruder-number').hasClass('no-selected')) {
+        $('.extruder-number').removeClass('no-selected');
+      }
     }
+
 
     if (printer_profile.extruder_count > 1) {
       this.events['change .extruder-number'] = "extruderChanged";
@@ -592,10 +601,12 @@ var ControlView = Backbone.View.extend({
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
+    this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
+
   },
   updateTemps: function(s, value)
   {
-    console.log("updateTemps", app.socketData.attributes.tool)
+    /*console.log("updateTemps", app.socketData.attributes.tool)
     this.currentTool = app.socketData.attributes.tool;
 
     if (!($('.extruder-number').val() == this.currentTool) || this.currentTool == null) {
@@ -605,7 +616,7 @@ var ControlView = Backbone.View.extend({
       if ($('.extruder-number').hasClass('no-selected')) {
         $('.extruder-number').removeClass('no-selected');
       }
-    }
+    }*/
 
     if (!this.$el.hasClass('hide')) {
       this.tempView.updateTemps(value);
@@ -646,6 +657,20 @@ var ControlView = Backbone.View.extend({
         app.router.navigate("printing", {replace: true, trigger: true});
       } else {
         this.$el.removeClass('print-paused');
+      }
+    }
+  },
+  onToolChanged: function(s, value)
+  {
+    if (!($('.extruder-number').val() == value) || this.currentTool == null) {
+      console.log("----asigno ControlView")
+      console.log("cambia el tool", value)
+      this.currentTool = value;
+      $('.extruder-number').val(value);
+      $('#slide-extruders').slick('slickGoTo', value, false);
+
+      if ($('.extruder-number').hasClass('no-selected')) {
+        $('.extruder-number').removeClass('no-selected');
       }
     }
   }

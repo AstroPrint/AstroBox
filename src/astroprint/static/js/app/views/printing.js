@@ -257,7 +257,7 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
     this.currentTool = app.socketData.attributes.tool;
-    console.log("initialize", this.currentTool)
+    console.log("Printing initialize", this.currentTool)
     this.extruders_count = profile.extruder_count;
 
     this.slidesToShow = 3;
@@ -410,6 +410,7 @@ el: '#printing-view',
   onToolChanged: function(s, value)
   {
     console.log("cambia el tool", value)
+    $('.extruders').slick('slickGoTo', value, false);
   },
   _formatTime: function(seconds)
   {
