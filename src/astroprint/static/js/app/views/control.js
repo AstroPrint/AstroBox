@@ -82,14 +82,14 @@ var TempView = Backbone.View.extend({
       });
     }
 
-    if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-      console.log("antes del unslick")
+    /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
+      console.log("2 antes del unslick")
       this.$('#slide-extruders').slick('getSlick').unslick();
     }
     if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-      console.log("antes del unslick")
+      console.log("2 antes del unslick")
       this.$('.nav-extruders').slick('getSlick').unslick();
-    }
+    }*/
 
     this.$('#slide-extruders').slick({
       slidesToShow: 1,
@@ -173,13 +173,13 @@ var TempView = Backbone.View.extend({
         this.semiCircleTemp_views[i].updateValues(temps);
       }
 
-      if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-        console.log("antes del unslick SHOW extruders")
+      /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
+        console.log("1 antes del unslick SHOW extruders")
         //this.extrudersSlide.slick('getSlick').unslick();
         this.$('#slide-extruders').slick('unslick');
       }
       if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-        console.log("antes del unslick SHOW nav")
+        console.log("1 antes del unslick SHOW nav")
         //this.$('.nav-extruders').slick('getSlick').unslick();
         this.$('.nav-extruders').slick('unslick');
       }
@@ -205,7 +205,7 @@ var TempView = Backbone.View.extend({
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
         asNavFor: this.$('#slide-extruders')
-      });
+      });*/
 
       this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
 
@@ -350,11 +350,21 @@ var ExtrusionControlView = Backbone.View.extend({
   },
   render: function()
   {
+
+    var currentTool = app.socketData.attributes.tool;
     var printer_profile = app.printerProfile.toJSON();
 
     this.$('.row.extruder-switch').html(this.template({
       profile: printer_profile
     }));
+
+    $('.extruder-number').val(currentTool);
+
+    $('#slide-extruders').slick('slickGoTo', currentTool, false);
+
+    if ($('.extruder-number').hasClass('no-selected')) {
+      $('.extruder-number').removeClass('no-selected');
+    }
 
     if (printer_profile.extruder_count > 1) {
       this.events['change .extruder-number'] = "extruderChanged";
@@ -585,10 +595,11 @@ var ControlView = Backbone.View.extend({
   },
   updateTemps: function(s, value)
   {
-    if (!($('.extruder-number').val() == app.socketData.attributes.tool) || this.currentTool == null) {
-      this.currentTool = app.socketData.attributes.tool;
-      $('.extruder-number').val(this.currentTool);
+    console.log("updateTemps", app.socketData.attributes.tool)
+    this.currentTool = app.socketData.attributes.tool;
 
+    if (!($('.extruder-number').val() == this.currentTool) || this.currentTool == null) {
+      $('.extruder-number').val(this.currentTool);
       $('#slide-extruders').slick('slickGoTo', this.currentTool, false);
 
       if ($('.extruder-number').hasClass('no-selected')) {

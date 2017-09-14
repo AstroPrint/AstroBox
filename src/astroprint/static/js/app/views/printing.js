@@ -250,11 +250,14 @@ el: '#printing-view',
   paused: null,
   cancelDialog: null,
   classNoCenter: null,
+  currentTool: null,
   initialize: function()
   {
     new SemiCircleProgress();
 
     var profile = app.printerProfile.toJSON();
+    this.currentTool = app.socketData.attributes.tool;
+    console.log("initialize", this.currentTool)
     this.extruders_count = profile.extruder_count;
 
     this.slidesToShow = 3;
@@ -272,6 +275,7 @@ el: '#printing-view',
     this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:printing_progress', this.onProgressChanged);
+    this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
 
     this.photoView = new PhotoView({parent: this});
   },
@@ -402,6 +406,10 @@ el: '#printing-view',
     this.paused = value;
     this.render();
     this.photoView.render();
+  },
+  onToolChanged: function(s, value)
+  {
+    console.log("cambia el tool", value)
   },
   _formatTime: function(seconds)
   {
