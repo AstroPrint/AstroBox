@@ -1,0 +1,78 @@
+HTTP/1.0 503 Service Unavailable
+Cache-Control: no-cache
+Connection: close
+Content-Type: text/html
+
+<html>
+  <head>
+    <title>AstroBox&trade; is booting up</title>
+    <style>
+    *, *:before, *:after {
+        -webkit-box-sizing: border-box;
+        -moz-box-sizing: border-box;
+        box-sizing: border-box;
+    }
+
+        body {
+            font-family:Arial,Helvetica,sans-serif;
+            text-align: center;
+        background: #ecbb74;
+        width: 100%;
+        height: 100%;
+        }
+
+        #box {
+        margin: 50px auto;
+            border: 2px solid #ccc;
+            background: #fcfcfc;
+            padding: 10px 20px;
+            width: 90%;
+            max-width: 800px;
+        border-radius: 3px;
+        }
+
+        #box h1 {
+            font-weight:bold;
+            font-size: 45px;
+        }
+
+        #box h2 {
+            font-size: 30px;
+        }
+
+        #box button {
+            background-color: #71c4c6;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            border-radius: 3px;
+            padding: 15px 0px;
+            width: 100%;
+        border: none;
+        cursor: pointer;
+        }
+
+        #box button:hover {
+            background-color: #47afb2;
+        }
+
+        #box p.small {
+            font-size: 24px;
+        }
+
+    #box p.small a {
+        color: #71c4c6;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="box">
+    <h1>Your Astrobox is still booting up.</h1>
+    <h2>Please hit the button below to reload the page.</h2>
+    <button onclick="location.reload()">Reload Page</button>
+    <p class="small">
+        If this persists and your box does not boot up please <a href="https://astroprint.zendesk.com/hc/en-us/requests/new" taget="_new">click here</a> to send us a report so we can resolve the issue.
+    </p>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+#!/bin/sh
+
+echo "Stopping services..."
+service astrobox stop
+
+echo "Removing generated AstroBox files..."
+rm /etc/astrobox/config.yaml
+rm /etc/astrobox/users.yaml
+rm /etc/astrobox/printer-profile.yaml
+rm /etc/astrobox/box-id
+rm /etc/astrobox/default-hostname
+rm /etc/astrobox/fs_expanded
+rm /var/log/astrobox/*
+
+echo "Emptying data directory"
+rm -r /AstroBoxFiles
+
+echo "***********************************************"
+echo "* Your SD Card is clean and ready for imaging *"
+echo "*                                             *"
+echo "* Shutdown your RPi and se your Mac to create *"
+echo "* an image of it.                             *"
+echo "***********************************************"
