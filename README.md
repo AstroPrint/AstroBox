@@ -1,16 +1,16 @@
-AstroBox Software
+AstroBox Software - Orange Pi Zero Port
 =================
 
 The AstroBox software provides a responsive web interface for controlling a 3D printer (RepRap, Ultimaker, ...) and connecting to the AstroPrint cloud for easy 3D Printing anywhere. It is Free Software and released under the [GNU Affero General Public License V3](http://www.gnu.org/licenses/agpl.html).
 
-This project started as a fork of [OctoPrint](http://octoprint.org). Many thanks to Gina and all the great contributors there that made the AstroBox software possible.
+This project started as a branched fork of [AstroBox](https://github.com/AstroPrint/AstroBox). Many thanks to Astroprint Team and all the great contributors there that made the AstroBox software possible.
 
 Its website can be found at [astroprint.com](https://www.astroprint.com).
 
 Reporting bugs
 --------------
 
-Our issue tracker can be found [on Github](https://github.com/astroprint/astrobox/issues).
+The Orange Pi Zero issue tracker can be found [on Github](https://github.com/moracabanas/AstroBox/issues).
 
 
 Installation instructions
@@ -18,12 +18,19 @@ Installation instructions
 
 
 
-* Create an bootable image using the images from [AstroPrint](https://www.astroprint.com/downloads)
+* Download a Armbian 5.30 bootable image using the image from [Armbian](https://dl.armbian.com/orangepizero/Ubuntu_xenial_default.7z)
 
-* Download the source code to get a working copy:
+* Make a SD card bootable with Etcher [Etcher](https://etcher.io/)
+
+* Connect your Orange Pi Zero to your PC, wait a minute. A new device will be found just look for the COM port and take note. (On Windows you can use Device Manager).
+
+* Use your preferred SSH App to access the found COM port which gives you instant command line to your Orange Pi. I Use [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) on Windows.
+
+
+* Download the source code to your user directory (or any other place)
 
   <pre>
-    git clone https://github.com/AstroPrint/AstroBox.git
+    git clone https://github.com/moracabanas/AstroBox.git
   </pre>
 
 Additional (to run from source):
