@@ -1,0 +1,40 @@
+#!/bin/sh
+
+echo "Disabling unnecessary services on startup..."
+update-rc.d isc-dhcp-server disable
+if [ -f /etc/init/isc-dhcp-server.conf ]; then
+  sed -i /etc/init/isc-dhcp-server.conf  -e "/start on=/c #start on"
+fi
+if [ -f /etc/init/isc-dhcp-server6.conf ]; then
+  sed -i /etc/init/isc-dhcp-server6.conf  -e "/start on=/c #start on"
+fi
+update-rc.d ntp disable
+
+if [ -f /etc/network/if-up.d/ntpdate ]; then
+  chmod -x /etc/network/if-up.d/ntpdate
+fi
+
+echo "Configuring haproxy"
+if [ ! -f /etc/default/haproxy.bak ]; then
+  cp /etc/default/haproxy /etc/default/haproxy.bak
+fi
+sed -i /etc/default/haproxy -e "/ENABLED=/c ENABLED=1"
+
+echo "Configuring DHCP server for hotspot..."
+if [ ! -f /etc/default/isc-dhcp-server.bak ]; then
+  cp /etc/default/isc-dhcp-server /etc/default/isc-dhcp-server.bak
+fi
+sed -i /etc/default/isc-dhcp-server \
+  -e "/INTERFACES=/c INTERFACES=wlan1"
+
+if [ ! -f /etc/dhcp/dhcp.conf.bak ]; then
+  cp /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.bak
+fi
+
+cp etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf
+
+echo "Configuring interfaces to use Network Manager"
+if [ ! -f /etc/network/interfaces.bak ]; then
+  mv /etc/network/interfaces /etc/network/interfaces.bak
+fi
+cp etc/network/interfaces /etc/network/interfaces

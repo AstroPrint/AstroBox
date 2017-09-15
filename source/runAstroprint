@@ -1,0 +1,3 @@
+#!/bin/sh
+
+python ./run --config /etc/astrobox/config.yaml --host 127.0.0.1
