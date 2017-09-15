@@ -26,6 +26,13 @@ Installation instructions
 
 * Use your preferred SSH App to access the found COM port which gives you instant command line to your Orange Pi. I Use [Putty](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) on Windows.
 
+* Once on the Armbian command line log-in as:
+  <pre> 
+    User:     root 
+    Password: 1234
+  </pre>
+
+* Create your user account, Armbian will ask you as soon as you log-in.
 
 * Download the source code to your user directory (or any other place)
 
@@ -33,49 +40,36 @@ Installation instructions
     git clone https://github.com/moracabanas/AstroBox.git
   </pre>
 
-Additional (to run from source):
+Execute the Installation script (It will install all the dependencies and source files):
 -------
-### Ubuntu
+
+### First make sure you are on the "source" folder. I you dowloaded it at / just:
 
 <pre>
-  sudo apt-get install rubygems oracle-java8-jdk
+  $ cd /Astrobox/source
 </pre>
   
-### Mac
+### Execute Makefile
 
 <pre>
-  gem install rubygems-update
+  $ sudo make
 </pre>
-  Download and install oracle-java8-jdk from [here](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html).
-### Ubuntu/Mac
-<pre>
-  $ sudo gem install sass 
-  $ sudo pip install -r requirements.txt
-</pre>
+  It will take some time, maybe half an hour.
 
-* You can run the box from source like this:
-
-  <pre>
-    $ sudo service astrobox stop
-    $ sudo python ./run --config /etc/astrobox/config.yaml --host 127.0.0.1
-  </pre>
-
-Setting up the virtual printer
--------
-
-The AstroBox Software comes with a handy virtual printer so that you can test without the need of a real 3D Printer attached. Here's how you can set it up
-
-* Edit or create, the `printer-profile.yaml` file in your settings directory (by default `[AstroBox Directory]/local`). Change or add the line:
-<pre>
-  driver: virtual
-</pre>
-
-* Edit or create the `virtual-printer-settings.yaml` file in the same directory to guide your printing simulation. All values are in seconds. Here's a sample:
+### Execute Astroprint for the first time
 
 <pre>
-  connection: 3.0
-  heatingUp: 5.0
-  printJob: 10.0
+  $ sudo sh ./runAstroprint
 </pre>
 
-* Restart AstroBox any time you make changes to these files
+* Connect to your network, use nmtui and follow the easy interface:
+
+<pre>
+  $ sudo nmtui
+</pre>
+
+* Find your ip with ifconfig and loking for the wlan0 interface IP.
+
+### Go to your browser with your IP and enjoy Astrobox on your Orange Pi Zero.
+
+* I strongly reccomend to perform and update and a factory reset from the web interface as there is some issues we have to solve.
