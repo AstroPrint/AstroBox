@@ -40,6 +40,10 @@ from astroprint.api import printerprofile as api_astroprint_printerprofile
 from astroprint.api import printer as api_astroprint_printer
 from astroprint.api import connection as api_astroprint_connection
 from astroprint.api import files as api_astroprint_files
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
+from requests import ConnectionError
+
+
 
 VERSION = "1.0"
 
@@ -164,11 +168,12 @@ def performSystemAction():
 	if "action" in request.values.keys():
 		action = request.values["action"]
 		available_actions = s().get(["system", "actions"])
+		logger = logging.getLogger(__name__)
+
 		for availableAction in available_actions:
 			if availableAction["action"] == action:
 				command = availableAction["command"]
 				if command:
-					logger = logging.getLogger(__name__)
 					logger.info("Performing command: %s" % command)
 
 					def executeCommand(command, logger):
@@ -191,14 +196,17 @@ def performSystemAction():
 					return OK
 
 				else:
-					break
+					logger.warn("Action %s is misconfigured" % action)
+					return ("Misconfigured action", 500)
 
-	return ("Command not found", 404)
+		logger.warn("No suitable action in config for: %s" % action)
+		return ("Command not found", 404)
+
+	else:
+		return ("Invalid data", 400)
 
 
 #~~ Login/user handling
-
-
 @api.route("/login", methods=["POST"])
 def login():
 	if octoprint.server.userManager is not None and "user" in request.values.keys() and "pass" in request.values.keys():
@@ -212,10 +220,16 @@ def login():
 
 		user = octoprint.server.userManager.findUser(username)
 		if user is not None:
-			if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
-				login_user(user, remember=remember)
-				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
-				return jsonify(user.asDict())
+			if user.has_password():
+				if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
+					login_user(user, remember=remember)
+					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+					return jsonify(user.asDict())
+			else :
+				try:
+					astroprintCloud().signin(username, password)
+				except (AstroPrintCloudNoConnectionException, ConnectionError):
+					return make_response(("AstroPrint.com can't be reached", 503, []))
 		return make_response(("User unknown or password incorrect", 401, []))
 	elif "passive" in request.values.keys():
 		user = current_user

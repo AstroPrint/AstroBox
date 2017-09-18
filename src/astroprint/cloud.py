@@ -88,7 +88,6 @@ class AstroPrintCloud(object):
 	def signin(self, email, password):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
-
 		user = None
 		userLoggedIn = False
 
@@ -133,6 +132,56 @@ class AstroPrintCloud(object):
 
 			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
+			return True
+
+		elif not online:
+			raise AstroPrintCloudNoConnectionException()
+
+		return False
+
+	def signinWithKey(self, email, private_key):
+		from octoprint.server import userManager
+		from astroprint.network.manager import networkManager
+
+		user = None
+		userLoggedIn = False
+
+		online = networkManager().isOnline()
+
+		if online:
+			public_key = self.get_public_key(email, private_key)
+
+			if public_key:
+				#Let's protect the box now:
+				user = userManager.findUser(email)
+
+				if user and user.has_password():
+					userManager.changeCloudAccessKeys(email, public_key, private_key)
+					userLoggedIn = True
+				else:
+					return {
+						'error': 'no_user'
+					}
+		else:
+			user = userManager.findUser(email)
+			userLoggedIn = user and user.check_privateKey(private_key)
+
+		if userLoggedIn:
+			login_user(user, remember=True)
+			userId = user.get_id()
+
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
+			boxrouterManager().boxrouter_connect()
+
+			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+
+			#let the singleton be recreated again, so new credentials are taken into use
+			global _instance
+			_instance = None
+
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 			return True
 
 		elif not online:
@@ -393,10 +442,20 @@ class AstroPrintCloud(object):
 
 		if status_code == 201:
 			data = r.json()
-			return data['print_id']
+			return {
+				"error": False,
+				"print_id": data['print_id']
+			}
+
+		if status_code == 402:
+			return {
+				"error": "no_storage"
+			}
 
 		else:
-			return None
+			return {
+				"error": "unable_to_create"
+			}
 
 
 	def uploadImageFile(self, print_id, imageBuf):

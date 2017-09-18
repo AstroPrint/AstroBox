@@ -465,6 +465,8 @@ class MachineCom(object):
 
 		self.unselectFile()
 		self._changeState(self.STATE_OPERATIONAL)
+		self._heatingUp = False
+		self._callback.mcHeatingUpUpdate(self._heatingUp)
 		self._cancelInProgress = False
 		self._pauseInProgress = False
 

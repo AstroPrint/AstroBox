@@ -18,7 +18,9 @@ class UserManager(object):
 
 	@staticmethod
 	def createPasswordHash(password):
-		return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
+		if password is not None:
+			return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
+		return None
 
 	def addUser(self, username, password, publicKey, privateKey, active, roles):
 		pass
@@ -110,7 +112,6 @@ class FilebasedUserManager(UserManager):
 	def addUser(self, username, password, publicKey, privateKey, active=False, roles=["user"], apikey=None):
 		if username in self._users.keys():
 			raise UserAlreadyExists(username)
-
 		user = User(username, UserManager.createPasswordHash(password), active, roles, publicKey, privateKey, apikey)
 		self._users[username] = user
 		self._dirty = True
@@ -132,7 +133,7 @@ class FilebasedUserManager(UserManager):
 
 		if publicKey and privateKey:
 			self._users[username].publicKey = publicKey
-			self._users[username].privateKey = privateKey			
+			self._users[username].privateKey = privateKey
 			self._dirty = True
 			self._save()
 
@@ -268,11 +269,18 @@ class User(UserMixin):
 	def check_password(self, passwordHash):
 		return self._passwordHash == passwordHash
 
+	def check_privateKey(self, privateKey):
+		return self.privateKey == privateKey
+
 	def get_id(self):
 		return self._username
 
 	def get_name(self):
 		return self._username
+
+	def has_password(self):
+		if self._passwordHash is not None:
+			return True
 
 	def get_private_key(self):
 		return self.privateKey
