@@ -17,6 +17,7 @@ def waitToReachState(element, state, timeout= 3.0, attempts= 1):
 			return True
 
 		attempts -= 1
-		time.sleep(0.1)
+		if attempts:
+			time.sleep(0.1)
 
 	return False

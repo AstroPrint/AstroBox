@@ -90,8 +90,8 @@ class GstBasePipeline(object):
 		if self._currentPipelineState != Gst.State.PLAYING:
 			self._pipeline.set_state(Gst.State.PLAYING)
 
-			if waitToReachState(self._pipeline, Gst.State.PLAYING, 3.0, 3):
-				self._logger.debug( "Succesfully changed pipeline state to \033[93mPLAYING\033[0m")
+			if waitToReachState(self._pipeline, Gst.State.PLAYING, 10.0, 3):
+				self._logger.debug( "Succesfully changed pipeline [%s] state to \033[93mPLAYING\033[0m" % self._pipeline.__class__.__name__)
 				self._currentPipelineState = Gst.State.PLAYING
 				result = True
 			else:
@@ -214,7 +214,7 @@ class GstBasePipeline(object):
 
 	def _onBusStateChanged(self, msg):
 		old, new, pending = msg.parse_state_changed()
-		self._logger.debug( "\033[90m%20.20s\033[0m: \033[93m%7.7s\033[0m --> \033[93m%s\033[0m" % (msg.src.__class__.__name__.replace('__main__.',''), old.value_name.replace('GST_STATE_',''), new.value_name.replace('GST_STATE_','')) )
+		self._logger.debug( "\033[90m%20.20s\033[0m: \033[93m%7.7s\033[0m --> \033[93m%s\033[0m --| \033[93m%s\033[0m" % (msg.src.__class__.__name__.replace('__main__.',''), old.value_name.replace('GST_STATE_',''), new.value_name.replace('GST_STATE_',''), pending.value_name.replace('GST_STATE_','')) )
 
 	def _onRequestState(self, msg):
 		state = msg.parse_request_state()
