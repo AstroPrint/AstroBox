@@ -335,7 +335,7 @@ el: '#printing-view',
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
       this.semiCircleTemp_views[i] = semiCircleTemp;
 
-      this.$el.find('.extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('#slide-extruders').append(this.semiCircleTemp_views[i].render().el);
 
       if (_.has(socketTemps, 'extruders')) {
         temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
@@ -410,7 +410,7 @@ el: '#printing-view',
   onToolChanged: function(s, value)
   {
     console.log("cambia el tool", value)
-    $('.extruders').slick('slickGoTo', value, false);
+    $('#slide-extruders').slick('slickGoTo', value, false);
   },
   _formatTime: function(seconds)
   {
@@ -454,13 +454,13 @@ el: '#printing-view',
     }
 
 
-    if (this.$('.extruders').hasClass('slick-initialized')) {
+    if (this.$('#slide-extruders').hasClass('slick-initialized')) {
       console.log("antes del unslick ShowTemps extruders")
       //this.extrudersSlide.slick('getSlick').unslick();
-      this.$('.extruders').slick('unslick');
+      this.$('#slide-extruders').slick('unslick');
     }
 
-    this.$('.extruders').slick({
+    this.$('#slide-extruders').slick({
       centerMode: true,
       centerPadding: '10px',
       arrows: true,
@@ -487,10 +487,10 @@ el: '#printing-view',
 
     // needed to show the 'dots' (extruders) always
     if (this.extruders_count <= this.slidesToShow){
-      this.$('.extruders').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
-      this.$('.extruders').slick('slickSetOption', 'variableWidth', true, true);
+      this.$('#slide-extruders').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
+      this.$('#slide-extruders').slick('slickSetOption', 'variableWidth', true, true);
 
-      this.$('.extruders').find('.slick-dots a').on('click', function(){
+      this.$('#slide-extruders').find('.slick-dots a').on('click', function(){
         return true;
       });
     }
@@ -500,19 +500,29 @@ el: '#printing-view',
       this.$el.find('.slick-slider').find('.slick-arrow').addClass('arrow-disabled');
     }
 
-    this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+    this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
 
     // On before slide change
-    this.$('.extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
+    this.$('#slide-extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
       if (this.extruders_count <= this.slidesToShow) {
-        this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+        this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
       } else {
         if (nextSlide > (this.slidesToShow/2)) {
-          this.$('.extruders').find('.slick-track').removeClass(this.classNoCenter);
+          this.$('#slide-extruders').find('.slick-track').removeClass(this.classNoCenter);
         } else {
-          this.$('.extruders').find('.slick-track').addClass(this.classNoCenter);
+          this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
         }
       }
+
+    }, this));
+
+    // On after slide change
+    this.$('#slide-extruders').on('afterChange', _.bind(function(event, slick, currentSlide){
+      var currentElement = this.$('#slide-extruders').find('.slick-current').find('.current');
+      currentElement.addClass('animated pulse');
+      currentElement.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+        currentElement.removeClass('pulse');
+      }.bind(this));
 
     }, this));
 

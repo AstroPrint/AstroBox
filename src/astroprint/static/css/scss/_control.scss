@@ -530,12 +530,9 @@ html.no-printer {
       filter: grayscale(100%);
     }
 
-    .current{animation-iteration-count: initial;}
-
     button[disabled]{
       cursor: not-allowed;
     }
-    .current{animation: initial !important;}
   }
 }
 

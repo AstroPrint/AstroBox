@@ -342,17 +342,6 @@
 
       }
 
-      .slick-slide{
-        .current{animation-iteration-count: initial;}
-      }
-
-
-      .slick-slide{
-        &.slick-current{
-          .current{animation-iteration-count: infinite;}
-        }
-      }
-
       .slick-arrow{
         color: $oil;
         z-index: 9999;
