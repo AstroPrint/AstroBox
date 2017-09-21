@@ -625,12 +625,12 @@ class MachineCom(object):
 
 	def _processTemperatures(self, line):
 		maxToolNum, parsedTemps = self._parseTemperatures(line)
-		self._logger.info('SONIA')
-		self._logger.info(parsedTemps.keys())
+
 		# extruder temperatures
 		if not "T0" in parsedTemps.keys() and "T" in parsedTemps.keys():
 			# only single reporting, "T" is our one and only extruder temperature
 			toolNum, actual, target = parsedTemps["T"]
+			self._logger.info('SONIA')
 
 			if target is not None:
 				self._temp[0] = (actual, target)
