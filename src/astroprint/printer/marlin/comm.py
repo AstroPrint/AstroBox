@@ -526,6 +526,10 @@ class MachineCom(object):
 				"origin": self._currentFile.getFileLocation()
 			})
 
+			#self._currentTool = self.getSelectedTool()
+			#aqui
+			var_dump("********************************* CURRENT TOOL **********************")
+			var_dump(self.getSelectedTool())
 			self._changeState(self.STATE_PAUSED)
 
 	def getSdFiles(self):
@@ -620,8 +624,9 @@ class MachineCom(object):
 		return maxToolNum, result
 
 	def _processTemperatures(self, line):
-		maxToolNum, parsedTemps = self._parseTemperatures(line)
-
+		maxToolNum, parsedTemps = self._parseChanging monitoring state fromratures(line)
+		var_dump('SONIA')
+		var_dump(parsedTemps.keys())
 		# extruder temperatures
 		if not "T0" in parsedTemps.keys() and "T" in parsedTemps.keys():
 			# only single reporting, "T" is our one and only extruder temperature
