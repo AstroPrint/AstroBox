@@ -630,7 +630,6 @@ class MachineCom(object):
 		if not "T0" in parsedTemps.keys() and "T" in parsedTemps.keys():
 			# only single reporting, "T" is our one and only extruder temperature
 			toolNum, actual, target = parsedTemps["T"]
-			self._logger.info('SONIA')
 
 			if target is not None:
 				self._temp[0] = (actual, target)
