@@ -9,7 +9,8 @@ var PhotoView = CameraViewBase.extend({
   events: {
     'click button.take-pic': 'onCameraBtnClicked',
     'change .timelapse select': 'timelapseFreqChanged',
-    "change #camera-mode-printing": 'cameraModeChanged'
+    "change #camera-mode-printing": 'cameraModeChanged',
+    'click .button-full-screen': 'fullScreenClicked'
   },
   parent: null,
   print_capture: null,
@@ -127,6 +128,33 @@ var PhotoView = CameraViewBase.extend({
     }
 
     this.$('.timelapse select').val(freq);
+
+
+    //Progress data
+    var filenameNode = this.$('.progress .filename');
+    var printing_progress = this.parent.printing_progress;
+    console.log("....",printing_progress)
+
+    if (filenameNode.text() != printing_progress.printFileName) {
+      filenameNode.text(printing_progress.printFileName);
+    }
+
+    //progress bar
+    this.$el.find('.progress .meter').css('width', printing_progress.percent+'%');
+    this.$el.find('.progress .progress-label').text(printing_progress.percent+'%');
+
+    //time
+    var time = this._formatTime(printing_progress.time_left);
+    this.$el.find('.estimated-hours').text(time[0]);
+    this.$el.find('.estimated-minutes').text(time[1]);
+    this.$el.find('.estimated-seconds').text(time[2]);
+
+    //layers
+    this.$el.find('.current-layer').text(printing_progress.current_layer);
+    if (printing_progress.layer_count) {
+      this.$el.find('.layer-count').text(printing_progress.layer_count);
+    }
+
   },
   onCameraChanged: function(s, value)
   {
@@ -228,6 +256,42 @@ var PhotoView = CameraViewBase.extend({
     if(this.cameraMode == 'video'){
       this.stopStreaming();
     }
+  },
+  fullScreenClicked: function(e)
+  {
+    if ($('.camera-view').hasClass('fullscreen')) {
+      $('.camera-view').removeClass('fullscreen');
+      $('.info').removeClass('fullscreen');
+    } else {
+      $('.camera-view').addClass('fullscreen');
+      $('.info').addClass('fullscreen');
+      $('body, html').animate({scrollTop: ($('.camera-view').offset().top - 15)});
+    }
+
+    //listener for when window is small. The fullscreen is disable
+    $( window ).resize(function() {
+        if (window.matchMedia('(max-width: 400px)').matches) {
+          $('.camera-view').removeClass('fullscreen');
+          $('.info').removeClass('fullscreen');
+        }
+    });
+    this.render();
+  },
+  _formatTime: function(seconds)
+  {
+    if (seconds == null || isNaN(seconds)) {
+      return ['--','--','--'];
+    }
+
+    var sec_num = parseInt(seconds, 10); // don't forget the second param
+    var hours   = Math.floor(sec_num / 3600);
+    var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+
+    if (hours   < 10) {hours   = "0"+hours;}
+    if (minutes < 10) {minutes = "0"+minutes;}
+    if (seconds < 10) {seconds = "0"+seconds;}
+    return [hours, minutes, seconds];
   }
 });
 
@@ -283,6 +347,8 @@ el: '#printing-view',
   {
     //Progress data
     var filenameNode = this.$('.progress .filename');
+
+    console.log("render printingview", this.$('progress .filename'))
 
     if (this.printing_progress) {
       if (filenameNode.text() != this.printing_progress.printFileName) {
@@ -410,7 +476,7 @@ el: '#printing-view',
   onToolChanged: function(s, value)
   {
     console.log("cambia el tool", value)
-    $('#slide-extruders').slick('slickGoTo', value, false);
+    //$('#slide-extruders').slick('slickGoTo', value, false);
   },
   _formatTime: function(seconds)
   {

@@ -51,7 +51,7 @@
 
     <div class="small-12 large-4 columns camera-view" align="center">
       <script type="text/template" id="photo-printing-template">
-        <div class="button-full-screen"><i class="icon-resize-full"></i><i class="icon-resize-small"></i></div>
+        <div class="button-full-screen"><i class="icon-camera"></i><i class="icon-attention"></i></div>
         <% if(this.cameraAvailable) {
           if(this.cameraNotSupported) { %>
             <div class="panel text-center radius">
@@ -158,6 +158,86 @@
 
                 </div>
                 <div class="small-4 columns">
+                  <% if(this.canStream){ %>
+                    <div id="camera-mode-slider" class="camera-mode" align="right">
+                      <p>
+                        <i class="icon-picture-1"></i>
+                        <i class="icon-videocam-1"></i>
+                      </p>
+                      <div class="switch radius">
+                        <input id="camera-mode-printing" name="camera-mode" type="checkbox" value="yes" <% if(this.cameraMode == 'video') { %> checked <% } %>>
+                        <label for="camera-mode-printing"></label>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+            <div class="camera-controls-fullscreen">
+              <div class="row collapse">
+                <div class="info-container small-9 columns" align="left">
+                  <div class="row clearfix collapse">
+                    <div class="printing-info small-3 columns">
+                      <div class="time-group text-left">
+                          <i class="icon-videocam-1"></i> <b><span class="estimated-hours">--</span>:<span class="estimated-minutes">--</span>:<span class="estimated-seconds">--</span></b>
+                      </div>
+                      <div class="layers-group text-left">
+                          <i class="icon-videocam-1"></i> <span class="current-layer bold">-</span><span class="of"> of </span> <span class="layer-count bold">-</span>
+                      </div>
+                    </div>
+                    <div class="progress-info-section small-9 columns">
+                      <div class="success progress radius row clearfix collapse">
+                          <span class="filename printfile-info-name columns small-6 medium-8"></span>
+                          <span class="progress-label columns small-6 medium-4 text-right bold"></span>
+                          <span class="meter" style="width: 0%"></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="small-1 columns" align="center">
+                  <div class="timelapse">
+                    <i id="printIcon" class="icon-picture"></i>
+                    <select id="freqSelector" class="bold" align="center">
+                      <option value="0">Off</option>
+                      <option value="layer">Ea. layer</option>
+                      <option value="60">1 min</option>
+                      <option value="120">2 mins</option>
+                      <option value="300">5 mins</option>
+                      <option value="900">15 mins</option>
+                      <option value="1800">30 mins</option>
+                    </select>
+                    <span class="dot"></span>
+                    <div class="overlay" style="display:none"></div>
+                  </div>
+                  <div class="locked hide" data-reveal-id="upgrade-plan">
+                    <i class="icon-lock"></i>
+                    <span class="dot"></span>
+                    <div class="overlay" style="display:none"></div>
+                  </div>
+                </div>
+                <div class="small-1 columns buttons" align="center">
+                  <% if(this.cameraMode == 'video') { %>
+                    <div class="loading-button">
+                      <div class="video-off">
+                        <button class="success round bold take-pic"><i class="icon-videocam-1"></i></button>
+                      </div>
+                      <div class="video-on">
+                        <div class="loading-button">
+                          <button class="secondary round bold take-pic"><i class="icon-stop"></i></button>
+                          <span class="button secondary round disabled loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+                        </div>
+                      </div>
+                    </div>
+                  <% } else { %>
+                    <div class="video-off">
+                      <div class="loading-button">
+                        <button class="success photo round take-pic"><i class="icon-camera"></i></button>
+                        <span class="button success round loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                      </div>
+                    </div>
+                  <% } %>
+                </div>
+                <div class="small-1 columns" align="center">
                   <% if(this.canStream){ %>
                     <div id="camera-mode-slider" class="camera-mode" align="right">
                       <p>

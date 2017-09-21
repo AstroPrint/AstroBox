@@ -96,6 +96,10 @@
         text-transform: uppercase;
         letter-spacing: 2px;
       }
+
+      &.fullscreen{
+        opacity: 0;
+      }
     }
 
     .heating {
@@ -569,6 +573,29 @@
     padding: 0;
     margin-bottom: 20px;
 
+    .camera-controls-fullscreen {
+      display: none;
+    }
+
+    .button-full-screen {
+      position: absolute;
+      right: 5px;
+      top: 8px;
+      color: white;
+      font-size: 25px;
+      z-index: 99 !important;
+      cursor: pointer;
+
+      &:hover, &:active{
+        transform: scale(1.3);
+        transition:all 0.5s ease;
+      }
+
+      .icon-attention{
+        display: none;
+      }
+    }
+
     div.video-error {
       display: none;
     }
@@ -651,7 +678,7 @@
     }
 
     &.streaming {
-      .video-preparing{
+      .video-preparing {
         display:none;
       }
 
@@ -679,6 +706,83 @@
           background: $base;
           &:hover {
             background: darken($base, 20%);
+          }
+        }
+      }
+    }
+
+    &.fullscreen {
+      width: 100vw;
+      height: 86vh;
+      z-index: 999 !important;
+      min-height: 381px;
+      transition: all 1s ease;
+      margin-bottom: 90px;
+      position: absolute;
+      left: -228px;
+
+      .icon-attention {
+        display: block !important;
+      }
+      .icon-camera {
+        display: none !important;
+      }
+
+      .camera-controls {
+        display: none;
+      }
+
+      .camera-controls-fullscreen {
+        @extend .camera-controls;
+        display: block;
+        bottom: -75px !important;
+        background: $oil !important;
+
+        .info-container {
+          margin-top: -10px;
+          color: white;
+
+          .printing-info {
+            margin-left: 5px;
+            font-size: rem-calc(25);
+            .layers-group {
+              margin-top: -4px;
+            }
+          }
+
+          .progress-info-section {
+            margin-left: -50px;
+
+            .printfile-info-name {
+              color: white;
+              top: -30px;
+              font-size: rem-calc(20);
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+              text-align: left;
+              letter-spacing: 0.5px;
+              position: absolute;
+              left: 0px;
+              bottom: 8px;
+            }
+
+            .progress {
+              background-color: red;
+              position: relative;
+              text-align: left;
+              height: 15px;
+              margin-top: 50px;
+              margin-bottom:5px;
+
+              .progress-label {
+                position: absolute;
+                right: 0;
+                top: -32px;
+                color: #6dc8c2;
+                font-size: rem-calc(25);
+              }
+            }
           }
         }
       }

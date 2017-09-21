@@ -176,7 +176,7 @@ var TempView = Backbone.View.extend({
       var currentTool = app.socketData.attributes.tool;
       console.log("TempView, currentTool", currentTool)
 
-      /*if (this.$('.nav-extruders').hasClass('slick-initialized')) {
+      if (this.$('.nav-extruders').hasClass('slick-initialized')) {
         console.log("1 antes del unslick SHOW nav")
         //this.$('.nav-extruders').slick('getSlick').unslick();
         this.$('.nav-extruders').slick('destroy');
@@ -189,16 +189,16 @@ var TempView = Backbone.View.extend({
         this.$('#slide-extruders').slick('init');
         this.$('.extruders').slick('slickGoTo', currentTool, false);
 
-      }*/
+      }
 
 
 
-      this.$('#slide-extruders').slick('refresh');
+      /*this.$('#slide-extruders').slick('refresh');
       this.$('.nav-extruders').slick('refresh');
       console.log("current slick1",this.$('#slide-extruders').slick('slickCurrentSlide'))
       this.$('#slide-extruders').slick('slickGoTo', currentTool, false);
       //this.$('.nav-extruders').slick('slickGoTo', currentTool, false);
-      console.log("current slick2",this.$('#slide-extruders').slick('slickCurrentSlide'))
+      console.log("current slick2",this.$('#slide-extruders').slick('slickCurrentSlide'))*/
 
 
       /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
