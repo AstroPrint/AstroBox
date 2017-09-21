@@ -624,7 +624,7 @@ class MachineCom(object):
 		return maxToolNum, result
 
 	def _processTemperatures(self, line):
-		maxToolNum, parsedTemps = self._parseChanging monitoring state fromratures(line)
+		maxToolNum, parsedTemps = self._parseTemperatures(line)
 		var_dump('SONIA')
 		var_dump(parsedTemps.keys())
 		# extruder temperatures
