@@ -626,7 +626,7 @@ class MachineCom(object):
 
 	def _parseExtruder(self, line):
 		extruder = 0
-		extruderMatch = 0
+		extruderMatch = 'E:'
 
 		for match in re.finditer(self._regex_extruder, line):
 			extruder = match.group(1)
@@ -645,7 +645,6 @@ class MachineCom(object):
 
 			if not extruderMatch in line:
 				# only single reporting, "T" is our one and only extruder temperature
-
 				if target is not None:
 					self._temp[0] = (actual, target)
 				elif 0 in self._temp.keys() and self._temp[0] is not None and isinstance(self._temp[0], tuple):
@@ -655,12 +654,13 @@ class MachineCom(object):
 					self._temp[0] = (actual, None)
 			else:
 				# check when the printer send only a current extruder temperature but the printer have multiple extruders
-				toolNum, actual, target = parsedTemps["T"]
-				toolNum = extruder
+				toolNum = int(extruder)
 
-				if int(toolNum) in self._temp.keys() and self._temp[int(toolNum)] is not None and isinstance(self._temp[int(toolNum)], tuple):
-					(oldActual, oldTarget) = self._temp[int(toolNum)]
-					self._temp[int(toolNum)] = (actual, oldTarget)
+				if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
+					(oldActual, oldTarget) = self._temp[toolNum]
+					self._temp[toolNum] = (actual, oldTarget)
+				else:
+					self._temp[toolNum] = (actual, None)
 
 		elif "T0" in parsedTemps.keys():
 			for n in range(maxToolNum + 1):
