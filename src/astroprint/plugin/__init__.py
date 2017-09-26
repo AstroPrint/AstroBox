@@ -269,6 +269,16 @@ class PluginManager(object):
 		else:
 			self._logger.info("User Plugins Folder is not configured")
 
+	def unPlugPluggins(self):
+
+		for plugin in self.plugins:
+
+				try:
+					self.getPlugin(plugin).shutdown()
+
+				except:
+					None
+
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()
 		return {pId: self._plugins[pId] for pId in self._plugins if service in self._plugins[pId].definition['services']}
