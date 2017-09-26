@@ -101,6 +101,7 @@ class MachineCom(object):
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentTool = 0
+		self._previousSelectedTool = 0
 		self._oksAfterHeatingUp = 0
 		self._pauseInProgress = False
 		self._cancelInProgress = False
@@ -480,6 +481,9 @@ class MachineCom(object):
 			#	self.sendCommand("M24")
 			#else:
 
+			if (self._previousSelectedTool != self._currentTool):
+				self.sendCommand("T%d" % self._previousSelectedTool)
+
 			self._pauseInProgress = False
 			self._changeState(self.STATE_PRINTING)
 
@@ -527,10 +531,7 @@ class MachineCom(object):
 				"origin": self._currentFile.getFileLocation()
 			})
 
-			#self._currentTool = self.getSelectedTool()
-			#aqui
-			self._logger.debug("********************************* CURRENT TOOL **********************")
-			self._logger.debug(self.getSelectedTool())
+			self._previousSelectedTool = self.getSelectedTool()
 			self._changeState(self.STATE_PAUSED)
 
 	def getSdFiles(self):
