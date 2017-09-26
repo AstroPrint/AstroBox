@@ -82,15 +82,6 @@ var TempView = Backbone.View.extend({
       });
     }
 
-    /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-      console.log("2 antes del unslick")
-      this.$('#slide-extruders').slick('getSlick').unslick();
-    }
-    if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-      console.log("2 antes del unslick")
-      this.$('.nav-extruders').slick('getSlick').unslick();
-    }*/
-
     this.$('#slide-extruders').slick({
       slidesToShow: 1,
       slidesToScroll: 1,
@@ -174,41 +165,13 @@ var TempView = Backbone.View.extend({
       }
 
       var currentTool = app.socketData.attributes.tool;
-      console.log("TempView, currentTool", currentTool)
 
-      /*if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-        console.log("1 antes del unslick SHOW nav")
-        //this.$('.nav-extruders').slick('getSlick').unslick();
-        this.$('.nav-extruders').slick('destroy');
-        this.$('.nav-extruders').slick('init');
-      }
       if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-        console.log("1 antes del unslick SHOW extruders")
-        //this.extrudersSlide.slick('getSlick').unslick();
-        this.$('#slide-extruders').slick('destroy');
-        this.$('#slide-extruders').slick('init');
-        this.$('.extruders').slick('slickGoTo', currentTool, false);
-
-      }*/
-
-
-
-      this.$('#slide-extruders').slick('refresh');
-      this.$('.nav-extruders').slick('refresh');
-      console.log("current slick1",this.$('#slide-extruders').slick('slickCurrentSlide'))
-      this.$('#slide-extruders').slick('slickGoTo', currentTool, false);
-      //this.$('.nav-extruders').slick('slickGoTo', currentTool, false);
-      console.log("current slick2",this.$('#slide-extruders').slick('slickCurrentSlide'))
-
-
-      /*if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-        console.log("1 antes del unslick SHOW extruders")
-        //this.extrudersSlide.slick('getSlick').unslick();
+        console.log("unslick slide-extruders")
         this.$('#slide-extruders').slick('unslick');
       }
       if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-        console.log("1 antes del unslick SHOW nav")
-        //this.$('.nav-extruders').slick('getSlick').unslick();
+        console.log("unslick nav-extruders")
         this.$('.nav-extruders').slick('unslick');
       }
 
@@ -233,7 +196,10 @@ var TempView = Backbone.View.extend({
         prevArrow: '<i class="icon-angle-left"></i>',
         nextArrow: '<i class="icon-angle-right"></i>',
         asNavFor: this.$('#slide-extruders')
-      });*/
+      });
+
+      this.$('#slide-extruders').slick('slickGoTo', currentTool, false);
+
 
       this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
 
@@ -252,10 +218,10 @@ var TempView = Backbone.View.extend({
       }, this));
 
       this.$('#slide-extruders').on('setPosition', _.bind(function(event, slick) {
-        console.log("sssetposition", slick.currentSlide)
+        //console.log("sssetposition", slick.currentSlide)
       }, this));
       this.$('.nav-extruders').on('setPosition', _.bind(function(event, slick) {
-        console.log("1ssetposition", slick.currentSlide)
+        //console.log("1ssetposition", slick.currentSlide)
       }, this));
 
       // On after slide change
@@ -267,7 +233,6 @@ var TempView = Backbone.View.extend({
         }.bind(this));
 
     }, this));
-
 
     }
   }
@@ -401,28 +366,23 @@ var ExtrusionControlView = Backbone.View.extend({
   {
     this.template = _.template( this.$("#extruder-switch-template").html() );
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
-
+    if (this.currentTool == null) {
+      this.currentTool = 0;
+    }
   },
   onToolChanged: function(s, value)
   {
-    //console.log("ExtrusionControlView", value)
     this.currentTool = value;
   },
   render: function()
   {
-
-    //var currentTool = app.socketData.attributes.tool;
     var printer_profile = app.printerProfile.toJSON();
 
     this.$('.row.extruder-switch').html(this.template({
       profile: printer_profile
     }));
 
-    //console.log("RENDER",this.currentTool)
     if (this.currentTool != null) {
-      console.log("----asigno ExtrusionControlView")
-      console.log("cambia el tool", this.currentTool)
-
       $('.extruder-number').val(this.currentTool);
 
       $('#slide-extruders').slick('slickGoTo', this.currentTool, false);
@@ -431,7 +391,6 @@ var ExtrusionControlView = Backbone.View.extend({
         $('.extruder-number').removeClass('no-selected');
       }
     }
-
 
     if (printer_profile.extruder_count > 1) {
       this.events['change .extruder-number'] = "extruderChanged";
@@ -475,6 +434,8 @@ var ExtrusionControlView = Backbone.View.extend({
   },
   extruderChanged: function(e)
   {
+    console.log("Changed select of extruder for: ", $(e.target).val());
+    this.currentTool = $(e.target).val();
     this._sendChangeToolCommand($(e.target).val())
   },
   onKeyDownBackToSelect: function(e)
@@ -667,18 +628,6 @@ var ControlView = Backbone.View.extend({
   },
   updateTemps: function(s, value)
   {
-    /*console.log("updateTemps", app.socketData.attributes.tool)
-    this.currentTool = app.socketData.attributes.tool;
-
-    if (!($('.extruder-number').val() == this.currentTool) || this.currentTool == null) {
-      $('.extruder-number').val(this.currentTool);
-      $('#slide-extruders').slick('slickGoTo', this.currentTool, false);
-
-      if ($('.extruder-number').hasClass('no-selected')) {
-        $('.extruder-number').removeClass('no-selected');
-      }
-    }*/
-
     if (!this.$el.hasClass('hide')) {
       this.tempView.updateTemps(value);
     }
@@ -724,12 +673,8 @@ var ControlView = Backbone.View.extend({
   onToolChanged: function(s, value)
   {
     if (!($('.extruder-number').val() == value) || this.currentTool == null) {
-      console.log("----asigno ControlView")
-      console.log("cambia el tool", value)
       this.currentTool = value;
-      console.log("vamos a cambiar el currentTool")
       this.extrusionView.setCurrentTool(value);
-      console.log("vamos a llamar a RENDER")
       this.extrusionView.render();
       $('.extruder-number').val(value);
       $('#slide-extruders').slick('slickGoTo', value, false);

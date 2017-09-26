@@ -133,28 +133,28 @@ var PhotoView = CameraViewBase.extend({
     //Progress data
     var filenameNode = this.$('.progress .filename');
     var printing_progress = this.parent.printing_progress;
-    console.log("....",printing_progress)
 
-    if (filenameNode.text() != printing_progress.printFileName) {
-      filenameNode.text(printing_progress.printFileName);
+    if (printing_progress) {
+      if (filenameNode.text() != printing_progress.printFileName) {
+        filenameNode.text(printing_progress.printFileName);
+      }
+
+      //progress bar
+      this.$el.find('.progress .meter').css('width', printing_progress.percent+'%');
+      this.$el.find('.progress .progress-label').text(printing_progress.percent+'%');
+
+      //time
+      var time = this._formatTime(printing_progress.time_left);
+      this.$el.find('.estimated-hours').text(time[0]);
+      this.$el.find('.estimated-minutes').text(time[1]);
+      this.$el.find('.estimated-seconds').text(time[2]);
+
+      //layers
+      this.$el.find('.current-layer').text(printing_progress.current_layer);
+      if (printing_progress.layer_count) {
+        this.$el.find('.layer-count').text(printing_progress.layer_count);
+      }
     }
-
-    //progress bar
-    this.$el.find('.progress .meter').css('width', printing_progress.percent+'%');
-    this.$el.find('.progress .progress-label').text(printing_progress.percent+'%');
-
-    //time
-    var time = this._formatTime(printing_progress.time_left);
-    this.$el.find('.estimated-hours').text(time[0]);
-    this.$el.find('.estimated-minutes').text(time[1]);
-    this.$el.find('.estimated-seconds').text(time[2]);
-
-    //layers
-    this.$el.find('.current-layer').text(printing_progress.current_layer);
-    if (printing_progress.layer_count) {
-      this.$el.find('.layer-count').text(printing_progress.layer_count);
-    }
-
   },
   onCameraChanged: function(s, value)
   {
@@ -321,7 +321,7 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
     this.currentTool = app.socketData.attributes.tool;
-    console.log("Printing initialize", this.currentTool)
+
     this.extruders_count = profile.extruder_count;
 
     this.slidesToShow = 3;
@@ -347,8 +347,6 @@ el: '#printing-view',
   {
     //Progress data
     var filenameNode = this.$('.progress .filename');
-
-    console.log("render printingview", this.$('progress .filename'))
 
     if (this.printing_progress) {
       if (filenameNode.text() != this.printing_progress.printFileName) {
@@ -390,8 +388,10 @@ el: '#printing-view',
       pauseBtn.html('<i class="icon-pause"></i> Pause Print');
       controlBtn.hide();
     }
+
   },
-  renderCircleTemps: function() {
+  renderCircleTemps: function()
+  {
     var socketTemps = app.socketData.attributes.temps;
     var temps = null;
     var semiCircleTemp = null;
@@ -401,7 +401,7 @@ el: '#printing-view',
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
       this.semiCircleTemp_views[i] = semiCircleTemp;
 
-      this.$el.find('#slide-extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('#slide-extruders-printing').append(this.semiCircleTemp_views[i].render().el);
 
       if (_.has(socketTemps, 'extruders')) {
         temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
@@ -475,8 +475,10 @@ el: '#printing-view',
   },
   onToolChanged: function(s, value)
   {
-    console.log("cambia el tool", value)
-    //$('#slide-extruders').slick('slickGoTo', value, false);
+    if (this.currentTool != value) {
+      this.currentTool = value;
+      this.$('#slide-extruders-printing').slick('slickGoTo', value, false);
+    }
   },
   _formatTime: function(seconds)
   {
@@ -519,14 +521,13 @@ el: '#printing-view',
       this.semiCircleTemp_views[i].updateValues(temps);
     }
 
-
-    if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-      console.log("antes del unslick ShowTemps extruders")
+    if (this.$('#slide-extruders-printing').hasClass('slick-initialized')) {
+      console.log("before unslick ShowTemps extruders")
       //this.extrudersSlide.slick('getSlick').unslick();
-      this.$('#slide-extruders').slick('unslick');
+      this.$('#slide-extruders-printing').slick('unslick');
     }
 
-    this.$('#slide-extruders').slick({
+    this.$('#slide-extruders-printing').slick({
       centerMode: true,
       centerPadding: '10px',
       arrows: true,
@@ -550,13 +551,12 @@ el: '#printing-view',
       }]
     });
 
-
     // needed to show the 'dots' (extruders) always
     if (this.extruders_count <= this.slidesToShow){
-      this.$('#slide-extruders').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
-      this.$('#slide-extruders').slick('slickSetOption', 'variableWidth', true, true);
+      this.$('#slide-extruders-printing').slick('slickSetOption', 'slidesToShow', (this.extruders_count-1), true);
+      this.$('#slide-extruders-printing').slick('slickSetOption', 'variableWidth', true, true);
 
-      this.$('#slide-extruders').find('.slick-dots a').on('click', function(){
+      this.$('#slide-extruders-printing').find('.slick-dots a').on('click', function(){
         return true;
       });
     }
@@ -566,30 +566,34 @@ el: '#printing-view',
       this.$el.find('.slick-slider').find('.slick-arrow').addClass('arrow-disabled');
     }
 
-    this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
+    //select slide with current tool
+    if (this.currentTool != null) {
+      this.$('#slide-extruders-printing').slick('slickGoTo', parseInt(this.currentTool), false);
+    }
+
+    this.$('#slide-extruders-printing').find('.slick-track').addClass(this.classNoCenter);
 
     // On before slide change
-    this.$('#slide-extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
+    this.$('#slide-extruders-printing').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
       if (this.extruders_count <= this.slidesToShow) {
-        this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
+        this.$('#slide-extruders-printing').find('.slick-track').addClass(this.classNoCenter);
       } else {
         if (nextSlide > (this.slidesToShow/2)) {
-          this.$('#slide-extruders').find('.slick-track').removeClass(this.classNoCenter);
+          this.$('#slide-extruders-printing').find('.slick-track').removeClass(this.classNoCenter);
         } else {
-          this.$('#slide-extruders').find('.slick-track').addClass(this.classNoCenter);
+          this.$('#slide-extruders-printing').find('.slick-track').addClass(this.classNoCenter);
         }
       }
 
     }, this));
 
     // On after slide change
-    this.$('#slide-extruders').on('afterChange', _.bind(function(event, slick, currentSlide){
-      var currentElement = this.$('#slide-extruders').find('.slick-current').find('.current');
+    this.$('#slide-extruders-printing').on('afterChange', _.bind(function(event, slick, currentSlide){
+      var currentElement = this.$('#slide-extruders-printing').find('.slick-current').find('.current');
       currentElement.addClass('animated pulse');
       currentElement.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
         currentElement.removeClass('pulse');
       }.bind(this));
-
     }, this));
 
   },

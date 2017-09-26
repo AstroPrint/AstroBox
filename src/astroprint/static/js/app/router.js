@@ -159,6 +159,7 @@ var AppRouter = Backbone.Router.extend({
 
         if (targetId == 'control-view') {
           this.controlView.tempView.show();
+          this.controlView.extrusionView.render();
         }
       }
 
