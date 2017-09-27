@@ -47,7 +47,7 @@ default_settings = {
 		"firstRun": True,
 		"baseUrl": "",
 		"scheme": "",
-		"maxUploadSize": 160, #Size in MB for the max allowed file size
+		"maxUploadSize": 200, #Size in MB for the max allowed file size
 	},
 	"camera": {
 		"manager": "gstreamer",

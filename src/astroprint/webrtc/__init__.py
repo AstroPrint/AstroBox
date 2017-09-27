@@ -158,7 +158,7 @@ class WebRtc(object):
 			peer = self._connectedPeers[sessionId]
 
 		except KeyError:
-			self._logger.warning('Peer with session [%s] is not found' % sessionId)
+			self._logger.warning('SetSessionDescription: Peer with session [%s] is not found' % sessionId)
 			peer = None
 			self.sendEventToPeers('stopConnection')
 
@@ -171,7 +171,10 @@ class WebRtc(object):
 
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
-		self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
+		if sessionId in self._connectedPeers:
+			self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
+		else:
+			self._logger.warning('TickleIceCandidate: Peer with session [%s] is not found' % sessionId)
 
 	def pongCallback(self, data, key):
 		if 'pong' != data:
