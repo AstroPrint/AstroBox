@@ -276,7 +276,7 @@ class PluginManager(object):
 			self._logger.info("User Plugins Folder is not configured")
 
 	def shutdown(self):
-		for p in self._plugins:
+		for pId, p in self._plugins.iteritems():
 			try:
 				p.onServiceShutdown()
 
