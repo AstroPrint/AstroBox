@@ -119,6 +119,12 @@ class Plugin(object):
 	def onRemove(self):
 		pass
 
+	#
+	# Called when the AstroBox service is shutting down
+	#
+	def onServiceShutdown(self):
+		pass
+
 
 #
 # Plugin Manager
@@ -269,15 +275,13 @@ class PluginManager(object):
 		else:
 			self._logger.info("User Plugins Folder is not configured")
 
-	def unPlugPluggins(self):
+	def shutdown(self):
+		for p in self._plugins:
+			try:
+				p.onServiceShutdown()
 
-		for plugin in self.plugins:
-
-				try:
-					self.getPlugin(plugin).shutdown()
-
-				except:
-					None
+			except:
+				self._logger.warn("Error shutting down plugin [%s]" % p.name, exc_info= True)
 
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()

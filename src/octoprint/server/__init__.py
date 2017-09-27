@@ -610,8 +610,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
-		pluginManager().unPlugPluggins();
-
+		pluginManager().shutdown();
 		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()
