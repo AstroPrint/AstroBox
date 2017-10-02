@@ -330,7 +330,7 @@ class PluginManager(object):
 			pluginId = instance.pluginId
 
 		except ImportError:
-			self._logger.warn("Directory [ %s ] doesn't contain a plugin" % pluginDir)
+			self._logger.warn("Directory [ %s ] doesn't contain a plugin" % pluginDir, exc_info= True)
 			return
 
 		except Exception as e:
