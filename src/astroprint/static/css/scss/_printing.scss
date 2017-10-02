@@ -623,8 +623,6 @@
     .video-container {
       position: relative;
       min-height: 220px;
-      border: 1px solid $iron;
-      border-bottom: none;
       background: #3e3e3e;
       @include radius($global-radius $global-radius 0 0);
 
