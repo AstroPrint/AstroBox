@@ -29,7 +29,7 @@
     <div class="small-12 medium-7 large-5 columns" align="center">
       <div class="loading-button expand">
         <button class="success radius pause-print small"><i class="icon-pause"></i> Pause Print</button>
-        <span class="button loading success radius disabled"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
+        <span class="button loading success radius disabled small"><i class="icon-rocket-spinner animate-spin"></i> Pausing...</span>
       </div>
     </div>
     <div class="small-12 large-3 columns" align="center">
@@ -51,12 +51,12 @@
 
     <div class="small-12 large-4 columns camera-view" align="center">
       <script type="text/template" id="photo-printing-template">
-        <div class="button-full-screen"><i class="icon-camera"></i><i class="icon-attention"></i></div>
+        <div class="button-full-screen"><i class="icon-resize-full"></i><i class="icon-resize-small"></i></div>
         <% if(this.cameraAvailable) {
           if(this.cameraNotSupported) { %>
             <div class="panel text-center radius">
               <i class="icon-attention"></i>
-              <h3 class="bold">Camera not supported</h3>
+              <h4 class="bold">Camera not supported</h4>
               <p>
                 You can cancel your print and go to the camera app.
                 <p><img src="/static/img/camera-icon.png" style="width:45px"><br><b>Camera</b></p>
@@ -65,20 +65,22 @@
           <% } else {
             if(this.videoStreamingError){ %>
               <div class="panel text-center radius">
-                <i class="icon-camera"></i>
-                <h3 class="bold">Camera error</h3>
+                <div class="center-icon">
+                  <i class="icon-camera"></i>
+                  <h3 class="bold">Camera error</h3>
+                </div>
                 <p><%= this.videoStreamingError %></p>
               </div>
             <% } else {
             if(!this.canStream) { %>
-              <div class="camera-container">
+              <div class="camera-container panel">
                 <i class="icon-3d-object"></i>
                 <img class="camera-image" width="100%"/>
               </div>
             <% } else { %>
               <% if(this.cameraMode == 'video'){ %>
                 <div class="video-container">
-                  <div class="video-error">
+                  <div class="video-error center-icon">
                     <div class="overlay"></div>
                     <i class="icon-attention"></i>
                     <h3 class="bold">Video Error</h3>
@@ -89,8 +91,8 @@
                       <h4 class="bold">Camera Stream Off</h4>
                     </div>
                     <div class="video-preparing">
-                      <i class="icon-rocket-spinner animate-spin"></i>
-                      <h3 class="bold">Preparing video...</h3>
+                        <i class="icon-rocket-spinner animate-spin"></i>
+                        <h3 class="bold">Preparing video...</h3>
                     </div>
                   </div>
                   <div id="videoScreen" class="video-on">
@@ -116,7 +118,7 @@
                 <div class="small-4 columns" align="center">
                   <div class="timelapse">
                     <i id="printIcon" class="icon-picture"></i>
-                    <select id="freqSelector" class="bold" align="center">
+                    <select id="freqSelector" align="center">
                       <option value="0">Off</option>
                       <option value="layer">Ea. layer</option>
                       <option value="60">1 min</option>
@@ -175,14 +177,14 @@
             </div>
             <div class="camera-controls-fullscreen">
               <div class="row collapse">
-                <div class="info-container small-9 columns" align="left">
-                  <div class="row clearfix collapse">
+                <div class="info-container medium-12 large-7 columns" align="left">
+                  <div class="row clearfix">
                     <div class="printing-info small-3 columns">
                       <div class="time-group text-left">
-                          <i class="icon-videocam-1"></i> <b><span class="estimated-hours">--</span>:<span class="estimated-minutes">--</span>:<span class="estimated-seconds">--</span></b>
+                          <i class="icon-clock-1"></i> <b><span class="estimated-hours">--</span>:<span class="estimated-minutes">--</span>:<span class="estimated-seconds">--</span></b>
                       </div>
                       <div class="layers-group text-left">
-                          <i class="icon-videocam-1"></i> <span class="current-layer bold">-</span><span class="of"> of </span> <span class="layer-count bold">-</span>
+                          <i class="icon-layers"></i> <span class="current-layer bold">-</span><span class="of"> of </span> <span class="layer-count bold">-</span>
                       </div>
                     </div>
                     <div class="progress-info-section small-9 columns">
@@ -194,7 +196,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="small-1 columns" align="center">
+                <div class="medium-2 large-2 columns border-left" align="center">
                   <div class="timelapse">
                     <i id="printIcon" class="icon-picture"></i>
                     <select id="freqSelector" class="bold" align="center">
@@ -215,7 +217,7 @@
                     <div class="overlay" style="display:none"></div>
                   </div>
                 </div>
-                <div class="small-1 columns buttons" align="center">
+                <div class="medium-5 large-1 columns left buttons" align="right">
                   <% if(this.cameraMode == 'video') { %>
                     <div class="loading-button">
                       <div class="video-off">
@@ -237,9 +239,9 @@
                     </div>
                   <% } %>
                 </div>
-                <div class="small-1 columns" align="center">
+                <div class="medium-2 large-2 columns right" align="right">
                   <% if(this.canStream){ %>
-                    <div id="camera-mode-slider" class="camera-mode" align="right">
+                    <div id="camera-mode-slider" class="camera-mode" align="center">
                       <p>
                         <i class="icon-picture-1"></i>
                         <i class="icon-videocam-1"></i>

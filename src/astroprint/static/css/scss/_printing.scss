@@ -17,10 +17,11 @@
   }
   .buttons-box{
 
-    button{
+    button,span.button{
       margin-bottom: 10px;
       margin-top: 0;
       letter-spacing: 0.5px;
+      margin-top: 15px;
 
       &.controls{
         box-shadow: 0 7px black;
@@ -38,6 +39,7 @@
         outline: 0;
       }
     }
+
   }
   .progress {
     background-color: rgba(240, 82, 81, 0.2);
@@ -72,7 +74,7 @@
     margin: 10px 0 0 0;
 
     .highlighted {
-      font-size: rem-calc(40);
+      font-size: rem-calc(35);
       color: $success-color;
 
       &.layer-count{
@@ -98,7 +100,7 @@
       }
 
       &.fullscreen{
-        opacity: 0;
+        display: none;
       }
     }
 
@@ -113,14 +115,11 @@
       overflow: hidden;
 
       i {
-        display: block;
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-left: -42px;
-        margin-top: -30px;
-        font-size: 60px;
-        color: #ccc;
+        color: #666666;
+        transform: translate(-50%, -65%);
       }
 
       img {
@@ -176,6 +175,8 @@
       .timelapse {
         position: relative;
         height: $camera-controls-height;
+        cursor: pointer;
+        width: 75px;
 
         .overlay {
           position: absolute;
@@ -186,16 +187,22 @@
         }
 
         i {
-          font-size: rem-calc(25);
           color: #505050;
-          left: 15px;
+          left:0px;
           position: absolute;
+          font-size: 18px;
+          top: 5px;
+          border: 2px solid;
+          border-radius: 4px;
+          box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.45);
+          cursor: pointer;
+          min-width: 50px;
         }
 
         .dot {
           position: absolute;
-          top: 34px;
-          left: 10px;
+          top: 43px;
+          left: 0;
           display: inline-block;
           width: 10px;
           height: 10px;
@@ -211,7 +218,7 @@
           width: 100%;
           height: 100%;
           margin: 0;
-          padding: 20px 0 0 25px;
+          padding: 40px 0 0 15px;
           border: 0;
           background: none;
           color: #505050;
@@ -226,7 +233,7 @@
         i {
           display: inline-block;
           font-size: 30px;
-          margin-top: 16px;
+          margin-top: 14px;
         }
       }
 
@@ -240,7 +247,6 @@
           i {
             font-size: rem-calc(16);
             margin: 0 4px 0 5px;
-            text-shadow: -1px 0 1px $white;
 
             &.icon-picture-1 {
               margin-left: 0;
@@ -573,6 +579,19 @@
     padding: 0;
     margin-bottom: 20px;
 
+    .panel{
+      margin-bottom: 0;
+      height: 281px;
+    }
+
+    .center-icon{
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      color: #666666;
+      transform: translate(-50%, -65%);
+      width: 100%;
+    }
     .camera-controls-fullscreen {
       display: none;
     }
@@ -587,11 +606,12 @@
       cursor: pointer;
 
       &:hover, &:active{
-        transform: scale(1.3);
+        transform: scale(1.2);
         transition:all 0.5s ease;
+        opacity: 0.6;
       }
 
-      .icon-attention{
+      .icon-resize-small{
         display: none;
       }
     }
@@ -605,8 +625,16 @@
       min-height: 220px;
       border: 1px solid $iron;
       border-bottom: none;
-      background: $oil;
+      background: #3e3e3e;
       @include radius($global-radius $global-radius 0 0);
+
+      .video-text{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        color: #666666;
+        transform: translate(-50%, -65%);
+      }
 
       .video-off,
       .no-detection,
@@ -696,7 +724,7 @@
       #video-stream {
         width: 100%;
         height: 100%;
-        background: black;
+        background: $jet;
       }
 
       .video-on {
@@ -712,19 +740,17 @@
     }
 
     &.fullscreen {
-      width: 100vw;
+      width: 100%;
       height: 86vh;
       z-index: 999 !important;
-      min-height: 381px;
-      transition: all 1s ease;
+      transition: width 1s ease;
       margin-bottom: 90px;
-      position: absolute;
-      left: -228px;
+      padding-left: 0 !important;
 
-      .icon-attention {
+      .icon-resize-small {
         display: block !important;
       }
-      .icon-camera {
+      .icon-resize-full {
         display: none !important;
       }
 
@@ -737,26 +763,52 @@
         display: block;
         bottom: -75px !important;
         background: $oil !important;
+        height: auto !important;
+        min-height: 75px !important;
+        padding-top: 10px;
 
-        .info-container {
-          margin-top: -10px;
-          color: white;
+        .border-left{
+          padding-left: 12px;
+          border-left: 1px solid #505050;
+        }
 
-          .printing-info {
-            margin-left: 5px;
-            font-size: rem-calc(25);
-            .layers-group {
-              margin-top: -4px;
+        .camera-mode p > i{color: $steel;}
+
+        .buttons .loading-button {
+          .video-off, .video-on {
+            i {
+              padding:8px 15px !important;
             }
           }
+        }
+
+        .timelapse{
+          select, i{color: white !important;}
+        }
+
+        .info-container {
+          color: white;
+
+            .printing-info {
+              margin-top: -4px;
+              padding-left: 10px;
+              font-size: rem-calc(18);
+              white-space: nowrap;
+
+              .layers-group {
+                margin-top:2px;
+              }
+
+              i{margin-right: 5px;}
+            }
 
           .progress-info-section {
             margin-left: -50px;
 
             .printfile-info-name {
               color: white;
-              top: -30px;
-              font-size: rem-calc(20);
+              top: -20px;
+              font-size: rem-calc(12);
               white-space: nowrap;
               text-overflow: ellipsis;
               overflow: hidden;
@@ -768,23 +820,52 @@
             }
 
             .progress {
-              background-color: red;
+              background-color: rgba(240, 82, 81, 0.2);
               position: relative;
               text-align: left;
-              height: 15px;
-              margin-top: 50px;
-              margin-bottom:5px;
+              border-radius: 10px;
+              height: 8px;
+              margin-top: 30px;
+              margin-bottom: 8px;
+              border: 0;
 
               .progress-label {
                 position: absolute;
                 right: 0;
-                top: -32px;
-                color: #6dc8c2;
-                font-size: rem-calc(25);
+                top: -25px;
+                color: $green;
+                font-size: rem-calc(18);
+              }
+
+              .meter{
+                border-radius: 10px;
               }
             }
           }
         }
+        .buttons .loading-button {
+          display: block;
+          font-size: 33px;
+          padding: 0;
+          height: 55px;
+          width: 70px;
+          margin-top: 0;
+        }
+      }
+
+      .camera-container,.video-container{
+        height: 86vh !important;
+
+        img {
+          height: 100% !important;
+          width: auto !important;
+          position: absolute;
+          top: 0;
+          left: 50%;
+          color: #666666;
+          transform: translate(-50%, 0);
+        }
+
       }
     }
   }
@@ -952,4 +1033,5 @@
       }
     }
   }
+ .button-full-screen{display: none;}
 }
