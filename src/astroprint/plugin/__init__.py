@@ -285,7 +285,10 @@ class PluginManager(object):
 
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()
-		return {pId: self._plugins[pId] for pId in self._plugins if service in self._plugins[pId].definition['services']}
+		try:
+			return {pId: p for pId, p in self._plugins.iteritems() if service in p.definition['services']}
+		except TypeError:
+			return {}
 
 	def getPlugin(self, pluginId):
 		self._pluginsLoaded.wait()
