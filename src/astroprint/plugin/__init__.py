@@ -23,7 +23,7 @@ from astroprint.plugin.printer_comms import PrinterCommsService, PrinterState
 from astroprint.printerprofile import printerProfileManager
 
 PLUGIN_API_VERSION = 1
-REQUIRED_PLUGIN_KEYS = ['id', 'name', 'services', 'version', 'min_api_version']
+REQUIRED_PLUGIN_KEYS = ['id', 'name', 'providers', 'version', 'min_api_version']
 
 #
 # Plugin Base Class
@@ -85,8 +85,8 @@ class Plugin(object):
 		return self._definition.get('verified', False)
 
 	@property
-	def services(self):
-		return self._definition['services'] or []
+	def providers(self):
+		return self._definition['providers'] or []
 
 	#
 	# Directory path where the settings file (config.yaml) is stored
@@ -259,7 +259,7 @@ class PluginManager(object):
 
 			self._logger.info("Removed --> %s, version: %s" % (plugin.pluginId, plugin.version))
 
-			return {'removed': pId, 'services': plugin.services}
+			return {'removed': pId, 'providers': plugin.providers}
 
 		else:
 			return {'error': 'not_found'}
@@ -283,9 +283,9 @@ class PluginManager(object):
 			except:
 				self._logger.warn("Error shutting down plugin [%s]" % p.name, exc_info= True)
 
-	def getPluginsByService(self, service):
+	def getPluginsByProvider(self, provider):
 		self._pluginsLoaded.wait()
-		return {pId: p for pId, p in self._plugins.iteritems() if service in p.services}
+		return {pId: p for pId, p in self._plugins.iteritems() if provider in p.providers}
 
 	def getPlugin(self, pluginId):
 		self._pluginsLoaded.wait()

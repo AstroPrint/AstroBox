@@ -142,7 +142,7 @@ def connection_settings():
 
 	if connectionOptions:
 
-		plugins = pluginManager().getPluginsByService('printerComms')
+		plugins = pluginManager().getPluginsByProvider('printerComms')
 
 		driverChoices = { ("plugin:%s" % k) : plugins[k].definition['name'] for k in plugins }
 

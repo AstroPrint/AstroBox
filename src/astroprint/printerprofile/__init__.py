@@ -81,7 +81,7 @@ class PrinterProfileManager(object):
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 
 	def driverChoices(self):
-		plugins = pluginManager().getPluginsByService('printerComms')
+		plugins = pluginManager().getPluginsByProvider('printerComms')
 
 		result = { ("plugin:%s" % k) : { 'name': plugins[k].definition['name'], 'properties': plugins[k].settingsProperties } for k in plugins }
 

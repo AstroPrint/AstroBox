@@ -5,5 +5,5 @@ min_api_version: 1
 verified: True
 description:
   Serial communications for a Virtual Printer. Used for testing
-services:
+providers:
   - printerComms
