@@ -38,7 +38,8 @@ class PrinterListener(object):
 			'paused': flags['paused'],
 			'camera': flags['camera'],
 			'heatingUp': flags['heatingUp'],
-			'state': data['state']['text'].lower()
+			'state': data['state']['text'].lower(),
+			'currentTool': data['tool']
 		}
 
 		self._socket.broadcastEvent('status_update', payload)

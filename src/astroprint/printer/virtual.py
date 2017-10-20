@@ -212,10 +212,15 @@ class PrinterVirtual(Printer):
 		}
 
 		if paused:
+			self._previousSelectedTool = self._currentSelectedTool
 			self._changeState(self.STATE_PAUSED)
 			eventManager().fire(Events.PRINT_PAUSED, printFileInfo)
 
 		else:
+			if self._currentSelectedTool != self._previousSelectedTool:
+				self.mcToolChange(self._previousSelectedTool, self._currentSelectedTool)
+				self._currentSelectedTool = self._previousSelectedTool
+
 			self._changeState(self.STATE_PRINTING)
 			eventManager().fire(Events.PRINT_RESUMED, printFileInfo)
 
@@ -301,10 +306,10 @@ class PrinterVirtual(Printer):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
 
 	def changeTool(self, tool):
-		self._previousSelectedTool = self._currentSelectedTool
+		previousSelectedTool = self._currentSelectedTool
 		self._currentSelectedTool = tool
-		self._logger.info('Change tool from %s to %s', self._previousSelectedTool, tool)
-		self.mcToolChange(tool, self._previousSelectedTool)
+		self._logger.info('Change tool from %s to %s', previousSelectedTool, tool)
+		self.mcToolChange(tool, previousSelectedTool)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)

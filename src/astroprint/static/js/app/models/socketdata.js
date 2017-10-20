@@ -33,6 +33,7 @@ var SocketData = Backbone.Model.extend({
     },
     print_capture: null,
     tool: null,
+    currentTool: null
   },
   extruder_count: null,
   initialize: function()
@@ -179,6 +180,7 @@ var SocketData = Backbone.Model.extend({
 
           this.set('paused', flags.paused);
           this.set('camera', flags.camera);
+          this.set('currentTool', data.currentTool);
 
           if (flags.printing || flags.paused) {
             var progress = data.progress;
@@ -263,6 +265,9 @@ var SocketData = Backbone.Model.extend({
               //We need to release so that the update screen shows up
               window.location.reload()
             break;
+
+            case 'ToolChange':
+              this.set('currentTool', data.currentTool);
 
             default:
               console.warn('Unkonwn event received: '+type);
