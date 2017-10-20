@@ -7,8 +7,8 @@ import os
 
 from octoprint.events import eventManager, Events as SystemEvent
 
-from astroprint.plugin.printer_comms.material_counter import MaterialCounter
-from astroprint.plugin.printer_comms.commands import CommandPluginInterface
+from astroprint.plugin.providers.printer_comms.material_counter import MaterialCounter
+from astroprint.plugin.providers.printer_comms.commands import CommandPluginInterface
 
 class PrinterState():
 	STATE_NONE = 0

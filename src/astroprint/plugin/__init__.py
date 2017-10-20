@@ -19,7 +19,7 @@ from threading import Thread, Event
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events as SystemEvent
 
-from astroprint.plugin.printer_comms import PrinterCommsService, PrinterState
+from astroprint.plugin.providers.printer_comms import PrinterCommsService, PrinterState
 from astroprint.printerprofile import printerProfileManager
 
 PLUGIN_API_VERSION = 1
