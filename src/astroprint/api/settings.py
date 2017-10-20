@@ -59,7 +59,7 @@ def handleNetworkName():
 	return jsonify(name=nm.getHostname())
 
 @api.route("/settings/network/wifi-networks", methods=["GET"])
-@restricted_access
+#@restricted_access
 def getWifiNetworks():
 	networks = networkManager().getWifiNetworks()
 
@@ -69,7 +69,7 @@ def getWifiNetworks():
 		return jsonify({'message': "Unable to get WiFi networks"})
 
 @api.route("/settings/network", methods=["GET"])
-@restricted_access
+#@restricted_access
 def getNetworkSettings():
 	nm = networkManager()
 
@@ -90,7 +90,7 @@ def deleteStoredWiFiNetwork(networkId):
 		return ("Network Not Found", 404)
 
 @api.route("/settings/network/active", methods=["POST"])
-@restricted_access
+#@restricted_access
 def setWifiNetwork():
 	if "application/json" in request.headers["Content-Type"]:
 		data = request.json
@@ -231,6 +231,7 @@ def changeApiKeySettings():
 @restricted_access
 def resetFactorySettings():
 	from astroprint.cloud import astroprintCloud
+	from shutil import copy
 
 	logger = logging.getLogger(__name__)
 	logger.warning("Executing a Restore Factory Settings operation")
@@ -258,25 +259,37 @@ def resetFactorySettings():
 
 	networkManager().forgetWifiNetworks()
 
+	configFolder = s.getConfigFolder()
+
 	#replace config.yaml with config.factory
 	config_file = s._configfile
+	config_factory = os.path.join(configFolder, "config.factory")
 	if config_file and os.path.exists(config_file):
-		os.unlink(config_file)
+		if os.path.exists(config_factory):
+			copy(config_factory, config_file)
+		else:
+			os.unlink(config_file)
 
 	#replace printer-profile.yaml with printer-profile.factory
-	p_profile_file = "%s/printer-profile.yaml" % s.getConfigFolder()
+	p_profile_file = os.path.join(configFolder, "printer-profile.yaml")
+	p_profile_factory = os.path.join(configFolder, "printer-profile.factory")
 	if os.path.exists(p_profile_file):
-		os.unlink(p_profile_file)
+		if os.path.exists(p_profile_factory):
+			copy(p_profile_factory, p_profile_file)
+		else:
+			os.unlink(p_profile_file)
 
 	#remove box-id so it's re-created on bootup
-	boxIdFile = "%s/box-id" % s.getConfigFolder()
+	boxIdFile = os.path.join(configFolder, "box-id")
 	if os.path.exists(boxIdFile):
 		os.unlink(boxIdFile)
 
 	#remove info about users
-	user_file  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(config_file), "users.yaml")
+	user_file  = s.get(["accessControl", "userfile"]) or os.path.join( configFolder, "users.yaml")
 	if user_file and os.path.exists(user_file):
 		os.unlink(user_file)
+
+	logger.info("Restore completed, rebooting...")
 
 	#We should reboot the whole device
 	if softwareManager.restartServer():

@@ -238,7 +238,6 @@ var PhotoView = CameraViewBase.extend({
         data: {
           freq: newFreq
         }
-      }).done ( (data)=> {
       })
       .fail(_.bind(function(data){
         if (data.status == 402){
