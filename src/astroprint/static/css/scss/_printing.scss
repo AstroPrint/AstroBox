@@ -545,7 +545,7 @@
         display: block;
         font-size: rem-calc(40);
         color: $red;
-        height: 280px;
+        height: auto;
 
         > div {
           padding: 40px 0;
@@ -558,6 +558,9 @@
 
         .columns{
           padding-top: 0;
+        }
+        &.fullscreen {
+          display:none;
         }
       }
 
@@ -757,6 +760,28 @@
       }
 
       .camera-controls-fullscreen {
+        .status-and-buttons {
+          max-height: 65px;
+          .heating {
+            .icon-temperatire {
+              color: $alert-color;
+              font-size: 18px;
+              margin-bottom: 5px;
+            }
+          }
+          #cancel-button {
+            .loading-button, button, span {
+              top: -25px;
+              font-size: rem-calc(12);
+              width: 70px;
+              margin: 0 auto 3px 0;
+              margin-left: auto !important;
+              height: 20px;
+              padding: 0;
+              letter-spacing: 0.5px;
+            }
+          }
+        }
         @extend .camera-controls;
         display: block;
         bottom: -75px !important;
@@ -841,6 +866,7 @@
             }
           }
         }
+
         .buttons .loading-button {
           display: block;
           font-size: 33px;

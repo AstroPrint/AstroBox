@@ -262,9 +262,11 @@ var PhotoView = CameraViewBase.extend({
     if ($('.camera-view').hasClass('fullscreen')) {
       $('.camera-view').removeClass('fullscreen');
       $('.info').removeClass('fullscreen');
+      $('.heating').removeClass('fullscreen');
     } else {
       $('.camera-view').addClass('fullscreen');
       $('.info').addClass('fullscreen');
+      $('.heating').addClass('fullscreen');
       $('body, html').animate({scrollTop: ($('.camera-view').offset().top - 15)});
     }
 

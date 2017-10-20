@@ -268,6 +268,7 @@ var SocketData = Backbone.Model.extend({
 
             case 'ToolChange':
               this.set('currentTool', data.currentTool);
+              break;
 
             default:
               console.warn('Unkonwn event received: '+type);
