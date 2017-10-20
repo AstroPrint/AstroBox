@@ -107,8 +107,12 @@ class PrinterMarlin(Printer):
 
 	def serialList(self):
 		ports = {}
-		#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
-		regex = re.compile(r"\/dev\/tty(?:ACM|USB)[0-9]+")
+		if platform == "darwin":
+			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
+			regex = re.compile(r"\/dev\/cu\.usbserial[\w-]+")
+		elif "linux" in os.platform:
+			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
+			regex = re.compile(r"\/dev\/tty(?:ACM|USB|)[0-9]+")
 
 		for p in serial.tools.list_ports.comports():
 			if regex.match(p.device) is not None:
