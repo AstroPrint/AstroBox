@@ -198,7 +198,7 @@ def camera_snapshot():
 	cameraMgr = cameraManager()
 	pic_buf = cameraMgr.get_pic(text=request.args.get('text'))
 	if pic_buf:
-		return Response(pic_buf, mimetype='image/jpeg')
+		return Response(pic_buf, mimetype='image/jpeg', headers={"Access-Control-Allow-Origin": "*"})
 	else:
 		return 'Camera not ready', 404
 
