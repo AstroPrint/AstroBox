@@ -86,7 +86,7 @@ class Plugin(object):
 
 	@property
 	def services(self):
-		return self._definition['services']
+		return self._definition['services'] or []
 
 	#
 	# Directory path where the settings file (config.yaml) is stored
@@ -285,10 +285,7 @@ class PluginManager(object):
 
 	def getPluginsByService(self, service):
 		self._pluginsLoaded.wait()
-		try:
-			return {pId: p for pId, p in self._plugins.iteritems() if service in p.definition['services']}
-		except TypeError:
-			return {}
+		return {pId: p for pId, p in self._plugins.iteritems() if service in p.services}
 
 	def getPlugin(self, pluginId):
 		self._pluginsLoaded.wait()
