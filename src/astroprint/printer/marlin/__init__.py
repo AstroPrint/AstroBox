@@ -108,7 +108,6 @@ class PrinterMarlin(Printer):
 	def serialList(self):
 		ports = {}
 		if platform == "darwin":
-			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
 			regex = re.compile(r"\/dev\/cu\.usbserial[\w-]+")
 		elif "linux" in os.platform:
 			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
