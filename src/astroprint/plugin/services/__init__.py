@@ -6,6 +6,8 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import logging
 
 class PluginService(object):
+	_validEvents = []
+
 	def __init__(self):
 		self._eventSubscribers = {}
 		self._logger = logging.getLogger('PluginService::%s' % self.__class__.__name__)
@@ -21,11 +23,12 @@ class PluginService(object):
 			events = [events]
 
 		for e in events:
-			if e in self._eventSubscribers:
-				if callback not in self._eventSubscribers[e]:
-					self._eventSubscribers[e].add(callback)
-			else:
-				self._eventSubscribers[e] = set([callback])
+			if e in self._validEvents:
+				if e in self._eventSubscribers:
+					if callback not in self._eventSubscribers[e]:
+						self._eventSubscribers[e].add(callback)
+				else:
+					self._eventSubscribers[e] = set([callback])
 
 	# Unsubscribe from a service event
 	#
@@ -47,10 +50,11 @@ class PluginService(object):
 	# - event: Event name
 	# - data: Data to be passed to the event
 	def publishEvent(self, event, data= None):
-		handlers = self._eventSubscribers.get(event)
-		if handlers:
-			for h in handlers:
-				try:
-					h(event, data)
-				except:
-					self._logger.error('Problem publishing event', exc_info= True)
+		if event in self._validEvents:
+			handlers = self._eventSubscribers.get(event)
+			if handlers:
+				for h in handlers:
+					try:
+						h(event, data)
+					except:
+						self._logger.error('Problem publishing event', exc_info= True)

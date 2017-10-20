@@ -6,6 +6,8 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 from . import PluginService
 
 class PrinterService(PluginService):
+	_validEvents = ['printer_state_changed']
+
 	def __init__(self):
 		super(FilesService, self).__init__()
 

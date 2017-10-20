@@ -6,6 +6,8 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 from . import PluginService
 
 class FilesService(PluginService):
+	_validEvents = ['file_added', 'file_deleted']
+
 	def __init__(self):
 		super(FilesService, self).__init__()
 

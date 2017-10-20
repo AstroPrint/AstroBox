@@ -89,6 +89,22 @@ class Plugin(object):
 		return self._definition['providers'] or []
 
 	#
+	# Services
+	#
+
+	@property
+	def printer(self):
+		return pluginManager().printer
+
+	@property
+	def file(self):
+		return pluginManager().file
+
+	@property
+	def system(self):
+		return pluginManager().system
+
+	#
 	# Directory path where the settings file (config.yaml) is stored
 	#
 
@@ -139,9 +155,41 @@ class PluginManager(object):
 		self._pluginsLoaded = Event()
 		self._eventListeners = {}
 
+		#service containers
+		self._printerService = None
+		self._fileService = None
+		self._systemService = None
+
 	@property
 	def plugins(self):
 		return self._plugins
+
+	@property
+	def printer(self):
+		if self._printerService is None:
+			from .services.printer import PrinterService
+
+			self._printerService = PrinterService()
+
+		return self._printerService
+
+	@property
+	def file(self):
+		if self._fileService is None:
+			from .services.file import FilesService
+
+			self._fileService = FilesService()
+
+		return self._fileService
+
+	@property
+	def system(self):
+		if self._systemService is None:
+			from .services.system import SystemService
+
+			self._systemService = SystemService()
+
+		return self._systemService
 
 	#
 	# Events are:

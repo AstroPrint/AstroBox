@@ -6,5 +6,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 from . import PluginService
 
 class SystemService(PluginService):
+	_validEvents = ['started', 'shutting_down']
+
 	def __init__(self):
 		super(FilesService, self).__init__()
