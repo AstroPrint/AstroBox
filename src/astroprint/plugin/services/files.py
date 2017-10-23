@@ -10,4 +10,3 @@ class FilesService(PluginService):
 
 	def __init__(self):
 		super(FilesService, self).__init__()
-

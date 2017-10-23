@@ -4,6 +4,7 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
+from octoprint.events import eventManager
 
 class PluginService(object):
 	_validEvents = []
@@ -11,12 +12,13 @@ class PluginService(object):
 	def __init__(self):
 		self._eventSubscribers = {}
 		self._logger = logging.getLogger('PluginService::%s' % self.__class__.__name__)
+		self._eventManager = eventManager()
 
 	# Subscribe to a service event(s)
 	#
 	# - events: the event name or an array of event names
 	# - callback: The handler for the event. It will receive the following parameters:
-	#					- event: Event namd
+	#					- event: Event name
 	#					- data: a hash with data (defined per event)
 	def subscribe(self, events, callback):
 		if isinstance(events, basestring):

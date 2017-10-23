@@ -9,4 +9,4 @@ class SystemService(PluginService):
 	_validEvents = ['started', 'shutting_down']
 
 	def __init__(self):
-		super(FilesService, self).__init__()
+		super(SystemService, self).__init__()

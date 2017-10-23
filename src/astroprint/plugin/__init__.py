@@ -97,12 +97,20 @@ class Plugin(object):
 		return pluginManager().printer
 
 	@property
-	def file(self):
-		return pluginManager().file
+	def files(self):
+		return pluginManager().files
 
 	@property
 	def system(self):
 		return pluginManager().system
+
+	@property
+	def network(self):
+		return pluginManager().network
+
+	@property
+	def account(self):
+		return pluginManager().account
 
 	#
 	# Directory path where the settings file (config.yaml) is stored
@@ -159,6 +167,8 @@ class PluginManager(object):
 		self._printerService = None
 		self._fileService = None
 		self._systemService = None
+		self._accountService = None
+		self._networkService = None
 
 	@property
 	def plugins(self):
@@ -174,9 +184,9 @@ class PluginManager(object):
 		return self._printerService
 
 	@property
-	def file(self):
+	def files(self):
 		if self._fileService is None:
-			from .services.file import FilesService
+			from .services.files import FilesService
 
 			self._fileService = FilesService()
 
@@ -191,6 +201,42 @@ class PluginManager(object):
 
 		return self._systemService
 
+
+	@property
+	def account(self):
+		if self._accountService is None:
+			from .services.account import AccountService
+
+			self._accountService = AccountService()
+
+		return self._accountService
+
+	@property
+	def network(self):
+		if self._networkService is None:
+			from .services.network import NetworkService
+
+			self._networkService = NetworkService()
+
+		return self._networkService
+
+		@property
+		def account(self):
+			if self._accountService is None:
+				from .services.account import AccountService
+
+				self._accountService = AcoountService()
+
+			return self._accountService
+
+		@property
+		def network(self):
+			if self._networkService is None:
+				from .services.network import NetworkService
+
+				self._networkService = NetworkService()
+
+			return self._networkService
 	#
 	# Events are:
 	#
