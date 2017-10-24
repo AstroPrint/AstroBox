@@ -108,7 +108,7 @@ class PrinterMarlin(Printer):
 	def serialList(self):
 		ports = {}
 		if platform == "darwin":
-			regex = re.compile(r"\/dev\/cu\.usbserial[\w-]+")
+			regex = re.compile(r"\/dev\/cu\.usb(?:serial|modem)[\w-]+")
 		elif "linux" in os.platform:
 			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
 			regex = re.compile(r"\/dev\/tty(?:ACM|USB|)[0-9]+")
