@@ -112,6 +112,14 @@ class Plugin(object):
 	def account(self):
 		return pluginManager().account
 
+	@property
+	def auth(self):
+		return pluginManager().auth
+
+	@property
+	def camera(self):
+		return pluginManager().camera
+
 	#
 	# Directory path where the settings file (config.yaml) is stored
 	#
@@ -168,6 +176,7 @@ class PluginManager(object):
 		self._fileService = None
 		self._systemService = None
 		self._accountService = None
+		self._authService = None
 		self._networkService = None
 
 	@property
@@ -210,6 +219,25 @@ class PluginManager(object):
 			self._accountService = AccountService()
 
 		return self._accountService
+
+
+	@property
+	def auth(self):
+		if self._authService is None:
+			from .services.auth import AuthService
+
+			self._authService = AuthService()
+
+		return self._authService
+
+	@property
+	def camera(self):
+		if self._cameraService is None:
+			from .services.camera import CameraService
+
+			self._cameraService = CameraService()
+
+		return self._cameraService
 
 	@property
 	def network(self):
