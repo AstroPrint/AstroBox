@@ -19,12 +19,16 @@ def printerManager(driver = None):
 	if _instance is None:
 		import importlib
 
-		# driver name to class map. format is (module, classname)
-		classInfo = {
-			'marlin': ('.marlin', 'PrinterMarlin'),
-			's3g': ('.s3g', 'PrinterS3g'),
-			'virtual': ('.virtual', 'PrinterVirtual')
-		}[driver]
+		try:
+			# driver name to class map. format is (module, classname)
+			classInfo = {
+				'marlin': ('.marlin', 'PrinterMarlin'),
+				's3g': ('.s3g', 'PrinterS3g'),
+				'virtual': ('.virtual', 'PrinterVirtual')
+			}[driver]
+
+		except KeyError:
+			classInfo = ('.marlin', 'PrinterMarlin')
 
 		module = importlib.import_module(classInfo[0], 'astroprint.printer')
 		_instance = getattr(module, classInfo[1])()
