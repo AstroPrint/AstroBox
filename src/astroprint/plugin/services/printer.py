@@ -75,6 +75,51 @@ class PrinterService(PluginService):
 
 		return {}
 
+	def printerPrintheadCommand(self, data, callback):
+		pm = printerManager()
+
+		command = data['command']
+		axis = data['axis']
+
+		if not pm.isOperational() or pm.isPrinting():
+			# do not jog when a print job is running or we don't have a connection
+			callback("Printer is not operational or currently printing",True)
+
+		valid_commands = {
+			"jog": [],
+			"home": ["axes"]
+		}
+
+		valid_axes = ["x", "y", "z"]
+		##~~ jog command
+		if command == "jog":
+			# validate all jog instructions, make sure that the values are numbers
+			validated_values = {}
+			for axis in valid_axes:
+				value = data[axis]
+				if not isinstance(value, (int, long, float)):
+					callback("Not a number for axis " + axis + ": " + value,True)
+				validated_values[axis] = value
+
+
+			# execute the jog commands
+			for axis, value in validated_values.iteritems():
+				pm.jog(axis, value)
+
+		##~~ home command
+		elif command == "home":
+			validated_values = []
+			axes = axis
+			for axis in axes:
+				if not axis in valid_axes:
+					callback("Invalid axis: " + axis,True)
+				validated_values.append(axis)
+
+			# execute the home command
+			pm.home(validated_values)
+
+		callback({'success': 'no_error'})
+
 
 	#EVENTS
 
