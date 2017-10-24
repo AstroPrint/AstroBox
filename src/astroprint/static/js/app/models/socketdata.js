@@ -32,8 +32,7 @@ var SocketData = Backbone.Model.extend({
       status: null
     },
     print_capture: null,
-    tool: null,
-    currentTool: null
+    tool: null
   },
   extruder_count: null,
   initialize: function()
@@ -180,7 +179,6 @@ var SocketData = Backbone.Model.extend({
 
           this.set('paused', flags.paused);
           this.set('camera', flags.camera);
-          this.set('currentTool', data.currentTool);
 
           if (flags.printing || flags.paused) {
             var progress = data.progress;
@@ -267,7 +265,7 @@ var SocketData = Backbone.Model.extend({
             break;
 
             case 'ToolChange':
-              this.set('currentTool', data.currentTool);
+              this.set('tool', data.tool);
               break;
 
             default:

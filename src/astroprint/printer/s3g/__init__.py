@@ -441,7 +441,8 @@ class PrinterS3g(Printer):
 	def changeTool(self, tool):
 		try:
 			if self._selectedTool != tool:
-				super(PrinterS3g, self).mcToolChange(tool, self._selectedTool)
+				self.mcToolChange(tool, self._selectedTool)
+
 				self._selectedTool = tool
 		except ValueError:
 			pass

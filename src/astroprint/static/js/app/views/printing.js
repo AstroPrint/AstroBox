@@ -276,7 +276,6 @@ var PhotoView = CameraViewBase.extend({
           $('.info').removeClass('fullscreen');
         }
     });
-    this.render();
   },
   _formatTime: function(seconds)
   {
