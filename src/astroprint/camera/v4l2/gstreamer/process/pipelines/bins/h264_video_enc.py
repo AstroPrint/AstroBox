@@ -9,9 +9,9 @@ from gi.repository import Gst
 from .base_video_enc import VideoEncBinBase
 
 class H264VideoEncBin(VideoEncBinBase):
-	def __init__(self, size):
+	def __init__(self, size, rotation):
 		self._logger = logging.getLogger(__name__)
-		super(H264VideoEncBin, self).__init__(size)
+		super(H264VideoEncBin, self).__init__(size, rotation)
 
 	def _constructEncChain(self):
 		self.__encoderElement = Gst.ElementFactory.make('omxh264enc', 'h264_encoder')
@@ -29,18 +29,29 @@ class H264VideoEncBin(VideoEncBinBase):
 		self._bin.add(self.__encoderCaps)
 		self._bin.add(self.__rtpElement)
 
-		#H264 created weird gree/red bands when the height is not divisible by 16
+		#H264 created weird gree/red bands when the the size is not divisible by 16
 		#We should crop to the closes if that happens
-
 		first_element = None
 
-		height = self._size[1]
-		modulo = height % 16
-		if modulo > 0:
-			half = modulo/2
+		if self._rotation in [1,3]:
+			#dimentions are flipped
+			height, width = self._size
+		else:
+			width, height = self._size
+
+		modulo_w = width % 16
+		modulo_h = height % 16
+		if modulo_w > 0 or modulo_h > 0:
 			self.__cropElement = Gst.ElementFactory.make('videocrop', 'videocrop')
-			self.__cropElement.set_property('bottom', half)
-			self.__cropElement.set_property('top', modulo - half)
+			if modulo_w > 0:
+				half_w = modulo_w/2
+				self.__cropElement.set_property('left', half_w)
+				self.__cropElement.set_property('right', modulo_w - half_w)
+
+			if modulo_h > 0:
+				half_h = modulo_h/2
+				self.__cropElement.set_property('top', half_h)
+				self.__cropElement.set_property('bottom', modulo_h - half_h)
 
 			self._bin.add(self.__cropElement)
 			self.__cropElement.link(self.__encoderElement)

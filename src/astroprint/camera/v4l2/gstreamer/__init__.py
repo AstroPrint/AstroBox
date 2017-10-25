@@ -38,7 +38,14 @@ class GStreamerManager(V4L2Manager):
 		with self._openCameraCondition:
 			if self._apPipeline is None:
 				try:
-					self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineFataError)
+					self._apPipeline = AstroPrintPipeline(
+						'/dev/video%d' % self.number_of_video_device,
+						self._settings['size'],
+						self._settings['video_rotation'],
+						self._settings['source'],
+						self._settings['encoding'],
+						self._onApPipelineFataError
+					)
 				except Exception as e:
 					self._logger.error('Failed to open camera: %s' % e, exc_info= True)
 					return False

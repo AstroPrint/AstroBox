@@ -12,9 +12,10 @@ class VideoSrcBinBase(object):
 	LOGO_HEIGHT_PERCENT = 0.06 # 6% of the height
 	LOGO_ASPECT_RATIO = 0.2
 
-	def __init__(self, pipeline, device, size):
+	def __init__(self, pipeline, device, size, rotation):
 		self._device = device
 		self._size = size
+		self._rotation = rotation
 		self._bin = pipeline
 
 		lastElement = self._constructSrcChain()

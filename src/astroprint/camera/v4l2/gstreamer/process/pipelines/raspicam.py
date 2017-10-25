@@ -9,12 +9,12 @@ from .bins.v4l2_video_src import RaspicamVideoSrcBin
 from .bins.h264_video_enc import H264VideoEncBin
 
 class GstRaspicamPipeline(GstBasePipeline):
-	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
+	def __init__(self, device, size, rotation, onFatalError, mainLoop, debugLevel):
 		self._logger = logging.getLogger(__name__)
-		super(GstRaspicamPipeline, self).__init__(device, size, onFatalError, mainLoop, debugLevel)
+		super(GstRaspicamPipeline, self).__init__(device, size, rotation, onFatalError, mainLoop, debugLevel)
 
-	def _getVideoSrcBin(self, pipeline, device, size):
-		return RaspicamVideoSrcBin(pipeline, device, size)
+	def _getVideoSrcBin(self, pipeline, device, size, rotation):
+		return RaspicamVideoSrcBin(pipeline, device, size, rotation)
 
-	def _getVideoEncBin(self, size):
-		return H264VideoEncBin(size)
+	def _getVideoEncBin(self, size, rotation):
+		return H264VideoEncBin(size, rotation)

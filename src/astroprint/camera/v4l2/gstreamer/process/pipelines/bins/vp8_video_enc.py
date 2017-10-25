@@ -9,9 +9,9 @@ from gi.repository import Gst
 from .base_video_enc import VideoEncBinBase
 
 class VP8VideoEncBin(VideoEncBinBase):
-	def __init__(self, size):
+	def __init__(self, size, rotation):
 		self._logger = logging.getLogger(__name__)
-		super(VP8VideoEncBin, self).__init__(size)
+		super(VP8VideoEncBin, self).__init__(size, rotation)
 
 	def _constructEncChain(self):
 		self.__encoderElement = Gst.ElementFactory.make('vp8enc', "vp8_encoder")

@@ -11,8 +11,9 @@ from . import EncoderBin
 #
 
 class VideoEncBinBase(EncoderBin):
-	def __init__(self, size):
+	def __init__(self, size, rotation):
 		self._size = size
+		self._rotation = rotation
 		super(VideoEncBinBase, self).__init__('video_enc_bin')
 
 		firstElement, lastElement = self._constructEncChain()
