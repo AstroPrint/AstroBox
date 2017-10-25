@@ -16,5 +16,5 @@ class GstVp8Pipeline(GstBasePipeline):
 	def _getVideoSrcBin(self, pipeline, device, size):
 		return UsbVideoSrcBin(pipeline, device, size)
 
-	def _getVideoEncBin(self):
-		return VP8VideoEncBin()
+	def _getVideoEncBin(self, size):
+		return VP8VideoEncBin(size)

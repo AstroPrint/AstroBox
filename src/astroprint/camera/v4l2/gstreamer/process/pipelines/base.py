@@ -48,7 +48,7 @@ class GstBasePipeline(object):
 		self._pipeline = Gst.Pipeline()
 
 		self._videoSrcBin = self._getVideoSrcBin(self._pipeline, device, size)
-		self._videoEncBin = self._getVideoEncBin()
+		self._videoEncBin = self._getVideoEncBin(size)
 		self._photoCaptureBin = PhotoCaptureBin(self._onNoMorePhotos)
 
 		self._pipeline.add(self._videoEncBin.bin)
@@ -226,7 +226,7 @@ class GstBasePipeline(object):
 	def _getVideoSrcBin(self, pipeline, device, size):
 		pass
 
-	def _getVideoEncBin(self):
+	def _getVideoEncBin(self, size):
 		pass
 
 

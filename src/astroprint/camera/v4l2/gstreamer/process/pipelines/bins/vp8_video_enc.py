@@ -9,14 +9,15 @@ from gi.repository import Gst
 from .base_video_enc import VideoEncBinBase
 
 class VP8VideoEncBin(VideoEncBinBase):
-	def __init__(self):
+	def __init__(self, size):
 		self._logger = logging.getLogger(__name__)
-		super(VP8VideoEncBin, self).__init__()
+		super(VP8VideoEncBin, self).__init__(size)
 
 	def _constructEncChain(self):
 		self.__encoderElement = Gst.ElementFactory.make('vp8enc', "vp8_encoder")
-		self.__encoderElement.set_property('target-bitrate', 500000)
-		self.__encoderElement.set_property('keyframe-max-dist', 500)
+		#Setting these values greatly degrades quality of the VP8 video
+		#self.__encoderElement.set_property('target-bitrate', 500000)
+		#self.__encoderElement.set_property('keyframe-max-dist', 500)
 		#####VERY IMPORTANT FOR VP8 ENCODING: NEVER USES deadline = 0 (default value)
 		self.__encoderElement.set_property('deadline', 1)
 

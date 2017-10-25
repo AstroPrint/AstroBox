@@ -16,5 +16,5 @@ class GstH264Pipeline(GstBasePipeline):
 	def _getVideoSrcBin(self, pipeline, device, size):
 		return UsbVideoSrcBin(pipeline, device, size)
 
-	def _getVideoEncBin(self):
-		return H264VideoEncBin()
+	def _getVideoEncBin(self, size):
+		return H264VideoEncBin(size)

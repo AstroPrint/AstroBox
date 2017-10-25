@@ -171,7 +171,8 @@ class GStreamerManager(V4L2Manager):
 			],
 			'frameSizes': [
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
-				{'value': '1280x720', 'label': 'High (1280 x 720)'}
+				{'value': '1280x720', 'label': 'HD 720p (1280 x 720)'},
+				{'value': '1920x1080', 'label': 'HD 1080p (1920 x 1080)'}
 			],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'}
