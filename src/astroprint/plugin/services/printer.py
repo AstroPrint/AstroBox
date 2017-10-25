@@ -76,10 +76,14 @@ class PrinterService(PluginService):
 		return {}
 
 	def printerPrintheadCommand(self, data, callback):
+		self._logger.info('printerPrintheadCommand')
+		self._logger.info(data)
+		self._logger.info(callback)
+		self._logger.info('-----------------------')
 		pm = printerManager()
 
-		command = data['command']
-		axis = data['axis']
+		command = 'jog'
+		axis = data
 
 		if not pm.isOperational() or pm.isPrinting():
 			# do not jog when a print job is running or we don't have a connection
@@ -94,16 +98,32 @@ class PrinterService(PluginService):
 		##~~ jog command
 		if command == "jog":
 			# validate all jog instructions, make sure that the values are numbers
+
+			self._logger.info('jog')
 			validated_values = {}
 			for axis in valid_axes:
-				value = data[axis]
-				if not isinstance(value, (int, long, float)):
-					callback("Not a number for axis " + axis + ": " + value,True)
-				validated_values[axis] = value
+				self._logger.info('axis')
+				self._logger.info(axis)
+				try:
+					value = data[axis]
+				except:
+					value = None
+				self._logger.info('value')
+				self._logger.info(value)
+				if not isinstance(value,(int,long,float)):
+					self._logger.info('not a number')
+				else:
+					validated_values[axis] = value
+					self._logger.info('value added')
 
+			self._logger.info('before ex')
+			self._logger.info(validated_values['x'])
 
 			# execute the jog commands
 			for axis, value in validated_values.iteritems():
+				self._logger.info('pm')
+				self._logger.info('axis %s',axis)
+				self._logger.info('value &s',value)
 				pm.jog(axis, value)
 
 		##~~ home command
