@@ -103,18 +103,25 @@ class PrinterService(PluginService):
 		callback({'success': 'no_error'})
 
 
-	def printerHomeCommand(self,axes):
+	def printerHomeCommand(self,axes,callback):
+		pm = printerManager()
+
+		self._logger.info('printerHomeCommand')
+
+		self._logger.info(axes)
 
 		valid_axes = ["xy", "z"]
 
-		validated_values = []
-
-		if not axis in valid_axes:
+		if not axes in valid_axes:
 			callback("Invalid axes: " + axes,True)
-		validated_values.append(axis)
 
-		# execute the home command
-		pm.home(validated_values)
+		if axes == 'xy':
+			self._logger.info('xy home')
+			pm.home('x')
+			pm.home('y')
+		else:
+			self._logger.info('z home')
+			pm.home('z')
 
 
 	#EVENTS
