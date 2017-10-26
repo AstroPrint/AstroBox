@@ -188,5 +188,13 @@ class GStreamerManager(V4L2Manager):
 			'videoEncoding': [
 				{'value': 'h264', 'label': 'H.264'},
 				{'value': 'vp8', 'label': 'VP8'}
+			],
+			'video_rotation': [
+				{'value': '0', 'label': 'No Rotation'},
+				{'value': '1', 'label': 'Rotate 90 degrees to the right'},
+				{'value': '3', 'label': 'Rotate 90 degrees to the left'},
+				{'value': '4', 'label': 'Flip horizontally'},
+				{'value': '5', 'label': 'Flip vertically'}
+
 			]
 		}

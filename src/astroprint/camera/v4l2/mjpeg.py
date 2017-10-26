@@ -44,7 +44,8 @@ class MjpegManager(V4L2Manager):
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
 				{'value': 'x-mjpeg', 'label': 'MPJEG Encoded'}
-			]
+			],
+			'video_rotation': []
 		}
 
 	def settingsChanged(self, cameraSettings):

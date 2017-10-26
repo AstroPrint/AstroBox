@@ -517,7 +517,6 @@ var CameraVideoStreamView = SettingsPage.extend({
     $.getJSON(API_BASEURL + 'camera/is-resolution-supported',{ size: attrs.size })
     .done(_.bind(function(response){
       if(response.isResolutionSupported){
-        console.log(attrs)
         $.ajax({
           url: API_BASEURL + 'settings/camera',
           type: 'POST',
