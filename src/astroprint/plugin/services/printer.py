@@ -23,6 +23,8 @@ class PrinterService(PluginService):
 
 	#REQUESTS
 
+	##Printer status
+
 	def getStatus(self):
 		printer = printerManager()
 		cm = cameraManager()
@@ -48,18 +50,7 @@ class PrinterService(PluginService):
 				'capabilities': ['remotePrint'] + cm.capabilities
 			}
 
-	def setPrinterCommand(self,data):
-		print 'data'
-
-	def getTemperature(self):
-		pm = printerManager()
-
-		tempData = pm.getCurrentTemperatures()
-
-		print 'getTemperature'
-		print tempData
-
-		return {}
+	##Printhead movement
 
 	def printerPrintheadCommand(self, data, callback):
 		pm = printerManager()
@@ -111,6 +102,8 @@ class PrinterService(PluginService):
 			pm.home('z')
 
 		callback({'success': 'no_error'})
+
+	##Printer connection
 
 	def getConnection(self):
 
@@ -180,6 +173,19 @@ class PrinterService(PluginService):
 			pm.disconnect()
 
 		callback({'success': 'no_error'})
+
+
+	##Temperature
+
+	def getTemperature(self):
+		pm = printerManager()
+
+		tempData = pm.getCurrentTemperatures()
+
+		self._logger.info('getTemperature')
+		self._logger.info(tempData)
+
+		return tempData
 
 	#EVENTS
 
