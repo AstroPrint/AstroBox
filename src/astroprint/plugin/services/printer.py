@@ -90,15 +90,16 @@ class PrinterService(PluginService):
 				value = data[axis]
 			except:
 				value = None
-			if not isinstance(value,(int,long,float)):
-				self._logger.error('not a number')
-				callback('movement value is not a number',True)
-			else:
+			if isinstance(value,(int,long,float)):
 				validated_values[axis] = value
 
-		# execute the jog commands
-		for axis, value in validated_values.iteritems():
-			pm.jog(axis, value)
+		if len(validated_values) <= 0:
+			self._logger.error('not a number')
+			callback('movement value is not a number',True)
+		else:
+			# execute the jog commands
+			for axis, value in validated_values.iteritems():
+				pm.jog(axis, value)
 
 		callback({'success': 'no_error'})
 
