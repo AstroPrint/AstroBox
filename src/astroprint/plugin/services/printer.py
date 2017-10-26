@@ -187,6 +187,27 @@ class PrinterService(PluginService):
 
 		return tempData
 
+	def setTemperature(self,data,callback):
+
+		pm = printerManager()
+
+		if not pm.isOperational():
+			callback("Printer is not operational", True)
+
+			return
+
+		temperature = data['temperature']
+		element = data['element']
+
+		if not isinstance(target, (int, long, float)):
+			callback("Not a number: " + target, True)
+			return
+		# perform the actual temperature command
+		pm.setTemperature(element, temperature)
+
+		callback({'success': 'no_error'})
+
+
 	#EVENTS
 
 	def _onConnect(self,event,value):
