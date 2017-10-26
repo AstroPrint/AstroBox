@@ -48,20 +48,6 @@ class PrinterService(PluginService):
 				'capabilities': ['remotePrint'] + cm.capabilities
 			}
 
-
-	def getConnection(self):
-
-		pm = printerManager()
-
-		state, port, baudrate = pm.getCurrentConnection()
-		current = {
-			"state": state,
-			"port": port,
-			"baudrate": baudrate
-		}
-
-		return { 'current': current, 'option': pm.getConnectionOptions() }
-
 	def setPrinterCommand(self,data):
 		print 'data'
 
@@ -124,6 +110,76 @@ class PrinterService(PluginService):
 			self._logger.info('z home')
 			pm.home('z')
 
+		callback({'success': 'no_error'})
+
+	def getConnection(self):
+
+		pm = printerManager()
+
+		state, port, baudrate = pm.getCurrentConnection()
+		current = {
+			"state": state,
+			"port": port,
+			"baudrate": baudrate
+		}
+
+		return { 'current': current, 'option': pm.getConnectionOptions() }
+
+
+	def connectionCommand(self,data,callback):
+		valid_commands = {
+			"connect": ["autoconnect"],
+			"disconnect": []
+		}
+
+		pm = printerManager()
+
+		command = data['command']
+
+		if command == "connect":
+			s = settings()
+
+			port = None
+			baudrate = None
+
+			options = pm.getConnectionOptions()
+
+			if "port" in data:
+				port = data["port"]
+				if port not in options["ports"]:
+					callback('Invalid port: ' + port,True)
+
+					return
+
+			if "baudrate" in data:
+				baudrate = int(data["baudrate"])
+				if baudrate:
+					baudrates = options["baudrates"]
+					if baudrates and baudrate not in baudrates:
+						callback('Invalid baudrate: ' + baudrate,True)
+
+						return
+
+				else:
+					callback('Baudrate is null',True)
+
+					return
+
+			if "save" in data and data["save"]:
+				s.set(["serial", "port"], port)
+				s.setInt(["serial", "baudrate"], baudrate)
+
+			if "autoconnect" in data:
+				s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
+
+			s.save()
+
+			pm.connect(port=port, baudrate=baudrate)
+
+		elif command == "disconnect":
+			pm.disconnect()
+
+		callback({'success': 'no_error'})
 
 	#EVENTS
 
