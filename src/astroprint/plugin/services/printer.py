@@ -199,8 +199,8 @@ class PrinterService(PluginService):
 		temperature = data['temperature']
 		element = data['element']
 
-		if not isinstance(target, (int, long, float)):
-			callback("Not a number: " + target, True)
+		if not isinstance(temperature, (int, long, float)):
+			callback("Not a number: " + temperature, True)
 			return
 		# perform the actual temperature command
 		pm.setTemperature(element, temperature)
