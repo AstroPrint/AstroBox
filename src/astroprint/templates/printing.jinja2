@@ -39,7 +39,7 @@
 
   </div>
 
-  <div id="info-heating" class="heating columns large-8 small-12">
+  <div class="heating columns large-8 small-12">
     <div class="small-12 columns" align="center">
       <i class="icon-temperatire blink-animation"></i>
       <b class="clearfix">Heating up...</b>
@@ -276,13 +276,19 @@
 </div>
 
 <div id="temp-control-template" class="row">
-  <div class="small-12 large-8 column end bottom-space" align="center">
-    <div class="temp-subheading text-center">Extruders</div>
-    <div id="slide-extruders-printing" class="extruders"></div>
+  <div class="small-12 large-6 column bottom-space" align="center" id="extruder-container">
+    <div id="extruders" class="row white-background" align="center">
+      <div class="clearfix">
+        <div class="temp-subheading text-center">Extruders</div>
+        <i id="previous" class="icon-angle-left arrow show-for-small-only arrow-disabled small-2 columns"></i><div id="slider-nav" class="small-centered small-10 medium-12 columns"></div><i id="next" class="icon-angle-right arrow show-for-small-only small-2 columns"></i>
+      </div>
+      <div id="slider" class="small-12 large-offset-1 large-10 column" aling="center"></div>
+    </div>
   </div>
+
   <div class="small-12 large-4 column" align="center" id="bed-container">
     <div class="temp-subheading text-center">Bed</div>
-    <div class="bed"></div>
+    <div class="white-background bed"></div>
   </div>
 </div>
 

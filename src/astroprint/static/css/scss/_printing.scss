@@ -2,7 +2,6 @@
 
   .temp-subheading{
     padding-top: 8px;
-    box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
   }
   .controls{
     background: $jet;
@@ -281,9 +280,8 @@
 
   #temp-control-template {
     margin-bottom: 15px;
+    color: $iron;
 
-    .end{
-    }
     .semi-circle-temps {
       .temp-container .buttons-container {
         .temp-target {
@@ -294,28 +292,111 @@
           right: 0px;
         }
       }
+      .progress-temp-circle {
+        left: 0%;
+      }
     }
 
-    .progress-temp-circle {
-      left: 0%;
-    }
-
-    .extruders {
-      height: 250px;
-      margin-bottom: 0px;
+    .white-background {
+      background: $white;
       box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
+      overflow: hidden;
+      margin-bottom: 20px;
+      ::-webkit-scrollbar {
+        -moz-appearance: none !important;
+        background: transparent !important;
+        height: 0;
+      }
+    }
 
-      img.icon-bed{display: none;}
+    #extruder-container {
+      display: inline-block;
+      white-space: nowrap;
+      min-height: 270px;
+      width: 650px;
+      left: 15px;
 
-      .slick-track{
-        margin-top: 74px;
-        -webkit-transition: transform 500ms ease !important;
-        -moz-transition: transform 500ms ease !important;
-        -o-transition: transform 500ms ease !important;
-        transition: transform 500ms ease !important;
+      .arrow {
+        color: $oil;
+        z-index: 4;
+        position: absolute;
+        top: 50px;
+        cursor: pointer;
+        font-size: 18px !important;
 
-        .slick-slide{
-          -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+        &.arrow-disabled{
+          opacity: 0.3;
+          cursor: not-allowed;
+        }
+
+      }
+
+      .icon-angle-left {
+        left: 4px;
+      }
+
+      .icon-angle-right {
+        right: 5px;
+      }
+
+      #slider-nav {
+        white-space: nowrap;
+        overflow: hidden;
+        overflow-x: scroll;
+
+        .nav-extruder {
+          display: inline-block;
+          white-space: nowrap;
+          overflow: hidden;
+          float: none !important;
+          vertical-align: top;
+          margin-top: 5px;
+          height: 55px;
+
+          &.current-slide {
+            .extruder-number {
+              background: url(/img/icon-extruder-active.svg) top no-repeat !important;
+              color: white;
+              height: 45px;
+              font-size: 23px;
+              padding-top: 0;
+              opacity: 1;
+            }
+
+            .all-temps {
+              border: 2px solid;
+              color: #f05251;
+              opacity: 0;
+            }
+          }
+
+          .extruder-number {
+            background: url(/img/icon-extruder.svg) center no-repeat !important;
+            padding: 2px 15px 10px 15px;
+            color: $oil;
+            opacity: 0.5;
+            font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+            text-align: center;
+            display: block;
+            margin: 0 3px;
+          }
+        }
+      }
+
+      #slider {
+        white-space: nowrap;
+        overflow: hidden;
+        overflow-x: scroll;
+        margin-top: 12px;
+        margin-bottom: -12px;
+
+        .semi-circle-temps {
+          display: inline-block;
+          white-space: nowrap;
+          overflow: hidden;
+          float: none !important;
+
+          -webkit-filter: grayscale(100%);
           filter: grayscale(100%);
           cursor: pointer;
             .circle-container{
@@ -333,7 +414,7 @@
               }
           }
 
-          &.slick-current{
+          &.current-slide {
             -webkit-filter: initial;
             filter: initial;
 
@@ -343,54 +424,14 @@
               transition: all 500ms ease;
             }
           }
-
-            &:focus{
-              outline: 0;
-            }
-
         }
 
+        img.icon-bed{display: none;}
       }
-
-      .slick-arrow{
-        color: $oil;
-        z-index: 9999;
-        position: absolute;
-        top: -7px;
-        cursor: pointer;
-        font-size: rem-calc(30);
-
-        &.arrow-disabled {
-          opacity: 0 !important;
-        }
-      }
-
-      .icon-angle-left {
-        left: -7px;
-
-        &.slick-disabled{
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-      }
-
-      .icon-angle-right {
-        right: -7px;
-
-        &.slick-disabled{
-          opacity: 0.3;
-          cursor: not-allowed;
-        }
-      }
-
-      .slick-disabled {
-        opacity: 0;
-        pointer-events:none;
-      }
-
     }
+
     .bed {
-      height: 250px;
+      height: 240px;
       box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
     }
 
@@ -894,72 +935,11 @@
     }
   }
 
-  .slick-dots {
-      padding: 0px 10px;
-      top: 0;
-      left: 0;
-      bottom: initial;
-      font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-      padding-top: 4px;
-
-      li{
-        margin: 0;
-        width: initial;
-        height: initial;
-        vertical-align:top;
-
-        a{
-          background:url(/img/icon-extruder.svg) center no-repeat !important;
-          padding: 2px 15px 10px 15px;
-          color:$oil;
-          opacity: 0.5;
-          text-align: center;
-          display: block;
-          margin: 0 3px;
-        }
-
-        &.slick-active{
-          height: 66px;
-
-          a{
-            background: url(/img/icon-extruder-active.svg) top no-repeat !important;
-            color: white;
-            height: 50px;
-            font-size: 23px;
-            padding:0px 18px 0px 18px;
-            opacity: 1;
-          }
-
-          .all-temps{
-            color: #f05251;
-            opacity: 0;
-            font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-          }
-        }
-
-      .all-temps{
-        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-        font-size: 16px;
-        height: 24px;
-        position: relative;
-        display: block;
-        top: 2px;
-        color: #b9b9b9;
-      }
-
-        button:before {
-          font-size: 16px;
-        }
-      }
-
-    }
-
   #temp-control-template .bed img {
     height: 41px;
     padding-top: 10px;
     margin-bottom: 31px;
   }
-
 }
 
 
@@ -976,6 +956,7 @@
     }
   }
 }
+
 #upgrade-plan{
   .reveal-content img {
     height: 60px;
@@ -1019,22 +1000,6 @@
       font-size: rem-calc(28);
     }
   }
-
-  .slick-track{
-    &.no-center{
-      transform: initial !important;
-      margin: 74px auto 0 auto;
-      max-width: 600px;
-      display: block;
-      white-space: nowrap;
-
-      .slick-slide{
-        margin: 0 auto;
-        float: none;
-        display: inline-block;
-      }
-    }
-  }
 }
 
 @media #{$small-up} {
@@ -1051,10 +1016,6 @@
     .extruders{
       height: 320px;
       border-bottom: 2px dashed gainsboro;
-
-      .slick-track{
-        margin-top: 135px;
-      }
     }
   }
  .button-full-screen{display: none;}
