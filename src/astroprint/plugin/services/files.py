@@ -5,6 +5,12 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 from . import PluginService
 
+from octoprint.settings import settings
+import octoprint.util as util
+
+from astroprint.printer.manager import printerManager
+from astroprint.printfiles import FileDestinations
+
 class FilesService(PluginService):
 	_validEvents = [
 		#watch if a file where added
@@ -16,17 +22,25 @@ class FilesService(PluginService):
 	def __init__(self):
 		super(FilesService, self).__init__()
 
-	def getFiles(self, sendResponse):
+	def getLocalFiles(self, sendResponse):
+		print 'getLocalFiles'
 		try:
-			files = self._getFileList(FileDestinations.LOCAL)
-			files.extend(self._getFileList(FileDestinations.SDCARD))
+			try:
+				files = self._getLocalFileList(FileDestinations.LOCAL)
+			except:
+				pass
+
+			try:
+				files.extend(self._getLocalFileList(FileDestinations.SDCARD))
+			except:
+				pass
 			sendResponse( { 'files': files, 'free': util.getFreeBytes(settings().getBaseFolder("uploads")) })
 
 		except Exception as e:
 			self._logger.error("files can not be obtained", exc_info = True)
 			sendResponse('no_files_obtained',True)
 
-	def _getFileList(self, data):
+	def _getLocalFileList(self, data):
 
 		origin = data
 
