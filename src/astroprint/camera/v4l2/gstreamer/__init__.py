@@ -38,7 +38,14 @@ class GStreamerManager(V4L2Manager):
 		with self._openCameraCondition:
 			if self._apPipeline is None:
 				try:
-					self._apPipeline = AstroPrintPipeline('/dev/video%d' % self.number_of_video_device, self._settings['size'], self._settings['source'], self._settings['encoding'], self._onApPipelineFataError)
+					self._apPipeline = AstroPrintPipeline(
+						'/dev/video%d' % self.number_of_video_device,
+						self._settings['size'],
+						self._settings['video_rotation'],
+						self._settings['source'],
+						self._settings['encoding'],
+						self._onApPipelineFataError
+					)
 				except Exception as e:
 					self._logger.error('Failed to open camera: %s' % e, exc_info= True)
 					return False
@@ -171,7 +178,8 @@ class GStreamerManager(V4L2Manager):
 			],
 			'frameSizes': [
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
-				{'value': '1280x720', 'label': 'High (1280 x 720)'}
+				{'value': '1280x720', 'label': 'HD 720p (1280 x 720)'},
+				{'value': '1920x1080', 'label': 'HD 1080p (1920 x 1080)'}
 			],
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'}
@@ -180,5 +188,13 @@ class GStreamerManager(V4L2Manager):
 			'videoEncoding': [
 				{'value': 'h264', 'label': 'H.264'},
 				{'value': 'vp8', 'label': 'VP8'}
+			],
+			'video_rotation': [
+				{'value': '0', 'label': 'No Rotation'},
+				{'value': '1', 'label': 'Rotate 90 degrees to the right'},
+				{'value': '3', 'label': 'Rotate 90 degrees to the left'},
+				{'value': '4', 'label': 'Flip horizontally'},
+				{'value': '5', 'label': 'Flip vertically'}
+
 			]
 		}

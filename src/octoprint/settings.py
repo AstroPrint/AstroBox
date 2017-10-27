@@ -59,6 +59,7 @@ default_settings = {
 		"source": "USB",
 		"debug-level": 0,
 		"graphic-debug": False,
+		"video-rotation": 0,
 		"inactivitySecs": 90.0 # After 1.5 minutes of inactivity the camera shuts off
 	},
 	"gcodeViewer": {

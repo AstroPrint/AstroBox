@@ -20,12 +20,13 @@ from octoprint.settings import settings
 from .process import startPipelineProcess
 
 class AstroPrintPipeline(object):
-	def __init__(self, device, size, source, encoding, onFatalError):
+	def __init__(self, device, size, rotation, source, encoding, onFatalError):
 		self._logger = logging.getLogger(__name__)
 		self._parentConn, self._processConn = Pipe(True)
 		self._pendingReqs = {}
 		self._lastReqId = 0
 		self._device = device
+		self._rotation = rotation
 		self._source = source.lower()
 		self._encoding = encoding.lower()
 		self._size = tuple([int(x) for x in size.split('x')])
@@ -66,6 +67,7 @@ class AstroPrintPipeline(object):
 			args= (
 				self._device,
 				self._size,
+				self._rotation,
 				self._source,
 				self._encoding,
 				onListeningEvent,
@@ -133,7 +135,7 @@ class AstroPrintPipeline(object):
 	def takePhoto(self, doneCallback, text=None):
 		def postprocesing(resp):
 			if resp:
-				if 'error' in resp:
+				if isinstance(resp, dict) and 'error' in resp:
 					self._logger.error('Error during photo capture: %s' % resp['error'])
 					doneCallback(None)
 				else:
