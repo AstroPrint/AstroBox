@@ -159,14 +159,20 @@ var PhotoView = CameraViewBase.extend({
   onCameraChanged: function(s, value)
   {
     var cameraControls = this.$('.camera-controls');
+    var cameraControlsFullScreen = this.$('.camera-controls-fullscreen');
 
     //Camera controls section
     if (value) {
       if (cameraControls.hasClass('hide')) {
         cameraControls.removeClass('hide');
       }
+      if (cameraControlsFullScreen.hasClass('hide')) {
+        cameraControlsFullScreen.removeClass('hide');
+      }
     } else if (!cameraControls.hasClass('hide')) {
       cameraControls.addClass('hide');
+    } else if (!cameraControlsFullScreen.hasClass('hide')) {
+      cameraControlsFullScreen.addClass('hide');
     }
   },
   onPrintCaptureChanged: function(s, value)
@@ -261,11 +267,11 @@ var PhotoView = CameraViewBase.extend({
     if ($('.camera-view').hasClass('fullscreen')) {
       $('.camera-view').removeClass('fullscreen');
       $('.info').removeClass('fullscreen');
-      $('.heating').removeClass('fullscreen');
+      $('#info-heating').removeClass('fullscreen');
     } else {
       $('.camera-view').addClass('fullscreen');
       $('.info').addClass('fullscreen');
-      $('.heating').addClass('fullscreen');
+      $('#info-heating').addClass('fullscreen');
       $('body, html').animate({scrollTop: ($('.camera-view').offset().top - 15)});
     }
 
@@ -374,6 +380,8 @@ el: '#printing-view',
         this.$el.addClass("heating-up");
       } else {
         this.$el.removeClass("heating-up");
+        this.$el.find('.status-and-buttons').find('.heating').css('display', 'grid');
+        this.$el.find('.status-and-buttons').find('.heating').css('opacity', 0);
       }
     }
 
@@ -613,6 +621,11 @@ el: '#printing-view',
   {
     if (!this.cancelDialog) {
       this.cancelDialog = new CancelPrintDialog({parent: this});
+      if ($('.camera-view').hasClass('fullscreen')) {
+        $('.camera-view').removeClass('fullscreen');
+        $('.info').removeClass('fullscreen');
+        $('#info-heating').removeClass('fullscreen');
+      }
     }
 
     this.cancelDialog.open();
