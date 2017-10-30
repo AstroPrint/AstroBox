@@ -329,6 +329,8 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
     this.currentTool = app.socketData.attributes.tool;
+    this.onToolChanged(null, this.currentTool);
+
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
 
