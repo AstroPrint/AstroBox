@@ -128,6 +128,10 @@
         left: 0;
         transform: translateY(-50%);
       }
+
+      &.no-camera {
+        min-height: 280px !important;
+      }
     }
 
     $camera-controls-height: 60px;
