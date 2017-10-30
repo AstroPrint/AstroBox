@@ -392,6 +392,10 @@ var ExtrusionControlView = Backbone.View.extend({
       }
     }
 
+    if (this.currentTool != $('.extruder-number').val()) {
+      $('.extruder-number').val(this.currentTool);
+    }
+
     if (printer_profile.extruder_count > 1) {
       this.events['change .extruder-number'] = "extruderChanged";
     }
