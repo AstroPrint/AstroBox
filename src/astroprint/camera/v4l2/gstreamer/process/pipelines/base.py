@@ -26,7 +26,7 @@ from .util import waitToReachState
 #
 
 class GstBasePipeline(object):
-	def __init__(self, device, size, onFatalError, mainLoop, debugLevel):
+	def __init__(self, device, size, rotation, onFatalError, mainLoop, debugLevel):
 
 		if not Gst.init_check(None):
 			raise ImportError
@@ -47,8 +47,8 @@ class GstBasePipeline(object):
 
 		self._pipeline = Gst.Pipeline()
 
-		self._videoSrcBin = self._getVideoSrcBin(self._pipeline, device, size)
-		self._videoEncBin = self._getVideoEncBin()
+		self._videoSrcBin = self._getVideoSrcBin(self._pipeline, device, size, rotation)
+		self._videoEncBin = self._getVideoEncBin(size, rotation)
 		self._photoCaptureBin = PhotoCaptureBin(self._onNoMorePhotos)
 
 		self._pipeline.add(self._videoEncBin.bin)
@@ -223,10 +223,10 @@ class GstBasePipeline(object):
 
 	### Implement these in child clases
 
-	def _getVideoSrcBin(self, pipeline, device, size):
+	def _getVideoSrcBin(self, pipeline, device, size, rotation):
 		pass
 
-	def _getVideoEncBin(self):
+	def _getVideoEncBin(self, size, rotation):
 		pass
 
 

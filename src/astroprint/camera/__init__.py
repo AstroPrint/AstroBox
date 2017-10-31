@@ -178,7 +178,8 @@ class CameraManager(object):
 			'size': s.get(["camera", "size"]),
 			'framerate': s.get(["camera", "framerate"]),
 			'format': s.get(["camera", "format"]),
-			'source': s.get(["camera", "source"])
+			'source': s.get(["camera", "source"]),
+			'video_rotation': s.get(["camera", "video-rotation"])
 		}
 
 		self._eventManager = eventManager()

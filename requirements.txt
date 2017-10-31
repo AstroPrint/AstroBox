@@ -18,7 +18,6 @@ closure==20140110
 python-networkmanager==1.0.1
 netifaces
 ws4py==0.3.4
-usbid==1.0.3
 futures==3.0.4
 blinker==1.4
 v4l2==0.2

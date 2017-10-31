@@ -35,7 +35,8 @@ class MjpegManager(V4L2Manager):
 			'videoEncoding': [],
 			'frameSizes': [
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
-				{'value': '1280x720', 'label': 'High (1280 x 720)'}
+				{'value': '1280x720', 'label': 'HD 720p (1280 x 720)'},
+				{'value': '1920x1080', 'label': 'HD 1080p (1920 x 1080)'}
 			],
 			'fps': [
 				{'value': '5', 'label': '5 fps'}
@@ -43,7 +44,8 @@ class MjpegManager(V4L2Manager):
 			'cameraOutput': [
 				{'value': 'x-raw', 'label': 'Raw Video'},
 				{'value': 'x-mjpeg', 'label': 'MPJEG Encoded'}
-			]
+			],
+			'video_rotation': []
 		}
 
 	def settingsChanged(self, cameraSettings):
