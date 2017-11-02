@@ -71,6 +71,14 @@ class FilesService(PluginService):
 				})'''
 		return files
 
+	def _verifyFileExists(self,origin, filename):
+		if origin == FileDestinations.SDCARD:
+			availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
+		else:
+			availableFiles = printerManager().fileManager.getAllFilenames()
+
+		return filename in availableFiles
+
 	def printFile(self, data, sendResponse):
 		fileDestination = fileName = None
 
@@ -84,7 +92,7 @@ class FilesService(PluginService):
 			self._logger.error('Unknown file location', exc_info = True)
 			sendResponse('unknown_file_location',True)
 
-		if not filename or _verifyFileExists(fileDestination, filename):
+		if not filename or not self._verifyFileExists(fileDestination, filename):
 			self._logger.error('File not found', exc_info = True)
 			sendResponse('file_not_found',True)
 
@@ -125,12 +133,12 @@ class FilesService(PluginService):
 
 		sendResponse({'success':'no error'})
 
-
 	def deletePrintFile(self, data, sendResponse):
+
 		fileDestination = fileName = None
 
-		if 'fileDestination' in data:
-			fileDestination = data['fileDestination']
+		if 'location' in data:
+			fileDestination = data['location']
 
 		if 'fileName' in data:
 			fileName = data['fileName']
@@ -140,9 +148,10 @@ class FilesService(PluginService):
 			sendResponse('unknown_file_location',True)
 			return
 
-		if not filename or _verifyFileExists(fileDestination, filename):
+		if not fileName or not self._verifyFileExists(fileDestination, fileName):
 			self._logger.error("File not found", exc_info = True)
 			sendResponse('file_not_found',True)
+			return
 
 		sd = fileDestination == FileDestinations.SDCARD
 
@@ -151,23 +160,23 @@ class FilesService(PluginService):
 		currentJob = printer.getCurrentJob()
 		currentFilename = None
 		currentSd = None
-		if currentJob is not None and "filename" in currentJob.keys() and "sd" in currentJob.keys():
-			currentFilename = currentJob["filename"]
+		if currentJob is not None and "fileName" in currentJob.keys() and "sd" in currentJob.keys():
+			currentFilename = currentJob["fileName"]
 			currentSd = currentJob["sd"]
 
 		# prohibit deleting the file that is currently being printed
-		if currentFilename == filename and currentSd == sd and (printer.isPrinting() or printer.isPaused()):
-			make_response("Trying to delete file that is currently being printed: %s" % filename, 409)
+		if currentFilename == fileName and currentSd == sd and (printer.isPrinting() or printer.isPaused()):
+			sendResponse("Trying to delete file that is currently being printed: %s" % fileName,true)
 
 		# deselect the file if it's currently selected
-		if currentFilename is not None and filename == currentFilename:
+		if currentFilename is not None and fileName == currentFilename:
 			printer.unselectFile()
 
 		# delete it
 		if sd:
-			printer.deleteSdFile(filename)
+			printer.deleteSdFile(fileName)
 		else:
-			printer.fileManager.removeFile(filename)
+			printer.fileManager.removeFile(fileName)
 
 		self.publishEvent('file_deleted','deleted')
 		sendResponse({'success':'no error'})
