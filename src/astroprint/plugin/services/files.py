@@ -97,32 +97,26 @@ class FilesService(PluginService):
 			self._logger.error('File not found', exc_info = True)
 			sendResponse('file_not_found',True)
 
-		# valid file commands, dict mapping command name to mandatory parameters
-		valid_commands = {
-			"select": []
-		}
-
 		printer = printerManager()
 
 		# selects/loads a file
 		printAfterLoading = False
-		if "print" in data.keys() and data["print"]:
+		if not printer.isOperational():
+			#We try at least once
+			printer.connect()
+
+			start = time.time()
+			connect_timeout = 5 #5 secs
+
+			while not printer.isOperational() and not printer.isClosedOrError() and time.time() - start < connect_timeout:
+				time.sleep(1)
+
 			if not printer.isOperational():
-				#We try at least once
-				printer.connect()
+				self._logger.error("The printer is not responding, can't start printing", exc_info = True)
+				sendResponse('printer_not_responding',True)
+				return
 
-				start = time.time()
-				connect_timeout = 5 #5 secs
-
-				while not printer.isOperational() and not printer.isClosedOrError() and time.time() - start < connect_timeout:
-					time.sleep(1)
-
-				if not printer.isOperational():
-					self._logger.error("The printer is not responding, can't start printing", exc_info = True)
-					sendResponse('printer_not_responding',True)
-					return
-
-			printAfterLoading = True
+		printAfterLoading = True
 
 		sd = False
 		if fileDestination == FileDestinations.SDCARD:
