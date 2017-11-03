@@ -80,10 +80,11 @@ class FilesService(PluginService):
 		return filename in availableFiles
 
 	def printFile(self, data, sendResponse):
+		print 'printFile'
 		fileDestination = fileName = None
 
-		if 'fileDestination' in data:
-			fileDestination = data['fileDestination']
+		if 'location' in data:
+			fileDestination = data['location']
 
 		if 'fileName' in data:
 			fileName = data['fileName']
@@ -92,7 +93,7 @@ class FilesService(PluginService):
 			self._logger.error('Unknown file location', exc_info = True)
 			sendResponse('unknown_file_location',True)
 
-		if not filename or not self._verifyFileExists(fileDestination, filename):
+		if not fileName or not self._verifyFileExists(fileDestination, fileName):
 			self._logger.error('File not found', exc_info = True)
 			sendResponse('file_not_found',True)
 
@@ -124,14 +125,18 @@ class FilesService(PluginService):
 			printAfterLoading = True
 
 		sd = False
-		if target == FileDestinations.SDCARD:
-			filenameToSelect = filename
+		if fileDestination == FileDestinations.SDCARD:
+			filenameToSelect = fileName
 			sd = True
 		else:
-			filenameToSelect = printer.fileManager.getAbsolutePath(filename)
-		printer.selectFile(filenameToSelect, sd, printAfterLoading)
+			filenameToSelect = printer.fileManager.getAbsolutePath(fileName)
 
-		sendResponse({'success':'no error'})
+		startPrintingStatus = printer.selectFile(filenameToSelect, sd, printAfterLoading)
+
+		if startPrintingStatus:
+			sendResponse({'success':'no error'})
+		else:
+			sendResponse('printer_not_responding',True)
 
 	def deletePrintFile(self, data, sendResponse):
 
