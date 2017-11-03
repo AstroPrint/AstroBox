@@ -5,6 +5,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 from . import PluginService
 from octoprint.events import Events
+from octoprint.settings import settings
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from astroprint.boxrouter import boxrouterManager
