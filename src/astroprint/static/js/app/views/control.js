@@ -8,22 +8,21 @@ var TempView = Backbone.View.extend({
   el: '#temp-control-template',
   semiCircleTemp_views: {},
   navExtruders_views: {},
-  navSlideToShow: null,
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
-  classNoCenter: '',
+  events: {
+    'click .nav-extruder': 'navExtruderClicked',
+    'click .semi-circle-temps': 'semiCircleTempsClicked',
+    'click .arrow': 'arrowClicked'
+  },
   initialize: function()
   {
     new SemiCircleProgress();
 
-    this.navSlideToShow = 5;
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-    if (this.extruders_count != 1) {
-      this.classNoCenter = 'no-center';
-    }
 
     this.renderCircleTemps();
   },
@@ -35,23 +34,28 @@ var TempView = Backbone.View.extend({
 
     var semiCircleTemp = null;
 
+    this.$el.find('#slider-nav').empty();
+    this.$el.find('#slider').empty();
+    this.$el.find('.bed').empty();
+
     //extruders
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
-      this.$el.find('#slide-extruders').append(this.semiCircleTemp_views[i].render().el);
+      this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
 
       if (this.socketTemps.lenght > 0) {
         temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
       } else {
         temps = {current: null, target: null};
       }
-
       this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
+
       //nav-extruders
       var tempId = "temp-" + i;
-      this.navExtruders_views[i] = '<h4 id='+ tempId +'><span class="extrusor-number">' + (i+1) + '</span><span class="all-temps"></span></h4>';
-      this.$el.find('.nav-extruders').append(this.navExtruders_views[i]);
+
+      this.navExtruders_views[i] = '<div class="nav-extruder'+ ((i == 0)? " current-slide" : "") + '" id='+ tempId +'><a class="extruder-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
+      this.$el.find('#slider-nav').append(this.navExtruders_views[i]);
     }
 
     //bed
@@ -73,43 +77,16 @@ var TempView = Backbone.View.extend({
     this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
 
     for (var i = 0; i <= this.extruders_count; i++) {
-      $("#"+this.semiCircleTemp_views[i].el.id+" .progress-temp-circle").circleProgress({
-        value: temps.current,
-        arcCoef: 0.55,
-        size: 180,
-        thickness: 20,
-        fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
-      });
+      this._setCircleProgress(i);
     }
 
-    this.$('#slide-extruders').slick({
-      slidesToShow: 1,
-      slidesToScroll: 1,
-      infinite: false,
-      adaptiveHeight: true,
-      fade: true,
-      arrows: false,
-      asNavFor: this.$('.nav-extruders')
-    });
-    this.$('.nav-extruders').slick({
-      slidesToShow: this.navSlideToShow,
-      slidesToScroll: 1,
-      arrows: true,
-      centerMode: true,
-      centerPadding: '10px',
-      infinite: false,
-      focusOnSelect: true,
-      prevArrow: '<i class="icon-angle-left"></i>',
-      nextArrow: '<i class="icon-angle-right"></i>',
-      asNavFor: this.$('#slide-extruders')
-    });
-
+    if (this.extruders_count > 4) {
+      this.$el.find('#previous').removeClass('hide');
+      this.$el.find('#next').removeClass('hide');
+    }
     if (this.socketTemps.length > 0) {
       this.updateTemps(this.socketTemps);
     }
-
-    this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
-
   },
   updateTemps: function(value) {
     var temps = {};
@@ -132,6 +109,18 @@ var TempView = Backbone.View.extend({
       }
 
     }
+    for (var i = 0; i <= this.extruders_count; i++) {
+      this._setCircleProgress(i);
+    }
+  },
+  _setCircleProgress: function(index) {
+    $("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
+      //value: temps.current,
+      arcCoef: 0.55,
+      size: 180,
+      thickness: 20,
+      fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+    });
   },
   show: function()
   {
@@ -165,75 +154,115 @@ var TempView = Backbone.View.extend({
       }
 
       var currentTool = app.socketData.attributes.tool;
-
-      if (this.$('#slide-extruders').hasClass('slick-initialized')) {
-        console.log("unslick slide-extruders")
-        this.$('#slide-extruders').slick('unslick');
-      }
-      if (this.$('.nav-extruders').hasClass('slick-initialized')) {
-        console.log("unslick nav-extruders")
-        this.$('.nav-extruders').slick('unslick');
+      if (currentTool != null) {
+        console.log("En TempView, dentro de show llamo a onToolChanged")
+        this.onToolChanged(null, currentTool);
       }
 
-      this.$('#slide-extruders').slick({
-        slidesToShow: 1,
-        slidesToScroll: 1,
-        infinite: false,
-        adaptiveHeight: true,
-        fade: true,
-        arrows: false,
-        asNavFor: this.$('.nav-extruders')
-      });
-      this.$('.nav-extruders').slick({
-        slidesToShow: this.navSlideToShow,
-        slidesToScroll: 1,
-        arrows: true,
-        //adaptiveHeight: true,
-        centerMode: true,
-        centerPadding: '10px',
-        infinite: false,
-        focusOnSelect: true,
-        prevArrow: '<i class="icon-angle-left"></i>',
-        nextArrow: '<i class="icon-angle-right"></i>',
-        asNavFor: this.$('#slide-extruders')
-      });
+    }
+  },
+  onToolChanged: function(s, extruderId) {
+    this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
+    this.$('#slider').find('.current-slide').removeClass('current-slide');
+    this.scrollSliderNav(extruderId);
+    this.scrollSlider(extruderId);
+    this.$('#tool'+extruderId).addClass('current-slide');
+    this.$('#temp-'+extruderId).addClass('current-slide');
+    this.checkedArrows(extruderId);
+  },
+  navExtruderClicked: function(e) {
+    var target = $(e.currentTarget);
+    var extruderId = (target.attr('id')).substring(5);
 
-      this.$('#slide-extruders').slick('slickGoTo', currentTool, false);
+    this.scrollSlider(extruderId);
 
+    //this.$("#slider").scrollLeft((scrollWidth/this.extruders_count) * slides);
+    this.checkedArrows(extruderId);
 
-      this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
+    this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
+    target.addClass('current-slide');
+    this.$('#slider').find('.current-slide').removeClass('current-slide');
+    this.$('#tool'+extruderId).addClass('current-slide');
+  },
+  semiCircleTempsClicked: function(e) {
+    var target = $(e.currentTarget);
+    var elementId = target.attr('id');
 
-      // On before slide change
-      this.$('.nav-extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
-        if (nextSlide > (this.navSlideToShow/2)) {
-          this.$('.nav-extruders').find('.slick-track').removeClass(this.classNoCenter);
-        } else {
-          this.$('.nav-extruders').find('.slick-track').addClass(this.classNoCenter);
+    if (elementId != 'bed') {
+      var extruderId = (elementId).substring(4);
+
+      this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
+      this.$('#temp-'+extruderId).addClass('current-slide');
+      this.$('#slider').find('.current-slide').removeClass('current-slide');
+
+      target.addClass('current-slide');
+      this.scrollSliderNav(extruderId)
+    }
+  },
+  arrowClicked: function(e) {
+    var target = $(e.currentTarget);
+    var action = target.attr('id');
+    var currentSlideNav = this.$('#slider-nav').find('.current-slide');
+    var currentSlide = this.$('#slider').find('.current-slide');
+
+    var extruderId = parseInt(currentSlideNav.attr('id').substring(5));
+    if (action == 'previous' && extruderId > 0) {
+      extruderId = (extruderId > 0) ? extruderId - 1 : extruderId;
+    } else if (action == 'next' && (extruderId+1) < this.extruders_count) {
+      extruderId = (extruderId < this.extruders_count) ? extruderId + 1 : extruderId;
+    } else {
+      target.addClass('arrow-disabled');
+    }
+    this.checkedArrows(extruderId);
+
+    currentSlideNav.removeClass('current-slide');
+    currentSlide.removeClass('current-slide');
+
+    this.scrollSliderNav(extruderId)
+    this.scrollSlider(extruderId);
+
+    this.$('#tool'+extruderId).addClass('current-slide');
+    this.$('#temp-'+extruderId).addClass('current-slide');
+  },
+  scrollSlider: function(extruderId) {
+    var scrollWidth = this.$("#slider")[0].scrollWidth;
+    var width = this.$("#slider").width();
+    var slides = 0;
+
+    if (width > 400) {
+      if (this.extruders_count > 3) {
+        if (extruderId > 1) {
+          slides = extruderId - 1;
         }
-      }, this));
+      }
+    } else {
+      if (this.extruders_count > 2) {
+        if (extruderId >= 1) {
+          slides = extruderId;
+        }
+      }
+    }
+    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides)}, 400);
+  },
+  scrollSliderNav: function(extruderId) {
+    var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
+    var width = this.$("#slider-nav").width();
+    var prueba = (width/4)+ this.$("#slider-nav").scrollLeft();
+    //console.log("prueba", prueba * (extruderId-1))
+    this.$("#slider-nav").animate({scrollLeft: prueba * (extruderId-1)});
+    //this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
+  },
+  checkedArrows: function(extruderId) {
+    if (extruderId > 0) {
+      this.$('#previous').removeClass('arrow-disabled');
+    } else {
+      this.$('#previous').addClass('arrow-disabled');
+    }
 
-      // On before slide change
-      this.$('#slider-extruders').on('beforeChange', _.bind(function(event, slick, currentSlide, nextSlide){
-        this.$('.nav-extruders').slick('slickGoTo', nextSlide, false);
-      }, this));
-
-      this.$('#slide-extruders').on('setPosition', _.bind(function(event, slick) {
-        //console.log("sssetposition", slick.currentSlide)
-      }, this));
-      this.$('.nav-extruders').on('setPosition', _.bind(function(event, slick) {
-        //console.log("1ssetposition", slick.currentSlide)
-      }, this));
-
-      // On after slide change
-      this.$('#slide-extruders').on('afterChange', _.bind(function(event, slick, currentSlide){
-        var currentElement = this.$('#slide-extruders').find('.slick-current').find('.current');
-        currentElement.addClass('animated pulse');
-        currentElement.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-          currentElement.removeClass('pulse');
-        }.bind(this));
-
-    }, this));
-
+    if (extruderId < (this.extruders_count-1)) {
+      this.$('#next').removeClass('arrow-disabled');
+    } else {
+      this.$('#next').addClass('arrow-disabled');
     }
   }
 });
@@ -370,10 +399,6 @@ var ExtrusionControlView = Backbone.View.extend({
       this.currentTool = 0;
     }
   },
-  onToolChanged: function(s, value)
-  {
-    this.currentTool = value;
-  },
   render: function()
   {
     var printer_profile = app.printerProfile.toJSON();
@@ -385,7 +410,7 @@ var ExtrusionControlView = Backbone.View.extend({
     if (this.currentTool != null) {
       $('.extruder-number').val(this.currentTool);
 
-      $('#slide-extruders').slick('slickGoTo', this.currentTool, false);
+      //$('#slide-extruders').slick('slickGoTo', this.currentTool, false);
 
       if ($('.extruder-number').hasClass('no-selected')) {
         $('.extruder-number').removeClass('no-selected');
@@ -438,9 +463,11 @@ var ExtrusionControlView = Backbone.View.extend({
   },
   extruderChanged: function(e)
   {
+    var selectedTool = $(e.target).val();
     console.log("Changed select of extruder for: ", $(e.target).val());
-    this.currentTool = $(e.target).val();
-    this._sendChangeToolCommand($(e.target).val())
+
+    this.setCurrentTool(selectedTool)
+    this._sendChangeToolCommand(selectedTool)
   },
   onKeyDownBackToSelect: function(e)
   {
@@ -499,6 +526,10 @@ var ExtrusionControlView = Backbone.View.extend({
   },
   setCurrentTool: function(tool) {
     this.currentTool = tool;
+  },
+  onToolChanged: function(s, value)
+  {
+    this.setCurrentTool(value);
   }
 });
 
@@ -638,6 +669,7 @@ var ControlView = Backbone.View.extend({
   },
   render: function()
   {
+    console.log("entra por render controlView")
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
@@ -676,16 +708,26 @@ var ControlView = Backbone.View.extend({
   },
   onToolChanged: function(s, value)
   {
-    if (!($('.extruder-number').val() == value) || this.currentTool == null) {
-      this.currentTool = value;
-      this.extrusionView.setCurrentTool(value);
-      this.extrusionView.render();
-      $('.extruder-number').val(value);
-      $('#slide-extruders').slick('slickGoTo', value, false);
+    if (value != null) {
+      var extruderNumber = $('.extruder-number').val();
+      console.log("extruderNumber", extruderNumber);
+      console.log("this.currentTool", this.currentTool);
+      if (this.currentTool != extruderNumber){
+        this.currentTool = value;
+        this.tempView.onToolChanged(null, value);
+      }
 
-      if ($('.extruder-number').hasClass('no-selected')) {
-        $('.extruder-number').removeClass('no-selected');
+      if (!(extruderNumber == value)) {
+        this.extrusionView.setCurrentTool(value);
+        this.extrusionView.render();
+        $('.extruder-number').val(value);
+
+        if ($('.extruder-number').hasClass('no-selected')) {
+          $('.extruder-number').removeClass('no-selected');
+        }
       }
     }
+
+
   }
 });

@@ -360,6 +360,7 @@ html.no-printer {
   }
 }
 #temp-control-template {
+  color: $iron;
   padding-right: 0;
   hr {
     border: dashed #DDDDDD;
@@ -369,129 +370,136 @@ html.no-printer {
     background: $white;
   }
 
-  .no-paddingleft{
+  .no-paddingleft {
     padding-left: 0;
-    }
-
-  .extruders {
-    img.icon-bed{display: none;}
-
-    @include radius($global-radius);
-    color: $iron;
-    background: $white;
-    margin-bottom: 0;
-    height: 185px;
-
-    .slick-arrow {
-      font-size: 40px;
-      padding-bottom: -20px;
-      cursor: pointer;
-    }
-
-    .slick-disabled {
-      opacity: 0;
-      pointer-events:none;
-    }
   }
 
-  .nav-extruders{
-    background-color: $white;
-    padding: 0px 30px;
+  #extruder-container {
+    display: inline-block;
+    white-space: nowrap;
+    min-height: 260px;
+    width: 318px;
+    left: 15px;
+    background: $white;
 
-    .slick-list{
-      padding: 0px !important;
-    }
-
-    .slick-track{
-      -webkit-transition: transform 500ms ease !important;
-      -moz-transition: transform 500ms ease !important;
-      -o-transition: transform 500ms ease !important;
-      transition: transform 500ms ease !important;
-      display: flex;
-      justify-content: center;
-      height: 60px;
-
-      &.no-center{
-        transform: initial !important;
-        margin: 0 auto;
-      }
-
-      h4{
-        margin: 0;
-      }
-    }
-
-    h4{
-      opacity: 0.5;
-      text-align: center;
-
-      &.slick-current{
-        opacity: 1;
-      }
-
-      .extrusor-number {
-        background:url(/img/icon-extruder.svg) top no-repeat !important;
-        font-size: rem-calc(18);
-        font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-        color: $oil;
-        cursor: pointer;
-        display: block;
-        height: 34px;
-      }
-
-      .all-temps{
-        font-family: sans-serif;
-        font-family: "nexa_lightregular", "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
-        font-size: 16px;
-        height: 24px;
-        position: relative;
-        display: block;
-        top: 1px;
-      }
-
-      &.slick-current .extrusor-number{
-        background:url(/img/icon-extruder-active.svg) top no-repeat !important;
-        color: white;
-        height: 50px;
-        font-size: 24px;
-        padding-top: 2px;
-        opacity: 1;
-
-        +.all-temps{
-          display: none;
-          font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
-        }
-      }
-
-    }
-
-    .slick-arrow{
+    .arrow {
       color: $oil;
-      z-index: 9999;
+      z-index: 4;
       position: absolute;
-      top: -7px;
+      top: 50px;
       cursor: pointer;
-      font-size: rem-calc(30);
+      font-size: 18px !important;
+
+      &.arrow-disabled{
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
     }
 
     .icon-angle-left {
-      left: 12px;
-
-      &.slick-disabled{
-        opacity: 0.3;
-        cursor: not-allowed;
-      }
+      left: 4px;
     }
 
     .icon-angle-right {
-      right: 14px;
+      right: 5px;
+    }
 
-      &.slick-disabled{
-        opacity: 0.3;
-        cursor: not-allowed;
+    #slider-nav {
+      white-space: nowrap;
+      overflow: hidden;
+      overflow-x: scroll;
+
+      .nav-extruder {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        float: none !important;
+        vertical-align: top;
+        margin-top: 5px;
+        height: 55px;
+        width: 50px;
+
+        &.current-slide {
+          .extruder-number {
+            background: url(/img/icon-extruder-active.svg) top no-repeat !important;
+            color: white;
+            height: 45px;
+            font-size: 23px;
+            padding-top: 0;
+            opacity: 1;
+          }
+
+          .all-temps {
+            border: 2px solid;
+            color: #f05251;
+            opacity: 0;
+          }
+        }
+
+        .extruder-number {
+          background: url(/img/icon-extruder.svg) center no-repeat !important;
+          padding: 2px 15px 10px 15px;
+          color: $oil;
+          opacity: 0.5;
+          font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+          text-align: center;
+          display: block;
+          margin: 0 3px;
+        }
       }
     }
 
+    #slider {
+      white-space: nowrap;
+      overflow: hidden;
+      overflow-x: scroll;
+      margin-top: 12px;
+      margin-bottom: -12px;
+      padding: 0;
+
+      .semi-circle-temps {
+        display: inline-block;
+        white-space: nowrap;
+        overflow: hidden;
+        float: none !important;
+        width: 316px;
+
+        -webkit-filter: grayscale(100%);
+        filter: grayscale(100%);
+        cursor: pointer;
+        .circle-container {
+          opacity: 0.5;
+          transform: scale(0.75);
+          transition: all 500ms ease;
+        }
+
+        &:hover{
+          transition: all 500ms ease;
+
+            .circle-container{
+              opacity: 1;
+              transition: all 500ms ease;
+            }
+        }
+
+        &.current-slide {
+          -webkit-filter: initial;
+          filter: initial;
+
+          .circle-container{
+            transform: scale(0.95);
+            opacity: 1;
+            transition: all 500ms ease;
+          }
+        }
+        .graphic-container {
+          width: 100%;
+        }
+      }
+
+      img.icon-bed{display: none;}
+    }
   }
 
   .bed {

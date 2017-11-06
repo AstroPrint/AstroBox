@@ -51,7 +51,7 @@
 
     <div class="small-12 large-4 columns camera-view" align="center">
       <script type="text/template" id="photo-printing-template">
-        <% if(this.cameraAvailable) { %>
+        <% if(this.cameraAvailable && !(this.cameraNotSupported || this.videoStreamingError || !this.canStream)) { %>
           <div class="button-full-screen"><i class="icon-resize-full"></i><i class="icon-resize-small"></i></div>
         <% } %>
         <% if(this.cameraAvailable) {

@@ -272,6 +272,7 @@ var PhotoView = CameraViewBase.extend({
       $('.camera-view').addClass('fullscreen');
       $('.info').addClass('fullscreen');
       $('.heating').addClass('fullscreen');
+      $('.status-and-buttons').find('.heating').removeClass('fullscreen');
       $('body, html').animate({scrollTop: ($('.camera-view').offset().top - 15)});
     }
 
@@ -329,8 +330,6 @@ el: '#printing-view',
 
     var profile = app.printerProfile.toJSON();
     this.currentTool = app.socketData.attributes.tool;
-    this.onToolChanged(null, this.currentTool);
-
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
 
@@ -455,6 +454,8 @@ el: '#printing-view',
       thickness: 20,
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
+
+    this.onToolChanged(null, this.currentTool);
   },
   onTempsChanged: function(s, value)
   {

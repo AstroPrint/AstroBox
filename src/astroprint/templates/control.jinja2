@@ -161,18 +161,23 @@
 
   <div id="temp-control-template" class="medium-12 large-4 column temp-container">
     <div class="heading-box bold">Temperatures</div>
-      <div class="row clearfix">
-        <div class="small-12 column">
-          <div class="temp-subheading text-center"><span>Extruders</span></div>
-          <div class="nav-extruders text-center"></div>
-          <div id="slide-extruders" class="extruders clearfix"></div>
-        </div>
-        <div class="small-12 column" id="bed-container">
-          <hr>
-          <div class="temp-subheading text-center"><span>Bed</span></div>
-          <div class="bed text-center clearfix"></div>
+    <div class="row clearfix">
+      <div class="small-12 column bottom-space" align="center" id="extruder-container">
+        <div id="extruders" class="row" align="center">
+          <div class="clearfix">
+            <div class="temp-subheading text-center">Extruders</div>
+            <i id="previous" class="icon-angle-left arrow arrow-disabled hide small-2 columns"></i><div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide small-2 columns"></i>
+          </div>
+          <div id="slider" class="small-12 column clearfix" aling="center"></div>
         </div>
       </div>
+
+      <div class="small-12 column" id="bed-container">
+        <hr>
+        <div class="temp-subheading text-center"><span>Bed</span></div>
+        <div class="bed text-center clearfix"></div>
+      </div>
+    </div>
   </div>
 
   <div class="no-connection-overlay">
