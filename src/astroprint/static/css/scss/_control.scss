@@ -229,6 +229,7 @@
 }
 
 #control-view {
+
   >.row:first-child{overflow: hidden;}
 
   :focus{
@@ -362,6 +363,7 @@ html.no-printer {
 #temp-control-template {
   color: $iron;
   padding-right: 0;
+
   hr {
     border: dashed #DDDDDD;
     border-width: 2px 0 0;
@@ -374,21 +376,23 @@ html.no-printer {
     padding-left: 0;
   }
 
+  #bed-container{
+    background: $white;
+  }
+
   #extruder-container {
     display: inline-block;
     white-space: nowrap;
     min-height: 260px;
-    width: 318px;
-    left: 15px;
     background: $white;
 
     .arrow {
       color: $oil;
       z-index: 4;
       position: absolute;
-      top: 50px;
+      top: 21px;
       cursor: pointer;
-      font-size: 18px !important;
+      font-size: 36px !important;
 
       &.arrow-disabled{
         opacity: 0.3;
@@ -398,18 +402,20 @@ html.no-printer {
     }
 
     .icon-angle-left {
-      left: 4px;
+      left: 0;
     }
 
     .icon-angle-right {
-      right: 5px;
+      right: 0;
     }
+
 
     #slider-nav {
       white-space: nowrap;
       overflow: hidden;
       overflow-x: scroll;
-
+      padding: 0 3%;
+      
       .nav-extruder {
         display: inline-block;
         white-space: nowrap;
@@ -445,10 +451,18 @@ html.no-printer {
           font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
           text-align: center;
           display: block;
-          margin: 0 3px;
+          margin: 0 3px 0 0;
         }
       }
+
+      &::-webkit-scrollbar {
+          -moz-appearance: none !important;
+          background: transparent !important;
+          height: 0;
+        }
     }
+
+
 
     #slider {
       white-space: nowrap;
@@ -506,7 +520,6 @@ html.no-printer {
     padding-bottom: 15px;
     @include radius($global-radius);
     color: $iron;
-    background: $white;
 
     img{
       height: 36px;

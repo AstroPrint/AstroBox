@@ -179,9 +179,9 @@
             </div>
             <div class="camera-controls-fullscreen">
               <div class="row collapse">
-                <div class="info-container medium-12 large-5 columns" align="left">
+                <div class="info-container medium-12 large-6 columns" align="left">
                   <div class="row clearfix">
-                    <div class="printing-info small-3 columns">
+                    <div class="printing-info small-4 columns">
                       <div class="time-group text-left">
                           <i class="icon-clock-1"></i> <b><span class="estimated-hours">--</span>:<span class="estimated-minutes">--</span>:<span class="estimated-seconds">--</span></b>
                       </div>
@@ -189,7 +189,7 @@
                           <i class="icon-layers"></i> <span class="current-layer bold">-</span><span class="of"> of </span> <span class="layer-count bold">-</span>
                       </div>
                     </div>
-                    <div class="progress-info-section small-9 columns">
+                    <div class="progress-info-section small-8 columns">
                       <div class="success progress radius row clearfix collapse">
                           <span class="filename printfile-info-name columns small-6 medium-8"></span>
                           <span class="progress-label columns small-6 medium-4 text-right bold"></span>
@@ -198,7 +198,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="status-and-buttons medium-2 large-2 columns text-center">
+                <div class="status-and-buttons medium-3 large-1 columns text-center">
                   <div class="heating small-12 columns" align="center">
                     <i class="icon-temperatire blink-animation"></i>
                   </div>
@@ -206,7 +206,7 @@
                     <button class="alert radius stop-print expand"><i class="icon-cancel-circled"></i> Cancel</button>
                   </div>
                 </div>
-                <div class="medium-2 large-2 columns border-left" align="center">
+                <div class="medium-3 large-2 columns" align="right">
                   <div class="timelapse">
                     <i id="printIcon" class="icon-picture"></i>
                     <select id="freqSelector" class="bold" align="center">
@@ -227,7 +227,7 @@
                     <div class="overlay" style="display:none"></div>
                   </div>
                 </div>
-                <div class="medium-5 large-1 columns left buttons" align="right">
+                <div class="medium-3 large-1 columns left buttons" align="right">
                   <% if(this.cameraMode == 'video') { %>
                     <div class="loading-button">
                       <div class="video-off">
@@ -278,13 +278,13 @@
 </div>
 
 <div id="temp-control-template" class="row">
-  <div class="small-12 large-6 column bottom-space" align="center" id="extruder-container">
-    <div id="extruders" class="row white-background" align="center">
+  <div class="small-12 medium-12 large-8 column bottom-space" align="center" id="extruder-container">
+    <div id="extruders" class="white-background" align="center">
       <div class="clearfix">
         <div class="temp-subheading text-center">Extruders</div>
-        <i id="previous" class="icon-angle-left arrow show-for-small-only arrow-disabled small-2 columns"></i><div id="slider-nav" class="small-centered small-10 medium-12 columns"></div><i id="next" class="icon-angle-right arrow show-for-small-only small-2 columns"></i>
+        <i id="previous" class="icon-angle-left arrow show-for-small-only arrow-disabled"></i><div id="slider-nav" class="small-centered small-9 medium-12 columns"></div><i id="next" class="icon-angle-right arrow show-for-small-only"></i>
       </div>
-      <div id="slider" class="small-12 large-offset-1 large-10 column" aling="center"></div>
+      <div id="slider" class="small-12 medium-11 small-centered column" aling="center"></div>
     </div>
   </div>
 
