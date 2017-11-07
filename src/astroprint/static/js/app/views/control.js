@@ -155,7 +155,6 @@ var TempView = Backbone.View.extend({
 
       var currentTool = app.socketData.attributes.tool;
       if (currentTool != null) {
-        console.log("En TempView, dentro de show llamo a onToolChanged")
         this.onToolChanged(null, currentTool);
       }
 
@@ -164,10 +163,13 @@ var TempView = Backbone.View.extend({
   onToolChanged: function(s, extruderId) {
     this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
     this.$('#slider').find('.current-slide').removeClass('current-slide');
+
     this.scrollSliderNav(extruderId);
     this.scrollSlider(extruderId);
+
     this.$('#tool'+extruderId).addClass('current-slide');
     this.$('#temp-'+extruderId).addClass('current-slide');
+
     this.checkedArrows(extruderId);
   },
   navExtruderClicked: function(e) {
@@ -227,30 +229,14 @@ var TempView = Backbone.View.extend({
   scrollSlider: function(extruderId) {
     var scrollWidth = this.$("#slider")[0].scrollWidth;
     var width = this.$("#slider").width();
-    var slides = 0;
-
-    if (width > 400) {
-      if (this.extruders_count > 3) {
-        if (extruderId > 1) {
-          slides = extruderId - 1;
-        }
-      }
-    } else {
-      if (this.extruders_count > 2) {
-        if (extruderId >= 1) {
-          slides = extruderId;
-        }
-      }
-    }
-    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides)}, 400);
+    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
   },
   scrollSliderNav: function(extruderId) {
     var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
     var width = this.$("#slider-nav").width();
     var prueba = (width/4)+ this.$("#slider-nav").scrollLeft();
-    //console.log("prueba", prueba * (extruderId-1))
-    this.$("#slider-nav").animate({scrollLeft: prueba * (extruderId-1)});
-    //this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
+    //this.$("#slider-nav").animate({scrollLeft: prueba * (extruderId-1)});
+    this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {
@@ -669,7 +655,6 @@ var ControlView = Backbone.View.extend({
   },
   render: function()
   {
-    console.log("entra por render controlView")
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
@@ -693,7 +678,6 @@ var ControlView = Backbone.View.extend({
   onPausedChanged: function(model, paused)
   {
     if (paused) {
-      console.log("app.socketData",app.socketData);
       this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
       this.$el.addClass('print-paused');
     } else {
@@ -710,8 +694,7 @@ var ControlView = Backbone.View.extend({
   {
     if (value != null) {
       var extruderNumber = $('.extruder-number').val();
-      console.log("extruderNumber", extruderNumber);
-      console.log("this.currentTool", this.currentTool);
+
       if (this.currentTool != extruderNumber){
         this.currentTool = value;
         this.tempView.onToolChanged(null, value);
@@ -727,7 +710,5 @@ var ControlView = Backbone.View.extend({
         }
       }
     }
-
-
   }
 });
