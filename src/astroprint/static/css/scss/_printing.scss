@@ -292,6 +292,7 @@
     color: $iron;
 
     .semi-circle-temps {
+      width: 300px !important;
       .temp-container .buttons-container {
         .temp-target {
           .target {
@@ -1003,6 +1004,15 @@
 }
 
 @media #{$medium-up} {
+  #printing-view {
+    #slider {
+      .semi-circle-temps {
+        max-width: 50% !important;
+        width: 100%;
+      }
+    }
+  }
+
   #printing-view .temperatures .temp-bar {
     label {
       top: 4px;
@@ -1027,6 +1037,13 @@
 
 }
 
+@media #{$medium-only} {
+  #printing-view {
+    #slider {
+      //background-color: orange;
+    }
+  }
+}
 @media #{$small-only} {
   #printing-view #temp-control-template{
     .extruders{
@@ -1036,4 +1053,13 @@
   }
  .button-full-screen{display: none;}
 
+  #printing-view {
+    #slider {
+      background-color: yellow;
+      .semi-circle-temps {
+        //width: 316px !important;
+        min-width: 100%;
+      }
+    }
+  }
 }

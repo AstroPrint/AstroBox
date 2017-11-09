@@ -1,3 +1,4 @@
+$small-breakpoint:  em-calc(640)  !default;
 
 .controls-container{
   margin-bottom: 0px;
@@ -415,7 +416,7 @@ html.no-printer {
       overflow: hidden;
       overflow-x: scroll;
       padding: 0 3%;
-      
+
       .nav-extruder {
         display: inline-block;
         white-space: nowrap;
@@ -462,7 +463,46 @@ html.no-printer {
         }
     }
 
+    .semi-circle-temps {
+      display: inline-block;
+      white-space: nowrap;
+      overflow: hidden;
+      float: none !important;
+      //width: 316px;
+      width: 100%;
 
+      -webkit-filter: grayscale(100%);
+      filter: grayscale(100%);
+      cursor: pointer;
+      .circle-container {
+        opacity: 0.5;
+        transform: scale(0.75);
+        transition: all 500ms ease;
+      }
+
+      &:hover{
+        transition: all 500ms ease;
+
+          .circle-container{
+            opacity: 1;
+            transition: all 500ms ease;
+          }
+      }
+
+      &.current-slide {
+        -webkit-filter: initial;
+        filter: initial;
+
+        .circle-container{
+          transform: scale(0.95);
+          opacity: 1;
+          transition: all 500ms ease;
+        }
+      }
+      .graphic-container {
+        width: 100%;
+      }
+    }
 
     #slider {
       white-space: nowrap;
@@ -472,51 +512,12 @@ html.no-printer {
       margin-bottom: -12px;
       padding: 0;
 
-      .semi-circle-temps {
-        display: inline-block;
-        white-space: nowrap;
-        overflow: hidden;
-        float: none !important;
-        width: 316px;
-
-        -webkit-filter: grayscale(100%);
-        filter: grayscale(100%);
-        cursor: pointer;
-        .circle-container {
-          opacity: 0.5;
-          transform: scale(0.75);
-          transition: all 500ms ease;
-        }
-
-        &:hover{
-          transition: all 500ms ease;
-
-            .circle-container{
-              opacity: 1;
-              transition: all 500ms ease;
-            }
-        }
-
-        &.current-slide {
-          -webkit-filter: initial;
-          filter: initial;
-
-          .circle-container{
-            transform: scale(0.95);
-            opacity: 1;
-            transition: all 500ms ease;
-          }
-        }
-        .graphic-container {
-          width: 100%;
-        }
-      }
-
       img.icon-bed{display: none;}
     }
   }
 
   .bed {
+    padding: 0;
     padding-bottom: 15px;
     @include radius($global-radius);
     color: $iron;

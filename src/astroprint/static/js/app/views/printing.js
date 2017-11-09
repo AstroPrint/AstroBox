@@ -407,6 +407,7 @@ el: '#printing-view',
     //extruders
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
+
       this.semiCircleTemp_views[i] = semiCircleTemp;
 
       this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
@@ -669,7 +670,8 @@ el: '#printing-view',
       margin = 12;
     }
 
-    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides) + margin}, 400);
+    //this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides) + margin}, 400);
+    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {
