@@ -430,6 +430,7 @@
           &.current-slide {
             -webkit-filter: initial;
             filter: initial;
+            overflow: visible;
 
             .circle-container{
               transform: scale(0.95);
