@@ -379,6 +379,8 @@ html.no-printer {
 
   #bed-container{
     background: $white;
+
+    .container-off{padding: 0;}
   }
 
   #extruder-container {
