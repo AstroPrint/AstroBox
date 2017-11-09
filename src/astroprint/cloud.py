@@ -191,6 +191,10 @@ class AstroPrintCloud(object):
 
 	def remove_logged_user(self):
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
+		self.settings.set(["materialSelected"], None)
+		self.settings.set(["printerSelected"], None)
+		self.settings.set(["qualitySelected"], None)
+		self.settings.set(["customQualitySelected"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 

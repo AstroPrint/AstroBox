@@ -175,7 +175,11 @@ default_settings = {
 		"variantFile": None,
 		"useUnreleased": False,
 		"lastCheck": None
-	}
+	},
+	"printerSelected": None,
+	"materialSelected": None,
+	"qualitySelected": None,
+	"customQualitySelected": None
 }
 
 valid_boolean_trues = [True, "true", "yes", "y", "1"]

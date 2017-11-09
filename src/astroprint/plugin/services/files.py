@@ -5,9 +5,15 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 from . import PluginService
 
-from octoprint.settings import settings
-import octoprint.util as util
+from flask.ext.login import current_user
+from flask import jsonify
 
+import octoprint.util as util
+from octoprint.events import eventManager
+from octoprint.settings import settings
+from octoprint.server import restricted_access
+
+from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 
@@ -16,7 +22,13 @@ class FilesService(PluginService):
 		#watch if a file where added
 		#'file_added',
 		#watch if a file where deleted
-		'file_deleted'
+		'file_deleted',
+		#watch downloading progress of a print file
+		'progress_download_printfile',
+		#watch if a print file were successfully downloaded
+		'success_download_printfile',
+		#watch if a print file downloading failed
+		'error_download_printfile'
 	]
 
 	def __init__(self):
@@ -179,3 +191,63 @@ class FilesService(PluginService):
 
 		self.publishEvent('file_deleted','deleted')
 		sendResponse({'success':'no error'})
+
+
+	def downloadPrintFile(self,printFileId,sendResponse):
+		print 'downloadPrintFile'
+		print sendResponse
+
+		em = eventManager()
+
+		def progressCb(progress):
+			print 'progressCb'
+			self.publishEvent('progress_download_printfile', {
+				"type": "progress",
+				"id": printFileId,
+				"progress": progress
+			})
+
+		def successCb(destFile, fileInfo):
+			print 'successCb'
+			if fileInfo is True:
+				#This means the files was already on the device
+				self.publishEvent('success_download_printfile',{
+					"type": "success",
+					"id": printFileId
+				})
+
+			else:
+				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+					self.publishEvent('success_download_printfile',{
+						"type": "success",
+						"id": printFileId,
+						"filename": printerManager().fileManager._getBasicFilename(destFile),
+						"info": fileInfo["info"]
+					})
+
+				else:
+					errorCb(destFile, "Couldn't save the file")
+
+		def errorCb(destFile, error):
+			print 'errorCb'
+			if error == 'cancelled':
+				self.publishEvent('error_download_printfile',{
+					"type": "cancelled",
+					"id": printFileId
+				})
+			else:
+				self.publishEvent('error_download_printfile',{
+					"type": "error",
+					"id": printFileId,
+					"reason": error
+				})
+
+			if destFile and os.path.exists(destFile):
+				os.remove(destFile)
+
+		if astroprintCloud().download_print_file(printFileId, progressCb, successCb, errorCb):
+			sendResponse({'success':'no error'})
+			return
+
+		sendResponse('error',True)
+		return
