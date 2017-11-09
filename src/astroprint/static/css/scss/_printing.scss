@@ -644,7 +644,7 @@
 
     .center-icon{
       position: absolute;
-      top: 50%;
+      top: 60%;
       left: 50%;
       color: #666666;
       transform: translate(-50%, -65%);
@@ -1058,7 +1058,6 @@
 
   #printing-view {
     #slider {
-      background-color: yellow;
       .semi-circle-temps {
         //width: 316px !important;
         min-width: 100%;
