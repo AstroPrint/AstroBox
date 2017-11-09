@@ -987,6 +987,8 @@
   }
 }
 
+#printing-view .temp-target{padding:0;}
+
 @media #{$large-up} {
     .camera-view {
       padding-right: 0 !important;
