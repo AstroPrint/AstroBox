@@ -16,4 +16,5 @@ class CameraService(PluginService):
 	#REQUESTS
 
 	def getPhoto(self, doneWithPhoto):
+		print 'getPhoto'
 		cameraManager().get_pic_async(doneWithPhoto)

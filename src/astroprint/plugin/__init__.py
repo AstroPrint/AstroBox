@@ -176,6 +176,7 @@ class PluginManager(object):
 		self._fileService = None
 		self._systemService = None
 		self._accountService = None
+		self._cameraService = None
 		self._authService = None
 		self._networkService = None
 
