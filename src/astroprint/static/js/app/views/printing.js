@@ -591,9 +591,13 @@ el: '#printing-view',
   onToolChanged: function(s, extruderId) {
     this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
     this.$('#slider').find('.current-slide').removeClass('current-slide');
+
     this.$('#tool'+extruderId).addClass('current-slide');
     this.$('#temp-'+extruderId).addClass('current-slide');
+
+    this.scrollSliderNav(extruderId);
     this.scrollSlider(extruderId);
+
     this.checkedArrows(extruderId);
   },
   navExtruderClicked: function(e) {
@@ -601,6 +605,7 @@ el: '#printing-view',
     var extruderId = (target.attr('id')).substring(5);
 
     this.scrollSlider(extruderId);
+    this.scrollSliderNav(extruderId);
 
     //this.$("#slider").scrollLeft((scrollWidth/this.extruders_count) * slides);
     this.checkedArrows(extruderId);
@@ -620,7 +625,10 @@ el: '#printing-view',
       this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
       this.$('#temp-'+extruderId).addClass('current-slide');
       this.$('#slider').find('.current-slide').removeClass('current-slide');
+
       target.addClass('current-slide');
+      this.scrollSliderNav(extruderId);
+      this.scrollSlider(extruderId);
     }
   },
   arrowClicked: function(e) {
@@ -642,7 +650,9 @@ el: '#printing-view',
     currentSlideNav.removeClass('current-slide');
     currentSlide.removeClass('current-slide');
 
+    this.scrollSliderNav(extruderId);
     this.scrollSlider(extruderId);
+
     this.$('#tool'+extruderId).addClass('current-slide');
     this.$('#temp-'+extruderId).addClass('current-slide');
   },
@@ -672,6 +682,12 @@ el: '#printing-view',
 
     //this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides) + margin}, 400);
     this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides)});
+  },
+  scrollSliderNav: function(extruderId) {
+    var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
+    var width = this.$("#slider-nav").width();
+
+    this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {

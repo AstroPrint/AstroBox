@@ -177,6 +177,7 @@ var TempView = Backbone.View.extend({
     var extruderId = (target.attr('id')).substring(5);
 
     this.scrollSlider(extruderId);
+    this.scrollSliderNav(extruderId);
 
     //this.$("#slider").scrollLeft((scrollWidth/this.extruders_count) * slides);
     this.checkedArrows(extruderId);
@@ -198,7 +199,9 @@ var TempView = Backbone.View.extend({
       this.$('#slider').find('.current-slide').removeClass('current-slide');
 
       target.addClass('current-slide');
-      this.scrollSliderNav(extruderId)
+
+      this.scrollSliderNav(extruderId);
+      this.scrollSlider(extruderId);
     }
   },
   arrowClicked: function(e) {
@@ -220,7 +223,7 @@ var TempView = Backbone.View.extend({
     currentSlideNav.removeClass('current-slide');
     currentSlide.removeClass('current-slide');
 
-    this.scrollSliderNav(extruderId)
+    this.scrollSliderNav(extruderId);
     this.scrollSlider(extruderId);
 
     this.$('#tool'+extruderId).addClass('current-slide');
@@ -234,8 +237,6 @@ var TempView = Backbone.View.extend({
   scrollSliderNav: function(extruderId) {
     var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
     var width = this.$("#slider-nav").width();
-    var prueba = (width/4)+ this.$("#slider-nav").scrollLeft();
-    //this.$("#slider-nav").animate({scrollLeft: prueba * (extruderId-1)});
     this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
