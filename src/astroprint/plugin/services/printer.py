@@ -208,6 +208,34 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
+	def extrude(self,data,callback):
+
+		pm = printerManager()
+
+		if not pm.isOperational():
+			callback("Printer is not operational", True)
+			return
+
+		if pm.isPrinting():
+			# do not extrude when a print job is running
+			callback("Printer is currently printing", True)
+			return
+
+		amount = data["amount"]
+		speed = data["speed"]
+		tool = data["tool"]
+
+		if not isinstance(amount, (int, long, float)):
+			callback("Not a number for extrusion amount: " + amount, True)
+			return
+
+		if speed and not isinstance(speed, (int, long, float)):
+			speed = None
+
+		pm.extrude(tool, amount, speed)
+
+		callback({'success': 'no_error'})
+		return
 
 	#EVENTS
 
