@@ -37,47 +37,15 @@ class CameraService(PluginService):
 		s = settings()
 		cm = cameraManager()
 
-		if request.method == 'POST':
-			if "application/json" in request.headers["Content-Type"]:
-				data = request.json
-
-				if "source" in data:
-					s.set(['camera', 'source'], data['source'])
-
-				if "size" in data:
-					s.set(['camera', 'size'], data['size'])
-
-				if "encoding" in data:
-					s.set(['camera', 'encoding'], data['encoding'])
-
-				if "format" in data:
-					s.set(['camera', 'format'], data['format'])
-
-				if "framerate" in data:
-					s.set(['camera', 'framerate'], data['framerate'])
-
-				if "video_rotation" in data:
-					s.set(['camera', 'video-rotation'], int(data['video_rotation']))
-
-				s.save()
-
-				cm.settingsChanged({
-					'size': s.get(['camera', 'size']),
-					'encoding': s.get(['camera', 'encoding']),
-					'framerate': s.get(['camera', 'framerate']),
-					'source': s.get(['camera', 'source']),
-					'format': s.get(['camera', 'format']),
-					'video_rotation': s.get(['camera', 'video-rotation'])
-				})
-
-		return sendResponse(
-			encoding= s.get(['camera', 'encoding']),
-			size= s.get(['camera', 'size']),
-			framerate= s.get(['camera', 'framerate']),
-			format= s.get(['camera', 'format']),
-			source= s.get(['camera', 'source']),
-			video_rotation= s.getInt(['camera', 'video-rotation']),
-			structure= cm.settingsStructure()
+		sendResponse({
+				'encoding': s.get(['camera', 'encoding']),
+				'size': s.get(['camera', 'size']),
+				'framerate': s.get(['camera', 'framerate']),
+				'format': s.get(['camera', 'format']),
+				'source': s.get(['camera', 'source']),
+				'video_rotation': s.getInt(['camera', 'video-rotation']),
+				'structure': cm.settingsStructure()
+			}
 		)
 
 
