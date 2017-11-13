@@ -1191,8 +1191,13 @@ class MachineCom(object):
 				lineToResend = int(line.split()[1])
 
 		if lineToResend is not None:
-			self._resendDelta = self._currentLine - lineToResend
 			linesStored = len(self._lastLines)
+
+			if linesStored == 1 and "M110 N0" in self._lastLines[0]:
+				self._resendDelta = 1
+			else:
+				self._resendDelta = self._currentLine - lineToResend
+
 			if self._resendDelta > linesStored or linesStored == 0 or self._resendDelta <= 0:
 				self._errorValue = "Printer requested line %d but no sufficient history is available, can't resend [Delta: %d, History: %d]" % (lineToResend, self._resendDelta, linesStored)
 				self._logger.warn(self._errorValue)
@@ -1205,8 +1210,8 @@ class MachineCom(object):
 				else:
 					# reset resend delta, we can't do anything about it
 					self._resendDelta = None
-			else:
-				self._resendNextCommand()
+			#else:
+			#	self._resendNextCommand()
 
 	def _resendNextCommand(self):
 		cmd = self._lastLines[ -self._resendDelta ]
@@ -1430,6 +1435,7 @@ class MachineCom(object):
 		# after a reset of the line number we have no way to determine what line exactly the printer now wants
 		self._lastLines.clear()
 		self._resendDelta = None
+		self._addToLastLines(cmd)
 
 		self._doSendWithChecksum(cmd, newLineNumber)
 
