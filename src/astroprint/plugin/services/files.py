@@ -213,7 +213,8 @@ class FilesService(PluginService):
 				#This means the files was already on the device
 				self.publishEvent('success_download_printfile',{
 					"type": "success",
-					"id": printFileId
+					"id": printFileId,
+					"filename": printerManager().fileManager._getBasicFilename(destFile)
 				})
 
 			else:
