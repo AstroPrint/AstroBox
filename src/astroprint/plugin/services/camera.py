@@ -53,8 +53,8 @@ class CameraService(PluginService):
 		#Start session in Janus
 		if webRtcManager().startJanus():
 			sendResponse({'success': 'no-error'})
-
-		sendResponse('error_init_janus',True)
+		else:
+			sendResponse('error_init_janus',True)
 
 	def peerSession(self,data,sendResponse):
 
@@ -68,8 +68,8 @@ class CameraService(PluginService):
 				#Initialize the peer session
 				if cameraManager().startLocalVideoSession(sessionId):
 					sendResponse({'success': 'no-error'})
-
-				sendResponse('error_init_peer_session',True)
+				else:
+					sendResponse('error_init_peer_session',True)
 
 			#elif request.method == 'DELETE':
 			elif action == 'close_peer_session':
@@ -88,3 +88,4 @@ class CameraService(PluginService):
 			webRtcManager().startVideoStream()
 
 			sendResponse({'success': 'no-error'})
+
