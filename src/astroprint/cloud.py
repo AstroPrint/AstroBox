@@ -1,5 +1,6 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 # singleton
 _instance = None
@@ -190,6 +191,10 @@ class AstroPrintCloud(object):
 
 	def remove_logged_user(self):
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
+		self.settings.set(["materialSelected"], None)
+		self.settings.set(["printerSelected"], None)
+		self.settings.set(["qualitySelected"], None)
+		self.settings.set(["customQualitySelected"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 
@@ -337,6 +342,7 @@ class AstroPrintCloud(object):
 			data = r.json()
 		except:
 			data = None
+			self._logger.error('Unable to get file info: %d' % r.status_code , exc_info = True)
 
 		printFile = fileManager.getFileByCloudId(print_file_id)
 

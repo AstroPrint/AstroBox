@@ -393,6 +393,18 @@
       "css": "usb",
       "code": 62087,
       "src": "fontawesome"
+    },
+    {
+      "uid": "xoidjr6q3rzi7tpw6hci1k6srz15g11l",
+      "css": "puzzle",
+      "code": 59433,
+      "src": "typicons"
+    },
+    {
+      "uid": "1gf923f9wvaezxmfon515dglxa3drf0e",
+      "css": "plus",
+      "code": 59434,
+      "src": "typicons"
     }
   ]
 }

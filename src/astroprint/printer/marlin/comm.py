@@ -22,7 +22,7 @@ from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 from astroprint.printfiles import FileDestinations
 
-from astroprint.printer.marlin.material_counter import MaterialCounter
+from astroprint.plugin.providers.printer_comms.material_counter import MaterialCounter
 
 gcodeToEvent = {
 	# pause for user input

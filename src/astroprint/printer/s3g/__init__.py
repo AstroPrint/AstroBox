@@ -139,7 +139,7 @@ class PrinterS3g(Printer):
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def _work(self):
 		import makerbot_driver.MachineFactory
@@ -494,7 +494,7 @@ class PrinterS3g(Printer):
 		})
 
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		self._currentFile = {
 			'filename': filename,

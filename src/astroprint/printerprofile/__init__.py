@@ -18,6 +18,7 @@ import logging
 import shutil
 
 from octoprint.settings import settings
+from astroprint.plugin import pluginManager
 
 class PrinterProfileManager(object):
 	def __init__(self):
@@ -30,6 +31,7 @@ class PrinterProfileManager(object):
 
 		self.data = {
 			'driver': "marlin",
+			'plugin': None,
 			'extruder_count': 1,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
@@ -77,6 +79,18 @@ class PrinterProfileManager(object):
 					self.data[k] = self._clean(k, changes[k])
 			else:
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
+
+	def driverChoices(self):
+		plugins = pluginManager().getPluginsByProvider('printerComms')
+
+		result = { ("plugin:%s" % k) : { 'name': plugins[k].definition['name'], 'properties': plugins[k].settingsProperties } for k in plugins }
+
+		result.update({
+			'marlin': {'name': 'GCODE - Marlin / Repetier Firmware', 'properties': {'customCancelCommands': True}},
+			's3g': {'name': 'X3G - Sailfish / Makerbot Firmware',  'properties': {'customCancelCommands': False}}
+		})
+
+		return result
 
 	def _clean(self, field, value):
 		if field in ['extruder_count', 'max_nozzle_temp', 'max_bed_temp']:

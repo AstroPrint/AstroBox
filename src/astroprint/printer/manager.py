@@ -24,7 +24,8 @@ def printerManager(driver = None):
 			classInfo = {
 				'marlin': ('.marlin', 'PrinterMarlin'),
 				's3g': ('.s3g', 'PrinterS3g'),
-				'virtual': ('.virtual', 'PrinterVirtual')
+				'virtual': ('.virtual', 'PrinterVirtual'),
+				'plugin:com.astroprint.astrobox.plugins.virtualcomms': ('.virtual', 'PrinterVirtual')
 			}[driver]
 
 		except KeyError:

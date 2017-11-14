@@ -6,14 +6,14 @@
     display: block;
 
     span.loading,
-    span.error,
+    span.failed,
     button, .button, .idle {
       width: 100%;
     }
   }
 
   span.loading,
-  span.error {
+  span.failed {
     display: none;
   }
 
@@ -27,12 +27,12 @@
     }
   }
 
-  &.error {
+  &.failed {
     button, .button, .idle {
       display: none;
     }
 
-    span.error {
+    span.failed {
       display: inherit;
       font-style: normal;
     }

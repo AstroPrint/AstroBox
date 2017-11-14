@@ -6,6 +6,7 @@ Flask-Login==0.3.2
 Flask-Principal==0.4.0
 Flask-Assets==0.10
 pyserial==3.2.1
+libusb1==1.6.4
 netaddr==0.7.12
 watchdog==0.8.3
 sarge==0.1.4
