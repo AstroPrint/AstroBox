@@ -10,6 +10,7 @@ from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
+from astroprint.printerprofile import printerProfileManager
 
 class PrinterService(PluginService):
 	_validEvents = [
@@ -235,6 +236,14 @@ class PrinterService(PluginService):
 		pm.extrude(tool, amount, speed)
 
 		callback({'success': 'no_error'})
+		return
+
+	def getNumberOfExtruders(self,data,sendResponse):
+
+		ppm = printerProfileManager()
+
+		sendResponse(ppm.data.get('extruder_count'))
+
 		return
 
 	#EVENTS
