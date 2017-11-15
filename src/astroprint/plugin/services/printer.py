@@ -246,6 +246,16 @@ class PrinterService(PluginService):
 
 		return
 
+	def selectTool(self,data,sendResponse):
+
+		pm = printerManager()
+
+		pm.changeTool(int(data))
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
 	#EVENTS
 
 	def _onConnect(self,event,value):
