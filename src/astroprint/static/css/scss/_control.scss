@@ -459,10 +459,10 @@ html.no-printer {
       }
 
       &::-webkit-scrollbar {
-          -moz-appearance: none !important;
-          background: transparent !important;
-          height: 0;
-        }
+        -moz-appearance: none !important;
+        background: transparent !important;
+        height: 0;
+      }
     }
 
     .semi-circle-temps {
@@ -517,6 +517,12 @@ html.no-printer {
       padding: 0;
 
       img.icon-bed{display: none;}
+
+      &::-webkit-scrollbar {
+        -moz-appearance: none !important;
+        background: transparent !important;
+        height: 0;
+      }
     }
   }
 

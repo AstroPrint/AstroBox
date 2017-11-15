@@ -264,16 +264,32 @@ var PhotoView = CameraViewBase.extend({
   },
   fullScreenClicked: function(e)
   {
-    if ($('.camera-view').hasClass('fullscreen')) {
-      $('.camera-view').removeClass('fullscreen');
-      $('.info').removeClass('fullscreen');
-      $('.heating').removeClass('fullscreen');
+    var fullscreenContainer = $('.camera-view');
+
+    if (!fullscreenContainer.hasClass('fullscreen')) {
+      fullscreenContainer.data('width', fullscreenContainer[0].getBoundingClientRect().width);
+      fullscreenContainer.data('height', fullscreenContainer[0].getBoundingClientRect().height);
+    }
+
+    if (fullscreenContainer.hasClass('fullscreen')) {
+      fullscreenContainer.animate({width: fullscreenContainer.data('width') + "px",
+                                  height: fullscreenContainer.data('height')+ "px"},500,
+                                  function() {
+                                      if (app.socketData.attributes.printing_progress.heating_up) {
+                                        $('#heating-container').fadeIn(90);
+                                      } else {
+                                        $('.info').fadeIn(90);
+                                      }
+                                      fullscreenContainer.removeAttr('style');
+                                      console.log("a ver", $('.camera-view').find('.camera-controls-fullscreen').width())
+                                      fullscreenContainer.removeClass('fullscreen');
+                                  });
     } else {
-      $('.camera-view').addClass('fullscreen');
-      $('.info').addClass('fullscreen');
-      $('.heating').addClass('fullscreen');
-      $('.status-and-buttons').find('.heating').removeClass('fullscreen');
-      $('body, html').animate({scrollTop: ($('.camera-view').offset().top - 15)});
+      $('#heating-container').hide();
+      $('.info').hide();
+      fullscreenContainer.addClass('fullscreen');
+      fullscreenContainer.animate({width:"100vw", height: "86vh"}, 500);
+      $('body, html').animate({scrollTop: (fullscreenContainer.offset().top - 15)});
     }
 
     //listener for when window is small. The fullscreen is disable
@@ -324,6 +340,7 @@ el: '#printing-view',
   paused: null,
   cancelDialog: null,
   currentTool: null,
+  previousSelectedTool: 0,
   initialize: function()
   {
     new SemiCircleProgress();
@@ -456,7 +473,7 @@ el: '#printing-view',
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
 
-    this.onToolChanged(null, this.currentTool);
+    this.currentToolChanged(this.currentTool);
   },
   onTempsChanged: function(s, value)
   {
@@ -589,31 +606,31 @@ el: '#printing-view',
     });
   },
   onToolChanged: function(s, extruderId) {
+    this.currentToolChanged(extruderId);
+  },
+  getCurrentSelectedSliders: function() {
+    if (this.$('#slider-nav').find('.current-slide').attr('id')) {
+      return parseInt((this.$('#slider-nav').find('.current-slide').attr('id')).substring(5));
+    } else {
+      return 0
+    }
+  },
+  setCurrentSelectedSliders: function(extruderId) {
     this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
     this.$('#slider').find('.current-slide').removeClass('current-slide');
-
     this.$('#tool'+extruderId).addClass('current-slide');
     this.$('#temp-'+extruderId).addClass('current-slide');
-
-    this.scrollSliderNav(extruderId);
+  },
+  currentToolChanged: function(extruderId) {
+    this.previousSelectedTool = this.getCurrentSelectedSliders();
+    this.setCurrentSelectedSliders(extruderId);
     this.scrollSlider(extruderId);
-
     this.checkedArrows(extruderId);
   },
   navExtruderClicked: function(e) {
     var target = $(e.currentTarget);
     var extruderId = (target.attr('id')).substring(5);
-
-    this.scrollSlider(extruderId);
-    this.scrollSliderNav(extruderId);
-
-    //this.$("#slider").scrollLeft((scrollWidth/this.extruders_count) * slides);
-    this.checkedArrows(extruderId);
-
-    this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
-    target.addClass('current-slide');
-    this.$('#slider').find('.current-slide').removeClass('current-slide');
-    this.$('#tool'+extruderId).addClass('current-slide');
+    this.currentToolChanged(extruderId);
   },
   semiCircleTempsClicked: function(e) {
     var target = $(e.currentTarget);
@@ -621,23 +638,14 @@ el: '#printing-view',
 
     if (elementId != 'bed') {
       var extruderId = (elementId).substring(4);
-
-      this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
-      this.$('#temp-'+extruderId).addClass('current-slide');
-      this.$('#slider').find('.current-slide').removeClass('current-slide');
-
-      target.addClass('current-slide');
-      this.scrollSliderNav(extruderId);
-      this.scrollSlider(extruderId);
+      this.currentToolChanged(extruderId);
     }
   },
   arrowClicked: function(e) {
     var target = $(e.currentTarget);
     var action = target.attr('id');
-    var currentSlideNav = this.$('#slider-nav').find('.current-slide');
-    var currentSlide = this.$('#slider').find('.current-slide');
+    var extruderId = this.getCurrentSelectedSliders();
 
-    var extruderId = parseInt(currentSlideNav.attr('id').substring(5));
     if (action == 'previous' && extruderId > 0) {
       extruderId = (extruderId > 0) ? extruderId - 1 : extruderId;
     } else if (action == 'next' && (extruderId+1) < this.extruders_count) {
@@ -645,49 +653,16 @@ el: '#printing-view',
     } else {
       target.addClass('arrow-disabled');
     }
-    this.checkedArrows(extruderId);
-
-    currentSlideNav.removeClass('current-slide');
-    currentSlide.removeClass('current-slide');
-
-    this.scrollSliderNav(extruderId);
-    this.scrollSlider(extruderId);
-
-    this.$('#tool'+extruderId).addClass('current-slide');
-    this.$('#temp-'+extruderId).addClass('current-slide');
+    this.currentToolChanged(extruderId);
   },
   scrollSlider: function(extruderId) {
-    var scrollWidth = this.$("#slider")[0].scrollWidth;
-    var width = this.$("#slider").width();
-    var slides = 0;
-    var margin = 0;
+    var scrollWidthSlider = this.$("#slider")[0].scrollWidth;
+    var scrollWidthSliderNav = this.$("#slider-nav")[0].scrollWidth;
 
-    if (width > 400) {
-      if (this.extruders_count > 3) {
-        if (extruderId > 1) {
-          slides = extruderId - 1;
-        }
-      }
-    } else {
-      if (this.extruders_count > 2) {
-        if (extruderId >= 1) {
-          slides = extruderId;
-        }
-      }
+    if (this.previousSelectedTool != extruderId) {
+      this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
+      this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
     }
-    //the selected slide is 36px higher. if extruders_count >= 3 we have to add it 36/3
-    if (this.extruders_count >= 3) {
-      margin = 12;
-    }
-
-    //this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides) + margin}, 400);
-    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * slides)});
-  },
-  scrollSliderNav: function(extruderId) {
-    var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
-    var width = this.$("#slider-nav").width();
-
-    this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {

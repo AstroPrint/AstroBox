@@ -11,6 +11,7 @@ var TempView = Backbone.View.extend({
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
+  previousSelectedTool: 0,
   events: {
     'click .nav-extruder': 'navExtruderClicked',
     'click .semi-circle-temps': 'semiCircleTempsClicked',
@@ -155,37 +156,30 @@ var TempView = Backbone.View.extend({
 
       var currentTool = app.socketData.attributes.tool;
       if (currentTool != null) {
-        this.onToolChanged(null, currentTool);
+        this.currentToolChanged(currentTool);
       }
 
     }
   },
-  onToolChanged: function(s, extruderId) {
+  getCurrentSelectedSliders: function() {
+    return parseInt((this.$('#slider-nav').find('.current-slide').attr('id')).substring(5));
+  },
+  setCurrentSelectedSliders: function(extruderId) {
     this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
     this.$('#slider').find('.current-slide').removeClass('current-slide');
-
-    this.scrollSliderNav(extruderId);
-    this.scrollSlider(extruderId);
-
     this.$('#tool'+extruderId).addClass('current-slide');
     this.$('#temp-'+extruderId).addClass('current-slide');
-
+  },
+  currentToolChanged: function(extruderId) {
+    this.previousSelectedTool = this.getCurrentSelectedSliders();
+    this.setCurrentSelectedSliders(extruderId);
+    this.scrollSlider(extruderId);
     this.checkedArrows(extruderId);
   },
   navExtruderClicked: function(e) {
     var target = $(e.currentTarget);
     var extruderId = (target.attr('id')).substring(5);
-
-    this.scrollSlider(extruderId);
-    this.scrollSliderNav(extruderId);
-
-    //this.$("#slider").scrollLeft((scrollWidth/this.extruders_count) * slides);
-    this.checkedArrows(extruderId);
-
-    this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
-    target.addClass('current-slide');
-    this.$('#slider').find('.current-slide').removeClass('current-slide');
-    this.$('#tool'+extruderId).addClass('current-slide');
+    this.currentToolChanged(extruderId);
   },
   semiCircleTempsClicked: function(e) {
     var target = $(e.currentTarget);
@@ -193,24 +187,14 @@ var TempView = Backbone.View.extend({
 
     if (elementId != 'bed') {
       var extruderId = (elementId).substring(4);
-
-      this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
-      this.$('#temp-'+extruderId).addClass('current-slide');
-      this.$('#slider').find('.current-slide').removeClass('current-slide');
-
-      target.addClass('current-slide');
-
-      this.scrollSliderNav(extruderId);
-      this.scrollSlider(extruderId);
+      this.currentToolChanged(extruderId);
     }
   },
   arrowClicked: function(e) {
     var target = $(e.currentTarget);
     var action = target.attr('id');
-    var currentSlideNav = this.$('#slider-nav').find('.current-slide');
-    var currentSlide = this.$('#slider').find('.current-slide');
+    var extruderId = this.getCurrentSelectedSliders();
 
-    var extruderId = parseInt(currentSlideNav.attr('id').substring(5));
     if (action == 'previous' && extruderId > 0) {
       extruderId = (extruderId > 0) ? extruderId - 1 : extruderId;
     } else if (action == 'next' && (extruderId+1) < this.extruders_count) {
@@ -218,26 +202,16 @@ var TempView = Backbone.View.extend({
     } else {
       target.addClass('arrow-disabled');
     }
-    this.checkedArrows(extruderId);
-
-    currentSlideNav.removeClass('current-slide');
-    currentSlide.removeClass('current-slide');
-
-    this.scrollSliderNav(extruderId);
-    this.scrollSlider(extruderId);
-
-    this.$('#tool'+extruderId).addClass('current-slide');
-    this.$('#temp-'+extruderId).addClass('current-slide');
+    this.currentToolChanged(extruderId);
   },
   scrollSlider: function(extruderId) {
-    var scrollWidth = this.$("#slider")[0].scrollWidth;
-    var width = this.$("#slider").width();
-    this.$("#slider").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
-  },
-  scrollSliderNav: function(extruderId) {
-    var scrollWidth = this.$("#slider-nav")[0].scrollWidth;
-    var width = this.$("#slider-nav").width();
-    this.$("#slider-nav").animate({scrollLeft: ((scrollWidth/this.extruders_count) * extruderId - 1)});
+    var scrollWidthSlider = this.$("#slider")[0].scrollWidth;
+    var scrollWidthSliderNav = this.$("#slider-nav")[0].scrollWidth;
+
+    if (this.previousSelectedTool != extruderId) {
+      this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
+      this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
+    }
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {
@@ -698,7 +672,7 @@ var ControlView = Backbone.View.extend({
 
       if (this.currentTool != extruderNumber){
         this.currentTool = value;
-        this.tempView.onToolChanged(null, value);
+        this.tempView.currentToolChanged(value);
       }
 
       if (!(extruderNumber == value)) {

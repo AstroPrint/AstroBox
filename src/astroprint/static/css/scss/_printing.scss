@@ -356,7 +356,6 @@
         overflow: hidden;
         overflow-x: scroll;
 
-
         .nav-extruder {
           display: inline-block;
           white-space: nowrap;
@@ -401,7 +400,7 @@
         overflow: hidden;
         overflow-x: scroll;
         margin-top: 12px;
-        margin-bottom: -12px;
+        margin-bottom: -15px;
 
         .semi-circle-temps {
           display: inline-block;
@@ -796,10 +795,11 @@
     }
 
     &.fullscreen {
-      width: 100%;
-      height: 86vh;
+      max-width: 970px;
+      width: 30px;
+      height: 30px;
       z-index: 999 !important;
-      transition: width 1s ease;
+      //transition: width 1s ease;
       margin-bottom: 90px;
       padding-left: 0 !important;
 
