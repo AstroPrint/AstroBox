@@ -83,8 +83,7 @@ class CameraService(PluginService):
 		else:
 			sendResponse('error_no_session_id',True)
 
-
-		def startStreaming(self,sendResponse):
+	def startStreaming(self,data,sendResponse):
 			webRtcManager().startVideoStream()
 
 			sendResponse({'success': 'no-error'})
