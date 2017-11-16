@@ -197,8 +197,9 @@ class FilesService(PluginService):
 		else:
 			printer.fileManager.removeFile(fileName)
 
-		self.publishEvent('file_deleted','deleted')
 		eventManager().fire(Events.FILE_DELETED, {"filename": filename})
+
+		self.publishEvent('file_deleted','deleted')
 
 		sendResponse({'success':'no error'})
 
