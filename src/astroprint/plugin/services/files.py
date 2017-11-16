@@ -34,6 +34,7 @@ class FilesService(PluginService):
 
 		#files managing
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
+		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 
 	def getLocalFiles(self, sendResponse):
 		print 'getLocalFiles'
@@ -258,5 +259,9 @@ class FilesService(PluginService):
 	#EVENTS
 
 	def _onFileDeleted(self,event,data):
-
 		self.publishEvent('file_deleted',data['filename'])
+
+	def _onCloudDownloadStateChanged(self,event,data):
+		if data['type'] == 'success':
+			self.publishEvent('cloud_download_success',data)
+		#else TODO
