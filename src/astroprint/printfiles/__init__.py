@@ -344,6 +344,8 @@ class PrintFilesManager(object):
 
 		self.removeFileFromMetadata(filename)
 
+		eventManager().fire(Events.FILE_DELETED, {"filename": filename})
+
 	def removeFileFromMetadata(self, filename):
 		if filename in self._metadata:
 			del self._metadata[filename]

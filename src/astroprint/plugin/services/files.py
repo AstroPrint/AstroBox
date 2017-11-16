@@ -9,7 +9,7 @@ from flask.ext.login import current_user
 from flask import jsonify
 
 import octoprint.util as util
-from octoprint.events import eventManager
+from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 from octoprint.server import restricted_access
 
@@ -31,6 +31,9 @@ class FilesService(PluginService):
 
 	def __init__(self):
 		super(FilesService, self).__init__()
+
+		#files managing
+		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 
 	def getLocalFiles(self, sendResponse):
 		print 'getLocalFiles'
@@ -250,3 +253,11 @@ class FilesService(PluginService):
 
 		sendResponse('error',True)
 		return
+
+
+	#EVENTS
+
+	def _onFileDeleted(self,event,data):
+		print 'onFileDelete ' + value
+
+		self.publishEvent('file_deleted',data['filename'])
