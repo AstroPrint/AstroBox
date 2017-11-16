@@ -273,32 +273,51 @@ var PhotoView = CameraViewBase.extend({
 
     if (fullscreenContainer.hasClass('fullscreen')) {
       fullscreenContainer.animate({width: fullscreenContainer.data('width') + "px",
-                                  height: fullscreenContainer.data('height')+ "px"},500,
-                                  function() {
+                                  height: fullscreenContainer.data('height')+ "px"},
+                                  {
+                                    duration: 500,
+                                    start: function() {
+                                      $('.camera-controls-fullscreen').fadeOut(500);
+                                    },
+                                    complete: _.bind(function() {
                                       if (app.socketData.attributes.printing_progress.heating_up) {
-                                        $('#heating-container').fadeIn(90);
+                                        $('#heating-container').fadeIn(500);
                                       } else {
-                                        $('.info').fadeIn(90);
+                                        $('.info').fadeIn(500);
                                       }
-                                      fullscreenContainer.removeAttr('style');
-                                      console.log("a ver", $('.camera-view').find('.camera-controls-fullscreen').width())
-                                      fullscreenContainer.removeClass('fullscreen');
+                                      this.disableFullScreen();
+                                    }, this)
                                   });
     } else {
-      $('#heating-container').hide();
-      $('.info').hide();
       fullscreenContainer.addClass('fullscreen');
-      fullscreenContainer.animate({width:"100vw", height: "86vh"}, 500);
+      fullscreenContainer.animate({width: "100vw",
+                                  height: "86vh"},
+                                  {duration: 500,
+                                    start: function() {
+                                      $('.camera-controls-fullscreen').fadeIn(500);
+                                      $('#heating-container').hide();
+                                      $('.info').hide();
+
+                                    }});
+
       $('body, html').animate({scrollTop: (fullscreenContainer.offset().top - 15)});
     }
 
     //listener for when window is small. The fullscreen is disable
-    $( window ).resize(function() {
+    $( window ).resize(_.bind(function() {
         if (window.matchMedia('(max-width: 400px)').matches) {
-          $('.camera-view').removeClass('fullscreen');
-          $('.info').removeClass('fullscreen');
+          this.disableFullScreen();
+          if (app.socketData.attributes.printing_progress.heating_up) {
+            $('#heating-container').fadeIn(500);
+          } else {
+            $('.info').fadeIn(500);
+          }
         }
-    });
+    }, this));
+  },
+  disableFullScreen: function() {
+    $('.camera-view').removeAttr('style');
+    $('.camera-view').removeClass('fullscreen');
   },
   _formatTime: function(seconds)
   {
