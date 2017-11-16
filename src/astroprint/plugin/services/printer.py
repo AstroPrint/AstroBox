@@ -15,13 +15,29 @@ from astroprint.printerprofile import printerProfileManager
 class PrinterService(PluginService):
 	_validEvents = [
 		#watch the printer's connection state with Astrobox (via USB): connected or disconnected
-		'printer_state_changed'
+		'printer_state_changed',
+		#watch the timelapse selected for photos capture while printing. Return the frequence value.
+		'print_capture_info_changed'
 	]
 
 	def __init__(self):
 		super(PrinterService, self).__init__()
+		#printer connection
 		self._eventManager.subscribe(Events.CONNECTED, self._onConnect)
 		self._eventManager.subscribe(Events.DISCONNECTED, self._onDisconnect)
+
+		#printing timelapse
+		self._eventManager.subscribe(Events.CAPTURE_INFO_CHANGED, self._onPrintCaptureInfoChanged)
+
+		#printing handling
+		self._eventManager.subscribe(Events.PRINT_STARTED, self._onPrintStarted)
+		self._eventManager.subscribe(Events.PRINT_DONE, self._onPrintDone)
+		self._eventManager.subscribe(Events.PRINT_FAILED, self._onPrintFailed)
+		self._eventManager.subscribe(Events.PRINT_CANCELLED, self._onPrintCancelled)
+		self._eventManager.subscribe(Events.PRINT_PAUSED, self._onPrintPaused)
+		self._eventManager.subscribe(Events.PRINT_RESUMED, self._onPrintResumed)
+		self._eventManager.subscribe(Events.ERROR, self._onPrintingError)
+
 
 	#REQUESTS
 
@@ -256,6 +272,42 @@ class PrinterService(PluginService):
 
 		return
 
+	def pause(self,data,sendResponse):
+		printerManager().togglePausePrint()
+		sendResponse({'success': 'no_error'})
+
+	def resume(self,data,sendResponse):
+		printerManager().togglePausePrint()
+		sendResponse({'success': 'no_error'})
+
+	def cancel(self,data,sendResponse):
+		sendResponse(printerManager().cancelPrint())
+
+	def setTimelapse(self,data,sendResponse):
+		freq = data['freq']
+		if freq:
+			cm = cameraManager()
+
+			if cm.timelapseInfo:
+				if not cm.update_timelapse(freq):
+					sendResponse('error_updating_timelapse',True)
+					return
+
+			else:
+				r = cm.start_timelapse(freq)
+				if r != 'success':
+					sendResponse('error_starting_timelapse',True)
+					return
+		else:
+			sendResponse('erro_no_frequency',True)
+			return
+
+		sendResponse({'success': 'no_error'})
+
+
+	def getTimelapse(self,data,sendResponse):
+		sendResponse(cameraManager().timelapseInfo);
+
 	#EVENTS
 
 	def _onConnect(self,event,value):
@@ -263,3 +315,27 @@ class PrinterService(PluginService):
 
 	def _onDisconnect(self,event,value):
 		self.publishEvent('printer_state_changed','disconnected')
+
+	def _onPrintCaptureInfoChanged(self,event,value):
+		self.publishEvent('print_capture_info_changed',value)
+
+	def _onPrintStarted(self,event,value):
+		self.publishEvent('printing_state_changed','started')
+
+	def _onPrintDone(self,event,value):
+		self.publishEvent('printing_state_changed','done')
+
+	def _onPrintFailed(self,event,value):
+		self.publishEvent('printing_state_changed','failed')
+
+	def _onPrintCancelled(self,event,value):
+		self.publishEvent('printing_state_changed','cancelled')
+
+	def _onPrintPaused(self,event,value):
+		self.publishEvent('printing_state_changed','paused')
+
+	def _onPrintResumed(self,event,value):
+		self.publishEvent('printing_state_changed','resumed')
+
+	def _onPrintingError(self,event,value):
+		self.publishEvent('printing_state_changed','printing_error')

@@ -25,10 +25,8 @@ class FilesService(PluginService):
 		'file_deleted',
 		#watch downloading progress of a print file
 		'progress_download_printfile',
-		#watch if a print file were successfully downloaded
-		'success_download_printfile',
-		#watch if a print file downloading failed
-		'error_download_printfile'
+		#watch if a print file were downloaded: successfully or failed(error or cancelled)
+		'f¡nished_download_printfile'
 	]
 
 	def __init__(self):
@@ -211,7 +209,7 @@ class FilesService(PluginService):
 			print 'successCb'
 			if fileInfo is True:
 				#This means the files was already on the device
-				self.publishEvent('success_download_printfile',{
+				self.publishEvent('f¡nished_download_printfile',{
 					"type": "success",
 					"id": printFileId,
 					"filename": printerManager().fileManager._getBasicFilename(destFile)
@@ -219,7 +217,7 @@ class FilesService(PluginService):
 
 			else:
 				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-					self.publishEvent('success_download_printfile',{
+					self.publishEvent('f¡nished_download_printfile',{
 						"type": "success",
 						"id": printFileId,
 						"filename": printerManager().fileManager._getBasicFilename(destFile),
@@ -232,12 +230,12 @@ class FilesService(PluginService):
 		def errorCb(destFile, error):
 			print 'errorCb'
 			if error == 'cancelled':
-				self.publishEvent('error_download_printfile',{
+				self.publishEvent('f¡nished_download_printfile',{
 					"type": "cancelled",
 					"id": printFileId
 				})
 			else:
-				self.publishEvent('error_download_printfile',{
+				self.publishEvent('f¡nished_download_printfile',{
 					"type": "error",
 					"id": printFileId,
 					"reason": error
