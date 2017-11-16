@@ -258,6 +258,5 @@ class FilesService(PluginService):
 	#EVENTS
 
 	def _onFileDeleted(self,event,data):
-		print 'onFileDelete ' + value
 
 		self.publishEvent('file_deleted',data['filename'])
