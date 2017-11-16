@@ -26,7 +26,9 @@ class FilesService(PluginService):
 		#watch downloading progress of a print file
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
-		'f¡nished_download_printfile'
+		'f¡nished_download_printfile',
+		#watch if a file were be downloaded successfully
+		'cloud_download_success'
 	]
 
 	def __init__(self):
