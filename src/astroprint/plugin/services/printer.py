@@ -17,7 +17,9 @@ class PrinterService(PluginService):
 		#watch the printer's connection state with Astrobox (via USB): connected or disconnected
 		'printer_state_changed',
 		#watch the timelapse selected for photos capture while printing. Return the frequence value.
-		'print_capture_info_changed'
+		'print_capture_info_changed',
+		#watch the current printing state
+		'printing_state_changed'
 	]
 
 	def __init__(self):
