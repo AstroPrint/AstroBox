@@ -21,14 +21,18 @@ class FilesService(PluginService):
 	_validEvents = [
 		#watch if a file where added
 		#'file_added',
+		#BROWSER -> PLUGIN
 		#watch if a file where deleted
 		'file_deleted',
+		#watch if a file were be downloaded successfully
+		'cloud_download_success',
+		################
+		#PLUGIN -> BROWSER + PLUGIN
 		#watch downloading progress of a print file
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
-		'f¡nished_download_printfile',
-		#watch if a file were be downloaded successfully
-		'cloud_download_success'
+		'f¡nished_download_printfile'
+
 	]
 
 	def __init__(self):
@@ -194,6 +198,8 @@ class FilesService(PluginService):
 			printer.fileManager.removeFile(fileName)
 
 		self.publishEvent('file_deleted','deleted')
+		eventManager().fire(Events.FILE_DELETED, {"filename": filename})
+
 		sendResponse({'success':'no error'})
 
 
@@ -215,20 +221,28 @@ class FilesService(PluginService):
 			print 'successCb'
 			if fileInfo is True:
 				#This means the files was already on the device
-				self.publishEvent('f¡nished_download_printfile',{
+
+				data = {
 					"type": "success",
 					"id": printFileId,
 					"filename": printerManager().fileManager._getBasicFilename(destFile)
-				})
+				}
+
+				self.publishEvent('f¡nished_download_printfile',data)
+				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
 				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-					self.publishEvent('f¡nished_download_printfile',{
+
+					data = {
 						"type": "success",
 						"id": printFileId,
 						"filename": printerManager().fileManager._getBasicFilename(destFile),
 						"info": fileInfo["info"]
-					})
+					}
+
+					self.publishEvent('f¡nished_download_printfile',data)
+					eventManager.fire(Events.CLOUD_DOWNLOAD,data)
 
 				else:
 					errorCb(destFile, "Couldn't save the file")
@@ -236,16 +250,23 @@ class FilesService(PluginService):
 		def errorCb(destFile, error):
 			print 'errorCb'
 			if error == 'cancelled':
-				self.publishEvent('f¡nished_download_printfile',{
+				data = {
 					"type": "cancelled",
 					"id": printFileId
-				})
+				}
+
+				self.publishEvent('f¡nished_download_printfile',data)
+				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+
 			else:
-				self.publishEvent('f¡nished_download_printfile',{
+				data = {
 					"type": "error",
 					"id": printFileId,
 					"reason": error
-				})
+				}
+
+				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+				self.publishEvent('f¡nished_download_printfile',data)
 
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
