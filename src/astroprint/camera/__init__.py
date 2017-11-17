@@ -280,8 +280,10 @@ class CameraManager(object):
 			return printCapture['error']
 
 		else:
+			timelapseId = printCapture['print_id']
+
 			self.timelapseInfo = {
-				'id': printCapture['print_id'],
+				'id': timelapseId,
 				'freq': freq,
 				'paused': False,
 				'last_photo': None
@@ -289,7 +291,7 @@ class CameraManager(object):
 
 			if freq == 'layer':
 				# send first pic and subscribe to layer change events
-				self.addPhotoToTimelapse(printCapture['print_id'])
+				self.addPhotoToTimelapse(timelapseId)
 				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
 
 			else:
