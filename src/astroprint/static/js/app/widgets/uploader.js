@@ -79,17 +79,18 @@ var FileUploadBase = Backbone.View.extend({
   {
     if (data.files.length) {
       this.started(data);
-        this.progress(0);
+      this.progress(0);
 
-        if (!this.signatureUrl) {
-          data.url = this.uploadUrl;
-          data.formData = this.uploadData;
-        }
+      if (!this.signatureUrl) {
+        data.url = this.uploadUrl;
+        data.formData = this.uploadData;
+      }
 
-        if (this.beforeSubmit(e, data)) {
-          $(e.currentTarget).fileupload('send', data);
-        }
+      if (this.beforeSubmit(e, data)) {
+        $(e.currentTarget).fileupload('send', data);
+      }
     }
+
     return false;
   },
   onUploadProgress: function(e, data)
@@ -138,9 +139,9 @@ var FileUploadCombined = FileUploadBase.extend({
       this.acceptFileTypes = /(\.|\/)(stl|gcode|gco)$/i;
     }
   },
-  started: function(data)
+  onFileAdded: function(e, data)
   {
-    if (data.files && data.files.length > 0) {
+    if (FileUploadBase.prototype.onFileAdded.call(this, e, data)) {
       var fileName = data.files[0].name;
       var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
@@ -150,6 +151,27 @@ var FileUploadCombined = FileUploadBase.extend({
           return ext == fileExt;
         }) != undefined);
       });
+
+      if (this.currentFileType == 'design') {
+        setTimeout(_.bind(function() {
+          if (confirm('Design. Are you sure?')) {
+            data.submit();
+          }
+        }, this), 1000)
+
+        return false;
+      }
+
+      return true;
+    } else {
+      return false;
+    }
+  },
+  started: function(data)
+  {
+    if (data.files && data.files.length > 0) {
+      var fileName = data.files[0].name;
+      var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
       if (this.currentFileType == undefined) {
         this.currentFileType = null;
