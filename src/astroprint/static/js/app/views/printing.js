@@ -280,11 +280,6 @@ var PhotoView = CameraViewBase.extend({
                                       $('.camera-controls-fullscreen').fadeOut(500);
                                     },
                                     complete: _.bind(function() {
-                                      if (app.socketData.attributes.printing_progress.heating_up) {
-                                        $('#heating-container').fadeIn(500);
-                                      } else {
-                                        $('.info').fadeIn(500);
-                                      }
                                       this.disableFullScreen();
                                     }, this)
                                   });
@@ -307,17 +302,17 @@ var PhotoView = CameraViewBase.extend({
     $( window ).resize(_.bind(function() {
         if (window.matchMedia('(max-width: 400px)').matches) {
           this.disableFullScreen();
-          if (app.socketData.attributes.printing_progress.heating_up) {
-            $('#heating-container').fadeIn(500);
-          } else {
-            $('.info').fadeIn(500);
-          }
         }
     }, this));
   },
   disableFullScreen: function() {
     $('.camera-view').removeAttr('style');
     $('.camera-view').removeClass('fullscreen');
+    if ($('#heating-container').hasClass('heating')) {
+      $('#heating-container').fadeIn(500);
+    } else {
+      $('.info').fadeIn(500);
+    }
   },
   _formatTime: function(seconds)
   {
@@ -363,7 +358,6 @@ el: '#printing-view',
   initialize: function()
   {
     new SemiCircleProgress();
-
     var profile = app.printerProfile.toJSON();
     this.currentTool = app.socketData.attributes.tool;
     this.extruders_count = profile.extruder_count;
@@ -575,6 +569,7 @@ el: '#printing-view',
     this.render();
     this.showTemps();
     this.photoView.render();
+    this.photoView.disableFullScreen();
   },
   onHide: function()
   {
@@ -643,7 +638,7 @@ el: '#printing-view',
   currentToolChanged: function(extruderId) {
     this.previousSelectedTool = this.getCurrentSelectedSliders();
     this.setCurrentSelectedSliders(extruderId);
-    this.scrollSlider(extruderId);
+    if (this.extruders_count > 2) { this.scrollSlider(extruderId) };
     this.checkedArrows(extruderId);
   },
   navExtruderClicked: function(e) {
