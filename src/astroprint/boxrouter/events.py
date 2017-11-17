@@ -8,12 +8,10 @@ import logging
 
 from copy import deepcopy
 
-from octoprint.events import eventManager, Events
-
 class EventSender(object):
-	def __init__(self, socket):
+	def __init__(self, router):
 		self._logger = logging.getLogger(__name__)
-		self._socket = socket
+		self._router = router
 		self._lastSent = {
 			'temp_update': None,
 			'status_update': None,
@@ -21,42 +19,6 @@ class EventSender(object):
 			'print_capture': None,
 			'print_file_download': None
 		}
-
-		em = eventManager()
-
-		#register for print_capture events
-		em.subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
-		em.subscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
-
-	def __del__(self):
-		self.cleanup()
-
-	def cleanup(self):
-		em = eventManager()
-
-		em.unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
-		em.unsubscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
-
-	def _onCaptureInfoChanged(self, event, payload):
-		self.sendUpdate('print_capture', payload)
-
-	def _onDownload(self, event, payload):
-		data = {
-			'id': payload['id'],
-			'selected': False
-		}
-
-		if payload['type'] == 'error':
-			data['error'] = True
-			data['message'] = payload['reason'] if 'reason' in payload else 'Problem downloading'
-
-		elif payload['type'] == 'cancelled':
-			data['cancelled'] = True
-
-		else:
-			data['progress'] = 100 if payload['type'] == 'success' else payload['progress']
-
-		self.sendUpdate('print_file_download', data)
 
 	def sendLastUpdate(self, event):
 		if event in self._lastSent:
@@ -68,13 +30,13 @@ class EventSender(object):
 
 	def _send(self, event, data):
 		try:
-			self._socket.send(json.dumps({
+			self._router.send({
 				'type': 'send_event',
 				'data': {
 					'eventType': event,
 					'eventData': data
 				}
-			}))
+			})
 
 			return True
 
