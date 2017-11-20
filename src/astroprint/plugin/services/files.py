@@ -230,7 +230,7 @@ class FilesService(PluginService):
 				}
 
 				self.publishEvent('f¡nished_download_printfile',data)
-				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
 				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
@@ -243,7 +243,7 @@ class FilesService(PluginService):
 					}
 
 					self.publishEvent('f¡nished_download_printfile',data)
-					eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+					em.fire(Events.CLOUD_DOWNLOAD,data)
 
 				else:
 					errorCb(destFile, "Couldn't save the file")
@@ -257,7 +257,7 @@ class FilesService(PluginService):
 				}
 
 				self.publishEvent('f¡nished_download_printfile',data)
-				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
 				data = {
@@ -266,7 +266,7 @@ class FilesService(PluginService):
 					"reason": error
 				}
 
-				eventManager.fire(Events.CLOUD_DOWNLOAD,data)
+				em.fire(Events.CLOUD_DOWNLOAD,data)
 				self.publishEvent('f¡nished_download_printfile',data)
 
 			if destFile and os.path.exists(destFile):
