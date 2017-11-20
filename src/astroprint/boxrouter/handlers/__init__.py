@@ -48,10 +48,10 @@ class BoxRouterMessageHandler(object):
 		return None
 
 	def force_event(self, msg):
-		wsClient = self._weakWs()
+		router = self._weakRefBoxRouter()
 
-		if wsClient and wsClient._eventSender:
-			wsClient._eventSender.sendLastUpdate(msg['data'])
+		if router:
+			router.broadcastLastUpdate(msg['data'])
 
 		return None
 
