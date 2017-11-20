@@ -38,7 +38,8 @@ class RequestHandler(object):
 			'printCapture': cm.timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': softwareManager.capabilities() + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities,
+			'tool': printer.getSelectedTool()
 		}
 
 		if state['printing'] or state['paused']:
