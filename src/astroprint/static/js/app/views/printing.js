@@ -310,6 +310,7 @@ var PhotoView = CameraViewBase.extend({
     $('.camera-view').removeClass('fullscreen');
     if ($('#heating-container').hasClass('heating')) {
       $('#heating-container').fadeIn(500);
+      $('#heating-container').removeAttr('style');
     } else {
       $('.info').fadeIn(500);
     }

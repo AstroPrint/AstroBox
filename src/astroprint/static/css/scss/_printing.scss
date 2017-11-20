@@ -106,7 +106,7 @@
       }
     }
 
-    .heating {
+    #heating-container {
       display: none;
     }
 
@@ -469,136 +469,9 @@
     }
   }
 
-  .temperatures {
-    margin-bottom: 30px;
-
-    .temp-bar {
-      position: relative;
-      height: 50px;
-      width: 100%;
-      background: url('/img/temp_grad_horiz.png') repeat-y #f54c39;
-      background-size: contain;
-
-      &.nozzle {
-        margin-bottom: 40px;
-      }
-
-      h3 {
-        font-size: rem-calc(15);
-        position: absolute;
-        right: 5px;
-        top: -23px;
-      }
-
-      label {
-        color: white;
-        font-size: rem-calc(20);
-        position: absolute;
-        top: 12px;
-        left: 10px;
-        width: 75px;
-        display: inline-block;
-      }
-
-      .temp-current {
-        position: absolute;
-        top: 12px;
-        right: 10px;
-        font-size: rem-calc(20);
-        color: white;
-        width: 50px;
-        text-align: right;
-        display: inline-block;
-      }
-
-      .temp-target {
-        @include radius();
-        background-color: #505050;
-        color: white;
-        display: inline-block;
-        position: absolute;
-        top: -5px;
-        height: 60px;
-        width: 85px;
-        left: 130px;
-        text-align: center;
-        cursor: pointer;
-
-        a.temp-edit {
-          padding: 18px 0;
-          text-align: center;
-          width: 40%;
-          display: inline-block;
-          border-right: 1px solid #a5a5a5;
-          color: white;
-          float: left;
-        }
-
-        span.target-value {
-          padding: 18px 0;
-          width: 60%;
-          display: inline-block;
-          float: right;
-        }
-
-        input {
-          margin-top: 12px;
-          text-align: center;
-          display: inline-block;
-          background: transparent;
-          padding: 5px 2px;
-          color: white;
-          border: none;
-          width: 55%;
-          box-shadow: none;
-
-          &::-webkit-inner-spin-button,
-          &::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-          }
-        }
-
-        &.moving {
-          background-color: lighten(#505050, 20%);
-        }
-      }
-
-      .temp-curret-line {
-        position: absolute;
-        top: 0px;
-        bottom: 0px;
-        left: 153px;
-        width: 4px;
-        background-color: #505050;
-        transition: left 0.5s;
-        -webkit-transition: left 0.5s;
-        -moz-transition: left 0.5s;
-
-        .triangle_left {
-          position: absolute;
-          top: -13px;
-          left: -5px;
-          -webkit-transform: rotate(90deg);
-          -moz-transform: rotate(90deg);
-          transform: rotate(90deg);
-        }
-
-        .triangle_right {
-          position: absolute;
-          bottom: -13px;
-          left: -5px;
-          -webkit-transform: rotate(90deg);
-          -moz-transform: rotate(90deg);
-          transform: rotate(90deg);
-        }
-      }
-    }
-  }
-
   &.heating-up {
     .print-info {
-      .heating {
+      #heating-container {
         display: block;
         font-size: rem-calc(40);
         color: $red;
@@ -1019,20 +892,6 @@
       }
     }
   }
-
-  #printing-view .temperatures .temp-bar {
-    label {
-      top: 4px;
-      width: 110px;
-      font-size: rem-calc(28);
-    }
-
-    .temp-current {
-      top: 4px;
-      width: 100px;
-      font-size: rem-calc(28);
-    }
-  }
 }
 
 @media #{$small-up} {
@@ -1044,13 +903,6 @@
 
 }
 
-@media #{$medium-only} {
-  #printing-view {
-    #slider {
-      //background-color: orange;
-    }
-  }
-}
 @media #{$small-only} {
   #printing-view #temp-control-template{
     .extruders{
