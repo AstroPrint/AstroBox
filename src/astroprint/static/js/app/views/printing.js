@@ -308,12 +308,14 @@ var PhotoView = CameraViewBase.extend({
   disableFullScreen: function() {
     $('.camera-view').removeAttr('style');
     $('.camera-view').removeClass('fullscreen');
-    if ($('#heating-container').hasClass('heating')) {
+    if ($('#printing-view').hasClass('heating-up')) {
       $('#heating-container').fadeIn(500);
-      $('#heating-container').removeAttr('style');
     } else {
       $('.info').fadeIn(500);
     }
+    $('#heating-container').removeAttr('style');
+    $('.info').removeAttr('style');
+
   },
   _formatTime: function(seconds)
   {
