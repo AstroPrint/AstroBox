@@ -7,6 +7,9 @@ import logging
 import requests
 
 from Queue import Queue
+from astroprint.printer.manager import printerManager
+from octoprint.events import eventManager, Events
+from astroprint.printfiles import FileDestinations
 
 # singleton
 _instance = None
@@ -51,6 +54,16 @@ class DownloadWorker(threading.Thread):
 			successCb = item['successCb']
 			errorCb = item['errorCb']
 			destFile = item['destFile']
+			printer = None
+			material = None
+			quality = None
+
+			if "printer" in item:
+				printer = item['printer']
+			if "material" in item:
+				material = item['material']
+			if "quality" in item:
+				quality = item['quality']
 
 			self._manager._logger.info('Download started for %s' % printFileId)
 
@@ -62,7 +75,7 @@ class DownloadWorker(threading.Thread):
 				self._activeRequest = r
 
 				if r.status_code == 200:
-					content_length = float(r.headers['Content-Length']);
+					content_length = float(r.headers['Content-Length'])
 					downloaded_size = 0.0
 
 					with open(destFile, 'wb') as fd:
@@ -82,14 +95,35 @@ class DownloadWorker(threading.Thread):
 						errorCb(destFile, 'cancelled')
 
 					else:
+						self._manager._logger.info('Download completed for %s' % printFileId)
+
 						fileInfo = {
 							'id': printFileId,
 							'printFileName': printFileName,
-							'info': item['printFileInfo']
+							'info': item['printFileInfo'],
+							'printer': printer,
+							'material': material,
+							'quality': quality
 						}
+						em = eventManager()
 
-						successCb(destFile, fileInfo)
-						self._manager._logger.info('Download completed for %s' % printFileId)
+						if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+							em.fire(
+								Events.CLOUD_DOWNLOAD, {
+									"type": "success",
+									"id": printFileId,
+									"filename": printerManager().fileManager._getBasicFilename(destFile),
+									"info": fileInfo["info"],
+									"printer": fileInfo["printer"],
+									"material": fileInfo["material"],
+									"quality": fileInfo["quality"]
+								}
+							)
+
+							successCb(destFile, fileInfo)
+
+						else:
+							errorCb(destFile, "Couldn't save the file")
 
 				else:
 					r.close()

@@ -301,6 +301,9 @@ class PrintFilesManager(object):
 			"cloud_id": fileInfo["id"],
 			"gcodeAnalysis": fileInfo["info"],
 			"printFileName": fileInfo["printFileName"],
+			"printer": fileInfo["printer"],
+			"material": fileInfo["material"],
+			"quality": fileInfo["quality"],
 			"prints": {
 				"success": 0,
 				"failure": 0,

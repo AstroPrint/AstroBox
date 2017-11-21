@@ -111,22 +111,6 @@ class RequestHandler(object):
 			)
 
 		def successCb(destFile, fileInfo):
-			if fileInfo is not True:
-				if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-					em.fire(
-						Events.CLOUD_DOWNLOAD, {
-							"type": "success",
-							"id": print_file_id,
-							"filename": printer.fileManager._getBasicFilename(destFile),
-							"info": fileInfo["info"]
-						}
-					)
-
-				else:
-					errorCb(destFile, "Couldn't save the file")
-					done(None)
-					return
-
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
 			if printer.selectFile(abosluteFilename, False, True):
 				eventData = {

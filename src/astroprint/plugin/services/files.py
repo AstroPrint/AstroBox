@@ -233,20 +233,17 @@ class FilesService(PluginService):
 				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
-				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+				data = {
+					"type": "success",
+					"id": printFileId,
+					"filename": printerManager().fileManager._getBasicFilename(destFile),
+					"info": fileInfo["info"],
+					"printer": fileInfo["printer"],
+					"material": fileInfo["material"],
+					"quality": fileInfo["quality"]
+				}
 
-					data = {
-						"type": "success",
-						"id": printFileId,
-						"filename": printerManager().fileManager._getBasicFilename(destFile),
-						"info": fileInfo["info"]
-					}
-
-					self.publishEvent('f¡nished_download_printfile',data)
-					em.fire(Events.CLOUD_DOWNLOAD,data)
-
-				else:
-					errorCb(destFile, "Couldn't save the file")
+				self.publishEvent('f¡nished_download_printfile',data)
 
 		def errorCb(destFile, error):
 			print 'errorCb'
