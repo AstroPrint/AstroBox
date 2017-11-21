@@ -5,6 +5,14 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 from . import PluginService
 from octoprint.settings import settings
+from astroprint.printer.manager import printerManager
+from netifaces import interfaces, ifaddresses, AF_INET
+
+#from astroprint.network.manager import networkManager
+#from astroprint.camera import cameraManager
+#from astroprint.plugin import pluginManager
+from astroprint.printerprofile import printerProfileManager
+
 
 class SystemService(PluginService):
 	_validEvents = ['started', 'shutting_down']
@@ -38,9 +46,7 @@ class SystemService(PluginService):
 		ppm = printerProfileManager()
 		connectionOptions = pm.getConnectionOptions()
 
-		data['settings']
-
-		if data['settings']:
+		if data and data['settings']:
 			if "serial" in data.keys():
 				if "port" in data["serial"].keys(): s.set(["serial", "port"], data["serial"]["port"])
 				if "baudrate" in data["serial"].keys(): s.setInt(["serial", "baudrate"], data["serial"]["baudrate"])
@@ -65,7 +71,111 @@ class SystemService(PluginService):
 
 		return
 
-	def cameraSettings(self,data,sendMessage):
+
+	def testConnection(self, data, sendResponse):
+
+		valid_commands = {
+			"connect": ["autoconnect"],
+			"disconnect": []
+		}
+
+		pm = printerManager()
+
+		s = settings()
+
+		driver = None
+		port = None
+		baudrate = None
+
+		options = pm.getConnectionOptions()
+
+		if "port" in data:
+			port = data["port"]
+			if port not in options["ports"]:
+				sendResponse('invalid_port', True)
+				return
+
+		if "baudrate" in data and data['baudrate']:
+			baudrate = int(data["baudrate"])
+			if baudrate:
+				baudrates = options["baudrates"]
+				if baudrates and baudrate not in baudrates:
+					sendResponse("invalid_baudrate", True)
+					return
+
+			else:
+				sendResponse("baudrate_null", True)
+				return
+
+		if "save" in data and data["save"]:
+			s.set(["serial", "port"], port)
+			s.setInt(["serial", "baudrate"], baudrate)
+
+		if "autoconnect" in data:
+			s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
+
+		s.save()
+
+		pm.connect(port=port, baudrate=baudrate)
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
+	def getMyIP(self, data, sendResponse):
+
+		addresses = {}
+
+		for ifaceName in interfaces():
+			addrs = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+			addresses[ifaceName] = addrs
+			print '%s: %s' % (ifaceName, ', '.join(addrs))
+
+		print addresses
+
+		print '-------'
+		print addresses['en0']
+		print '-------'
+
+		if 'eth0' in addresses:
+			sendResponse(addresses['eth0'])
+			return
+
+		if 'wlan0' in addresses:
+			sendResponse(addresses['wlan0'])
+			return
+
+		if 'en0' in addresses:
+			sendResponse(addresses['en0'])
+			return
+
+		sendResponse(None)
+		return
+
+	#profile
+	def printerProfile(self, data, sendMessage):
+
+		ppm = printerProfileManager()
+
+		if data:
+			ppm.set(data)
+			ppm.save()
+
+			sendMessage({'success': 'no_error'})
+
+			return
+
+		else:
+
+			result = ppm.data.copy()
+			result.update( {"driverChoices": ppm.driverChoices()} )
+
+			sendMessage( result )
+
+			return
+
+
+	def cameraSettings(self, data, sendMessage):
 		s = settings()
 		cm = cameraManager()
 
@@ -112,7 +222,7 @@ class SystemService(PluginService):
 		return
 
 
-	def networkName(self,data,sendMessage):
+	def networkName(self, data, sendMessage):
 
 		nm = networkManager()
 
@@ -124,7 +234,7 @@ class SystemService(PluginService):
 
 		return
 
-	def networkSettings(self,data,sendMessage):
+	def networkSettings(self, data, sendMessage):
 		nm = networkManager()
 
 		sendMessage({
@@ -135,7 +245,7 @@ class SystemService(PluginService):
 
 		return
 
-	def wifiNetworks(self,data,sendMessage):
+	def wifiNetworks(self, data, sendMessage):
 		networks = networkManager().getWifiNetworks()
 
 		if networks:
@@ -145,7 +255,7 @@ class SystemService(PluginService):
 
 		return
 
-	def setWifiNetwork(self,data,sendMessage):
+	def setWifiNetwork(self, data, sendMessage):
 
 		if 'id' in data and 'password' in data:
 			result = networkManager().setWifiNetwork(data['id'], data['password'])
@@ -157,7 +267,7 @@ class SystemService(PluginService):
 
 		return
 
-	def deleteStoredWiFiNetwork(self,data,sendMessage):
+	def deleteStoredWiFiNetwork(self, data, sendMessage):
 		nm = networkManager()
 
 		if nm.deleteStoredWifiNetwork(data['networkId']):
@@ -167,7 +277,7 @@ class SystemService(PluginService):
 
 		return
 
-	def cameraSettings(self,data,sendMessage):
+	def cameraSettings(self, data, sendMessage):
 		s = settings()
 		cm = cameraManager()
 
@@ -214,7 +324,7 @@ class SystemService(PluginService):
 
 	##plugin
 
-	def getAdvancedSoftwareSettings(self,data,sendMessage):
+	def getAdvancedSoftwareSettings(self, data, sendMessage):
 		s = settings()
 
 		logsDir = s.getBaseFolder("logs")
@@ -230,7 +340,7 @@ class SystemService(PluginService):
 
 		return
 
-	def changeApiKeySettings(self,data,sendMessage):
+	def changeApiKeySettings(self, data, sendMessage):
 
 		if data and 'regenerate' in data:
 			s = settings()
@@ -251,7 +361,7 @@ class SystemService(PluginService):
 		return
 
 
-	def resetFactorySettings(self,data,sendMessage):
+	def resetFactorySettings(self, data, sendMessage):
 		from astroprint.cloud import astroprintCloud
 		from shutil import copy
 
