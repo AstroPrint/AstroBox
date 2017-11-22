@@ -8,11 +8,10 @@ from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from netifaces import interfaces, ifaddresses, AF_INET
 
-#from astroprint.network.manager import networkManager
-#from astroprint.camera import cameraManager
-#from astroprint.plugin import pluginManager
 from astroprint.printerprofile import printerProfileManager
-
+from astroprint.camera import cameraManager
+#from astroprint.network.manager import networkManager
+#from astroprint.plugin import pluginManager
 
 class SystemService(PluginService):
 	_validEvents = ['started', 'shutting_down']
@@ -175,52 +174,18 @@ class SystemService(PluginService):
 			return
 
 
-	def cameraSettings(self, data, sendMessage):
-		s = settings()
+	def refreshPluggedCamera(self, data, sendMessage):
 		cm = cameraManager()
 
-		if data['settings']:
-			if "source" in data:
-				s.set(['camera', 'source'], data['source'])
-
-			if "size" in data:
-				s.set(['camera', 'size'], data['size'])
-
-			if "encoding" in data:
-				s.set(['camera', 'encoding'], data['encoding'])
-
-			if "format" in data:
-				s.set(['camera', 'format'], data['format'])
-
-			if "framerate" in data:
-				s.set(['camera', 'framerate'], data['framerate'])
-
-			if "video_rotation" in data:
-				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
-
-			s.save()
-
-			cm.settingsChanged({
-				'size': s.get(['camera', 'size']),
-				'encoding': s.get(['camera', 'encoding']),
-				'framerate': s.get(['camera', 'framerate']),
-				'source': s.get(['camera', 'source']),
-				'format': s.get(['camera', 'format']),
-				'video_rotation': s.get(['camera', 'video-rotation'])
-			})
-
-		sendMessage(
-			encoding= s.get(['camera', 'encoding']),
-			size= s.get(['camera', 'size']),
-			framerate= s.get(['camera', 'framerate']),
-			format= s.get(['camera', 'format']),
-			source= s.get(['camera', 'source']),
-			video_rotation= s.getInt(['camera', 'video-rotation']),
-			structure= cm.settingsStructure()
-		)
+		sendMessage({"camera_plugged": cm.reScan()})
 
 		return
 
+	def isResolutionSupported(self, size, sendMessage):
+		cm = cameraManager()
+
+		sendMessage({"isResolutionSupported": cm.isResolutionSupported(size)})
+		return
 
 	def networkName(self, data, sendMessage):
 
@@ -281,25 +246,34 @@ class SystemService(PluginService):
 		s = settings()
 		cm = cameraManager()
 
-		if "source" in data:
-			s.set(['camera', 'source'], data['source'])
+		print 'cameraSettings'
+		print data
 
-		if "size" in data:
-			s.set(['camera', 'size'], data['size'])
+		if data:
+			print '1'
 
-		if "encoding" in data:
-			s.set(['camera', 'encoding'], data['encoding'])
+			if "source" in data:
+				print '2'
+				s.set(['camera', 'source'], data['source'])
 
-		if "format" in data:
-			s.set(['camera', 'format'], data['format'])
+			if "size" in data:
+				print '3'
+				s.set(['camera', 'size'], data['size'])
 
-		if "framerate" in data:
-			s.set(['camera', 'framerate'], data['framerate'])
+			if "encoding" in data:
+				s.set(['camera', 'encoding'], data['encoding'])
 
-		if "video_rotation" in data:
-			s.set(['camera', 'video-rotation'], int(data['video_rotation']))
+			if "format" in data:
+				s.set(['camera', 'format'], data['format'])
 
-		s.save()
+			if "framerate" in data:
+				s.set(['camera', 'framerate'], data['framerate'])
+
+			if "video_rotation" in data:
+				print 'video_rotation'
+				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
+
+			s.save()
 
 		cm.settingsChanged({
 			'size': s.get(['camera', 'size']),
@@ -316,7 +290,7 @@ class SystemService(PluginService):
 			'framerate': s.get(['camera', 'framerate']),
 			'format': s.get(['camera', 'format']),
 			'source': s.get(['camera', 'source']),
-			'video_rotation': s.getInt(['camera', 'video-rotation']),
+			'video_rotation': str(s.getInt(['camera', 'video-rotation'])),
 			'structure': cm.settingsStructure()
 		})
 
