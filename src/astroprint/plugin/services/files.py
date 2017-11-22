@@ -16,6 +16,7 @@ from octoprint.server import restricted_access
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
+from astroprint.printfiles.downloadmanager import downloadManager
 
 class FilesService(PluginService):
 	_validEvents = [
@@ -278,7 +279,7 @@ class FilesService(PluginService):
 
 	def cancelDownloadPrintFile(self, printFileId, sendResponse):
 
-		if downloadManager().cancelDownload(print_file_id):
+		if downloadManager().cancelDownload(printFileId):
 			sendResponse({'success':'no error'})
 		else:
 			sendResponse('cancel_error',True)
