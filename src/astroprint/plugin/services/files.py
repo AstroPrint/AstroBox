@@ -276,6 +276,13 @@ class FilesService(PluginService):
 		sendResponse('error',True)
 		return
 
+	def cancelDownloadPrintFile(self, printFileId, sendResponse):
+
+		if downloadManager().cancelDownload(print_file_id):
+			sendResponse({'success':'no error'})
+		else:
+			sendResponse('cancel_error',True)
+
 
 	#EVENTS
 
