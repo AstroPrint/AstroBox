@@ -10,7 +10,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 
 from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
-#from astroprint.network.manager import networkManager
+from astroprint.network.manager import networkManager
 #from astroprint.plugin import pluginManager
 
 class SystemService(PluginService):
@@ -187,15 +187,14 @@ class SystemService(PluginService):
 		sendMessage({"isResolutionSupported": cm.isResolutionSupported(size)})
 		return
 
-	def networkName(self, data, sendMessage):
-
+	def networkName(self, newName, sendMessage):
 		nm = networkManager()
 
-		if data['name']:
+		if newName :
 
-				nm.setHostname(data['name'])
+				nm.setHostname(newName)
 
-		sendMessage(name=nm.getHostname())
+		sendMessage({'name':nm.getHostname()})
 
 		return
 
@@ -214,7 +213,7 @@ class SystemService(PluginService):
 		networks = networkManager().getWifiNetworks()
 
 		if networks:
-			sendMessage(networks = networks)
+			sendMessage(networks)
 		else:
 			sendMessage("unable_get_wifi_networks",True)
 
@@ -222,20 +221,24 @@ class SystemService(PluginService):
 
 	def setWifiNetwork(self, data, sendMessage):
 
+		print data
+
 		if 'id' in data and 'password' in data:
 			result = networkManager().setWifiNetwork(data['id'], data['password'])
 
 			if result:
-				sendMessage(jsonify(result))
+				sendMessage(result)
 			else:
 				sendMessage('network_not_found',True)
+
+		sendMessage('incorrect_data',True)
 
 		return
 
 	def deleteStoredWiFiNetwork(self, data, sendMessage):
 		nm = networkManager()
 
-		if nm.deleteStoredWifiNetwork(data['networkId']):
+		if nm.deleteStoredWifiNetwork(data['id']):
 			sendMessage({'success': 'no_error'})
 		else:
 			sendMessage("network_not_found",True)
