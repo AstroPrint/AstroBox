@@ -19,10 +19,15 @@ from octoprint.server import softwareManager, UI_API_KEY
 #from astroprint.plugin import pluginManager
 
 class SystemService(PluginService):
-	_validEvents = ['started', 'shutting_down']
+	_validEvents = ['started', 'shutting_down', 'software_update']
 
 	def __init__(self):
 		super(SystemService, self).__init__()
+		self._eventManager.subscribe(Events.SOFTWARE_UPDATE, self._onSoftwareUpdate)
+
+	#EVENT
+	def _onSoftwareUpdate(self,event,value):
+		self.publishEvent('software_update', value)
 
 	#REQUESTS
 
