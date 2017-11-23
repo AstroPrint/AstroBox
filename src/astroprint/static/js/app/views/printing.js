@@ -290,9 +290,7 @@ var PhotoView = CameraViewBase.extend({
                                   {duration: 500,
                                     start: function() {
                                       $('.camera-controls-fullscreen').fadeIn(500);
-                                      $('#heating-container').hide();
                                       $('.info').hide();
-
                                     }});
 
       $('body, html').animate({scrollTop: (fullscreenContainer.offset().top - 15)});
@@ -308,14 +306,8 @@ var PhotoView = CameraViewBase.extend({
   disableFullScreen: function() {
     $('.camera-view').removeAttr('style');
     $('.camera-view').removeClass('fullscreen');
-    if ($('#printing-view').hasClass('heating-up')) {
-      $('#heating-container').fadeIn(500);
-    } else {
-      $('.info').fadeIn(500);
-    }
-    $('#heating-container').removeAttr('style');
+    $('.info').fadeIn(500);
     $('.info').removeAttr('style');
-
   },
   _formatTime: function(seconds)
   {

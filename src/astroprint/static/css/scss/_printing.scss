@@ -43,23 +43,29 @@
     }
 
   }
+
+  .filename-progress-container {
+    margin: 15px !important;
+  }
+
   .progress {
     background-color: rgba(240, 82, 81, 0.2);
     position: relative;
     text-align: left;
     height: 15px;
     margin-top: 50px;
+    margin-bottom: -10px;
 
     .filename {
       position: absolute;
-      top: 13px;
-      left: 0;
+      top: -22px;
+      left: 2px;
       color: rgba(0, 0, 0, 0.3);
       font-size: rem-calc(14);
       overflow-x: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      width: 100%;
+      width: 60%;
     }
 
     .progress-label {
@@ -104,6 +110,16 @@
       &.fullscreen{
         display: none;
       }
+
+      .time-layer-container {
+        i {
+          font-size: rem-calc(28);
+        }
+        div {
+          margin-top: -15px;
+        }
+      }
+
     }
 
     #heating-container {
@@ -473,30 +489,42 @@
     .print-info {
       #heating-container {
         display: block;
-        font-size: rem-calc(40);
+        font-size: rem-calc(22);
         color: $red;
         height: auto;
+        //margin-bottom: -30px;
 
         > div {
-          padding: 40px 0;
+          padding: 12px 0;
         }
 
         i.icon-temperatire {
+          margin-bottom: -5px;
+          margin-top: 5px;
           display: block;
-          font-size: rem-calc(70);
+          font-size: rem-calc(45);
         }
 
         .columns{
           padding-top: 0;
         }
-        &.fullscreen {
+        /*&.fullscreen {
           display:none;
-        }
+        }*/
       }
 
-      .info {
+      /*.info {
+        display: none;
+      }*/
+
+      .time-layer-container, .buttons-box {
         display: none;
       }
+
+      /*.filename-progress-container {
+        position: relative;
+        top: -25px;
+      }*/
     }
 
     button.pause-print {
@@ -765,6 +793,7 @@
 
           .progress-info-section {
             margin-left: -50px;
+            margin-bottom: 0px;
             padding-left: 0;
 
             .printfile-info-name {
