@@ -371,7 +371,7 @@ class TempsChanger(threading.Thread):
 				"actual": self._actuals[t],
 				"target": self._targets[t]
 			}
-
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._manager._stateMonitor.addTemperature(data)
 
 class JobSimulator(threading.Thread):

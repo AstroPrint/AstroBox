@@ -25,6 +25,12 @@ class Events(object):
 	DISCONNECTED = "Disconnected"
 	HEATING_UP = "HeatingUp"
 
+	# temperature updates
+	TEMPERATURE_CHANGE = "TemperatureChange"
+
+	# printing progress
+	PRINTING_PROGRESS = "PrintingProgress"
+
 	# connect/disconnect by client
 	CLIENT_OPENED = "ClientOpened"
 	CLIENT_CLOSED = "ClientClosed"

@@ -14,10 +14,14 @@ from astroprint.printerprofile import printerProfileManager
 
 class PrinterService(PluginService):
 	_validEvents = [
-		#watch the printer's connection state with Astrobox (via USB): connected or disconnected
+		#watch the printer's status. Returns and Object with a state and a value
 		'printer_state_changed',
 		#watch the timelapse selected for photos capture while printing. Return the frequence value.
 		'print_capture_info_changed',
+		#watch the temperature changes. Return object containing [tool0: actual, target - bed: actual, target]
+		'temperature_changed',
+		#watch the printing progress. Returns Object containing [completion, currentLayer, filamentConsumed, filepos, printTime, printTimeLeft]
+		'printing_progress_changed',
 		#watch the current printing state
 		'printing_state_changed'
 	]
@@ -28,6 +32,12 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.CONNECTED, self._onConnect)
 		self._eventManager.subscribe(Events.DISCONNECTED, self._onDisconnect)
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
+
+		#temperature
+		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
+
+		#printing progress
+		self._eventManager.subscribe(Events.PRINTING_PROGRESS, self._onPrintingProgressChanged)
 
 		#printing timelapse
 		self._eventManager.subscribe(Events.CAPTURE_INFO_CHANGED, self._onPrintCaptureInfoChanged)
@@ -321,6 +331,14 @@ class PrinterService(PluginService):
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})
+
+	def _onTemperatureChanged(self,event,value):
+		print "temp"
+		self.publishEvent('temperature_changed', value)
+
+	def _onPrintingProgressChanged(self,event,value):
+		print "progress"
+		self.publishEvent('printing_progress_changed', value)
 
 	def _onPrintCaptureInfoChanged(self,event,value):
 		self.publishEvent('print_capture_info_changed',value)

@@ -317,19 +317,25 @@ class Printer(object):
 		self._currentZ = currentZ
 		self._stateMonitor.setCurrentZ(self._currentZ)
 
-	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
-		self._progress = progress
-		self._printTime = printTime
-		self._printTimeLeft = printTimeLeft
-
-		self._stateMonitor.setProgress({
+	def _formatPrintingProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		data = {
 			"completion": progress * 100 if progress is not None else None,
 			"currentLayer": currentLayer,
 			"filamentConsumed": self.getConsumedFilament(),
 			"filepos": filepos,
 			"printTime": int(printTime) if printTime is not None else None,
 			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
-		})
+		}
+
+		return data
+
+	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		self._progress = progress
+		self._printTime = printTime
+		self._printTimeLeft = printTimeLeft
+
+		data = self._formatPrintingProgressData(progress, filepos, printTime, printTimeLeft, currentLayer)
+		self._stateMonitor.setProgress(data)
 
 	def startPrint(self):
 		"""
@@ -457,7 +463,7 @@ class Printer(object):
 	#This function should be deprecated
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
-		self._currentLayer = layer;
+		self._currentLayer = layer
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
@@ -476,15 +482,18 @@ class Printer(object):
 		if self._estimatedPrintTime:
 			if printTime and progress:
 				if progress < 1.0:
-					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
-					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
-					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
-					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress )
+					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft )
+					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance
+					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60
 				else:
 					estimatedTimeLeft = 0
 
 			else:
 				estimatedTimeLeft = self._estimatedPrintTime / 60
+
+		value = self._formatPrintingProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
+		eventManager().fire(Events.PRINTING_PROGRESS, value)
 
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
 
@@ -529,6 +538,7 @@ class Printer(object):
 		self._temp = temp
 		self._bedTemp = bedTemp
 
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._stateMonitor.addTemperature(data)
 
 	#~~ callback from metadata analysis event
