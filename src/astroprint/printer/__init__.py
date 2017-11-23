@@ -490,6 +490,7 @@ class Printer(object):
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
+		eventManager().fire(Events.HEATING_UP, value)
 
 	def mcCameraConnectionChanged(self, connected):
 		#self._stateMonitor._state['flags']['camera'] = connected

@@ -20,9 +20,10 @@ class Events(object):
 	# application startup
 	STARTUP = "Startup"
 
-	# connect/disconnect to printer
+	# printer status
 	CONNECTED = "Connected"
 	DISCONNECTED = "Disconnected"
+	HEATING_UP = "HeatingUp"
 
 	# connect/disconnect by client
 	CLIENT_OPENED = "ClientOpened"

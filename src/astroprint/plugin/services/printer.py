@@ -24,9 +24,10 @@ class PrinterService(PluginService):
 
 	def __init__(self):
 		super(PrinterService, self).__init__()
-		#printer connection
+		#printer status
 		self._eventManager.subscribe(Events.CONNECTED, self._onConnect)
 		self._eventManager.subscribe(Events.DISCONNECTED, self._onDisconnect)
+		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
 
 		#printing timelapse
 		self._eventManager.subscribe(Events.CAPTURE_INFO_CHANGED, self._onPrintCaptureInfoChanged)
@@ -313,10 +314,13 @@ class PrinterService(PluginService):
 	#EVENTS
 
 	def _onConnect(self,event,value):
-		self.publishEvent('printer_state_changed','connected')
+		self.publishEvent('printer_state_changed', {"operational": True})
 
 	def _onDisconnect(self,event,value):
-		self.publishEvent('printer_state_changed','disconnected')
+		self.publishEvent('printer_state_changed', {"operational": False})
+
+	def _onHeatingUp(self,event,value):
+		self.publishEvent('printer_state_changed', {"heatingUp": value})
 
 	def _onPrintCaptureInfoChanged(self,event,value):
 		self.publishEvent('print_capture_info_changed',value)
