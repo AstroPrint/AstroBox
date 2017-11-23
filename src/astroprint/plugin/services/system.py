@@ -9,6 +9,8 @@ import os
 
 from . import PluginService
 from octoprint.settings import settings
+from octoprint.events import Events
+
 from astroprint.printer.manager import printerManager
 from netifaces import interfaces, ifaddresses, AF_INET
 

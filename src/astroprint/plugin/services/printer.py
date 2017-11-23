@@ -333,11 +333,9 @@ class PrinterService(PluginService):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})
 
 	def _onTemperatureChanged(self,event,value):
-		print "temp"
 		self.publishEvent('temperature_changed', value)
 
 	def _onPrintingProgressChanged(self,event,value):
-		print "progress"
 		self.publishEvent('printing_progress_changed', value)
 
 	def _onPrintCaptureInfoChanged(self,event,value):
