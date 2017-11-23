@@ -171,6 +171,9 @@ def cameraSettings():
 			if "framerate" in data:
 				s.set(['camera', 'framerate'], data['framerate'])
 
+			if "video_rotation" in data:
+				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
+
 			s.save()
 
 			cm.settingsChanged({
@@ -178,7 +181,8 @@ def cameraSettings():
 				'encoding': s.get(['camera', 'encoding']),
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
-				'format': s.get(['camera', 'format'])
+				'format': s.get(['camera', 'format']),
+				'video_rotation': s.get(['camera', 'video-rotation'])
 			})
 
 	return jsonify(
@@ -187,6 +191,7 @@ def cameraSettings():
 		framerate= s.get(['camera', 'framerate']),
 		format= s.get(['camera', 'format']),
 		source= s.get(['camera', 'source']),
+		video_rotation= s.getInt(['camera', 'video-rotation']),
 		structure= cm.settingsStructure()
 	)
 

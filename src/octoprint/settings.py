@@ -47,7 +47,7 @@ default_settings = {
 		"firstRun": True,
 		"baseUrl": "",
 		"scheme": "",
-		"maxUploadSize": 160, #Size in MB for the max allowed file size
+		"maxUploadSize": 200, #Size in MB for the max allowed file size
 	},
 	"camera": {
 		"manager": "gstreamer",
@@ -59,6 +59,7 @@ default_settings = {
 		"source": "USB",
 		"debug-level": 0,
 		"graphic-debug": False,
+		"video-rotation": 0,
 		"inactivitySecs": 90.0 # After 1.5 minutes of inactivity the camera shuts off
 	},
 	"gcodeViewer": {

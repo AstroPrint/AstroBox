@@ -251,6 +251,16 @@
                       <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
                     <% } %>
                   <% } %>
+                  <% if (settings.structure.video_rotation.length > 0) { %>
+                    <label for="video-rotation" class="bold">
+                      Image Rotation
+                    </label>
+                    <select id="video-rotation" name="video_rotation">
+                      <% _.each(settings.structure.video_rotation, function(r) { %>
+                        <option value="<%= r.value %>" <%= settings.video_rotation == r.value ? 'selected' : '' %>><%= r.label %></option>
+                      <% }) %>
+                    </select>
+                  <% } %>
                   <% if (settings.structure.fps.length > 0) { %>
                     <label for="video-stream-framerate" class="bold">
                       Video Stream Frame Rate

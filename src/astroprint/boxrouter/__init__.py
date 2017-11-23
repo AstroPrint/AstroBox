@@ -33,15 +33,14 @@ from astroprint.software import softwareManager
 from astroprint.printer.manager import printerManager
 
 from .handlers import BoxRouterMessageHandler
-from .printerlistener import PrinterListener
+from .systemlistener import SystemListener
 from .events import EventSender
 
 LINE_CHECK_STRING = 'box'
 
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
-		self._printerListener = None
-		self._eventSender = None
+		self._systemListener = None
 		self._lastReceived = 0
 		self._lineCheck = None
 		self._error = False
@@ -142,26 +141,16 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		else:
 			self._logger.warn('Unknown message type [%s] received' % msg['type'])
 
-	def broadcastEvent(self, event, data):
-		if self._eventSender:
-			self._eventSender.sendUpdate(event, data)
-
 	def registerEvents(self):
-		if not self._printerListener:
-			self._printerListener = PrinterListener(self)
-			printerManager().registerCallback(self._printerListener)
-
-		if not self._eventSender:
-			self._eventSender = EventSender(self)
+		if not self._systemListener:
+			self._systemListener = SystemListener(self._weakRefRouter)
+			printerManager().registerCallback(self._systemListener)
 
 	def unregisterEvents(self):
-		if self._printerListener:
-			printerManager().unregisterCallback(self._printerListener)
-			self._printerListener = None
-
-		if self._eventSender:
-			self._eventSender.cleanup()
-			self._eventSender = None
+		if self._systemListener:
+			printerManager().unregisterCallback(self._systemListener)
+			self._systemListener.cleanup()
+			self._systemListener = None
 
 class AstroprintBoxRouter(object):
 	RETRY_SCHEDULE = [2, 2, 4, 10, 20, 30, 60, 120, 240, 480, 3600, 10800, 28800, 43200, 86400, 86400] #seconds to wait before retrying. When all exahusted it gives up
@@ -192,6 +181,8 @@ class AstroprintBoxRouter(object):
 		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
 		self._address = self._settings.get(['cloudSlicer','boxrouter'])
+
+		self._eventSender = EventSender(self)
 
 		if self._address:
 			self.boxrouter_connect()
@@ -375,6 +366,12 @@ class AstroprintBoxRouter(object):
 
 		else:
 			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId);
+
+	def broadcastEvent(self, event, data):
+		self._eventSender.sendUpdate(event, data)
+
+	def broadcastLastUpdate(self, event):
+		self._eventSender.sendLastUpdate(event)
 
 	def sendRequestToClient(self, clientId, type, data, timeout, respCallback, args=None):
 		reqId = uuid.uuid4().hex

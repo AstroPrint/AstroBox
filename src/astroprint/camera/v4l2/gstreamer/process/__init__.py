@@ -9,7 +9,7 @@ from threading import Thread, Event, Condition
 
 from .pipelines import pipelineFactory, InvalidGStreamerPipelineException
 
-def startPipelineProcess(device, size, source, encoding, onListeningEvent, errorState, procPipe, debugLevel=0):
+def startPipelineProcess(device, size, rotation, source, encoding, onListeningEvent, errorState, procPipe, debugLevel=0):
 	from gi.repository import GObject
 
 	GObject.threads_init()
@@ -27,7 +27,7 @@ def startPipelineProcess(device, size, source, encoding, onListeningEvent, error
 			raise SystemExit(-1)
 
 	try:
-		pipeline = pipelineFactory(device, size, source, encoding, onFatalError, mainLoop, debugLevel)
+		pipeline = pipelineFactory(device, size, rotation, source, encoding, onFatalError, mainLoop, debugLevel)
 	except InvalidGStreamerPipelineException as e:
 		logger.error(e)
 		raise SystemExit(-1)

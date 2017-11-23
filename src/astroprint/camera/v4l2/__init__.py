@@ -34,6 +34,7 @@ class V4L2Manager(CameraManager):
 
 		self.supported_formats = self._getSupportedResolutions()
 		self.cameraInfo = {"name":self.getCameraName(),"supportedResolutions":self.supported_formats}
+		s = settings()
 
 		try:
 			if self.cameraInfo["supportedResolutions"]:
@@ -43,13 +44,13 @@ class V4L2Manager(CameraManager):
 					if res["pixelformat"]=='YUYV':
 						pixelformatTranslated = 'x-raw'
 
-					if pixelformatTranslated == settings().get(["camera", "format"]):#restricted
-						resolutionDefault = settings().get(["camera", "size"]).split('x')
+					if pixelformatTranslated == s.get(["camera", "format"]):#restricted
+						resolutionDefault = s.get(["camera", "size"]).split('x')
 
 			else:
-				settings().set(["camera", "encoding"],settings().get(["camera", "encoding"]) or 'h264')
-				settings().set(["camera", "size"], self.safeRes)
-				settings().set(["camera", "format"], 'x-raw')
+				s.set(["camera", "encoding"],s.get(["camera", "encoding"]) or 'h264')
+				s.set(["camera", "size"], self.safeRes)
+				s.set(["camera", "format"], 'x-raw')
 				self.cameraName = self.getCameraName()
 
 				self.cameraInfo = {"name":self.cameraName,"supportedResolutions":self.supported_formats}
