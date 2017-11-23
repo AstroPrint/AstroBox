@@ -73,7 +73,8 @@ class PrinterMarlin(Printer):
 
 	def disableMotorsAndHeater(self):
 		self.setTemperature('bed', 0)
-		self.setTemperature('tool', 0)
+		for i in range(self._profileManager.data.get('extruder_count')):
+			self.setTemperature('tool%d' % i, 0)
 		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 	#~~ callback handling
