@@ -3,6 +3,10 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+import logging
+import time
+import os
+
 from . import PluginService
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
@@ -11,6 +15,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
+from octoprint.server import softwareManager, UI_API_KEY
 #from astroprint.plugin import pluginManager
 
 class SystemService(PluginService):
@@ -299,21 +304,19 @@ class SystemService(PluginService):
 
 		return
 
-	##plugin
-
 	def getAdvancedSoftwareSettings(self, data, sendMessage):
 		s = settings()
 
 		logsDir = s.getBaseFolder("logs")
 
-		sendMessage(jsonify(
-			apiKey= {
+		sendMessage({
+			'apiKey': {
 				"key": UI_API_KEY,
 				"regenerate": s.getBoolean(['api','regenerate'])
 			},
-			serialActivated= s.getBoolean(['serial', 'log']),
-			sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
-		))
+			'serialActivated': s.getBoolean(['serial', 'log']),
+			'sizeLogs': sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
+		})
 
 		return
 
@@ -330,7 +333,7 @@ class SystemService(PluginService):
 
 			s.save()
 
-			sendMessage(jsonify())
+			sendMessage({'success': 'no_error'})
 
 		else:
 			sendMessage('wrong_data_sent_in',True)
@@ -342,71 +345,80 @@ class SystemService(PluginService):
 		from astroprint.cloud import astroprintCloud
 		from shutil import copy
 
-		logger = logging.getLogger(__name__)
-		logger.warning("Executing a Restore Factory Settings operation")
+		try:
 
-		#We log out first
-		astroprintCloud().signout()
+			#astroprintCloud().signout()
+			astroprintCloud().remove_logged_user()
 
-		s = settings()
+			logger = logging.getLogger(__name__)
+			logger.warning("Executing a Restore Factory Settings operation")
 
-		#empty all folders
-		def emptyFolder(folder):
-			if folder and os.path.exists(folder):
-				for f in os.listdir(folder):
-					p = os.path.join(folder, f)
-					try:
-						if os.path.isfile(p):
-							os.unlink(p)
-					except Exception, e:
-						pass
+			s = settings()
 
-		emptyFolder(s.get(['folder', 'uploads']) or s.getBaseFolder('uploads'))
-		emptyFolder(s.get(['folder', 'timelapse']) or s.getBaseFolder('timelapse'))
-		emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
-		emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
+			#empty all folders
+			def emptyFolder(folder):
+				if folder and os.path.exists(folder):
+					for f in os.listdir(folder):
+						p = os.path.join(folder, f)
+						try:
+							if os.path.isfile(p):
+								os.unlink(p)
+						except Exception, e:
+							pass
 
-		networkManager().forgetWifiNetworks()
+			emptyFolder(s.get(['folder', 'uploads']) or s.getBaseFolder('uploads'))
+			emptyFolder(s.get(['folder', 'timelapse']) or s.getBaseFolder('timelapse'))
+			emptyFolder(s.get(['folder', 'timelapse_tmp']) or s.getBaseFolder('timelapse_tmp'))
+			emptyFolder(s.get(['folder', 'virtualSd']) or s.getBaseFolder('virtualSd'))
 
-		configFolder = s.getConfigFolder()
+			networkManager().forgetWifiNetworks()
 
-		#replace config.yaml with config.factory
-		config_file = s._configfile
-		config_factory = os.path.join(configFolder, "config.factory")
-		if config_file and os.path.exists(config_file):
-			if os.path.exists(config_factory):
-				copy(config_factory, config_file)
+			configFolder = s.getConfigFolder()
+
+			#replace config.yaml with config.factory
+			config_file = s._configfile
+			config_factory = os.path.join(configFolder, "config.factory")
+			if config_file and os.path.exists(config_file):
+				if os.path.exists(config_factory):
+					copy(config_factory, config_file)
+				else:
+					os.unlink(config_file)
+
+			#replace printer-profile.yaml with printer-profile.factory
+			p_profile_file = os.path.join(configFolder, "printer-profile.yaml")
+			p_profile_factory = os.path.join(configFolder, "printer-profile.factory")
+			if os.path.exists(p_profile_file):
+				if os.path.exists(p_profile_factory):
+					copy(p_profile_factory, p_profile_file)
+				else:
+					os.unlink(p_profile_file)
+
+			#remove box-id so it's re-created on bootup
+			boxIdFile = os.path.join(configFolder, "box-id")
+			if os.path.exists(boxIdFile):
+				os.unlink(boxIdFile)
+
+			#remove info about users
+			user_file  = s.get(["accessControl", "userfile"]) or os.path.join( configFolder, "users.yaml")
+			if user_file and os.path.exists(user_file):
+				os.unlink(user_file)
+
+			logger.info("Restore completed, rebooting...")
+
+			#We should reboot the whole device
+			if softwareManager.restartServer():
+				sendMessage({'success': 'no_error'})
 			else:
-				os.unlink(config_file)
+				sendMessage("error_rebooting",True)
 
-		#replace printer-profile.yaml with printer-profile.factory
-		p_profile_file = os.path.join(configFolder, "printer-profile.yaml")
-		p_profile_factory = os.path.join(configFolder, "printer-profile.factory")
-		if os.path.exists(p_profile_file):
-			if os.path.exists(p_profile_factory):
-				copy(p_profile_factory, p_profile_file)
-			else:
-				os.unlink(p_profile_file)
+			return
 
-		#remove box-id so it's re-created on bootup
-		boxIdFile = os.path.join(configFolder, "box-id")
-		if os.path.exists(boxIdFile):
-			os.unlink(boxIdFile)
+		except Exception as e:
+			self._logger.error('unsuccessfully factory settings restored', exc_info = True)
+			sendMessage("error_restoring_factory_settings",True)
 
-		#remove info about users
-		user_file  = s.get(["accessControl", "userfile"]) or os.path.join( configFolder, "users.yaml")
-		if user_file and os.path.exists(user_file):
-			os.unlink(user_file)
-
-		logger.info("Restore completed, rebooting...")
-
-		#We should reboot the whole device
-		if softwareManager.restartServer():
-			sendMessage({'success': 'no_error'})
-		else:
-			sendResponse("error_rebooting",True)
-
-		return
+	def softwareVersion(self,data,sendResponse):
+		sendResponse(softwareManager.versionString)
 
 	def checkSoftwareVersion(self,data,sendResponse):
 		softwareInfo = softwareManager.checkSoftwareVersion()
@@ -415,7 +427,7 @@ class SystemService(PluginService):
 			s = settings()
 			s.set(["software", "lastCheck"], time.time())
 			s.save()
-			sendResponse(jsonify(softwareInfo))
+			sendResponse(softwareInfo)
 		else:
 			sendResponse("error_checking_update",True)
 
