@@ -457,7 +457,7 @@ class Printer(object):
 	#This function should be deprecated
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
-		self._currentLayer = layer;
+		self._currentLayer = layer
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
@@ -529,6 +529,7 @@ class Printer(object):
 		self._temp = temp
 		self._bedTemp = bedTemp
 
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._stateMonitor.addTemperature(data)
 
 	#~~ callback from metadata analysis event
