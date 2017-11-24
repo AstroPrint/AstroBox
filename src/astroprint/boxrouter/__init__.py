@@ -41,7 +41,6 @@ LINE_CHECK_STRING = 'box'
 class AstroprintBoxRouterClient(WebSocketClient):
 	def __init__(self, hostname, router):
 		self._systemListener = None
-		self._eventSender = None
 		self._lastReceived = 0
 		self._lineCheck = None
 		self._error = False
@@ -370,6 +369,9 @@ class AstroprintBoxRouter(object):
 
 	def broadcastEvent(self, event, data):
 		self._eventSender.sendUpdate(event, data)
+
+	def broadcastLastUpdate(self, event):
+		self._eventSender.sendLastUpdate(event)
 
 	def sendRequestToClient(self, clientId, type, data, timeout, respCallback, args=None):
 		reqId = uuid.uuid4().hex

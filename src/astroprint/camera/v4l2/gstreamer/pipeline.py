@@ -77,7 +77,7 @@ class AstroPrintPipeline(object):
 		)
 		self._process.daemon = True
 		self._process.start()
-		if onListeningEvent.wait(5.0):
+		if onListeningEvent.wait(10.0):
 			if errorState.value:
 				self._logger.error('Pipeline Failed to start.')
 				self._kill()
