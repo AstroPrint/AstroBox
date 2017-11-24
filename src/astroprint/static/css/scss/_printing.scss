@@ -525,6 +525,14 @@
         position: relative;
         top: -25px;
       }*/
+
+      .status-and-buttons {
+        bottom: 24px;
+        .heating {
+          margin-top: -9px !important;
+          height: auto !important;
+        }
+      }
     }
 
     button.pause-print {
@@ -723,6 +731,7 @@
         .status-and-buttons {
           max-height: 65px;
           .heating {
+            bottom: -8px;
             .icon-temperatire {
               color: $alert-color;
               font-size: 18px;
