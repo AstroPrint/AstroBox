@@ -255,6 +255,25 @@ class PrinterVirtual(Printer):
 		else:
 			return None
 
+	def getCurrentTemperatures(self):
+		return {
+			'tool0':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'tool1':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'bed':
+				{
+					"actual": 40,
+					"target": 40
+				}
+			}
+
 	def getPrintProgress(self):
 		if self._printJob:
 			return self._printJob.progress

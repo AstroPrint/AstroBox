@@ -238,6 +238,9 @@ class PrinterWithPlugin(Printer):
 	def resetSerialLogging(self):
 		self._plugin.serialLoggingChanged()
 
+	def getCurrentTemperatures(self):
+		return self._plugin.getCurrentTemperatures()
+
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):
 		if plugin.pluginId == self._plugin.pluginId:
