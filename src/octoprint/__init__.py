@@ -84,8 +84,9 @@ def startServer(configfile, basedir, host, port, debug, allowRoot, logConf = Non
 
 	astrobox = Server(configfile, basedir, host, port, debug, allowRoot, logConf)
 
-	import dbus.mainloop.glib
-	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+	if sys.platform.startswith('linux'):
+		import dbus.mainloop.glib
+		dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
 	'''
 	try:
