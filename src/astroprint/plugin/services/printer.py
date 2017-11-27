@@ -275,6 +275,15 @@ class PrinterService(PluginService):
 
 		return
 
+	def getSelectedExtruder(self, data, sendResponse):
+		pm = printerManager()
+
+		selectedTool = pm.getSelectedTool()
+
+		sendResponse(selectedTool)
+
+		return
+
 	def selectTool(self,data,sendResponse):
 
 		pm = printerManager()

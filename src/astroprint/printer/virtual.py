@@ -53,6 +53,7 @@ class PrinterVirtual(Printer):
 		self._heatingUpTimer = None
 		self._temperatureChanger = None
 		self._printJob = None
+		self.selectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		super(PrinterVirtual, self).__init__()
 
@@ -254,6 +255,9 @@ class PrinterVirtual(Printer):
 			return self._printJob.printTime
 		else:
 			return None
+
+	def getSelectedTool(self):
+		return self.selectedTool
 
 	def getCurrentTemperatures(self):
 		return {
