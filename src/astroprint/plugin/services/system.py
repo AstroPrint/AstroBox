@@ -240,8 +240,10 @@ class SystemService(PluginService):
 
 			if result:
 				sendMessage(result)
+				return
 			else:
 				sendMessage('network_not_found',True)
+				return
 
 		sendMessage('incorrect_data',True)
 
@@ -480,7 +482,26 @@ class SystemService(PluginService):
 
 		return
 
-	def getSysmteInfo():
+	'''def getSysmteInfo():
 		sendResponse( softwareManager.systemInfo )
 
-		return
+		return'''
+
+	def checkInternet(self,data,sendResponse):
+		nm = networkManager()
+
+		if nm.isAstroprintReachable():
+		#if False:
+			return sendResponse({'connected':True})
+		else:
+			networks = nm.getWifiNetworks()
+
+			if networks:
+				return sendResponse(
+					{
+						'networks':networks,
+						'connected':False
+					}
+				)
+			else:
+				return sendResponse("unable_get_wifi",True)
