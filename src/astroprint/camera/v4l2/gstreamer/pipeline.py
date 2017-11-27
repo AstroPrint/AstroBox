@@ -72,7 +72,8 @@ class AstroPrintPipeline(object):
 				self._encoding,
 				onListeningEvent,
 				errorState,
-				( self._parentConn, self._processConn )
+				( self._parentConn, self._processConn ),
+				settings().getInt(['camera', 'debug-level'])
 			)
 		)
 		self._process.daemon = True
