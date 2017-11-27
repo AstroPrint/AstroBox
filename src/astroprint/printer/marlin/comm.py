@@ -23,6 +23,7 @@ from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 from astroprint.printfiles import FileDestinations
 
 from astroprint.plugin.providers.printer_comms.material_counter import MaterialCounter
+from astroprint.printer.manager import printerManager
 
 gcodeToEvent = {
 	# pause for user input
@@ -385,11 +386,9 @@ class MachineCom(object):
 
 			wasPaused = self.isPaused()
 			self._changeState(self.STATE_PRINTING)
-			eventManager().fire(Events.PRINT_STARTED, {
-				"file": self._currentFile.getFilename(),
-				"filename": os.path.basename(self._currentFile.getFilename()),
-				"origin": self._currentFile.getFileLocation()
-			})
+
+			data = printerManager().getFileInfo(self._currentFile.getFilename())
+			eventManager().fire(Events.PRINT_STARTED, data)
 
 			# if self.isSdFileSelected():
 			# 	if wasPaused:

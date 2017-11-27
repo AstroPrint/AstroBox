@@ -22,6 +22,7 @@ from astroprint.printer import Printer
 from astroprint.printer.s3g.printjob import PrintJobS3G
 from astroprint.printfiles.x3g import PrintFileManagerX3g
 from astroprint.printfiles import FileDestinations
+from astroprint.printer.manager import printerManager
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
@@ -557,11 +558,9 @@ class PrinterS3g(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
-		eventManager().fire(Events.PRINT_STARTED, {
-			"file": self._currentFile['filename'],
-			"filename": os.path.basename(self._currentFile['filename']),
-			"origin": self._currentFile['origin']
-		})
+
+		data = printerManager().getFileInfo(self._currentFile['filename'])
+		eventManager().fire(Events.PRINT_STARTED, data)
 
 		self._printJob = PrintJobS3G(self, self._currentFile)
 		self._printJob.start()
