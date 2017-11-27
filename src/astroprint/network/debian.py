@@ -45,6 +45,12 @@ class NetworkManagerEvents(threading.Thread):
 		self._setOnlineCondition = threading.Condition()
 		self._justActivatedConnection = False
 
+		#listeners
+		self._propertiesListener = None
+		self._stateChangeListener = None
+		self._devicePropertiesListener = None
+		self._monitorActivatingListener = None
+
 	def getActiveConnectionDevice(self):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
@@ -63,8 +69,6 @@ class NetworkManagerEvents(threading.Thread):
 
 		self._propertiesListener = NetworkManager.NetworkManager.OnPropertiesChanged(self.propertiesChanged)
 		self._stateChangeListener = NetworkManager.NetworkManager.OnStateChanged(self.globalStateChanged)
-		self._devicePropertiesListener = None
-		self._monitorActivatingListener = None
 
 		connectionState = NetworkManager.NetworkManager.State
 		logger.info('Network Manager reports state: *[%s]*' % NetworkManager.const('state', connectionState))
@@ -180,7 +184,7 @@ class NetworkManagerEvents(threading.Thread):
 						'status': 'connected',
 						'info': {
 							'type': 'ethernet',
-							'ip': d.Ip4Config.AddressData[0]['address']
+							'ip': self._manager._getIpAddress(d)
 						}
 					})
 				else:
@@ -191,7 +195,7 @@ class NetworkManagerEvents(threading.Thread):
 							'type': 'wifi',
 							'signal': ap.Strength,
 							'name': ap.Ssid,
-							'ip': d.Ip4Config.AddressData[0]['address']
+							'ip': self._manager._getIpAddress(d)
 						}
 					})
 
@@ -244,7 +248,7 @@ class NetworkManagerEvents(threading.Thread):
 						if self._devicePropertiesListener:
 							NetworkManager.SignalDispatcher.remove_singal_receiver(self._devicePropertiesListener)
 
-						self._currentIpv4Address = d.Ip4Config.AddressData[0]['address'] if d.Ip4Config else None
+						self._currentIpv4Address = self._manager._getIpAddress(d)
 
 						try:
 							self._devicePropertiesListener = d.Dhcp4Config.OnPropertiesChanged(self.activeDeviceConfigChanged)
@@ -275,6 +279,7 @@ class NetworkManagerEvents(threading.Thread):
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
+		logger.info("Starting communication with Network Manager - version [%s]" % NetworkManager.NetworkManager.Version)
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
@@ -340,7 +345,7 @@ class DebianNetworkManager(NetworkManagerBase):
 						if not activeConnections['wired']:
 							activeConnections['wired'] = {
 								'id': d.SpecificDevice().HwAddress,
-								'ip': d.Ip4Config.AddressData[0]['address']
+								'ip': self._getIpAddress(d)
 							}
 
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
@@ -356,7 +361,7 @@ class DebianNetworkManager(NetworkManagerBase):
 									'id': ap.HwAddress,
 									'signal': ap.Strength,
 									'name': ap.Ssid,
-									'ip': d.Ip4Config.AddressData[0]['address'],
+									'ip': self._getIpAddress(d),
 									'secured': wpaSecured or wepSecured,
 									'wep': wepSecured
 								}
@@ -601,3 +606,14 @@ class DebianNetworkManager(NetworkManagerBase):
 				return d
 
 		return False
+
+	def _getIpAddress(self, device):
+		if device.Ip4Config:
+			if hasattr(device.Ip4Config, 'AddressData'):
+				return device.Ip4Config.AddressData[0]['address']
+			elif hasattr(device.Ip4Config, 'Addresses'):
+				return device.Ip4Config.Addresses[0][0]
+			else:
+				print device.Ip4Config
+
+		return None
