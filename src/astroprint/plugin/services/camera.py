@@ -95,5 +95,5 @@ class CameraService(PluginService):
 
 			return
 
-		else
+		else:
 			sendResponse({'stop_streaming_error': True})
