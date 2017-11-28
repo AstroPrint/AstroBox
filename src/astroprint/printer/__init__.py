@@ -227,6 +227,14 @@ class Printer(object):
 		else:
 			self._selectedFile = None
 
+		data = self.getFileInfo(filename)
+		data['size'] = filesize
+		self._stateMonitor.setJobData(data)
+
+		self._layerCount = data['layerCount']
+		self._estimatedPrintTime = data['estimatedPrintTime']
+
+	def getFileInfo(self, filename):
 		estimatedPrintTime = None
 		date = None
 		filament = None
@@ -262,12 +270,11 @@ class Printer(object):
 			if fileData is not None and "printFileName" in fileData.keys():
 				printFileName = fileData["printFileName"]
 
-		self._stateMonitor.setJobData({
+		return {
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
 				"printFileName": printFileName,
 				"origin": FileDestinations.LOCAL,
-				"size": filesize,
 				"date": date,
 				"cloudId": cloudId,
 				"rendered_image": renderedImage
@@ -275,11 +282,7 @@ class Printer(object):
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
 			"filament": filament,
-		})
-
-		self._layerCount = layerCount
-		self._estimatedPrintTime = estimatedPrintTime
-
+		}
 	def setSerialDebugLogging(self, active):
 		serialLogger = logging.getLogger("SERIAL")
 		if active:

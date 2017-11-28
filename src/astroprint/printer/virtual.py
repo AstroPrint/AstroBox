@@ -15,6 +15,7 @@ from astroprint.printfiles import FileDestinations
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
+from astroprint.printer.manager import printerManager
 
 class PrinterVirtual(Printer):
 	driverName = 'virtual'
@@ -105,11 +106,8 @@ class PrinterVirtual(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
-		eventManager().fire(Events.PRINT_STARTED, {
-			"file": self._currentFile['filename'],
-			"filename": os.path.basename(self._currentFile['filename']),
-			"origin": self._currentFile['origin']
-		})
+		data = printerManager().getFileInfo(self._currentFile['filename'])
+		eventManager().fire(Events.PRINT_STARTED, data)
 
 		#First we simulate heatup
 		self.setTemperature("tool0", 210)
