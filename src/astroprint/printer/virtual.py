@@ -12,7 +12,7 @@ import os
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printer import Printer
 from astroprint.printfiles import FileDestinations
-
+from astroprint.printerprofile import printerProfileManager
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
@@ -24,6 +24,8 @@ class PrinterVirtual(Printer):
 
 	def __init__(self):
 		seettings_file = "%s/virtual-printer-settings.yaml" % os.path.dirname(settings()._configfile)
+		self._previousSelectedTool = 0
+		self._currentSelectedTool = 0
 
 		self._settings = {
 			'connection': 1.0,
@@ -112,7 +114,9 @@ class PrinterVirtual(Printer):
 		})
 
 		#First we simulate heatup
-		self.setTemperature("tool0", 210)
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self.setTemperature('tool'+str(i), 210)
 		self.setTemperature("bed", 60)
 		self.mcHeatingUpUpdate(True)
 		self._heatingUp = True
@@ -144,8 +148,11 @@ class PrinterVirtual(Printer):
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
 			self.mcHeatingUpUpdate(False)
-			self._heatingUp = False
-			self.setTemperature("tool0", 0)
+
+			extruder_count = (printerProfileManager().data.get('extruder_count'))
+			for i in range(extruder_count):
+				self.setTemperature('tool'+str(i), 0)
+
 			self.setTemperature("bed", 0)
 			time.sleep(1)
 			self._changeState(self.STATE_OPERATIONAL)
@@ -169,7 +176,9 @@ class PrinterVirtual(Printer):
 				self._temperatureChanger.start()
 
 				#set initial temps
-				self.setTemperature('tool0', 25)
+				extruder_count = (printerProfileManager().data.get('extruder_count'))
+				for i in range(extruder_count):
+					self.setTemperature('tool'+str(i), 25)
 				self.setTemperature('bed', 25)
 
 		t = threading.Timer(self._settings['connection'], doConnect)
@@ -207,10 +216,15 @@ class PrinterVirtual(Printer):
 		}
 
 		if paused:
+			self._previousSelectedTool = self._currentSelectedTool
 			self._changeState(self.STATE_PAUSED)
 			eventManager().fire(Events.PRINT_PAUSED, printFileInfo)
 
 		else:
+			if self._currentSelectedTool != self._previousSelectedTool:
+				self.mcToolChange(self._previousSelectedTool, self._currentSelectedTool)
+				self._currentSelectedTool = self._previousSelectedTool
+
 			self._changeState(self.STATE_PRINTING)
 			eventManager().fire(Events.PRINT_RESUMED, printFileInfo)
 
@@ -296,6 +310,9 @@ class PrinterVirtual(Printer):
 
 		return self.getStateString(), 'virtual', 0
 
+	def getSelectedTool(self):
+		return self._currentSelectedTool
+
 	def getConsumedFilament(self):
 		return self._printJob._consumedFilament if self._printJob else 0
 
@@ -315,7 +332,10 @@ class PrinterVirtual(Printer):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
 
 	def changeTool(self, tool):
-		self._logger.info('Change tool to %s', tool)
+		previousSelectedTool = self._currentSelectedTool
+		self._currentSelectedTool = tool
+		self._logger.info('Change tool from %s to %s', previousSelectedTool, tool)
+		self.mcToolChange(tool, previousSelectedTool)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
@@ -434,7 +454,10 @@ class JobSimulator(threading.Thread):
 			time.sleep(1)
 
 		self._pm._changeState(self._pm.STATE_OPERATIONAL)
-		self._pm.setTemperature('tool0', 0)
+
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self._pm.setTemperature('tool'+str(i), 0)
 		self._pm.setTemperature('bed', 0)
 
 		payload = {

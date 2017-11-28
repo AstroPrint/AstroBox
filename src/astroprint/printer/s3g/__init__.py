@@ -45,6 +45,7 @@ class PrinterS3g(Printer):
 		self._heatingUp = False
 		self._firmwareVersion = None
 		self._selectedTool = 0
+		self._previousSelectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
@@ -439,7 +440,10 @@ class PrinterS3g(Printer):
 
 	def changeTool(self, tool):
 		try:
-			self._selectedTool = tool
+			if self._selectedTool != tool:
+				self.mcToolChange(tool, self._selectedTool)
+
+				self._selectedTool = tool
 		except ValueError:
 			pass
 
@@ -456,6 +460,9 @@ class PrinterS3g(Printer):
 
 		with self._state_condition:
 			if not pause and self.isPaused():
+				if self._previousSelectedTool != self._selectedTool:
+					self.changeTool(self._previousSelectedTool)
+
 				self._changeState(self.STATE_PRINTING)
 
 				self._comm.pause()
@@ -470,6 +477,7 @@ class PrinterS3g(Printer):
 				self._changeState(self.STATE_PAUSED)
 
 				self._comm.pause()
+				self._previousSelectedTool = self.getSelectedTool()
 
 				eventManager().fire(Events.PRINT_PAUSED, {
 					"file": self._currentFile['filename'],
@@ -529,7 +537,7 @@ class PrinterS3g(Printer):
 		return 0
 
 	def getSelectedTool(self):
-		return None
+		return self._selectedTool
 
 	def getPrintFilepos(self):
 		if self._currentFile is None:
@@ -557,6 +565,7 @@ class PrinterS3g(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
+
 		eventManager().fire(Events.PRINT_STARTED, {
 			"file": self._currentFile['filename'],
 			"filename": os.path.basename(self._currentFile['filename']),

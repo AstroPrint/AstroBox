@@ -27,11 +27,10 @@ class SystemListener(object):
 	def addTemperature(self, data):
 		payload = {}
 
-		if 'bed' in data:
-			payload['bed'] = { 'actual': data['bed']['actual'], 'target': data['bed']['target'] }
-
-		if 'tool0' in data:
-			payload['tool0'] = { 'actual': data['tool0']['actual'], 'target': data['tool0']['target'] }
+		if data:
+			for key in sorted(data.keys()):
+				if key == 'bed' or key[:4] == 'tool':
+					payload[key] = data[key]
 
 		router = self._weakRefBoxRouter()
 		if router:
@@ -52,7 +51,8 @@ class SystemListener(object):
 			'paused': flags['paused'],
 			'camera': flags['camera'],
 			'heatingUp': flags['heatingUp'],
-			'state': data['state']['text'].lower()
+			'state': data['state']['text'].lower(),
+			'tool': data['tool']
 		}
 
 		router = self._weakRefBoxRouter()
