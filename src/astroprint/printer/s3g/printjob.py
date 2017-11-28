@@ -51,13 +51,14 @@ class PrintJobS3G(threading.Thread):
 		# types should begin with "<".
 		# For a refresher on Python struct syntax, see here:
 		# http://docs.python.org/library/struct.html
-		self.commandTable = {    
+		self.commandTable = {
 			129: "<iiiI",
 			130: "<iii",
 			131: "<BIH",
 			132: "<BIH",
 			133: "<I",
-			134: "<B",
+			#134: "<B",
+			134: self.parseChangeTool,
 			135: self.parseWaitForToolAction,
 			136: self.parseToolAction,
 			137: "<B",
@@ -125,6 +126,7 @@ class PrintJobS3G(threading.Thread):
 						packet.append(ord(command))
 
 						command = struct.unpack("B",command)
+
 						try:
 							parse = self.commandTable[command[0]]
 
@@ -167,8 +169,8 @@ class PrintJobS3G(threading.Thread):
 								lastHeatingCheck = now
 
 								if  	( not self._heatingPlatform or ( self._heatingPlatform and self._printer._comm.is_platform_ready(0) ) )  \
-									and ( not self._heatingTool or ( self._heatingTool and self._printer._comm.is_tool_ready(0) ) ):
-								 
+									and ( not self._heatingTool or ( self._heatingTool and self._printer._comm.is_tool_ready(self._printer.getSelectedTool()) ) ):
+
 									self._heatingTool = False
 									self._heatingPlatform = False
 									self._printer._heatingUp = False
@@ -259,7 +261,7 @@ class PrintJobS3G(threading.Thread):
 			}
 			eventManager().fire(Events.PRINT_FAILED, payload)
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
-			self._printer._changeState(self._printer.STATE_OPERATIONAL)			
+			self._printer._changeState(self._printer.STATE_OPERATIONAL)
 
 		except Exception as e:
 			self._errorValue = getExceptionString()
@@ -285,7 +287,7 @@ class PrintJobS3G(threading.Thread):
 				return False
 
 			except PacketLengthError as e:
-				import makerbot_driver 
+				import makerbot_driver
 
 				if data[0] == makerbot_driver.constants.host_action_command_dict['BUILD_START_NOTIFICATION']:
 					#we put out a warning here and ignore. There's a bug in the version of GPX that ships with Simplify 3D that allows
@@ -302,6 +304,7 @@ class PrintJobS3G(threading.Thread):
 		if len(packetStr) != 3:
 			raise Exception("Incomplete s3g file during tool command parse")
 		(index,command,payload) = struct.unpack("<BBB",packetStr)
+
 		contents = s3gFile.read(payload)
 		if len(contents) != payload:
 			raise Exception("Incomplete s3g file: tool packet truncated")
@@ -374,7 +377,7 @@ class PrintJobS3G(threading.Thread):
 			self._printer.mcZChange(float(unpacked[2])/float(self._printer._profile.values['axes']['Z']['steps_per_mm']))
 		elif self._currentZ != self._lastLayerHeight \
 			and (unpacked[3] < 0 or unpacked[4] < 0): #add check for extrusion to avoid counting visited layers
-			
+
 			if self._currentZ > self._lastLayerHeight:
 				self._currentLayer += 1
 				self._printer.mcLayerChange(self._currentLayer)
@@ -394,3 +397,14 @@ class PrintJobS3G(threading.Thread):
 	def parseQueueExtendedPointX3g(self, s3gFile):
 		raw, unpacked = self.parseMovement(s3gFile, "<iiiiiIBfh")
 		return raw
+
+	def parseChangeTool(self, s3gFile):
+		packetLen = struct.calcsize("<B")
+		packetData = s3gFile.read(packetLen)
+		if len(packetData) != packetLen:
+			raise Exception("Packet incomplete")
+
+		toolId = struct.unpack("<B", buffer(packetData))[0]
+		self._printer.changeTool(toolId)
+
+		return packetData

@@ -32,6 +32,7 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.CONNECTED, self._onConnect)
 		self._eventManager.subscribe(Events.DISCONNECTED, self._onDisconnect)
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
+		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -337,6 +338,9 @@ class PrinterService(PluginService):
 
 	def _onDisconnect(self,event,value):
 		self.publishEvent('printer_state_changed', {"operational": False})
+
+	def _onToolChange(self,event,value):
+		self.publishEvent('printer_state_changed', {"tool": value})
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})

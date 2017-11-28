@@ -19,6 +19,7 @@
   .camera-view {
     background: $oil;
     border: 1px solid $iron;
+    padding-left: 0px !important;
     @include radius($global-radius);
 
     .image-container {
