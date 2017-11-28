@@ -8,12 +8,15 @@ import sarge
 import os
 import threading
 import time
+import dbus.mainloop.glib;
 
-from gi.repository import GObject#, GLib
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+dbus.mainloop.glib.threads_init()
 
 import ext.pynetworkmanager.NetworkManager as NetworkManager
 
 from dbus.exceptions import DBusException
+from gi.repository import GObject
 
 from astroprint.network import NetworkManager as NetworkManagerBase
 
@@ -65,7 +68,8 @@ class NetworkManagerEvents(threading.Thread):
 		return None
 
 	def run(self):
-		self._loop = GObject.MainLoop()#GLib.MainLoop()
+		self._stopped = False
+		self._loop = GObject.MainLoop()
 
 		self._propertiesListener = NetworkManager.NetworkManager.OnPropertiesChanged(self.propertiesChanged)
 		self._stateChangeListener = NetworkManager.NetworkManager.OnStateChanged(self.globalStateChanged)
@@ -105,26 +109,26 @@ class NetworkManagerEvents(threading.Thread):
 			logger.info('NetworkManagerEvents stopping.')
 
 			if self._propertiesListener:
-				NetworkManager.SignalDispatcher.remove_singal_receiver(self._propertiesListener)
+				NetworkManager.SignalDispatcher.remove_signal_receiver(self._propertiesListener)
 				self._propertiesListener = None
 
 			if self._stateChangeListener:
-				NetworkManager.SignalDispatcher.remove_singal_receiver(self._stateChangeListener)
+				NetworkManager.SignalDispatcher.remove_signal_receiver(self._stateChangeListener)
 				self._stateChangeListener = None
 
 			if self._monitorActivatingListener:
-				NetworkManager.SignalDispatcher.remove_singal_receiver(self._monitorActivatingListener)
+				NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 				self._monitorActivatingListener = None
 
 			if self._devicePropertiesListener:
-				NetworkManager.SignalDispatcher.remove_singal_receiver(self._devicePropertiesListener)
+				NetworkManager.SignalDispatcher.remove_signal_receiver(self._devicePropertiesListener)
 				self._devicePropertiesListener = None
 
 			self._stopped = True
 			self._loop.quit()
 
 	#@idle_add_decorator
-	def globalStateChanged(self, nm, interface, signal, state):
+	def globalStateChanged(self, nm, state, interface, signal):
 		#uncomment for debugging only
 		logger.info('Network Global State Changed, new(%s)' % NetworkManager.const('state', state))
 		if state == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
@@ -138,7 +142,7 @@ class NetworkManagerEvents(threading.Thread):
 			self._setOnline(False)
 
 	#@idle_add_decorator
-	def propertiesChanged(self, nm, interface, signal, properties):
+	def propertiesChanged(self, nm, properties, interface, signal):
 		if "ActiveConnections" in properties:
 			#if len(properties['ActiveConnections']) == 0:
 			#	self._setOnline(False)
@@ -150,7 +154,7 @@ class NetworkManagerEvents(threading.Thread):
 					try:
 						if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
 							if self._monitorActivatingListener:
-								NetworkManager.SignalDispatcher.remove_singal_receiver(self._monitorActivatingListener)
+								NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 
 							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 
@@ -170,12 +174,12 @@ class NetworkManagerEvents(threading.Thread):
 			self._setOnline(True)
 
 	#@idle_add_decorator
-	def monitorActivatingConnection(self, nm, interface, signal, new_state, old_state, reason):
+	def monitorActivatingConnection(self, nm, new_state, old_state, reason, interface, signal):
 		logger.info('Activating State Change %s -> %s' % (NetworkManager.const('device_state', old_state),NetworkManager.const('device_state', new_state)))
 		if self._activatingConnection:
 			if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
 				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_singal_receiver(self._monitorActivatingListener)
+					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 					self._monitorActivatingListener = None
 
 				d = self.getActiveConnectionDevice()
@@ -209,14 +213,14 @@ class NetworkManagerEvents(threading.Thread):
 				#It has reached and end state.
 				self._activatingConnection = None
 				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_singal_receiver(self._monitorActivatingListener)
+					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 					self._monitorActivatingListener = None
 
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
 
 			elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
 				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_singal_receiver(self._monitorActivatingListener)
+					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 					self._monitorActivatingListener = None
 
 				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
@@ -228,7 +232,7 @@ class NetworkManagerEvents(threading.Thread):
 				#	self._setOnline(False)
 
 	#@idle_add_decorator
-	def activeDeviceConfigChanged(self, nm, interface, signal, properties):
+	def activeDeviceConfigChanged(self, nm, properties, interface, signal):
 		if "Options" in properties and "ip_address" in properties["Options"] and properties["Options"]["ip_address"] != self._currentIpv4Address:
 			self._currentIpv4Address = properties["Options"]["ip_address"]
 			#self._setOnline(True)
@@ -246,7 +250,7 @@ class NetworkManagerEvents(threading.Thread):
 					if d:
 						self._activeDevice = d
 						if self._devicePropertiesListener:
-							NetworkManager.SignalDispatcher.remove_singal_receiver(self._devicePropertiesListener)
+							NetworkManager.SignalDispatcher.remove_signal_receiver(self._devicePropertiesListener)
 
 						self._currentIpv4Address = self._manager._getIpAddress(d)
 
@@ -275,11 +279,10 @@ class NetworkManagerEvents(threading.Thread):
 					else:
 						logger.error('Failed to start hostspot: %s' % result)
 
-
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
-		logger.info("Starting communication with Network Manager - version [%s]" % NetworkManager.NetworkManager.Version)
+		logger.info("Starting communication with Network Manager - version [%s]" % NetworkManager.NetworkManager.Version )
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
@@ -436,7 +439,7 @@ class DebianNetworkManager(NetworkManagerBase):
 					'name': ssid,
 					'id': accessPoint.HwAddress,
 					'signal': accessPoint.Strength,
-					'ip': wifiDevice.Ip4Config.AddressData[0]['address'] if wifiDevice.Ip4Config else None,
+					'ip': self._getIpAddress(wifiDevice),
 					'secured': password is not None,
 					'wep': False
 				}
@@ -609,11 +612,12 @@ class DebianNetworkManager(NetworkManagerBase):
 
 	def _getIpAddress(self, device):
 		if device.Ip4Config:
-			if hasattr(device.Ip4Config, 'AddressData'):
-				return device.Ip4Config.AddressData[0]['address']
-			elif hasattr(device.Ip4Config, 'Addresses'):
-				return device.Ip4Config.Addresses[0][0]
+			if not hasattr(device.Ip4Config, 'AddressData'):
+				if hasattr(device.Ip4Config, 'Addresses'):
+					return device.Ip4Config.Addresses[0][0]
+				elif device.Ip4Address and device.Ip4Address != '0.0.0.0':
+					return device.Ip4Address
 			else:
-				print device.Ip4Config
+				return device.Ip4Config.AddressData[0]['address']
 
 		return None
