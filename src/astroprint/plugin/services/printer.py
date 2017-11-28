@@ -351,22 +351,36 @@ class PrinterService(PluginService):
 		self.publishEvent('print_capture_info_changed',value)
 
 	def _onPrintStarted(self,event,value):
-		self.publishEvent('printing_state_changed','started')
+		data = value
+		data['state'] = 'started'
+		self.publishEvent('printing_state_changed',data)
 
 	def _onPrintDone(self,event,value):
-		self.publishEvent('printing_state_changed','done')
+		data = value
+		data['state'] = 'done'
+		self.publishEvent('printing_state_changed', data)
 
 	def _onPrintFailed(self,event,value):
-		self.publishEvent('printing_state_changed','failed')
+		data = value
+		data['state'] = 'failed'
+		self.publishEvent('printing_state_changed', data)
 
 	def _onPrintCancelled(self,event,value):
-		self.publishEvent('printing_state_changed','cancelled')
+		data = value
+		data['state'] = 'cancelled'
+		self.publishEvent('printing_state_changed', data)
 
 	def _onPrintPaused(self,event,value):
-		self.publishEvent('printing_state_changed','paused')
+		data = value
+		data['state'] = 'paused'
+		self.publishEvent('printing_state_changed', data)
 
 	def _onPrintResumed(self,event,value):
-		self.publishEvent('printing_state_changed','resumed')
+		data = value
+		data['state'] = 'resumed'
+		self.publishEvent('printing_state_changed', data)
 
 	def _onPrintingError(self,event,value):
-		self.publishEvent('printing_state_changed','printing_error')
+		data = value
+		data['state'] = 'printing_error'
+		self.publishEvent('printing_state_changed', data)
