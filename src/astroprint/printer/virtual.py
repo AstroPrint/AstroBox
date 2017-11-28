@@ -474,7 +474,7 @@ class JobSimulator(threading.Thread):
 			eventManager().fire(Events.PRINT_DONE, payload)
 		else:
 			self._pm.printJobCancelled()
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			eventManager().fire(Events.PRINT_CANCELLED, payload)
 			self._pm._fileManager.printFailed(payload['filename'], payload['time'])
 
 		self._pm = None
