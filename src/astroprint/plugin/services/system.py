@@ -83,6 +83,36 @@ class SystemService(PluginService):
 		return
 
 
+	def saveConnectionSettings(self,data,sendResponse):
+
+		print 'saveConnectionSettings'
+		port = data['port']
+		baudrate = data['baudrate']
+		driver = data['driver']
+
+		if port:
+			s = settings()
+
+			s.set(["serial", "port"], port)
+
+			if baudrate:
+				s.setInt(["serial", "baudrate"], baudrate)
+
+			s.save()
+
+			pp = printerProfileManager()
+			pp.data['driver'] = driver
+			pp.save()
+
+			pm = printerManager(driver)
+			pm.connect(port, baudrate)
+
+			sendResponse({'success': 'no_error'})
+			return
+
+		sendResponse('invalid_printer_connection_settings',True)
+		return
+
 	def testConnection(self, data, sendResponse):
 
 		valid_commands = {
