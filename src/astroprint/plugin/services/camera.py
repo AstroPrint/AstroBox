@@ -88,3 +88,12 @@ class CameraService(PluginService):
 
 			sendResponse({'success': 'no-error'})
 
+	def stopStreaming(self,data,sendResponse):
+
+		if cameraManager().closeLocalVideoSession(sessionId):
+			sendResponse({'success': 'no-error'})
+
+			return
+
+		else:
+			sendResponse({'stop_streaming_error': True})

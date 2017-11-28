@@ -83,6 +83,36 @@ class SystemService(PluginService):
 		return
 
 
+	def saveConnectionSettings(self,data,sendResponse):
+
+		print 'saveConnectionSettings'
+		port = data['port']
+		baudrate = data['baudrate']
+		driver = data['driver']
+
+		if port:
+			s = settings()
+
+			s.set(["serial", "port"], port)
+
+			if baudrate:
+				s.setInt(["serial", "baudrate"], baudrate)
+
+			s.save()
+
+			pp = printerProfileManager()
+			pp.data['driver'] = driver
+			pp.save()
+
+			pm = printerManager(driver)
+			pm.connect(port, baudrate)
+
+			sendResponse({'success': 'no_error'})
+			return
+
+		sendResponse('invalid_printer_connection_settings',True)
+		return
+
 	def testConnection(self, data, sendResponse):
 
 		valid_commands = {
@@ -240,8 +270,10 @@ class SystemService(PluginService):
 
 			if result:
 				sendMessage(result)
+				return
 			else:
 				sendMessage('network_not_found',True)
+				return
 
 		sendMessage('incorrect_data',True)
 
@@ -480,7 +512,26 @@ class SystemService(PluginService):
 
 		return
 
-	def getSysmteInfo():
+	'''def getSysmteInfo():
 		sendResponse( softwareManager.systemInfo )
 
-		return
+		return'''
+
+	def checkInternet(self,data,sendResponse):
+		nm = networkManager()
+
+		if nm.isAstroprintReachable():
+		#if False:
+			return sendResponse({'connected':True})
+		else:
+			networks = nm.getWifiNetworks()
+
+			if networks:
+				return sendResponse(
+					{
+						'networks':networks,
+						'connected':False
+					}
+				)
+			else:
+				return sendResponse("unable_get_wifi",True)
