@@ -120,47 +120,52 @@ class SystemService(PluginService):
 			"disconnect": []
 		}
 
+		command = data['command']
+
 		pm = printerManager()
 
-		s = settings()
+		if command == "connect":
+			s = settings()
 
-		driver = None
-		port = None
-		baudrate = None
+			driver = None
+			port = None
+			baudrate = None
 
-		options = pm.getConnectionOptions()
+			options = pm.getConnectionOptions()
 
-		if "port" in data:
-			port = data["port"]
-			if port not in options["ports"]:
-				sendResponse('invalid_port', True)
-				return
-
-		if "baudrate" in data and data['baudrate']:
-			baudrate = int(data["baudrate"])
-			if baudrate:
-				baudrates = options["baudrates"]
-				if baudrates and baudrate not in baudrates:
-					sendResponse("invalid_baudrate", True)
+			if "port" in data:
+				port = data["port"]
+				if port not in options["ports"]:
+					sendResponse("invalid_port_" + port,True)
 					return
 
-			else:
-				sendResponse("baudrate_null", True)
-				return
+			if "baudrate" in data and data['baudrate']:
+				baudrate = int(data["baudrate"])
+				if baudrate:
+					baudrates = options["baudrates"]
+					if baudrates and baudrate not in baudrates:
+						sendResonse("invalid_baudrate_" +  baudrate,True)
+						return
 
-		if "save" in data and data["save"]:
-			s.set(["serial", "port"], port)
-			s.setInt(["serial", "baudrate"], baudrate)
+				else:
+					sendResonse("baudrate_null",True)
+					return
 
-		if "autoconnect" in data:
-			s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
+			if "save" in data and data["save"]:
+				s.set(["serial", "port"], port)
+				s.setInt(["serial", "baudrate"], baudrate)
 
-		s.save()
+			if "autoconnect" in data:
+				s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
 
-		pm.connect(port=port, baudrate=baudrate)
+			s.save()
 
-		sendResponse({'success': 'no_error'})
+			pm.connect(port=port, baudrate=baudrate)
 
+		elif command == "disconnect":
+			pm.disconnect()
+
+		sendResponse({'success':'no error'})
 		return
 
 	def getMyIP(self, data, sendResponse):
