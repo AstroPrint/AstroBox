@@ -393,7 +393,7 @@ class TempsChanger(threading.Thread):
 					self._actuals[t] = self._actuals[t] + 5
 
 			self._updateTemps()
-			time.sleep(1)
+			time.sleep(10)
 
 		self._manager = None
 
