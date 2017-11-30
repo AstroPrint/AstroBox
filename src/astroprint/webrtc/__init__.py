@@ -214,10 +214,9 @@ class WebRtc(object):
 
 			nm = networkManager()
 			if nm.isOnline():
-				args.append('--config=/etc/astrobox/janus/janus.cfg')
+				args.extend(['--config', '/etc/astrobox/janus/janus.cfg'])
 			else:
-				args.append('--config=/etc/astrobox/janus/janus.cfg.local')
-
+				args.extend(['--config', '/etc/astrobox/janus/janus.cfg.local'])
 
 			try:
 				self._JanusProcess = subprocess.Popen(
