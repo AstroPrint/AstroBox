@@ -210,13 +210,13 @@ class WebRtc(object):
 				self._logger.debug('Janus was already running')
 				return True #already running
 
-			args = ['/usr/bin/janus']
+			args = ['/usr/bin/janus', '-F', '/etc/astrobox/janus', '-C']
 
 			nm = networkManager()
 			if nm.isOnline():
-				args.append('--config=/etc/astrobox/janus/janus.cfg')
+				args.append('/etc/astrobox/janus/janus.cfg')
 			else:
-				args.append('--config=/etc/astrobox/janus/janus.cfg.local')
+				args.append('/etc/astrobox/janus/janus.cfg.local')
 
 
 			try:
