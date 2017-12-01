@@ -173,25 +173,25 @@ class SystemService(PluginService):
 		addresses = {}
 
 		for ifaceName in interfaces():
-			addrs = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':'No IP addr'}] )]
+			addrs = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':None}] )]
 			addresses[ifaceName] = addrs
-			print '%s: %s' % (ifaceName, ', '.join(addrs))
 
-		print addresses
+		self._logger.info(addresses)
 
-		print '-------'
-		print addresses['en0']
-		print '-------'
+		if 'eth0' in addresses and addresses['eth0'][0] is not None:
+			self._logger.info('eth0')
 
-		if 'eth0' in addresses:
 			sendResponse(addresses['eth0'])
 			return
 
-		if 'wlan0' in addresses:
+		if 'wlan0' in addresses and addresses['wlan0'][0] is not None:
+			self._logger.info('wlan0')
+
 			sendResponse(addresses['wlan0'])
 			return
 
-		if 'en0' in addresses:
+		if 'en0' in addresses and addresses['en0'][0] is not None:
+			self._logger.info('en0')
 			sendResponse(addresses['en0'])
 			return
 
