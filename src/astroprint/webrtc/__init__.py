@@ -218,7 +218,6 @@ class WebRtc(object):
 			else:
 				args.append('/etc/astrobox/janus/janus.cfg.local')
 
-
 			try:
 				self._JanusProcess = subprocess.Popen(
 					args,
