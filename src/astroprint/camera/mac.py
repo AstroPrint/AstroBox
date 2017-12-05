@@ -24,7 +24,7 @@ class CameraMacManager(CameraManager):
 
 	def settingsStructure(self):
 		return {
-			'videoEncoding': [],
+			'videoEncoding': [{"label": "H.264", "value": "h264"}, {"label": "VP8", "value": "vp8"}],
 			'frameSizes': [
 				{'value': '640x480', 'label': 'Low (640 x 480)'},
 				{'value': '1280x720', 'label': 'High (1280 x 720)'}
@@ -35,6 +35,13 @@ class CameraMacManager(CameraManager):
 			],
 			'cameraOutput': [
 				{'value': 'files', 'label': 'Files'}
+			],
+			"video_rotation": [
+				{"label": "No Rotation", "value": "0"},
+				{"label": "Rotate 90 degrees to the right", "value": "1"},
+				{"label": "Rotate 90 degrees to the left", "value": "3"},
+				{"label": "Flip horizontally", "value": "4"},
+				{"label": "Flip vertically", "value": "5"}
 			]
 		}
 
@@ -79,6 +86,9 @@ class CameraMacManager(CameraManager):
 				image = f.read()
 
 		done(image)
+
+	def reScan(self, broadcastChange = True):
+		return True
 
 	def isVideoStreaming(self):
 		return False

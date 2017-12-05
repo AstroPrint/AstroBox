@@ -1,71 +1,143 @@
 #printing-view {
+
+  #bed-container{background: transparent;}
+
+
+  .temp-subheading{
+    padding-top: 8px;
+  }
+  .controls{
+    background: $jet;
+  }
   h2 {
     font-size: rem-calc(28);
+    margin: 0 0 8px 0;
+  }
+
+  .bottom-space{
     margin-bottom: 20px;
+  }
+  .buttons-box{
+
+    button,span.button{
+      margin-bottom: 10px;
+      margin-top: 0;
+      letter-spacing: 0.5px;
+      margin-top: 15px;
+
+      &.controls{
+        box-shadow: 0 7px black;
+        padding-bottom: 10px;
+
+        &:active{
+          background-color: #1a1a1a;
+          top: 7px !important;
+          box-shadow: none;
+          position: relative;
+        }
+      }
+
+      &:focus{
+        outline: 0;
+      }
+    }
+
+  }
+
+  .filename-progress-container {
+    margin: 15px !important;
   }
 
   .progress {
+    background-color: rgba(240, 82, 81, 0.2);
     position: relative;
     text-align: left;
-    height: 40px;
+    height: 15px;
+    margin-top: 50px;
+    margin-bottom: -10px;
 
     .filename {
       position: absolute;
-      top: 8px;
-      left: 10px;
-      color: black;
-      font-size: rem-calc(20);
-      max-width: 60%;
+      top: -22px;
+      left: 2px;
+      color: rgba(0, 0, 0, 0.3);
+      font-size: rem-calc(14);
       overflow-x: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      line-height: rem-calc(25);
+      width: 60%;
     }
 
     .progress-label {
       position: absolute;
-      right: 10px;
-      top: 8px;
-      font-size: rem-calc(20);
-      color: black;
-      line-height: rem-calc(25)
+      right: 0;
+      top: -45px;
+      font-size: rem-calc(36);
+      color: $green;
     }
   }
 
   .print-info {
     font-size: rem-calc(40);
-    margin: 10px 0 10px 0;
+    margin: 10px 0 0 0;
 
     .highlighted {
-      font-size: rem-calc(53);
+      font-size: rem-calc(35);
       color: $success-color;
-    }
 
-    .info {
-      > div {
-        margin: 20px 0;
+      &.layer-count{
+        color: $red;
       }
     }
 
-    .heating {
+    .info {
+      background: $white;
+      box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
+      min-height: 281px;
+      margin-bottom: 20px;
+
+      > div {
+        margin: 10px 0;
+      }
+
+      h2 {
+        font-size: 0.875rem;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      &.fullscreen{
+        display: none;
+      }
+
+      .time-layer-container {
+        i {
+          font-size: rem-calc(28);
+        }
+        div {
+          margin-top: -15px;
+        }
+      }
+
+    }
+
+    #heating-container {
       display: none;
     }
 
     .camera-container {
-      padding-top: 75%;
+      min-height: 220px;
       position: relative;
-      background: #efefef;
+      background: $oil;
       overflow: hidden;
 
       i {
-        display: block;
         position: absolute;
         top: 50%;
         left: 50%;
-        margin-left: -42px;
-        margin-top: -30px;
-        font-size: 60px;
-        color: #ccc;
+        color: #666666;
+        transform: translate(-50%, -65%);
       }
 
       img {
@@ -74,6 +146,10 @@
         top: 50%;
         left: 0;
         transform: translateY(-50%);
+      }
+
+      &.no-camera {
+        min-height: 280px !important;
       }
     }
 
@@ -121,6 +197,8 @@
       .timelapse {
         position: relative;
         height: $camera-controls-height;
+        cursor: pointer;
+        width: 75px;
 
         .overlay {
           position: absolute;
@@ -131,16 +209,23 @@
         }
 
         i {
-          font-size: rem-calc(25);
           color: #505050;
-          left: 15px;
+          left:0px;
           position: absolute;
+          font-size: 18px;
+          top: 5px;
+          border: 2px solid;
+          border-radius: 4px;
+          box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.45);
+          cursor: pointer;
+          min-width: 50px;
+          text-align: center;
         }
 
         .dot {
           position: absolute;
-          top: 34px;
-          left: 10px;
+          top: 43px;
+          left: 0;
           display: inline-block;
           width: 10px;
           height: 10px;
@@ -156,7 +241,7 @@
           width: 100%;
           height: 100%;
           margin: 0;
-          padding: 20px 0 0 25px;
+          padding: 40px 0 0 15px;
           border: 0;
           background: none;
           color: #505050;
@@ -171,7 +256,7 @@
         i {
           display: inline-block;
           font-size: 30px;
-          margin-top: 16px;
+          margin-top: 14px;
         }
       }
 
@@ -181,11 +266,11 @@
         p {
           color: $charcoal;
           margin: 0;
+          white-space: nowrap;
 
           i {
             font-size: rem-calc(16);
             margin: 0 4px 0 5px;
-            text-shadow: -1px 0 1px $white;
 
             &.icon-picture-1 {
               margin-left: 0;
@@ -218,153 +303,235 @@
     }
   }
 
-  .temperatures {
-    margin-bottom: 30px;
+  #temp-control-template {
+    margin-bottom: 15px;
+    color: $iron;
 
-    .temp-bar {
-      position: relative;
-      height: 50px;
-      width: 100%;
-      background: url('/img/temp_grad_horiz.png') repeat-y #f54c39;
-      background-size: contain;
-
-      &.nozzle {
-        margin-bottom: 40px;
+    .semi-circle-temps {
+      width: 300px !important;
+      .temp-container .buttons-container {
+        .temp-target {
+          .target {
+            left: 3%;
+            padding: 0;
+          }
+          right: 0px;
+        }
       }
-
-      h3 {
-        font-size: rem-calc(15);
-        position: absolute;
-        right: 5px;
-        top: -23px;
+      .progress-temp-circle {
+        left: 0%;
       }
+    }
 
-      label {
-        color: white;
-        font-size: rem-calc(20);
-        position: absolute;
-        top: 12px;
-        left: 10px;
-        width: 75px;
-        display: inline-block;
+    .white-background {
+      background: $white;
+      box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
+      overflow: hidden;
+      margin-bottom: 20px;
+      border-radius: 3px;
+
+      ::-webkit-scrollbar {
+        -moz-appearance: none !important;
+        background: transparent !important;
+        height: 0;
       }
+    }
 
-      .temp-current {
-        position: absolute;
-        top: 12px;
-        right: 10px;
-        font-size: rem-calc(20);
-        color: white;
-        width: 50px;
-        text-align: right;
-        display: inline-block;
-      }
+    #extruder-container {
+      display: inline-block;
+      white-space: nowrap;
+      min-height: 270px;
+      left: 0 !important;
+      background: transparent !important;
 
-      .temp-target {
-        @include radius();
-        background-color: #505050;
-        color: white;
-        display: inline-block;
+      .arrow {
+        color: $oil;
+        z-index: 4;
         position: absolute;
-        top: -5px;
-        height: 60px;
-        width: 85px;
-        left: 130px;
-        text-align: center;
+        top: 21px;
         cursor: pointer;
+        font-size: 36px !important;
 
-        a.temp-edit {
-          padding: 18px 0;
-          text-align: center;
-          width: 40%;
-          display: inline-block;
-          border-right: 1px solid #a5a5a5;
-          color: white;
-          float: left;
+        &.arrow-disabled{
+          opacity: 0.3;
+          cursor: not-allowed;
         }
 
-        span.target-value {
-          padding: 18px 0;
-          width: 60%;
+      }
+
+      .icon-angle-left {
+        left: 10px;
+      }
+
+      .icon-angle-right {
+        right: 5px;
+      }
+
+      #slider-nav {
+        white-space: nowrap;
+        overflow: hidden;
+        overflow-x: scroll;
+
+        .nav-extruder {
           display: inline-block;
-          float: right;
+          white-space: nowrap;
+          overflow: hidden;
+          float: none !important;
+          vertical-align: top;
+          margin-top: 5px;
+          height: 55px;
+
+          &.current-slide {
+            .extruder-number {
+              background: url(/img/icon-extruder-active.svg) top no-repeat !important;
+              color: white;
+              height: 45px;
+              font-size: 23px;
+              padding-top: 0;
+              opacity: 1;
+            }
+
+            .all-temps {
+              border: 2px solid;
+              color: #f05251;
+              opacity: 0;
+            }
+          }
+
+          .extruder-number {
+            background: url(/img/icon-extruder.svg) center no-repeat !important;
+            padding: 2px 15px 10px 15px;
+            color: $oil;
+            opacity: 0.5;
+            font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+            text-align: center;
+            display: block;
+            margin: 0 3px;
+          }
         }
+      }
 
-        input {
-          margin-top: 12px;
-          text-align: center;
+      #slider {
+        white-space: nowrap;
+        overflow: hidden;
+        overflow-x: scroll;
+        margin-top: 12px;
+        margin-bottom: -15px;
+
+        .semi-circle-temps {
           display: inline-block;
-          background: transparent;
-          padding: 5px 2px;
-          color: white;
-          border: none;
-          width: 55%;
-          box-shadow: none;
+          white-space: nowrap;
+          overflow: hidden;
+          float: none !important;
 
-          &::-webkit-inner-spin-button,
-          &::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+          -webkit-filter: grayscale(100%);
+          filter: grayscale(100%);
+          cursor: pointer;
+            .circle-container{
+              opacity: 0.5;
+              transform: scale(0.75);
+              transition: all 500ms ease;
+            }
+
+          &:hover{
+            transition: all 500ms ease;
+
+              .circle-container{
+                opacity: 1;
+                transition: all 500ms ease;
+              }
+          }
+
+          &.current-slide {
+            -webkit-filter: initial;
+            filter: initial;
+            overflow: visible;
+
+            .circle-container{
+              transform: scale(0.95);
+              opacity: 1;
+              transition: all 500ms ease;
+            }
           }
         }
 
-        &.moving {
-          background-color: lighten(#505050, 20%);
-        }
+        img.icon-bed{display: none;}
+      }
+    }
+
+    .bed {
+      height: 240px;
+      box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
+      .semi-circle-temps {
+        width: 100% !important;
+      }
+    }
+
+    .no-bed {
+      cursor:not-allowed !important;
+
+      .semi-circle-temps, span,{
+        opacity: 0.3;
+        -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+        filter: grayscale(100%);
       }
 
-      .temp-curret-line {
-        position: absolute;
-        top: 0px;
-        bottom: 0px;
-        left: 153px;
-        width: 4px;
-        background-color: #505050;
-        transition: left 0.5s;
-        -webkit-transition: left 0.5s;
-        -moz-transition: left 0.5s;
+      .current{animation-iteration-count: initial;}
 
-        .triangle_left {
-          position: absolute;
-          top: -13px;
-          left: -5px;
-          -webkit-transform: rotate(90deg);
-          -moz-transform: rotate(90deg);
-          transform: rotate(90deg);
-        }
-
-        .triangle_right {
-          position: absolute;
-          bottom: -13px;
-          left: -5px;
-          -webkit-transform: rotate(90deg);
-          -moz-transform: rotate(90deg);
-          transform: rotate(90deg);
-        }
+      button[disabled]{
+        cursor: not-allowed;
       }
+
     }
   }
 
   &.heating-up {
     .print-info {
-      .heating {
+      #heating-container {
         display: block;
-        font-size: rem-calc(50);
+        font-size: rem-calc(22);
+        color: $red;
+        height: auto;
+        //margin-bottom: -30px;
 
         > div {
-          padding: 40px 0;
+          padding: 12px 0;
         }
 
-        i {
+        i.icon-temperatire {
+          margin-bottom: -5px;
+          margin-top: 5px;
           display: block;
-          margin-bottom: 20px;
-          font-size: rem-calc(70);
-          color: $alert-color;
+          font-size: rem-calc(45);
         }
+
+        .columns{
+          padding-top: 0;
+        }
+        /*&.fullscreen {
+          display:none;
+        }*/
       }
 
-      .info {
+      /*.info {
         display: none;
+      }*/
+
+      .time-layer-container, .buttons-box {
+        display: none;
+      }
+
+      /*.filename-progress-container {
+        position: relative;
+        top: -25px;
+      }*/
+
+      .status-and-buttons {
+        bottom: 24px;
+        .heating {
+          margin-top: -9px !important;
+          height: auto !important;
+        }
       }
     }
 
@@ -378,6 +545,47 @@
   }
 
   .camera-view {
+    padding: 0;
+    margin-bottom: 20px;
+    max-width: 100%;
+
+    .panel{
+      margin-bottom: 0;
+      height: 281px;
+    }
+
+    .center-icon{
+      position: absolute;
+      top: 60%;
+      left: 50%;
+      color: #666666;
+      transform: translate(-50%, -65%);
+      width: 100%;
+    }
+    .camera-controls-fullscreen {
+      display: none;
+    }
+
+    .button-full-screen {
+      position: absolute;
+      right: 5px;
+      top: 8px;
+      color: white;
+      font-size: 25px;
+      z-index: 99 !important;
+      cursor: pointer;
+
+      &:hover, &:active{
+        transform: scale(1.2);
+        transition:all 0.5s ease;
+        opacity: 0.6;
+      }
+
+      .icon-resize-small{
+        display: none;
+      }
+    }
+
     div.video-error {
       display: none;
     }
@@ -385,10 +593,16 @@
     .video-container {
       position: relative;
       min-height: 220px;
-      border: 1px solid $iron;
-      border-bottom: none;
-      background: $oil;
+      background: #3e3e3e;
       @include radius($global-radius $global-radius 0 0);
+
+      .video-text{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        color: #666666;
+        transform: translate(-50%, -65%);
+      }
 
       .video-off,
       .no-detection,
@@ -460,7 +674,7 @@
     }
 
     &.streaming {
-      .video-preparing{
+      .video-preparing {
         display:none;
       }
 
@@ -478,7 +692,7 @@
       #video-stream {
         width: 100%;
         height: 100%;
-        background: black;
+        background: $jet;
       }
 
       .video-on {
@@ -492,6 +706,176 @@
         }
       }
     }
+
+    &.fullscreen {
+      max-width: 100%;
+      width: 30px;
+      height: 30px;
+      z-index: 999 !important;
+      //transition: width 1s ease;
+      margin-bottom: 90px;
+      padding-left: 0 !important;
+
+      .icon-resize-small {
+        display: block !important;
+      }
+      .icon-resize-full {
+        display: none !important;
+      }
+
+      .camera-controls {
+        display: none;
+      }
+
+      .camera-controls-fullscreen {
+        .status-and-buttons {
+          max-height: 65px;
+          .heating {
+            bottom: -8px;
+            .icon-temperatire {
+              color: $alert-color;
+              font-size: 18px;
+              margin-bottom: 5px;
+            }
+          }
+
+          .heating{
+            margin-top: -5px;
+            height: 31px;
+          }
+          #cancel-button {
+            padding-left: 0;
+            .loading-button, button, span {
+              top: -30px;
+              font-size: rem-calc(12);
+              width: 80px;
+              margin: 0 auto 3px 0;
+              margin-left: auto !important;
+              height: 20px;
+              padding: 0;
+              letter-spacing: 0.5px;
+            }
+          }
+        }
+        @extend .camera-controls;
+        display: block;
+        //bottom: -75px !important;
+        background: $oil !important;
+        height: auto !important;
+        min-height: 75px !important;
+        padding-top: 10px;
+
+        .border-left{
+          padding-left: 12px;
+          border-left: 1px solid #505050;
+        }
+
+        .camera-mode p > i{color: $steel;}
+
+        .buttons .loading-button {
+          .video-off, .video-on {
+            i {
+              padding:8px 15px !important;
+            }
+          }
+        }
+
+        .timelapse{
+          select, i{color: white !important;}
+        }
+
+        .info-container {
+          color: white;
+
+            .printing-info {
+              margin-top: -4px;
+              padding-left: 10px;
+              font-size: rem-calc(18);
+              white-space: nowrap;
+
+              .layers-group {
+                margin-top:2px;
+              }
+
+              i{margin-right: 5px;}
+            }
+
+          .progress-info-section {
+            margin-left: -50px;
+            margin-bottom: 0px;
+            padding-left: 0;
+
+            .printfile-info-name {
+              color: white;
+              top: -20px;
+              font-size: rem-calc(12);
+              white-space: nowrap;
+              text-overflow: ellipsis;
+              overflow: hidden;
+              text-align: left;
+              letter-spacing: 0.5px;
+              position: absolute;
+              left: 0px;
+              bottom: 8px;
+              width: 75%;
+            }
+
+            .progress {
+              background-color: rgba(240, 82, 81, 0.2);
+              position: relative;
+              text-align: left;
+              border-radius: 10px;
+              height: 10px;
+              margin-top: 34px;
+              margin-bottom: 8px;
+              border: 0;
+
+              .progress-label {
+                position: absolute;
+                right: 0;
+                top: -25px;
+                color: $green;
+                font-size: rem-calc(18);
+              }
+
+              .meter{
+                border-radius: 10px;
+              }
+            }
+          }
+        }
+
+        .buttons .loading-button {
+          display: block;
+          font-size: 33px;
+          padding: 0;
+          height: 55px;
+          width: 70px;
+          margin-top: 0;
+        }
+      }
+
+      .camera-container,.video-container{
+        height: 86vh !important;
+
+        img {
+          height: 100% !important;
+          width: auto !important;
+          position: absolute;
+          top: 0;
+          left: 50%;
+          color: #666666;
+          transform: translate(-50%, 0);
+        }
+
+      }
+    }
+  }
+
+  #temp-control-template .bed img {
+    height: 41px;
+    padding-top: 10px;
+    margin-bottom: 31px;
   }
 }
 
@@ -509,6 +893,7 @@
     }
   }
 }
+
 #upgrade-plan{
   .reveal-content img {
     height: 60px;
@@ -518,18 +903,62 @@
   }
 }
 
-@media #{$medium-up} {
-  #printing-view .temperatures .temp-bar {
-    label {
-      top: 4px;
-      width: 110px;
-      font-size: rem-calc(28);
+#printing-view .temp-target{padding:0;}
+
+@media #{$large-up} {
+    .camera-view {
+      padding-right: 0 !important;
+      padding-left: 0.9375rem !important;
     }
 
-    .temp-current {
-      top: 4px;
-      width: 100px;
-      font-size: rem-calc(28);
+    #printing-view #temp-control-template{
+      .end{
+        padding-right: 6px;
+      }
+    }
+    #printing-view #extruder-container{
+      padding-right: 0;
+    }
+}
+
+@media #{$medium-up} {
+  #printing-view {
+    #slider {
+      .semi-circle-temps {
+        max-width: 50% !important;
+        width: 100%;
+      }
+    }
+  }
+}
+
+@media #{$small-up} {
+  #printing-view{
+      template .end {
+        padding-right: 0.9375rem;
+    }
+  }
+
+}
+
+@media #{$small-only} {
+  #printing-view #temp-control-template{
+    .extruders{
+      height: 320px;
+      border-bottom: 2px dashed gainsboro;
+    }
+  }
+ .button-full-screen{display: none;}
+
+  #printing-view {
+    .camera-view{
+      max-height: 284px;
+    }
+    #slider {
+      .semi-circle-temps {
+        //width: 316px !important;
+        min-width: 100%;
+      }
     }
   }
 }

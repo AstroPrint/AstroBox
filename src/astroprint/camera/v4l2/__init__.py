@@ -73,8 +73,8 @@ class V4L2Manager(CameraManager):
 		fmt.index = 0
 		fmt.type = v4l2.V4L2_CAP_VIDEO_CAPTURE
 		try:
-			while fmt.index < maxformats:
-				with open(device, 'r') as vd:
+			with open(device, 'r') as vd:
+				while fmt.index < maxformats:
 					if fcntl.ioctl(vd, v4l2.VIDIOC_ENUM_FMT, fmt) == 0:
 						pixelformat = {}
 						# save the int type for re-use later
@@ -87,7 +87,7 @@ class V4L2Manager(CameraManager):
 						if pixelformat['pixelformat'] != 'H264':
 							pixelformat['description'] = fmt.description.decode()
 							supported_formats.append(pixelformat)
-				fmt.index = fmt.index + 1
+					fmt.index = fmt.index + 1
 		except IOError as e:
 			# EINVAL is the ioctl's way of telling us that there are no
 			# more formats, so we ignore it

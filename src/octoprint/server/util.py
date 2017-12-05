@@ -147,10 +147,6 @@ class PrinterStateConnection(SockJSConnection):
 
 		self._temperatureBacklog = []
 		self._temperatureBacklogMutex = threading.Lock()
-		self._logBacklog = []
-		self._logBacklogMutex = threading.Lock()
-		self._messageBacklog = []
-		self._messageBacklogMutex = threading.Lock()
 		self._emitLock = threading.Lock()
 
 		self._userManager = userManager
@@ -211,25 +207,13 @@ class PrinterStateConnection(SockJSConnection):
 			temperatures = self._temperatureBacklog
 			self._temperatureBacklog = []
 
-		with self._logBacklogMutex:
-			logs = self._logBacklog
-			self._logBacklog = []
-
-		with self._messageBacklogMutex:
-			messages = self._messageBacklog
-			self._messageBacklog = []
-
 		data.update({
-			"temps": temperatures,
-			#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
-			#"logs": logs,
-			#"messages": messages
+			"temps": temperatures
 		})
 		self._emit("current", data)
 
 	def sendHistoryData(self, data):
 		pass
-		#self._emit("history", data)
 
 	def sendCommsData(self, direction, data):
 		self._emit('commsData', {
@@ -245,14 +229,6 @@ class PrinterStateConnection(SockJSConnection):
 
 	def sendTimelapseConfig(self, timelapseConfig):
 		self._emit("timelapse", timelapseConfig)
-
-	def addLog(self, data):
-		with self._logBacklogMutex:
-			self._logBacklog.append(data)
-
-	def addMessage(self, data):
-		with self._messageBacklogMutex:
-			self._messageBacklog.append(data)
 
 	def addTemperature(self, data):
 		with self._temperatureBacklogMutex:

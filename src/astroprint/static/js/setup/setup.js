@@ -499,6 +499,9 @@ var StepPrinter = StepView.extend({
     this.$('form').html(this.template({
       settings: settings
     }));
+
+    //Select the proper driver
+    this.$('#settings-printer-driver').val(settings.driver);
   },
   onSubmit: function(data)
   {
@@ -568,10 +571,10 @@ var StepPrinter = StepView.extend({
       this.$('.loading-button').addClass('loading');
       this.$('.skip-step').hide();
     } else if (error) {
-      this.$('.loading-button').removeClass('loading').addClass('error');
+      this.$('.loading-button').removeClass('loading').addClass('failed');
       this.$('.skip-step').hide();
       setTimeout(_.bind(function(){
-        this.$('.loading-button').removeClass('error');
+        this.$('.loading-button').removeClass('failed');
         this.$('.skip-step').show();
       },this), 3000);
     } else {

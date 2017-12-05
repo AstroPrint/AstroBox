@@ -17,6 +17,7 @@ from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.webrtc import webRtcManager
+from astroprint.software import softwareManager as swManager
 
 class RequestHandler(object):
 	def __init__(self, wsClient):
@@ -26,6 +27,7 @@ class RequestHandler(object):
 	def initial_state(self, data, clientId, done):
 		printer = printerManager()
 		cm = cameraManager()
+		softwareManager = swManager()
 
 		state = {
 			'printing': printer.isPrinting(),
@@ -36,7 +38,8 @@ class RequestHandler(object):
 			'printCapture': cm.timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities,
+			'tool': printer.getSelectedTool()
 		}
 
 		if state['printing'] or state['paused']:
@@ -111,22 +114,6 @@ class RequestHandler(object):
 			)
 
 		def successCb(destFile, fileInfo):
-			if fileInfo is not True:
-				if printer.fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-					em.fire(
-						Events.CLOUD_DOWNLOAD, {
-							"type": "success",
-							"id": print_file_id,
-							"filename": printer.fileManager._getBasicFilename(destFile),
-							"info": fileInfo["info"]
-						}
-					)
-
-				else:
-					errorCb(destFile, "Couldn't save the file")
-					done(None)
-					return
-
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
 			if printer.selectFile(abosluteFilename, False, True):
 				eventData = {

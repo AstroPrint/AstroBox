@@ -3,148 +3,227 @@
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
-
-var TempBarVerticalView = TempBarView.extend({
-  containerDimensions: null,
-  scale: null,
-  type: null,
-  dragging: false,
-  events: _.extend(TempBarView.prototype.events, {
-    'click .temp-bar': 'onClicked',
-    'click button.temp-off': 'turnOff'
-  }),
-  setHandle: function(value)
-  {
-    if (!this.dragging) {
-      var position = this._temp2px(value);
-      var handle = this.$el.find('.temp-target');
-
-      handle.css({transition: 'top 0.5s'});
-      handle.css({top: position + 'px'});
-      handle.find('span.target-value').text(value);
-      setTimeout(function() {
-        handle.css({transition: ''});
-      }, 800);
-    }
-  },
-  onTouchMove: function(e)
-  {
-    if (this.dragging) {
-      e.preventDefault();
-      e.stopPropagation();
-      var target = this.$('.temp-target');
-
-      if (e.type == 'mousemove') {
-        var pageY = e.originalEvent.pageY;
-      } else {
-        var pageY = e.originalEvent.changedTouches[0].clientY + $(document).scrollTop();
-      }
-
-      var newTop = pageY - this.containerDimensions.top - target.innerHeight()/2.0;
-
-      newTop = Math.min(Math.max(newTop, 0), this.containerDimensions.maxTop );
-
-      target.css({top: newTop+'px'});
-      target.find('span.target-value').text(this._px2temp(newTop));
-    }
-  },
-  onClicked: function(e)
-  {
-    e.preventDefault();
-    var target = this.$el.find('.temp-target');
-    var newTop = e.pageY - this.containerDimensions.top - target.innerHeight()/2.0;
-
-    newTop = Math.min( Math.max(newTop, 0), this.containerDimensions.maxTop );
-
-    var temp = this._px2temp(newTop);
-
-    this.setHandle(temp);
-    this._sendToolCommand('target', this.type, temp);
-  },
-  onResize: function()
-  {
-    var container = this.$el.find('.temp-bar');
-    var handle = container.find('.temp-target');
-    var label = container.find('label');
-
-    var height = container.height();
-    var maxTop = height - handle.innerHeight() - label.innerHeight();
-
-    this.containerDimensions = {
-      top: container.offset().top,
-      height: height,
-      maxTop: maxTop,
-      px4degree: maxTop / (this.scale[1] - this.scale[0])
-    };
-  },
-  renderTemps: function(actual, target)
-  {
-    var handleHeight = this.$el.find('.temp-target').innerHeight();
-
-    if (actual !== null) {
-      this.$el.find('.current-temp-top').html(Math.round(actual)+'&deg;');
-      this.$el.find('.current-temp').css({top: (this._temp2px(actual) + handleHeight/2 )+'px'});
-    }
-
-    if (target !== null) {
-      this.setHandle(Math.min(Math.round(target), this.scale[1]));
-    }
-  },
-  _temp2px: function(temp)
-  {
-    var px = temp * this.containerDimensions.px4degree;
-
-    return this.containerDimensions.maxTop - px;
-  },
-  _px2temp: function(px)
-  {
-    return Math.round( ( (this.containerDimensions.maxTop - px) / this.containerDimensions.px4degree ) );
-  }
-});
-
 var TempView = Backbone.View.extend({
-  el: '#temp-control',
-  nozzleTempBar: null,
-  bedTempBar: null,
+  className: 'control-temps small-12 columns',
+  el: '#temp-control-template',
+  semiCircleTemp_views: {},
+  navExtruders_views: {},
+  extruders_count: null,
+  socketTemps: null,
+  heated_bed: null,
+  previousSelectedTool: 0,
+  events: {
+    'click .nav-extruder': 'navExtruderClicked',
+    'click .semi-circle-temps': 'semiCircleTempsClicked',
+    'click .arrow': 'arrowClicked'
+  },
   initialize: function()
   {
-    this.nozzleTempBar = new TempBarVerticalView({
-      scale: [0, app.printerProfile.get('max_nozzle_temp')],
-      el: this.$el.find('.temp-control-cont.nozzle'),
-      type: 'tool0'
-    });
-    this.bedTempBar = new TempBarVerticalView({
-      scale: [0, app.printerProfile.get('max_bed_temp')],
-      el: this.$el.find('.temp-control-cont.bed'),
-      type: 'bed'
-    });
-  },
-  render: function()
-  {
+    new SemiCircleProgress();
+
     var profile = app.printerProfile.toJSON();
+    this.extruders_count = profile.extruder_count;
+    this.heated_bed = profile.heated_bed;
 
-    this.nozzleTempBar.setMax(profile.max_nozzle_temp);
+    this.renderCircleTemps();
+  },
+  renderCircleTemps: function() {
+    if (app.socketData.attributes.temps != this.socketTemps) {
+      this.socketTemps = app.socketData.attributes.temps;
+    }
+    var temps = null;
 
-    if (profile.heated_bed) {
-      this.bedTempBar.setMax(profile.max_bed_temp);
-      this.bedTempBar.$el.removeClass('disabled');
+    var semiCircleTemp = null;
+
+    this.$el.find('#slider-nav').empty();
+    this.$el.find('#slider').empty();
+    this.$el.find('.bed').empty();
+
+    //extruders
+    for (var i = 0; i < this.extruders_count; i++) {
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
+      this.semiCircleTemp_views[i] = semiCircleTemp;
+      this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
+
+      if (this.socketTemps.lenght > 0) {
+        temps = {current: this.socketTemps.extruders[i].current, target: this.socketTemps.extruders[i].target};
+      } else {
+        temps = {current: null, target: null};
+      }
+      this.semiCircleTemp_views[i].setTemps(temps.current, temps.target);
+
+      //nav-extruders
+      var tempId = "temp-" + i;
+
+      this.navExtruders_views[i] = '<div class="nav-extruder'+ ((i == 0)? " current-slide" : "") + '" id='+ tempId +'><a class="extruder-number">' + (i+1) + '</a><span class="all-temps"></span></div>';
+      this.$el.find('#slider-nav').append(this.navExtruders_views[i]);
+    }
+
+    //bed
+    if (this.heated_bed) {
+      this.$el.find('#bed-container').removeClass('no-bed');
     } else {
-      this.bedTempBar.$el.addClass('disabled');
+      this.$el.find('#bed-container').addClass('no-bed');
     }
-  },
-  resetBars: function()
-  {
-    this.nozzleTempBar.onResize();
-    this.bedTempBar.onResize();
-  },
-  updateBars: function(value)
-  {
-    if (value.extruder) {
-      this.nozzleTempBar.setTemps(value.extruder.actual, value.extruder.target);
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+    this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
+    this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
+
+    if (this.socketTemps.lenght > 0) {
+      temps = {current: this.socketTemps.bed.current, target: this.socketTemps.bed.target};
+    } else {
+      temps = {current: null, target: null};
     }
 
-    if (value.bed) {
-      this.bedTempBar.setTemps(value.bed.actual, value.bed.target);
+    this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
+
+    for (var i = 0; i <= this.extruders_count; i++) {
+      this._setCircleProgress(i);
+    }
+
+    if (this.extruders_count > 4) {
+      this.$el.find('#previous').removeClass('hide');
+      this.$el.find('#next').removeClass('hide');
+    }
+    if (this.socketTemps.length > 0) {
+      this.updateTemps(this.socketTemps);
+    }
+  },
+  updateTemps: function(value) {
+    var temps = {};
+
+    for (var i = 0; i < Object.keys(this.semiCircleTemp_views).length; i++) {
+      if (this.semiCircleTemp_views[i].el.id == 'bed' ) {
+        temps = {'current': value.bed.actual, 'target': value.bed.target};
+      } else {
+        temps = {'current': value.extruders[i].current, 'target': value.extruders[i].target};
+      }
+      (this.semiCircleTemp_views[i]).updateValues(temps);
+
+      if (this.semiCircleTemp_views[i].type == 'tool') {
+        var search = '#temp-'+i;
+        var tempValue = '- -';
+        if (this.semiCircleTemp_views[i].actual != null) {
+          tempValue = Math.round(this.semiCircleTemp_views[i].actual) + 'º';
+        }
+        this.$el.find(search).find('.all-temps').text(tempValue);
+      }
+
+    }
+    for (var i = 0; i <= this.extruders_count; i++) {
+      this._setCircleProgress(i);
+    }
+  },
+  _setCircleProgress: function(index) {
+    $("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
+      //value: temps.current,
+      arcCoef: 0.55,
+      size: 180,
+      thickness: 20,
+      fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
+    });
+  },
+  show: function()
+  {
+    var semiCircleCount = Object.keys(this.semiCircleTemp_views).length;
+
+    if ( semiCircleCount ) {
+      var socketTemps = app.socketData.attributes.temps;
+
+      for (var i = 0; i < semiCircleCount; i++) {
+        if (i != this.extruders_count) {
+          if (_.has(socketTemps, 'extruders')) {
+            temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
+          } else {
+            temps = {current: null, target: null};
+          }
+        } else {
+          if (_.has(socketTemps, 'bed')) {
+            temps = {current: socketTemps.bed.actual, target: socketTemps.bed.target};
+          } else {
+            temps = {current: null, target: null};
+          }
+        }
+
+        if ($("#control-view").hasClass('print-paused')) {
+          this.semiCircleTemp_views[i].enableTurnOff(false);
+        } else {
+          this.semiCircleTemp_views[i].enableTurnOff(true);
+        }
+
+        this.semiCircleTemp_views[i].updateValues(temps);
+      }
+
+      var currentTool = app.socketData.attributes.tool;
+      if (currentTool != null) {
+        this.currentToolChanged(currentTool);
+      }
+
+    }
+  },
+  getCurrentSelectedSliders: function() {
+    return parseInt((this.$('#slider-nav').find('.current-slide').attr('id')).substring(5));
+  },
+  setCurrentSelectedSliders: function(extruderId) {
+    this.$('#slider-nav').find('.current-slide').removeClass('current-slide');
+    this.$('#slider').find('.current-slide').removeClass('current-slide');
+    this.$('#tool'+extruderId).addClass('current-slide');
+    this.$('#temp-'+extruderId).addClass('current-slide');
+  },
+  currentToolChanged: function(extruderId) {
+    this.previousSelectedTool = this.getCurrentSelectedSliders();
+    this.setCurrentSelectedSliders(extruderId);
+    this.scrollSlider(extruderId);
+    this.checkedArrows(extruderId);
+  },
+  navExtruderClicked: function(e) {
+    var target = $(e.currentTarget);
+    var extruderId = (target.attr('id')).substring(5);
+    this.currentToolChanged(extruderId);
+  },
+  semiCircleTempsClicked: function(e) {
+    var target = $(e.currentTarget);
+    var elementId = target.attr('id');
+
+    if (elementId != 'bed') {
+      var extruderId = (elementId).substring(4);
+      this.currentToolChanged(extruderId);
+    }
+  },
+  arrowClicked: function(e) {
+    var target = $(e.currentTarget);
+    var action = target.attr('id');
+    var extruderId = this.getCurrentSelectedSliders();
+
+    if (action == 'previous' && extruderId > 0) {
+      extruderId = (extruderId > 0) ? extruderId - 1 : extruderId;
+    } else if (action == 'next' && (extruderId+1) < this.extruders_count) {
+      extruderId = (extruderId < this.extruders_count) ? extruderId + 1 : extruderId;
+    } else {
+      target.addClass('arrow-disabled');
+    }
+    this.currentToolChanged(extruderId);
+  },
+  scrollSlider: function(extruderId) {
+    var scrollWidthSlider = this.$("#slider")[0].scrollWidth;
+    var scrollWidthSliderNav = this.$("#slider-nav")[0].scrollWidth;
+
+    if (this.previousSelectedTool != extruderId) {
+      this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
+      this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
+    }
+  },
+  checkedArrows: function(extruderId) {
+    if (extruderId > 0) {
+      this.$('#previous').removeClass('arrow-disabled');
+    } else {
+      this.$('#previous').addClass('arrow-disabled');
+    }
+
+    if (extruderId < (this.extruders_count-1)) {
+      this.$('#next').removeClass('arrow-disabled');
+    } else {
+      this.$('#next').addClass('arrow-disabled');
     }
   }
 });
@@ -265,6 +344,7 @@ var ZControlView = MovementControlView.extend({
 var ExtrusionControlView = Backbone.View.extend({
   el: '#extrusion-control',
   template: null,
+  currentTool: null,
   events: {
     'click .extrude': 'extrudeTapped',
     'click .retract': 'retractTapped',
@@ -275,6 +355,10 @@ var ExtrusionControlView = Backbone.View.extend({
   initialize: function()
   {
     this.template = _.template( this.$("#extruder-switch-template").html() );
+    this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
+    if (this.currentTool == null) {
+      this.currentTool = 0;
+    }
   },
   render: function()
   {
@@ -283,6 +367,20 @@ var ExtrusionControlView = Backbone.View.extend({
     this.$('.row.extruder-switch').html(this.template({
       profile: printer_profile
     }));
+
+    if (this.currentTool != null) {
+      $('.extruder-number').val(this.currentTool);
+
+      //$('#slide-extruders').slick('slickGoTo', this.currentTool, false);
+
+      if ($('.extruder-number').hasClass('no-selected')) {
+        $('.extruder-number').removeClass('no-selected');
+      }
+    }
+
+    if (this.currentTool != $('.extruder-number').val()) {
+      $('.extruder-number').val(this.currentTool);
+    }
 
     if (printer_profile.extruder_count > 1) {
       this.events['change .extruder-number'] = "extruderChanged";
@@ -326,7 +424,11 @@ var ExtrusionControlView = Backbone.View.extend({
   },
   extruderChanged: function(e)
   {
-    this._sendChangeToolCommand($(e.target).val())
+    var selectedTool = $(e.target).val();
+    console.log("Changed select of extruder for: ", $(e.target).val());
+
+    this.setCurrentTool(selectedTool)
+    this._sendChangeToolCommand(selectedTool)
   },
   onKeyDownBackToSelect: function(e)
   {
@@ -382,30 +484,88 @@ var ExtrusionControlView = Backbone.View.extend({
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify(data)
     });
+  },
+  setCurrentTool: function(tool) {
+    this.currentTool = tool;
+  },
+  onToolChanged: function(s, value)
+  {
+    this.setCurrentTool(value);
   }
 });
 
 var FanControlView = Backbone.View.extend({
-  el: '#temp-control .fan-control',
+  el: '.fan-control',
   events: {
     'click button.fan-on': "fanOn",
-    'click button.fan-off': "fanOff"
+    'click button.fan-off': "fanOff",
+    'change .fan-speed': 'speedChanged',
+    'change .other-fan-speed input': 'onSpeedFieldChanged'
   },
   fanOn: function()
   {
-    this._setFanSpeed(255);
-    this.$('.fan_icon').addClass('animate-spin');
+    var isSpeed0 = false;
+    var speedValue = this.$el.find('.fan-speed').val();
+
+    if (speedValue == 'other') {
+      if (this.$('input[name="fan-speed"]').val() > 100) {
+        this.$('input[name="fan-speed"]').val('100');
+      } else if (this.$('input[name="fan-speed"]').val() <= 0){
+        this.$('input[name="fan-speed"]').val('0');
+        isSpeed0 = true;
+        this.fanOff();
+      }
+      speedValue = (this.$('input[name="fan-speed"]').val() / 100);
+    } else {
+      speedValue = speedValue / 100;
+    }
+
+    if (!isSpeed0) {
+      var speedClass = '';
+
+      switch(true) {
+        case (speedValue <= 0.25):
+            speedClass = 'speed-25';
+            break;
+        case (speedValue <= 0.50):
+            speedClass = 'speed-50';
+            break;
+        case (speedValue <= 0.75):
+            speedClass = 'speed-75';
+            break;
+        default:
+            speedClass = 'speed-100';
+      }
+
+      this.$('.variable-speed').addClass('animated bounceIn');
+      this.$('.variable-speed').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+          this.$('.variable-speed').removeClass('bounceIn');
+      }.bind(this));
+
+      this._setFanSpeed(255 * speedValue);
+      this.$('.fan_icon').addClass('animate-spin');
+      this.$('.fan_icon').removeClass (function (index, className) {
+          return (className.match (/\bspeed-\S+/g) || []).join(' ');
+      });
+      this.$('.fan_icon').addClass(speedClass);
+      this.$('.fans').removeClass('fan-on').addClass('fan-off');
+      this.$('.fans').text('Turn OFF');
+    }
+
   },
   fanOff: function()
   {
     this._setFanSpeed(0);
     this.$('.fan_icon').removeClass('animate-spin');
+    this.$('.fans').removeClass('fan-off').addClass('fan-on');
+    this.$('.fans').text('ON');
   },
   _setFanSpeed: function(speed)
   {
+    console.log("FAN SPEED", speed)
     var data = {
       command: "set",
-      tool: 0,
+      tool:  $('.extruder-number').val(),
       speed: speed
     }
 
@@ -416,6 +576,22 @@ var FanControlView = Backbone.View.extend({
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify(data)
     });
+  },
+  speedChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-fan-speed').removeClass('hide').find('input').focus().select();
+    } else {
+      this.$('input[name="fan-speed"]').val(elem.val());
+      this.fanOn();
+    }
+  },
+  onSpeedFieldChanged: function(e) {
+    this.fanOn();
+    $(e.target).blur();
   }
 });
 
@@ -431,6 +607,7 @@ var ControlView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
+  currentTool: null,
   initialize: function()
   {
     this.tempView = new TempView();
@@ -442,11 +619,13 @@ var ControlView = Backbone.View.extend({
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
+    this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
+
   },
   updateTemps: function(s, value)
   {
     if (!this.$el.hasClass('hide')) {
-      this.tempView.updateBars(value);
+      this.tempView.updateTemps(value);
     }
   },
   render: function()
@@ -454,7 +633,6 @@ var ControlView = Backbone.View.extend({
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
-    this.tempView.render();
   },
   resumePrinting: function(e)
   {
@@ -484,6 +662,27 @@ var ControlView = Backbone.View.extend({
         app.router.navigate("printing", {replace: true, trigger: true});
       } else {
         this.$el.removeClass('print-paused');
+      }
+    }
+  },
+  onToolChanged: function(s, value)
+  {
+    if (value != null) {
+      var extruderNumber = $('.extruder-number').val();
+
+      if (this.currentTool != extruderNumber){
+        this.currentTool = value;
+        this.tempView.currentToolChanged(value);
+      }
+
+      if (!(extruderNumber == value)) {
+        this.extrusionView.setCurrentTool(value);
+        this.extrusionView.render();
+        $('.extruder-number').val(value);
+
+        if ($('.extruder-number').hasClass('no-selected')) {
+          $('.extruder-number').removeClass('no-selected');
+        }
       }
     }
   }

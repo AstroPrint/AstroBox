@@ -364,7 +364,7 @@ def _getTemperatureData(filter):
 ##~~ Comms
 
 @api.route("/printer/comm/listen", methods=["POST"])
-def startCommBradcasting():
+def startCommBroadcasting():
 	pm = printerManager()
 
 	if not pm.allowTerminal:

@@ -22,6 +22,7 @@ from astroprint.printer import Printer
 from astroprint.printer.s3g.printjob import PrintJobS3G
 from astroprint.printfiles.x3g import PrintFileManagerX3g
 from astroprint.printfiles import FileDestinations
+from astroprint.printer.manager import printerManager
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
@@ -45,6 +46,7 @@ class PrinterS3g(Printer):
 		self._heatingUp = False
 		self._firmwareVersion = None
 		self._selectedTool = 0
+		self._previousSelectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
@@ -139,7 +141,7 @@ class PrinterS3g(Printer):
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def _work(self):
 		import makerbot_driver.MachineFactory
@@ -439,7 +441,10 @@ class PrinterS3g(Printer):
 
 	def changeTool(self, tool):
 		try:
-			self._selectedTool = tool
+			if self._selectedTool != tool:
+				self.mcToolChange(tool, self._selectedTool)
+
+				self._selectedTool = tool
 		except ValueError:
 			pass
 
@@ -456,6 +461,9 @@ class PrinterS3g(Printer):
 
 		with self._state_condition:
 			if not pause and self.isPaused():
+				if self._previousSelectedTool != self._selectedTool:
+					self.changeTool(self._previousSelectedTool)
+
 				self._changeState(self.STATE_PRINTING)
 
 				self._comm.pause()
@@ -470,6 +478,7 @@ class PrinterS3g(Printer):
 				self._changeState(self.STATE_PAUSED)
 
 				self._comm.pause()
+				self._previousSelectedTool = self.getSelectedTool()
 
 				eventManager().fire(Events.PRINT_PAUSED, {
 					"file": self._currentFile['filename'],
@@ -494,7 +503,7 @@ class PrinterS3g(Printer):
 		})
 
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		self._currentFile = {
 			'filename': filename,
@@ -529,7 +538,7 @@ class PrinterS3g(Printer):
 		return 0
 
 	def getSelectedTool(self):
-		return None
+		return self._selectedTool
 
 	def getPrintFilepos(self):
 		if self._currentFile is None:
@@ -557,11 +566,9 @@ class PrinterS3g(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
-		eventManager().fire(Events.PRINT_STARTED, {
-			"file": self._currentFile['filename'],
-			"filename": os.path.basename(self._currentFile['filename']),
-			"origin": self._currentFile['origin']
-		})
+
+		data = printerManager().getFileInfo(self._currentFile['filename'])
+		eventManager().fire(Events.PRINT_STARTED, data)
 
 		self._printJob = PrintJobS3G(self, self._currentFile)
 		self._printJob.start()

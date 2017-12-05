@@ -16,7 +16,6 @@ from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 
 from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
-from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.printer.manager import printerManager
 
@@ -181,20 +180,6 @@ def design_download(print_file_id):
 					"id": print_file_id
 				}
 			)
-
-		else:
-			if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-				em.fire(
-					Events.CLOUD_DOWNLOAD, {
-						"type": "success",
-						"id": print_file_id,
-						"filename": printerManager().fileManager._getBasicFilename(destFile),
-						"info": fileInfo["info"]
-					}
-				)
-
-			else:
-				errorCb(destFile, "Couldn't save the file")
 
 	def errorCb(destFile, error):
 		if error == 'cancelled':

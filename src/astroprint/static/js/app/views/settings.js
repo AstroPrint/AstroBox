@@ -84,24 +84,32 @@ var PrinterConnectionView = SettingsPage.extend({
 
     if (connectionData.port) {
       this.$('.loading-button.test-connection').addClass('loading');
-      this.$('.connection-status').removeClass('failed connected').addClass('connecting');
+      this.$('.connection-status').removeClass('failed connected');
+
+      if (app.socketData.get('printer').status != 'connected') {
+        this.$('.connection-status').addClass('connecting');
+      } else {
+        this.$('.connection-status').addClass(app.socketData.get('printer').status);
+      }
+
       $.ajax({
         url: API_BASEURL + "connection",
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=UTF-8",
-        data: JSON.stringify({
-          "command": "connect",
-          "driver": connectionData.driver,
-          "port": connectionData.port,
-          "baudrate": connectionData.baudrate ? parseInt(connectionData.baudrate) : null,
-          "autoconnect": true,
-          "save": true
-        })
+        data: JSON.stringify(_.extend(connectionData, {
+          command: "connect",
+          autoconnect: true,
+          save: true
+        }))
       })
-      .fail(function(){
+      .fail(_.bind(function(){
         noty({text: "There was an error testing connection settings.", timeout: 3000});
-      });
+        this.$('.connection-status').removeClass('connecting').addClass('failed');
+      },this ))
+      .always(_.bind(function(){
+        this.$('.loading-button.test-connection').removeClass('loading');
+      }, this))
     }
   },
   printerStatusChanged: function(s, value)
@@ -127,33 +135,47 @@ var PrinterProfileView = SettingsPage.extend({
   el: '#printer-profile',
   template: _.template( $("#printer-profile-settings-page-template").html() ),
   settings: null,
-  initialize: function(params)
-  {
-    SettingsPage.prototype.initialize.call(this, params);
-
-    this.settings = app.printerProfile;
+  driverChoices: [],
+  events: {
+    "invalid.fndtn.abide form": 'invalidForm',
+    "valid.fndtn.abide form": 'validForm',
+    "change input[name='heated_bed']": 'heatedBedChanged',
+    "change select[name='driver']": 'driverChanged'
   },
   show: function() {
-    //Call Super
     SettingsPage.prototype.show.apply(this);
 
-    this.render();
+    if (!this.settings) {
+      this.settings = app.printerProfile;
+      this.getInfo();
+    } else {
+      this.render();
+    }
+  },
+  getInfo: function()
+  {
+    $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
+      if (data) {
+        this.driverChoices = data.driverChoices;
+        delete data.driverChoices;
+        this.settings.set(data.profile);
+        this.render(); // This removes the animate-spin from the link
+      } else {
+        noty({text: "No Profile found.", timeout: 3000});
+      }
+    }, this))
+    .fail(function() {
+      noty({text: "There was an error getting printer profile.", timeout: 3000});
+    })
   },
   render: function() {
     this.$el.html(this.template({
-      settings: this.settings.toJSON()
+      settings: this.settings.toJSON(),
+      driverChoices: this.driverChoices
     }));
 
-    this.$el.foundation();
-
+    this.$el.foundation('abide');
     this.$('#extruder-count').val(this.settings.get('extruder_count'));
-
-    this.delegateEvents({
-      "invalid.fndtn.abide form": 'invalidForm',
-      "valid.fndtn.abide form": 'validForm',
-      "change input[name='heated_bed']": 'heatedBedChanged',
-      "change select[name='driver']": 'driverChanged'
-    });
   },
   heatedBedChanged: function(e)
   {
@@ -171,11 +193,8 @@ var PrinterProfileView = SettingsPage.extend({
     var target = $(e.currentTarget);
     var wrapper = this.$('.input-wrapper.cancel-gcode');
 
-    if (target.val() == 's3g') {
-      wrapper.addClass('hide');
-    } else {
-      wrapper.removeClass('hide');
-    }
+    this.settings.set('driver', target.val());
+    this.render();
   },
   invalidForm: function(e)
   {
@@ -291,7 +310,6 @@ var NetworkNameView = SettingsPage.extend({
       var elem = $(elem);
       attrs[elem.attr('name')] = elem.val();
     });
-
 
     $.ajax({
       url: API_BASEURL + 'settings/network/name',
@@ -556,7 +574,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 
 var InternetConnectionView = SettingsPage.extend({
   el: '#internet-connection',
-  template: _.template( $("#internet-connection-settings-page-template").html() ),
+  template: null,
   networksDlg: null,
   storedWifiDeleteDlg: null,
   settings: null,
@@ -573,6 +591,10 @@ var InternetConnectionView = SettingsPage.extend({
   show: function() {
     //Call Super
     SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#internet-connection-settings-page-template").html() )
+    }
 
     if (!this.settings) {
       $.getJSON(API_BASEURL + 'settings/network', null, _.bind(function(data) {
@@ -993,6 +1015,249 @@ var WifiHotspotView = SettingsPage.extend({
 });
 
 /********************
+* Software - Plugins
+*********************/
+
+var SoftwarePluginsView = SettingsPage.extend({
+  el: '#software-plugins',
+  template: null,
+  events: {
+    "click .installed .row a.delete-link": "onRemoveClicked"
+  },
+  pluginsInfo: null,
+  uploader: null,
+  template: null,
+  deleteDlg: null,
+  initialize: function(opts)
+  {
+    SettingsPage.prototype.initialize.apply(this, arguments);
+    this.uploader = new PluginUploader({
+      el: this.$('input.file-upload'),
+      progressBar: this.$('.upload-progress'),
+      buttonContainer: this.$('.upload-buttons'),
+      installedCallback: _.bind(this.onPluginInstalled,this)
+    });
+  },
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#software-plugings-settings-page-template").html() )
+    }
+
+    if (!this.pluginsInfo) {
+      this.refeshPlugins();
+    }
+  },
+  refeshPlugins: function()
+  {
+    return $.getJSON(API_BASEURL + 'settings/software/plugins')
+      .done( _.bind(function(data){
+        this.pluginsInfo = data;
+        this.render();
+      },this))
+      .fail(function(xhr){
+        noty({text: "There was an error getting Plugin Information.", timeout: 3000});
+        console.error("Request failed with: " + xhr.status);
+      })
+  },
+  render: function()
+  {
+    this.$('.installed').html(this.template({
+      plugins: this.pluginsInfo
+    }));
+  },
+  onPluginInstalled: function(data)
+  {
+    this.refeshPlugins();
+
+    if (data.definition.services.indexOf("printerComms") >= 0) {
+      this.cleanPrinterProfile();
+    }
+  },
+  onRemoveClicked: function(e)
+  {
+    e.preventDefault();
+
+    if (!this.deleteDlg) {
+      this.deleteDlg = new DeletePluginDialog({parent: this});
+    }
+
+    var row = $(e.currentTarget).closest('.row');
+    this.deleteDlg.open(row.data('plugin-id'), row.data('plugin-name'));
+  },
+  cleanPrinterProfile: function()
+  {
+    this.parent.cleanPrinterProfile()
+  }
+});
+
+
+var PluginUploader = FileUploadBase.extend({
+  progressBar: null,
+  buttonContainer: null,
+  installedCallback: null,
+  initialize: function(options)
+  {
+    FileUploadBase.prototype.initialize.call(this, options);
+
+    this.progressBar = options.progressBar;
+    this.buttonContainer = options.buttonContainer;
+    this.$el.attr('accept', '.zip');
+    this.acceptFileTypes = /(\.|\/)(zip)$/i;
+    this.uploadUrl = API_BASEURL + 'settings/software/plugins';
+    this.installedCallback = options.installedCallback;
+  },
+  started: function(data)
+  {
+    if (data.files && data.files.length > 0) {
+      this.buttonContainer.hide();
+      this.progressBar.show();
+      FileUploadBase.prototype.started.call(this, data);
+    }
+  },
+  failed: function(error)
+  {
+    var message = null;
+    switch(error) {
+      case 'invalid_file':
+        message = 'The file is not a valid plugin';
+      break;
+
+      case 'invalid_plugin_file':
+        message = 'The plugin file has errors';
+      break;
+
+      case 'error_checking_file':
+        message = 'There was an error checking the plugin file';
+      break;
+
+      case 'invalid_plugin_definition':
+        message = 'The plugin definition file is not valid';
+      break;
+
+      case 'incompatible_plugin':
+        message = 'The API version used by the plugin is not compatible.';
+
+      case 'already_installed':
+        message = "The Plugin is already installed. Please remove old version first.";
+      break;
+    }
+
+    this.onError(message);
+  },
+  success: function(data)
+  {
+    if (data.result.tmp_file) {
+      $.ajax({
+        url: API_BASEURL + 'settings/software/plugins/install',
+        method: 'POST',
+        type: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          file: data.result.tmp_file
+        })
+      })
+        .done(_.bind(function(){
+          this.onPrintFileUploaded();
+          this.installedCallback(data.result);
+        }, this))
+        .fail(_.bind(function(){
+          this.onError('Unable to install plugin');
+        }, this))
+    } else {
+      this.onError('Unable to install plugin');
+    }
+  },
+  progress: function(progress, message)
+  {
+    var intPercent = Math.round(progress);
+
+    this.progressBar.find('.meter').css('width', intPercent+'%');
+    if (!message) {
+      message = "Uploading ("+intPercent+"%)";
+    }
+    this.progressBar.find('.progress-message span').text(message);
+  },
+  onError: function(error)
+  {
+    noty({text: error ? error : 'There was an error uploading your file', timeout: 3000});
+    this.resetUploadArea();
+    console.error(error);
+  },
+  onPrintFileUploaded: function()
+  {
+    this.resetUploadArea();
+  },
+  resetUploadArea: function()
+  {
+    this.progressBar.hide();
+    this.buttonContainer.show();
+    this.progress(0);
+  }
+});
+
+var DeletePluginDialog = Backbone.View.extend({
+  el: '#delete-plugin-modal',
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'open.fndtn.reveal': 'onOpen'
+  },
+  parent: null,
+  id: null,
+  name: null,
+  initialize: function(options)
+  {
+    this.parent = options.parent;
+  },
+  open: function(id, name)
+  {
+    this.id = id;
+    this.name = name;
+
+    this.$('.name').text(name);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function()
+  {
+    var loadingBtn = this.$('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + 'settings/software/plugins',
+      type: 'DELETE',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify({id: this.id})
+    })
+      .done(_.bind(function(data){
+        this.parent.refeshPlugins();
+        this.doClose();
+
+        if (data.services.indexOf('printerComms') >= 0) {
+          this.parent.cleanPrinterProfile();
+        }
+      }, this))
+      .fail(function(){
+        loadingBtn.addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000);
+      })
+      .always(function(){
+        loadingBtn.removeClass('loading');
+      });
+  }
+});
+
+/********************
 * Software - Update
 *********************/
 
@@ -1346,7 +1611,8 @@ var SettingsView = Backbone.View.extend({
   el: '#settings-view',
   menu: null,
   subviews: null,
-  initialize: function() {
+  initialize: function()
+  {
     this.subviews = {
       'printer-connection': new PrinterConnectionView({parent: this}),
       'printer-profile': new PrinterProfileView({parent: this}),
@@ -1354,12 +1620,18 @@ var SettingsView = Backbone.View.extend({
       'internet-connection': new InternetConnectionView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
+      'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
-      'software-advanced': new SoftwareAdvancedView({parent: this})
+      'software-advanced': new SoftwareAdvancedView({parent: this}),
     };
     this.menu = new SettingsMenu({subviews: this.subviews});
   },
-  onShow: function() {
+  onShow: function()
+  {
     this.subviews['printer-connection'].show();
+  },
+  cleanPrinterProfile: function()
+  {
+    this.subviews['printer-profile'].settings = null;
   }
 });

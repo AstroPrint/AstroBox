@@ -18,7 +18,8 @@
         <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
         <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading bold">Software</li>
-        <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
+        <li class="software-update dotted"><a href="#settings/software-update">Update</a></li>
         <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
@@ -42,6 +43,10 @@
     <script type="text/template" id="printer-connection-settings-page-template">
       <div class="row">
         <div class="small-12">
+          <label class="bold">
+            Printer Communications Driver
+            <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+          </label>
           <label for="settings-serial-port" class="bold">
             USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
             <% if (settings.serial.portOptions.length > 0) { %>
@@ -69,16 +74,21 @@
         <div class="row">
           <div class="small-12">
             <label for="settings-baudrate" class="bold">Baud Rate
+            <% if (settings.serial.baudrateOptions.length > 1) { %>
               <select id="settings-baudrate" name="baudrate">
                 <% _.each(settings.serial.baudrateOptions, function(e) { %>
                   <option value="<%= e %>"<%= settings.serial.baudrate == e ? ' selected' : '' %>><%= e %></option>
                 <% }) %>
               </select>
+            <% } else { %>
+              <input type="hidden" value="<%= settings.serial.baudrateOptions[0] %>" name="baudrate"/>
+              <p><%= e %></p>
+            <% } %>
             </label>
           </div>
         </div>
       <% } %>
-      <% if (settings.serial.portOptions.length > 0 && ( settings.serial.baudrateOptions.length > 0 || settings.driver == 's3g') )  { %>
+      <% if (settings.serial.portOptions.length > 0)  { %>
         <div align="center">
           <div class="loading-button test-connection">
             <button class="success radius">Test Connection</button>
@@ -99,8 +109,9 @@
               <label for="settings-printer-driver" class="bold">
                 Driver
                 <select id="settings-printer-driver" name="driver">
-                  <option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
-                  <option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+                  <% _.each(driverChoices, function(p, k) { %>
+                    <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                  <% }) %>
                 </select>
               </label>
               <label for="extruder-count" class="bold">
@@ -154,11 +165,11 @@
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
-              <div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
+              <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                 <label for="cancel-gcode" class="bold">
                   Cancel GCODE
                 </label>
-                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%=settings.cancel_gcode.join('\n')%></textarea>
+                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
               </div>
               <hr/>
               <div class="loading-button">
@@ -443,8 +454,8 @@
       <% } %>
       <% if (settings.storedWifiNetworks.length > 0) { %>
         <hr/>
-        <div class="stored-wifis">
-          <h3 class="bold">Known WiFi Networks</h3>
+        <h3 class="bold">Known WiFi Networks</h3>
+        <div class="stored-wifis element-list">
           <% _.each(settings.storedWifiNetworks, function(c) { %>
             <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
               <div class="columns small-2 large-1 active">
@@ -564,6 +575,83 @@
         </div>
       <% } %>
     </script>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/software-plugins"><h1 class="bold" align="center">Apps &amp; Plugins</h1></a>
+    </div>
+    <div id="software-plugins" class="settings-page">
+      <div class="file-upload-view">
+        <div class="row upload-buttons">
+          <div class="small-12 large-7 medium-centered columns">
+            <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
+              <i class="icon-plus"></i> Upload Plugin or App ( <span class="extensions">.zip</span> )
+              <input class="file-upload" type="file" name="file" accept="">
+            </span>
+          </div>
+        </div>
+        <div class="row upload-progress" style="display:none">
+          <div class="small-12 large-10 large-centered columns">
+            <div class="progress radius">
+              <div class="meter" style="width: 0%"></div>
+            </div>
+            <div class="progress-message" align="center">
+              <i class="icon-rocket-spinner animate-spin"></i> <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3 class="bold">Installed Plugins</h3>
+      <div class="element-list installed"></div>
+    </div>
+
+    <script type="text/template" id="software-plugings-settings-page-template">
+      <% if (plugins.length) { %>
+        <% _.each(plugins, function(p){ %>
+          <div class="row" data-plugin-id="<%= p.id %>" data-plugin-name="<%= p.name %>">
+            <div class="small-10 columns name">
+              <%= p.name %>
+              <% if (p.verified) { %><i class="icon-ok-circled" title="Verified Plugin"></i><% } %>
+              <span class="version">v<%= p.version %></span>
+            </div>
+            <div class="small-2 columns" align="center">
+              <% if (p.can_remove) { %>
+                <a href="#" title="Remove" class="delete-link"><i class="icon-trash"></i></a>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty">
+          <i class="icon-puzzle"></i>
+          No Plugins or Apps installed
+        </div>
+      <% } %>
+    </script>
+
+    <div id="delete-plugin-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Plugin</h2>
+      <div class="modal-body">
+        <p>
+          This will permanently delete the plugin: <b class="name"></b>.
+        </p>
+        <p>
+          Are you sure you want to delete <b class="name"></b>?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">No</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Yes, Delete</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+            <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
 
     <div class="show-for-small zebra">
       <a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
