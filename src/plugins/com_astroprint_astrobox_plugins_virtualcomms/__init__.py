@@ -17,6 +17,8 @@ class VirtualComms(Plugin, PrinterCommsService):
 		super(VirtualComms, self).initPrinterCommsService(printerManager)
 
 		seettings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
+		self._previousSelectedTool = 0
+		self._currentSelectedTool = 0
 
 		self._vpSettings = {
 			'connection': 1.0,
@@ -85,11 +87,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		currentFile = self._printerManager.selectedFile
 
-		self.fireSystemEvent(SystemEvent.PRINT_STARTED, {
-			"file": currentFile['filename'],
-			"filename": os.path.basename(currentFile['filename']),
-			"origin": currentFile['origin']
-		})
+		data = self._printerManager.getFileInfo(currentFile['filename'])
+
+		self.fireSystemEvent(SystemEvent.PRINT_STARTED, data)
 
 		#First we simulate heatup
 		self.setTemperature("tool0", 210)
