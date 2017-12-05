@@ -119,7 +119,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 			self._printJob.cancel()
 
 		if self.paused:
-			self.setPause(False)
+			self.setPaused(False)
 
 		if self._heatingUpTimer:
 			self._heatingUpTimer.cancel()
