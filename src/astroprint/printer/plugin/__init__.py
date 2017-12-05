@@ -11,6 +11,7 @@ from octoprint.settings import settings
 from astroprint.printer import Printer
 from astroprint.plugin import pluginManager
 from astroprint.printfiles import FileDestinations
+from astroprint.cloud import astroprintCloud
 
 class NoPluginException(Exception):
 	pass
@@ -74,6 +75,56 @@ class PrinterWithPlugin(Printer):
 
 	def disconnect(self):
 		return self._plugin.disconnect()
+
+	def getFileInfo(self, filename):
+		estimatedPrintTime = None
+		date = None
+		filament = None
+		layerCount = None
+		cloudId = None
+		renderedImage = None
+		printFileName = None
+
+		if filename:
+			# Use a string for mtime because it could be float and the
+			# javascript needs to exact match
+			date = int(os.stat(filename).st_ctime)
+
+			fileData = self._fileManager.getFileData(filename)
+			if fileData is not None and "gcodeAnalysis" in fileData.keys():
+				fileDataProps = fileData["gcodeAnalysis"].keys()
+				if "print_time" in fileDataProps:
+					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
+				if "filament_lenght" in fileDataProps:
+					filament = fileData["gcodeAnalysis"]["filament_length"]
+				if "layer_count" in fileDataProps:
+					layerCount = fileData["gcodeAnalysis"]['layer_count']
+
+			cloudId = self._fileManager.getFileCloudId(filename)
+			if cloudId:
+				if self._selectedFile:
+					self._selectedFile['cloudId'] = cloudId
+
+				printFile = astroprintCloud().getPrintFile(cloudId)
+				if printFile:
+					renderedImage = printFile['images']['square']
+
+			if fileData is not None and "printFileName" in fileData.keys():
+				printFileName = fileData["printFileName"]
+
+		return {
+			"file": {
+				"name": os.path.basename(filename) if filename is not None else None,
+				"printFileName": printFileName,
+				"origin": FileDestinations.LOCAL,
+				"date": date,
+				"cloudId": cloudId,
+				"rendered_image": renderedImage
+			},
+			"estimatedPrintTime": estimatedPrintTime,
+			"layerCount": layerCount,
+			"filament": filament,
+		}
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterWithPlugin, self).selectFile(filename, sd, printAfterSelect):
