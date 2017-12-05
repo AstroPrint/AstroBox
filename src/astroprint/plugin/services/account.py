@@ -90,8 +90,15 @@ class AccountService(PluginService):
 	def getStatus(self, callback):
 		try:
 
+			payload = {
+				'state': boxrouterManager().status,
+			}
+			if boxrouterManager().status == "connected":
+				sets = settings()
+				payload['user'] = sets.get(["cloudSlicer", "loggedUser"])
+
 			callback({
-				'astroprint-status': boxrouterManager().status
+				'astroprint-status': payload
 			})
 
 		except Exception as e:
@@ -103,4 +110,9 @@ class AccountService(PluginService):
 
 	def _onAccountStateChange(self,event,value):
 			print 'onAccountStateChange'
-			self.publishEvent('account_state_change',value)
+			data = {"state" : value}
+			if value == "connected":
+				sets = settings()
+				data['user'] = sets.get(["cloudSlicer", "loggedUser"])
+			print data
+			self.publishEvent('account_state_change',data)
