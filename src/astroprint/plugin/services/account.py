@@ -110,7 +110,7 @@ class AccountService(PluginService):
 
 	def _onAccountStateChange(self,event,value):
 			print 'onAccountStateChange'
-			data = {"state" : value}
+			data = {"state" : value, "user" : None}
 			if value == "connected":
 				sets = settings()
 				data['user'] = sets.get(["cloudSlicer", "loggedUser"])
