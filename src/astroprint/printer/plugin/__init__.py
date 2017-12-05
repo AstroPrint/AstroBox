@@ -140,7 +140,7 @@ class PrinterWithPlugin(Printer):
 			if 'sd' in self._currentFile and self._currentFile["sd"]:
 				payload["origin"] = FileDestinations.SDCARD
 
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			eventManager().fire(Events.PRINT_CANCELLED, payload)
 
 
 	def printJobCancelled(self):
