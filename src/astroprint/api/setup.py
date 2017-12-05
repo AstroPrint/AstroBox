@@ -21,6 +21,7 @@ from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionExcepti
 from astroprint.network.manager import networkManager
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.plugin import pluginManager
 
 def not_setup_only(func):
 	"""
@@ -140,8 +141,19 @@ def connection_settings():
 	connectionOptions = printerManager().getConnectionOptions()
 
 	if connectionOptions:
+
+		plugins = pluginManager().getPluginsByProvider('printerComms')
+
+		driverChoices = { ("plugin:%s" % k) : plugins[k].definition['name'] for k in plugins }
+
+		driverChoices.update({
+			'marlin': 'GCODE - Marlin / Repetier Firmware',
+			's3g': 'X3G - Sailfish / Makerbot Firmware'
+		})
+
 		response = {
 			"driver": printerProfileManager().data['driver'],
+			"driverChoices": driverChoices,
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
 			"portOptions": connectionOptions["ports"].items(),
@@ -159,12 +171,14 @@ def save_connection_settings():
 	baudrate = request.values.get('baudrate', None)
 	driver = request.values.get('driver', None)
 
-	if port and ( baudrate or driver in ['s3g', 'virtual']):
+	if port:
 		s = settings()
 
 		s.set(["serial", "port"], port)
+
 		if baudrate:
 			s.setInt(["serial", "baudrate"], baudrate)
+
 		s.save()
 
 		pp = printerProfileManager()
@@ -172,7 +186,7 @@ def save_connection_settings():
 		pp.save()
 
 		pm = printerManager(driver)
-		pm.connect()
+		pm.connect(port, baudrate)
 
 		return make_response("OK", 200)
 

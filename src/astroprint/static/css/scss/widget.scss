@@ -1,0 +1,134 @@
+#temp-control-template{
+
+  .semi-circle-temps {
+
+    .temp-container {
+      position: relative;
+      max-width: 100%;
+      margin: 0 auto;
+      height: 170px;
+
+      .graphic-container {
+        .circle-container{
+          max-width: 360px;
+          height: 116px;
+
+          .progress-temp-circle {
+
+            .target-selector {
+              width: 24px;
+              height: 5px;
+              border-radius: 24px;
+              background: #000;
+              position: relative;
+              top: -98px;
+              left: -80px;
+              transform-origin: 93px 2px;
+              transform: rotate(0deg);
+              transition:transform 2s;
+            }
+
+            .current {
+              position: relative;
+              top: -154px;
+              padding-left: 8px;
+              font-size: 40px;
+              font-weight: bold;
+              color: #f05251;
+              width: 50%;
+              margin: 0 auto;
+            }
+          }
+        }
+
+        .buttons-container {
+          max-width: 360px;
+          height: 50px;
+          position: relative;
+          top: -6px;
+          left: -5px;
+
+          .container-off {
+            button.temp-off {
+              outline: 0;
+              background: #00bff3;
+              width: 38px;
+              height: 38px;
+              border-radius: 50px;
+            }
+
+            i.icon-snow {
+              &:before {
+                position: relative;
+                top: -5px;
+                font-size: 20px;
+                color: white;
+              }
+            }
+          }
+          .temp-target {
+            right: -20px;
+
+            .label-target{
+              text-transform: uppercase;
+              font-size: 13px;
+              letter-spacing: 1px;
+              left: -20%;
+              margin-bottom: -3px;
+              color: #333;
+            }
+            .target-value {
+              left: -20%;
+              color: #333;
+              font-size: 18px;
+            }
+            .target-value {
+              left: -10px;
+            }
+
+            .temp-edit {
+              width: 38px;
+              height: 38px;
+
+              outline: 0;
+              border-radius: 3px;
+              background: #333;
+              padding: 4px 10px;
+
+              i.icon-pencil {
+                &:before {
+                  font-size: 20px;
+                  color: white;
+                  position: relative;
+                  left: -5px;
+                }
+              }
+              .icon-rocket-spinner {
+                display: none;
+                position: relative;
+                left: -2px;
+              }
+
+              &.loading {
+                .icon-rocket-spinner {
+                  display: inline-block;
+                }
+                .icon-pencil {
+                  display: none;
+                }
+              }
+            }
+
+            input {
+              position: absolute;
+              height: 38px;
+              width: 60px;
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+}

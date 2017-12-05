@@ -22,7 +22,8 @@ from astroprint.util.gCodeAnalyzer import GCodeAnalyzer
 
 from astroprint.printfiles import FileDestinations
 
-from astroprint.printer.marlin.material_counter import MaterialCounter
+from astroprint.plugin.providers.printer_comms.material_counter import MaterialCounter
+from astroprint.printer.manager import printerManager
 
 gcodeToEvent = {
 	# pause for user input
@@ -101,6 +102,7 @@ class MachineCom(object):
 		self._heatupWaitStartTime = 0
 		self._heatupWaitTimeLost = 0.0
 		self._currentTool = 0
+		self._previousSelectedTool = 0
 		self._oksAfterHeatingUp = 0
 		self._pauseInProgress = False
 		self._cancelInProgress = False
@@ -131,6 +133,7 @@ class MachineCom(object):
 		self._regex_paramNInt = re.compile("N(%s)" % intPattern)
 		self._regex_paramTInt = re.compile("T(%s)" % intPattern)
 		self._regex_extrusion = re.compile("E%s" % positiveFloatPattern)
+		self._regex_extruder = re.compile("E:(%s)" % positiveFloatPattern)
 		self._regex_minMaxError = re.compile("Error:[0-9]\n")
 		#self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
 		#self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
@@ -385,11 +388,9 @@ class MachineCom(object):
 
 			wasPaused = self.isPaused()
 			self._changeState(self.STATE_PRINTING)
-			eventManager().fire(Events.PRINT_STARTED, {
-				"file": self._currentFile.getFilename(),
-				"filename": os.path.basename(self._currentFile.getFilename()),
-				"origin": self._currentFile.getFileLocation()
-			})
+
+			data = printerManager().getFileInfo(self._currentFile.getFilename())
+			eventManager().fire(Events.PRINT_STARTED, data)
 
 			# if self.isSdFileSelected():
 			# 	if wasPaused:
@@ -479,6 +480,9 @@ class MachineCom(object):
 			#	self.sendCommand("M24")
 			#else:
 
+			if (self._previousSelectedTool != self._currentTool):
+				self.sendCommand("T%d" % self._previousSelectedTool)
+
 			self._pauseInProgress = False
 			self._changeState(self.STATE_PRINTING)
 
@@ -526,6 +530,7 @@ class MachineCom(object):
 				"origin": self._currentFile.getFileLocation()
 			})
 
+			self._previousSelectedTool = self.getSelectedTool()
 			self._changeState(self.STATE_PAUSED)
 
 	def getSdFiles(self):
@@ -619,21 +624,44 @@ class MachineCom(object):
 
 		return maxToolNum, result
 
+	def _parseExtruder(self, line):
+		extruder = 0
+		extruderMatch = 'E:'
+
+		for match in re.finditer(self._regex_extruder, line):
+			extruder = match.group(1)
+			extruderMatch = match.group(0)
+
+		return  extruderMatch, extruder
+
+
 	def _processTemperatures(self, line):
 		maxToolNum, parsedTemps = self._parseTemperatures(line)
+		extruderMatch, extruder = self._parseExtruder(line)
 
 		# extruder temperatures
 		if not "T0" in parsedTemps.keys() and "T" in parsedTemps.keys():
-			# only single reporting, "T" is our one and only extruder temperature
 			toolNum, actual, target = parsedTemps["T"]
 
-			if target is not None:
-				self._temp[0] = (actual, target)
-			elif 0 in self._temp.keys() and self._temp[0] is not None and isinstance(self._temp[0], tuple):
-				(oldActual, oldTarget) = self._temp[0]
-				self._temp[0] = (actual, oldTarget)
+			if not extruderMatch in line:
+				# only single reporting, "T" is our one and only extruder temperature
+				if target is not None:
+					self._temp[0] = (actual, target)
+				elif 0 in self._temp.keys() and self._temp[0] is not None and isinstance(self._temp[0], tuple):
+					(oldActual, oldTarget) = self._temp[0]
+					self._temp[0] = (actual, oldTarget)
+				else:
+					self._temp[0] = (actual, None)
 			else:
-				self._temp[0] = (actual, None)
+				# check when the printer send only a current extruder temperature but the printer have multiple extruders
+				toolNum = int(extruder)
+
+				if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
+					(oldActual, oldTarget) = self._temp[toolNum]
+					self._temp[toolNum] = (actual, oldTarget)
+				else:
+					self._temp[toolNum] = (actual, None)
+
 		elif "T0" in parsedTemps.keys():
 			for n in range(maxToolNum + 1):
 				tool = "T%d" % n

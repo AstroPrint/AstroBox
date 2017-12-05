@@ -1,11 +1,23 @@
 .row.container {
-    background: #fff;
-    border: 1px solid #ccc;
-    @include radius($global-radius);
+  background: #fff;
+  border: 1px solid #ccc;
+  @include radius($global-radius);
 }
 
 .zebra {
   background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
+}
+
+#settings-view {
+  .element-list {
+    > .row {
+      padding: 5px 0;
+
+      &:nth-child(odd) {
+        background: #fafafa;
+      }
+    }
+  }
 }
 
 #settings-side-bar {
@@ -182,12 +194,6 @@
 
   .stored-wifis {
     > .row {
-      padding: 5px 0;
-
-      &:nth-child(even) {
-        background: #fafafa;
-      }
-
       .name {
         white-space: nowrap;
         overflow: hidden;
@@ -295,6 +301,62 @@
     }
 
     margin-bottom: 20px;
+  }
+}
+
+#software-plugins {
+  .file-upload-view {
+    position: relative;
+
+    input[type=file] {
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+  }
+
+  .upload-progress {
+    .progress-message {
+      font-size: rem-calc(18);
+      color: $success-color;
+    }
+
+    .meter {
+      transition: width 1s;
+    }
+  }
+
+  .installed {
+    > .row {
+      .name {
+        .version {
+          font-size: rem-calc(12);
+          color: #ccc;
+        }
+
+        .icon-ok-circled {
+          color: $success-color;
+        }
+      }
+
+      .icon-trash {
+        color: $alert-color;
+      }
+    }
+
+    .empty {
+      text-align: center;
+      color: #ccc;
+
+      i {
+        display: block;
+        font-size: rem-calc(80);
+      }
+    }
   }
 }
 

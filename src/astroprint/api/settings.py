@@ -5,6 +5,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import os
 import time
+import json
 
 from flask import request, abort, jsonify, make_response
 
@@ -12,6 +13,8 @@ from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.plugin import pluginManager
+from astroprint.printerprofile import printerProfileManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
@@ -20,6 +23,7 @@ from octoprint.server.api import api
 def handlePrinterSettings():
 	s = settings()
 	pm = printerManager()
+	ppm = printerProfileManager()
 	connectionOptions = pm.getConnectionOptions()
 
 	if request.method == "POST":
@@ -32,8 +36,14 @@ def handlePrinterSettings():
 
 			s.save()
 
+	driverName = ppm.data['driver']
+	driverInfo = ppm.driverChoices().get(driverName)
+	if driverInfo:
+		driverName = driverInfo['name']
+
 	return jsonify({
-		"driver": pm.driverName,
+		"driver": ppm.data['driver'],
+		"driverName": driverName,
 		"serial": {
 			"port": connectionOptions["portPreference"],
 			"baudrate": connectionOptions["baudratePreference"],
@@ -194,6 +204,80 @@ def cameraSettings():
 		video_rotation= s.getInt(['camera', 'video-rotation']),
 		structure= cm.settingsStructure()
 	)
+
+@api.route("/settings/software/plugins", methods=["GET"])
+@restricted_access
+def getSoftwarePlugins():
+	pm = pluginManager()
+
+	response = []
+
+	for pId, p in pm.plugins.iteritems():
+		response.append({
+			'id': p.pluginId,
+			'name': p.name,
+			'version': p.version,
+			'can_remove': not p.systemPlugin,
+			'verified': p.verified
+		})
+
+	r = make_response(json.dumps(response), 200)
+	r.headers['Content-Type'] = 'application/json'
+
+	return r
+
+@api.route("/settings/software/plugins", methods=["POST"])
+@restricted_access
+def uploadSoftwarePlugin():
+	if not "file" in request.files.keys():
+		return make_response("No file included", 400)
+
+	file = request.files["file"]
+
+	pm = pluginManager()
+	r = pm.checkFile(file)
+
+	if 'error' in r:
+		return make_response(r['error'], 500)
+	else:
+		return jsonify(r)
+
+@api.route("/settings/software/plugins", methods=["DELETE"])
+@restricted_access
+def removeSoftwarePlugin():
+	data = request.json
+	pId = data.get('id', None)
+
+	if pId:
+		pm = pluginManager()
+		r = pm.removePlugin(pId)
+
+		if 'error' in r:
+			error = r['error']
+
+			if error == 'not_found':
+				return make_response('Not Found', 404)
+			else:
+				return make_response(error, 500)
+
+		else:
+			return jsonify(r)
+
+	return make_response('Invalid Request', 400)
+
+@api.route("/settings/software/plugins/install", methods=["POST"])
+@restricted_access
+def installSoftwarePlugin():
+	data = request.json
+	file = data.get('file', None)
+	if file:
+		pm = pluginManager()
+		if pm.installFile(file):
+			return jsonify()
+		else:
+			return make_response('Unable to Install', 500)
+
+	return make_response('Invalid Request', 400)
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access

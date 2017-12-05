@@ -64,7 +64,8 @@ class EncoderBin(object):
 		self._isLinked = False
 		if teePad:
 			unlinker = PadUnlinker(teePad, chainStartSinkPad, chainEndSinkPad, onBlocked, onFlushed)
-			unlinker.start()
+			#unlinker.start()
+			unlinker.unlink()
 		elif onDone:
 			onDone(True) #already detached
 
@@ -92,9 +93,9 @@ class EncoderBin(object):
 #  Worker thread to safely unlink a pad
 #
 
-class PadUnlinker(Thread):
+class PadUnlinker(object):
 	def __init__(self, srcPad, sinkPad, tailSinkPad= None, srcPadBlockedCallback= None, chainFlushedCallback= None):
-		super(PadUnlinker, self).__init__()
+		#super(PadUnlinker, self).__init__()
 
 		self._srcPad = srcPad
 		self._sinkPad = sinkPad
@@ -103,7 +104,8 @@ class PadUnlinker(Thread):
 		self._chainFlushedCallback = chainFlushedCallback
 		self._onPadBlockedEvent = None
 
-	def run(self):
+	#def run()(self):
+	def unlink(self):
 		self._srcPad.add_probe(Gst.PadProbeType.BLOCK_DOWNSTREAM, self._onSrcPadBlocked, None)
 
 	def _onSrcPadBlocked(self, pad, probeInfo, userData):
@@ -114,6 +116,8 @@ class PadUnlinker(Thread):
 		if self._tailSinkPad:
 			self._tailSinkPad.add_probe(Gst.PadProbeType.BLOCK | Gst.PadProbeType.EVENT_DOWNSTREAM, self._onTailSinkPadEvent, None)
 			self._sinkPad.send_event(Gst.Event.new_eos())
+
+		pad.remove_probe(probeInfo.id)
 
 		return Gst.PadProbeReturn.OK
 

@@ -5,7 +5,13 @@ __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the A
 
 import uuid
 import json
+import threading
+import os
+import time
+import logging
+import logging.config
 import tornado.wsgi
+
 from ext.sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
 from flask.ext.login import LoginManager, current_user, logout_user
@@ -15,10 +21,6 @@ from flask.ext.assets import Environment
 from watchdog.observers import Observer
 from sys import platform
 
-import os
-import time
-import logging
-import logging.config
 
 SUCCESS = {}
 NO_CONTENT = ("", 204)
@@ -67,6 +69,7 @@ from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
+from astroprint.plugin import pluginManager
 
 UI_API_KEY = None
 VERSION = None
@@ -205,6 +208,7 @@ def camera_snapshot():
 def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
+	softwareManager = swManager()
 
 	fileName = None
 
@@ -225,7 +229,7 @@ def getStatus():
 			'camera': cm.isCameraConnected(),
 			#'printCapture': cm.timelapseInfo,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities
 		}),
 		mimetype= 'application/json',
 		headers= {
@@ -408,6 +412,8 @@ class Server():
 
 		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
 
+		pluginManager().loadPlugins()
+
 		from astroprint.migration import migrateSettings
 		migrateSettings()
 
@@ -497,7 +503,10 @@ class Server():
 			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
 			connectionOptions = printer.getConnectionOptions()
 			if port in connectionOptions["ports"]:
-				printer.connect(port, baudrate)
+				t = threading.Thread(target=printer.connect, args=(port, baudrate))
+				t.daemon = True
+				t.start()
+				#printer.connect(port, baudrate)
 
 		# start up watchdogs
 		observer = Observer()
@@ -602,6 +611,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
+		pluginManager().shutdown();
 		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()

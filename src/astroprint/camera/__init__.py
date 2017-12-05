@@ -195,6 +195,7 @@ class CameraManager(object):
 		inactivitySecs = s.get(["camera", "inactivitySecs"])
 		if inactivitySecs > 0:
 			self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+			#self._cameraInactivity = CameraInactivity(10, self._onInactive) # For testing
 		else:
 			self._cameraInactivity = None
 

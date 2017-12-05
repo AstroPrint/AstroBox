@@ -36,7 +36,18 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return ( networkId in [c['id'] for c in self.storedWifiNetworks()] )
 
 	def hasWifi(self):
-		return False
+		return True
+
+	def getWifiNetworks(self):
+		return [
+				{"id": "80:1F:02:F9:16:1B", "name": "creatorpro", "secured": False, "signal": 54, "wep": False},
+				{"id": "76:DA:38:68:50:E9", "name": "wanhao", "secured": False, "signal": 80, "wep": False},
+				{"id": "74:DA:38:88:51:90", "name": "soniabox", "secured": False, "signal": 59, "wep": False},
+				{"id": "C0:7B:BC:1A:5C:81", "name": "Empresas", "secured": True, "signal": 37, "wep": False},
+				{"id": "C0:7B:BC:1A:5C:80", "name": "CITIC", "secured": True, "signal": 37, "wep": False},
+				{"id": "2C:4D:54:CC:30:F8", "name": "AstroPrintWLAN", "secured": True, "signal": 100, "wep": False},
+				{"id": "C0:7B:BC:1A:5C:82", "name": "InvitadosEmpresas", "secured": False, "signal": 39, "wep": False}]
+
 
 	def isOnline(self):
 		return True

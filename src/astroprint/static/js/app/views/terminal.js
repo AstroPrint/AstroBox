@@ -44,11 +44,11 @@ var TerminalView = Backbone.View.extend({
         }
       })
         .fail(_.bind(function(){
-          loadingBtn.addClass('error');
+          loadingBtn.addClass('failed');
           this.outputView.add('s', command, true);
 
           setTimeout(function(){
-            loadingBtn.removeClass('error');
+            loadingBtn.removeClass('failed');
           }, 3000);
         }, this))
         .always(function(){

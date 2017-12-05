@@ -1,0 +1,9 @@
+id: com.astroprint.astrobox.plugins.virtualcomms
+name: Virtual Comms Driver
+version: 1
+min_api_version: 1
+verified: True
+description:
+  Serial communications for a Virtual Printer. Used for testing
+providers:
+  - printerComms
