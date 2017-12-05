@@ -39,6 +39,20 @@ class PrinterWithPlugin(Printer):
 		pluginManager().removeEventListener('ON_PLUGIN_REMOVED', self.onPluginRemoved)
 		super(PrinterWithPlugin, self).rampdown()
 
+	def getConnectionOptions(self):
+		"""
+		 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
+		"""
+		s = settings()
+
+		return {
+			"ports": self.serialList(),
+			"baudrates": self.baudrateList(),
+			"portPreference": s.get(["serial", "port"]),
+			"baudratePreference": s.getInt(["serial", "baudrate"]),
+			"autoconnect": s.getBoolean(["serial", "autoconnect"])
+		}
+
 	@property
 	def allowTerminal(self):
 		return self._plugin.allowTerminal

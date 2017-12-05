@@ -155,6 +155,25 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def serialLoggingChanged(self):
 		pass
 
+	def getCurrentTemperatures(self):
+		return {
+			'tool0':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'tool1':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'bed':
+				{
+					"actual": 40,
+					"target": 40
+				}
+			}
+
 	@property
 	def ports(self):
 		return {
