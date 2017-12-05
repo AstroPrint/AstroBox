@@ -135,6 +135,16 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
+	def printerFanSpeed(self, data, callback):
+		pm = printerManager()
+
+		speed = data["speed"]
+		tool = data["tool"]
+
+		pm.fan(tool, speed)
+
+		callback({'success': 'no_error'})
+
 	##Printer connection
 
 	def getConnection(self):
