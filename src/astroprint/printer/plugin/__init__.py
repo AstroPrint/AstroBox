@@ -293,7 +293,8 @@ class PrinterWithPlugin(Printer):
 		return self._plugin.getCurrentTemperatures()
 
 	def getSelectedTool(self):
-		return 0
+		self._plugin.currentTool
+
 
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):
