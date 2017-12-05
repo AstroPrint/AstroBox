@@ -390,6 +390,8 @@ class PrinterCommsService(CommandPluginInterface):
 			self._printerManager.fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self.connected and newState == PrinterState.STATE_PRINTING:
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
+		elif self.connected and newState == PrinterState.STATE_OPERATIONAL:
+			eventManager().fire(SystemEvent.CONNECTED)
 
 		if newState == PrinterState.STATE_CLOSED:
 			eventManager().fire(SystemEvent.DISCONNECTED)
