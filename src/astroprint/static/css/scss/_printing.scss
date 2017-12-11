@@ -17,7 +17,7 @@
   .bottom-space{
     margin-bottom: 20px;
   }
-  .buttons-box{
+  #buttons-box{
 
     button,span.button{
       margin-bottom: 10px;
@@ -508,23 +508,19 @@
         .columns{
           padding-top: 0;
         }
-        /*&.fullscreen {
-          display:none;
-        }*/
       }
 
-      /*.info {
-        display: none;
-      }*/
+      #filename-progress-container {
+        display: block;
+      }
 
-      .time-layer-container, .buttons-box {
+      #time-layer-container {
         display: none;
       }
 
-      /*.filename-progress-container {
-        position: relative;
-        top: -25px;
-      }*/
+      #buttons-box {
+        display: none;
+      }
 
       .status-and-buttons {
         bottom: 24px;

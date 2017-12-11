@@ -57,6 +57,8 @@ class DownloadWorker(threading.Thread):
 			printer = None
 			material = None
 			quality = None
+			image = None
+			created = None
 
 			if "printer" in item:
 				printer = item['printer']
@@ -64,6 +66,10 @@ class DownloadWorker(threading.Thread):
 				material = item['material']
 			if "quality" in item:
 				quality = item['quality']
+			if "image" in item:
+				image = item['image']
+			if "created" in item:
+				created = item['created']
 
 			self._manager._logger.info('Download started for %s' % printFileId)
 
@@ -103,7 +109,9 @@ class DownloadWorker(threading.Thread):
 							'info': item['printFileInfo'],
 							'printer': printer,
 							'material': material,
-							'quality': quality
+							'quality': quality,
+							'image': image,
+							'created': created
 						}
 						em = eventManager()
 
@@ -116,7 +124,9 @@ class DownloadWorker(threading.Thread):
 									"info": fileInfo["info"],
 									"printer": fileInfo["printer"],
 									"material": fileInfo["material"],
-									"quality": fileInfo["quality"]
+									"quality": fileInfo["quality"],
+									"image": fileInfo["image"],
+									"created": fileInfo["created"]
 								}
 							)
 

@@ -242,7 +242,9 @@ class FilesService(PluginService):
 					"info": fileInfo["info"],
 					"printer": fileInfo["printer"],
 					"material": fileInfo["material"],
-					"quality": fileInfo["quality"]
+					"quality": fileInfo["quality"],
+					"image": fileInfo["image"],
+					"created": fileInfo["created"]
 				}
 
 				self.publishEvent('f¡nished_download_printfile',data)

@@ -373,6 +373,8 @@ class AstroPrintCloud(object):
 		printer = None
 		material = None
 		quality = None
+		image = None
+		created = None
 
 		if data and "download_url" in data and (("name" in data) or ("filename" in data)) and "info" in data:
 			progressCb(2)
@@ -391,6 +393,10 @@ class AstroPrintCloud(object):
 				material = data['material']
 			if "quality" in data:
 				quality = data['quality']
+			if "image" in data:
+				image = data['image']
+			if "created" in data:
+				created = data['created']
 
 			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 
@@ -408,6 +414,8 @@ class AstroPrintCloud(object):
 					'printer': printer,
 					'material': material,
 					'quality': quality,
+					'image': image,
+					'created': created,
 					'progressCb': progressCb,
 					'successCb': onSuccess,
 					'errorCb': errorCb

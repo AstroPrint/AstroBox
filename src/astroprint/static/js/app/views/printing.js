@@ -304,10 +304,12 @@ var PhotoView = CameraViewBase.extend({
     }, this));
   },
   disableFullScreen: function() {
-    $('.camera-view').removeAttr('style');
-    $('.camera-view').removeClass('fullscreen');
-    $('.info').fadeIn(500);
-    $('.info').removeAttr('style');
+    if ($('.camera-view').hasClass('fullscreen')) {
+      $('.camera-view').removeAttr('style');
+      $('.camera-view').removeClass('fullscreen');
+      $('.info').fadeIn(500);
+      $('.info').removeAttr('style');
+    }
   },
   _formatTime: function(seconds)
   {

@@ -304,6 +304,8 @@ class PrintFilesManager(object):
 			"printer": fileInfo["printer"],
 			"material": fileInfo["material"],
 			"quality": fileInfo["quality"],
+			"image": fileInfo["image"],
+			"created": fileInfo["created"],
 			"prints": {
 				"success": 0,
 				"failure": 0,
