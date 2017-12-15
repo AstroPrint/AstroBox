@@ -371,8 +371,6 @@ var ExtrusionControlView = Backbone.View.extend({
     if (this.currentTool != null) {
       $('.extruder-number').val(this.currentTool);
 
-      //$('#slide-extruders').slick('slickGoTo', this.currentTool, false);
-
       if ($('.extruder-number').hasClass('no-selected')) {
         $('.extruder-number').removeClass('no-selected');
       }
