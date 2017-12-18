@@ -72,6 +72,7 @@ class SystemService(PluginService):
 		sendMessage({
 			"driver": ppm.data['driver'],
 			"driverName": driverName,
+			"fileFormat": pm.fileManager.fileFormat,
 			"serial": {
 				"port": connectionOptions["portPreference"],
 				"baudrate": connectionOptions["baudratePreference"],
