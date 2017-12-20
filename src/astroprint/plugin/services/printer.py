@@ -161,6 +161,7 @@ class PrinterService(PluginService):
 		return { 'current': current, 'option': pm.getConnectionOptions() }
 
 
+	''' Function Already existing in system.py
 	def connectionCommand(self,data,callback):
 		valid_commands = {
 			"connect": ["autoconnect"],
@@ -215,7 +216,7 @@ class PrinterService(PluginService):
 			pm.disconnect()
 
 		callback({'success': 'no_error'})
-
+ '''
 
 	##Temperature
 

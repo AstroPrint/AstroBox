@@ -114,7 +114,7 @@ class SystemService(PluginService):
 		sendResponse('invalid_printer_connection_settings',True)
 		return
 
-	def testConnection(self, data, sendResponse):
+	def connectionCommand(self, data, sendResponse):
 
 		valid_commands = {
 			"connect": ["autoconnect"],
