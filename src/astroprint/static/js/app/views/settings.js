@@ -1267,26 +1267,46 @@ var SoftwareUpdateView = SettingsPage.extend({
     'click .loading-button.check button': 'onCheckClicked'
   },
   systemInfo: null,
+  versionsInfo: null,
   outdatedTemplate: null,
+  additionalPackageTemplate: null,
   updateDialog: null,
   show: function()
   {
     SettingsPage.prototype.show.apply(this);
 
     if (!this.systemInfo) {
-      $.getJSON(API_BASEURL + 'settings/software/system-info', null, _.bind(function(data) {
-        this.systemInfo = data;
-        if (data.outdated) {
-          if (!this.outdatedTemplate) {
-            this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+      $.when(
+        $.getJSON(API_BASEURL + 'settings/software/system-info', null),
+        $.getJSON(API_BASEURL + 'settings/software/versions', null)
+      )
+        .done(_.bind(function(systemInfo, versionsInfo) {
+          this.systemInfo = systemInfo[0];
+          if (systemInfo.outdated) {
+            if (!this.outdatedTemplate) {
+              this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+            }
+            //Show the outdated warning
+            this.$el.prepend( this.outdatedTemplate( systemInfo ));
           }
-          //Show the outdated warning
-          this.$el.prepend( this.outdatedTemplate( data ));
-        }
-      }, this))
-      .fail(function() {
-        noty({text: "There was an error getting System Information.", timeout: 3000});
-      });
+
+          this.versionsInfo = versionsInfo[0];
+
+          var additionalSwContainer = this.$('.additional-sw-container');
+
+          additionalSwContainer.empty().hide();
+
+          if (this.versionsInfo.additional.length > 0) {
+            if (!this.additionalPackageTemplate) {
+              this.additionalPackageTemplate = _.template( $("#software-additional-software-template").html() );
+            }
+
+            additionalSwContainer.html( this.additionalPackageTemplate( {packages: this.versionsInfo.additional} ) ).show();
+          }
+        }, this))
+        .fail(function() {
+          noty({text: "There was an error getting System Information.", timeout: 3000});
+        });
     }
   },
   onCheckClicked: function(e)
@@ -1332,7 +1352,10 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 
     var content = this.$el.find('.content');
     content.empty();
-    content.html(this.contentTemplate({data: data, date_format:app.utils.dateFormat}));
+    content.html(this.contentTemplate({
+      data: data,
+      date_format: app.utils.dateFormat
+    }));
 
     content.find('button.cancel').bind('click', _.bind(this.close, this));
     content.find('button.go').bind('click', _.bind(this.doUpdate, this));

@@ -171,7 +171,7 @@ default_settings = {
 		"interface": 'wlan0'
 	},
 	"software": {
-		"infoFile": None,
+		"infoDir": None,
 		"variantFile": None,
 		"useUnreleased": False,
 		"lastCheck": None

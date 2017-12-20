@@ -393,10 +393,9 @@ def checkSoftwareVersion():
 
 	if softwareInfo:
 		s = settings()
-		s.set(["software", "lastCheck"], time.time())
+		s.set(["software", "lastCheck"], int(time.time()))
 		s.save()
 
-		print softwareInfo
 		return jsonify(softwareInfo);
 	else:
 		return ("There was an error checking for new software.", 400)
@@ -454,3 +453,8 @@ def clearLogs():
 @restricted_access
 def getSysmteInfo():
 	return jsonify( softwareManager.systemInfo )
+
+@api.route("/settings/software/versions", methods=['GET'])
+@restricted_access
+def getCurrentVersions():
+	return jsonify( softwareManager.data )
