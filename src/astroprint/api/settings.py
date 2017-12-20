@@ -395,6 +395,8 @@ def checkSoftwareVersion():
 		s = settings()
 		s.set(["software", "lastCheck"], time.time())
 		s.save()
+
+		print softwareInfo
 		return jsonify(softwareInfo);
 	else:
 		return ("There was an error checking for new software.", 400)

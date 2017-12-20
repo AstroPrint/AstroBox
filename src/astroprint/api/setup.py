@@ -11,7 +11,7 @@ from sys import platform
 from requests import ConnectionError
 
 from flask import make_response, request, jsonify
-from flask.ext.login import current_user
+from flask_login import current_user
 
 from octoprint.settings import settings
 from octoprint.server import restricted_access, NO_CONTENT

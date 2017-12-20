@@ -3,7 +3,7 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask import request, jsonify, abort, make_response
-from flask.ext.login import current_user
+from flask_login import current_user
 
 import astroprint.users as users
 

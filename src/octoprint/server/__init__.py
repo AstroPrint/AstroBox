@@ -14,10 +14,10 @@ import tornado.wsgi
 
 from ext.sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
-from flask.ext.login import LoginManager, current_user, logout_user
-from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
-from flask.ext.compress import Compress
-from flask.ext.assets import Environment
+from flask_login import LoginManager, current_user, logout_user
+from flask_principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
+from flask_compress import Compress
+from flask_assets import Environment
 from watchdog.observers import Observer
 from sys import platform
 

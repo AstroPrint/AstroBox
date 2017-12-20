@@ -21,7 +21,7 @@ import weakref
 import uuid
 
 from time import sleep, time
-from flask.ext.login import current_user
+from flask_login import current_user
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
 
