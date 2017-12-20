@@ -479,8 +479,8 @@ class SystemService(PluginService):
 		return
 
 	def updateSoftwareVersion(self,data,sendResponse):
-		if softwareManager.updateSoftwareVersion(request.get_json()):
-			sendMessage({'success': 'no_error'})
+		if softwareManager.updateSoftwareVersion(data):
+			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_init_update",True)
 
