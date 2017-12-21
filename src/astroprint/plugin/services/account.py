@@ -29,6 +29,9 @@ class AccountService(PluginService):
 		if 'email' in data:
 			email = data['email']
 
+		if 'password' in data:
+			password = data['password']
+
 		if 'private_key' in data:
 			private_key = data['private_key']
 
@@ -38,7 +41,7 @@ class AccountService(PluginService):
 
 				if not user:
 					public_key = astroprintCloud().get_public_key(email, private_key)
-					user = userManager.addUser(email, '', public_key, private_key, True)
+					user = userManager.addUser(email,password, public_key, private_key, True)
 
 				#login_user(user, remember=True)
 				userId = user.get_id()
@@ -59,9 +62,6 @@ class AccountService(PluginService):
 				callback('no_login',True)
 
 		else:
-
-			if 'password' in data:
-				password = data['password']
 
 			if email and password:
 				try:
