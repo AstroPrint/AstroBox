@@ -403,10 +403,15 @@ def checkSoftwareVersion():
 @api.route("/settings/software/update", methods=['POST'])
 @restricted_access
 def updateSoftwareVersion():
-	if softwareManager.updateSoftwareVersion(request.get_json()):
-		return jsonify();
+	data = request.get_json()
+
+	if 'release_ids' in data:
+		if softwareManager.updateSoftware(data['release_ids']):
+			return jsonify()
+		else:
+			return ("Unable to update", 500)
 	else:
-		return ("There was an error initiating update.", 400)
+		return ("Invalid data", 400)
 
 @api.route("/settings/software/restart", methods=['POST'])
 @restricted_access

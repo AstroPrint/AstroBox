@@ -227,7 +227,9 @@ def login():
 					return jsonify(user.asDict())
 			else :
 				try:
-					astroprintCloud().signin(username, password)
+					if astroprintCloud().signin(username, password):
+						return jsonify(current_user)
+
 				except (AstroPrintCloudNoConnectionException, ConnectionError):
 					return make_response(("AstroPrint.com can't be reached", 503, []))
 		return make_response(("User unknown or password incorrect", 401, []))

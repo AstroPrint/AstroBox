@@ -141,6 +141,16 @@ if platformStr != 'darwin':
 			return True
 
 class SoftwareUpdater(threading.Thread):
+	updatePhaseProgressInfo = {
+		"download":       		(0.0,		0.25, "Downloading package..."),
+		"sources_update":     (0.26,  0.4,  "Updating dependency list..."),
+		"deps_download":    	(0.41,  0.6,  "Downloading dependencies..."),
+		"deps_install":     	(0.61,  0.75, "Installing dependencies..."),
+		"release_install":    (0.76,  0.85, "Upgrading package..."),
+		"release_configure":  (0.86,  0.96, "Configuring Package..."),
+		"release_finalize": 	(0.96,  1.0,	"Finalizing package...")
+	}
+
 	def __init__(self, manager, versionData, progressCb, completionCb):
 		super(SoftwareUpdater, self).__init__()
 		self.vData = versionData
@@ -148,15 +158,25 @@ class SoftwareUpdater(threading.Thread):
 		self._progressCb = progressCb
 		self._completionCb = completionCb
 		self._logger = logging.getLogger(__name__)
+		self._currentPackage = 0
+		self._pkgCount = len(versionData)
+		self._pkgPrgSpread = 1.0 / self._pkgCount
+		self._lastPkgPrgEnd = 0
 
 	def run(self):
 		#We need to give the UI a chance to update before starting so that the message can be sent...
-		self._progressCb("download", 0.0, "Starting download...")
+		self._progressCb("download", 0.0, "Starting...")
 		#disconnect from the cloud during software upgrade. The reboot will take care of reconnect
 		boxrouterManager().boxrouter_disconnect()
 
 		time.sleep(2)
-		r = requests.get(self.vData["download_url"], stream=True, headers = self._manager._requestHeaders)
+		self._installNextPackage()
+
+	def _installNextPackage(self):
+		self._installPackage(self.vData[self._currentPackage])
+
+	def _installPackage(self, relData):
+		r = requests.get(relData['download_url'], stream=True, headers = self._manager._requestHeaders)
 
 		if r.status_code == 200:
 			releaseHandle, releasePath = mkstemp()
@@ -169,11 +189,11 @@ class SoftwareUpdater(threading.Thread):
 				for chunk in r.iter_content(150000):
 					downloaded_size += len(chunk)
 					fd.write(chunk)
-					self._progressCb("download", round((downloaded_size / content_length), 2))
+					self._onProgress("download", round((downloaded_size / content_length), 2))
 
 			self._logger.info('Release downloaded.')
 			if platformStr == "linux" or platformStr == "linux2":
-				self._progressCb("download", 1.0 , "Release downloaded. Preparing...")
+				self._onProgress("download", 1.0 , "Release downloaded. Preparing...")
 				time.sleep(0.5) #give the message a chance to be sent
 
 				def completionCb(error = None):
@@ -181,22 +201,22 @@ class SoftwareUpdater(threading.Thread):
 						os.remove(releasePath)
 
 					if error:
-						self._completionCb(False)
+						self._onCompleted(False)
 					else:
-						if self.vData['force_setup']:
+						if relData['force_setup']:
 							#remove the config file
 							os.remove(self._manager._settings._configfile)
 
-						self._completionCb(True)
+						self._onCompleted(True)
 
 				try:
 					cache = apt.Cache()
-					cache.update(CacheUpdateFetchProgress(self._progressCb, completionCb), 2000000)
+					cache.update(CacheUpdateFetchProgress(self._onProgress, completionCb), 2000000)
 					cache.open()
 					cache.commit()
 
 					pkg = apt.debfile.DebPackage(releasePath)
-					self._progressCb("deps_download", 0.0, "Checking software package. Please be patient..." )
+					self._onProgress("deps_download", 0.0, "Checking software package. Please be patient..." )
 
 					pkg.check()
 
@@ -213,9 +233,9 @@ class SoftwareUpdater(threading.Thread):
 							self._logger.info("Marking dependency [%s] to be installed." % dep)
 							cache[dep].mark_install()
 
-					self._progressCb("deps_download", 0.0)
+					self._onProgress("deps_download", 0.0)
 					try:
-						cache.commit(DepsDownloadProgress(self._progressCb, completionCb), DepsInstallProgress(self._progressCb, completionCb))
+						cache.commit(DepsDownloadProgress(self._onProgress, completionCb), DepsInstallProgress(self._onProgress, completionCb))
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
 
 					except Exception as e:
@@ -223,41 +243,53 @@ class SoftwareUpdater(threading.Thread):
 						completionCb(True)
 						return
 
-					self._progressCb("release_install", 0.0)
+					self._onProgress("release_install", 0.0)
 
-				pkg.install(UpdateProgress(self._progressCb, completionCb))
+				pkg.install(UpdateProgress(self._onProgress, completionCb))
 
 			else:
-				i=0.0
-				while i<10:
-					percent = i/10.0
-					self._progressCb("release_install", percent, "Installation Progress Sim (%d%%)" % (percent * 100) )
-					time.sleep(1)
-					i+=1
+				phases = ["sources_update", "deps_download", "deps_install", "release_install", "release_configure", "release_finalize"]
+
+				for phase in phases:
+					i = 0.0
+					while i <= 10:
+						percent = i/10.0
+						self._onProgress(phase, percent)
+						time.sleep(0.1)
+						i += 1
 
 				os.remove(releasePath)
 
-				if self.vData['force_setup']:
+				if relData['force_setup']:
 					#remove the config file
 					os.remove(self._manager._settings._configfile)
 
-				return self._completionCb(True)
+				return self._onCompleted(True)
+
 		else:
 			self._manager._logger.error('Error performing software update info: %d' % r.status_code)
 			r.close()
 
-class SoftwareManager(object):
-	# Download Phase      	start   end   message
-	updatePhaseProgressInfo = {
-		"download":       		(0.0,		0.2,  "Downloading release..."),
-		"sources_update":     (0.21,  0.4,  "Updating dependency list..."),
-		"deps_download":    	(0.41,  0.6,  "Downloading dependencies..."),
-		"deps_install":     	(0.61,  0.75, "Installing dependencies..."),
-		"release_install":    (0.76,  0.85, "Upgrading software..."),
-		"release_configure":  (0.86,  0.95, "Configuring..."),
-		"release_finalize":   (0.96,  1.0,  "Finalizing")
-	}
+	def _onProgress(self, phase, progress, message=None):
+		phaseData = self.updatePhaseProgressInfo[phase]
+		spread = phaseData[1] - phaseData[0]
+		pkgProgress = phaseData[0] + progress * spread
 
+		self._progressCb(phase, self._lastPkgPrgEnd + ( pkgProgress * self._pkgPrgSpread ), message or phaseData[2])
+
+	def _onCompleted(self, success):
+		if success:
+			self._currentPackage += 1
+			self._lastPkgPrgEnd += self._pkgPrgSpread
+
+			if self._currentPackage < self._pkgCount:
+				self._installNextPackage()
+			else:
+				self._completionCb(True)
+		else:
+			self._completionCb(False)
+
+class SoftwareManager(object):
 	softwareCheckInterval = 86400 #1 day
 
 	def __init__(self):
@@ -437,72 +469,78 @@ class SoftwareManager(object):
 
 		return data
 
-	def updateSoftwareVersion(self, data):
-		try:
-			r = requests.get(
-				'%s/astrobox/software/release/%s' % (self._settings.get(['cloudSlicer','apiHost']), data['release_id']),
-				auth = self._checkAuth(),
-				headers = self._requestHeaders
-			)
+	def updateSoftware(self, releases):
+		releaseInfo = []
+		platforms = [self.data['platform']] + [p['platform'] for p in self.data['additional']]
+		platformIdx = 0
 
-			if r.status_code == 200:
-				data = r.json()
+		for rel in releases:
+			try:
+				r = requests.get(
+					'%s/astrobox/software/release/%s' % (self._settings.get(['cloudSlicer','apiHost']), rel),
+					auth = self._checkAuth(),
+					headers = self._requestHeaders
+				)
 
-				if data and 'download_url' in data and data['platform'] == self.data['platform']:
-					def progressCb(phase, progress, message=None):
-						phaseData = self.updatePhaseProgressInfo[phase]
-						spread = phaseData[1] - phaseData[0]
-						globalProgress = phaseData[0] + progress * spread
-						message = message or phaseData[2]
+				if r.status_code == 200:
+					data = r.json()
 
-						if phaseData:
-							eventManager().fire(Events.SOFTWARE_UPDATE, {
-								'completed': False,
-								'progress': globalProgress,
-								'message': message
-							})
+					if data and 'download_url' in data and data['platform'] == platforms[platformIdx]:
+						releaseInfo.append(data)
+						platformIdx += 1
 
-							self.lastCompletionPercent = globalProgress
-							self.lastMessage = message
-
-					def completionCb(success):
-						eventManager().fire(Events.SOFTWARE_UPDATE, {
-							'completed': True,
-							'success': success
-						})
-
-						if success:
-							self.forceUpdateInfo = None
-							#schedule a restart
-
-							def tryRestart():
-								if not self.restartServer():
-									eventManager().fire(Events.SOFTWARE_UPDATE, {
-										'completed': True,
-										'progress': 1,
-										'success': False,
-										'message': 'Unable to restart'
-									})
-
-							threading.Timer(1, tryRestart).start()
-
-
-					self.lastCompletionPercent = None
-					self.lastMessage = None
-
-					self._updater = SoftwareUpdater(self, data, progressCb, completionCb)
-					self._updater.start()
-					return True
+					else:
+						self._logger.error('Invalid data returned by server:')
+						self._logger.error(data)
+						return False
 
 				else:
-					self._logger.error('Invalid data returned by server:')
-					self._logger.error(data)
+					self._logger.error('Error updating software release info. Server returned: %d' % r.status_code)
+					return False
 
-			else:
-				self._logger.error('Error updating software release info. Server returned: %d' % r.status_code)
+			except Exception as e:
+				self._logger.error('Error updating software release info: %s' % e, exc_info = True)
+				return False
 
-		except Exception as e:
-			self._logger.error('Error updating software release info: %s' % e)
+		if releaseInfo:
+			def progressCb(phase, progress, message):
+				eventManager().fire(Events.SOFTWARE_UPDATE, {
+					'completed': False,
+					'progress': progress,
+					'message': message
+				})
+
+				self.lastCompletionPercent = progress
+				self.lastMessage = message
+
+			def completionCb(success):
+				eventManager().fire(Events.SOFTWARE_UPDATE, {
+					'completed': True,
+					'success': success
+				})
+
+				if success:
+					self.forceUpdateInfo = None
+					#schedule a restart
+
+					def tryRestart():
+						if not self.restartServer():
+							eventManager().fire(Events.SOFTWARE_UPDATE, {
+								'completed': True,
+								'progress': 1,
+								'success': False,
+								'message': 'Unable to restart'
+							})
+
+					threading.Timer(1, tryRestart).start()
+
+
+			self.lastCompletionPercent = None
+			self.lastMessage = None
+
+			self._updater = SoftwareUpdater(self, releaseInfo, progressCb, completionCb)
+			self._updater.start()
+			return True
 
 		return False
 

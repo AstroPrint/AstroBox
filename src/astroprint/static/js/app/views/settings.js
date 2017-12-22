@@ -1370,13 +1370,22 @@ var SoftwareUpdateDialog = Backbone.View.extend({
   {
     var loadingBtn = this.$el.find('.loading-button');
     loadingBtn.addClass('loading');
+
+    var releasesIds = [];
+
+    _.each(this.data.releases, function(r) {
+      if (r.release) {
+        releasesIds.push(r.release.id)
+      }
+    });
+
     $.ajax({
       url: API_BASEURL + 'settings/software/update',
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify({
-        release_id: this.data.release.id
+        release_ids: releasesIds
       }),
       success: function() {
         //reset the page to show updating progress

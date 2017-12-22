@@ -479,12 +479,12 @@ class SystemService(PluginService):
 		return
 
 	def updateSoftwareVersion(self,data,sendResponse):
-		if softwareManager.updateSoftwareVersion(data):
-			sendResponse({'success': 'no_error'})
-		else:
-			sendResponse("error_init_update",True)
+		if 'release_ids' in data:
+			if softwareManager.updateSoftware(data['release_ids']):
+				sendResponse({'success': 'no_error'})
+				return
 
-		return
+		sendResponse("error_init_update", True)
 
 	def sendLogs(self,data,sendResponse):
 		if softwareManager.sendLogs(request.values.get('ticket', None), request.values.get('message', None)):
