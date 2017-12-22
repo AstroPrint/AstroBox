@@ -45,9 +45,9 @@ var SocketData = Backbone.Model.extend({
     //See if we need to check for sofware version
     if (initial_states.checkSoftware && initial_states.online) {
       $.get(API_BASEURL + 'settings/software/check')
-        .done(_.bind(function(data){
-          if (data.update_available && !data.is_current) {
-            this.trigger('new_sw_release', data);
+        .done(_.bind(function(data) {
+          if (data.update_available) {
+            this.trigger('new_sw_release');
           }
         }, this));
     }

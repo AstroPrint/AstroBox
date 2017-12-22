@@ -660,9 +660,10 @@
       <h4 align="center">
         <b>{{version}}</b> Installed.<br/>
         {% if commit %}
-        <small>({{commit}})</small>
+          <small>({{commit}})</small>
         {% endif %}
       </h4>
+      <div class="additional-sw-container" style="display:none"></div>
       <div class="loading-button check">
         <button class="success radius">Check for updates</button>
         <span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>
@@ -672,6 +673,15 @@
       <div class="content"></div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
+
+    <script type="text/template" id="software-additional-software-template">
+      <h3 class="bold">Additional Installed Core Packages</h3>
+      <ul>
+        <% _.each(packages, function(pkg) { %>
+          <li><%= pkg.variant.name %> - v<%= [pkg.version.major, pkg.version.minor, pkg.version.build].join('.') %></li>
+        <% }) %>
+      </ul>
+    </script>
 
     <script type="text/template" id="software-system-outdated-template">
       <div data-alert class="alert-box alert radius">
@@ -684,29 +694,36 @@
 
     <script type="text/template" id="software-update-modal-content">
       <h2 class="bold">
-        <% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
+        <% if (data.update_available) { %> Update <% } else { %> No Updates <% } %> Available
       </h2>
-      <% if (data.update_available) { %>
-        <div class="modal-body">
-          <p>
-          <% if (data.is_current) { %>
-            Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
-          <% } else { %>
-            Version: <big class="bold"><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></big>
-            <br/>Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
+      <div class="modal-body">
+        <% _.each(data.releases, function(pkg) { %>
+          <% if (pkg.update_available) { %>
+            <div class="package-info">
+              <h4 class="bold"><i class="<%= pkg.is_current ? 'icon-ok-circled' : 'icon-attention' %>"></i> <%= pkg.name %></h4>
+              <ul>
+                <% if (pkg.is_current) { %>
+                  <li> Up-to-date: <b><%= pkg.release.major+'.'+pkg.release.minor+'('+pkg.release.build+')'%></b></li>
+                <% } else { %>
+                  <li>Version: <big class="bold"><%= pkg.release.major+'.'+pkg.release.minor+'('+pkg.release.build+')'%></big></li>
+                  <li>Published: <b><%= pkg.release.date ? date_format(new Date(pkg.release.date)) : 'Not Published.' %></b></li>
+                <% } %>
+                <% if (pkg.release.force_setup) { %>
+                  <li><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.</li>
+                <% } %>
+                <% if (!pkg.is_current) { %>
+                  <li class="rel-notes">
+                    <b>Release Notes:</b><br/>
+                    <div>
+                      <%= pkg.release.release_notes %>
+                    </div>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
           <% } %>
-          <% if (data.release.force_setup) { %>
-            <br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
-          <% } %>
-          </p>
-          <p>
-            <b>Release Notes:</b><br/>
-            <%= data.release.release_notes %>
-          </p>
-        </div>
-      <% } else { %>
-        <h3 class="bold" align="center" style="margin: 20px 0">You are running the latest software</h3>
-      <% } %>
+        <% }) %>
+      </div>
       <div class="modal-actions row">
         <% if (data.update_available) { %>
           <div class="small-12 medium-6 columns">
@@ -714,7 +731,7 @@
           </div>
           <div class="small-12 medium-6 columns">
             <div class="loading-button expand">
-              <button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+              <button class="success radius go">Update</button>
               <span class="button disabled success radius loading">
                 <i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
               </span>

@@ -28,8 +28,8 @@ from time import sleep
 from requests_toolbelt import MultipartEncoder
 
 from flask import current_app
-from flask.ext.login import login_user, logout_user, current_user
-from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
+from flask_login import login_user, logout_user, current_user
+from flask_principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
