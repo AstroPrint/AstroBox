@@ -40,6 +40,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 	def getWifiNetworks(self):
 		return [
+				{"id": "80:1F:02:F9:16:1B", "name": "Test Connection 1", "secured": True, "signal": 54, "wep": False},
 				{"id": "80:1F:02:F9:16:1B", "name": "creatorpro", "secured": False, "signal": 54, "wep": False},
 				{"id": "76:DA:38:68:50:E9", "name": "wanhao", "secured": False, "signal": 80, "wep": False},
 				{"id": "74:DA:38:88:51:90", "name": "soniabox", "secured": False, "signal": 59, "wep": False},
