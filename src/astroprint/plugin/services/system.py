@@ -465,6 +465,13 @@ class SystemService(PluginService):
 	def softwareVersion(self,data,sendResponse):
 		sendResponse(softwareManager.versionString)
 
+	def shouldCheckForNew(self,data,sendResponse):
+		softwareCheckInterval = 86400 #1 day
+		s = settings()
+		sendResponse(s.get(["software", "lastCheck"]) < ( time.time() - softwareCheckInterval ))
+		return
+
+
 	def checkSoftwareVersion(self,data,sendResponse):
 		softwareInfo = softwareManager.checkSoftwareVersion()
 
