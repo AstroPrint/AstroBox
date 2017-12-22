@@ -328,14 +328,14 @@ class SystemService(PluginService):
 
 			s.save()
 
-		cm.settingsChanged({
-			'size': s.get(['camera', 'size']),
-			'encoding': s.get(['camera', 'encoding']),
-			'framerate': s.get(['camera', 'framerate']),
-			'source': s.get(['camera', 'source']),
-			'format': s.get(['camera', 'format']),
-			'video_rotation': s.get(['camera', 'video-rotation'])
-		})
+			cm.settingsChanged({
+				'size': s.get(['camera', 'size']),
+				'encoding': s.get(['camera', 'encoding']),
+				'framerate': s.get(['camera', 'framerate']),
+				'source': s.get(['camera', 'source']),
+				'format': s.get(['camera', 'format']),
+				'video_rotation': s.get(['camera', 'video-rotation'])
+			})
 
 		sendMessage({
 			'encoding': s.get(['camera', 'encoding']),
