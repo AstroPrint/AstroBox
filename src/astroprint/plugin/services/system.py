@@ -299,8 +299,8 @@ class SystemService(PluginService):
 		s = settings()
 		cm = cameraManager()
 
-		print 'cameraSettings'
-		print data
+		#print 'cameraSettings'
+		#print data
 
 		if data:
 			print '1'
