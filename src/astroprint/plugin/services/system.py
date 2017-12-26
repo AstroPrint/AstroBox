@@ -205,6 +205,9 @@ class SystemService(PluginService):
 		ppm = printerProfileManager()
 
 		if data:
+			if 'driverChoices' in data:
+				del data['driverChoices']
+
 			ppm.set(data)
 			ppm.save()
 

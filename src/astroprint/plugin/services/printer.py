@@ -31,6 +31,7 @@ class PrinterService(PluginService):
 		#printer status
 		self._eventManager.subscribe(Events.CONNECTED, self._onConnect)
 		self._eventManager.subscribe(Events.DISCONNECTED, self._onDisconnect)
+		self._eventManager.subscribe(Events.CONNECTING, self._onConnecting)
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
 
@@ -346,6 +347,9 @@ class PrinterService(PluginService):
 
 	def _onConnect(self,event,value):
 		self.publishEvent('printer_state_changed', {"operational": True})
+
+	def _onConnecting(self,event,value):
+		self.publishEvent('printer_state_changed', {"connecting": True})
 
 	def _onDisconnect(self,event,value):
 		self.publishEvent('printer_state_changed', {"operational": False})
