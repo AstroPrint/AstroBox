@@ -7,7 +7,7 @@ import json
 import uuid
 
 from flask import request, jsonify, abort
-from flask.ext.login import current_user
+from flask_login import current_user
 from requests import ConnectionError
 
 from octoprint.settings import settings

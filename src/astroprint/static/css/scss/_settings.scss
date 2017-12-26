@@ -286,6 +286,48 @@
   h2 span {
     color: black;
   }
+
+  .package-info {
+    background-color: #fafafa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+
+    h4 {
+      font-size: 16px;
+
+      i {
+        font-size: 25px;
+        vertical-align: middle;
+
+        &.icon-ok-circled {
+          color: $success-color;
+        }
+
+        &.icon-attention {
+          color: $alert-color;
+        }
+      }
+    }
+
+    ul {
+      margin: 0px;
+
+      li {
+        list-style: none;
+
+        &.rel-notes {
+          margin-top: 10px;
+
+          > div {
+            padding-top: 5px;
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
 }
 
 #software-update {
@@ -301,6 +343,29 @@
     }
 
     margin-bottom: 20px;
+  }
+
+  .additional-sw-container {
+    background-color: #fafafa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+
+    h3 {
+      text-align: left;
+      font-size: 15px;
+    }
+
+    ul {
+      text-align: left;
+      margin: 0px;
+
+      li {
+        list-style: none;
+        font-size: 12px;
+      }
+    }
   }
 }
 

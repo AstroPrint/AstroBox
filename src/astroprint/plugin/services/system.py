@@ -302,8 +302,8 @@ class SystemService(PluginService):
 		s = settings()
 		cm = cameraManager()
 
-		print 'cameraSettings'
-		print data
+		#print 'cameraSettings'
+		#print data
 
 		if data:
 			print '1'
@@ -331,14 +331,14 @@ class SystemService(PluginService):
 
 			s.save()
 
-		cm.settingsChanged({
-			'size': s.get(['camera', 'size']),
-			'encoding': s.get(['camera', 'encoding']),
-			'framerate': s.get(['camera', 'framerate']),
-			'source': s.get(['camera', 'source']),
-			'format': s.get(['camera', 'format']),
-			'video_rotation': s.get(['camera', 'video-rotation'])
-		})
+			cm.settingsChanged({
+				'size': s.get(['camera', 'size']),
+				'encoding': s.get(['camera', 'encoding']),
+				'framerate': s.get(['camera', 'framerate']),
+				'source': s.get(['camera', 'source']),
+				'format': s.get(['camera', 'format']),
+				'video_rotation': s.get(['camera', 'video-rotation'])
+			})
 
 		sendMessage({
 			'encoding': s.get(['camera', 'encoding']),
@@ -468,6 +468,13 @@ class SystemService(PluginService):
 	def softwareVersion(self,data,sendResponse):
 		sendResponse(softwareManager.versionString)
 
+	def shouldCheckForNew(self,data,sendResponse):
+		softwareCheckInterval = 86400 #1 day
+		s = settings()
+		sendResponse(s.get(["software", "lastCheck"]) < ( time.time() - softwareCheckInterval ))
+		return
+
+
 	def checkSoftwareVersion(self,data,sendResponse):
 		softwareInfo = softwareManager.checkSoftwareVersion()
 
@@ -482,12 +489,12 @@ class SystemService(PluginService):
 		return
 
 	def updateSoftwareVersion(self,data,sendResponse):
-		if softwareManager.updateSoftwareVersion(data):
-			sendResponse({'success': 'no_error'})
-		else:
-			sendResponse("error_init_update",True)
+		if 'release_ids' in data:
+			if softwareManager.updateSoftware(data['release_ids']):
+				sendResponse({'success': 'no_error'})
+				return
 
-		return
+		sendResponse("error_init_update", True)
 
 	def sendLogs(self,data,sendResponse):
 		if softwareManager.sendLogs(request.values.get('ticket', None), request.values.get('message', None)):

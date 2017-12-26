@@ -99,7 +99,6 @@ var HomeView = Backbone.View.extend({
     this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
 
     this.listenTo(app.socketData, 'new_sw_release', _.bind(function(data){
-      this.$('.new-release .version-label').text(data.release.major+'.'+data.release.minor+'('+data.release.build+')');
       this.$('.new-release').removeClass('hide');
     }, this));
   },
