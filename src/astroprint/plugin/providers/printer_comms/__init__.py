@@ -394,7 +394,7 @@ class PrinterCommsService(CommandPluginInterface):
 			eventManager().fire(SystemEvent.CONNECTED)
 		elif self._comm is not None and newState == PrinterState.STATE_CONNECTING:
 			eventManager().fire(SystemEvent.CONNECTING)
-		elif newState == PrinterState.STATE_CLOSED:
+		elif newState == PrinterState.STATE_CLOSED or newState == PrinterState.STATE_ERROR:
 			eventManager().fire(SystemEvent.DISCONNECTED)
 
 		self._printerManager.refreshStateData()
