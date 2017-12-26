@@ -22,6 +22,7 @@ class Events(object):
 
 	# printer status
 	CONNECTED = "Connected"
+	CONNECTING = "Connecting"
 	DISCONNECTED = "Disconnected"
 	HEATING_UP = "HeatingUp"
 

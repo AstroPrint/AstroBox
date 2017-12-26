@@ -187,6 +187,8 @@ class MachineCom(object):
 		# 		self._sdFileList = False
 		# 		self._sdFiles = []
 		# 		self._callback.mcSdFiles([])
+		elif newState == self.STATE_CONNECTING:
+			eventManager().fire(Events.CONNECTING)
 
 		oldState = self.getStateString()
 		self._state = newState
