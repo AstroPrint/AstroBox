@@ -114,6 +114,9 @@ class PrinterWithPlugin(Printer):
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
+			if fileData is not None and "image" in fileData.keys():
+				renderedImage = fileData["image"]
+
 			cloudId = self._fileManager.getFileCloudId(filename)
 			if cloudId:
 				if self._selectedFile:
