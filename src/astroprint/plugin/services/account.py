@@ -35,34 +35,32 @@ class AccountService(PluginService):
 		if 'private_key' in data:
 			private_key = data['private_key']
 
-		if email and private_key:
+		if email and password:
 			try:
-				if astroprintCloud().signinWithKey(email, private_key, hasSessionInfo= False):
-						callback('logging_success')
+				if astroprintCloud().signin(email, password, hasSessionContext= False):
+					callback('login_success')
+
+			except Exception as e:
+				self._logger.error("AstroPrint.com can't be reached " + e.args[0])
+				callback('astroprint_unrechable',True)
+
+		elif email and private_key:
+			try:
+				if astroprintCloud().signinWithKey(email, private_key, hasSessionContext= False):
+						callback('login_success')
 
 			except Exception as e:
 				self._logger.error('user unsuccessfully logged in',exc_info = True)
 				callback('no_login',True)
 
 		else:
+			self._logger.error('Invalid data received for login')
+			callback('invalid_data',True)
 
-			if email and password:
-				try:
-					if astroprintCloud().signin(email, password, hasSessionInfo= False):
-						callback('logging_success')
-
-				except Exception as e:
-					self._logger.error("AstroPrint.com can't be reached " + e.args[0])
-					callback('astroprint_unrechable',True)
-
-			else:
-				self._logger.error('Invalid data received for loging')
-				callback('invalid_data',True)
 
 	def logout(self, data, callback):
 		try:
-
-			astroprintCloud().signout(hasSessionInfo= False)
+			astroprintCloud().signout(hasSessionContext= False)
 			callback('user successfully logged out')
 
 		except Exception as e:

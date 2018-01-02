@@ -85,7 +85,7 @@ class AstroPrintCloud(object):
 	def cloud_enabled(self):
 		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
 
-	def signin(self, email, password, hasSessionInfo = True):
+	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 		user = None
@@ -116,7 +116,7 @@ class AstroPrintCloud(object):
 			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
 
 		if userLoggedIn:
-			if hasSessionInfo:
+			if hasSessionContext:
 				login_user(user, remember=True)
 
 			userId = user.get_id()
@@ -126,7 +126,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -141,7 +142,7 @@ class AstroPrintCloud(object):
 
 		return False
 
-	def signinWithKey(self, email, private_key, hasSessionInfo = True):
+	def signinWithKey(self, email, private_key, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 
@@ -169,7 +170,7 @@ class AstroPrintCloud(object):
 			userLoggedIn = user and user.check_privateKey(private_key)
 
 		if userLoggedIn:
-			if hasSessionInfo:
+			if hasSessionContext:
 				login_user(user, remember=True)
 
 			userId = user.get_id()
@@ -179,7 +180,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -208,8 +210,8 @@ class AstroPrintCloud(object):
 
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
-	def signout(self, hasSessionInfo = True):
-		if hasSessionInfo:
+	def signout(self, hasSessionContext = True):
+		if hasSessionContext:
 			from flask import session
 
 			logout_user()
