@@ -37,25 +37,8 @@ class AccountService(PluginService):
 
 		if email and private_key:
 			try:
-				user = userManager.findUser(email)
-
-				if not user:
-					public_key = astroprintCloud().get_public_key(email, private_key)
-					user = userManager.addUser(email,password, public_key, private_key, True)
-
-				#login_user(user, remember=True)
-				userId = user.get_id()
-
-				sets = settings()
-
-				sets.set(["cloudSlicer", "loggedUser"], userId)
-				sets.save()
-
-				boxrouterManager().boxrouter_connect()
-
-				eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
-
-				callback('logging_success')
+				if astroprintCloud().signinWithKey(email, private_key, hasSessionInfo= False):
+						callback('logging_success')
 
 			except Exception as e:
 				self._logger.error('user unsuccessfully logged in',exc_info = True)
@@ -65,7 +48,7 @@ class AccountService(PluginService):
 
 			if email and password:
 				try:
-					if astroprintCloud().signin(email, password):
+					if astroprintCloud().signin(email, password, hasSessionInfo= False):
 						callback('logging_success')
 
 				except Exception as e:
@@ -79,8 +62,7 @@ class AccountService(PluginService):
 	def logout(self, data, callback):
 		try:
 
-			#astroprintCloud().signout()
-			astroprintCloud().remove_logged_user()
+			astroprintCloud().signout(hasSessionInfo= False)
 			callback('user successfully logged out')
 
 		except Exception as e:
