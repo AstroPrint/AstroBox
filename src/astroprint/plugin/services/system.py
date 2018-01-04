@@ -6,6 +6,8 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import logging
 import time
 import os
+import sarge
+import threading
 
 from . import PluginService
 from octoprint.settings import settings
@@ -554,3 +556,44 @@ class SystemService(PluginService):
 				)
 			else:
 				return sendResponse("unable_get_wifi",True)
+
+	def performSystemAction(self,data,sendResonse):
+		if "action" in data:
+			action = data["action"]
+			available_actions = settings().get(["system", "actions"])
+			logger = logging.getLogger(__name__)
+
+			for availableAction in available_actions:
+				if availableAction["action"] == action:
+					command = availableAction["command"]
+					if command:
+						logger.info("Performing command: %s" % command)
+
+						def executeCommand(command, logger):
+							time.sleep(0.5) #add a small delay to make sure the response is sent
+							try:
+								p = sarge.run(command, stderr=sarge.Capture())
+								if p.returncode != 0:
+									returncode = p.returncode
+									stderr_text = p.stderr.text
+									logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+								else:
+									logger.info("Command executed sucessfully")
+
+							except Exception, e:
+								logger.warn("Command failed: %s" % e)
+
+						executeThread = threading.Thread(target=executeCommand, args=(command, logger))
+						executeThread.start()
+
+						return OK
+
+					else:
+						logger.warn("Action %s is misconfigured" % action)
+						return ("Misconfigured action", 500)
+
+			logger.warn("No suitable action in config for: %s" % action)
+			return ("Command not found", 404)
+
+		else:
+			return ("Invalid data", 400)
