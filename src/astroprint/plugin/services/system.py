@@ -87,8 +87,6 @@ class SystemService(PluginService):
 
 
 	def saveConnectionSettings(self,data,sendResponse):
-
-		print 'saveConnectionSettings'
 		port = data['port']
 		baudrate = data['baudrate']
 		driver = data['driver']
@@ -273,9 +271,6 @@ class SystemService(PluginService):
 		return
 
 	def setWifiNetwork(self, data, sendMessage):
-
-		print data
-
 		if 'id' in data and 'password' in data:
 			result = networkManager().setWifiNetwork(data['id'], data['password'])
 
@@ -304,18 +299,11 @@ class SystemService(PluginService):
 		s = settings()
 		cm = cameraManager()
 
-		#print 'cameraSettings'
-		#print data
-
 		if data:
-			print '1'
-
 			if "source" in data:
-				print '2'
 				s.set(['camera', 'source'], data['source'])
 
 			if "size" in data:
-				print '3'
 				s.set(['camera', 'size'], data['size'])
 
 			if "encoding" in data:
@@ -328,7 +316,6 @@ class SystemService(PluginService):
 				s.set(['camera', 'framerate'], data['framerate'])
 
 			if "video_rotation" in data:
-				print 'video_rotation'
 				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
 
 			s.save()

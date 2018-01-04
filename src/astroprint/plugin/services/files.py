@@ -45,7 +45,6 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 
 	def getLocalFiles(self, sendResponse):
-		print 'getLocalFiles'
 		try:
 			try:
 				files = self._getLocalFileList(FileDestinations.LOCAL)
@@ -102,7 +101,6 @@ class FilesService(PluginService):
 		return filename in availableFiles
 
 	def printFile(self, data, sendResponse):
-		print 'printFile'
 		fileDestination = fileName = None
 
 		if 'location' in data:
