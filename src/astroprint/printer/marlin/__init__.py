@@ -378,6 +378,9 @@ class PrinterMarlin(Printer):
 
 			self._setProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
 
+			value = self._formatPrintingProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
+			eventManager().fire(Events.PRINTING_PROGRESS, value)
+
 		except Exception, e:
 			super(PrinterMarlin, self).mcProgress()
 
@@ -434,6 +437,17 @@ class PrinterMarlin(Printer):
 	def _setJobData(self, filename, filesize, sd):
 		super(PrinterMarlin, self)._setJobData(filename, filesize, sd)
 		self._comm.totalPrintTime = self._estimatedPrintTime
+
+	def _formatPrintingProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		data = {
+			"completion": progress * 100 if progress is not None else None,
+			"currentLayer": currentLayer,
+			"filamentConsumed": self.getConsumedFilament(),
+			"filepos": filepos,
+			"printTime": int(printTime) if printTime is not None else None,
+			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
+		}
+		return data
 
 	#~~ sd file handling
 
