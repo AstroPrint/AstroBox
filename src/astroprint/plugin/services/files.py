@@ -207,13 +207,9 @@ class FilesService(PluginService):
 
 
 	def downloadPrintFile(self,printFileId,sendResponse):
-		print 'downloadPrintFile'
-		print sendResponse
-
 		em = eventManager()
 
 		def progressCb(progress):
-			print 'progressCb'
 			self.publishEvent('progress_download_printfile', {
 				"type": "progress",
 				"id": printFileId,
@@ -221,7 +217,6 @@ class FilesService(PluginService):
 			})
 
 		def successCb(destFile, fileInfo):
-			print 'successCb'
 			if fileInfo is True:
 				#This means the files was already on the device
 
@@ -250,7 +245,6 @@ class FilesService(PluginService):
 				self.publishEvent('f¡nished_download_printfile',data)
 
 		def errorCb(destFile, error):
-			print 'errorCb'
 			if error == 'cancelled':
 				data = {
 					"type": "cancelled",

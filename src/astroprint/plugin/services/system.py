@@ -147,11 +147,11 @@ class SystemService(PluginService):
 				if baudrate:
 					baudrates = options["baudrates"]
 					if baudrates and baudrate not in baudrates:
-						sendResonse("invalid_baudrate_" +  baudrate,True)
+						sendResponse("invalid_baudrate_" +  baudrate,True)
 						return
 
 				else:
-					sendResonse("baudrate_null",True)
+					sendResponse("baudrate_null",True)
 					return
 
 			if "save" in data and data["save"]:
@@ -503,7 +503,7 @@ class SystemService(PluginService):
 
 	def sendLogs(self,data,sendResponse):
 		if softwareManager.sendLogs(request.values.get('ticket', None), request.values.get('message', None)):
-			sendMessage({'success': 'no_error'})
+			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_sending_logs",True)
 
@@ -518,7 +518,7 @@ class SystemService(PluginService):
 
 			printerManager().setSerialDebugLogging(data['active'])
 
-			sendMessage({'success': 'no_error'})
+			sendResponse({'success': 'no_error'})
 
 		else:
 			sendResponse("no_data_sent",True)
@@ -527,7 +527,7 @@ class SystemService(PluginService):
 
 	def clearLogs(self,data,sendResponse):
 		if softwareManager.clearLogs():
-			sendMessage({'success': 'no_error'})
+			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_clear_logs",True)
 
@@ -557,43 +557,41 @@ class SystemService(PluginService):
 			else:
 				return sendResponse("unable_get_wifi",True)
 
-	def performSystemAction(self,data,sendResonse):
-		if "action" in data:
-			action = data["action"]
-			available_actions = settings().get(["system", "actions"])
-			logger = logging.getLogger(__name__)
+	def performSystemAction(self,action,sendResponse):
+		available_actions = settings().get(["system", "actions"])
+		logger = logging.getLogger(__name__)
 
-			for availableAction in available_actions:
-				if availableAction["action"] == action:
-					command = availableAction["command"]
-					if command:
-						logger.info("Performing command: %s" % command)
+		for availableAction in available_actions:
+			if availableAction["action"] == action:
+				command = availableAction["command"]
+				if command:
+					logger.info("Performing command: %s" % command)
 
-						def executeCommand(command, logger):
-							time.sleep(0.5) #add a small delay to make sure the response is sent
-							try:
-								p = sarge.run(command, stderr=sarge.Capture())
-								if p.returncode != 0:
-									returncode = p.returncode
-									stderr_text = p.stderr.text
-									logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
-								else:
-									logger.info("Command executed sucessfully")
+					def executeCommand(command, logger):
+						time.sleep(0.5) #add a small delay to make sure the response is sent
+						try:
+							p = sarge.run(command, stderr=sarge.Capture())
+							if p.returncode != 0:
+								returncode = p.returncode
+								stderr_text = p.stderr.text
+								logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+							else:
+								logger.info("Command executed sucessfully")
 
-							except Exception, e:
-								logger.warn("Command failed: %s" % e)
+						except Exception, e:
+							logger.warn("Command failed: %s" % e)
 
-						executeThread = threading.Thread(target=executeCommand, args=(command, logger))
-						executeThread.start()
+					executeThread = threading.Thread(target=executeCommand, args=(command, logger))
+					executeThread.start()
 
-						return OK
+					sendResponse({'success': True})
+					return
 
-					else:
-						logger.warn("Action %s is misconfigured" % action)
-						return ("Misconfigured action", 500)
+				else:
+					logger.warn("Action %s is misconfigured" % action)
+					sendResponse('action_not_configured', True)
+					return
 
-			logger.warn("No suitable action in config for: %s" % action)
-			return ("Command not found", 404)
-
-		else:
-			return ("Invalid data", 400)
+		logger.warn("No suitable action in config for: %s" % action)
+		sendResponse('no_command', True)
+		return

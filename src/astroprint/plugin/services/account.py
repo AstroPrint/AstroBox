@@ -69,7 +69,6 @@ class AccountService(PluginService):
 
 	def getStatus(self, callback):
 		try:
-
 			payload = {
 				'state': boxrouterManager().status,
 			}
@@ -89,10 +88,8 @@ class AccountService(PluginService):
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
-			print 'onAccountStateChange'
 			data = {"state" : value, "user" : None}
 			if value == "connected":
 				sets = settings()
 				data['user'] = sets.get(["cloudSlicer", "loggedUser"])
-			print data
 			self.publishEvent('account_state_change',data)
