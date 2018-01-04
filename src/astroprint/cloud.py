@@ -85,7 +85,7 @@ class AstroPrintCloud(object):
 	def cloud_enabled(self):
 		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
 
-	def signin(self, email, password):
+	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 		user = None
@@ -116,7 +116,9 @@ class AstroPrintCloud(object):
 			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
 
 		if userLoggedIn:
-			login_user(user, remember=True)
+			if hasSessionContext:
+				login_user(user, remember=True)
+
 			userId = user.get_id()
 
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
@@ -124,7 +126,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -139,7 +142,7 @@ class AstroPrintCloud(object):
 
 		return False
 
-	def signinWithKey(self, email, private_key):
+	def signinWithKey(self, email, private_key, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 
@@ -157,17 +160,19 @@ class AstroPrintCloud(object):
 
 				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
-					userLoggedIn = True
 				else:
-					return {
-						'error': 'no_user'
-					}
+					user = userManager.addUser(email, password, public_key, private_key, True)
+
+				userLoggedIn = True
+
 		else:
 			user = userManager.findUser(email)
 			userLoggedIn = user and user.check_privateKey(private_key)
 
 		if userLoggedIn:
-			login_user(user, remember=True)
+			if hasSessionContext:
+				login_user(user, remember=True)
+
 			userId = user.get_id()
 
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
@@ -175,7 +180,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -204,15 +210,17 @@ class AstroPrintCloud(object):
 
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
-	def signout(self):
-		from flask import session
+	def signout(self, hasSessionContext = True):
+		if hasSessionContext:
+			from flask import session
 
-		logout_user()
+			logout_user()
 
-		for key in ('identity.name', 'identity.auth_type'):
-			session.pop(key, None)
+			for key in ('identity.name', 'identity.auth_type'):
+				session.pop(key, None)
 
-		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+			identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+
 		self.remove_logged_user()
 
 	def get_upload_info(self, filePath):
