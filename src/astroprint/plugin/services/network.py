@@ -27,6 +27,4 @@ class NetworkService(PluginService):
 	#EVENTS
 
 	def onNetworkStatusChange(self,event,value):
-		print 'onNetworkStatusChange ' + value
-
 		self.publishEvent('network_status_change',('online' if value == 'online' else 'offline'))
