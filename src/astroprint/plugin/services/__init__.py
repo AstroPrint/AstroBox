@@ -4,6 +4,8 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
+import time
+
 from octoprint.events import eventManager
 
 class PluginService(object):
@@ -20,7 +22,7 @@ class PluginService(object):
 	# - callback: The handler for the event. It will receive the following parameters:
 	#					- event: Event name
 	#					- data: a hash with data (defined per event)
-	def subscribe(self, events, callback):
+	def subscribe(self, events, callback, freq=0.0):
 		if isinstance(events, basestring):
 			events = [events]
 
@@ -28,9 +30,9 @@ class PluginService(object):
 			if e in self._validEvents:
 				if e in self._eventSubscribers:
 					if callback not in self._eventSubscribers[e]:
-						self._eventSubscribers[e].add(callback)
+						self._eventSubscribers[e].add([callback, freq, None])
 				else:
-					self._eventSubscribers[e] = set([callback])
+					self._eventSubscribers[e] = [[callback,freq, None]]
 
 	# Unsubscribe from a service event
 	#
@@ -55,8 +57,14 @@ class PluginService(object):
 		if event in self._validEvents:
 			handlers = self._eventSubscribers.get(event)
 			if handlers:
-				for h in handlers:
-					try:
-						h(event, data)
-					except:
-						self._logger.error('Problem publishing event', exc_info= True)
+				now = time.time()
+				for hdlr in handlers:
+					h = hdlr[0]
+					f = hdlr[1]
+					last = hdlr[2]
+					if last is None or now - last >= f:
+						try:
+							hdlr[2] = now
+							h(event, data)
+						except:
+							self._logger.error('Problem publishing event', exc_info= True)
