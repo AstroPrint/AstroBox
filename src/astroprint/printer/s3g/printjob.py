@@ -202,17 +202,18 @@ class PrintJobS3G(threading.Thread):
 					else:
 						continueEndSequence = True
 
+			# The ability to find out the platform length of an axis dissapeared in Sailfish 7.3 so we remove for now
 			#find current z:
-			moveToPosition, endStopsStates = self._printer._comm.get_extended_position()
-			zEndStopReached = endStopsStates & 16 == 16 #endstop is a bitfield. See https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md (command 21)
+			#moveToPosition, endStopsStates = self._printer._comm.get_extended_position()
+			#zEndStopReached = endStopsStates & 16 == 16 #endstop is a bitfield. See https://github.com/makerbot/s3g/blob/master/doc/s3gProtocol.md (command 21)
 
-			if zEndStopReached:
+			#if zEndStopReached:
 
 				#calculate Z max
-				moveToPosition[2] = self._printer._profile.values['axes']['Z']['platform_length'] *  self._printer._profile.values['axes']['Z']['steps_per_mm']
+			#	moveToPosition[2] = self._printer._profile.values['axes']['Z']['platform_length'] *  self._printer._profile.values['axes']['Z']['steps_per_mm']
 
 				#move to the bottom:
-				self._printer._comm.queue_extended_point_classic(moveToPosition, 100)
+			#	self._printer._comm.queue_extended_point_classic(moveToPosition, 100)
 
 			self._printer._comm.toggle_axes(['x','y','z','a','b'], False)
 
