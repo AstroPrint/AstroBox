@@ -115,8 +115,8 @@ if platformStr != 'darwin':
 
 		def finish_update(self):
 			if not self._errors:
-				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
-				self._logger.info("Software Update completed succesfully")
+				self._progressCb("release_finalize", 1.0, "Finalizing package...")
+				self._logger.info("Software Package updated succesfully")
 				self._completionCb()
 
 	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
@@ -287,6 +287,8 @@ class SoftwareUpdater(threading.Thread):
 			if self._currentPackage < self._pkgCount:
 				self._installNextPackage()
 			else:
+				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
+				self._logger.info("Software Update completed succesfully")
 				self._completionCb(True)
 		else:
 			self._completionCb(False)
