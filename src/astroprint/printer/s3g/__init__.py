@@ -162,7 +162,7 @@ class PrinterS3g(Printer):
 					self._errorValue = "Error Connecting"
 					self._logger.error('Error connecting to printer.')
 					self._comm = None
-					break;
+					break
 
 				else:
 					try:
@@ -196,6 +196,8 @@ class PrinterS3g(Printer):
 						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
 
 						self._changeState(self.STATE_OPERATIONAL)
+						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+
 						s.set(['serial', 'port'], self._port)
 						s.save()
 						break
