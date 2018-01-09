@@ -142,6 +142,44 @@ class AstroPrintCloud(object):
 
 		return False
 
+	def validatePassword(self, email, password):
+		from octoprint.server import userManager
+		from astroprint.network.manager import networkManager
+		user = None
+		userValidated = False
+
+		online = networkManager().isOnline()
+
+		if online:
+			private_key = self.get_private_key(email, password)
+
+			if private_key:
+				public_key = self.get_public_key(email, private_key)
+
+				if public_key:
+					#Let's update the box now:
+					user = userManager.findUser(email)
+					if user:
+						userManager.changeUserPassword(email, password)
+						userManager.changeCloudAccessKeys(email, public_key, private_key)
+					else:
+						user = userManager.addUser(email, password, public_key, private_key, True)
+
+					userValidated = True
+
+		else:
+			user = userManager.findUser(email)
+			userValidated = user and user.check_password(userManager.createPasswordHash(password))
+
+		if userValidated:
+			userId = user.get_id()
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
+		return userValidated
+
 	def signinWithKey(self, email, private_key, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
