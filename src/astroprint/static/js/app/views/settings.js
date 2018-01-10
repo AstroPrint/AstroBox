@@ -1374,7 +1374,7 @@ var SoftwareUpdateDialog = Backbone.View.extend({
     var releasesIds = [];
 
     _.each(this.data.releases, function(r) {
-      if (r.release) {
+      if (!r.is_current && r.release) {
         releasesIds.push(r.release.id)
       }
     });
