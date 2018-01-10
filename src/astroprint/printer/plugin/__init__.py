@@ -199,7 +199,7 @@ class PrinterWithPlugin(Printer):
 				"origin": FileDestinations.LOCAL,
 			})
 
-			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			##self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
 			payload = {
 				"file": self._currentFile["filename"],
 				"origin": FileDestinations.LOCAL
