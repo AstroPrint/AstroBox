@@ -111,7 +111,7 @@ class AccountService(PluginService):
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
-			asets = settings()
+			sets = settings()
 			data = {
 				'state':  "connected" if  sets.get(["cloudSlicer", "loggedUser"]) else "disconnected",
 				'boxrouterStatus' :  boxrouterManager().status
