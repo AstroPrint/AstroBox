@@ -30,7 +30,7 @@ class PluginService(object):
 			if e in self._validEvents:
 				if e in self._eventSubscribers:
 					if callback not in self._eventSubscribers[e]:
-						self._eventSubscribers[e].add([callback, freq, None])
+						self._eventSubscribers[e].append([callback, freq, None])
 				else:
 					self._eventSubscribers[e] = [[callback,freq, None]]
 
