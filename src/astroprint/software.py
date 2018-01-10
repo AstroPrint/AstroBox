@@ -54,7 +54,6 @@ if platformStr != 'darwin':
 			return True
 
 		def done(self, item):
-			#super(DepsDownloadProgress, self).done(item)
 			self._logger.info("[%s] fetched" % item.shortdesc)
 
 		def fail(self, item):
@@ -116,16 +115,15 @@ if platformStr != 'darwin':
 
 		def finish_update(self):
 			if not self._errors:
-				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
-				self._logger.info("Software Update completed succesfully")
+				self._progressCb("release_finalize", 1.0, "Finalizing package...")
+				self._logger.info("Software Package updated succesfully")
 				self._completionCb()
 
 	class CacheUpdateFetchProgress(apt.progress.base.AcquireProgress):
-		def __init__(self, progressCb, completionCb):
+		def __init__(self, progressCb):
 				super(CacheUpdateFetchProgress, self).__init__()
 
 				self._progressCb = progressCb
-				self._completionCb = completionCb
 				self._logger = logging.getLogger(__name__)
 				self._errors = False
 				self._lastCurrentReported = None
@@ -162,6 +160,7 @@ class SoftwareUpdater(threading.Thread):
 		self._pkgCount = len(versionData)
 		self._pkgPrgSpread = 1.0 / self._pkgCount
 		self._lastPkgPrgEnd = 0
+		self._cache = None
 
 	def run(self):
 		#We need to give the UI a chance to update before starting so that the message can be sent...
@@ -192,7 +191,8 @@ class SoftwareUpdater(threading.Thread):
 					self._onProgress("download", round((downloaded_size / content_length), 2))
 
 			self._logger.info('Release downloaded.')
-			if platformStr == "linux" or platformStr == "linux2":
+
+			if "linux" in platformStr:
 				self._onProgress("download", 1.0 , "Release downloaded. Preparing...")
 				time.sleep(0.5) #give the message a chance to be sent
 
@@ -210,10 +210,12 @@ class SoftwareUpdater(threading.Thread):
 						self._onCompleted(True)
 
 				try:
-					cache = apt.Cache()
-					cache.update(CacheUpdateFetchProgress(self._onProgress, completionCb), 2000000)
-					cache.open()
-					cache.commit()
+					# We should only update the cache once.
+					if self._cache is None:
+						self._cache = apt.Cache()
+						self._cache.update(CacheUpdateFetchProgress(self._onProgress), 2000000)
+						self._cache.open()
+						self._cache.commit()
 
 					pkg = apt.debfile.DebPackage(releasePath)
 					self._onProgress("deps_download", 0.0, "Checking software package. Please be patient..." )
@@ -226,16 +228,16 @@ class SoftwareUpdater(threading.Thread):
 					return
 
 				if pkg.missing_deps:
-					cache.open()
+					self._cache.open()
 
-					with cache.actiongroup():
+					with self._cache.actiongroup():
 						for dep in pkg.missing_deps:
 							self._logger.info("Marking dependency [%s] to be installed." % dep)
-							cache[dep].mark_install()
+							self._cache[dep].mark_install()
 
 					self._onProgress("deps_download", 0.0)
 					try:
-						cache.commit(DepsDownloadProgress(self._onProgress, completionCb), DepsInstallProgress(self._onProgress, completionCb))
+						self._cache.commit(DepsDownloadProgress(self._onProgress, completionCb), DepsInstallProgress(self._onProgress, completionCb))
 						self._logger.info("%d Dependencies installed" % len(pkg.missing_deps))
 
 					except Exception as e:
@@ -285,6 +287,8 @@ class SoftwareUpdater(threading.Thread):
 			if self._currentPackage < self._pkgCount:
 				self._installNextPackage()
 			else:
+				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
+				self._logger.info("Software Update completed succesfully")
 				self._completionCb(True)
 		else:
 			self._completionCb(False)

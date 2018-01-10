@@ -221,7 +221,7 @@ def login():
 		user = octoprint.server.userManager.findUser(username)
 		if user is not None:
 			if user.has_password():
-				if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
+				if astroprintCloud().validatePassword(username, password):
 					login_user(user, remember=remember)
 					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
 					return jsonify(user.asDict())
@@ -272,4 +272,3 @@ def logout():
 	logout_user()
 
 	return NO_CONTENT
-
