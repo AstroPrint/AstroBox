@@ -88,37 +88,41 @@ class Plugin(object):
 	def providers(self):
 		return self._definition['providers'] or []
 
+	@property
+	def pluginManager(self):
+		return pluginManager()
+
 	#
 	# Services
 	#
 
 	@property
 	def printer(self):
-		return pluginManager().printer
+		return self.pluginManager.printer
 
 	@property
 	def files(self):
-		return pluginManager().files
+		return self.pluginManager.files
 
 	@property
 	def system(self):
-		return pluginManager().system
+		return self.pluginManager.system
 
 	@property
 	def network(self):
-		return pluginManager().network
+		return self.pluginManager.network
 
 	@property
 	def account(self):
-		return pluginManager().account
+		return self.pluginManager.account
 
 	@property
 	def auth(self):
-		return pluginManager().auth
+		return self.pluginManager.auth
 
 	@property
 	def camera(self):
-		return pluginManager().camera
+		return self.pluginManager.camera
 
 	#
 	# Directory path where the settings file (config.yaml) is stored
@@ -127,6 +131,12 @@ class Plugin(object):
 	@property
 	def settingsDir(self):
 		return os.path.dirname(self._settings._configfile)
+
+	#
+	# Function to get a dependent plugin from the manager
+	#
+	def getPluginById(self, pluginId):
+		return self.pluginManager.getPlugin(pluginId)
 
 	#
 	# Helper function for plugins to fire a system event
@@ -270,7 +280,10 @@ class PluginManager(object):
 	# Events are:
 	#
 	# - ON_PLUGIN_REMOVED: Called when a plugin is removed
-	#			plugin: The plugin that was removed
+	#			plugin: The plugin that was removed.
+	#
+	# - ON_ALL_PLUGINS_LOADED: Called when all plugins have been loaded
+	#			No parameters.
 	#
 	def addEventListener(self, event, listener):
 		if event in self._eventListeners:
@@ -287,7 +300,7 @@ class PluginManager(object):
 			else:
 				del self._eventListeners[event]
 
-	def _fireEvent(self, event, params):
+	def _fireEvent(self, event, params=[]):
 		if event in self._eventListeners:
 			for e in self._eventListeners[event]:
 				try:
@@ -441,6 +454,7 @@ class PluginManager(object):
 			self._logger.error("User Plugins Folder [%s] not found" % userPluginsDir)
 
 		self._pluginsLoaded.set() # Signal that plugin loading is done
+		self._fireEvent('ON_ALL_PLUGINS_LOADED')
 
 	def _getDirectories(self, path):
 		#don't return hidden dirs
