@@ -476,7 +476,7 @@ class PrinterCommsService(CommandPluginInterface):
 			"origin": currentFile['origin'],
 			"time": printTime
 		})
-		self._printerManager._fileManager.printFailed(filename, printTime)
+		##self._printerManager._fileManager.printFailed(filename, printTime)
 
 	#
 	# Call this function when print progress has changed
