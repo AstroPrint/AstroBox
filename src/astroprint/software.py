@@ -475,8 +475,10 @@ class SoftwareManager(object):
 
 	def updateSoftware(self, releases):
 		releaseInfo = []
-		platforms = [self.data['platform']] + [p['platform'] for p in self.data['additional']]
-		platformIdx = 0
+		platforms = {
+			self.data['variant']['id']: self.data['platform']
+		}
+		platforms.update({p['variant']['id']: p['platform'] for p in self.data['additional']})
 
 		for rel in releases:
 			try:
@@ -489,12 +491,17 @@ class SoftwareManager(object):
 				if r.status_code == 200:
 					data = r.json()
 
-					if data and 'download_url' in data and data['platform'] == platforms[platformIdx]:
-						releaseInfo.append(data)
-						platformIdx += 1
+					if data and 'download_url' in data and 'platform' in data and 'variant' in data and 'id' in data['variant']:
+
+						if data['variant']['id'] in platforms and data['platform'] == platforms[data['variant']['id']]:
+							releaseInfo.append(data)
+
+						else:
+							self._logger.error('Invalid Platform: %s' % data['platform'])
+							return False
 
 					else:
-						self._logger.error('Invalid data returned by server:')
+						self._logger.error('Invalid Server response:')
 						self._logger.error(data)
 						return False
 
