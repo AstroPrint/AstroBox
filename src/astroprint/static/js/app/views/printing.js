@@ -633,10 +633,12 @@ el: '#printing-view',
     this.$('#temp-'+extruderId).addClass('current-slide');
   },
   currentToolChanged: function(extruderId) {
-    this.previousSelectedTool = this.getCurrentSelectedSliders();
-    this.setCurrentSelectedSliders(extruderId);
-    if (this.extruders_count > 2) { this.scrollSlider(extruderId) };
-    this.checkedArrows(extruderId);
+    if (extruderId != null) {
+      this.previousSelectedTool = this.getCurrentSelectedSliders();
+      this.setCurrentSelectedSliders(extruderId);
+      if (this.extruders_count > 2) { this.scrollSlider(extruderId) };
+      this.checkedArrows(extruderId);
+    }
   },
   navExtruderClicked: function(e) {
     var target = $(e.currentTarget);
