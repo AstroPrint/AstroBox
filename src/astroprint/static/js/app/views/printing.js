@@ -351,7 +351,6 @@ el: '#printing-view',
   paused: null,
   cancelDialog: null,
   currentTool: null,
-  previousSelectedTool: 0,
   initialize: function()
   {
     new SemiCircleProgress();
@@ -419,7 +418,6 @@ el: '#printing-view',
       pauseBtn.html('<i class="icon-pause"></i> Pause Print');
       controlBtn.hide();
     }
-
   },
   renderCircleTemps: function()
   {
@@ -564,6 +562,12 @@ el: '#printing-view',
     this.printing_progress = app.socketData.get('printing_progress');
     this.paused = app.socketData.get('paused');
     this.render();
+    if (this.currentTool != app.socketData.attributes.tool) {
+      this.currentTool = app.socketData.attributes.tool;
+    }
+    if (this.currentTool != null) {
+      this.currentToolChanged(this.currentTool);
+    }
     this.showTemps();
     this.photoView.render();
     this.photoView.disableFullScreen();
@@ -634,7 +638,6 @@ el: '#printing-view',
   },
   currentToolChanged: function(extruderId) {
     if (extruderId != null) {
-      this.previousSelectedTool = this.getCurrentSelectedSliders();
       this.setCurrentSelectedSliders(extruderId);
       if (this.extruders_count > 2) { this.scrollSlider(extruderId) };
       this.checkedArrows(extruderId);
@@ -672,10 +675,8 @@ el: '#printing-view',
     var scrollWidthSlider = this.$("#slider")[0].scrollWidth;
     var scrollWidthSliderNav = this.$("#slider-nav")[0].scrollWidth;
 
-    if (this.previousSelectedTool != extruderId) {
-      this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
-      this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
-    }
+    this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
+    this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {

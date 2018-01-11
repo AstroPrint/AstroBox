@@ -11,7 +11,6 @@ var TempView = Backbone.View.extend({
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
-  previousSelectedTool: 0,
   events: {
     'click .nav-extruder': 'navExtruderClicked',
     'click .semi-circle-temps': 'semiCircleTempsClicked',
@@ -171,7 +170,6 @@ var TempView = Backbone.View.extend({
     this.$('#temp-'+extruderId).addClass('current-slide');
   },
   currentToolChanged: function(extruderId) {
-    this.previousSelectedTool = this.getCurrentSelectedSliders();
     this.setCurrentSelectedSliders(extruderId);
     this.scrollSlider(extruderId);
     this.checkedArrows(extruderId);
@@ -208,10 +206,8 @@ var TempView = Backbone.View.extend({
     var scrollWidthSlider = this.$("#slider")[0].scrollWidth;
     var scrollWidthSliderNav = this.$("#slider-nav")[0].scrollWidth;
 
-    if (this.previousSelectedTool != extruderId) {
-      this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
-      this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
-    }
+    this.$("#slider").animate({scrollLeft: ((scrollWidthSlider/this.extruders_count) * extruderId - 1)});
+    this.$("#slider-nav").animate({scrollLeft: ((scrollWidthSliderNav/this.extruders_count) * extruderId - 1)});
   },
   checkedArrows: function(extruderId) {
     if (extruderId > 0) {
@@ -614,6 +610,7 @@ var ControlView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
+    this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
@@ -628,6 +625,9 @@ var ControlView = Backbone.View.extend({
   },
   render: function()
   {
+    if (this.currentTool != null && this.extrusionView.currentTool != this.currentTool) {
+      this.extrusionView.setCurrentTool(this.currentTool);
+    }
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
     this.extrusionView.render();
