@@ -666,14 +666,12 @@ var ControlView = Backbone.View.extend({
   onToolChanged: function(s, value)
   {
     if (value != null) {
-      var extruderNumber = $('.extruder-number').val();
-
-      if (this.currentTool != extruderNumber){
+      if (this.currentTool != value ){
         this.currentTool = value;
         this.tempView.currentToolChanged(value);
       }
 
-      if (!(extruderNumber == value)) {
+      if (!($('.extruder-number').val() == value)) {
         this.extrusionView.setCurrentTool(value);
         this.extrusionView.render();
         $('.extruder-number').val(value);
