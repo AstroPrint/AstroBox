@@ -264,7 +264,7 @@ var PhotoView = CameraViewBase.extend({
   },
   fullScreenClicked: function(e)
   {
-    var fullscreenContainer = $('.camera-view');
+    var fullscreenContainer = this.$el;
 
     if (!fullscreenContainer.hasClass('fullscreen')) {
       fullscreenContainer.data('width', fullscreenContainer[0].getBoundingClientRect().width);
@@ -276,9 +276,9 @@ var PhotoView = CameraViewBase.extend({
                                   height: fullscreenContainer.data('height')+ "px"},
                                   {
                                     duration: 500,
-                                    start: function() {
-                                      $('.camera-controls-fullscreen').fadeOut(500);
-                                    },
+                                    start: _.bind(function() {
+                                      this.$el.find('.camera-controls-fullscreen').fadeOut(500);
+                                    }, this),
                                     complete: _.bind(function() {
                                       this.disableFullScreen();
                                     }, this)
@@ -288,10 +288,10 @@ var PhotoView = CameraViewBase.extend({
       fullscreenContainer.animate({width: "100vw",
                                   height: "86vh"},
                                   {duration: 500,
-                                    start: function() {
-                                      $('.camera-controls-fullscreen').fadeIn(500);
-                                      $('.info').hide();
-                                    }});
+                                    start: _.bind(function() {
+                                      this.$el.find('.camera-controls-fullscreen').fadeIn(500);
+                                      $('#printing-view .info').hide();
+                                    }, this)});
 
       $('body, html').animate({scrollTop: (fullscreenContainer.offset().top - 15)});
     }
@@ -304,11 +304,11 @@ var PhotoView = CameraViewBase.extend({
     }, this));
   },
   disableFullScreen: function() {
-    if ($('.camera-view').hasClass('fullscreen')) {
-      $('.camera-view').removeAttr('style');
-      $('.camera-view').removeClass('fullscreen');
-      $('.info').fadeIn(500);
-      $('.info').removeAttr('style');
+    if (this.$el.hasClass('fullscreen')) {
+      this.$el.removeAttr('style');
+      this.$el.removeClass('fullscreen');
+      $('#printing-view .info').fadeIn(500);
+      $('#printing-view .info').removeAttr('style');
     }
   },
   _formatTime: function(seconds)
@@ -473,7 +473,7 @@ el: '#printing-view',
     }
   },
   _setCircleProgress: function(index) {
-    $("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
+    this.$("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
       //value: temps.current,
       arcCoef: 0.55,
       size: 180,
