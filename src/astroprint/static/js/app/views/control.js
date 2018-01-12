@@ -114,7 +114,7 @@ var TempView = Backbone.View.extend({
     }
   },
   _setCircleProgress: function(index) {
-    $("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
+    this.$("#"+this.semiCircleTemp_views[index].el.id+" .progress-temp-circle").circleProgress({
       //value: temps.current,
       arcCoef: 0.55,
       size: 180,
@@ -365,15 +365,15 @@ var ExtrusionControlView = Backbone.View.extend({
     }));
 
     if (this.currentTool != null) {
-      $('.extruder-number').val(this.currentTool);
+      this.$('.extruder-number').val(this.currentTool);
 
-      if ($('.extruder-number').hasClass('no-selected')) {
-        $('.extruder-number').removeClass('no-selected');
+      if (this.$('.extruder-number').hasClass('no-selected')) {
+        this.$('.extruder-number').removeClass('no-selected');
       }
     }
 
-    if (this.currentTool != $('.extruder-number').val()) {
-      $('.extruder-number').val(this.currentTool);
+    if (this.currentTool != this.$('.extruder-number').val()) {
+      this.$('.extruder-number').val(this.currentTool);
     }
 
     if (printer_profile.extruder_count > 1) {
@@ -533,7 +533,7 @@ var FanControlView = Backbone.View.extend({
 
       this.$('.variable-speed').addClass('animated bounceIn');
       this.$('.variable-speed').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-          this.$('.variable-speed').removeClass('bounceIn');
+        this.$('.variable-speed').removeClass('bounceIn');
       }.bind(this));
 
       this._setFanSpeed(255 * speedValue);
@@ -556,10 +556,9 @@ var FanControlView = Backbone.View.extend({
   },
   _setFanSpeed: function(speed)
   {
-    console.log("FAN SPEED", speed)
     var data = {
       command: "set",
-      tool:  $('.extruder-number').val(),
+      tool:  $('#control-view #extrusion-control .extruder-number').val(),
       speed: speed
     }
 
@@ -671,13 +670,13 @@ var ControlView = Backbone.View.extend({
         this.tempView.currentToolChanged(value);
       }
 
-      if (!($('.extruder-number').val() == value)) {
+      if (!(this.$('.extruder-number').val() == value)) {
         this.extrusionView.setCurrentTool(value);
         this.extrusionView.render();
-        $('.extruder-number').val(value);
+        this.$('.extruder-number').val(value);
 
-        if ($('.extruder-number').hasClass('no-selected')) {
-          $('.extruder-number').removeClass('no-selected');
+        if (this.$('.extruder-number').hasClass('no-selected')) {
+          this.$('.extruder-number').removeClass('no-selected');
         }
       }
     }
