@@ -19,6 +19,7 @@ import socket
 import os
 import weakref
 import uuid
+import sys
 
 from time import sleep, time
 from flask_login import current_user
@@ -159,7 +160,8 @@ class AstroprintBoxRouter(object):
 	STATUS_CONNECTING = 'connecting'
 	STATUS_CONNECTED = 'connected'
 	STATUS_ERROR = 'error'
-	ASTROBOX_NAMESPACE_UUID = 'ec35c0da-e6e2-4a50-9c85-3e102fffac48'
+	ASTROBOX_NAMESPACE_UUID = 'ec35c0dae6e24a509c853e102fffac48'
+	ASTROBOX_SD_NAMESPACE_UUID = 'b58abd65c93c46328267ca0929eb32d1'
 
 	def __init__(self):
 		self._settings = settings()
@@ -216,7 +218,19 @@ class AstroprintBoxRouter(object):
 					self._boxId = f.read()
 
 			if not self._boxId:
-				self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
+				#First we try using the CID of the card where it's flashed
+				if "linux" in sys.platform:
+					try:
+						with open('/sys/block/mmcblk0/device/cid', 'r') as f:
+							self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_SD_NAMESPACE_UUID), f.read()).hex
+
+					except Exception as e:
+						self._logger.error('Error trying to access SD Card CID record to generate Box Id: %s' % e)
+
+				if not self._boxId:
+					#If not we use getnode.
+					self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
+
 				with open(boxIdFile, 'w') as f:
 					f.write(self._boxId)
 
