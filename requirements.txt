@@ -20,3 +20,4 @@ ws4py==0.3.4
 futures==3.0.4
 blinker==1.4
 v4l2==0.2
+pycrypto==2.6.1
