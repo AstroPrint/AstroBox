@@ -11,8 +11,14 @@ creationLock = threading.Lock()
 
 def boxrouterManager():
 	global _instance
-	if _instance is None:
-		_instance = AstroprintBoxRouter()
+
+	if _instance is not None:
+		return _instance
+	else:
+		with creationLock:
+			#check again because maybe another lock created it
+			if _instance is None:
+				_instance = AstroprintBoxRouter()
 
 	return _instance
 

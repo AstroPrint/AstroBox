@@ -415,6 +415,8 @@ class Server():
 		from astroprint.migration import migrateSettings
 		migrateSettings()
 
+		pluginManager().loadPlugins()
+
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])
 
@@ -424,8 +426,6 @@ class Server():
 
 		networkManager()
 		boxrouterManager()
-
-		pluginManager().loadPlugins()
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
