@@ -146,6 +146,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def changeTool(self, tool):
 		self._logger.info('Change tool from %s to %s', self.currentTool, tool)
+		self._currentSelectedTool = tool
 		self.onToolChanged(tool)
 
 	def sendCommand(self, command):
