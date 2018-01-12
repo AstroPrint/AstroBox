@@ -70,6 +70,8 @@ class AccountService(PluginService):
 			try:
 				if astroprintCloud().validatePassword(email, password):
 					callback('validate_success')
+				else:
+					callback('invalid_data',True)
 
 			except Exception as e:
 				self._logger.error("AstroPrint.com can't be reached " + e.args[0])
