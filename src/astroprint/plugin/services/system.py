@@ -20,6 +20,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
+from astroprint.boxrouter import boxrouterManager
 #from astroprint.plugin import pluginManager
 
 class SystemService(PluginService):
@@ -582,3 +583,10 @@ class SystemService(PluginService):
 		logger.warn("No suitable action in config for: %s" % action)
 		sendResponse('no_command', True)
 		return
+
+	def getDeviceId(self, data=None, sendResponse=None):
+		boxId = boxrouterManager().boxId
+		if sendResponse:
+			sendResponse(boxId)
+
+		return boxId

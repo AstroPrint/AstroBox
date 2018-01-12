@@ -412,8 +412,6 @@ class Server():
 
 		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
 
-		pluginManager().loadPlugins()
-
 		from astroprint.migration import migrateSettings
 		migrateSettings()
 
@@ -426,6 +424,8 @@ class Server():
 
 		networkManager()
 		boxrouterManager()
+
+		pluginManager().loadPlugins()
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()

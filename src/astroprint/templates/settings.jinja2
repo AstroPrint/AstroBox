@@ -19,6 +19,7 @@
         <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading bold">Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
+        <li class="software-license dotted"><a href="#settings/software-license">License</a></li>
         <li class="software-update dotted"><a href="#settings/software-update">Update</a></li>
         <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
@@ -652,6 +653,60 @@
       </div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/software-license"><h1 class="bold" align="center">License</h1></a>
+    </div>
+    <div id="software-license" class="settings-page">
+    </div>
+
+    <script type="text/template" id="software-license-settings-page-template">
+      <div class="license-info <%= status %>">
+        <div class="row">
+          <div class="columns small-12 medium-5 large-3">
+            <div class="certificate-icon">
+              <i class="icon-certificate"></i>
+              <div class="status-icon">
+                <i class="icon-ok-circled ok"></i>
+                <i class="icon-attention nok"></i>
+              </div>
+            </div>
+          </div>
+          <div class="columns small-12 medium-7 large-9">
+            <% if (status == 'ok') { %>
+              <h1 class="bold">License Information</h1>
+            <% } else { %>
+              <h1 class="bold">No License</h1>
+            <% } %>
+          </div>
+        </div>
+        <div class="row">
+          <div class="columns">
+            <% if (status == 'ok') { %>
+              <div class="panel">
+                <ul>
+                  <li><b>License Id</b>: <%= license.license_id %></li>
+                  <li><b>Issued by</b>: <%= license.issuer %></li>
+                  <% if (license.expires) { %>
+                    <li><b>Expires</b>: <span data-localtime-format="d MMM, yyyy"><%= (new Date(license.expires * 1000)).toISOString() %></span></li>
+                  <% } %>
+                </ul>
+              </div>
+            <% } else { %>
+              <div class="panel callout">
+                <p>
+                  It's ok to use this sofware as long as you got it directly from AstroPrint via our downloads page or by purchasing one
+                  of our products.
+                </p>
+                <p>
+                  If the unit was purchased elsewhere and contains this unlicensed software, please report it to us.
+                </p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </script>
 
     <div class="show-for-small zebra">
       <a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>

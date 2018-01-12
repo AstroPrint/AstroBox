@@ -426,7 +426,7 @@
       "code": 59437,
       "src": "iconic"
     },
-        {
+    {
       "uid": "xoidjr6q3rzi7tpw6hci1k6srz15g11l",
       "css": "puzzle",
       "code": 59438,
@@ -463,6 +463,12 @@
       "css": "resize-small",
       "code": 59470,
       "src": "iconic"
+    },
+    {
+      "uid": "d61be837c725a299b432dcbee2ecdae6",
+      "css": "certificate",
+      "code": 61603,
+      "src": "fontawesome"
     }
   ]
 }

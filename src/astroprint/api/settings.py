@@ -279,6 +279,22 @@ def installSoftwarePlugin():
 
 	return make_response('Invalid Request', 400)
 
+@api.route("/settings/software/license", methods=["GET"])
+@restricted_access
+def getLicenseInfo():
+	pm = pluginManager()
+	lcnMgr = pm.getPlugin('com.astroprint.astrobox.plugins.lcnmgr')
+
+	if lcnMgr and lcnMgr.validLicense:
+		return jsonify({
+			'is_valid': True,
+			'issuer': lcnMgr.issuerName,
+			'expires': lcnMgr.expires,
+			'license_id': lcnMgr.licenseId
+		});
+
+	return jsonify({'is_valid': False})
+
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access
 def getAdvancedSoftwareSettings():
@@ -311,7 +327,7 @@ def changeApiKeySettings():
 
 		s.save()
 
-		return jsonify();
+		return jsonify()
 
 	else:
 		return ("Wrong data sent in.", 400)
