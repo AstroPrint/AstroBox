@@ -412,10 +412,10 @@ class Server():
 
 		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
 
-		pluginManager().loadPlugins()
-
 		from astroprint.migration import migrateSettings
 		migrateSettings()
+
+		pluginManager().loadPlugins()
 
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])

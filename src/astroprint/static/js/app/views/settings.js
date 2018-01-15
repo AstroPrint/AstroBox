@@ -1258,6 +1258,41 @@ var DeletePluginDialog = Backbone.View.extend({
 });
 
 /********************
+* Software - License
+*********************/
+
+var SoftwareLicenseView = SettingsPage.extend({
+  el: '#software-license',
+  template: null,
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#software-license-settings-page-template").html() )
+    }
+
+    $.getJSON(API_BASEURL + 'settings/software/license')
+      .done(_.bind(function(data){
+        this.render(data)
+      }, this))
+      .fail(function() {
+        noty({text: "There was an error getting License Information.", timeout: 3000});
+      });
+  },
+  render: function(data)
+  {
+    this.$el.html(this.template({
+      status: data.is_valid ? 'ok':'nok',
+      license: data
+    }));
+
+    $.localtime.format(this.$el);
+  }
+});
+
+
+/********************
 * Software - Update
 *********************/
 
@@ -1655,6 +1690,7 @@ var SettingsView = Backbone.View.extend({
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
       'software-advanced': new SoftwareAdvancedView({parent: this}),
+      'software-license': new SoftwareLicenseView({parent: this})
     };
     this.menu = new SettingsMenu({subviews: this.subviews});
   },
