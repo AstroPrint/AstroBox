@@ -30,9 +30,9 @@ class PluginService(object):
 			if e in self._validEvents:
 				if e in self._eventSubscribers:
 					if callback not in self._eventSubscribers[e]:
-						self._eventSubscribers[e].append([callback, freq, None])
+						self._eventSubscribers[e][callback] = [freq, None]
 				else:
-					self._eventSubscribers[e] = [[callback,freq, None]]
+					self._eventSubscribers[e] = { callback: [freq, None] }
 
 	# Unsubscribe from a service event
 	#
@@ -43,9 +43,10 @@ class PluginService(object):
 			events = [events]
 
 		for e in events:
-			if e in self._eventSubscribers:
+			if e in self._eventSubscribers and callback in self._eventSubscribers[e]:
 				#discard does not raise if the element doesn't exist
-				self._eventSubscribers[e].discard(callback)
+				del self._eventSubscribers[e][callback]
+
 				if not bool(self._eventSubscribers[e]):
 					del self._eventSubscribers[e]
 
@@ -58,13 +59,13 @@ class PluginService(object):
 			handlers = self._eventSubscribers.get(event)
 			if handlers:
 				now = time.time()
-				for hdlr in handlers:
-					h = hdlr[0]
-					f = hdlr[1]
-					last = hdlr[2]
-					if last is None or now - last >= f:
+				for cb in handlers.keys():
+					handler = handlers[cb]
+					freq = handler[0]
+					last = handler[1]
+					if last is None or now - last >= freq:
 						try:
-							hdlr[2] = now
-							h(event, data)
+							handler[1] = now
+							cb(event, data)
 						except:
-							self._logger.error('Problem publishing event', exc_info= True)
+							self._logger.error('Problem publishing event: %s' % event, exc_info= True)
