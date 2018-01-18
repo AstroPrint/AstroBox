@@ -99,8 +99,9 @@ class Daemon:
 		# Try terminating the daemon process for 10 secs
 		try:
 			start = time.time()
+			os.kill(pid, signal.SIGTERM)
 			while time.time() - start < 10.0:
-				os.kill(pid, signal.SIGTERM)
+				os.kill(pid, 0)
 				time.sleep(0.1)
 
 			#we tried the nice way. Now we just kill it
