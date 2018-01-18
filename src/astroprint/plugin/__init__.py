@@ -36,6 +36,7 @@ class Plugin(object):
 		self._logger = logging.getLogger('Plugin::%s' % self.__class__.__name__)
 		self._definition = None
 		self._settings = settings()
+		self._pluginEventListeners = {}
 		self._profileManager = printerProfileManager()
 
 		#Read it's definition file - plugin.yaml -
@@ -145,6 +146,58 @@ class Plugin(object):
 	def fireSystemEvent(self, event, data=None):
 		eventManager().fire(event, data)
 
+	#
+	# Function for plugins to fire a plugin specific events
+	#
+
+	def firePluginEvent(self, event, data=None):
+		self.pluginManager._fireEvent('ON_PLUGIN_EVENT', [self.pluginId, event, data])
+
+	#
+	# Function for plugins to register for plugin events
+	#
+	# - callback receives 3 parametets: pluginId, event, data
+	#
+
+	def registerForPluginEvents(self, pluginId, event, callback):
+		if self._pluginEventListeners:
+			if pluginId in self._pluginEventListeners:
+				if event in self._pluginEventListeners[pluginId]:
+					self._pluginEventListeners[pluginId][event].append(callback)
+				else:
+					self._pluginEventListeners[pluginId][event] = [callback]
+
+			else:
+				self._pluginEventListeners[pluginId] = { event: [callback] }
+
+		else:
+			self._pluginEventListeners[pluginId] = { event: [callback] }
+			self.pluginManager.addEventListener('ON_PLUGIN_EVENT', self._onPluginEvent)
+
+	#
+	# Function for plugins to register for plugin events
+	#
+
+	def unregisterForPluginEvents(self, pluginId= None, event= None, callback= None):
+		if pluginId:
+			if pluginId in self._pluginEventListeners:
+				if event:
+					if event in self._pluginEventListeners[pluginId]:
+						if callback:
+							if callback in self._pluginEventListeners[pluginId][event]:
+								del self._pluginEventListeners[pluginId][event][self._pluginEventListeners[pluginId][event].index(callback)]
+
+						else:
+							del self._pluginEventListeners[pluginId][event]
+				else:
+					del self._pluginEventListeners[pluginId]
+
+		else:
+			self._pluginEventListeners = {}
+
+		if not self._pluginEventListeners:
+			self.pluginManager.removeEventListener('ON_PLUGIN_EVENT', self._onPluginEvent)
+
 	# Optional functions for child classes
 
 	#
@@ -167,6 +220,20 @@ class Plugin(object):
 	def onServiceShutdown(self):
 		pass
 
+	#~~~~~~~~~~~~~~~~~~~
+	# Private functions
+	#~~~~~~~~~~~~~~~~~~~
+
+	def _onPluginEvent(self, pluginId, event, data=None):
+		pluginListeners = self._pluginEventListeners.get(pluginId)
+		if pluginListeners:
+			eventListeners = pluginListeners.get(event)
+			if eventListeners:
+				for l in eventListeners:
+					try:
+						l(pluginId, event, data)
+					except Exception as e:
+						self._logger.error('Error processing event %s from %s: %s' % (event, pluginId, e), exc_info=True)
 
 #
 # Plugin Manager
@@ -284,6 +351,8 @@ class PluginManager(object):
 	#
 	# - ON_ALL_PLUGINS_LOADED: Called when all plugins have been loaded
 	#			No parameters.
+	#
+	#	- ON_PLUGIN_EVENT: Called when a plugin has fired an arbitraty event
 	#
 	def addEventListener(self, event, listener):
 		if event in self._eventListeners:
