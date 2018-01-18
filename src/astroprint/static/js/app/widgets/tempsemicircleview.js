@@ -55,7 +55,11 @@ var TempSemiCircleView = Backbone.View.extend({
   {
     if (this.$(".progress-temp-circle").length && temps.current) {
       if (this.type == 'bed') {
-        this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_bed_temp')) * 100) / 100 );
+        if ((app.printerProfile.toJSON()).heated_bed) {
+          this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_bed_temp')) * 100) / 100 );
+        } else {
+          this.$(".progress-temp-circle").circleProgress('value', null );
+        }
       } else {
         this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 );
       }
@@ -174,8 +178,13 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.find('.target-value').html(Math.round(target)+'&deg;');
 
       if ( this.type == 'bed') {
+        let bedTarget = target;
+        if (!(app.printerProfile.toJSON()).heated_bed) {
+          bedTarget = 0;
+        }
+
         this.$el.find('.target-selector').css({
-          transform:'rotate('+ (target *(198/app.printerProfile.get('max_bed_temp'))-9) +'deg)'});
+          transform:'rotate('+ (bedTarget *(198/app.printerProfile.get('max_bed_temp'))-9) +'deg)'});
 
       } else {
         this.$el.find('.target-selector').css({
