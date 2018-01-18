@@ -96,10 +96,10 @@ class Daemon:
 			sys.stderr.write(message.format(self.pidfile))
 			return # not an error in a restart
 
-		# Try terminating the daemon process for 5 secs
+		# Try terminating the daemon process for 10 secs
 		try:
 			start = time.time()
-			while time.time() - start < 5.0:
+			while time.time() - start < 10.0:
 				os.kill(pid, signal.SIGTERM)
 				time.sleep(0.1)
 
