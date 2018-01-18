@@ -527,6 +527,7 @@ class Server():
 		finally:
 			observer.stop()
 			self.cleanup()
+			logger.info('Cleanup complete')
 
 		observer.join()
 		logger.info('Good Bye!')
@@ -620,10 +621,7 @@ class Server():
 		cameraManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
-		logger = logging.getLogger(__name__)
-
 		networkManagerShutdown()
-		logger.info('Cleanup Completed')
 
 if __name__ == "__main__":
 	octoprint = Server()
