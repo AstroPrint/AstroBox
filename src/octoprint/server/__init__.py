@@ -527,11 +527,10 @@ class Server():
 
 		finally:
 			observer.stop()
-			observer.join()
 			self.cleanup()
 			logger.info('Cleanup complete')
 
-		#observer.join()
+		observer.join(1.0)
 		logger.info('Good Bye!')
 
 	def _createSocketConnection(self, session):
