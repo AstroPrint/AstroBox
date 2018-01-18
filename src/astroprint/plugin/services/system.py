@@ -37,20 +37,33 @@ class SystemService(PluginService):
 	#REQUESTS
 
 	#write a key in config.yaml file
-	def setSetting(self, data, sendResponse):
+	def setSetting(self, data, sendResponse=None):
 		if 'key' in data and 'value' in data:
 			settings().set(data['key'], data['value'])
 			settings().save()
-			sendResponse({'success':'no error'})
+			if sendResponse:
+				sendResponse({'success':'no error'})
+			return True
+
 		else:
-			sendResponse('error_writing_setting',True)
+			if sendResponse:
+				sendResponse('error_writing_setting',True)
+
+			return False
 
 	#read a key in config.yaml file
-	def getSetting(self, data, sendResponse):
+	def getSetting(self, data, sendResponse=None):
 		if 'key' in data:
-			sendResponse(settings().get(data['key']))
+			value = settings().get(data['key'])
+			if sendResponse:
+				sendResponse(value)
+
+			return value
 		else:
-			sendResponse('key_setting_error',True)
+			if sendResponse:
+				sendResponse('key_setting_error',True)
+
+			return False
 
 	##connection
 	def printerConnectionDriver(self, data, sendMessage):
