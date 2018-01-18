@@ -191,22 +191,15 @@ class SystemService(PluginService):
 			addrs = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':None}] )]
 			addresses[ifaceName] = addrs
 
-		self._logger.info(addresses)
-
 		if 'eth0' in addresses and addresses['eth0'][0] is not None:
-			self._logger.info('eth0')
-
 			sendResponse(addresses['eth0'])
 			return
 
 		if 'wlan0' in addresses and addresses['wlan0'][0] is not None:
-			self._logger.info('wlan0')
-
 			sendResponse(addresses['wlan0'])
 			return
 
 		if 'en0' in addresses and addresses['en0'][0] is not None:
-			self._logger.info('en0')
 			sendResponse(addresses['en0'])
 			return
 

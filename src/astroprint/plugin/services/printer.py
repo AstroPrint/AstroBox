@@ -117,21 +117,15 @@ class PrinterService(PluginService):
 	def printerHomeCommand(self,axes,callback):
 		pm = printerManager()
 
-		self._logger.info('printerHomeCommand')
-
-		self._logger.info(axes)
-
 		valid_axes = ["xy", "z"]
 
 		if not axes in valid_axes:
 			callback("Invalid axes: " + axes,True)
 
 		if axes == 'xy':
-			self._logger.info('xy home')
 			pm.home('x')
 			pm.home('y')
 		else:
-			self._logger.info('z home')
 			pm.home('z')
 
 		callback({'success': 'no_error'})
@@ -225,9 +219,6 @@ class PrinterService(PluginService):
 		pm = printerManager()
 
 		tempData = pm.getCurrentTemperatures()
-
-		self._logger.info('getTemperature')
-		self._logger.info(tempData)
 
 		return tempData
 
