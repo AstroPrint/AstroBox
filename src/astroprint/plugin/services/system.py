@@ -569,16 +569,16 @@ class SystemService(PluginService):
 								returncode = p.returncode
 								stderr_text = p.stderr.text
 								logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+								sendResponse({'success': False})
 							else:
 								logger.info("Command executed sucessfully")
+								sendResponse({'success': True})
 
 						except Exception, e:
 							logger.warn("Command failed: %s" % e)
 
 					executeThread = threading.Thread(target=executeCommand, args=(command, logger))
 					executeThread.start()
-
-					sendResponse({'success': True})
 					return
 
 				else:
