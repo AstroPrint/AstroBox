@@ -621,6 +621,7 @@ class Server():
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()
+		logger.info('Cleanup Completed')
 
 if __name__ == "__main__":
 	octoprint = Server()
