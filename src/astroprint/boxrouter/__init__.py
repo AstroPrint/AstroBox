@@ -225,7 +225,7 @@ class AstroprintBoxRouter(object):
 
 			if os.path.exists(boxIdFile):
 				with open(boxIdFile, 'r') as f:
-					self._boxId = f.read()
+					self._boxId = f.read().strip()
 
 			if not self._boxId:
 				#First we try using the CID of the card where it's flashed
