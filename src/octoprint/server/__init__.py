@@ -527,6 +527,7 @@ class Server():
 
 		finally:
 			observer.stop()
+			observer.join()
 			self.cleanup()
 			logger.info('Cleanup complete')
 
