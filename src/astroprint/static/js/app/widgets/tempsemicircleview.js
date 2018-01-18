@@ -178,7 +178,7 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.find('.target-value').html(Math.round(target)+'&deg;');
 
       if ( this.type == 'bed') {
-        let bedTarget = target;
+        var bedTarget = target;
         if (!(app.printerProfile.toJSON()).heated_bed) {
           bedTarget = 0;
         }
