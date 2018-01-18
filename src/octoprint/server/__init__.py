@@ -611,7 +611,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
-		pluginManager().shutdown();
+		pluginManager().shutdown()
 		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()
@@ -620,6 +620,8 @@ class Server():
 		cameraManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
+		logger = logging.getLogger(__name__)
+
 		networkManagerShutdown()
 		logger.info('Cleanup Completed')
 
