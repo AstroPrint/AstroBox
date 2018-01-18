@@ -3,6 +3,10 @@ __author__ = "Daniel Arroyo <daniel@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import logging
+import threading
+
+from octoprint.server import eventManager
+from octoprint.events import Events
 
 from astroprint.network import NetworkManager as NetworkManagerBase
 
@@ -10,6 +14,11 @@ class MacDevNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
+		self._online = False
+
+		timer = threading.Timer(3.0, self._goOnline)
+		timer.start()
+
 		super(MacDevNetworkManager, self).__init__()
 
 	def getActiveConnections(self):
@@ -51,7 +60,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 
 	def isOnline(self):
-		return True
+		return self._online
 
 	def startHotspot(self):
 		#return True when succesful
@@ -68,3 +77,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.name = name
 		self.logger.info('Host name is set to %s ' % name)
 		return True
+
+	def _goOnline(self):
+		eventManager.fire(Events.NETWORK_STATUS, 'online')
+		self._online = True
