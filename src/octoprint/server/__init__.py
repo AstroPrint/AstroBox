@@ -510,6 +510,7 @@ class Server():
 
 		# start up watchdogs
 		observer = Observer()
+		observer.daemon = True
 		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
 
