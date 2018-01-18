@@ -685,7 +685,7 @@
             <% if (status == 'ok') { %>
               <div class="panel">
                 <ul>
-                  <li><b>License Id</b>: <%= license.license_id %></li>
+                  <li><b>License Id</b>: <span class="can-select"><%= license.license_id %></span></li>
                   <li><b>Issued by</b>: <%= license.issuer %></li>
                   <% if (license.expires) { %>
                     <li><b>Expires</b>: <span data-localtime-format="d MMM, yyyy"><%= (new Date(license.expires * 1000)).toISOString() %></span></li>
