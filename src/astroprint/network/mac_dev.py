@@ -17,6 +17,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self._online = False
 
 		timer = threading.Timer(3.0, self._goOnline)
+		timer.daemon = True
 		timer.start()
 
 		super(MacDevNetworkManager, self).__init__()
