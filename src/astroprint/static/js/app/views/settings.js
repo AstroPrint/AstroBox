@@ -319,7 +319,7 @@ var NetworkNameView = SettingsPage.extend({
       data: JSON.stringify(attrs)
     })
       .done(_.bind(function(data) {
-        noty({text: "Network name changed. Use it next time you reboot", timeout: 3000, type:"success"});
+        noty({text: "Network name changed. It will be effective after the next reboot.", timeout: 3000, type:"success"});
         //Make sure we reload next time we load this tab
         this.settings = data
         this.render();
