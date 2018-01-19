@@ -252,6 +252,7 @@ class NetworkManagerEvents(threading.Thread):
 						self._activeDevice = d
 						if self._devicePropertiesListener:
 							NetworkManager.SignalDispatcher.remove_signal_receiver(self._devicePropertiesListener)
+							self._devicePropertiesListener = None # in case something fails on reconnection so it's not wrongly thinking we're still listening
 
 						self._currentIpv4Address = self._manager._getIpAddress(d)
 
