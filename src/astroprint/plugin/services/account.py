@@ -94,30 +94,34 @@ class AccountService(PluginService):
 	def getStatus(self, callback):
 		try:
 			sets = settings()
+			user = sets.get(["cloudSlicer", "loggedUser"])
+
 			payload = {
-				'state':  "connected" if  sets.get(["cloudSlicer", "loggedUser"]) else "disconnected",
+				'userLogged': user if user else None,
 				'boxrouterStatus' :  boxrouterManager().status
 			}
-			if sets.get(["cloudSlicer", "loggedUser"]):
-				payload['user'] = sets.get(["cloudSlicer", "loggedUser"])
-
-			callback({
-				'astroprint-status': payload
-			})
+			callback(payload)
 
 		except Exception as e:
 			self._logger.error('unsuccessfully user status got', exc_info = True)
 			callback('getting_status_error')
 
+	def connectBoxrouter(self, callback):
+		try:
+			boxrouterManager().boxrouter_connect()
+			callback('connect_success')
+		except Exception as e:
+			self._logger.error('boxrouter can not connect', exc_info = True)
+			callback('boxrouter_error', True)
 
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
 			sets = settings()
+			user = sets.get(["cloudSlicer", "loggedUser"])
 			data = {
-				'state': value if value == "connected" or value == "connecting" else "connected" if  sets.get(["cloudSlicer", "loggedUser"]) else "disconnected"
+				'userLogged': user if user else None,
+				'boxrouterStatus' :  boxrouterManager().status
 			}
-			if sets.get(["cloudSlicer", "loggedUser"]):
-				data['user'] = sets.get(["cloudSlicer", "loggedUser"])
 
 			self.publishEvent('account_state_change',data)
