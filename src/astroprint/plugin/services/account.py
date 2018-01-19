@@ -41,7 +41,7 @@ class AccountService(PluginService):
 					callback('login_success')
 
 			except Exception as e:
-				self._logger.error("AstroPrint.com can't be reached " + e.args[0])
+				self._logger.error("Error Signing into AstroPrint Cloud: %s" % e)
 				callback('astroprint_unrechable',True)
 
 		elif email and private_key:
@@ -74,7 +74,7 @@ class AccountService(PluginService):
 					callback('invalid_data',True)
 
 			except Exception as e:
-				self._logger.error("AstroPrint.com can't be reached " + e.args[0])
+				self._logger.error("Error validating passwrod with AstroPrint Cloud: %s" % e)
 				callback('astroprint_unrechable',True)
 
 		else:
