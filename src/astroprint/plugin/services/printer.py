@@ -271,22 +271,28 @@ class PrinterService(PluginService):
 		callback({'success': 'no_error'})
 		return
 
-	def getNumberOfExtruders(self,data,sendResponse):
-
+	def getNumberOfExtruders(self,data,sendResponse=None):
 		ppm = printerProfileManager()
 
-		sendResponse(ppm.data.get('extruder_count'))
+		extruderCount = ppm.data.get('extruder_count')
 
-		return
+		if sendResponse:
+			sendResponse(extruderCount)
 
-	def getSelectedExtruder(self, data, sendResponse):
+		return extruderCount
+
+	def getSelectedExtruder(self, data, sendResponse= None):
 		pm = printerManager()
 
-		selectedTool = pm.getSelectedTool()
+		if pm.isConnected():
+			selectedTool = pm.getSelectedTool()
+		else:
+			selectedTool = None
 
-		sendResponse(selectedTool)
+		if sendResponse:
+			sendResponse(selectedTool)
 
-		return
+		return selectedTool
 
 	def selectTool(self,data,sendResponse):
 
