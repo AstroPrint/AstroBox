@@ -22,6 +22,8 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 		super(MacDevNetworkManager, self).__init__()
 
+		self.logger.info('Mac Dev Network Manager initialized')
+
 	def getActiveConnections(self):
 		return {
 			'wired': {
