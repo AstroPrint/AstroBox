@@ -152,7 +152,7 @@ class NetworkManagerEvents(threading.Thread):
 			if not self._monitorActivatingListener:
 				for c in properties['ActiveConnections']:
 					try:
-						if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
+						if hasattr(c, 'State') and c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATING:
 							if self._monitorActivatingListener:
 								NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
 
@@ -167,6 +167,7 @@ class NetworkManagerEvents(threading.Thread):
 								logger.info('Activating Connection %s' % settings['connection']['id'])
 
 							return
+
 					except NetworkManager.ObjectVanished:
 						pass
 
