@@ -158,7 +158,8 @@ var AppRouter = Backbone.Router.extend({
         currentView.trigger('hide');
 
         if (targetId == 'control-view') {
-          this.controlView.tempView.resetBars();
+          this.controlView.tempView.show();
+          this.controlView.extrusionView.render();
         }
       }
 

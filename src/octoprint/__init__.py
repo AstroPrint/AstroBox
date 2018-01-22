@@ -83,21 +83,8 @@ def startServer(configfile, basedir, host, port, debug, allowRoot, logConf = Non
 	global astrobox
 
 	astrobox = Server(configfile, basedir, host, port, debug, allowRoot, logConf)
-	
-	try:
-		from gi.repository import GObject
-		from dbus.mainloop.glib import DBusGMainLoop, threads_init
 
-		DBusGMainLoop(set_as_default=True)
-
-		GObject.threads_init()
-		threads_init()
-
-	except ImportError:
-		pass
-
-	astrobox.run()	
-
+	astrobox.run()
 
 if __name__ == "__main__":
 	main()

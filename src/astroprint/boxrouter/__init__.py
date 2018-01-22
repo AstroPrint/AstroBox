@@ -3,13 +3,21 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+import threading
+
 # singleton
 _instance = None
+creationLock = threading.Lock()
 
 def boxrouterManager():
 	global _instance
+
 	if _instance is None:
-		_instance = AstroprintBoxRouter()
+		with creationLock:
+			#check again because maybe another lock created it
+			if _instance is None:
+				_instance = AstroprintBoxRouter()
+
 	return _instance
 
 import json
@@ -19,9 +27,10 @@ import socket
 import os
 import weakref
 import uuid
+import sys
 
 from time import sleep, time
-from flask.ext.login import current_user
+from flask_login import current_user
 from ws4py.client.threadedclient import WebSocketClient
 from ws4py.messaging import PingControlMessage
 
@@ -159,7 +168,8 @@ class AstroprintBoxRouter(object):
 	STATUS_CONNECTING = 'connecting'
 	STATUS_CONNECTED = 'connected'
 	STATUS_ERROR = 'error'
-	ASTROBOX_NAMESPACE_UUID = 'ec35c0da-e6e2-4a50-9c85-3e102fffac48'
+	ASTROBOX_NAMESPACE_UUID = 'ec35c0dae6e24a509c853e102fffac48'
+	ASTROBOX_SD_NAMESPACE_UUID = 'b58abd65c93c46328267ca0929eb32d1'
 
 	def __init__(self):
 		self._settings = settings()
@@ -213,10 +223,22 @@ class AstroprintBoxRouter(object):
 
 			if os.path.exists(boxIdFile):
 				with open(boxIdFile, 'r') as f:
-					self._boxId = f.read()
+					self._boxId = f.read().strip()
 
 			if not self._boxId:
-				self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
+				#First we try using the CID of the card where it's flashed
+				if "linux" in sys.platform:
+					try:
+						with open('/sys/block/mmcblk0/device/cid', 'r') as f:
+							self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_SD_NAMESPACE_UUID), f.read()).hex
+
+					except Exception as e:
+						self._logger.error('Error trying to access SD Card CID record to generate Box Id: %s' % e)
+
+				if not self._boxId:
+					#If not we use getnode.
+					self._boxId = uuid.uuid5(uuid.UUID(self.ASTROBOX_NAMESPACE_UUID), str(uuid.getnode())).hex
+
 				with open(boxIdFile, 'w') as f:
 					f.write(self._boxId)
 

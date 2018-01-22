@@ -10,27 +10,44 @@ _instance = None
 # DO NOT store a reference to the result of printerManager in any persistant object.
 
 def printerManager(driver = None):
-	global _instance
+        global _instance
 
-	if driver is not None and _instance is not None and _instance.driverName != driver:
-		_instance.rampdown()
-		_instance = None
+        if driver is not None and _instance is not None and _instance.driverName != driver:
+                _instance.rampdown()
+                _instance = None
 
-	if _instance is None:
-		import importlib
+        if _instance is None and driver:
 
-		try:
-			# driver name to class map. format is (module, classname)
-			classInfo = {
-				'marlin': ('.marlin', 'PrinterMarlin'),
-				's3g': ('.s3g', 'PrinterS3g'),
-				'virtual': ('.virtual', 'PrinterVirtual')
-			}[driver]
+  		if driver.startswith('plugin:'):
+			from astroprint.printer.plugin import PrinterWithPlugin, NoPluginException
 
-		except KeyError:
-			classInfo = ('.marlin', 'PrinterMarlin')
+			try:
+				_instance = PrinterWithPlugin(driver[7:])
 
-		module = importlib.import_module(classInfo[0], 'astroprint.printer')
-		_instance = getattr(module, classInfo[1])()
+			except NoPluginException:
+				#The plugin is gone. Pick the default
+				from astroprint.printerprofile import printerProfileManager
+				ppm = printerProfileManager()
+				ppm.set({'driver': DEFAULT_MANAGER})
+				ppm.save()
 
-	return _instance
+		else:
+
+	          import importlib
+
+	          try:
+	                  # driver name to class map. format is (module, classname)
+	                  classInfo = {
+	                          'marlin': ('.marlin', 'PrinterMarlin'),
+	                          's3g': ('.s3g', 'PrinterS3g'),
+	                          'virtual': ('.virtual', 'PrinterVirtual'),
+	                          'plugin:com.astroprint.astrobox.plugins.virtualcomms': ('.virtual', 'PrinterVirtual')
+	                  }[driver]
+
+	          except KeyError:
+	                  classInfo = ('.marlin', 'PrinterMarlin')
+
+	          module = importlib.import_module(classInfo[0], 'astroprint.printer')
+	          _instance = getattr(module, classInfo[1])()
+
+        return _instance

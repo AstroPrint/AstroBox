@@ -5,20 +5,22 @@ __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the A
 
 import uuid
 import json
-import tornado.wsgi
-from ext.sockjs.tornado import SockJSRouter
-from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
-from flask.ext.login import LoginManager, current_user, logout_user
-from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
-from flask.ext.compress import Compress
-from flask.ext.assets import Environment
-from watchdog.observers import Observer
-from sys import platform
-
+import threading
 import os
 import time
 import logging
 import logging.config
+import tornado.wsgi
+
+from ext.sockjs.tornado import SockJSRouter
+from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
+from flask_login import LoginManager, current_user, logout_user
+from flask_principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
+from flask_compress import Compress
+from flask_assets import Environment
+from watchdog.observers import Observer
+from sys import platform
+
 
 SUCCESS = {}
 NO_CONTENT = ("", 204)
@@ -67,6 +69,7 @@ from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
+from astroprint.plugin import pluginManager
 
 UI_API_KEY = None
 VERSION = None
@@ -205,6 +208,7 @@ def camera_snapshot():
 def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
+	softwareManager = swManager()
 
 	fileName = None
 
@@ -225,7 +229,7 @@ def getStatus():
 			'camera': cm.isCameraConnected(),
 			#'printCapture': cm.timelapseInfo,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities
 		}),
 		mimetype= 'application/json',
 		headers= {
@@ -411,6 +415,8 @@ class Server():
 		from astroprint.migration import migrateSettings
 		migrateSettings()
 
+		pluginManager().loadPlugins()
+
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])
 
@@ -497,10 +503,14 @@ class Server():
 			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
 			connectionOptions = printer.getConnectionOptions()
 			if port in connectionOptions["ports"]:
-				printer.connect(port, baudrate)
+				t = threading.Thread(target=printer.connect, args=(port, baudrate))
+				t.daemon = True
+				t.start()
+				#printer.connect(port, baudrate)
 
 		# start up watchdogs
 		observer = Observer()
+		observer.daemon = True
 		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
 
@@ -518,8 +528,9 @@ class Server():
 		finally:
 			observer.stop()
 			self.cleanup()
+			logger.info('Cleanup complete')
 
-		observer.join()
+		observer.join(1.0)
 		logger.info('Good Bye!')
 
 	def _createSocketConnection(self, session):
@@ -602,6 +613,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
+		pluginManager().shutdown()
 		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()

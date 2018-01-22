@@ -3,8 +3,8 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask.ext.login import UserMixin
-from flask.ext.principal import Identity
+from flask_login import UserMixin
+from flask_principal import Identity
 import hashlib
 import os
 import yaml

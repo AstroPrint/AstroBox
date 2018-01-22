@@ -301,6 +301,11 @@ class PrintFilesManager(object):
 			"cloud_id": fileInfo["id"],
 			"gcodeAnalysis": fileInfo["info"],
 			"printFileName": fileInfo["printFileName"],
+			"printer": fileInfo["printer"],
+			"material": fileInfo["material"],
+			"quality": fileInfo["quality"],
+			"image": fileInfo["image"],
+			"created": fileInfo["created"],
 			"prints": {
 				"success": 0,
 				"failure": 0,
@@ -343,6 +348,8 @@ class PrintFilesManager(object):
 			os.remove(stlPath)
 
 		self.removeFileFromMetadata(filename)
+
+		eventManager().fire(Events.FILE_DELETED, {"filename": filename})
 
 	def removeFileFromMetadata(self, filename):
 		if filename in self._metadata:

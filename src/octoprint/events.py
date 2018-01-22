@@ -20,9 +20,17 @@ class Events(object):
 	# application startup
 	STARTUP = "Startup"
 
-	# connect/disconnect to printer
+	# printer status
 	CONNECTED = "Connected"
+	CONNECTING = "Connecting"
 	DISCONNECTED = "Disconnected"
+	HEATING_UP = "HeatingUp"
+
+	# temperature updates
+	TEMPERATURE_CHANGE = "TemperatureChange"
+
+	# printing progress
+	PRINTING_PROGRESS = "PrintingProgress"
 
 	# connect/disconnect by client
 	CLIENT_OPENED = "ClientOpened"
@@ -35,6 +43,7 @@ class Events(object):
 	UPDATED_FILES = "UpdatedFiles"
 	METADATA_ANALYSIS_STARTED = "MetadataAnalysisStarted"
 	METADATA_ANALYSIS_FINISHED = "MetadataAnalysisFinished"
+	FILE_DELETED = "FileDeleted"
 
 	# SD Upload
 	TRANSFER_STARTED = "TransferStarted"

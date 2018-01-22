@@ -18,7 +18,9 @@
         <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
         <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading bold">Software</li>
-        <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
+        <li class="software-license dotted"><a href="#settings/software-license">License</a></li>
+        <li class="software-update dotted"><a href="#settings/software-update">Update</a></li>
         <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
@@ -42,6 +44,10 @@
     <script type="text/template" id="printer-connection-settings-page-template">
       <div class="row">
         <div class="small-12">
+          <label class="bold">
+            Printer Communications Driver
+            <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+          </label>
           <label for="settings-serial-port" class="bold">
             USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
             <% if (settings.serial.portOptions.length > 0) { %>
@@ -69,16 +75,21 @@
         <div class="row">
           <div class="small-12">
             <label for="settings-baudrate" class="bold">Baud Rate
+            <% if (settings.serial.baudrateOptions.length > 1) { %>
               <select id="settings-baudrate" name="baudrate">
                 <% _.each(settings.serial.baudrateOptions, function(e) { %>
                   <option value="<%= e %>"<%= settings.serial.baudrate == e ? ' selected' : '' %>><%= e %></option>
                 <% }) %>
               </select>
+            <% } else { %>
+              <input type="hidden" value="<%= settings.serial.baudrateOptions[0] %>" name="baudrate"/>
+              <p><%= e %></p>
+            <% } %>
             </label>
           </div>
         </div>
       <% } %>
-      <% if (settings.serial.portOptions.length > 0 && ( settings.serial.baudrateOptions.length > 0 || settings.driver == 's3g') )  { %>
+      <% if (settings.serial.portOptions.length > 0)  { %>
         <div align="center">
           <div class="loading-button test-connection">
             <button class="success radius">Test Connection</button>
@@ -99,8 +110,9 @@
               <label for="settings-printer-driver" class="bold">
                 Driver
                 <select id="settings-printer-driver" name="driver">
-                  <option value="marlin" <%= settings.driver == 'marlin' ? 'selected' : '' %>>GCODE - Marlin firmware</option>
-                  <option value="s3g" <%= settings.driver == 's3g' ? 'selected' : '' %>> X3G - Sailfish / Makerbot firmware</option>
+                  <% _.each(driverChoices, function(p, k) { %>
+                    <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                  <% }) %>
                 </select>
               </label>
               <label for="extruder-count" class="bold">
@@ -154,11 +166,11 @@
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
-              <div class="input-wrapper cancel-gcode<% if (settings.driver == 's3g') { %> hide<% } %>">
+              <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                 <label for="cancel-gcode" class="bold">
                   Cancel GCODE
                 </label>
-                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%=settings.cancel_gcode.join('\n')%></textarea>
+                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
               </div>
               <hr/>
               <div class="loading-button">
@@ -443,8 +455,8 @@
       <% } %>
       <% if (settings.storedWifiNetworks.length > 0) { %>
         <hr/>
-        <div class="stored-wifis">
-          <h3 class="bold">Known WiFi Networks</h3>
+        <h3 class="bold">Known WiFi Networks</h3>
+        <div class="stored-wifis element-list">
           <% _.each(settings.storedWifiNetworks, function(c) { %>
             <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
               <div class="columns small-2 large-1 active">
@@ -566,15 +578,147 @@
     </script>
 
     <div class="show-for-small zebra">
+      <a href="#settings/software-plugins"><h1 class="bold" align="center">Apps &amp; Plugins</h1></a>
+    </div>
+    <div id="software-plugins" class="settings-page">
+      <div class="file-upload-view">
+        <div class="row upload-buttons">
+          <div class="small-12 large-7 medium-centered columns">
+            <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
+              <i class="icon-plus"></i> Upload Plugin or App ( <span class="extensions">.zip</span> )
+              <input class="file-upload" type="file" name="file" accept="">
+            </span>
+          </div>
+        </div>
+        <div class="row upload-progress" style="display:none">
+          <div class="small-12 large-10 large-centered columns">
+            <div class="progress radius">
+              <div class="meter" style="width: 0%"></div>
+            </div>
+            <div class="progress-message" align="center">
+              <i class="icon-rocket-spinner animate-spin"></i> <span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <h3 class="bold">Installed Plugins</h3>
+      <div class="element-list installed"></div>
+    </div>
+
+    <script type="text/template" id="software-plugings-settings-page-template">
+      <% if (plugins.length) { %>
+        <% _.each(plugins, function(p){ %>
+          <div class="row" data-plugin-id="<%= p.id %>" data-plugin-name="<%= p.name %>">
+            <div class="small-10 columns name">
+              <%= p.name %>
+              <% if (p.verified) { %><i class="icon-ok-circled" title="Verified Plugin"></i><% } %>
+              <span class="version">v<%= p.version %></span>
+            </div>
+            <div class="small-2 columns" align="center">
+              <% if (p.can_remove) { %>
+                <a href="#" title="Remove" class="delete-link"><i class="icon-trash"></i></a>
+              <% } %>
+            </div>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <div class="empty">
+          <i class="icon-puzzle"></i>
+          No Plugins or Apps installed
+        </div>
+      <% } %>
+    </script>
+
+    <div id="delete-plugin-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Plugin</h2>
+      <div class="modal-body">
+        <p>
+          This will permanently delete the plugin: <b class="name"></b>.
+        </p>
+        <p>
+          Are you sure you want to delete <b class="name"></b>?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">No</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Yes, Delete</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+            <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/software-license"><h1 class="bold" align="center">License</h1></a>
+    </div>
+    <div id="software-license" class="settings-page">
+    </div>
+
+    <script type="text/template" id="software-license-settings-page-template">
+      <div class="license-info <%= status %>">
+        <div class="row">
+          <div class="columns small-12 medium-5 large-3">
+            <div class="certificate-icon">
+              <i class="icon-certificate"></i>
+              <div class="status-icon">
+                <i class="icon-ok-circled ok"></i>
+                <i class="icon-attention nok"></i>
+              </div>
+            </div>
+          </div>
+          <div class="columns small-12 medium-7 large-9">
+            <% if (status == 'ok') { %>
+              <h1 class="bold">License Information</h1>
+            <% } else { %>
+              <h1 class="bold">No License</h1>
+            <% } %>
+          </div>
+        </div>
+        <div class="row">
+          <div class="columns">
+            <% if (status == 'ok') { %>
+              <div class="panel">
+                <ul>
+                  <li><b>License Id</b>: <span class="can-select"><%= license.license_id %></span></li>
+                  <li><b>Issued by</b>: <%= license.issuer %></li>
+                  <% if (license.expires) { %>
+                    <li><b>Expires</b>: <span data-localtime-format="d MMM, yyyy"><%= (new Date(license.expires * 1000)).toISOString() %></span></li>
+                  <% } %>
+                </ul>
+              </div>
+            <% } else { %>
+              <div class="panel callout">
+                <p>
+                  It's ok to use this sofware as long as you got it directly from AstroPrint via our downloads page or by purchasing one
+                  of our products.
+                </p>
+                <p>
+                  If the unit was purchased elsewhere and contains this unlicensed software, please report it to us.
+                </p>
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </script>
+
+    <div class="show-for-small zebra">
       <a href="#settings/software-update"><h1 class="bold" align="center">Software Update</h1></a>
     </div>
     <div id="software-update" class="settings-page hide" align="center">
       <h4 align="center">
         <b>{{version}}</b> Installed.<br/>
         {% if commit %}
-        <small>({{commit}})</small>
+          <small>({{commit}})</small>
         {% endif %}
       </h4>
+      <div class="additional-sw-container" style="display:none"></div>
       <div class="loading-button check">
         <button class="success radius">Check for updates</button>
         <span class="button success radius loading"><i class="icon-rocket-spinner animate-spin"></i> Checking...</span>
@@ -584,6 +728,15 @@
       <div class="content"></div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
+
+    <script type="text/template" id="software-additional-software-template">
+      <h3 class="bold">Additional Installed Core Packages</h3>
+      <ul>
+        <% _.each(packages, function(pkg) { %>
+          <li><%= pkg.variant.name %> - v<%= [pkg.version.major, pkg.version.minor, pkg.version.build].join('.') %></li>
+        <% }) %>
+      </ul>
+    </script>
 
     <script type="text/template" id="software-system-outdated-template">
       <div data-alert class="alert-box alert radius">
@@ -596,29 +749,36 @@
 
     <script type="text/template" id="software-update-modal-content">
       <h2 class="bold">
-        <% if (data.update_available && !data.is_current) { %> Update <% } else { %> No Updates <% } %> Available
+        <% if (data.update_available) { %> Update <% } else { %> No Updates <% } %> Available
       </h2>
-      <% if (data.update_available) { %>
-        <div class="modal-body">
-          <p>
-          <% if (data.is_current) { %>
-            Currently installed: <b><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></b>
-          <% } else { %>
-            Version: <big class="bold"><%= data.release.major+'.'+data.release.minor+'('+data.release.build+')'%></big>
-            <br/>Published: <b><%= data.release.date ? date_format(new Date(data.release.date)) : 'Not Published.' %></b>
+      <div class="modal-body">
+        <% _.each(data.releases, function(pkg) { %>
+          <% if (pkg.update_available) { %>
+            <div class="package-info">
+              <h4 class="bold"><i class="<%= pkg.is_current ? 'icon-ok-circled' : 'icon-attention' %>"></i> <%= pkg.name %></h4>
+              <ul>
+                <% if (pkg.is_current) { %>
+                  <li> Up-to-date: <b><%= pkg.release.major+'.'+pkg.release.minor+'('+pkg.release.build+')'%></b></li>
+                <% } else { %>
+                  <li>Version: <big class="bold"><%= pkg.release.major+'.'+pkg.release.minor+'('+pkg.release.build+')'%></big></li>
+                  <li>Published: <b><%= pkg.release.date ? date_format(new Date(pkg.release.date)) : 'Not Published.' %></b></li>
+                <% } %>
+                <% if (pkg.release.force_setup) { %>
+                  <li><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.</li>
+                <% } %>
+                <% if (!pkg.is_current) { %>
+                  <li class="rel-notes">
+                    <b>Release Notes:</b><br/>
+                    <div>
+                      <%= pkg.release.release_notes %>
+                    </div>
+                  </li>
+                <% } %>
+              </ul>
+            </div>
           <% } %>
-          <% if (data.release.force_setup) { %>
-            <br/><i class="icon-attention"></i> You would need to complete the setup wizard after installing this release.
-          <% } %>
-          </p>
-          <p>
-            <b>Release Notes:</b><br/>
-            <%= data.release.release_notes %>
-          </p>
-        </div>
-      <% } else { %>
-        <h3 class="bold" align="center" style="margin: 20px 0">You are running the latest software</h3>
-      <% } %>
+        <% }) %>
+      </div>
       <div class="modal-actions row">
         <% if (data.update_available) { %>
           <div class="small-12 medium-6 columns">
@@ -626,7 +786,7 @@
           </div>
           <div class="small-12 medium-6 columns">
             <div class="loading-button expand">
-              <button class="success radius go"><% if (data.is_current) { %>Re-install<% } else { %>Update<% } %></button>
+              <button class="success radius go">Update</button>
               <span class="button disabled success radius loading">
                 <i class="icon-rocket-spinner animate-spin"></i> Initiating...<span>
               </span>

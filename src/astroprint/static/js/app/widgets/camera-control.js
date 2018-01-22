@@ -301,33 +301,8 @@ var CameraControlViewWebRTC = CameraControlView.extend({
     //Evaluate if we are able to do WebRTC
 
     if(Janus.isWebrtcSupported()) {
-      if(!(navigator.mozGetUserMedia)
-          &&
-        !(this.settings.encoding == 'vp8')
-      ){
-        //BROWSER IS NOT FIREFOX
-        //AND VIDEO IS NOT VP8
-
-        var chromeVersion = navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./);
-
-        //Google Chrome is able to load video in H264 encoding since v52 version
-        if(chromeVersion[2] && parseInt(chromeVersion[2]) >= 52){
-
-          this.setState('ready');
-          this.canStream = true;
-
-        } else {
-          //this.setState('nowebrtc');
-          //this.canStream = false;
-
-          this.$('#camera-mode-slider').hide();
-          this.canStream = false;
-        }
-        ////////////////////////
-      } else {
-        this.setState('ready');
-        this.canStream = true;
-      }
+      this.setState('ready');
+      this.canStream = true;
     } else {
       this.setState('nowebrtc');
       this.canStream = false;
@@ -398,7 +373,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
           server: this.serverUrl,
           apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
           iceServers: [{
-            "url": "stun:turn.astroprint.com:80"
+            "urls": ["stun:turn.astroprint.com:80"]
           }],
           success: _.bind(function() {
             $.ajax({

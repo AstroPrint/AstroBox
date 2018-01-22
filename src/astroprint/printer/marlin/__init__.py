@@ -73,7 +73,8 @@ class PrinterMarlin(Printer):
 
 	def disableMotorsAndHeater(self):
 		self.setTemperature('bed', 0)
-		self.setTemperature('tool', 0)
+		for i in range(self._profileManager.data.get('extruder_count')):
+			self.setTemperature('tool%d' % i, 0)
 		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
 
 	#~~ callback handling
@@ -286,7 +287,7 @@ class PrinterMarlin(Printer):
 
 	def _setState(self, state):
 		self._state = state
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def _addLog(self, log):
 		self._log.append(log)
@@ -377,6 +378,9 @@ class PrinterMarlin(Printer):
 
 			self._setProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
 
+			value = self._formatPrintingProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
+			eventManager().fire(Events.PRINTING_PROGRESS, value)
+
 		except Exception, e:
 			super(PrinterMarlin, self).mcProgress()
 
@@ -389,7 +393,7 @@ class PrinterMarlin(Printer):
 		self._addMessage(message)
 
 	def mcSdStateChange(self, sdReady):
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcSdFiles(self, files):
 		eventManager().fire(Events.UPDATED_FILES, {"type": "gcode"})
@@ -397,7 +401,7 @@ class PrinterMarlin(Printer):
 
 	def mcFileSelected(self, filename, filesize, sd):
 		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		if self._printAfterSelect:
 			self.startPrint()
@@ -412,7 +416,7 @@ class PrinterMarlin(Printer):
 
 		self._setJobData(filename, filesize, True)
 		self._setProgressData(0.0, 0, 0, None, 1)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcFileTransferDone(self, filename):
 		self._sdStreaming = False
@@ -425,7 +429,7 @@ class PrinterMarlin(Printer):
 		self._setCurrentZ(None)
 		self._setJobData(None, None, None)
 		self._setProgressData(None, None, None, None, None)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	def mcReceivedRegisteredMessage(self, command, output):
 		self._sendFeedbackCommandOutput(command, output)
@@ -433,6 +437,17 @@ class PrinterMarlin(Printer):
 	def _setJobData(self, filename, filesize, sd):
 		super(PrinterMarlin, self)._setJobData(filename, filesize, sd)
 		self._comm.totalPrintTime = self._estimatedPrintTime
+
+	def _formatPrintingProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		data = {
+			"completion": progress * 100 if progress is not None else None,
+			"currentLayer": currentLayer,
+			"filamentConsumed": self.getConsumedFilament(),
+			"filepos": filepos,
+			"printTime": int(printTime) if printTime is not None else None,
+			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
+		}
+		return data
 
 	#~~ sd file handling
 

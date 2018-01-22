@@ -46,12 +46,15 @@ class Printer(object):
 		self._comm = None
 		self._selectedFile = None
 		self._printAfterSelect = False
-		self._currentZ = None
+		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._printTime = None
 		self._printTimeLeft = None
 		self._currentLayer = None
 		self._currentPrintJobId = None
+		self._timeStarted = 0
+		self._secsPaused = 0
+		self._pausedSince = None
 
 		self._profileManager = printerProfileManager()
 
@@ -100,11 +103,11 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
 
-		s = settings()
+		#s = settings()
 
 		# don't try to connect when the device hasn't been setup
-		if not s.getBoolean(['server', 'firstRun']):
-			self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
+		#if not s.getBoolean(['server', 'firstRun']):
+		#	self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
 
 	@property
 	def fileManager(self):
@@ -113,6 +116,16 @@ class Printer(object):
 	@property
 	def currentPrintJobId(self):
 		return self._currentPrintJobId
+
+	@property
+	def shuttingDown(self):
+		return self._shutdown
+
+	def getPrintTime(self):
+		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
+
+	def getCurrentLayer(self):
+		return max(1, self._currentLayer)
 
 	def rampdown(self):
 		self._logger.info('Ramping down Printer Manager')
@@ -146,21 +159,26 @@ class Printer(object):
 		if callback in self._callbacks:
 			self._callbacks.remove(callback)
 
+	@property
+	def registeredCallbacks(self):
+		return self._callbacks
+
+	@registeredCallbacks.setter
+	def registeredCallbacks(self, callbacks):
+		self._callbacks = callbacks
+
 	def _sendInitialStateUpdate(self, callback):
 		try:
 			data = self._stateMonitor.getCurrentData()
 			data.update({
-				"temps": list(self._temps),
-				#Currently we don't want the logs to clogg the notification between box/boxrouter/browser
-				#"logs": list(self._log),
-				#"messages": list(self._messages)
+				"temps": list(self._temps)
 			})
 
 			if 'state' in data and 'flags' in data['state']:
 				data['state']['flags'].update({'camera': self.isCameraConnected()})
 
 			callback.sendCurrentData(data)
-			#callback.sendHistoryData(data)
+
 		except Exception, err:
 			import sys
 			sys.stderr.write("ERROR: %s\n" % str(err))
@@ -209,6 +227,14 @@ class Printer(object):
 		else:
 			self._selectedFile = None
 
+		data = self.getFileInfo(filename)
+		data['size'] = filesize
+		self._stateMonitor.setJobData(data)
+
+		self._layerCount = data['layerCount']
+		self._estimatedPrintTime = data['estimatedPrintTime']
+
+	def getFileInfo(self, filename):
 		estimatedPrintTime = None
 		date = None
 		filament = None
@@ -232,6 +258,9 @@ class Printer(object):
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
+			if fileData is not None and "image" in fileData.keys():
+				renderedImage = fileData["image"]
+
 			cloudId = self._fileManager.getFileCloudId(filename)
 			if cloudId:
 				if self._selectedFile:
@@ -244,12 +273,11 @@ class Printer(object):
 			if fileData is not None and "printFileName" in fileData.keys():
 				printFileName = fileData["printFileName"]
 
-		self._stateMonitor.setJobData({
+		return {
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
 				"printFileName": printFileName,
 				"origin": FileDestinations.LOCAL,
-				"size": filesize,
 				"date": date,
 				"cloudId": cloudId,
 				"rendered_image": renderedImage
@@ -257,11 +285,7 @@ class Printer(object):
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
 			"filament": filament,
-		})
-
-		self._layerCount = layerCount
-		self._estimatedPrintTime = estimatedPrintTime
-
+		}
 	def setSerialDebugLogging(self, active):
 		serialLogger = logging.getLogger("SERIAL")
 		if active:
@@ -294,24 +318,30 @@ class Printer(object):
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
 
+	#This should probably be deprecated
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
 		self._stateMonitor.setCurrentZ(self._currentZ)
+
+	def _formatPrintingProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		data = {
+			"completion": progress * 100 if progress is not None else None,
+			"currentLayer": currentLayer,
+			"filamentConsumed": self.getConsumedFilament(),
+			"filepos": filepos,
+			"printTime": int(printTime) if printTime is not None else None,
+			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
+		}
+
+		return data
 
 	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
 		self._progress = progress
 		self._printTime = printTime
 		self._printTimeLeft = printTimeLeft
-		self._currentLayer = currentLayer
 
-		self._stateMonitor.setProgress({
-			"completion": self._progress * 100 if self._progress is not None else None,
-			"currentLayer": self._currentLayer,
-			"filamentConsumed": self.getConsumedFilament(),
-			"filepos": filepos,
-			"printTime": int(self._printTime) if self._printTime is not None else None,
-			"printTimeLeft": int(self._printTimeLeft * 60) if self._printTimeLeft is not None else None
-		})
+		data = self._formatPrintingProgressData(progress, filepos, printTime, printTimeLeft, currentLayer)
+		self._stateMonitor.setProgress(data)
 
 	def startPrint(self):
 		"""
@@ -325,7 +355,6 @@ class Printer(object):
 			return False
 
 		self._setCurrentZ(None)
-		#cameraManager().open_camera()
 
 		kwargs = {
 			'print_file_name': os.path.basename(self._selectedFile['filename'])
@@ -340,6 +369,12 @@ class Printer(object):
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']
 
+		self._timeStarted = time.time()
+		self._secsPaused = 0
+		self._pausedSince = None
+
+		self._currentLayer = 0
+
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -347,7 +382,7 @@ class Printer(object):
 		 Cancel the current printjob.
 		"""
 
-		if self._comm and (self.isPrinting() or self.isPaused()):
+		if self.isConnected() and (self.isPrinting() or self.isPaused()):
 			activePrintJob = None;
 
 			cameraManager().stop_timelapse()
@@ -372,10 +407,17 @@ class Printer(object):
 		"""
 		 Pause the current printjob.
 		"""
-		if self._comm is None:
+		if not self.isConnected():
 			return
 
 		wasPaused = self.isPaused()
+
+		if wasPaused:
+			if self._pausedSince is not None:
+				self._secsPaused += ( time.time() - self._pausedSince )
+				self._pausedSince = None
+		else:
+			self._pausedSince = time.time()
 
 		self.setPause(not wasPaused)
 
@@ -394,7 +436,7 @@ class Printer(object):
 
 		#Not sure if this is the best way to get the layer count
 		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
-		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 		consumedMaterial = self.getTotalConsumedFilament()
 
@@ -404,6 +446,7 @@ class Printer(object):
 
 		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
 
+	# This should be deprecated, there's no a layer change event
 	def mcZChange(self, newZ):
 		"""
 		 Callback method for the comm object, called upon change of the z-layer.
@@ -417,11 +460,17 @@ class Printer(object):
 		self._setCurrentZ(newZ)
 
 	def mcToolChange(self, newTool, oldTool):
+		self._stateMonitor.setCurrentTool(newTool)
 		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
+	def reportNewLayer(self):
+		self._currentLayer += 1
+		eventManager().fire(Events.LAYER_CHANGE, {"layer": self.getCurrentLayer()})
+
+	#This function should be deprecated
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
-		self._currentLayer = layer;
+		self._currentLayer = layer
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
@@ -440,24 +489,28 @@ class Printer(object):
 		if self._estimatedPrintTime:
 			if printTime and progress:
 				if progress < 1.0:
-					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
-					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
-					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
-					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress )
+					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft )
+					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance
+					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60
 				else:
 					estimatedTimeLeft = 0
 
 			else:
 				estimatedTimeLeft = self._estimatedPrintTime / 60
 
-		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self._currentLayer)
+		value = self._formatPrintingProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
+		eventManager().fire(Events.PRINTING_PROGRESS, value)
+
+		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
+		eventManager().fire(Events.HEATING_UP, value)
 
 	def mcCameraConnectionChanged(self, connected):
 		#self._stateMonitor._state['flags']['camera'] = connected
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
+		self.refreshStateData()
 
 	#~~~ Print Profile ~~~~
 
@@ -470,16 +523,17 @@ class Printer(object):
 	#~~~ Data processing functions ~~~
 
 	def _addTemperatureData(self, temp, bedTemp):
-		currentTimeUtc = int(time.time())
-
 		data = {
-			"time": currentTimeUtc
+			"time": int(time.time())
 		}
-		for tool in temp.keys():
-			data["tool%d" % tool] = {
-				"actual": temp[tool][0],
-				"target": temp[tool][1]
-			}
+
+		if temp is not None:
+			for tool in temp.keys():
+				data["tool%d" % tool] = {
+					"actual": temp[tool][0],
+					"target": temp[tool][1]
+				}
+
 		if bedTemp is not None and isinstance(bedTemp, tuple):
 			data["bed"] = {
 				"actual": bedTemp[0],
@@ -491,15 +545,18 @@ class Printer(object):
 		self._temp = temp
 		self._bedTemp = bedTemp
 
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._stateMonitor.addTemperature(data)
 
 	#~~ callback from metadata analysis event
 
 	def onMetadataAnalysisFinished(self, event, data):
 		if self._selectedFile:
-			self._setJobData(self._selectedFile["filename"],
-							 self._selectedFile["filesize"],
-							 self._selectedFile["sd"])
+			self._setJobData(
+				self._selectedFile["filename"],
+				self._selectedFile["filesize"],
+				self._selectedFile["sd"]
+			)
 
 	# ~~~ File Management ~~~~
 
@@ -529,6 +586,9 @@ class Printer(object):
 
 	def getCurrentData(self):
 		return self._stateMonitor.getCurrentData()
+
+	def refreshStateData(self):
+		self._stateMonitor.setState({"state": self._state, "text": self.getStateString(), "flags": self._getStateFlags()})
 
 	# ~~~ Implement this API ~~~
 
@@ -563,9 +623,6 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def getStateString(self):
-		raise NotImplementedError()
-
-	def getPrintTime(self):
 		raise NotImplementedError()
 
 	def getConsumedFilament(self):
@@ -625,9 +682,10 @@ class StateMonitor(object):
 		self._jobData = None
 		self._gcodeData = None
 		self._sdUploadData = None
-		self._currentZ = None
+		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._stop = False
+		self._currentTool = 0
 
 		self._offsets = {}
 
@@ -660,6 +718,7 @@ class StateMonitor(object):
 		self._addMessageCallback(message)
 		self._changeEvent.set()
 
+	#This should probably be deprecated
 	def setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
 		self._changeEvent.set()
@@ -678,6 +737,10 @@ class StateMonitor(object):
 
 	def setTempOffsets(self, offsets):
 		self._offsets = offsets
+		self._changeEvent.set()
+
+	def setCurrentTool(self, currentTool):
+		self._currentTool = currentTool
 		self._changeEvent.set()
 
 	def _work(self):
@@ -707,7 +770,8 @@ class StateMonitor(object):
 		return {
 			"state": self._state,
 			"job": self._jobData,
-			"currentZ": self._currentZ,
+			"currentZ": self._currentZ, # this should probably be deprecated
 			"progress": self._progress,
-			"offsets": self._offsets
+			"offsets": self._offsets,
+			"tool": self._currentTool
 		}

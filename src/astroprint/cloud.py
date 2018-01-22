@@ -1,5 +1,6 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
+__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 # singleton
 _instance = None
@@ -27,8 +28,8 @@ from time import sleep
 from requests_toolbelt import MultipartEncoder
 
 from flask import current_app
-from flask.ext.login import login_user, logout_user, current_user
-from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
+from flask_login import login_user, logout_user, current_user
+from flask_principal import Identity, identity_changed, AnonymousIdentity
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
@@ -84,7 +85,7 @@ class AstroPrintCloud(object):
 	def cloud_enabled(self):
 		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
 
-	def signin(self, email, password):
+	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 		user = None
@@ -115,7 +116,9 @@ class AstroPrintCloud(object):
 			userLoggedIn = user and user.check_password(userManager.createPasswordHash(password))
 
 		if userLoggedIn:
-			login_user(user, remember=True)
+			if hasSessionContext:
+				login_user(user, remember=True)
+
 			userId = user.get_id()
 
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
@@ -123,7 +126,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -138,7 +142,45 @@ class AstroPrintCloud(object):
 
 		return False
 
-	def signinWithKey(self, email, private_key):
+	def validatePassword(self, email, password):
+		from octoprint.server import userManager
+		from astroprint.network.manager import networkManager
+		user = None
+		userValidated = False
+
+		online = networkManager().isOnline()
+
+		if online:
+			private_key = self.get_private_key(email, password)
+
+			if private_key:
+				public_key = self.get_public_key(email, private_key)
+
+				if public_key:
+					#Let's update the box now:
+					user = userManager.findUser(email)
+					if user:
+						userManager.changeUserPassword(email, password)
+						userManager.changeCloudAccessKeys(email, public_key, private_key)
+					else:
+						user = userManager.addUser(email, password, public_key, private_key, True)
+
+					userValidated = True
+
+		else:
+			user = userManager.findUser(email)
+			userValidated = user and user.check_password(userManager.createPasswordHash(password))
+
+		if userValidated:
+			userId = user.get_id()
+			self.settings.set(["cloudSlicer", "loggedUser"], userId)
+			self.settings.save()
+
+			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
+
+		return userValidated
+
+	def signinWithKey(self, email, private_key, hasSessionContext = True):
 		from octoprint.server import userManager
 		from astroprint.network.manager import networkManager
 
@@ -156,17 +198,19 @@ class AstroPrintCloud(object):
 
 				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
-					userLoggedIn = True
 				else:
-					return {
-						'error': 'no_user'
-					}
+					user = userManager.addUser(email, password, public_key, private_key, True)
+
+				userLoggedIn = True
+
 		else:
 			user = userManager.findUser(email)
 			userLoggedIn = user and user.check_privateKey(private_key)
 
 		if userLoggedIn:
-			login_user(user, remember=True)
+			if hasSessionContext:
+				login_user(user, remember=True)
+
 			userId = user.get_id()
 
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
@@ -174,7 +218,8 @@ class AstroPrintCloud(object):
 
 			boxrouterManager().boxrouter_connect()
 
-			identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
+			if hasSessionContext:
+				identity_changed.send(current_app._get_current_object(), identity=Identity(userId))
 
 			#let the singleton be recreated again, so new credentials are taken into use
 			global _instance
@@ -190,6 +235,10 @@ class AstroPrintCloud(object):
 
 	def remove_logged_user(self):
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
+		self.settings.set(["materialSelected"], None)
+		self.settings.set(["printerSelected"], None)
+		self.settings.set(["qualitySelected"], None)
+		self.settings.set(["customQualitySelected"], None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 
@@ -199,15 +248,17 @@ class AstroPrintCloud(object):
 
 		eventManager().fire(Events.LOCK_STATUS_CHANGED, None)
 
-	def signout(self):
-		from flask import session
+	def signout(self, hasSessionContext = True):
+		if hasSessionContext:
+			from flask import session
 
-		logout_user()
+			logout_user()
 
-		for key in ('identity.name', 'identity.auth_type'):
-			session.pop(key, None)
+			for key in ('identity.name', 'identity.auth_type'):
+				session.pop(key, None)
 
-		identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+			identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+
 		self.remove_logged_user()
 
 	def get_upload_info(self, filePath):
@@ -337,6 +388,7 @@ class AstroPrintCloud(object):
 			data = r.json()
 		except:
 			data = None
+			self._logger.error('Unable to get file info: %d' % r.status_code , exc_info = True)
 
 		printFile = fileManager.getFileByCloudId(print_file_id)
 
@@ -364,6 +416,11 @@ class AstroPrintCloud(object):
 
 		destFile = None
 		printFileName = None
+		printer = None
+		material = None
+		quality = None
+		image = None
+		created = None
 
 		if data and "download_url" in data and (("name" in data) or ("filename" in data)) and "info" in data:
 			progressCb(2)
@@ -375,6 +432,17 @@ class AstroPrintCloud(object):
 			else:
 				destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 				printFileName = data["name"]
+
+			if "printer" in data:
+				printer = data['printer']
+			if "material" in data:
+				material = data['material']
+			if "quality" in data:
+				quality = data['quality']
+			if "image" in data:
+				image = data['image']
+			if "created" in data:
+				created = data['created']
 
 			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
 
@@ -389,6 +457,11 @@ class AstroPrintCloud(object):
 					'printFileId': print_file_id,
 					'printFileInfo': data['info'],
 					'printFileName': printFileName,
+					'printer': printer,
+					'material': material,
+					'quality': quality,
+					'image': image,
+					'created': created,
 					'progressCb': progressCb,
 					'successCb': onSuccess,
 					'errorCb': errorCb

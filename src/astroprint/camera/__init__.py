@@ -127,29 +127,32 @@ class CameraInactivity(object):
 		self.lastActivity = time.time()
 		waitForSecs = self._inactivitySecs
 
-		while not self._stopped:
-			self._logger.debug('Waiting %f seconds' % waitForSecs)
-			if not self._inactivtyEvent.wait(waitForSecs):
-				secsSinceLastActivity = time.time() - self.lastActivity
-				self._logger.debug('%f seconds since last activity' % secsSinceLastActivity)
-				if secsSinceLastActivity >= self._inactivitySecs:
-					# it's possible that onInactive detects that video is playing. In that case
-					# we reset the time again so we can check later, as the camera was active on this check.
-					# If not, onInactive will call close_camera which will stop this thread and not
-					# wait anymore
-					waitForSecs = self._inactivitySecs
-					self.lastActivity = time.time()
+		try:
+			while not self._stopped:
+				self._logger.debug('Waiting %f seconds' % waitForSecs)
+				if not self._inactivtyEvent.wait(waitForSecs):
+					if not self._stopped:
+						secsSinceLastActivity = time.time() - self.lastActivity
+						self._logger.debug('%f seconds since last activity' % secsSinceLastActivity)
+						if secsSinceLastActivity >= self._inactivitySecs:
+							# it's possible that onInactive detects that video is playing. In that case
+							# we reset the time again so we can check later, as the camera was active on this check.
+							# If not, onInactive will call close_camera which will stop this thread and not
+							# wait anymore
+							waitForSecs = self._inactivitySecs
+							self.lastActivity = time.time()
 
-					try:
-						self._onInactive()
+							try:
+								self._onInactive()
 
-					except Exception as e:
-						self._logger.error('Error while processing inactivity event: %s' % e, exc_info=True)
+							except Exception as e:
+								self._logger.error('Error while processing inactivity event: %s' % e, exc_info=True)
 
-				else:
-					waitForSecs = self._inactivitySecs - secsSinceLastActivity
+						else:
+							waitForSecs = self._inactivitySecs - secsSinceLastActivity
 
-		self._thread = None
+		finally:
+			self._thread = None
 
 	def stop(self):
 		if self._thread:
@@ -157,8 +160,6 @@ class CameraInactivity(object):
 			self._inactivtyEvent.set()
 			if self._thread != threading.currentThread():
 				self._thread.join()
-
-			self._thread = None
 
 #
 # Camera Manager base class
@@ -195,6 +196,7 @@ class CameraManager(object):
 		inactivitySecs = s.get(["camera", "inactivitySecs"])
 		if inactivitySecs > 0:
 			self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+			#self._cameraInactivity = CameraInactivity(10, self._onInactive) # For testing
 		else:
 			self._cameraInactivity = None
 
