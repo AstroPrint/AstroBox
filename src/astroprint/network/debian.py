@@ -28,6 +28,7 @@ from os import remove, close
 
 from octoprint.server import eventManager
 from octoprint.events import Events
+from octoprint.util import getExceptionString
 
 def idle_add_decorator(func):
     def callback(nm, interface, signal, *args):
@@ -547,9 +548,24 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		old_name = settings.Hostname
 
-		settings.SaveHostname(name)
+		newName = ''
 
-		if (settings.Hostname == name):
+		try:
+			settings.SaveHostname(name)
+
+			newName = settings.Hostname
+
+
+		except DBusException as e:
+
+			exceptionName = e.get_dbus_name()
+
+			if exceptionName == 'org.freedesktop.DBus.Error.NoReply':
+				newName = name
+
+
+
+		if (newName == name):
 			def replace(file_path, pattern, subst):
 				#Create temp file
 				fh, abs_path = mkstemp()
@@ -573,13 +589,12 @@ class DebianNetworkManager(NetworkManagerBase):
 			for f in udpateFiles:
 				if (os.path.exists(f) and os.path.isfile(f)):
 					replace(f, old_name, name)
-
 			return True
-
 		else:
 			return False
 
-	# ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
+
+# ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
 
 	def _getWifiDevice(self):
 		devices = self._nm.NetworkManager.GetDevices()
@@ -623,3 +638,4 @@ class DebianNetworkManager(NetworkManagerBase):
 				return device.Ip4Config.AddressData[0]['address']
 
 		return None
+
