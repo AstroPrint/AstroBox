@@ -28,7 +28,6 @@ from os import remove, close
 
 from octoprint.server import eventManager
 from octoprint.events import Events
-from octoprint.util import getExceptionString
 
 def idle_add_decorator(func):
     def callback(nm, interface, signal, *args):
