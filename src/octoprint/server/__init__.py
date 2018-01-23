@@ -94,6 +94,12 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+	publicKey = None
+
+	if loggedUsername:
+		user = userManager.findUser(loggedUsername)
+		if user:
+			publicKey = user.publicKey
 
 	if (s.getBoolean(["server", "firstRun"])):
 		swm = swManager()
@@ -109,7 +115,7 @@ def index():
 			astroboxName= networkManager().getHostname(),
 			checkSoftware= swm.shouldCheckForNew,
 			settings= s,
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
@@ -122,7 +128,7 @@ def index():
 			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
@@ -163,7 +169,7 @@ def index():
 			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log']),
 			cameraManager= cm.name,
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 @app.route("/discovery.xml")
