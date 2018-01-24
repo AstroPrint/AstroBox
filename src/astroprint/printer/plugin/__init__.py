@@ -298,7 +298,7 @@ class PrinterWithPlugin(Printer):
 		return self._plugin.streaming
 
 	def isHeatingUp(self):
-		return self._plugin.preHeating
+		return self._plugin.heatingUp
 
 	def isConnected(self):
 		return self._plugin.connected
