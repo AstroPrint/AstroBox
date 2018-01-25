@@ -24,24 +24,17 @@ var SocketData = Backbone.Model.extend({
       percent: 0.0,
       time_left: 0
     },
-    temps: {
-      bed: {
-        actual: null,
-        target: null
-      },
-      extruder: {
-        actual: null,
-        target: null
-      }
-    },
+    temps: {},
     astroprint: {
       status: null
     },
     printer: {
       status: null
     },
-    print_capture: null
+    print_capture: null,
+    tool: null
   },
+  extruder_count: null,
   initialize: function()
   {
     this.set('printing', initial_states.printing || initial_states.paused);
@@ -52,9 +45,9 @@ var SocketData = Backbone.Model.extend({
     //See if we need to check for sofware version
     if (initial_states.checkSoftware && initial_states.online) {
       $.get(API_BASEURL + 'settings/software/check')
-        .done(_.bind(function(data){
-          if (data.update_available && !data.is_current) {
-            this.trigger('new_sw_release', data);
+        .done(_.bind(function(data) {
+          if (data.update_available) {
+            this.trigger('new_sw_release');
           }
         }, this));
     }
@@ -97,6 +90,9 @@ var SocketData = Backbone.Model.extend({
     this._autoReconnectTrial = 0;
     this.set('box_reachable', 'reachable');
     //Get some initials
+    if (this.extruder_count == null) {
+      this.extruder_count = (app.printerProfile.toJSON())['extruder_count'];
+    }
   },
   _onClose: function(e) {
     if (e && e.code == 1000) {
@@ -142,12 +138,21 @@ var SocketData = Backbone.Model.extend({
 
         case "current": {
           var flags = data.state.flags;
-
           if (data.temps.length) {
             var temps = data.temps[data.temps.length-1];
+            var extruders = [];
+            var tool = null;
+
+            for (var i = 0; i < this.extruder_count; i++) {
+              if (temps['tool' + i]) {
+                tool = { "current": temps['tool' + i].actual, "target": temps['tool' + i].target }
+                extruders[i] = tool ;
+              }
+            }
+
             this.set('temps', {
               bed: temps.bed,
-              extruder: temps.tool0
+              extruders: extruders
             });
           }
 
@@ -193,6 +198,8 @@ var SocketData = Backbone.Model.extend({
               heating_up: flags.heatingUp
             });
           }
+
+          this.set('tool', data.tool);
         }
         break;
 
@@ -256,6 +263,10 @@ var SocketData = Backbone.Model.extend({
               //We need to release so that the update screen shows up
               window.location.reload()
             break;
+
+            case 'ToolChange':
+              this.set('tool', data.tool);
+              break;
 
             default:
               console.warn('Unkonwn event received: '+type);

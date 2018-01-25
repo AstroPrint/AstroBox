@@ -286,6 +286,48 @@
   h2 span {
     color: black;
   }
+
+  .package-info {
+    background-color: #fafafa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+
+    h4 {
+      font-size: 16px;
+
+      i {
+        font-size: 25px;
+        vertical-align: middle;
+
+        &.icon-ok-circled {
+          color: $success-color;
+        }
+
+        &.icon-attention {
+          color: $alert-color;
+        }
+      }
+    }
+
+    ul {
+      margin: 0px;
+
+      li {
+        list-style: none;
+
+        &.rel-notes {
+          margin-top: 10px;
+
+          > div {
+            padding-top: 5px;
+            font-size: 13px;
+          }
+        }
+      }
+    }
+  }
 }
 
 #software-update {
@@ -301,6 +343,29 @@
     }
 
     margin-bottom: 20px;
+  }
+
+  .additional-sw-container {
+    background-color: #fafafa;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    @include radius($global-radius);
+
+    h3 {
+      text-align: left;
+      font-size: 15px;
+    }
+
+    ul {
+      text-align: left;
+      margin: 0px;
+
+      li {
+        list-style: none;
+        font-size: 12px;
+      }
+    }
   }
 }
 
@@ -356,6 +421,69 @@
         display: block;
         font-size: rem-calc(80);
       }
+    }
+  }
+}
+
+#software-license {
+  .license-info {
+    display: table;
+
+    h1 {
+      height: 100px;
+      font-size: 30px;
+      text-align: center;
+    }
+
+    .certificate-icon {
+      position: relative;
+      height: 100px;
+      line-height: 100px;
+      text-align: center;
+      width: 140px;
+
+      .status-icon {
+        position: absolute;
+        top:0;
+        left:0;
+        right: 0;
+        bottom: 0;
+      }
+
+      i {
+        font-size: 100px;
+        color: #ddd;
+
+        &.ok, &.nok {
+          display: none;
+          font-size: 30px;
+        }
+
+        &.ok {
+          color: $success-color;
+        }
+
+        &.nok {
+          color: $warning-color;
+        }
+      }
+    }
+
+    &.ok {
+      .certificate-icon i.ok {
+        display: inline;
+      }
+    }
+
+    &.nok {
+      .certificate-icon i.nok {
+        display: inline;
+      }
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
     }
   }
 }

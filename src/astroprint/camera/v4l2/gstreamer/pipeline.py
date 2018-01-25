@@ -72,12 +72,13 @@ class AstroPrintPipeline(object):
 				self._encoding,
 				onListeningEvent,
 				errorState,
-				( self._parentConn, self._processConn )
+				( self._parentConn, self._processConn ),
+				settings().getInt(['camera', 'debug-level'])
 			)
 		)
 		self._process.daemon = True
 		self._process.start()
-		if onListeningEvent.wait(5.0):
+		if onListeningEvent.wait(20.0):
 			if errorState.value:
 				self._logger.error('Pipeline Failed to start.')
 				self._kill()

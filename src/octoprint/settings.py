@@ -34,8 +34,8 @@ default_settings = {
 		"swFlowControl": True,
 		"timeout": {
 			"detection": 0.5,
-			"connection": 30.0,
-			"communication": 8,
+			"connection": 2.0,
+			"communication": 10.0,
 			"temperature": 5,
 			"sdStatus": 1
 		},
@@ -171,7 +171,7 @@ default_settings = {
 		"interface": 'wlan0'
 	},
 	"software": {
-		"infoFile": None,
+		"infoDir": None,
 		"variantFile": None,
 		"useUnreleased": False,
 		"lastCheck": None

@@ -17,6 +17,8 @@ class VirtualComms(Plugin, PrinterCommsService):
 		super(VirtualComms, self).initPrinterCommsService(printerManager)
 
 		seettings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
+		self._previousSelectedTool = 0
+		self._currentSelectedTool = 0
 
 		self._vpSettings = {
 			'connection': 1.0,
@@ -49,6 +51,12 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._preheating = False
 		self._temperatureChanger = None
 
+	def changeTemperature(self, tempTool, bedTool):
+		extruder_count = self._profileManager.data.get('extruder_count')
+		for i in range(extruder_count):
+			self.setTemperature('tool'+str(i), tempTool)
+		self.setTemperature("bed", bedTool)
+
 	def connect(self, port=None, baudrate=None):
 		self._comm = True
 		self._changePrinterState(PrinterState.STATE_CONNECTING)
@@ -60,8 +68,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 				self._temperatureChanger.start()
 
 				#set initial temps
-				self.setTemperature('tool0', 25)
-				self.setTemperature('bed', 25)
+				self.changeTemperature(25, 25)
 
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
 		t.start()
@@ -85,15 +92,12 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		currentFile = self._printerManager.selectedFile
 
-		self.fireSystemEvent(SystemEvent.PRINT_STARTED, {
-			"file": currentFile['filename'],
-			"filename": os.path.basename(currentFile['filename']),
-			"origin": currentFile['origin']
-		})
+		data = self._printerManager.getFileInfo(currentFile['filename'])
+
+		self.fireSystemEvent(SystemEvent.PRINT_STARTED, data)
 
 		#First we simulate heatup
-		self.setTemperature("tool0", 210)
-		self.setTemperature("bed", 60)
+		self.changeTemperature(210, 60)
 		self.reportHeatingUpChange(True)
 		self._heatingUp = True
 
@@ -110,8 +114,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._heatingUpTimer.start()
 
 	def disableMotorsAndHeater(self):
-		self.setTemperature("tool0", 0)
-		self.setTemperature("bed", 0)
+		self.changeTemperature(0,0)
 		self._logger.info('Turning down motors')
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
@@ -119,7 +122,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 			self._printJob.cancel()
 
 		if self.paused:
-			self.setPause(False)
+			self.setPaused(False)
 
 		if self._heatingUpTimer:
 			self._heatingUpTimer.cancel()
@@ -142,7 +145,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
 
 	def changeTool(self, tool):
-		self._logger.info('Change tool to %s', tool)
+		self._logger.info('Change tool from %s to %s', self.currentTool, tool)
+		self._currentSelectedTool = tool
+		self.onToolChanged(tool)
 
 	def sendCommand(self, command):
 		self._logger.info('Command Sent - %s', command)
@@ -154,6 +159,25 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def serialLoggingChanged(self):
 		pass
+
+	def getCurrentTemperatures(self):
+		return {
+			'tool0':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'tool1':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'bed':
+				{
+					"actual": 40,
+					"target": 40
+				}
+			}
 
 	@property
 	def ports(self):
@@ -223,10 +247,15 @@ class VirtualComms(Plugin, PrinterCommsService):
 		}
 
 		if paused:
+			self._previousSelectedTool = self._currentSelectedTool
 			self._changePrinterState(PrinterState.STATE_PAUSED)
 			self.fireSystemEvent(SystemEvent.PRINT_PAUSED, printFileInfo)
 
 		else:
+			if self._currentSelectedTool != self._previousSelectedTool:
+				self.onToolChanged(self._previousSelectedTool)
+				self._currentSelectedTool = self._previousSelectedTool
+
 			self._changePrinterState(PrinterState.STATE_PRINTING)
 			self.fireSystemEvent(SystemEvent.PRINT_RESUMED, printFileInfo)
 
@@ -238,8 +267,8 @@ class TempsChanger(threading.Thread):
 	def __init__(self, plugin):
 		self._stopped = False
 		self._plugin = plugin
-		self._targets = {};
-		self._actuals = {};
+		self._targets = {}
+		self._actuals = {}
 
 		super(TempsChanger, self).__init__()
 
@@ -314,8 +343,7 @@ class JobSimulator(threading.Thread):
 
 			time.sleep(1)
 
-		self._plugin.setTemperature('tool0', 0)
-		self._plugin.setTemperature('bed', 0)
+		self._plugin.changeTemperature(0, 0)
 
 		if self._percentCompleted >= 1:
 			self._plugin.reportPrintJobCompleted()

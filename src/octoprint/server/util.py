@@ -3,11 +3,11 @@ __author__ = "AstroPrint Product Team <product@astroprint.com> based on work by 
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 __copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
-from flask.ext.principal import identity_changed, Identity
+from flask_principal import identity_changed, Identity
 from tornado.web import StaticFileHandler, HTTPError, RequestHandler, asynchronous
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest
 from flask import url_for, make_response, request, current_app
-from flask.ext.login import login_required, login_user, current_user
+from flask_login import login_required, login_user, current_user
 from werkzeug.utils import redirect
 from ext.sockjs.tornado import SockJSConnection
 from itsdangerous import base64_decode

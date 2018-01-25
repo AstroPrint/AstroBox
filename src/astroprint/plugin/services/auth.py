@@ -61,7 +61,6 @@ class AuthService(PluginService):
 				return
 
 		sendResponse({
-				'api_key': UI_API_KEY,
-				'ws_token': create_ws_token(publicKey)
-			})
-		)
+			'api_key': UI_API_KEY,
+			'ws_token': create_ws_token(publicKey)
+		})

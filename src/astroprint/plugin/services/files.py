@@ -3,39 +3,49 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+import os
+import time
 from . import PluginService
 
-from flask.ext.login import current_user
+from flask_login import current_user
 from flask import jsonify
 
 import octoprint.util as util
-from octoprint.events import eventManager
+from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 from octoprint.server import restricted_access
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
+from astroprint.printfiles.downloadmanager import downloadManager
 
 class FilesService(PluginService):
 	_validEvents = [
 		#watch if a file where added
 		#'file_added',
+		#BROWSER -> PLUGIN
 		#watch if a file where deleted
 		'file_deleted',
+		#watch if a file were be downloaded successfully
+		'cloud_download_success',
+		################
+		#PLUGIN -> BROWSER + PLUGIN
 		#watch downloading progress of a print file
 		'progress_download_printfile',
-		#watch if a print file were successfully downloaded
-		'success_download_printfile',
-		#watch if a print file downloading failed
-		'error_download_printfile'
+		#watch if a print file were downloaded: successfully or failed(error or cancelled)
+		'f¡nished_download_printfile'
+
 	]
 
 	def __init__(self):
 		super(FilesService, self).__init__()
 
+		#files managing
+		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
+		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
+
 	def getLocalFiles(self, sendResponse):
-		print 'getLocalFiles'
 		try:
 			try:
 				files = self._getLocalFileList(FileDestinations.LOCAL)
@@ -92,7 +102,6 @@ class FilesService(PluginService):
 		return filename in availableFiles
 
 	def printFile(self, data, sendResponse):
-		print 'printFile'
 		fileDestination = fileName = None
 
 		if 'location' in data:
@@ -189,18 +198,17 @@ class FilesService(PluginService):
 		else:
 			printer.fileManager.removeFile(fileName)
 
+		eventManager().fire(Events.FILE_DELETED, {"filename": fileName})
+
 		self.publishEvent('file_deleted','deleted')
+
 		sendResponse({'success':'no error'})
 
 
 	def downloadPrintFile(self,printFileId,sendResponse):
-		print 'downloadPrintFile'
-		print sendResponse
-
 		em = eventManager()
 
 		def progressCb(progress):
-			print 'progressCb'
 			self.publishEvent('progress_download_printfile', {
 				"type": "progress",
 				"id": printFileId,
@@ -208,40 +216,52 @@ class FilesService(PluginService):
 			})
 
 		def successCb(destFile, fileInfo):
-			print 'successCb'
 			if fileInfo is True:
 				#This means the files was already on the device
-				self.publishEvent('success_download_printfile',{
+
+				data = {
 					"type": "success",
 					"id": printFileId,
 					"filename": printerManager().fileManager._getBasicFilename(destFile)
-				})
+				}
+
+				self.publishEvent('f¡nished_download_printfile',data)
+				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
-				if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-					self.publishEvent('success_download_printfile',{
-						"type": "success",
-						"id": printFileId,
-						"filename": printerManager().fileManager._getBasicFilename(destFile),
-						"info": fileInfo["info"]
-					})
+				data = {
+					"type": "success",
+					"id": printFileId,
+					"filename": printerManager().fileManager._getBasicFilename(destFile),
+					"info": fileInfo["info"],
+					"printer": fileInfo["printer"],
+					"material": fileInfo["material"],
+					"quality": fileInfo["quality"],
+					"image": fileInfo["image"],
+					"created": fileInfo["created"]
+				}
 
-				else:
-					errorCb(destFile, "Couldn't save the file")
+				self.publishEvent('f¡nished_download_printfile',data)
 
 		def errorCb(destFile, error):
-			print 'errorCb'
 			if error == 'cancelled':
-				self.publishEvent('error_download_printfile',{
+				data = {
 					"type": "cancelled",
 					"id": printFileId
-				})
+				}
+
+				self.publishEvent('f¡nished_download_printfile',data)
+				em.fire(Events.CLOUD_DOWNLOAD,data)
+
 			else:
-				self.publishEvent('error_download_printfile',{
+				data = {
 					"type": "error",
 					"id": printFileId,
 					"reason": error
-				})
+				}
+
+				em.fire(Events.CLOUD_DOWNLOAD,data)
+				self.publishEvent('f¡nished_download_printfile',data)
 
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
@@ -252,3 +272,21 @@ class FilesService(PluginService):
 
 		sendResponse('error',True)
 		return
+
+	def cancelDownloadPrintFile(self, printFileId, sendResponse):
+
+		if downloadManager().cancelDownload(printFileId):
+			sendResponse({'success':'no error'})
+		else:
+			sendResponse('cancel_error',True)
+
+
+	#EVENTS
+
+	def _onFileDeleted(self,event,data):
+		self.publishEvent('file_deleted',data['filename'])
+
+	def _onCloudDownloadStateChanged(self,event,data):
+		if data['type'] == 'success':
+			self.publishEvent('cloud_download_success',data)
+		#else TODO

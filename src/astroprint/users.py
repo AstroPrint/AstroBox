@@ -3,8 +3,8 @@ __author__ = "Gina Häußge <osd@foosel.net>"
 __author__ = "Daniel Arroyo <daniel@3dagogo.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
-from flask.ext.login import UserMixin
-from flask.ext.principal import Identity
+from flask_login import UserMixin
+from flask_principal import Identity
 import hashlib
 import os
 import yaml
@@ -60,8 +60,9 @@ class UserManager(object):
 class FilebasedUserManager(UserManager):
 	def __init__(self):
 		UserManager.__init__(self)
+		s = settings()
 
-		self._userfile  = settings().get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(settings()._configfile), "users.yaml")
+		self._userfile  = s.get(["accessControl", "userfile"]) or os.path.join( os.path.dirname(s._configfile), "users.yaml")
 		self._users = {}
 		self._dirty = False
 
@@ -73,20 +74,29 @@ class FilebasedUserManager(UserManager):
 			self._customized = True
 			with open(self._userfile, "r") as f:
 				data = yaml.safe_load(f)
-				for name in data.keys():
-					attributes = data[name]
-					apikey = None
-					publicKey = None
-					privateKey = None
-					if "apikey" in attributes:
-						apikey = attributes["apikey"]
-					if "publicKey" in attributes:
-						publicKey = attributes['publicKey']
-					if 'privateKey' in attributes:
-						privateKey = attributes['privateKey']
-					self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey)
+				if data:
+					for name in data.keys():
+						attributes = data[name]
+						apikey = None
+						publicKey = None
+						privateKey = None
+						if "apikey" in attributes:
+							apikey = attributes["apikey"]
+						if "publicKey" in attributes:
+							publicKey = attributes['publicKey']
+						if 'privateKey' in attributes:
+							privateKey = attributes['privateKey']
+						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey)
 		else:
 			self._customized = False
+
+		s = settings()
+
+		#Check if loggedUser is still a valid user. If not we remove it
+		loggedUser = s.get(["cloudSlicer", "loggedUser"])
+		if not self.findUser(loggedUser):
+			s.set(["cloudSlicer", "loggedUser"], None)
+			s.save()
 
 	def _save(self, force=False):
 		if not self._dirty and not force:
@@ -107,7 +117,6 @@ class FilebasedUserManager(UserManager):
 		with open(self._userfile, "wb") as f:
 			yaml.safe_dump(data, f, default_flow_style=False, indent="    ", allow_unicode=True)
 			self._dirty = False
-		self._load()
 
 	def addUser(self, username, password, publicKey, privateKey, active=False, roles=["user"], apikey=None):
 		if username in self._users.keys():

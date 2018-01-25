@@ -11,8 +11,8 @@ import threading
 import time
 
 from flask import Blueprint, request, jsonify, abort, current_app, session, make_response
-from flask.ext.login import login_user, logout_user, current_user
-from flask.ext.principal import Identity, identity_changed, AnonymousIdentity
+from flask_login import login_user, logout_user, current_user
+from flask_principal import Identity, identity_changed, AnonymousIdentity
 
 import octoprint.util as util
 import octoprint.server
@@ -221,13 +221,15 @@ def login():
 		user = octoprint.server.userManager.findUser(username)
 		if user is not None:
 			if user.has_password():
-				if user.check_password(octoprint.server.userManager.createPasswordHash(password)):
+				if astroprintCloud().validatePassword(username, password):
 					login_user(user, remember=remember)
 					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
 					return jsonify(user.asDict())
 			else :
 				try:
-					astroprintCloud().signin(username, password)
+					if astroprintCloud().signin(username, password):
+						return jsonify(current_user)
+
 				except (AstroPrintCloudNoConnectionException, ConnectionError):
 					return make_response(("AstroPrint.com can't be reached", 503, []))
 		return make_response(("User unknown or password incorrect", 401, []))
@@ -270,4 +272,3 @@ def logout():
 	logout_user()
 
 	return NO_CONTENT
-

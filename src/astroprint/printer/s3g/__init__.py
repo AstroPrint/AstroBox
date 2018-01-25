@@ -22,6 +22,7 @@ from astroprint.printer import Printer
 from astroprint.printer.s3g.printjob import PrintJobS3G
 from astroprint.printfiles.x3g import PrintFileManagerX3g
 from astroprint.printfiles import FileDestinations
+from astroprint.printer.manager import printerManager
 
 class PrinterS3g(Printer):
 	driverName = 's3g'
@@ -45,6 +46,7 @@ class PrinterS3g(Printer):
 		self._heatingUp = False
 		self._firmwareVersion = None
 		self._selectedTool = 0
+		self._previousSelectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
@@ -138,6 +140,8 @@ class PrinterS3g(Printer):
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+		elif self._comm is not None and newState == self.STATE_CONNECTING:
+			eventManager().fire(Events.CONNECTING)
 
 		self.refreshStateData()
 
@@ -158,7 +162,7 @@ class PrinterS3g(Printer):
 					self._errorValue = "Error Connecting"
 					self._logger.error('Error connecting to printer.')
 					self._comm = None
-					break;
+					break
 
 				else:
 					try:
@@ -169,15 +173,17 @@ class PrinterS3g(Printer):
 						self._gcodeParser = result.gcodeparser
 
 						version_info = self._comm.get_advanced_version()
+						#Update maps from https://www.thingiverse.com/thing:32084/#files, place them on ext/makerbot_driver/EEPROM
 
 						#We should update some of the profile values with stuff retrieved from the EEPROM
-						axisLengths = self._comm.read_named_value_from_EEPROM('AXIS_LENGTHS_MM')
 						stepsPerMM = self._comm.read_named_value_from_EEPROM('AXIS_STEPS_PER_MM')
 
-						self._profile.values['axes']['X']['platform_length'] = axisLengths[0]
-						self._profile.values['axes']['Y']['platform_length'] = axisLengths[1]
-						self._profile.values['axes']['Z']['platform_length'] = axisLengths[2]
-						self._profile.values['axes']['A']['platform_length'] = axisLengths[3]
+ 						# This dissapeared in Sailfish 7.3
+						#axisLengths = self._comm.read_named_value_from_EEPROM('AXIS_LENGTHS_MM')
+						#self._profile.values['axes']['X']['platform_length'] = axisLengths[0]
+						#self._profile.values['axes']['Y']['platform_length'] = axisLengths[1]
+						#self._profile.values['axes']['Z']['platform_length'] = axisLengths[2]
+						#self._profile.values['axes']['A']['platform_length'] = axisLengths[3]
 
 						self._profile.values['axes']['X']['steps_per_mm'] = stepsPerMM[0]/1000000.0
 						self._profile.values['axes']['Y']['steps_per_mm'] = stepsPerMM[1]/1000000.0
@@ -186,12 +192,14 @@ class PrinterS3g(Printer):
 
 						if "B" in self._profile.values['axes']:
 							self._profile.values['axes']['B']['steps_per_mm'] = -stepsPerMM[4]/1000000.0
-							self._profile.values['axes']['B']['platform_length'] = axisLengths[4]
+							#self._profile.values['axes']['B']['platform_length'] = axisLengths[4]
 
 						self._firmwareVersion = version_info['Version']
 						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
 
 						self._changeState(self.STATE_OPERATIONAL)
+						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+
 						s.set(['serial', 'port'], self._port)
 						s.save()
 						break
@@ -439,7 +447,10 @@ class PrinterS3g(Printer):
 
 	def changeTool(self, tool):
 		try:
-			self._selectedTool = tool
+			if self._selectedTool != tool:
+				self.mcToolChange(tool, self._selectedTool)
+
+				self._selectedTool = tool
 		except ValueError:
 			pass
 
@@ -456,6 +467,9 @@ class PrinterS3g(Printer):
 
 		with self._state_condition:
 			if not pause and self.isPaused():
+				if self._previousSelectedTool != self._selectedTool:
+					self.changeTool(self._previousSelectedTool)
+
 				self._changeState(self.STATE_PRINTING)
 
 				self._comm.pause()
@@ -470,6 +484,7 @@ class PrinterS3g(Printer):
 				self._changeState(self.STATE_PAUSED)
 
 				self._comm.pause()
+				self._previousSelectedTool = self.getSelectedTool()
 
 				eventManager().fire(Events.PRINT_PAUSED, {
 					"file": self._currentFile['filename'],
@@ -529,7 +544,7 @@ class PrinterS3g(Printer):
 		return 0
 
 	def getSelectedTool(self):
-		return None
+		return self._selectedTool
 
 	def getPrintFilepos(self):
 		if self._currentFile is None:
@@ -557,11 +572,9 @@ class PrinterS3g(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
-		eventManager().fire(Events.PRINT_STARTED, {
-			"file": self._currentFile['filename'],
-			"filename": os.path.basename(self._currentFile['filename']),
-			"origin": self._currentFile['origin']
-		})
+
+		data = printerManager().getFileInfo(self._currentFile['filename'])
+		eventManager().fire(Events.PRINT_STARTED, data)
 
 		self._printJob = PrintJobS3G(self, self._currentFile)
 		self._printJob.start()

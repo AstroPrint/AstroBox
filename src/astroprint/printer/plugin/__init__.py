@@ -11,6 +11,7 @@ from octoprint.settings import settings
 from astroprint.printer import Printer
 from astroprint.plugin import pluginManager
 from astroprint.printfiles import FileDestinations
+from astroprint.cloud import astroprintCloud
 
 class NoPluginException(Exception):
 	pass
@@ -37,6 +38,20 @@ class PrinterWithPlugin(Printer):
 	def rampdown(self):
 		pluginManager().removeEventListener('ON_PLUGIN_REMOVED', self.onPluginRemoved)
 		super(PrinterWithPlugin, self).rampdown()
+
+	def getConnectionOptions(self):
+		"""
+		 Retrieves the available ports, baudrates, prefered port and baudrate for connecting to the printer.
+		"""
+		s = settings()
+
+		return {
+			"ports": self.serialList(),
+			"baudrates": self.baudrateList(),
+			"portPreference": s.get(["serial", "port"]),
+			"baudratePreference": s.getInt(["serial", "baudrate"]),
+			"autoconnect": s.getBoolean(["serial", "autoconnect"])
+		}
 
 	@property
 	def allowTerminal(self):
@@ -74,6 +89,59 @@ class PrinterWithPlugin(Printer):
 
 	def disconnect(self):
 		return self._plugin.disconnect()
+
+	def getFileInfo(self, filename):
+		estimatedPrintTime = None
+		date = None
+		filament = None
+		layerCount = None
+		cloudId = None
+		renderedImage = None
+		printFileName = None
+
+		if filename:
+			# Use a string for mtime because it could be float and the
+			# javascript needs to exact match
+			date = int(os.stat(filename).st_ctime)
+
+			fileData = self._fileManager.getFileData(filename)
+			if fileData is not None and "gcodeAnalysis" in fileData.keys():
+				fileDataProps = fileData["gcodeAnalysis"].keys()
+				if "print_time" in fileDataProps:
+					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
+				if "filament_lenght" in fileDataProps:
+					filament = fileData["gcodeAnalysis"]["filament_length"]
+				if "layer_count" in fileDataProps:
+					layerCount = fileData["gcodeAnalysis"]['layer_count']
+
+			if fileData is not None and "image" in fileData.keys():
+				renderedImage = fileData["image"]
+
+			cloudId = self._fileManager.getFileCloudId(filename)
+			if cloudId:
+				if self._selectedFile:
+					self._selectedFile['cloudId'] = cloudId
+
+				printFile = astroprintCloud().getPrintFile(cloudId)
+				if printFile:
+					renderedImage = printFile['images']['square']
+
+			if fileData is not None and "printFileName" in fileData.keys():
+				printFileName = fileData["printFileName"]
+
+		return {
+			"file": {
+				"name": os.path.basename(filename) if filename is not None else None,
+				"printFileName": printFileName,
+				"origin": FileDestinations.LOCAL,
+				"date": date,
+				"cloudId": cloudId,
+				"rendered_image": renderedImage
+			},
+			"estimatedPrintTime": estimatedPrintTime,
+			"layerCount": layerCount,
+			"filament": filament,
+		}
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if not super(PrinterWithPlugin, self).selectFile(filename, sd, printAfterSelect):
@@ -131,7 +199,7 @@ class PrinterWithPlugin(Printer):
 				"origin": FileDestinations.LOCAL,
 			})
 
-			self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
+			##self._fileManager.printFailed(self._currentFile["filename"], self.getPrintTime())
 			payload = {
 				"file": self._currentFile["filename"],
 				"origin": FileDestinations.LOCAL
@@ -140,7 +208,7 @@ class PrinterWithPlugin(Printer):
 			if 'sd' in self._currentFile and self._currentFile["sd"]:
 				payload["origin"] = FileDestinations.SDCARD
 
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			eventManager().fire(Events.PRINT_CANCELLED, payload)
 
 
 	def printJobCancelled(self):
@@ -237,6 +305,13 @@ class PrinterWithPlugin(Printer):
 
 	def resetSerialLogging(self):
 		self._plugin.serialLoggingChanged()
+
+	def getCurrentTemperatures(self):
+		return self._plugin.getCurrentTemperatures()
+
+	def getSelectedTool(self):
+		return self._plugin.currentTool
+
 
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):

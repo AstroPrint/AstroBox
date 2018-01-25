@@ -1,10 +1,10 @@
-flask==0.10.1
+flask==0.12.2
 werkzeug==0.9.6
 tornado==4.4.2
 PyYAML==3.11
-Flask-Login==0.3.2
+Flask-Login==0.4.1
 Flask-Principal==0.4.0
-Flask-Assets==0.10
+Flask-Assets==0.12
 pyserial==3.2.1
 libusb1==1.6.4
 netaddr==0.7.12
@@ -15,9 +15,9 @@ requests-toolbelt==0.7.0
 flask-compress==1.0.2
 scss==0.8.73
 closure==20140110
-python-networkmanager==1.0.1
 netifaces
 ws4py==0.3.4
 futures==3.0.4
 blinker==1.4
 v4l2==0.2
+pycrypto==2.6.1

@@ -227,6 +227,14 @@ class Printer(object):
 		else:
 			self._selectedFile = None
 
+		data = self.getFileInfo(filename)
+		data['size'] = filesize
+		self._stateMonitor.setJobData(data)
+
+		self._layerCount = data['layerCount']
+		self._estimatedPrintTime = data['estimatedPrintTime']
+
+	def getFileInfo(self, filename):
 		estimatedPrintTime = None
 		date = None
 		filament = None
@@ -250,6 +258,9 @@ class Printer(object):
 				if "layer_count" in fileDataProps:
 					layerCount = fileData["gcodeAnalysis"]['layer_count']
 
+			if fileData is not None and "image" in fileData.keys():
+				renderedImage = fileData["image"]
+
 			cloudId = self._fileManager.getFileCloudId(filename)
 			if cloudId:
 				if self._selectedFile:
@@ -262,12 +273,11 @@ class Printer(object):
 			if fileData is not None and "printFileName" in fileData.keys():
 				printFileName = fileData["printFileName"]
 
-		self._stateMonitor.setJobData({
+		return {
 			"file": {
 				"name": os.path.basename(filename) if filename is not None else None,
 				"printFileName": printFileName,
 				"origin": FileDestinations.LOCAL,
-				"size": filesize,
 				"date": date,
 				"cloudId": cloudId,
 				"rendered_image": renderedImage
@@ -275,11 +285,7 @@ class Printer(object):
 			"estimatedPrintTime": estimatedPrintTime,
 			"layerCount": layerCount,
 			"filament": filament,
-		})
-
-		self._layerCount = layerCount
-		self._estimatedPrintTime = estimatedPrintTime
-
+		}
 	def setSerialDebugLogging(self, active):
 		serialLogger = logging.getLogger("SERIAL")
 		if active:
@@ -317,19 +323,25 @@ class Printer(object):
 		self._currentZ = currentZ
 		self._stateMonitor.setCurrentZ(self._currentZ)
 
-	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
-		self._progress = progress
-		self._printTime = printTime
-		self._printTimeLeft = printTimeLeft
-
-		self._stateMonitor.setProgress({
+	def _formatPrintingProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		data = {
 			"completion": progress * 100 if progress is not None else None,
 			"currentLayer": currentLayer,
 			"filamentConsumed": self.getConsumedFilament(),
 			"filepos": filepos,
 			"printTime": int(printTime) if printTime is not None else None,
 			"printTimeLeft": int(printTimeLeft * 60) if printTimeLeft is not None else None
-		})
+		}
+
+		return data
+
+	def _setProgressData(self, progress, filepos, printTime, printTimeLeft, currentLayer):
+		self._progress = progress
+		self._printTime = printTime
+		self._printTimeLeft = printTimeLeft
+
+		data = self._formatPrintingProgressData(progress, filepos, printTime, printTimeLeft, currentLayer)
+		self._stateMonitor.setProgress(data)
 
 	def startPrint(self):
 		"""
@@ -448,6 +460,7 @@ class Printer(object):
 		self._setCurrentZ(newZ)
 
 	def mcToolChange(self, newTool, oldTool):
+		self._stateMonitor.setCurrentTool(newTool)
 		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
 	def reportNewLayer(self):
@@ -457,7 +470,7 @@ class Printer(object):
 	#This function should be deprecated
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
-		self._currentLayer = layer;
+		self._currentLayer = layer
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)
@@ -476,20 +489,24 @@ class Printer(object):
 		if self._estimatedPrintTime:
 			if printTime and progress:
 				if progress < 1.0:
-					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress );
-					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft );
-					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance;
-					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60;
+					estimatedTimeLeft = self._estimatedPrintTime * ( 1.0 - progress )
+					elaspedTimeVariance = printTime - ( self._estimatedPrintTime - estimatedTimeLeft )
+					adjustedEstimatedTime = self._estimatedPrintTime + elaspedTimeVariance
+					estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60
 				else:
 					estimatedTimeLeft = 0
 
 			else:
 				estimatedTimeLeft = self._estimatedPrintTime / 60
 
+		value = self._formatPrintingProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
+		eventManager().fire(Events.PRINTING_PROGRESS, value)
+
 		self._setProgressData(progress, self.getPrintFilepos(), printTime, estimatedTimeLeft, self.getCurrentLayer())
 
 	def mcHeatingUpUpdate(self, value):
 		self._stateMonitor._state['flags']['heatingUp'] = value
+		eventManager().fire(Events.HEATING_UP, value)
 
 	def mcCameraConnectionChanged(self, connected):
 		#self._stateMonitor._state['flags']['camera'] = connected
@@ -528,6 +545,7 @@ class Printer(object):
 		self._temp = temp
 		self._bedTemp = bedTemp
 
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._stateMonitor.addTemperature(data)
 
 	#~~ callback from metadata analysis event
@@ -667,6 +685,7 @@ class StateMonitor(object):
 		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._stop = False
+		self._currentTool = 0
 
 		self._offsets = {}
 
@@ -720,6 +739,10 @@ class StateMonitor(object):
 		self._offsets = offsets
 		self._changeEvent.set()
 
+	def setCurrentTool(self, currentTool):
+		self._currentTool = currentTool
+		self._changeEvent.set()
+
 	def _work(self):
 		while True:
 			self._changeEvent.wait()
@@ -749,5 +772,6 @@ class StateMonitor(object):
 			"job": self._jobData,
 			"currentZ": self._currentZ, # this should probably be deprecated
 			"progress": self._progress,
-			"offsets": self._offsets
+			"offsets": self._offsets,
+			"tool": self._currentTool
 		}

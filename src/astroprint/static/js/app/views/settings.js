@@ -319,7 +319,7 @@ var NetworkNameView = SettingsPage.extend({
       data: JSON.stringify(attrs)
     })
       .done(_.bind(function(data) {
-        noty({text: "Network name changed. Use it next time you reboot", timeout: 3000, type:"success"});
+        noty({text: "Network name changed. It will be effective after the next reboot.", timeout: 3000, type:"success"});
         //Make sure we reload next time we load this tab
         this.settings = data
         this.render();
@@ -1258,6 +1258,41 @@ var DeletePluginDialog = Backbone.View.extend({
 });
 
 /********************
+* Software - License
+*********************/
+
+var SoftwareLicenseView = SettingsPage.extend({
+  el: '#software-license',
+  template: null,
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.template) {
+      this.template = _.template( $("#software-license-settings-page-template").html() )
+    }
+
+    $.getJSON(API_BASEURL + 'settings/software/license')
+      .done(_.bind(function(data){
+        this.render(data)
+      }, this))
+      .fail(function() {
+        noty({text: "There was an error getting License Information.", timeout: 3000});
+      });
+  },
+  render: function(data)
+  {
+    this.$el.html(this.template({
+      status: data.is_valid ? 'ok':'nok',
+      license: data
+    }));
+
+    $.localtime.format(this.$el);
+  }
+});
+
+
+/********************
 * Software - Update
 *********************/
 
@@ -1267,26 +1302,46 @@ var SoftwareUpdateView = SettingsPage.extend({
     'click .loading-button.check button': 'onCheckClicked'
   },
   systemInfo: null,
+  versionsInfo: null,
   outdatedTemplate: null,
+  additionalPackageTemplate: null,
   updateDialog: null,
   show: function()
   {
     SettingsPage.prototype.show.apply(this);
 
     if (!this.systemInfo) {
-      $.getJSON(API_BASEURL + 'settings/software/system-info', null, _.bind(function(data) {
-        this.systemInfo = data;
-        if (data.outdated) {
-          if (!this.outdatedTemplate) {
-            this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+      $.when(
+        $.getJSON(API_BASEURL + 'settings/software/system-info', null),
+        $.getJSON(API_BASEURL + 'settings/software/versions', null)
+      )
+        .done(_.bind(function(systemInfo, versionsInfo) {
+          this.systemInfo = systemInfo[0];
+          if (systemInfo.outdated) {
+            if (!this.outdatedTemplate) {
+              this.outdatedTemplate = _.template( $("#software-system-outdated-template").html() );
+            }
+            //Show the outdated warning
+            this.$el.prepend( this.outdatedTemplate( systemInfo ));
           }
-          //Show the outdated warning
-          this.$el.prepend( this.outdatedTemplate( data ));
-        }
-      }, this))
-      .fail(function() {
-        noty({text: "There was an error getting System Information.", timeout: 3000});
-      });
+
+          this.versionsInfo = versionsInfo[0];
+
+          var additionalSwContainer = this.$('.additional-sw-container');
+
+          additionalSwContainer.empty().hide();
+
+          if (this.versionsInfo.additional.length > 0) {
+            if (!this.additionalPackageTemplate) {
+              this.additionalPackageTemplate = _.template( $("#software-additional-software-template").html() );
+            }
+
+            additionalSwContainer.html( this.additionalPackageTemplate( {packages: this.versionsInfo.additional} ) ).show();
+          }
+        }, this))
+        .fail(function() {
+          noty({text: "There was an error getting System Information.", timeout: 3000});
+        });
     }
   },
   onCheckClicked: function(e)
@@ -1332,7 +1387,10 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 
     var content = this.$el.find('.content');
     content.empty();
-    content.html(this.contentTemplate({data: data, date_format:app.utils.dateFormat}));
+    content.html(this.contentTemplate({
+      data: data,
+      date_format: app.utils.dateFormat
+    }));
 
     content.find('button.cancel').bind('click', _.bind(this.close, this));
     content.find('button.go').bind('click', _.bind(this.doUpdate, this));
@@ -1347,13 +1405,22 @@ var SoftwareUpdateDialog = Backbone.View.extend({
   {
     var loadingBtn = this.$el.find('.loading-button');
     loadingBtn.addClass('loading');
+
+    var releasesIds = [];
+
+    _.each(this.data.releases, function(r) {
+      if (!r.is_current && r.release) {
+        releasesIds.push(r.release.id)
+      }
+    });
+
     $.ajax({
       url: API_BASEURL + 'settings/software/update',
       type: 'POST',
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify({
-        release_id: this.data.release.id
+        release_ids: releasesIds
       }),
       success: function() {
         //reset the page to show updating progress
@@ -1623,6 +1690,7 @@ var SettingsView = Backbone.View.extend({
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
       'software-advanced': new SoftwareAdvancedView({parent: this}),
+      'software-license': new SoftwareLicenseView({parent: this})
     };
     this.menu = new SettingsMenu({subviews: this.subviews});
   },

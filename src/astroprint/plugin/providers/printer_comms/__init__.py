@@ -390,8 +390,11 @@ class PrinterCommsService(CommandPluginInterface):
 			self._printerManager.fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self.connected and newState == PrinterState.STATE_PRINTING:
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
-
-		if newState == PrinterState.STATE_CLOSED:
+		elif self.connected and newState == PrinterState.STATE_OPERATIONAL:
+			eventManager().fire(SystemEvent.CONNECTED)
+		elif self._comm is not None and newState == PrinterState.STATE_CONNECTING:
+			eventManager().fire(SystemEvent.CONNECTING)
+		elif newState == PrinterState.STATE_CLOSED or newState == PrinterState.STATE_ERROR:
 			eventManager().fire(SystemEvent.DISCONNECTED)
 
 		self._printerManager.refreshStateData()
@@ -473,7 +476,7 @@ class PrinterCommsService(CommandPluginInterface):
 			"origin": currentFile['origin'],
 			"time": printTime
 		})
-		self._printerManager._fileManager.printFailed(filename, printTime)
+		##self._printerManager._fileManager.printFailed(filename, printTime)
 
 	#
 	# Call this function when print progress has changed

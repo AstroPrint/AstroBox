@@ -14,10 +14,10 @@ import tornado.wsgi
 
 from ext.sockjs.tornado import SockJSRouter
 from flask import Flask, render_template, send_from_directory, make_response, Response, request, abort
-from flask.ext.login import LoginManager, current_user, logout_user
-from flask.ext.principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
-from flask.ext.compress import Compress
-from flask.ext.assets import Environment
+from flask_login import LoginManager, current_user, logout_user
+from flask_principal import Principal, Permission, RoleNeed, identity_loaded, UserNeed
+from flask_compress import Compress
+from flask_assets import Environment
 from watchdog.observers import Observer
 from sys import platform
 
@@ -94,6 +94,12 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+	publicKey = None
+
+	if loggedUsername:
+		user = userManager.findUser(loggedUsername)
+		if user:
+			publicKey = user.publicKey
 
 	if (s.getBoolean(["server", "firstRun"])):
 		swm = swManager()
@@ -109,7 +115,7 @@ def index():
 			astroboxName= networkManager().getHostname(),
 			checkSoftware= swm.shouldCheckForNew,
 			settings= s,
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
@@ -122,7 +128,7 @@ def index():
 			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
@@ -163,7 +169,7 @@ def index():
 			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log']),
 			cameraManager= cm.name,
-			wsToken= create_ws_token(userManager.findUser(loggedUsername).publicKey if loggedUsername else None)
+			wsToken= create_ws_token(publicKey)
 		)
 
 @app.route("/discovery.xml")
@@ -208,6 +214,7 @@ def camera_snapshot():
 def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
+	softwareManager = swManager()
 
 	fileName = None
 
@@ -228,7 +235,7 @@ def getStatus():
 			'camera': cm.isCameraConnected(),
 			#'printCapture': cm.timelapseInfo,
 			'remotePrint': True,
-			'capabilities': ['remotePrint'] + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities
 		}),
 		mimetype= 'application/json',
 		headers= {
@@ -411,10 +418,10 @@ class Server():
 
 		logger.info("Starting AstroBox (%s) - Commit (%s)" % (VERSION, softwareManager.commit))
 
-		pluginManager().loadPlugins()
-
 		from astroprint.migration import migrateSettings
 		migrateSettings()
+
+		pluginManager().loadPlugins()
 
 		eventManager = events.eventManager()
 		printer = printerManager(printerProfileManager().data['driver'])
@@ -509,6 +516,7 @@ class Server():
 
 		# start up watchdogs
 		observer = Observer()
+		observer.daemon = True
 		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
 
@@ -526,8 +534,9 @@ class Server():
 		finally:
 			observer.stop()
 			self.cleanup()
+			logger.info('Cleanup complete')
 
-		observer.join()
+		observer.join(1.0)
 		logger.info('Good Bye!')
 
 	def _createSocketConnection(self, session):
@@ -610,7 +619,7 @@ class Server():
 	def cleanup(self):
 		global discoveryManager
 
-		pluginManager().shutdown();
+		pluginManager().shutdown()
 		downloadManager().shutdown()
 		printerManager().rampdown()
 		discoveryManager.shutdown()

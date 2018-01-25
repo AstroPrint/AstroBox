@@ -29,58 +29,62 @@ class AccountService(PluginService):
 		if 'email' in data:
 			email = data['email']
 
+		if 'password' in data:
+			password = data['password']
+
 		if 'private_key' in data:
 			private_key = data['private_key']
 
-		if email and private_key:
+		if email and password:
 			try:
-				user = userManager.findUser(email)
+				if astroprintCloud().signin(email, password, hasSessionContext= False):
+					callback('login_success')
 
-				if not user:
-					public_key = astroprintCloud().get_public_key(email, private_key)
-					user = userManager.addUser(email, '', public_key, private_key, True)
+			except Exception as e:
+				self._logger.error("Error Signing into AstroPrint Cloud: %s" % e)
+				callback('astroprint_unrechable',True)
 
-				#login_user(user, remember=True)
-				userId = user.get_id()
-
-				sets = settings()
-
-				sets.set(["cloudSlicer", "loggedUser"], userId)
-				sets.save()
-
-				boxrouterManager().boxrouter_connect()
-
-				eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
-
-				callback('logging_success')
+		elif email and private_key:
+			try:
+				if astroprintCloud().signinWithKey(email, private_key, hasSessionContext= False):
+						callback('login_success')
 
 			except Exception as e:
 				self._logger.error('user unsuccessfully logged in',exc_info = True)
 				callback('no_login',True)
 
 		else:
+			self._logger.error('Invalid data received for login')
+			callback('invalid_data',True)
 
-			if 'password' in data:
-				password = data['password']
+	def validate(self, data, callback):
+		email = private_key = password = None
 
-			if email and password:
-				try:
-					if astroprintCloud().signin(email, password):
-						callback('logging_success')
+		if 'email' in data:
+			email = data['email']
 
-				except Exception as e:
-					self._logger.error("AstroPrint.com can't be reached " + e.args[0])
-					callback('astroprint_unrechable',True)
+		if 'password' in data:
+			password = data['password']
 
-			else:
-				self._logger.error('Invalid data received for loging')
-				callback('invalid_data',True)
+		if email and password:
+			try:
+				if astroprintCloud().validatePassword(email, password):
+					callback('validate_success')
+				else:
+					callback('invalid_data',True)
+
+			except Exception as e:
+				self._logger.error("Error validating passwrod with AstroPrint Cloud: %s" % e)
+				callback('astroprint_unrechable',True)
+
+		else:
+			self._logger.error('Invalid data received for login')
+			callback('invalid_data',True)
+
 
 	def logout(self, data, callback):
 		try:
-
-			#astroprintCloud().signout()
-			astroprintCloud().remove_logged_user()
+			astroprintCloud().signout(hasSessionContext= False)
 			callback('user successfully logged out')
 
 		except Exception as e:
@@ -89,18 +93,35 @@ class AccountService(PluginService):
 
 	def getStatus(self, callback):
 		try:
+			sets = settings()
+			user = sets.get(["cloudSlicer", "loggedUser"])
 
-			callback({
-				'astroprint-status': boxrouterManager().status
-			})
+			payload = {
+				'userLogged': user if user else None,
+				'boxrouterStatus' :  boxrouterManager().status
+			}
+			callback(payload)
 
 		except Exception as e:
 			self._logger.error('unsuccessfully user status got', exc_info = True)
 			callback('getting_status_error')
 
+	def connectBoxrouter(self, callback):
+		try:
+			boxrouterManager().boxrouter_connect()
+			callback('connect_success')
+		except Exception as e:
+			self._logger.error('boxrouter can not connect', exc_info = True)
+			callback('boxrouter_error', True)
 
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
-			print 'onAccountStateChange'
-			self.publishEvent('account_state_change',value)
+			sets = settings()
+			user = sets.get(["cloudSlicer", "loggedUser"])
+			data = {
+				'userLogged': user if user else None,
+				'boxrouterStatus' :  boxrouterManager().status
+			}
+
+			self.publishEvent('account_state_change',data)

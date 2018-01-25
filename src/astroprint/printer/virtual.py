@@ -12,9 +12,10 @@ import os
 from astroprint.printfiles.gcode import PrintFileManagerGcode
 from astroprint.printer import Printer
 from astroprint.printfiles import FileDestinations
-
+from astroprint.printerprofile import printerProfileManager
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
+from astroprint.printer.manager import printerManager
 
 class PrinterVirtual(Printer):
 	driverName = 'virtual'
@@ -24,6 +25,8 @@ class PrinterVirtual(Printer):
 
 	def __init__(self):
 		seettings_file = "%s/virtual-printer-settings.yaml" % os.path.dirname(settings()._configfile)
+		self._previousSelectedTool = 0
+		self._currentSelectedTool = 0
 
 		self._settings = {
 			'connection': 1.0,
@@ -53,6 +56,7 @@ class PrinterVirtual(Printer):
 		self._heatingUpTimer = None
 		self._temperatureChanger = None
 		self._printJob = None
+		self.selectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		super(PrinterVirtual, self).__init__()
 
@@ -104,14 +108,13 @@ class PrinterVirtual(Printer):
 			raise Exception("A Print Job is still running")
 
 		self._changeState(self.STATE_PRINTING)
-		eventManager().fire(Events.PRINT_STARTED, {
-			"file": self._currentFile['filename'],
-			"filename": os.path.basename(self._currentFile['filename']),
-			"origin": self._currentFile['origin']
-		})
+		data = printerManager().getFileInfo(self._currentFile['filename'])
+		eventManager().fire(Events.PRINT_STARTED, data)
 
 		#First we simulate heatup
-		self.setTemperature("tool0", 210)
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self.setTemperature('tool'+str(i), 210)
 		self.setTemperature("bed", 60)
 		self.mcHeatingUpUpdate(True)
 		self._heatingUp = True
@@ -143,8 +146,11 @@ class PrinterVirtual(Printer):
 			self._heatingUpTimer.cancel()
 			self._heatingUpTimer = None
 			self.mcHeatingUpUpdate(False)
-			self._heatingUp = False
-			self.setTemperature("tool0", 0)
+
+			extruder_count = (printerProfileManager().data.get('extruder_count'))
+			for i in range(extruder_count):
+				self.setTemperature('tool'+str(i), 0)
+
 			self.setTemperature("bed", 0)
 			time.sleep(1)
 			self._changeState(self.STATE_OPERATIONAL)
@@ -168,7 +174,9 @@ class PrinterVirtual(Printer):
 				self._temperatureChanger.start()
 
 				#set initial temps
-				self.setTemperature('tool0', 25)
+				extruder_count = (printerProfileManager().data.get('extruder_count'))
+				for i in range(extruder_count):
+					self.setTemperature('tool'+str(i), 25)
 				self.setTemperature('bed', 25)
 
 		t = threading.Timer(self._settings['connection'], doConnect)
@@ -206,10 +214,15 @@ class PrinterVirtual(Printer):
 		}
 
 		if paused:
+			self._previousSelectedTool = self._currentSelectedTool
 			self._changeState(self.STATE_PAUSED)
 			eventManager().fire(Events.PRINT_PAUSED, printFileInfo)
 
 		else:
+			if self._currentSelectedTool != self._previousSelectedTool:
+				self.mcToolChange(self._previousSelectedTool, self._currentSelectedTool)
+				self._currentSelectedTool = self._previousSelectedTool
+
 			self._changeState(self.STATE_PRINTING)
 			eventManager().fire(Events.PRINT_RESUMED, printFileInfo)
 
@@ -255,6 +268,28 @@ class PrinterVirtual(Printer):
 		else:
 			return None
 
+	def getSelectedTool(self):
+		return self.selectedTool
+
+	def getCurrentTemperatures(self):
+		return {
+			'tool0':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'tool1':
+				{
+					"actual": 20,
+					"target": 20
+				},
+			'bed':
+				{
+					"actual": 40,
+					"target": 40
+				}
+			}
+
 	def getPrintProgress(self):
 		if self._printJob:
 			return self._printJob.progress
@@ -272,6 +307,9 @@ class PrinterVirtual(Printer):
 			return "Closed", None, None
 
 		return self.getStateString(), 'virtual', 0
+
+	def getSelectedTool(self):
+		return self._currentSelectedTool
 
 	def getConsumedFilament(self):
 		return self._printJob._consumedFilament if self._printJob else 0
@@ -292,7 +330,10 @@ class PrinterVirtual(Printer):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
 
 	def changeTool(self, tool):
-		self._logger.info('Change tool to %s', tool)
+		previousSelectedTool = self._currentSelectedTool
+		self._currentSelectedTool = tool
+		self._logger.info('Change tool from %s to %s', previousSelectedTool, tool)
+		self.mcToolChange(tool, previousSelectedTool)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
@@ -319,6 +360,10 @@ class PrinterVirtual(Printer):
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+		elif self._comm is not None and newState == self.STATE_OPERATIONAL:
+			eventManager().fire(Events.CONNECTED)
+		elif self._comm is not None and newState == self.STATE_CONNECTING:
+			eventManager().fire(Events.CONNECTING)
 
 		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
 
@@ -350,7 +395,7 @@ class TempsChanger(threading.Thread):
 					self._actuals[t] = self._actuals[t] + 5
 
 			self._updateTemps()
-			time.sleep(1)
+			time.sleep(10)
 
 		self._manager = None
 
@@ -371,7 +416,7 @@ class TempsChanger(threading.Thread):
 				"actual": self._actuals[t],
 				"target": self._targets[t]
 			}
-
+		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._manager._stateMonitor.addTemperature(data)
 
 class JobSimulator(threading.Thread):
@@ -409,7 +454,10 @@ class JobSimulator(threading.Thread):
 			time.sleep(1)
 
 		self._pm._changeState(self._pm.STATE_OPERATIONAL)
-		self._pm.setTemperature('tool0', 0)
+
+		extruder_count = (printerProfileManager().data.get('extruder_count'))
+		for i in range(extruder_count):
+			self._pm.setTemperature('tool'+str(i), 0)
 		self._pm.setTemperature('bed', 0)
 
 		payload = {
@@ -426,7 +474,7 @@ class JobSimulator(threading.Thread):
 			eventManager().fire(Events.PRINT_DONE, payload)
 		else:
 			self._pm.printJobCancelled()
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			eventManager().fire(Events.PRINT_CANCELLED, payload)
 			self._pm._fileManager.printFailed(payload['filename'], payload['time'])
 
 		self._pm = None

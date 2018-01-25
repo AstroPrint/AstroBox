@@ -143,7 +143,7 @@ class Timelapse(object):
 		"""
 		Override this to perform additional actions upon start of a print job.
 		"""
-		self.startTimelapse(payload["file"])
+		self.startTimelapse(payload["file"]['printFileName'])
 
 	def onPrintDone(self, event, payload):
 		"""

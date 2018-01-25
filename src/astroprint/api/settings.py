@@ -279,6 +279,22 @@ def installSoftwarePlugin():
 
 	return make_response('Invalid Request', 400)
 
+@api.route("/settings/software/license", methods=["GET"])
+@restricted_access
+def getLicenseInfo():
+	pm = pluginManager()
+	lcnMgr = pm.getPlugin('com.astroprint.astrobox.plugins.lcnmgr')
+
+	if lcnMgr and lcnMgr.validLicense:
+		return jsonify({
+			'is_valid': True,
+			'issuer': lcnMgr.issuerName,
+			'expires': lcnMgr.expires,
+			'license_id': lcnMgr.licenseId
+		});
+
+	return jsonify({'is_valid': False})
+
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access
 def getAdvancedSoftwareSettings():
@@ -311,7 +327,7 @@ def changeApiKeySettings():
 
 		s.save()
 
-		return jsonify();
+		return jsonify()
 
 	else:
 		return ("Wrong data sent in.", 400)
@@ -393,8 +409,9 @@ def checkSoftwareVersion():
 
 	if softwareInfo:
 		s = settings()
-		s.set(["software", "lastCheck"], time.time())
+		s.set(["software", "lastCheck"], int(time.time()))
 		s.save()
+
 		return jsonify(softwareInfo);
 	else:
 		return ("There was an error checking for new software.", 400)
@@ -402,10 +419,15 @@ def checkSoftwareVersion():
 @api.route("/settings/software/update", methods=['POST'])
 @restricted_access
 def updateSoftwareVersion():
-	if softwareManager.updateSoftwareVersion(request.get_json()):
-		return jsonify();
+	data = request.get_json()
+
+	if 'release_ids' in data:
+		if softwareManager.updateSoftware(data['release_ids']):
+			return jsonify()
+		else:
+			return ("Unable to update", 500)
 	else:
-		return ("There was an error initiating update.", 400)
+		return ("Invalid data", 400)
 
 @api.route("/settings/software/restart", methods=['POST'])
 @restricted_access
@@ -452,3 +474,8 @@ def clearLogs():
 @restricted_access
 def getSysmteInfo():
 	return jsonify( softwareManager.systemInfo )
+
+@api.route("/settings/software/versions", methods=['GET'])
+@restricted_access
+def getCurrentVersions():
+	return jsonify( softwareManager.data )
