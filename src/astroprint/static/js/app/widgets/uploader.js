@@ -123,6 +123,7 @@ var FileUploadCombined = FileUploadBase.extend({
     print: ['x3g', 'gcode', 'gco']
   },
   currentFileType: null,
+  designWarningDlg: null,
   initialize: function(options)
   {
     FileUploadBase.prototype.initialize.call(this, options);
@@ -153,11 +154,15 @@ var FileUploadCombined = FileUploadBase.extend({
       });
 
       if (this.currentFileType == 'design') {
-        setTimeout(_.bind(function() {
-          if (confirm('Design. Are you sure?')) {
+        if (!this.designWarningDlg) {
+          this.designWarningDlg = new DesignUploadWarningDialog();
+        }
+
+        this.designWarningDlg.show().then(function(procceed){
+          if (procceed) {
             data.submit();
           }
-        }, this), 1000)
+        });
 
         return false;
       }
@@ -243,3 +248,47 @@ var FileUploadCombined = FileUploadBase.extend({
   onPrintFileUploaded: function() {},
   onError: function(type, error) {}
 });
+
+var DesignUploadWarningDialog = Backbone.View.extend({
+  el: '#design-upload-warning-modal',
+  template: _.template($('#design-upload-warning-modal-template').html()),
+  promise: null,
+  events: {
+    'close.fndtn.reveal': 'onModalClose',
+    'click button.login': 'onLoginClicked',
+    'click button.cancel': 'onCancelClicked',
+    'click button.continue': 'onContinueClicked',
+  },
+  initialize: function()
+  {
+    this.$el.html( this.template({logged_user: LOGGED_USER}) );
+  },
+  show: function()
+  {
+    this.$el.foundation('reveal', 'open');
+    this.promise = $.Deferred();
+    return this.promise;
+  },
+  onModalClose: function(e)
+  {
+    if (this.promise.state() == 'pending') {
+      this.promise.resolve(false);
+    }
+
+    this.promise = null;
+  },
+  onLoginClicked: function(e)
+  {
+    this.promise.resolve(false);
+    $('#login-modal').foundation('reveal', 'open');
+  },
+  onCancelClicked: function(e)
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onContinueClicked: function(e)
+  {
+    this.promise.resolve(true);
+    this.$el.foundation('reveal', 'close');
+  }
+})
