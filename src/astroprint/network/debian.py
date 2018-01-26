@@ -280,10 +280,12 @@ class NetworkManagerEvents(threading.Thread):
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
-		logger.info("Starting communication with Network Manager - version [%s]" % NetworkManager.NetworkManager.Version )
 		self._nm = NetworkManager
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
+
+	def startUp(self):
+		logger.info("Starting communication with Network Manager - version [%s]" % self._nm.NetworkManager.Version )
 		self._eventListener.start()
 		logger.info('NetworkManagerEvents is listening for signals')
 

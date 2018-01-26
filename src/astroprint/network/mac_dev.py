@@ -16,11 +16,12 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.logger = logging.getLogger(__name__)
 		self._online = False
 
+		super(MacDevNetworkManager, self).__init__()
+
+	def startUp(self):
 		timer = threading.Timer(3.0, self._goOnline)
 		timer.daemon = True
 		timer.start()
-
-		super(MacDevNetworkManager, self).__init__()
 
 		self.logger.info('Mac Dev Network Manager initialized')
 

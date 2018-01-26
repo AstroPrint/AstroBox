@@ -33,6 +33,11 @@ class NetworkManager(object):
 
 		return False
 
+	# Called only once right after creation, it should do startup things that take some time so the creation Lock
+  # does not block for too long.
+	def startUp(self):
+		return None
+
 	def shutdown(self):
 		return None
 

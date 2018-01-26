@@ -12,12 +12,13 @@ from astroprint.network import NetworkManager as NetworkManagerBase
 class ManualNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(ManualNetworkManager, self).__init__()
+		self._logger = logging.getLogger(__name__)
 
+	def startUp(self):
 		#obtain IP address
 		s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 		s.connect(('8.8.8.8', 0))
 		self._ipAddress = s.getsockname()[0]
-		self._logger = logging.getLogger(__name__)
 		self._logger.info('Manual Network Manager initialized with IP %s' % self._ipAddress)
 
 	def getActiveConnections(self):
