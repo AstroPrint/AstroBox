@@ -55,7 +55,7 @@ class HMACAuth(requests.auth.AuthBase):
 		r.headers['User-Agent'] = softwareManager().userAgent
 		sig_base = '&'.join((r.method, r.headers['User-Agent']))
 
-		hashed = hmac.new(str(self.privateKey), sig_base, sha256)
+		hashed = hmac.new(self.privateKey, sig_base, sha256)
 
 		r.headers['X-Public'] = self.publicKey
 		r.headers['X-Hash'] = binascii.b2a_base64(hashed.digest())[:-1]
