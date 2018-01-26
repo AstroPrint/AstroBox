@@ -13,6 +13,7 @@ class ManualNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(ManualNetworkManager, self).__init__()
 		self._logger = logging.getLogger(__name__)
+		self._ipAddress = None
 
 	def startUp(self):
 		#obtain IP address

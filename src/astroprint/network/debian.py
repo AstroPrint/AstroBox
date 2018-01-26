@@ -281,6 +281,7 @@ class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
 		self._nm = NetworkManager
+		self._activeWifiDevice = None
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
 
