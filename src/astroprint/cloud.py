@@ -630,5 +630,5 @@ class AstroPrintCloud(object):
 			try:
 				r = requests.get( "%s/print-files?format=%s" % (self.apiHost, printerManager().fileManager.fileFormat), auth=self.hmacAuth )
 				self._print_file_store = r.json()
-			except:
-				pass
+			except Exception as e:
+				self._logger.error("Error syncing with cloud: %s" % e, exc_info = True)
