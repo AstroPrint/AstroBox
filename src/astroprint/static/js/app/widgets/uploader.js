@@ -250,7 +250,7 @@ var FileUploadCombined = FileUploadBase.extend({
 });
 
 var DesignUploadWarningDialog = Backbone.View.extend({
-  el: '#design-upload-warning-modal',
+  el: '<div class="reveal-modal medium radius" data-reveal></div>',
   template: _.template($('#design-upload-warning-modal-template').html()),
   promise: null,
   events: {
