@@ -457,15 +457,6 @@ class AstroprintBoxRouter(object):
 			from octoprint.server import VERSION
 
 			nm = networkManager()
-
-			#activeConnections = nm.getActiveConnections()
-
-			#if activeConnections and ( activeConnections['wired'] or activeConnections['wireless'] or activeConnections['manual']):
-			#	preferredConn = activeConnections['wired'] or activeConnections['wireless'] or activeConnections['manual']
-			#	localIpAddress = preferredConn['ip']
-			#else:
-			#	localIpAddress = None
-
 			sm = softwareManager()
 
 			return {
