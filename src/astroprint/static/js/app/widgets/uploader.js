@@ -79,17 +79,18 @@ var FileUploadBase = Backbone.View.extend({
   {
     if (data.files.length) {
       this.started(data);
-        this.progress(0);
+      this.progress(0);
 
-        if (!this.signatureUrl) {
-          data.url = this.uploadUrl;
-          data.formData = this.uploadData;
-        }
+      if (!this.signatureUrl) {
+        data.url = this.uploadUrl;
+        data.formData = this.uploadData;
+      }
 
-        if (this.beforeSubmit(e, data)) {
-          $(e.currentTarget).fileupload('send', data);
-        }
+      if (this.beforeSubmit(e, data)) {
+        $(e.currentTarget).fileupload('send', data);
+      }
     }
+
     return false;
   },
   onUploadProgress: function(e, data)
@@ -122,6 +123,7 @@ var FileUploadCombined = FileUploadBase.extend({
     print: ['x3g', 'gcode', 'gco']
   },
   currentFileType: null,
+  designWarningDlg: null,
   initialize: function(options)
   {
     FileUploadBase.prototype.initialize.call(this, options);
@@ -138,9 +140,9 @@ var FileUploadCombined = FileUploadBase.extend({
       this.acceptFileTypes = /(\.|\/)(stl|gcode|gco)$/i;
     }
   },
-  started: function(data)
+  onFileAdded: function(e, data)
   {
-    if (data.files && data.files.length > 0) {
+    if (FileUploadBase.prototype.onFileAdded.call(this, e, data)) {
       var fileName = data.files[0].name;
       var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
@@ -150,6 +152,31 @@ var FileUploadCombined = FileUploadBase.extend({
           return ext == fileExt;
         }) != undefined);
       });
+
+      if (this.currentFileType == 'design') {
+        if (!this.designWarningDlg) {
+          this.designWarningDlg = new DesignUploadWarningDialog();
+        }
+
+        this.designWarningDlg.show().then(function(procceed){
+          if (procceed) {
+            data.submit();
+          }
+        });
+
+        return false;
+      }
+
+      return true;
+    } else {
+      return false;
+    }
+  },
+  started: function(data)
+  {
+    if (data.files && data.files.length > 0) {
+      var fileName = data.files[0].name;
+      var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
       if (this.currentFileType == undefined) {
         this.currentFileType = null;
@@ -221,3 +248,47 @@ var FileUploadCombined = FileUploadBase.extend({
   onPrintFileUploaded: function() {},
   onError: function(type, error) {}
 });
+
+var DesignUploadWarningDialog = Backbone.View.extend({
+  el: '<div class="reveal-modal medium radius" data-reveal></div>',
+  template: _.template($('#design-upload-warning-modal-template').html()),
+  promise: null,
+  events: {
+    'close.fndtn.reveal': 'onModalClose',
+    'click button.login': 'onLoginClicked',
+    'click button.cancel': 'onCancelClicked',
+    'click button.continue': 'onContinueClicked',
+  },
+  initialize: function()
+  {
+    this.$el.html( this.template({logged_user: LOGGED_USER}) );
+  },
+  show: function()
+  {
+    this.$el.foundation('reveal', 'open');
+    this.promise = $.Deferred();
+    return this.promise;
+  },
+  onModalClose: function(e)
+  {
+    if (this.promise.state() == 'pending') {
+      this.promise.resolve(false);
+    }
+
+    this.promise = null;
+  },
+  onLoginClicked: function(e)
+  {
+    this.promise.resolve(false);
+    $('#login-modal').foundation('reveal', 'open');
+  },
+  onCancelClicked: function(e)
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onContinueClicked: function(e)
+  {
+    this.promise.resolve(true);
+    this.$el.foundation('reveal', 'close');
+  }
+})

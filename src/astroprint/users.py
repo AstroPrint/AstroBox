@@ -141,8 +141,8 @@ class FilebasedUserManager(UserManager):
 			raise UnknownUser(username)
 
 		if publicKey and privateKey:
-			self._users[username].publicKey = publicKey
-			self._users[username].privateKey = privateKey
+			self._users[username].publicKey = str(publicKey)
+			self._users[username].privateKey = str(privateKey)
 			self._dirty = True
 			self._save()
 

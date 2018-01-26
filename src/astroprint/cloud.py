@@ -54,6 +54,7 @@ class HMACAuth(requests.auth.AuthBase):
 	def __call__(self, r):
 		r.headers['User-Agent'] = softwareManager().userAgent
 		sig_base = '&'.join((r.method, r.headers['User-Agent']))
+
 		hashed = hmac.new(self.privateKey, sig_base, sha256)
 
 		r.headers['X-Public'] = self.publicKey
@@ -629,5 +630,5 @@ class AstroPrintCloud(object):
 			try:
 				r = requests.get( "%s/print-files?format=%s" % (self.apiHost, printerManager().fileManager.fileFormat), auth=self.hmacAuth )
 				self._print_file_store = r.json()
-			except:
-				pass
+			except Exception as e:
+				self._logger.error("Error syncing with cloud: %s" % e, exc_info = True)

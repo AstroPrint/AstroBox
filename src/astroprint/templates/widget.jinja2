@@ -31,3 +31,43 @@
     </div>
   </div>
 </script>
+
+<script type="text/template" id="design-upload-warning-modal-template">
+  <% if (logged_user) { %>
+    <h2 class="bold" align="center">Cloud Slicing</h2>
+    <div class="modal-body">
+      <p>
+        We need to use the <b>AstroPrint Cloud Slicer</b> to slice your design before you can print it. After the upload, you will be redirected there to select your print parameters.
+      </p>
+      <p>
+        After the print file has been generated, you will be redirected back here where you will be able to download and print the sliced file.
+      </p>
+    </div>
+    <div class="modal-actions row">
+      <div class="small-12 medium-6 columns">
+        <button class="secondary radius cancel expand">Cancel</button>
+      </div>
+      <div class="small-12 medium-6 columns">
+        <div class="loading-button expand">
+          <button class="success radius continue expand bold">Proceed with Design Upload <i class="icon-angle-right"></i></button>
+        </div>
+      </div>
+    </div>
+  <% } else { %>
+    <h2 class="bold" align="center">Cloud Slicing</h2>
+    <div class="modal-body">
+      <p>
+        We need to use the <b>AstroPrint Cloud Slicer</b> to slice your design before you can print it.
+      </p>
+      <p>
+        In order to use it you need an account with us. Don't worry it's FREE.
+      </p>
+    </div>
+    <div class="modal-actions row">
+      <div class="small-12 medium-6 medium-centered columns">
+        <button class="success radius login expand">Sign in to AstroPrint</button>
+      </div>
+    </div>
+  <% } %>
+  <a class="close-reveal-modal">&#215;</a>
+</script>
