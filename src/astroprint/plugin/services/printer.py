@@ -304,6 +304,11 @@ class PrinterService(PluginService):
 
 		return
 
+	def getPrintJobId(self, data, sendResponse):
+		pm = printerManager()
+
+		sendResponse(pm.currentPrintJobId)
+
 	def pause(self,data,sendResponse):
 		printerManager().togglePausePrint()
 		sendResponse({'success': 'no_error'})
