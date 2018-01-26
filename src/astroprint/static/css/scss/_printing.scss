@@ -42,10 +42,18 @@
       }
     }
 
+    .top-10 {
+      display: block;
+      line-height: initial;
+      margin-top: -10px;
+    }
   }
 
-  .filename-progress-container {
-    margin: 15px !important;
+  div {
+    #filename-progress-container {
+      margin: 15px !important;
+      margin-top: -5px !important;
+    }
   }
 
   .progress {
@@ -93,11 +101,12 @@
     .info {
       background: $white;
       box-shadow: 0px 1px 2px 2px rgba(82, 82, 82, 0.04);
-      min-height: 281px;
+      min-height: 280px;
       margin-bottom: 20px;
 
       > div {
         margin: 10px 0;
+        margin-top: 18px;
       }
 
       h2 {
@@ -111,7 +120,18 @@
         display: none;
       }
 
-      .time-layer-container {
+      #time-layer-container {
+
+        .top-10 {
+          display: block;
+          line-height: initial;
+          margin-top: -10px;
+        }
+
+        .h2-top-5 {
+          margin: -5px;
+        }
+
         i {
           font-size: rem-calc(28);
         }
