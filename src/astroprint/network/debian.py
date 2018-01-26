@@ -591,6 +591,9 @@ class DebianNetworkManager(NetworkManagerBase):
 		else:
 			return False
 
+	@property
+	def activeIpAddress(self):
+		return self._eventListener._currentIpv4Address
 
 # ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
 

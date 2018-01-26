@@ -83,6 +83,10 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.logger.info('Host name is set to %s ' % name)
 		return True
 
+	@property
+	def activeIpAddress(self):
+		return '127.0.0.1'
+
 	def _goOnline(self):
 		eventManager.fire(Events.NETWORK_STATUS, 'online')
 		self._online = True

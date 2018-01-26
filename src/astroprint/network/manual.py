@@ -32,6 +32,10 @@ class ManualNetworkManager(NetworkManagerBase):
 			}
 		}
 
+	@property
+	def activeIpAddress(self):
+		return self._ipAddress
+
 	def isOnline(self):
 		return True
 

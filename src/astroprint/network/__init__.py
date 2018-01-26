@@ -34,7 +34,8 @@ class NetworkManager(object):
 		return False
 
 	# Called only once right after creation, it should do startup things that take some time so the creation Lock
-  # does not block for too long.
+  # does not block for too long. Only things that can be delayed as another thread can get the handle to the manager
+  # before this function has been called.
 	def startUp(self):
 		return None
 
@@ -89,4 +90,8 @@ class NetworkManager(object):
 		return None
 
 	def setHostname(self, name):
+		return None
+
+	@property
+	def activeIpAddress(self):
 		return None
