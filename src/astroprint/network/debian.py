@@ -8,10 +8,6 @@ import sarge
 import os
 import threading
 import time
-import dbus.mainloop.glib;
-
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-dbus.mainloop.glib.threads_init()
 
 import ext.pynetworkmanager.NetworkManager as NetworkManager
 
