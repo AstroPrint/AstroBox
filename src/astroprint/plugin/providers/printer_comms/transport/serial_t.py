@@ -6,6 +6,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import serial
 import logging
 import threading
+import re
 import serial.tools.list_ports
 
 from sys import platform
