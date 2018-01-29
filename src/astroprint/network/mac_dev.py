@@ -16,13 +16,15 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.logger = logging.getLogger(__name__)
 		self._online = False
 
-		timer = threading.Timer(3.0, self._goOnline)
+		super(MacDevNetworkManager, self).__init__()
+
+	def startUp(self):
+		offlineTime = 3.0
+		timer = threading.Timer(offlineTime, self._goOnline)
 		timer.daemon = True
 		timer.start()
 
-		super(MacDevNetworkManager, self).__init__()
-
-		self.logger.info('Mac Dev Network Manager initialized')
+		self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
 
 	def getActiveConnections(self):
 		return {
@@ -80,6 +82,10 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.name = name
 		self.logger.info('Host name is set to %s ' % name)
 		return True
+
+	@property
+	def activeIpAddress(self):
+		return '127.0.0.1'
 
 	def _goOnline(self):
 		eventManager.fire(Events.NETWORK_STATUS, 'online')

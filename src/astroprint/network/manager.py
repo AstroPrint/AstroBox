@@ -12,6 +12,7 @@ def networkManager():
 	global _instance
 
 	if _instance is None:
+		needsStartingUp = False
 		with creationLock:
 			if _instance is None:
 				from octoprint.settings import settings
@@ -38,6 +39,11 @@ def networkManager():
 
 				else:
 					raise Exception('Invalid network manager: %s' % driver)
+
+				needsStartingUp = True
+
+		if needsStartingUp:
+			_instance.startUp()
 
 	return _instance
 

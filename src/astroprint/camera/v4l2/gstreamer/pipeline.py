@@ -41,15 +41,16 @@ class AstroPrintPipeline(object):
 		self._logger.debug('Pipeline Process Controller removed')
 
 	def _kill(self):
-		try:
-			os.kill(self._process.pid, signal.SIGKILL)
-			self._process.join()
-		except OSError as e:
-			# error 3: means the pid is not valid, so the process has been killed
-			if e.errno != 3:
-				raise e
+		if self._process:
+			try:
+				os.kill(self._process.pid, signal.SIGKILL)
+				self._process.join()
+			except OSError as e:
+				# error 3: means the pid is not valid, so the process has been killed
+				if e.errno != 3:
+					raise e
 
-		self._process = None
+			self._process = None
 
 	def startProcess(self):
 		if self._process:

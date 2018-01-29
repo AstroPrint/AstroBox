@@ -8,10 +8,6 @@ import sarge
 import os
 import threading
 import time
-import dbus.mainloop.glib;
-
-dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
-dbus.mainloop.glib.threads_init()
 
 import ext.pynetworkmanager.NetworkManager as NetworkManager
 
@@ -284,10 +280,14 @@ class NetworkManagerEvents(threading.Thread):
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
-		logger.info("Starting communication with Network Manager - version [%s]" % NetworkManager.NetworkManager.Version )
 		self._nm = NetworkManager
+		self._activeWifiDevice = None
 		self._eventListener = NetworkManagerEvents(self)
 		self._startHotspotCondition = threading.Condition()
+		self._hostname = None
+
+	def startUp(self):
+		logger.info("Starting communication with Network Manager - version [%s]" % self._nm.NetworkManager.Version )
 		self._eventListener.start()
 		logger.info('NetworkManagerEvents is listening for signals')
 
@@ -540,29 +540,29 @@ class DebianNetworkManager(NetworkManagerBase):
 			return "Stop hotspot failed with return code: %s" % e
 
 	def getHostname(self):
-		return self._nm.Settings.Hostname
+		if not self._hostname:
+			self._hostname = self._nm.Settings.Hostname
+
+		return self._hostname
 
 	def setHostname(self, name):
+		old_name = self.getHostname()
+
+		if old_name == name:
+			return True
+
 		settings = self._nm.Settings
-
-		old_name = settings.Hostname
-
 		newName = ''
 
 		try:
 			settings.SaveHostname(name)
-
 			newName = settings.Hostname
 
-
 		except DBusException as e:
-
 			exceptionName = e.get_dbus_name()
 
 			if exceptionName == 'org.freedesktop.DBus.Error.NoReply':
 				newName = name
-
-
 
 		if (newName == name):
 			def replace(file_path, pattern, subst):
@@ -588,10 +588,16 @@ class DebianNetworkManager(NetworkManagerBase):
 			for f in udpateFiles:
 				if (os.path.exists(f) and os.path.isfile(f)):
 					replace(f, old_name, name)
+
+			self._hostname = name
+
 			return True
 		else:
 			return False
 
+	@property
+	def activeIpAddress(self):
+		return self._eventListener._currentIpv4Address
 
 # ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
 
