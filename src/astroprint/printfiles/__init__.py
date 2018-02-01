@@ -8,6 +8,7 @@ import threading
 import yaml
 import time
 import octoprint.util as util
+import fnmatch
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
@@ -29,11 +30,16 @@ class PrintFilesManager(object):
 	SUPPORTED_EXTENSIONS = []
 	SUPPORTED_DESIGN_EXTENSIONS = ["stl"]
 
+	fileBrowsingExtensions = [
+		'.gcode'
+	]
+
 	def __init__(self):
 
 		self._settings = settings()
 
 		self._uploadFolder = self._settings.getBaseFolder("uploads")
+		self._storageFolder = self._settings.getStorageLocation()
 
 		self._callbacks = []
 
@@ -382,6 +388,33 @@ class PrintFilesManager(object):
 			return None
 
 		return secure
+
+
+	def getAllStorageLocations(self):
+		locations = []
+
+		locations.append(self._uploadFolder)
+		locations.extend(self.getLocationExploration(self._storageFolder))
+
+		return locations
+
+	def getLocationExploration(self, location, extensions=fileBrowsingExtensions):
+
+		locations = []
+
+		for item in os.listdir(location):
+			if not item.startswith('.'):
+				completePath = location + '/' + item
+				if os.path.isdir(completePath):
+					locations.append(completePath)
+				else:
+					for ext in extensions:
+						if fnmatch.fnmatch(item.lower(), '*' + ext):
+							locations.append(completePath)
+							break
+
+
+		return locations
 
 	def getAllFilenames(self):
 		return [x["name"] for x in self.getAllFileData()]

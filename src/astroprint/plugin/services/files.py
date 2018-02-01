@@ -4,6 +4,7 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import os
+import shutil
 import time
 from . import PluginService
 
@@ -44,6 +45,41 @@ class FilesService(PluginService):
 		#files managing
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
+
+	def copyFileToLocal(self, data, sendResponse):
+		try:
+			shutil.copy2(data['origin'],data['destination'])
+			sendResponse({'success': 'no_error'})
+		except Exception as e:
+			self._logger.error("copy print file to local folder failed", exc_info = True)
+			sendResponse({'error': 'copy print file to local folder failed' },true)
+
+
+	def getFileBrowsingExtensions(self, sendResponse):
+		sendResponse({ 'fileBrowsingExtensions' : printerManager().fileManager.fileBrowsingExtensions })
+
+
+	def getFolderExploration(self, folder, sendResponse):
+
+		try:
+			sendResponse( { 'folderExp': printerManager().fileManager.getLocationExploration(folder) })
+
+		except Exception as e:
+			self._logger.error("exploration folders can not be obtained", exc_info = True)
+			sendResponse('no_folders_obtained',True)
+
+
+	def getLocalStorages(self, sendResponse):
+
+		try:
+			sendResponse( { 'storageFolders': printerManager().fileManager.getAllStorageLocations() })
+
+		except Exception as e:
+			self._logger.error("storage folders can not be obtained", exc_info = True)
+			sendResponse('no_folders_obtained',True)
+
+	def getBaseFolder(self, key, sendResponse):
+		sendResponse({ 'baseFolder' : settings().getBaseFolder(key)})
 
 	def getLocalFiles(self, sendResponse):
 		try:
