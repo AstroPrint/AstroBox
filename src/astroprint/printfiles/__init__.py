@@ -393,12 +393,15 @@ class PrintFilesManager(object):
 	def getAllStorageLocations(self):
 		locations = []
 
-		locations.append(self._uploadFolder)
-		locations.extend(self.getLocationExploration(self._storageFolder))
+		locations.append({
+			'name': self._uploadFolder,
+			'icon': 'home'
+		})
+		locations.extend(self.getLocationExploration(self._storageFolder,'usb'))
 
 		return locations
 
-	def getLocationExploration(self, location, extensions=fileBrowsingExtensions):
+	def getLocationExploration(self, location, icon='folder', extensions=fileBrowsingExtensions):
 
 		locations = []
 
@@ -406,13 +409,17 @@ class PrintFilesManager(object):
 			if not item.startswith('.'):
 				completePath = location + '/' + item
 				if os.path.isdir(completePath):
-					locations.append(completePath)
+					locations.append({
+						'name': completePath,
+						'icon': icon})
 				else:
 					for ext in extensions:
 						if fnmatch.fnmatch(item.lower(), '*' + ext):
-							locations.append(completePath)
+							locations.append({
+								'name': completePath,
+								'icon': ext
+							})
 							break
-
 
 		return locations
 
