@@ -212,8 +212,8 @@ class VirtualComms(Plugin, PrinterCommsService):
 		return self._comm
 
 	@property
-	def preHeating(self):
-		return self._preheating
+	def heatingUp(self):
+		return self._heatingUp
 
 	@property
 	def printProgress(self):

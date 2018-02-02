@@ -177,7 +177,6 @@ class AstroPrintCloud(object):
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
 			self.settings.save()
 
-			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
 		return userValidated
 

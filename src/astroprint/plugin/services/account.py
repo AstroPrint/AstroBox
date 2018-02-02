@@ -14,12 +14,14 @@ from octoprint.events import Events
 class AccountService(PluginService):
 	_validEvents = [
 		#watch the state of the user's account: connecting, connected, disconnected , error
-		'account_state_change'
+		'account_state_change',
+		'boxrouter_state_change'
 	]
 
 	def __init__(self):
 		super(AccountService, self).__init__()
-		self._eventManager.subscribe(Events.ASTROPRINT_STATUS, self._onAccountStateChange)
+		self._eventManager.subscribe(Events.ASTROPRINT_STATUS, self._onBoxrouterStateChange)
+		self._eventManager.subscribe(Events.LOCK_STATUS_CHANGED, self._onAccountStateChange)
 
 	#REQUESTS
 
@@ -117,11 +119,15 @@ class AccountService(PluginService):
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
-			sets = settings()
-			user = sets.get(["cloudSlicer", "loggedUser"])
+		sets = settings()
+		user = sets.get(["cloudSlicer", "loggedUser"])
+		data = {
+			'userLogged': user if user else None,
+		}
+		self.publishEvent('account_state_change',data)
+
+	def _onBoxrouterStateChange(self,event,value):
 			data = {
-				'userLogged': user if user else None,
 				'boxrouterStatus' :  boxrouterManager().status
 			}
-
-			self.publishEvent('account_state_change',data)
+			self.publishEvent('boxrouter_state_change',data)
