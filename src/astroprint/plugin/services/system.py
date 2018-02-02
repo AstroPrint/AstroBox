@@ -437,11 +437,6 @@ class SystemService(PluginService):
 				else:
 					os.unlink(p_profile_file)
 
-			#remove box-id so it's re-created on bootup
-			boxIdFile = os.path.join(configFolder, "box-id")
-			if os.path.exists(boxIdFile):
-				os.unlink(boxIdFile)
-
 			#remove info about users
 			user_file  = s.get(["accessControl", "userfile"]) or os.path.join( configFolder, "users.yaml")
 			if user_file and os.path.exists(user_file):
