@@ -212,7 +212,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		return self._comm
 
 	@property
-	def heatingUp(self):
+	def preHeating(self):
 		return self._heatingUp
 
 	@property

@@ -6,6 +6,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import serial
 import logging
 import threading
+import serial.tools.list_ports
 
 from sys import platform
 from octoprint.settings import settings
@@ -32,19 +33,16 @@ class SerialCommTransport(PrinterCommTransport):
 
 	def listAvailablePorts(self):
 		ports = {}
-		if platform.startswith('linux'):
-			from usbid.device import device_list
+		if "linux" in platform:
+			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
+			regex = re.compile(r"\/dev\/tty(?:ACM|USB|)[0-9]+")
 
-			for p in device_list():
-				if p.tty:
-					ports['/dev/%s' % p.tty] = p.nameProduct
+		elif platform == "darwin":
+			regex = re.compile(r"\/dev\/cu\.usb(?:serial|modem)[\w-]+")
 
-		else:
-			import serial.tools.list_ports
-
-			for p in serial.tools.list_ports.comports():
-				if p.description != 'n/a':
-					ports[p.device] = p.description
+		for p in serial.tools.list_ports.comports():
+			if regex.match(p.device) is not None:
+				ports[p.device] = p.product or "Unknown serial device"
 
 		return ports
 
