@@ -63,7 +63,7 @@ class PrinterWithPlugin(Printer):
 
 	@property
 	def _fileManagerClass(self):
-		return self._plugin.fileManagerClass()
+		return self._plugin.fileManagerClass
 
 	def connect(self, port=None, baudrate=None):
 		if self._plugin.connect(port, baudrate):
