@@ -116,11 +116,10 @@ class SystemService(PluginService):
 			s.save()
 
 			pp = printerProfileManager()
-			pp.data['driver'] = driver
+			pp.set({'driver': driver})
 			pp.save()
 
-			pm = printerManager(driver)
-			pm.connect(port, baudrate)
+			printerManager().connect(port, baudrate)
 
 			sendResponse({'success': 'no_error'})
 			return

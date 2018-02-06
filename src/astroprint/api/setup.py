@@ -182,11 +182,10 @@ def save_connection_settings():
 		s.save()
 
 		pp = printerProfileManager()
-		pp.data['driver'] = driver
+		pp.set({'driver': driver})
 		pp.save()
 
-		pm = printerManager(driver)
-		pm.connect(port, baudrate)
+		printerManager().connect(port, baudrate)
 
 		return make_response("OK", 200)
 
@@ -199,11 +198,8 @@ def save_printer_profile_settings():
 
 	if driver:
 		pp = printerProfileManager()
-		pp.data['driver'] = driver
+		pp.set({'driver': driver})
 		pp.save()
-
-		#swap the printerManager here
-		printerManager(driver)
 
 		return make_response("OK", 200)
 
