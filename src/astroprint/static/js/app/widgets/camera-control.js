@@ -532,6 +532,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
           error: _.bind(function(error) {
             if(!this.$el.hasClass('ready')
               && !this.videoStreamingError //prevent if internal gstreamer error is showing
+              && !this.stoppingPromise
               ){
                 console.error(error);
                 noty({text: "Unable to start the WebRTC session.", timeout: 3000});
