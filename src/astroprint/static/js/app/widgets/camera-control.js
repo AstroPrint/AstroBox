@@ -520,9 +520,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
                   app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
-                  setTimeout( _.bind(function(){
-                    this.streamingPlugIn.send({"message": { "request": "watch", id: this.settings.encoding == 'h264' ? 1 : 2, refresh: true }});
-                  }, this), 500)
+                  this.streamingPlugIn.send({"message": { "request": "watch", id: this.settings.encoding == 'h264' ? 1 : 2, refresh: true }});
                 },this),
                 oncleanup: function() {
                   Janus.log(" ::: Got a cleanup notification :::");
