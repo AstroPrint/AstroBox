@@ -151,7 +151,7 @@ class WebRtc(object):
 			else:#VP8
 				self.videoId = 2
 
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
+			peer.streamingPlugin.send_message({'request':'watch','id':self.videoId})
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
 		try:
