@@ -19,6 +19,7 @@ import os
 import signal
 import re
 import time
+import requests
 
 from blinker import signal
 
@@ -232,17 +233,13 @@ class WebRtc(object):
 			if self._JanusProcess:
 				self._logger.debug('Janus Starting...')
 
-				from requests import Session as RequestsSession
-
-				session = RequestsSession()
 				response = None
-
 				tryingCounter = 0
 				while response is None:
 					time.sleep(0.3)
 
 					try:
-						response = session.post(
+						response = requests.post(
 							url= 'http://127.0.0.1:8088',
 							data= {
 							 	"message":{
@@ -253,11 +250,11 @@ class WebRtc(object):
 						)
 
 					except Exception, error:
-						self._logger.debug('Waiting for Janus initialization')
+						self._logger.debug('Waiting for Janus initialization. Responded with: %s' % error)
 						tryingCounter += 1
 
 						if tryingCounter >= 100:
-							self._logger.error(error)
+							self._logger.error("Janus failed to start: %s" % error)
 							return False
 
 				self._logger.debug('Janus Started.')
