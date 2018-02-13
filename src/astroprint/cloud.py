@@ -329,7 +329,7 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data and "private_key" in data:
-			return data["private_key"]
+			return str(data["private_key"])
 		else:
 			return None
 
@@ -349,7 +349,7 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data and "public_key" in data:
-			return data["public_key"]
+			return str(data["public_key"])
 		else:
 			return None
 
