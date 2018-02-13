@@ -103,7 +103,7 @@ class AstroPrintPipeline(object):
 				self._logger.warn('Process did not shutdown properly. Terminating...')
 				self._process.terminate()
 				self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
-				if self._process.exitcode is None:
+				if self._process and self._process.exitcode is None:
 					self._logger.warn('Process did not terminate properly. Sending KILL signal...')
 					self._kill()
 
