@@ -276,7 +276,7 @@ class AstroPrintCloud(object):
 			except:
 				data = None
 
-			if data:
+			if data and 'url' in data and 'post_data' in data:
 				publicKey = current_user.publicKey
 				privateKey = current_user.privateKey
 

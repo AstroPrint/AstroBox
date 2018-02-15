@@ -25,16 +25,8 @@
       letter-spacing: 0.5px;
       margin-top: 15px;
 
-      &.controls{
-        box-shadow: 0 7px black;
-        padding-bottom: 10px;
-
-        &:active{
-          background-color: #1a1a1a;
-          top: 7px !important;
-          box-shadow: none;
-          position: relative;
-        }
+      &.controls:hover {
+        background-color: lighten($jet,10%);
       }
 
       &:focus{
