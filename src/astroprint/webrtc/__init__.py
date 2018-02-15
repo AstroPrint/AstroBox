@@ -177,6 +177,17 @@ class WebRtc(object):
 		else:
 			self._logger.warning('TickleIceCandidate: Peer with session [%s] is not found' % sessionId)
 
+	def reportEndOfIceCandidates(self, sessionId):
+		if sessionId in self._connectedPeers:
+			self._connectedPeers[sessionId].streamingPlugin.send_message({
+				'janus': 'trickle',
+				'candidate': {
+					'completed': True
+				}
+			})
+		else:
+			self._logger.warning('reportEndOfIceCandidates: Peer with session [%s] is not found' % sessionId)
+
 	def pongCallback(self, data, key):
 		if 'pong' != data:
 			if 'error' in data:
