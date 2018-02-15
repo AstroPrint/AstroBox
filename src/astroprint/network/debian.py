@@ -54,7 +54,7 @@ class NetworkManagerEvents(threading.Thread):
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
 			try:
-				if c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
+			  if hasattr(c, 'State') and c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
 					d = c.Devices[0]
 					return d
 			except:
