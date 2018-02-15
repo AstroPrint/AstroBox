@@ -343,7 +343,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		if self._nm.NetworkManager.State == self._nm.NM_STATE_CONNECTED_GLOBAL:
 			connections = self._nm.NetworkManager.ActiveConnections
 			for c in connections:
-				if c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
+				if hasattr(c, 'State') and c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
 					d = c.Devices[0]
 
 					if d.DeviceType == self._nm.NM_DEVICE_TYPE_ETHERNET:
