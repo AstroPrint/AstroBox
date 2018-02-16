@@ -199,7 +199,8 @@ class AstroPrintCloud(object):
 				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
 				else:
-					user = userManager.addUser(email, password, public_key, private_key, True)
+					self._logger.info("New user signing requires password method")
+					return False
 
 				userLoggedIn = True
 
