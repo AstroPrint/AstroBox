@@ -29,9 +29,9 @@ class PrinterVirtual(Printer):
 		self._currentSelectedTool = 0
 
 		self._settings = {
-			'connection': 1.0,
-			'heatingUp': 2.0,
-			'printJob': 10.0
+			'connection': 10.0,
+			'heatingUp': 10.0,
+			'printJob': 1000.0
 		}
 
 		if os.path.isfile(seettings_file):
