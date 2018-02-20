@@ -86,103 +86,103 @@
 
 #xy-controls,
 #z-controls  {
-
-	button {
-		display: inline-block;
-		margin-bottom: 0;
-    position: relative;
-    background: $oil;
-    box-shadow: 0 12px darken($oil, 40%);
+  .control-btn-wrapper {
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    background: none;
     padding: 0;
-    width: 55px;
-    height: 45px;
-    border-radius: 8px;
-    font-size: 35px;
-
-		&:hover{
-      background-color: lighten($oil,5%);
-    }
+    position: absolute;
+    display: inline-block;
 
     &:active {
-      background-color: darken($oil,10%);
-      top: 65px !important;
-      box-shadow: none;
+      .btn {
+        background-color: darken($oil,10%);
+        box-shadow: none;
+        transform: translate(0,12px);
+      }
     }
-	}
+
+    .btn {
+      background: $oil;
+      box-shadow: 0 12px darken($oil, 40%);
+      padding: 9px 0 0 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 8px;
+      font-size: 35px;
+      color: white;
+      pointer-events: none;
+
+      &:hover{
+        background-color: lighten($oil,5%);
+      }
+    }
+  }
 }
 
 #xy-controls {
 	.control_bg_xy {
 		position: relative;
     perspective: 500px;
-    -webkit-perspective: 500px;
     perspective-origin: 50% 50%;
-    -webkit-perspective-origin:50% 50%;
     width: 100%;
     height: 200px;
     width: 200px;
 
     & > *{
-      -webkit-transform: rotateX(40deg); /* Chrome, Safari, Opera */
       transform: rotateX(40deg);
     }
 
-		button {
-      position: absolute;
-      width: 56px;
-      height: 56px;
-      border-radius: 5px;
+    .control-btn-wrapper {
+      .btn {
+        border-radius: 5px;
+      }
 
-			&.home_z {
+      &.btn_y_plus {
+        top: -11px;
+        left: 70px;
+
+        .btn {
+          i:before{
+            transform: rotate(-90deg);
+          }
+        }
+      }
+
+      &.btn_home_xy {
         top: 70px;
         left: 73px;
         height: 36px;
         width: 50px;
-        font-size: 18px;
 
-        &:active{
-          top: 82px !important;
+        .btn {
+          font-size: 18px;
         }
-			}
+      }
 
-			&.control_btn_x_plus {
-				top: 53px;
+      &.btn_x_plus {
+        top: 53px;
         right: -11px;
-			}
+      }
 
-			&.control_btn_x_minus {
-				top: 53px;
+      &.btn_x_minus {
+        top: 53px;
         left: -10px;
         i:before{
           transform: rotate(-180deg);
         }
-			}
+      }
 
-			&.control_btn_y_minus {
+      &.btn_y_minus {
         bottom: -11px;
         left: 70px;
 
-          i:before{
-            transform: rotate(90deg);
-          }
-
-          &:active{
-            top: 141px !important;
-          }
-			}
-
-			&.control_btn_y_plus {
-        top: -11px;
-        left: 70px;
-          i:before{
-            transform: rotate(-90deg);
-          }
-
-          &:active{
-            top: 0 !important;
-          }
-			}
-		}
+        i:before{
+          transform: rotate(90deg);
+        }
+      }
+    }
   }
 
   .bed-mesh{
@@ -198,31 +198,34 @@
 }
 
 #z-controls {
-  height: 222px;
-	button.home_z {
-    margin: 20px 0;
-    height: 36px;
-    width: 50px;
-    font-size: 18px;
-  }
+  margin-bottom: 20px;
+  text-align: center;
 
-  .control_btn_z_plus i:before{
-    -ms-transform: rotate(-90deg); /* IE 9 */
-    -webkit-transform: rotate(-90deg); /* Chrome, Safari, Opera */
-    transform: rotate(-90deg);
-  }
+  .control-btn-wrapper {
+    position: relative;
+    margin-bottom: 0;
+    height: 50px;
 
-  .control_btn_z_minus i:before{
-    -ms-transform: rotate(90deg); /* IE 9 */
-    -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
-    transform: rotate(90deg);
-  }
+    .btn {
+      padding: 5px 0 0 0;
+    }
 
-  button{
-    &:active {
-      background-color: darken($oil,10%);
-      top: 12px !important;
-      box-shadow: none;
+    &.btn_home_z {
+      margin: 20px 0;
+      height: 33px;
+      width: 50px;
+
+      .btn {
+        font-size: 18px;
+      }
+    }
+
+    &.btn_z_plus i:before{
+      transform: rotate(-90deg);
+    }
+
+    &.btn_z_minus i:before {
+      transform: rotate(90deg);
     }
   }
 }
@@ -272,14 +275,14 @@
 		}
 
 		#z-controls {
-			button.home_z {
+			.btn_home_z {
 				opacity: 0.1;
 				cursor: not-allowed;
 			}
 		}
 
 		#xy-controls {
-			button.home_z {
+			.btn_home_xy {
 				opacity: 0.1;
 				cursor: not-allowed;
 			}

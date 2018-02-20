@@ -286,9 +286,11 @@ class P2PCommandHandler(object):
 
 	def ice_candidate(self, data, clientId, done):
 		#Manage the ice candidate for communicating with Janus from client
-		if 'sessionId' in data:
+		if 'sessionId' in data and 'candidate' in data:
 			candidate = data['candidate']
-			if candidate is not None or candidate['candidate'] is not None:
+			if candidate:
 				webRtcManager().tickleIceCandidate(data['sessionId'], candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex'])
+			else:
+				webRtcManager().reportEndOfIceCandidates(data['sessionId'])
 
 		done(None)

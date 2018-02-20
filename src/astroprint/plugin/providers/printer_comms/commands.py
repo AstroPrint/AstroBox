@@ -742,6 +742,7 @@ class CommandSender(object):
 		self._readyToSend = True
 		self._storedCommands = None
 		self._pendingCommands = deque()
+		self._pendingCommmandsLock = threading.RLock()
 
 	def fireNextCommand(self):
 		self._readyToSend = False
@@ -770,7 +771,8 @@ class CommandSender(object):
 		if command.onBeforeCommandSend() is not False:
 			try:
 				self._comms.writeOnLink(command.encodedCommand, command.onCommandSent)
-				self._pendingCommands.appendleft(command)
+				with self._pendingCommmandsLock:
+					self._pendingCommands.appendleft(command)
 
 			except Exception as e:
 				self._eventListener.onLinkError('unable_to_send', "Error: %s, command: %s" % (e, command.command))
@@ -787,7 +789,10 @@ class CommandSender(object):
 				sendNext = False
 				handled = False
 
-				for c in self._pendingCommands:
+				with self._pendingCommmandsLock:
+					pc = list(self._pendingCommands)
+
+				for c in pc:
 					if c.onResponse(data):
 						if c.completed:
 							toBeRemoved = c
@@ -802,7 +807,8 @@ class CommandSender(object):
 					self._eventListener.onUnhandledResponse(data)
 
 				if toBeRemoved:
-					self._pendingCommands.remove(toBeRemoved)
+					with self._pendingCommmandsLock:
+						self._pendingCommands.remove(toBeRemoved)
 
 				if sendNext:
 					self.sendNext()
@@ -820,7 +826,11 @@ class CommandSender(object):
 			self._storedCommands = None
 
 	def sendNext(self):
-		sendAllowed = self._readyToSend or all([( not c.isQueued ) for c in self._pendingCommands])
+		if self._readyToSend:
+			sendAllowed = True
+		else:
+			with self._pendingCommmandsLock:
+				sendAllowed = all([( not c.isQueued ) for c in self._pendingCommands])
 
 		if sendAllowed:
 			self.fireNextCommand()
@@ -861,7 +871,8 @@ class CommandSender(object):
 
 	def clearCommandQueue(self):
 		self._commandQ.clear()
-		self._pendingCommands.clear()
+		with self._pendingCommmandsLock:
+			self._pendingCommands.clear()
 
 	@property
 	def commandsInQueue(self):
