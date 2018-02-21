@@ -72,7 +72,7 @@ class SystemService(PluginService):
 		pm = printerManager()
 		ppm = printerProfileManager()
 		connectionOptions = pm.getConnectionOptions()
-		ports = {}
+
 		if data and data['settings']:
 			if "serial" in data.keys():
 				if "port" in data["serial"].keys(): s.set(["serial", "port"], data["serial"]["port"])
