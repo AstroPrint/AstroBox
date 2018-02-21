@@ -72,7 +72,7 @@ class SystemService(PluginService):
 		pm = printerManager()
 		ppm = printerProfileManager()
 		connectionOptions = pm.getConnectionOptions()
-
+		ports = {}
 		if data and data['settings']:
 			if "serial" in data.keys():
 				if "port" in data["serial"].keys(): s.set(["serial", "port"], data["serial"]["port"])
@@ -92,7 +92,7 @@ class SystemService(PluginService):
 			"serial": {
 				"port": connectionOptions["portPreference"],
 				"baudrate": connectionOptions["baudratePreference"],
-				"portOptions": connectionOptions["ports"].items(),
+				"portOptions": connectionOptions["ports"],
 				"baudrateOptions": connectionOptions["baudrates"]
 			}
 		})
