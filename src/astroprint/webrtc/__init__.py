@@ -19,6 +19,7 @@ import os
 import signal
 import re
 import time
+import requests
 
 from blinker import signal
 
@@ -151,7 +152,7 @@ class WebRtc(object):
 			else:#VP8
 				self.videoId = 2
 
-			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'watch','id':self.videoId})
+			peer.streamingPlugin.send_message({'request':'watch','id':self.videoId})
 
 	def setSessionDescriptionAndStart(self, sessionId, data):
 		try:
@@ -175,6 +176,17 @@ class WebRtc(object):
 			self._connectedPeers[sessionId].streamingPlugin.add_ice_candidate(candidate, sdp_mid, sdp_mline_index)
 		else:
 			self._logger.warning('TickleIceCandidate: Peer with session [%s] is not found' % sessionId)
+
+	def reportEndOfIceCandidates(self, sessionId):
+		if sessionId in self._connectedPeers:
+			self._connectedPeers[sessionId].streamingPlugin.send_message({
+				'janus': 'trickle',
+				'candidate': {
+					'completed': True
+				}
+			})
+		else:
+			self._logger.warning('reportEndOfIceCandidates: Peer with session [%s] is not found' % sessionId)
 
 	def pongCallback(self, data, key):
 		if 'pong' != data:
@@ -232,17 +244,13 @@ class WebRtc(object):
 			if self._JanusProcess:
 				self._logger.debug('Janus Starting...')
 
-				from requests import Session as RequestsSession
-
-				session = RequestsSession()
 				response = None
-
 				tryingCounter = 0
 				while response is None:
 					time.sleep(0.3)
 
 					try:
-						response = session.post(
+						response = requests.post(
 							url= 'http://127.0.0.1:8088',
 							data= {
 							 	"message":{
@@ -253,11 +261,11 @@ class WebRtc(object):
 						)
 
 					except Exception, error:
-						self._logger.debug('Waiting for Janus initialization')
+						self._logger.debug('Waiting for Janus initialization. Responded with: %s' % error)
 						tryingCounter += 1
 
 						if tryingCounter >= 100:
-							self._logger.error(error)
+							self._logger.error("Janus failed to start: %s" % error)
 							return False
 
 				self._logger.debug('Janus Started.')

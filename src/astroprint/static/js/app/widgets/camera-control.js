@@ -341,7 +341,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
       this.initJanus();
 
       // Initialize the library (all console debuggers enabled)
-      Janus.init({debug: null, callback: function() {
+      Janus.init({debug: false, callback: function() {
         console.log('Janus Initialized')
       }});
     }
@@ -507,19 +507,20 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
                   var isPlaying = false;
 
-                  onPlaying = _.bind(function () {
+                  onPlay = _.bind(function () {
                     this.setState('streaming');
                     isPlaying = true;
                     this.activateWindowHideListener();
-                    videoCont.off('playing', onPlaying);
+                    videoCont.off('canplaythrough', onPlay);
                     promise.resolve();
                   }, this);
 
-                  videoCont.on("playing", onPlaying);
+                  videoCont.on("canplaythrough", onPlay);
                   videoCont.get(0).srcObject = stream;
 
                   app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
 
+                  this.streamingPlugIn.send({"message": { "request": "watch", id: this.settings.encoding == 'h264' ? 1 : 2, refresh: true }});
                 },this),
                 oncleanup: function() {
                   Janus.log(" ::: Got a cleanup notification :::");
@@ -531,6 +532,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
           error: _.bind(function(error) {
             if(!this.$el.hasClass('ready')
               && !this.videoStreamingError //prevent if internal gstreamer error is showing
+              && !this.stoppingPromise
               ){
                 console.error(error);
                 noty({text: "Unable to start the WebRTC session.", timeout: 3000});

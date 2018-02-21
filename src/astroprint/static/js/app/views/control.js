@@ -284,11 +284,11 @@ var MovementControlView = Backbone.View.extend({
 var XYControlView = MovementControlView.extend({
   el: '#xy-controls',
   events: {
-    'click .control_btn_x_plus': 'xPlusTapped',
-    'click .control_btn_x_minus': 'xMinusTapped',
-    'click .control_btn_y_plus': 'yPlusTapped',
-    'click .control_btn_y_minus': 'yMinusTapped',
-    'click .home_z': 'homeTapped'
+    'click .btn_x_plus': 'xPlusTapped',
+    'click .btn_x_minus': 'xMinusTapped',
+    'click .btn_y_plus': 'yPlusTapped',
+    'click .btn_y_minus': 'yMinusTapped',
+    'click .btn_home_xy': 'homeTapped'
   },
   xPlusTapped: function()
   {
@@ -317,9 +317,9 @@ var XYControlView = MovementControlView.extend({
 var ZControlView = MovementControlView.extend({
   el: '#z-controls',
   events: {
-    'click .control_btn_z_plus': 'zPlusTapped',
-    'click .control_btn_z_minus': 'zMinusTapped',
-    'click .home_z': 'homeTapped'
+    'click .btn_z_plus': 'zPlusTapped',
+    'click .btn_z_minus': 'zMinusTapped',
+    'click .btn_home_z': 'homeTapped'
   },
   zPlusTapped: function()
   {

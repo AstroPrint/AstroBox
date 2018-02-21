@@ -177,7 +177,6 @@ class AstroPrintCloud(object):
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
 			self.settings.save()
 
-			eventManager().fire(Events.LOCK_STATUS_CHANGED, userId)
 
 		return userValidated
 
@@ -200,7 +199,8 @@ class AstroPrintCloud(object):
 				if user and user.has_password():
 					userManager.changeCloudAccessKeys(email, public_key, private_key)
 				else:
-					user = userManager.addUser(email, password, public_key, private_key, True)
+					self._logger.info("New user signing requires password method")
+					return False
 
 				userLoggedIn = True
 
@@ -277,7 +277,7 @@ class AstroPrintCloud(object):
 			except:
 				data = None
 
-			if data:
+			if data and 'url' in data and 'post_data' in data:
 				publicKey = current_user.publicKey
 				privateKey = current_user.privateKey
 
@@ -330,7 +330,7 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data and "private_key" in data:
-			return data["private_key"]
+			return str(data["private_key"])
 		else:
 			return None
 
@@ -350,7 +350,7 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data and "public_key" in data:
-			return data["public_key"]
+			return str(data["public_key"])
 		else:
 			return None
 

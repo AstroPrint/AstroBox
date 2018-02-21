@@ -74,7 +74,14 @@ class PrinterProfileManager(object):
 						#change printer object
 						from astroprint.printer.manager import printerManager
 
-						printerManager(changes['driver'])
+						try:
+							printerManager(changes['driver'])
+
+						except Exception as e:
+							self._logger.error("Error selecting driver %s: %s" % (changes['driver'], e))
+							#revent to previous driver
+							printerManager(self.data['driver'])
+							raise e
 
 					self.data[k] = self._clean(k, changes[k])
 			else:

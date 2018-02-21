@@ -116,11 +116,10 @@ class SystemService(PluginService):
 			s.save()
 
 			pp = printerProfileManager()
-			pp.data['driver'] = driver
+			pp.set({'driver': driver})
 			pp.save()
 
-			pm = printerManager(driver)
-			pm.connect(port, baudrate)
+			printerManager().connect(port, baudrate)
 
 			sendResponse({'success': 'no_error'})
 			return
@@ -436,11 +435,6 @@ class SystemService(PluginService):
 					copy(p_profile_factory, p_profile_file)
 				else:
 					os.unlink(p_profile_file)
-
-			#remove box-id so it's re-created on bootup
-			boxIdFile = os.path.join(configFolder, "box-id")
-			if os.path.exists(boxIdFile):
-				os.unlink(boxIdFile)
 
 			#remove info about users
 			user_file  = s.get(["accessControl", "userfile"]) or os.path.join( configFolder, "users.yaml")
