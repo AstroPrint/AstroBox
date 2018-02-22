@@ -92,7 +92,7 @@ class SystemService(PluginService):
 			"serial": {
 				"port": connectionOptions["portPreference"],
 				"baudrate": connectionOptions["baudratePreference"],
-				"portOptions": connectionOptions["ports"].items(),
+				"portOptions": connectionOptions["ports"],
 				"baudrateOptions": connectionOptions["baudrates"]
 			}
 		})
