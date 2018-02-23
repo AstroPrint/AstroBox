@@ -343,16 +343,18 @@ class PrinterService(PluginService):
 
 
 	def getTimelapse(self,data,sendResponse):
-		sendResponse(cameraManager().timelapseInfo);
+		sendResponse(cameraManager().timelapseInfo)
 
 	def getPrintingProgressInfo(self,sendResponse):
 		self._logger.info('getPrintingProgressInfo')
 		pm = printerManager()
 		currentFile = pm.selectedFile
 
+		self._logger.info("==============>")
 		self._logger.info(currentFile)
-
 		self._logger.info(currentFile['filename'])
+		self._logger.info(currentFile.items())
+		self._logger.info("==============<")
 
 		sendResponse(pm.getFileInfo(currentFile['filename']))
 

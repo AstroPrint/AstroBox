@@ -580,7 +580,7 @@ class Printer(object):
 
 	@property
 	def selectedFile(self):
-		return self._selectedFile["filename"]
+		return {'filename': self._selectedFile["filename"]}
 
 	# ~~~ State functions ~~~
 

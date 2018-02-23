@@ -533,7 +533,7 @@ class PrinterS3g(Printer):
 
 	@property
 	def selectedFile(self):
-		return {'filename': self._currentFile.getFilename()}
+		return {'filename': self._currentFile['filename']}
 
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:
