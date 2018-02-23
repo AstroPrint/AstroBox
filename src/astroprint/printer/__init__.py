@@ -578,6 +578,10 @@ class Printer(object):
 		self._setCurrentZ(None)
 		return True
 
+	@property
+	def selectedFile(self):
+		return self._selectedFile["filename"]
+
 	# ~~~ State functions ~~~
 
 	def getCurrentJob(self):

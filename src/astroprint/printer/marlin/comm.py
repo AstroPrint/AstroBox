@@ -458,6 +458,10 @@ class MachineCom(object):
 
 		return True
 
+	@property
+	def selectedFile(self):
+		return self._currentFile.getFilename()
+
 	def cancelPrint(self):
 		if not self.isOperational():# or self.isStreaming():
 			return

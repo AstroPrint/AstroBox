@@ -531,6 +531,10 @@ class PrinterS3g(Printer):
 		if not super(PrinterS3g, self).unselectFile():
 			return
 
+	@property
+	def selectedFile(self):
+		return self._currentFile.getFilename()
+
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:
 			return None
