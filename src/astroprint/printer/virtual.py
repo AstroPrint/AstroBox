@@ -271,25 +271,6 @@ class PrinterVirtual(Printer):
 	def getSelectedTool(self):
 		return self.selectedTool
 
-	def getCurrentTemperatures(self):
-		return {
-			'tool0':
-				{
-					"actual": 20,
-					"target": 20
-				},
-			'tool1':
-				{
-					"actual": 20,
-					"target": 20
-				},
-			'bed':
-				{
-					"actual": 40,
-					"target": 40
-				}
-			}
-
 	def getPrintProgress(self):
 		if self._printJob:
 			return self._printJob.progress
@@ -416,6 +397,7 @@ class TempsChanger(threading.Thread):
 				"actual": self._actuals[t],
 				"target": self._targets[t]
 			}
+
 		eventManager().fire(Events.TEMPERATURE_CHANGE, data)
 		self._manager._stateMonitor.addTemperature(data)
 

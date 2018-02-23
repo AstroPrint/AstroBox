@@ -167,6 +167,23 @@ class Printer(object):
 	def registeredCallbacks(self, callbacks):
 		self._callbacks = callbacks
 
+	def getCurrentTemperatures(self):
+		result = {}
+		if self._temp is not None:
+			for tool in self._temp.keys():
+				result["tool%d" % tool] = {
+					"actual": self._temp[tool][0],
+					"target": self._temp[tool][1]
+					}
+
+		if self._bedTemp is not None:
+			result["bed"] = {
+				"actual": self._bedTemp[0],
+				"target": self._bedTemp[1]
+			}
+
+		return result
+
 	def _sendInitialStateUpdate(self, callback):
 		try:
 			data = self._stateMonitor.getCurrentData()
