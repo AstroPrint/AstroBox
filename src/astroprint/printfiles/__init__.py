@@ -389,6 +389,8 @@ class PrintFilesManager(object):
 
 		return secure
 
+	def _cleanFileLocation(self, location):
+		return location.replace('//','/')
 
 	def getAllStorageLocations(self):
 		locations = []
@@ -403,11 +405,13 @@ class PrintFilesManager(object):
 
 	def getLocationExploration(self, location, icon='folder', extensions=fileBrowsingExtensions):
 
+		location = self._cleanFileLocation(location)
+
 		locations = []
 
 		for item in os.listdir(location):
 			if not item.startswith('.'):
-				completePath = location + '/' + item
+				completePath = self._cleanFileLocation(location + '/' + item)
 				if os.path.isdir(completePath):
 					locations.append({
 						'name': completePath,

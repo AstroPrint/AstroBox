@@ -46,9 +46,16 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 
+	def _cleanFileLocation(self, location):
+		self._logger.info('location ' + location)
+		locationParsed = location.replace('//','/')
+		self._logger.info('locationParsed ' + locationParsed)
+
+		return locationParsed
+
 	def copyFileToLocal(self, data, sendResponse):
 		try:
-			shutil.copy2(data['origin'],data['destination'])
+			shutil.copy2(self._cleanFileLocation(data['origin']),self._cleanFileLocation(data['destination']))
 			sendResponse({'success': 'no_error'})
 		except Exception as e:
 			self._logger.error("copy print file to local folder failed", exc_info = True)
@@ -61,8 +68,10 @@ class FilesService(PluginService):
 
 	def getFolderExploration(self, folder, sendResponse):
 
+		self._logger.info('getFolderExploration folder: ' + folder)
+
 		try:
-			sendResponse( { 'folderExp': printerManager().fileManager.getLocationExploration(folder) })
+			sendResponse( { 'folderExp': printerManager().fileManager.getLocationExploration(self._cleanFileLocation(folder)) })
 
 		except Exception as e:
 			self._logger.error("exploration folders can not be obtained", exc_info = True)
@@ -79,7 +88,7 @@ class FilesService(PluginService):
 			sendResponse('no_folders_obtained',True)
 
 	def getBaseFolder(self, key, sendResponse):
-		sendResponse({ 'baseFolder' : settings().getBaseFolder(key)})
+		sendResponse({ 'baseFolder' : self._cleanFileLocation(settings().getBaseFolder(key))})
 
 	def getLocalFiles(self, sendResponse):
 		try:
