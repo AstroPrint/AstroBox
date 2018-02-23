@@ -230,6 +230,11 @@ class VirtualComms(Plugin, PrinterCommsService):
 			return None
 
 	@property
+	def selectedFile(self):
+		currentFile = self._printerManager.selectedFile
+		return {'filename': currentFile['filename']}
+
+	@property
 	def consumedFilamentData(self):
 		return self._printJob._consumedFilament if self._printJob else 0
 

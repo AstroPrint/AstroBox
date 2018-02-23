@@ -59,7 +59,7 @@ class PrinterWithPlugin(Printer):
 
 	@property
 	def selectedFile(self):
-		return self._currentFile
+		return {'filename': self._currentFile['filename']}
 
 	@property
 	def _fileManagerClass(self):

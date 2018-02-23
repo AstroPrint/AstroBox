@@ -150,7 +150,9 @@ class SystemService(PluginService):
 			if "port" in data:
 				port = data["port"]
 				if port not in options["ports"]:
-					sendResponse("invalid_port_" + port,True)
+					if not port:
+						port = "None"
+					sendResponse("invalid_port: " + port,True)
 					return
 
 			if "baudrate" in data and data['baudrate']:
