@@ -53,6 +53,22 @@ class FilesService(PluginService):
 
 		return locationParsed
 
+	def eject(self, data, sendResponse):
+
+		args = ['eject', data['drive']]
+
+		try:
+			ejectProccess = subprocess.Popen(
+				args,
+				stdout=subprocess.PIPE
+			)
+
+			sendResponse({'success':'no error'})
+
+		except Exception, error:
+			self._logger.error('Error ejecting drive ' + data['drive'] + ': ' + error)
+			sendResponse(error,True)
+
 	def copyFileToLocal(self, data, sendResponse):
 		try:
 			shutil.copy2(self._cleanFileLocation(data['origin']),self._cleanFileLocation(data['destination']))
