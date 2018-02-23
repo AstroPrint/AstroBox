@@ -350,12 +350,6 @@ class PrinterService(PluginService):
 		pm = printerManager()
 		currentFile = pm.selectedFile
 
-		self._logger.info("==============>")
-		self._logger.info(currentFile)
-		self._logger.info(currentFile['filename'])
-		self._logger.info(currentFile.items())
-		self._logger.info("==============<")
-
 		sendResponse(pm.getFileInfo(currentFile['filename']))
 
 	#EVENTS
