@@ -2,12 +2,13 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import logging
+
 from threading import Thread
 
 from gi.repository import Gst
 
 from ..util import waitToReachState
-
 
 #
 #  Base Bin Class for Bin after the Tee
@@ -18,6 +19,7 @@ class EncoderBin(object):
 		self._isLinked = False
 		self._bin = Gst.Bin.new(binName)
 		self._bin.set_locked_state(True)
+		self._logger = logging.getLogger(__name__)
 
 	def attach(self, teePad):
 		if self._isLinked:

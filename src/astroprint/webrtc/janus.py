@@ -293,7 +293,7 @@ class Session(object):
 						self._drain_txn_q()
 
 				message = f.result()
-				logger.info('created session w/ id %s', message['id']);
+				logger.info('created session w/ id %s', message['id'])
 				self.id = message['id']
 				pending = self.plugins[:]
 				for plugin in self.plugins:
@@ -342,10 +342,10 @@ class Session(object):
 								raise
 				else:
 						logger.debug(
-								'enqueuing message w/ transaction %s:\n%s',
+								'Not connected, message lost w/ transaction %s:\n%s',
 								req['transaction'], raw
 						)
-						self.msg_q.append((req['transaction'], raw))
+						#self.msg_q.append((req['transaction'], raw))
 						if self.is_disconnected:
 								self.connect()
 				return f
@@ -500,10 +500,10 @@ class Session(object):
 				if plugindata:
 						logger.debug(
 								'success from %s (plugin=%s)', plugin_id, plugindata['plugin']
-						);
+						)
 						data = plugindata.get('data')
 				else:
-						logger.debug('success from %s', plugin_id);
+						logger.debug('success from %s', plugin_id)
 						data = message.get('data')
 				if txn_id is not None:
 						self._txn_result(txn_id, data)
@@ -514,7 +514,7 @@ class Session(object):
 				txn_id = message.get('transaction')
 				code = message.get('code')
 				reason = message.get('reason', 'unknown')
-				logger.info('error %s (code=%s)', reason, code);
+				logger.info('error %s (code=%s)', reason, code)
 				ex = RuntimeError('{0} (code={1})'.format(reason, code))
 				if txn_id is not None:
 						self._txn_exception(txn_id, ex)
@@ -560,13 +560,13 @@ class Session(object):
 						logger.debug(
 								'event from %s (plugin=%s)',
 								plugin_id, plugindata['plugin']
-						);
+						)
 						data = plugindata.get('data')
 				else:
-						logger.debug('event from %s', plugin_id);
+						logger.debug('event from %s', plugin_id)
 						data = message
 				if jsep:
-						logger.debug('... w/ sdp\n%s', jsep);
+						logger.debug('... w/ sdp\n%s', jsep)
 				if txn_id is not None:
 						self._txn_result(txn_id, data)
 				if plugin is None:

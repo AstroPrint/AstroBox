@@ -298,19 +298,6 @@ class MachineCom(object):
 		else:
 			return time.time() - self._currentFile.getStartTime()
 
-	def getPrintTimeRemainingEstimate(self):
-		printTime = self.getPrintTime()
-		if printTime is None:
-			return None
-
-		printTime /= 60
-		progress = self._currentFile.getProgress()
-		if progress:
-			return printTimeTotal - printTime
-
-		else:
-			return None
-
 	def getTemp(self):
 		return self._temp
 
@@ -388,7 +375,6 @@ class MachineCom(object):
 			#sefl._lastLayerHeight
 			#self._callback.mcLayerChange(self._tentativeLayer)
 
-			wasPaused = self.isPaused()
 			self._changeState(self.STATE_PRINTING)
 
 			data = printerManager().getFileInfo(self._currentFile.getFilename())
@@ -650,7 +636,7 @@ class MachineCom(object):
 				if target is not None:
 					self._temp[0] = (actual, target)
 				elif 0 in self._temp.keys() and self._temp[0] is not None and isinstance(self._temp[0], tuple):
-					(oldActual, oldTarget) = self._temp[0]
+					oldActual, oldTarget = self._temp[0]
 					self._temp[0] = (actual, oldTarget)
 				else:
 					self._temp[0] = (actual, None)
@@ -733,7 +719,7 @@ class MachineCom(object):
 		#Start monitoring the serial port.
 		timeout = getNewTimeout("communication")
 		tempRequestTimeout = getNewTimeout("temperature")
-		sdStatusRequestTimeout = getNewTimeout("sdStatus")
+		#sdStatusRequestTimeout = getNewTimeout("sdStatus")
 		self._heatingUp = False
 		supportRepetierTargetTemp = self._settings.getBoolean(["feature", "repetierTargetTemp"])
 
@@ -795,7 +781,7 @@ class MachineCom(object):
 						try:
 							target = float(matchExtr.group(2))
 							if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
-								(actual, oldTarget) = self._temp[toolNum]
+								actual, oldTarget = self._temp[toolNum]
 								self._temp[toolNum] = (actual, target)
 							else:
 								self._temp[toolNum] = (None, target)
@@ -1414,7 +1400,7 @@ class MachineCom(object):
 			try:
 				target = float(match.group(1))
 				if toolNum in self._temp.keys() and self._temp[toolNum] is not None and isinstance(self._temp[toolNum], tuple):
-					(actual, oldTarget) = self._temp[toolNum]
+					actual, oldTarget = self._temp[toolNum]
 					self._temp[toolNum] = (actual, target)
 				else:
 					self._temp[toolNum] = (None, target)
@@ -1428,7 +1414,7 @@ class MachineCom(object):
 			try:
 				target = float(match.group(1))
 				if self._bedTemp is not None and isinstance(self._bedTemp, tuple):
-					(actual, oldTarget) = self._bedTemp
+					actual, oldTarget = self._bedTemp
 					self._bedTemp = (actual, target)
 				else:
 					self._bedTemp = (None, target)
@@ -1478,7 +1464,7 @@ class MachineCom(object):
 
 	def _gcode_M82(self, cmd): #Set to absolute extrusion mode
 		self._materialCounter.changeExtrusionMode(MaterialCounter.EXTRUSION_MODE_ABSOLUTE)
-		return cmd;
+		return cmd
 
 	def _gcode_M83(self, cmd): #Set to relative extrusion mode
 		self._materialCounter.changeExtrusionMode(MaterialCounter.EXTRUSION_MODE_RELATIVE)
@@ -1514,7 +1500,7 @@ class MachineComPrintCallback(object):
 	def mcTempUpdate(self, temp, bedTemp):
 		pass
 
-	def mcHeatingUpUpdate(value):
+	def mcHeatingUpUpdate(self, value):
 		pass
 
 	def mcStateChange(self, state):

@@ -92,8 +92,6 @@ class PrintJobS3G(threading.Thread):
 		self._canceled = True
 
 	def run(self):
-		profile = self._printer._profile
-
 		self._printer._heatingUp = True
 		self._printer.mcHeatingUpUpdate(True)
 		self._heatupWaitStartTime = time.time()
@@ -343,12 +341,12 @@ class PrintJobS3G(threading.Thread):
 		packetStr = s3gFile.read(4)
 		if len(packetStr) < 4:
 			raise Exception("Incomplete s3g file during tool command parse")
-		message = "";
+		message = ""
 		while True:
-		   	c = s3gFile.read(1);
-			message += c;
+		   	c = s3gFile.read(1)
+			message += c
 			if c == '\0':
-			  	break;
+			  	break
 
 		return packetStr + message
 
@@ -356,12 +354,12 @@ class PrintJobS3G(threading.Thread):
 		packetStr = s3gFile.read(4)
 		if len(packetStr) < 4:
 			raise Exception("Incomplete s3g file during tool command parse")
-		buildName = "";
+		buildName = ""
 		while True:
-			c = s3gFile.read(1);
-			buildName += c;
+			c = s3gFile.read(1)
+			buildName += c
 			if c == '\0':
-				break;
+				break
 
 		return packetStr + buildName
 

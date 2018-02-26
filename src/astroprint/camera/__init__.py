@@ -185,6 +185,7 @@ class CameraManager(object):
 
 		self._eventManager = eventManager()
 		self._photos = {} # To hold sync photos
+		self._logger = None #define in child class
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
@@ -316,7 +317,7 @@ class CameraManager(object):
 		if self.timelapseInfo and self.timelapseInfo['freq'] != freq:
 			if freq == 'layer':
 				if self.timelapseWorker and not self.timelapseWorker.isPaused():
-					self.pause_timelapse();
+					self.pause_timelapse()
 
 				# subscribe to layer change events
 				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)

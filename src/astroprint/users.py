@@ -267,7 +267,7 @@ class User(UserMixin):
 	def asDict(self):
 		return {
 			"name": self._username,
-			"active": self.is_active(),
+			"active": self._active,
 			"admin": self.is_admin(),
 			"user": self.is_user(),
 			"apikey": self._apikey,

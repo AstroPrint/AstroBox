@@ -289,9 +289,6 @@ class PrinterVirtual(Printer):
 
 		return self.getStateString(), 'virtual', 0
 
-	def getSelectedTool(self):
-		return self._currentSelectedTool
-
 	def getConsumedFilament(self):
 		return self._printJob._consumedFilament if self._printJob else 0
 
@@ -361,8 +358,8 @@ class TempsChanger(threading.Thread):
 	def __init__(self, manager):
 		self._stopped = False
 		self._manager = manager
-		self._targets = {};
-		self._actuals = {};
+		self._targets = {}
+		self._actuals = {}
 
 		super(TempsChanger, self).__init__()
 

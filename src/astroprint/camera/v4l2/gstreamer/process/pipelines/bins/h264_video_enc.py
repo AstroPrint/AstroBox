@@ -10,8 +10,8 @@ from .base_video_enc import VideoEncBinBase
 
 class H264VideoEncBin(VideoEncBinBase):
 	def __init__(self, size, rotation):
-		self._logger = logging.getLogger(__name__)
 		super(H264VideoEncBin, self).__init__(size, rotation)
+		self._logger = logging.getLogger(__name__)
 
 	def _constructEncChain(self):
 		self.__encoderElement = Gst.ElementFactory.make('omxh264enc', 'h264_encoder')

@@ -47,7 +47,7 @@ class WebRtc(object):
 
 	def startLocalSession(self, sessionId):
 		with self._peerCondition:
-			self._connectedPeers[sessionId] = "local";
+			self._connectedPeers[sessionId] = "local"
 			return True
 
 	def closeLocalSession(self, sessionId):
@@ -204,7 +204,7 @@ class WebRtc(object):
 					boxrouterManager().sendRequestToClient(peer.clientId, 'ping', None, 10, self.pongCallback, [sessionId])
 
 				except:
-					self._logger.error('Error sending ping to peer %s' % (type, peer.clientId), exc_info = True)
+					self._logger.error('Error sending ping to peer %s' % peer.clientId, exc_info = True)
 
 	def startVideoStream(self):
 		#Start Video Stream
@@ -493,8 +493,8 @@ class ConnectionPeer(object):
 
 		##
 
-		self.session.register_plugin(self.streamingPlugin);
-		self.session.connect();
+		self.session.register_plugin(self.streamingPlugin)
+		self.session.connect()
 
 		self.sessionKa = KeepAlive(self.session)
 		self.sessionKa.daemon = True

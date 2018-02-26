@@ -69,7 +69,7 @@ class DiscoveryManager(object):
 			self._ssdp_register()
 
 		else:
-			self._logger.warn('Invalid network state (%s)' % state)
+			self.logger.warn('Invalid network state (%s)' % state)
 
 	# SSDP/UPNP
 

@@ -281,7 +281,7 @@ class CommandTrigger(GenericEventListener):
 				else:
 					processedCommand = self._processCommand(command, payload)
 				self.executeCommand(processedCommand, commandType)
-			except KeyError, e:
+			except KeyError:
 				self._logger.warn("There was an error processing one or more placeholders in the following command: %s" % command)
 
 	def executeCommand(self, command, commandType):
@@ -303,13 +303,13 @@ class CommandTrigger(GenericEventListener):
 				commandExecutioner(command)
 		except subprocess.CalledProcessError, e:
 			self._logger.warn("Command failed with return code %i: %s" % (e.returncode, e.message))
-		except Exception, ex:
+		except Exception:
 			self._logger.exception("Command failed")
 
 	def _executeGcodeCommand(self, command):
 		commands = [command]
 		if isinstance(command, (list, tuple, set)):
-			self.logger.debug("Executing GCode commands: %r" % command)
+			self._logger.debug("Executing GCode commands: %r" % command)
 			commands = list(command)
 		else:
 			self._logger.debug("Executing GCode command: %s" % command)
