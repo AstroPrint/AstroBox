@@ -26,9 +26,9 @@ class GStreamerManager(V4L2Manager):
 		self.cameraInfo = None
 		self._openCameraCondition = Condition()
 
-		self._logger = logging.getLogger(__name__)
-
 		super(GStreamerManager, self).__init__()
+
+		self._logger = logging.getLogger(__name__)
 
 	@property
 	def _gstreamerProcessRunning(self):
