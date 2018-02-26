@@ -17,7 +17,7 @@ class NetworkManager(object):
 			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
 			return True
 
-		except urllib2.URLError as err:
+		except urllib2.URLError:
 			return False
 
 	def checkOnline(self):

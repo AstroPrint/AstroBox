@@ -139,6 +139,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._logger.info('Home - Axes: %s', ', '.join(axes))
 
 	def fan(self, tool, speed):
+		speed = (int(speed) / 100.0) * 255
 		self._logger.info('Fan - Tool: %s, Speed: %s', tool, speed)
 
 	def extrude(self, tool, amount, speed=None):
@@ -278,7 +279,7 @@ class TempsChanger(threading.Thread):
 
 	def _updateTemps(self):
 		tools = {}
-		bed = {}
+		bed = (None, None)
 
 		for t in self._targets.keys():
 			if t.startswith('tool'):

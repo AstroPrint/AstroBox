@@ -75,7 +75,7 @@ class PrinterMarlin(Printer):
 		self.setTemperature('bed', 0)
 		for i in range(self._profileManager.data.get('extruder_count')):
 			self.setTemperature('tool%d' % i, 0)
-		self.commands(["M84", "M106 S0"]); #Motors Off, Fan off
+		self.commands(["M84", "M106 S0"]) #Motors Off, Fan off
 
 	#~~ callback handling
 
@@ -167,7 +167,11 @@ class PrinterMarlin(Printer):
 			self._comm.sendCommand(command)
 
 	def fan(self, tool, speed):
-		self.command("M106 S%d" % max(speed, speed))
+		if speed <= 0:
+			self.command("M107")
+		else:
+			speed = (int(speed) / 100.0) * 255
+			self.command("M106 S%d" % min(round(speed,0), 255))
 
 	def jog(self, axis, amount):
 		movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
@@ -276,7 +280,7 @@ class PrinterMarlin(Printer):
 			if len(c) > 0:
 				cancelCommands.append(c)
 
-		self.commands((cancelCommands or ['G28 X Y'] ) + ['M110 N0'] );
+		self.commands((cancelCommands or ['G28 X Y'] ) + ['M110 N0'] )
 
 		if disableMotorsAndHeater:
 			self.disableMotorsAndHeater()
@@ -381,7 +385,7 @@ class PrinterMarlin(Printer):
 			value = self._formatPrintingProgressData(self.getPrintProgress(), self.getPrintFilepos(), elapsedTime, estimatedTimeLeft, self._currentLayer)
 			eventManager().fire(Events.PRINTING_PROGRESS, value)
 
-		except Exception, e:
+		except Exception:
 			super(PrinterMarlin, self).mcProgress()
 
 

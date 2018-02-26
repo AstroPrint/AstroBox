@@ -109,19 +109,6 @@ class PrinterS3g(Printer):
 	def getErrorString(self):
 		return self._errorValue
 
-	def getPrintTimeRemainingEstimate(self):
-		printTime = self.getPrintTime()
-		if printTime is None:
-			return None
-
-		printTime /= 60
-		progress = self._currentFile['progress']
-		if progress:
-			return printTimeTotal - printTime
-
-		else:
-			return None
-
 	def _changeState(self, newState):
 		if self._state == newState:
 			return

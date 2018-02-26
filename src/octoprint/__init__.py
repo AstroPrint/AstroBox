@@ -8,7 +8,7 @@ from signal import signal, SIGTERM, SIGINT
 astrobox = None
 
 if 'linux' in sys.platform:
-	import dbus.mainloop.glib;
+	import dbus.mainloop.glib
 
 	dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 	dbus.mainloop.glib.threads_init()

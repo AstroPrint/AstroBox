@@ -295,7 +295,7 @@ class DebianNetworkManager(NetworkManagerBase):
 			self.startHotspot()
 
 		#Find out and set the active WiFi Device
-		self._activeWifiDevice = self._getWifiDevice();
+		self._activeWifiDevice = self._getWifiDevice()
 
 	def close(self):
 		self._eventListener.stop()
@@ -303,7 +303,7 @@ class DebianNetworkManager(NetworkManagerBase):
 
 	def shutdown(self):
 		logger.info('Shutting Down DebianNetworkManager')
-		self.close();
+		self.close()
 
 	def conectionStatus(self):
 		return self._nm.const('state', self._nm.NetworkManager.status())

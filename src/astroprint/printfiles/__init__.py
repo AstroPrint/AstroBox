@@ -241,13 +241,6 @@ class PrintFilesManager(object):
 		if valid:
 			return self.processPrintFile(absolutePath, destination, uploadCallback), True
 		else:
-			if curaEnabled and self.isDesignFileName(filename):
-				return self.processDesign(absolutePath, destination, uploadCallback), False
-			else:
-				return filename, False
-
-			if slicerEnabled and self.isDesignFileName(filename):
-				self.processDesign(absolutePath, destination, uploadCallback)
 			return filename, False
 
 	def getFutureFileName(self, file):
@@ -259,23 +252,6 @@ class PrintFilesManager(object):
 			return None
 
 		return self._getBasicFilename(absolutePath)
-
-	def processDesign(self, absolutePath, destination, uploadCallback=None):
-
-		def designProcessed(stlPath, filePath, error=None):
-			if error:
-				eventManager().fire(Events.SLICING_FAILED, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(filePath), "reason": error})
-				if os.path.exists(stlPath):
-					os.remove(stlPath)
-			else:
-				slicingStop = time.time()
-				eventManager().fire(Events.SLICING_DONE, {"stl": self._getBasicFilename(stlPath), "gcode": self._getBasicFilename(filePath), "time": slicingStop - slicingStart})
-				self.processPrintFile(filePath, destination, uploadCallback)
-
-		eventManager().fire(Events.SLICING_STARTED, {"stl": self._getBasicFilename(absolutePath), "gcode": self._getBasicFilename(filePath)})
-		cura.process_file(config, filePath, absolutePath, designProcessed, [absolutePath, filePath])
-
-		return self._getBasicFilename(filePath)
 
 	def processPrintFile(self, absolutePath, destination, uploadCallback=None):
 		if absolutePath is None:

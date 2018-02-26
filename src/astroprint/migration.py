@@ -10,7 +10,7 @@ def migrateSettings():
 
 	logger = logging.getLogger(__name__)
 	logger.info('Checking for settings migrations...')
-	migrationsDone = 0;
+	migrationsDone = 0
 
 	s = settings()
 

@@ -43,7 +43,7 @@ class GCodeAnalyzer(thread):
 
 			if pipe.returncode == 0:
 				try:
-					gcodeData = json.loads(pipe.stdout.text);
+					gcodeData = json.loads(pipe.stdout.text)
 
 					if self.layersInfo:
 						self.layerList =  gcodeData['layers']

@@ -50,3 +50,6 @@ class VideoEncBinBase(EncoderBin):
 	def _constructEncChain(self):
 		pass
 
+	def _getUdpPort(self):
+		raise NotImplementedError()
+

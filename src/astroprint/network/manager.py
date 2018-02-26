@@ -48,7 +48,7 @@ def networkManager():
 	return _instance
 
 def networkManagerShutdown():
-	global _instance;
+	global _instance
 
 	_instance.shutdown()
 	_instance = None

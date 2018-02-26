@@ -101,7 +101,7 @@ class Printer(object):
 			currentZ=None
 		)
 
-		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
+		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
 		#s = settings()
 
@@ -131,7 +131,7 @@ class Printer(object):
 		self._logger.info('Ramping down Printer Manager')
 		self._shutdown = True
 		self.disconnect()
-		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished);
+		eventManager().unsubscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 		self._callbacks = []
 		self._stateMonitor.stop()
 		self._stateMonitor._worker.join()
@@ -400,7 +400,7 @@ class Printer(object):
 		"""
 
 		if self.isConnected() and (self.isPrinting() or self.isPaused()):
-			activePrintJob = None;
+			activePrintJob = None
 
 			cameraManager().stop_timelapse()
 
@@ -625,9 +625,6 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def isReady(self):
-		raise NotImplementedError()
-
-	def isPaused(self):
 		raise NotImplementedError()
 
 	def setPause(self, paused):

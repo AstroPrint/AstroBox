@@ -180,7 +180,7 @@ class SoftwareUpdater(threading.Thread):
 		if r.status_code == 200:
 			releaseHandle, releasePath = mkstemp()
 
-			content_length = float(r.headers['Content-Length']);
+			content_length = float(r.headers['Content-Length'])
 			downloaded_size = 0.0
 
 			self._logger.info('Downloading release.')

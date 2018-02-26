@@ -8,6 +8,7 @@ import logging
 import threading
 import re
 import serial.tools.list_ports
+import time
 
 from sys import platform
 from octoprint.settings import settings

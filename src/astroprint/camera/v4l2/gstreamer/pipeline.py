@@ -8,6 +8,7 @@ import time
 import sys
 import os
 import signal
+import subprocess
 
 from multiprocessing import Process, Event, Pipe, Value
 from threading import Thread, Condition, current_thread
@@ -263,7 +264,7 @@ class ProcessResponseListener(Thread):
 
 				self._onNewResponse(id, data)
 
-			except Exception as e:
+			except Exception:
 				self._logger.error("Error unpacking gstreamer process response", exc_info= True)
 
 	def stop(self):
