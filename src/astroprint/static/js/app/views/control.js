@@ -500,31 +500,30 @@ var FanControlView = Backbone.View.extend({
   {
     var isSpeed0 = false;
     var speedValue = this.$el.find('.fan-speed').val();
+    var inputFanSpeed = this.$('input[name="fan-speed"]');
 
     if (speedValue == 'other') {
-      if (this.$('input[name="fan-speed"]').val() > 100) {
-        this.$('input[name="fan-speed"]').val('100');
-      } else if (this.$('input[name="fan-speed"]').val() <= 0){
-        this.$('input[name="fan-speed"]').val('0');
+      if (inputFanSpeed.val() > 100) {
+        inputFanSpeed.val('100');
+      } else if (inputFanSpeed.val() <= 0) {
+        inputFanSpeed.val('0');
         isSpeed0 = true;
         this.fanOff();
       }
-      speedValue = (this.$('input[name="fan-speed"]').val() / 100);
-    } else {
-      speedValue = speedValue / 100;
+      speedValue = inputFanSpeed.val();
     }
 
     if (!isSpeed0) {
       var speedClass = '';
 
       switch(true) {
-        case (speedValue <= 0.25):
+        case (speedValue <= 25):
             speedClass = 'speed-25';
             break;
-        case (speedValue <= 0.50):
+        case (speedValue <= 50):
             speedClass = 'speed-50';
             break;
-        case (speedValue <= 0.75):
+        case (speedValue <= 75):
             speedClass = 'speed-75';
             break;
         default:
@@ -536,7 +535,7 @@ var FanControlView = Backbone.View.extend({
         this.$('.variable-speed').removeClass('bounceIn');
       }.bind(this));
 
-      this._setFanSpeed(255 * speedValue);
+      this._setFanSpeed(speedValue);
       this.$('.fan_icon').addClass('animate-spin');
       this.$('.fan_icon').removeClass (function (index, className) {
           return (className.match (/\bspeed-\S+/g) || []).join(' ');
