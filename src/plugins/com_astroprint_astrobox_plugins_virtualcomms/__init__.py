@@ -279,7 +279,7 @@ class TempsChanger(threading.Thread):
 
 	def _updateTemps(self):
 		tools = {}
-		bed = {}
+		bed = (None, None)
 
 		for t in self._targets.keys():
 			if t.startswith('tool'):
