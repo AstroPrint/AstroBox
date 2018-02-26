@@ -306,9 +306,6 @@ class PrinterWithPlugin(Printer):
 	def resetSerialLogging(self):
 		self._plugin.serialLoggingChanged()
 
-	def getCurrentTemperatures(self):
-		return self._plugin.getCurrentTemperatures()
-
 	def getSelectedTool(self):
 		return self._plugin.currentTool
 
