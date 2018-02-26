@@ -167,7 +167,11 @@ class PrinterMarlin(Printer):
 			self._comm.sendCommand(command)
 
 	def fan(self, tool, speed):
-		self.command("M106 S%d" % max(speed, speed))
+		if speed <= 0:
+			self.command("M107")
+		else:
+			speed = (int(speed) / 100.0) * 255
+			self.command("M106 S%d" % min(round(speed,0), 255))
 
 	def jog(self, axis, amount):
 		movementSpeed = settings().get(["printerParameters", "movementSpeed", ["x", "y", "z"]], asdict=True)
