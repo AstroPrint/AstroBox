@@ -152,8 +152,6 @@ class SystemService(PluginService):
 				if port not in options["ports"]:
 					if port is None:
 						port = "None"
-					print port
-					print "==========="
 					sendResponse("invalid_port_" + port,True)
 					return
 
