@@ -286,6 +286,7 @@ var PrintFileView = Backbone.View.extend({
 var StorageControlView = Backbone.View.extend({
   print_file_view: null,
   events: {
+    'click a.USB': 'usbClicked',
     'click a.local': 'localClicked',
     'click a.cloud': 'cloudClicked'
   },
@@ -300,6 +301,11 @@ var StorageControlView = Backbone.View.extend({
     this.$('a.'+storage).addClass('active');
     this.selected = storage;
     this.print_file_view.render();
+  },
+  usbClicked: function(e)
+  {
+    e.preventDefault();
+    this.selectStorage('USB');
   },
   localClicked: function(e)
   {
@@ -341,7 +347,7 @@ var PrintFilesListView = Backbone.View.extend({
     app.eventManager.on('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
 
-    this.refresh(options.forceSync, options.syncCompleted);
+    this.refresh('local', options.syncCompleted);
   },
   render: function()
   {
@@ -379,7 +385,7 @@ var PrintFilesListView = Backbone.View.extend({
       );
     }
   },
-  refresh: function(syncCloud, doneCb)
+  refresh: function(kindOfSync, doneCb)
   {
     var now = new Date().getTime();
 
@@ -389,12 +395,23 @@ var PrintFilesListView = Backbone.View.extend({
       if ( !this.refreshing ) {
         this.refreshing = true;
 
-        if (syncCloud) {
-          var loadingArea = this.$('.loading-button.sync');
-          var syncPromise = this.file_list.syncCloud();
-        } else {
-          var loadingArea = this.$('.local-loading');
-          var syncPromise = this.file_list.fetch();
+        switch(kindOfSync){
+          case 'cloud':
+            var loadingArea = this.$('.loading-button.sync');
+            var syncPromise = this.file_list.syncCloud();
+          break;
+
+          case 'local':
+            var loadingArea = this.$('.local-loading');
+            var syncPromise = this.file_list.fetch();
+          break;
+
+
+          case 'USB':
+            var loadingArea = this.$('.USB-loading');
+            var syncPromise = this.file_list.fetch();
+          break;
+
         }
 
         loadingArea.addClass('loading');
@@ -512,7 +529,7 @@ var PrintFilesListView = Backbone.View.extend({
   },
   forceSync: function()
   {
-    this.refresh(true);
+    this.refresh('cloud');
   },
   onFileRemoved: function(print_file)
   {
@@ -566,7 +583,7 @@ var FilesView = Backbone.View.extend({
   refreshPrintFiles: function()
   {
     var promise = $.Deferred();
-    this.printFilesListView.refresh(true, function(success) {
+    this.printFilesListView.refresh('cloud', function(success) {
       if (success) {
         promise.resolve();
       } else {
@@ -601,11 +618,11 @@ var FilesView = Backbone.View.extend({
   },
   onShow: function()
   {
-    this.printFilesListView.refresh(false);
+    this.printFilesListView.refresh('local');
   },
   onDriverChanged: function()
   {
     this.uploadView.render();
-    this.printFilesListView.refresh(true);
+    this.printFilesListView.refresh('cloud');
   }
 });
