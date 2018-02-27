@@ -20,6 +20,7 @@ from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
+import astroprint.externaldrive as externaldrive
 
 class FilesService(PluginService):
 	_validEvents = [
@@ -46,48 +47,33 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 
-	def _cleanFileLocation(self, location):
-		self._logger.info('location ' + location)
-		locationParsed = location.replace('//','/')
-		self._logger.info('locationParsed ' + locationParsed)
-
-		return locationParsed
-
 	def eject(self, data, sendResponse):
 
-		args = ['eject', data['drive']]
+		ejection = externaldrive.eject(data['drive'])
 
-		try:
-			ejectProccess = subprocess.Popen(
-				args,
-				stdout=subprocess.PIPE
-			)
+		if ejection['reponse']:
 
 			sendResponse({'success':'no error'})
+		else:
 
-		except Exception, error:
-			self._logger.error('Error ejecting drive ' + data['drive'] + ': ' + error)
-			sendResponse(error,True)
+			sendResponse(ejection['error'],True)
 
 	def copyFileToLocal(self, data, sendResponse):
-		try:
-			shutil.copy2(self._cleanFileLocation(data['origin']),self._cleanFileLocation(data['destination']))
+
+		if externaldrive.copyFileToLocal(data['origin'],data['destination']):
 			sendResponse({'success': 'no_error'})
-		except Exception as e:
-			self._logger.error("copy print file to local folder failed", exc_info = True)
+		else:
 			sendResponse({'error': 'copy print file to local folder failed' },true)
 
 
 	def getFileBrowsingExtensions(self, sendResponse):
-		sendResponse({ 'fileBrowsingExtensions' : printerManager().fileManager.fileBrowsingExtensions })
+		sendResponse({ 'fileBrowsingExtensions' : externaldrive.getFileBrowsingExtensions() })
 
 
 	def getFolderExploration(self, folder, sendResponse):
 
-		self._logger.info('getFolderExploration folder: ' + folder)
-
 		try:
-			sendResponse( { 'folderExp': printerManager().fileManager.getLocationExploration(self._cleanFileLocation(folder)) })
+			sendResponse( { 'folderExp': externaldrive.getFolderExploration(folder) })
 
 		except Exception as e:
 			self._logger.error("exploration folders can not be obtained", exc_info = True)
@@ -97,14 +83,14 @@ class FilesService(PluginService):
 	def getLocalStorages(self, sendResponse):
 
 		try:
-			sendResponse( { 'storageFolders': printerManager().fileManager.getAllStorageLocations() })
+			sendResponse( { 'storageFolders': externaldrive.getLocalStorages() })
 
 		except Exception as e:
 			self._logger.error("storage folders can not be obtained", exc_info = True)
 			sendResponse('no_folders_obtained',True)
 
 	def getBaseFolder(self, key, sendResponse):
-		sendResponse({ 'baseFolder' : self._cleanFileLocation(settings().getBaseFolder(key))})
+		sendResponse({ 'baseFolder' : externaldrive._cleanFileLocation(settings().getBaseFolder(key))})
 
 	def getLocalFiles(self, sendResponse):
 		try:
