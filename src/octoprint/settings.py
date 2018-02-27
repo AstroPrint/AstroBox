@@ -36,6 +36,7 @@ default_settings = {
 			"detection": 0.5,
 			"connection": 2.0,
 			"communication": 10.0,
+			"first_contact": 20.0, #Should be used a timeout to wait for the printer to responde on first connect attempt
 			"temperature": 5,
 			"sdStatus": 1
 		},
