@@ -719,16 +719,6 @@ var USBFileView = Backbone.View.extend({
   {
     var usb_file = this.usb_file.toJSON();
 
-  /*  if (print_file.local_filename) {
-      this.$el.removeClass('remote');
-    } else {
-      this.$el.addClass('remote');
-    }
-
-    if (print_file.printFileName) {
-      print_file.name = print_file.printFileName;
-    }*/
-
     this.$el.empty();
     //this.downloadProgress = null;
     this.$el.html(this.template({
@@ -765,7 +755,7 @@ var USBFileView = Backbone.View.extend({
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
       } else {
         loadingBtn.removeClass('loading');
-        noty({text: "File " + filename + " copied to home", timeout: 3000});
+        noty({text: "File " + filename + " copied to home",type: 'success',timeout: 3000});
       }
       loadingBtn.removeClass('loading');
     }, this))
@@ -829,6 +819,8 @@ var BrowsingFileView = Backbone.View.extend({
       if(data.error){
         var error = data.error
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
+      } else {
+        noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
       }
       setTimeout(_.bind(function(){
         loadingBtn.removeClass('loading');
