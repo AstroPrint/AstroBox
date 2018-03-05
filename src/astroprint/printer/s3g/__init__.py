@@ -374,7 +374,7 @@ class PrinterS3g(Printer):
 					'<B',
 					speed > 0
 				)
-				self._comm.tool_action_command(tool, makerbot_driver.slave_action_command_dict['TOGGLE_EXTRA_OUTPUT'], payload)
+				self._comm.tool_action_command(int(tool), makerbot_driver.slave_action_command_dict['TOGGLE_EXTRA_OUTPUT'], payload)
 
 	def extrude(self, tool, amount, speed=None):
 		if self._comm:
