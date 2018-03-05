@@ -762,12 +762,12 @@ var USBFileView = Backbone.View.extend({
       console.log(data)
       if(!data.response){
         var error = data.error
-        loadingBtn.removeClass('loading');
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
-        setTimeout(_.bind(function(){
-          loadingBtn.removeClass('loading');
-        },this),2000);
+      } else {
+        loadingBtn.removeClass('loading');
+        noty({text: "File " + filename + " copied to home", timeout: 3000});
       }
+      loadingBtn.removeClass('loading');
     }, this))
     .fail(function(xhr) {
       var error = data.error
