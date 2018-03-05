@@ -291,9 +291,30 @@ var StorageControlView = Backbone.View.extend({
     'click a.cloud': 'cloudClicked'
   },
   selected: null,
+  exploringLocation: null,
   initialize: function(options)
   {
     this.print_file_view = options.print_file_view;
+  },
+  _cleanUrlNavigation: function(location){
+    return location.replace(/\/+/g, "/");
+  },
+  composeLocation: function(locationNavigation){
+    if(locationNavigation != 'back'){
+      if(this.exploringLocation != '/'){
+        this.exploringLocation = this._cleanUrlNavigation(this.exploringLocation + '/' + locationNavigation);
+      } else {
+        this.exploringLocation = this._cleanUrlNavigation(this.exploringLocation + locationNavigation);
+      }
+    } else {
+      if(!this.print_file_view.usbfile_list.topLocationMatched(this.exploringLocation)){//BACK
+        var spl = this._cleanUrlNavigation(this.exploringLocation).split('/');
+        spl.splice(-1,1);
+        this.exploringLocation = this._cleanUrlNavigation('/'+(spl).join('/'));
+      } else {//TOP LOCATION
+        this.exploringLocation = '/';
+      }
+    }
   },
   selectStorage: function(storage)
   {
@@ -305,6 +326,7 @@ var StorageControlView = Backbone.View.extend({
   usbClicked: function(e)
   {
     e.preventDefault();
+    this.exploringLocation = '/';
     this.selectStorage('USB');
   },
   localClicked: function(e)
@@ -327,8 +349,10 @@ var StorageControlView = Backbone.View.extend({
 var PrintFilesListView = Backbone.View.extend({
   info_dialog: null,
   print_file_views: [],
+  usb_file_views: [],
   storage_control_view: null,
   file_list: null,
+  usbfile_list: null,
   refresh_threshold: 1000, //don't allow refreshes faster than this (in ms)
   last_refresh: 0,
   refreshing: false,
@@ -337,6 +361,7 @@ var PrintFilesListView = Backbone.View.extend({
   },
   initialize: function(options) {
     this.file_list = new PrintFileCollection();
+    this.usbfile_list = new USBFileCollection();
     this.info_dialog = new PrintFileInfoDialog({file_list_view: this});
     this.storage_control_view = new StorageControlView({
       el: this.$('.list-header ul.storage'),
@@ -354,35 +379,96 @@ var PrintFilesListView = Backbone.View.extend({
     var list = this.$('.design-list-container');
     var selectedStorage = this.storage_control_view.selected;
 
-    list.children().detach();
+    if(selectedStorage && selectedStorage == 'USB'){//CLICK IN USB TAB
 
-    if (selectedStorage) {
-      var filteredViews = _.filter(this.print_file_views, function(p){
-        if (selectedStorage == 'local') {
-          if (p.print_file.get('local_filename')) {
-            return true
+      var location = this.storage_control_view.exploringLocation;
+
+      //CLEAN FILE LIST SHOWED
+
+      list.children().detach();
+
+      //FETCH USB FILES
+
+      this.usb_file_views = [];
+      this.usbfile_list.syncLocation(location)
+        .done(_.bind(function(data){
+
+          if(location != '/'){
+            var backView = new BackFolderView(
+              {
+                parentView: this
+              });
+              backView.render();
+            this.usb_file_views.push(backView);
+            list.append(backView.$el);
           }
-        } else if (!p.print_file.get('local_only')) {
-          return true;
-        }
 
-        return false;
-      });
-    } else {
-      var filteredViews = this.print_file_views;
-    }
+          this.usbfile_list.each(_.bind(function(file, idx) {
+            if(this.usbfile_list.extensionMatched(file.get('name'))){
+              var usb_file_view = new USBFileView(file);
+            } else {
+              var usb_file_view = new BrowsingFileView(
+                {
+                  parentView: this,
+                  file: file
+                });
+              usb_file_view.render();
+              this.usb_file_views.push( usb_file_view );
+            }
+            usb_file_view.render();
+            this.usb_file_views.push( usb_file_view );
+          }, this));
 
-    if (filteredViews.length) {
-      _.each(filteredViews, function(p) {
-        list.append(p.$el);
-      });
+          if (this.usb_file_views.length) {
+            _.each(this.usb_file_views, function(p) {
+              list.append(p.$el);
+            });
+          } else {
+            list.html(
+              '<div class="empty panel radius" align="center">'+
+              ' <i class="icon-inbox empty-icon"></i>'+
+              ' <h3>Nothing here yet.</h3>'+
+              '</div>'
+            );
+          }
+
+        },this))
+        .fail(function(){
+          noty({text: "There was an error retrieving files in the drive", timeout: 3000});
+        });
+
     } else {
-      list.html(
-        '<div class="empty panel radius" align="center">'+
-        ' <i class="icon-inbox empty-icon"></i>'+
-        ' <h3>Nothing here yet.</h3>'+
-        '</div>'
-      );
+
+      list.children().detach();
+
+      if (selectedStorage) {
+        var filteredViews = _.filter(this.print_file_views, function(p){
+          if (selectedStorage == 'local') {
+            if (p.print_file.get('local_filename')) {
+              return true
+            }
+          } else if (!p.print_file.get('local_only')) {
+            return true;
+          }
+
+          return false;
+        });
+      } else {
+        var filteredViews = this.print_file_views;
+      }
+
+      if (filteredViews.length) {
+        _.each(filteredViews, function(p) {
+          list.append(p.$el);
+        });
+      } else {
+        list.html(
+          '<div class="empty panel radius" align="center">'+
+          ' <i class="icon-inbox empty-icon"></i>'+
+          ' <h3>Nothing here yet.</h3>'+
+          '</div>'
+        );
+      }
     }
   },
   refresh: function(kindOfSync, doneCb)
@@ -403,12 +489,6 @@ var PrintFilesListView = Backbone.View.extend({
 
           case 'local':
             var loadingArea = this.$('.local-loading');
-            var syncPromise = this.file_list.fetch();
-          break;
-
-
-          case 'USB':
-            var loadingArea = this.$('.USB-loading');
             var syncPromise = this.file_list.fetch();
           break;
 
@@ -624,5 +704,197 @@ var FilesView = Backbone.View.extend({
   {
     this.uploadView.render();
     this.printFilesListView.refresh('cloud');
+  }
+});
+
+var USBFileView = Backbone.View.extend({
+  template: _.template( $("#usb-file-template").html() ),
+  usb_file: null,
+  copying: null,
+  initialize: function(file)
+  {
+    this.usb_file = file;
+  },
+  render: function()
+  {
+    var usb_file = this.usb_file.toJSON();
+
+  /*  if (print_file.local_filename) {
+      this.$el.removeClass('remote');
+    } else {
+      this.$el.addClass('remote');
+    }
+
+    if (print_file.printFileName) {
+      print_file.name = print_file.printFileName;
+    }*/
+
+    this.$el.empty();
+    //this.downloadProgress = null;
+    this.$el.html(this.template({
+      p: usb_file
+    }));
+
+    this.delegateEvents({
+      'click a.copy': 'copyClicked'
+    });
+  },
+  copyClicked: function (evt)
+  {
+    if (evt) evt.preventDefault();
+
+    var filename = this.usb_file.get('name');
+
+    var loadingBtn = this.$('.loading-button.print');
+
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+        url: '/api/files/copy-to-local',
+        type: "POST",
+        dataType: "json",
+        data:
+          {
+            file: filename
+          }
+    })
+    .done(_.bind(function(data) {
+      console.log(data)
+      if(!data.response){
+        var error = data.error
+        loadingBtn.removeClass('loading');
+        noty({text: "There was an error copying file...Try it again later", timeout: 3000});
+        setTimeout(_.bind(function(){
+          loadingBtn.removeClass('loading');
+        },this),2000);
+      }
+    }, this))
+    .fail(function(xhr) {
+      var error = data.error
+      loadingBtn.removeClass('loading');
+      noty({text: "There was an error copying file...Try it again later", timeout: 3000});
+      setTimeout(_.bind(function(){
+        loadingBtn.removeClass('loading');
+      },this),2000);
+    })
+  }
+});
+
+var BrowsingFileView = Backbone.View.extend({
+  template: _.template( $("#browsing-file-template").html() ),
+  file: null,
+  parentView: null,
+  initialize: function(data)
+  {
+    this.parentView = data.parentView;
+
+    if(this.parentView.storage_control_view.exploringLocation != '/'){
+      data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1]);
+    }
+
+    this.file = data.file;
+  },
+  render: function()
+  {
+    var print_file = this.file.toJSON();
+
+    this.$el.empty();
+    this.downloadProgress = null;
+    this.$el.html(this.template({
+      p: print_file
+    }));
+
+    this.delegateEvents({
+      'click div.exploreFolder': 'exploreFolder',
+      'click a.eject': 'eject'
+    });
+  },
+  eject: function(evt){
+    if (evt) evt.preventDefault();
+
+    var loadingBtn = this.$('.loading-button.eject');
+
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+        url: '/api/files/eject',
+        type: "POST",
+        dataType: "json",
+        data:
+          {
+            drive: this.file.get('name')
+          }
+    })
+    .done(_.bind(function(data) {
+      if(data.error){
+        var error = data.error
+        noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
+      }
+      setTimeout(_.bind(function(){
+        loadingBtn.removeClass('loading');
+        this.parentView.render()
+      },this),2000);
+    }, this))
+    .fail(function(xhr) {
+      var error = xhr.responseText;
+      noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
+      loadingBtn.removeClass('loading');
+      this.parentView.refresh()
+    })
+  },
+  exploreFolder: function (evt)
+  {
+    if (evt) evt.preventDefault();
+
+    var filename = this.file.get('name');
+
+    var loadingBtn = this.$('.loading-button.print');
+
+    loadingBtn.addClass('loading');
+
+    this.parentView.storage_control_view.selected = 'USB';
+    this.parentView.storage_control_view.composeLocation(filename);
+    this.parentView.render();
+
+  }
+});
+
+var BackFolderView = BrowsingFileView.extend({
+  template: _.template( $("#back-folder-template").html() ),
+  initialize: function(data)
+  {
+    this.parentView = data.parentView;
+  },
+  render: function()
+  {
+    var print_file = {
+      name: 'back',
+      icon: 'folder'
+    }
+
+    this.$el.empty();
+    this.downloadProgress = null;
+    this.$el.html(this.template({
+      p: print_file
+    }));
+
+    this.delegateEvents({
+      'click div.exploreFolder': 'exploreFolder'
+    });
+  },
+  exploreFolder: function (evt)
+  {
+    if (evt) evt.preventDefault();
+
+    var filename = 'back'
+
+    var loadingBtn = this.$('.loading-button.print');
+
+    loadingBtn.addClass('loading');
+
+    this.parentView.storage_control_view.selected = 'USB';
+    this.parentView.storage_control_view.composeLocation(filename);
+    this.parentView.render();
+
   }
 });

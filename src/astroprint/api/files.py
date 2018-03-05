@@ -15,6 +15,7 @@ from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
+import astroprint.externaldrive as externaldrive
 
 #~~ GCODE file handling
 
@@ -296,3 +297,50 @@ def deletePrintFile(filename, target):
 
 	return NO_CONTENT
 
+#external drive managing
+@api.route("/files/explore-folder", methods=["GET"])
+@restricted_access
+def exploreFolder():
+
+	location = request.args.get('location')
+
+	if location == '/':
+
+		usb_folders = externaldrive.getLocalStorages()
+
+		homeFound = False
+		idx = 0
+
+		while not homeFound and idx < len(usb_folders):
+
+			if usb_folders[idx]['icon'] == 'home':
+				del usb_folders[idx]
+				homeFound = True
+
+			idx+=1
+
+		return jsonify(usb_folders)
+
+	else:
+
+		return jsonify(externaldrive.getFolderExploration(location))
+
+@api.route("/files/file-browsing-extensions", methods=["GET"])
+@restricted_access
+def getFileBrowsingExtensions():
+	return jsonify(externaldrive.getFileBrowsingExtensions())
+
+@api.route("/files/local-storages", methods=["GET"])
+@restricted_access
+def getLocalStorages():
+	return jsonify(externaldrive.getLocalStorages())
+
+@api.route("/files/eject", methods=["POST"])
+@restricted_access
+def eject():
+	return jsonify(externaldrive.eject(request.values.get('drive')))
+
+@api.route("/files/copy-to-local", methods=["POST"])
+@restricted_access
+def copyFileToLocal():
+	return jsonify({'response': externaldrive.copyFileToLocal(request.values.get('file'),externaldrive.getBaseFolder('uploads'))})

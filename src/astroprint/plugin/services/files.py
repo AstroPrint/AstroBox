@@ -80,10 +80,10 @@ class FilesService(PluginService):
 			sendResponse('no_folders_obtained',True)
 
 
-	def getLocalStorages(self, sendResponse):
+	def getTopStorages(self, sendResponse):
 
 		try:
-			sendResponse( { 'storageFolders': externaldrive.getLocalStorages() })
+			sendResponse( { 'storageFolders': externaldrive.getTopStorages() })
 
 		except Exception as e:
 			self._logger.error("storage folders can not be obtained", exc_info = True)

@@ -368,6 +368,11 @@ class PrintFilesManager(object):
 	def _cleanFileLocation(self, location):
 		return location.replace('//','/')
 
+	def getLocalStorageLocations(self):
+
+		return self.getLocationExploration(self._storageFolder,'usb')
+
+
 	def getAllStorageLocations(self):
 		locations = []
 
@@ -375,7 +380,7 @@ class PrintFilesManager(object):
 			'name': self._uploadFolder,
 			'icon': 'home'
 		})
-		locations.extend(self.getLocationExploration(self._storageFolder,'usb'))
+		locations.extend(self.getLocalStorageLocations())
 
 		return locations
 

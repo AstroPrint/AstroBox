@@ -57,6 +57,8 @@
   .design-list-container {
     margin-bottom: 55px;
 
+    >div{clear: both;}
+
     .row {
       position: relative;
       background-color: white;
