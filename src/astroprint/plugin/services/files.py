@@ -46,6 +46,7 @@ class FilesService(PluginService):
 		#files managing
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
+		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
 
 	def eject(self, data, sendResponse):
 
@@ -337,3 +338,6 @@ class FilesService(PluginService):
 		if data['type'] == 'success':
 			self.publishEvent('cloud_download_success',data)
 		#else TODO
+
+	def _onCopyToHomeProgress(self,event,data):
+		self.publishEvent('copy_to_home_progress',data)

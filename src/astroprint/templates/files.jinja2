@@ -192,16 +192,45 @@
 	<div class="small-8 large-10 columns middle-section">
     <h3 class="bold"> <%= p.name %></h3>
 	</div>
+  <div class="loading-content"></div>
 	<div class="small-2 large-1 columns right-section">
 		<div class="print-file-options">
 			<div class="loading-button print">
 				<a href="#" class="copy idle">
           copy to home
 				</a>
+				<a href="#" class="print idle">
+          Print
+				</a>
 				<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
 			</div>
 		</div>
 	</div>
+</script>
+
+<div id="local-file-exists-dlg" class="reveal-modal xlarge" data-reveal>
+	<div class="dlg-content"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<script type="text/template" id="local-file-exists-template">
+  File <%=filename%> already exists in home files. Do you want to replace it?
+  <div class="loading-button eject">
+    <a href="#" class="replace idle">
+      Replace
+    </a>
+    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+  </div>
+  <div class="loading-button eject">
+    <a href="#" class="cancel idle">
+      Cancel
+    </a>
+    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+  </div>
+</script>
+
+<script type="text/template" id="copy-to-home-progress">
+  <span class="loading"><%=progress%></span>
 </script>
 
 <script type="text/template" id="browsing-file-template">

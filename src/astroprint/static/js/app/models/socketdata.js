@@ -216,6 +216,12 @@ var SocketData = Backbone.Model.extend({
               app.eventManager.trigger('astrobox:cloudDownloadEvent', payload);
             break;
 
+            case 'CopyToHomeProgress':
+              if(payload.observerId == AP_SESSION_ID){
+                app.eventManager.trigger('astrobox:copyToHomeProgress', payload);
+              }
+            break;
+
             case 'AstroPrintStatus':
               switch(payload) {
                 case 'connecting':

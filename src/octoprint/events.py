@@ -86,6 +86,7 @@ class Events(object):
 	INTERNET_CONNECTING_STATUS = "InternetConnectingStatus"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
+	COPY_TO_HOME_PROGRESS = "CopyToHomeProgress"
 
 	#Webrtc and local video peer managing
 	GSTREAMER_EVENT = "GstreamerEvent"

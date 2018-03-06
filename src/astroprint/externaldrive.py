@@ -3,8 +3,8 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2018 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
-import shutil
 import subprocess
+import os
 
 from octoprint.settings import settings
 
@@ -44,13 +44,71 @@ def eject(drive):
 			'error': str(error)
 		}
 
-def copyFileToLocal(origin, destination):
+def copy(src, dst, progressCb, observerId):
+
+		blksize = 1048576 # 1MiB
+		try:
+				s = open(src, 'rb')
+				d = open(dst, 'wb')
+		except (KeyboardInterrupt, Exception) as e:
+				if 's' in locals():
+						s.close()
+				if 'd' in locals():
+						d.close()
+				raise
+		try:
+				total = float(os.stat(src).st_size)
+
+				while True:
+
+						buf = s.read(blksize)
+						bytes_written = d.write(buf)
+
+						progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
+
+						if blksize > len(buf) or bytes_written == 0:
+								d.write(buf)
+								progressCb(100,dst,observerId)
+								break
+
+		except (KeyboardInterrupt, Exception) as e:
+				s.close()
+				d.close()
+				raise
+		else:
+				progressCb(100,dst,observerId)
+				s.close()
+				d.close()
+
+def localFileExists(filename):
+
+	print getBaseFolder('uploads') + '/' + filename
+
 	try:
-		shutil.copy2(_cleanFileLocation(origin),_cleanFileLocation(destination))
+			s = open(getBaseFolder('uploads') + '/' + filename, 'rb')
+	except Exception as e:
+			if 's' in locals():
+				s.close()
+
+			return False
+
+	s.close()
+
+	return True
+
+
+def copyFileToLocal(origin, destination, progressCb, observerId):
+	try:
+
+		_origin = _cleanFileLocation(origin)
+		copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],progressCb,observerId)
+
 		return True
+
 	except Exception as e:
 		logger = logging.getLogger(__name__)
 		logger.error("copy print file to local folder failed", exc_info = True)
+
 		return False
 
 

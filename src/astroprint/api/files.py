@@ -340,7 +340,27 @@ def getLocalStorages():
 def eject():
 	return jsonify(externaldrive.eject(request.values.get('drive')))
 
+@api.route("/files/local-file-exists/<string:filename>", methods=["GET"])
+@restricted_access
+def localFileExists(filename):
+	return jsonify({'response': externaldrive.localFileExists(filename)})
+
+
 @api.route("/files/copy-to-local", methods=["POST"])
 @restricted_access
 def copyFileToLocal():
-	return jsonify({'response': externaldrive.copyFileToLocal(request.values.get('file'),externaldrive.getBaseFolder('uploads'))})
+
+	def progressCb(progress,file,observerId):
+
+		from octoprint.events import eventManager, Events
+
+		eventManager().fire(
+			Events.COPY_TO_HOME_PROGRESS, {
+				"type": "progress",
+				"file": file,
+				"observerId": observerId,
+				"progress": progress
+			}
+		)
+
+	return jsonify({'response': externaldrive.copyFileToLocal(request.values.get('file'),externaldrive.getBaseFolder('uploads'),progressCb,request.values.get('observerId'))})

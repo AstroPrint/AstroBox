@@ -138,7 +138,7 @@ class PrinterStateConnection(SockJSConnection):
 	EVENTS = [Events.UPDATED_FILES, Events.METADATA_ANALYSIS_FINISHED, Events.SLICING_STARTED, Events.SLICING_DONE, Events.SLICING_FAILED,
 				Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
 				Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS,
-				Events.GSTREAMER_EVENT, Events.TOOL_CHANGE]
+				Events.GSTREAMER_EVENT, Events.TOOL_CHANGE, Events.COPY_TO_HOME_PROGRESS]
 
 	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
