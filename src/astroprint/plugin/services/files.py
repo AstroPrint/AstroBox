@@ -36,8 +36,11 @@ class FilesService(PluginService):
 		#watch downloading progress of a print file
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
-		'f¡nished_download_printfile'
-
+		'f¡nished_download_printfile',
+		################
+		#PLUGIN -> BROWSER
+		#watch the copying progress of a file from external drive to home folder
+		'copy_to_home_progress'
 	]
 
 	def __init__(self):
@@ -59,12 +62,18 @@ class FilesService(PluginService):
 
 			sendResponse(ejection['error'],True)
 
-	def copyFileToLocal(self, data, sendResponse):
-
-		if externaldrive.copyFileToLocal(data['origin'],data['destination']):
+	def localFileExists(self, data, sendResponse):
+		if externaldrive.localFileExists(data['filename']):
 			sendResponse({'success': 'no_error'})
 		else:
-			sendResponse({'error': 'copy print file to local folder failed' },true)
+			sendResponse({'error': 'local file already exists' },True)
+
+	def copyFileToLocal(self, data, sendResponse):
+
+		if externaldrive.copyFileToLocal(data['origin'],data['destination'],data['observerId']):
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse({'error': 'copy print file to local folder failed' },True)
 
 
 	def getFileBrowsingExtensions(self, sendResponse):

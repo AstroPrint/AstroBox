@@ -6,6 +6,7 @@ import logging
 import subprocess
 import os
 
+from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 from astroprint.printer.manager import printerManager
@@ -97,11 +98,20 @@ def localFileExists(filename):
 	return True
 
 
-def copyFileToLocal(origin, destination, progressCb, observerId):
-	try:
+def _progressCb(progress,file,observerId):
+	eventManager().fire(
+		Events.COPY_TO_HOME_PROGRESS, {
+			"type": "progress",
+			"file": file,
+			"observerId": observerId,
+			"progress": progress
+		}
+	)
 
+def copyFileToLocal(origin, destination, observerId):
+	try:
 		_origin = _cleanFileLocation(origin)
-		copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],progressCb,observerId)
+		copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],_progressCb,observerId)
 
 		return True
 
