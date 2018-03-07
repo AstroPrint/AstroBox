@@ -508,7 +508,7 @@ var PrintFilesListView = Backbone.View.extend({
                 var print_file_view = new PrintFileView({
                   list: this,
                   print_file: print_file,
-                  attributes: {'class': 'row'+(idx % 2 ? ' dark' : '')}
+                  attributes: {'class': 'row'}
                 });
                 print_file_view.render();
                 this.print_file_views.push( print_file_view );

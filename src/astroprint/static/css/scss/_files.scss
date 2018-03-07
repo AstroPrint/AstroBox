@@ -59,10 +59,34 @@
 
     >div{clear: both;}
 
+    .usb-list,.inside-folder{
+
+      .left-section{
+        //padding: 0 10px 0 0;
+      }
+     .middle-section{
+        height: 67px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+      }
+
+      .right-section{
+       font-size: rem-calc(32) !important;
+      }
+
+      h3{
+        line-height: 200%;
+      }
+    }
+
     .row {
       position: relative;
       background-color: white;
       cursor: pointer;
+      padding: 6px;
+      //margin-bottom: 4px;
+      border-bottom: 1px solid #eaeaea;
 
       &.remote {
         .left-section {
@@ -80,14 +104,9 @@
         }
       }
 
-      &.dark {
-        background-color: #fafafa;
-      }
-
       .left-section {
         transition: opacity 0.5s;
-        padding: 10px 0 10px 5px;
-        font-size: rem-calc(45);
+        font-size: rem-calc(40);
         color: #a5a5a5;
         padding-right: 10px;
 
@@ -162,32 +181,64 @@
             display: none;
           }
         }
+
+        button{
+          letter-spacing: 2px;
+          border: 2px solid;
+          color: $base;
+          background: transparent;
+
+          &:hover{
+            color: $white;
+            background: $base;
+            border: 2px solid $base;
+          }
+
+          &:active{
+            outline: 0;
+            color: $white;
+            background: darken($base, 20%);
+            border: 2px solid $base;
+            transform: scale(0.95);
+          }
+
+          &:focus{
+            outline: 0;
+          }
+        }
       }
 
       .middle-section {
-        padding: 10px 0;
         font-size: rem-calc(18);
         color: #a5a5a5;
 
         h3 {
           line-height: 1.2em;
-          font-size: rem-calc(22);
+          font-size: rem-calc(18);
           color: $success-color;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
-          margin: 0 0 5px 0;
+          margin: 0 0 3px 0;
         }
       }
 
       .right-section {
-        padding: 10px 0;
         font-size: rem-calc(45);
         text-align: center;
 
         a {
           color: $success-color;
         }
+      }
+
+      &:active{
+        background: $ghost;
+        //transform: scale(0.95);
+      }
+
+      &:hover{
+        box-shadow: inset 0 0 0 2px $primary-color;
       }
     }
 

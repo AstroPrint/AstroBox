@@ -186,26 +186,28 @@
 </script>
 
 <script type="text/template" id="usb-file-template">
-	<div class="small-2 large-1 columns left-section">
-		<i class="icon-3d-object"></i>
-	</div>
-	<div class="small-8 large-10 columns middle-section">
-    <h3 class="bold"> <%= p.name %></h3>
-	</div>
-  <div class="loading-content"></div>
-	<div class="small-2 large-1 columns right-section">
-		<div class="print-file-options">
-			<div class="loading-button print">
-				<a href="#" class="copy idle">
-          copy to home
-				</a>
-				<a href="#" class="print idle">
-          Print
-				</a>
-				<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
-			</div>
-		</div>
-	</div>
+  <div class="row inside-folder">
+	  <div class="small-2 large-1 columns left-section">
+      <i class="icon-3d-object"></i>
+    </div>
+    <div class="small-8 large-8 columns middle-section">
+      <h3 class="bold"> <%= p.name %></h3>
+    </div>
+    <div class="loading-content"></div>
+    <div class="small-2 large-3 columns right-section">
+      <div class="print-file-options">
+        <div class="loading-button print">
+          <button href="#" class="tiny bold radius copy idle">
+            copy to home
+          </button>
+          <button href="#" class="tiny bold radius print idle">
+            Print
+          </button>
+          <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+        </div>
+      </div>
+    </div>
+  </div>
 </script>
 
 <div id="local-file-exists-dlg" class="reveal-modal xlarge" data-reveal>
@@ -255,31 +257,37 @@
 </script>
 
 <script type="text/template" id="browsing-file-template">
-  <div class="small-2 large-1 columns left-section exploreFolder">
-		<img src="/static/img/<%= p.icon %>-icon.png" alt="<%= p.icon %> icon">
-	</div>
-	<div class="small-8 large-11 columns middle-section">
-    <h3 class="bold"><%= p.name %></h3>
-	</div>
-  <% if (p.icon == 'usb'){ %>
-    <div class="small-2 large-1 columns right-section">
-  		<div class="print-file-options">
-  			<div class="loading-button eject">
-  				<a href="#" class="eject idle">
-            EJECT
-  				</a>
-  				<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
-  			</div>
-  		</div>
-  	</div>
-  <% } %>
+  <div class="row usb-list">
+    <div class="exploreFolder large-10 columns" no-padding>
+      <div class="small-2 large-1 columns left-section">
+        <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
+      </div>
+      <div class="small-8 large-11 columns middle-section">
+        <h3 class="bold"><%= p.name %></h3>
+      </div>
+    </div>
+    <% if (p.icon == 'usb'){ %>
+      <div class="small-2 large-2 columns right-section">
+        <div class="print-file-options">
+          <div class="loading-button eject">
+            <button href="#" class="tiny bold radius eject idle">EJECT </button>
+            <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
 </script>
 
 <script type="text/template" id="back-folder-template">
-  <div class="small-2 large-1 columns left-section exploreFolder">
-		<img src="/static/img/file-manager-icon.png" alt="file manager icon">
-	</div>
-	<div class="small-8 large-11 columns middle-section">
-    <h3 class="bold">../</h3>
-	</div>
+  <div class="row">
+    <div class="small-12 large-12 columns exploreFolder">
+      <!--img src="/static/img/file-manager-icon.png" alt="file manager icon"-->
+      <i class="icon-angle-left"></i>
+      <!--img src="/static/img/folder-icon.svg"-->
+    </div>
+    <!--div class="small-8 large-11 columns middle-section">
+      <h3 class="bold">../</h3>
+    </div-->
+  </div>
 </script>
