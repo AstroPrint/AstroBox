@@ -714,12 +714,56 @@ var FilesView = Backbone.View.extend({
   }
 });
 
+var ReplaceFileDialog = Backbone.View.extend({
+  el: '#local-file-exists-dlg',
+  filename: null,
+  usbFileView: null,
+  copyFinishedPromise: null,
+  template: _.template( $("#local-file-exists-template").html() ),
+  events: {
+    'click a.replace': 'onReplaceClicked',
+    'click a.cancel': 'onCancelClicked',
+  },
+  initialize: function(params)
+  {
+    this.filename = params.filename;
+    this.usbFileView = params.usbFileView;
+    this.copyFinishedPromise = params.copyFinishedPromise;
+  },
+  render: function()
+  {
+    this.$el.find('.dlg-content').html(this.template({
+      filename: this.filename
+    }));
+  },
+  open: function(print_file_view)
+  {
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+  onReplaceClicked: function(e)
+  {
+    if(e) e.preventDefault();
+
+    this.$el.foundation('reveal', 'close');
+    this.usbFileView.copyFile(this.copyFinishedPromise);
+  },
+  onCancelClicked: function(e)
+  {
+    if(e) e.preventDefault();
+
+    this.$el.foundation('reveal', 'close');
+    this.copyFinishedPromise.reject();
+  },
+});
+
 var USBFileView = Backbone.View.extend({
   template: _.template( $("#usb-file-template").html() ),
   usb_file: null,
   copying: null,
   progress: -1,
   localFileExistsDialog: null,
+  ejectBeforePrintDialog: null,
   initialize: function(file)
   {
     this.usb_file = file;
@@ -739,6 +783,35 @@ var USBFileView = Backbone.View.extend({
       'click a.print': 'printClicked'
     });
   },
+  _print: function(){
+
+    var filename = this.usb_file.get('name').split('/').splice(-1,1)[0];
+
+    //We can't use evt because this can come from another source than the row print button
+    var loadingBtn = this.$('.loading-button.print');
+
+    loadingBtn.addClass('loading');
+    $.ajax({
+        url: '/api/files/local/'+filename,
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=UTF-8",
+        data: JSON.stringify({command: "select", print: true})
+    })
+    .done(_.bind(function() {
+      setTimeout(function(){
+        loadingBtn.removeClass('loading');
+      },2000);
+    }, this))
+    .fail(function(xhr) {
+      var error = null;
+      if (xhr.status == 409) {
+        error = xhr.responseText;
+      }
+      noty({text: error ? error : "There was an error starting the print", timeout: 3000});
+      loadingBtn.removeClass('loading');
+    })
+  },
   printClicked: function(evt){
 
     if (evt) evt.preventDefault();
@@ -746,37 +819,87 @@ var USBFileView = Backbone.View.extend({
     this.tryToCopyFile()
       .done(_.bind(function(){
 
-        var filename = this.usb_file.get('name').split('/').splice(-1,1)[0];
+        var EjectBeforePrintDialog = Backbone.View.extend({
+          el: '#eject-before-print-dlg',
+          drive: null,
+          parentView: null,
+          template: _.template( $("#eject-before-print-template").html() ),
+          events: {
+            'click a.eject-no': 'onNoClicked',
+            'click a.eject-yes': 'onYesClicked',
+          },
+          initialize: function(params)
+          {
+            this.drive = params.drive;
+            this.parentView = params.parentView;
+          },
+          render: function()
+          {
+            this.$el.find('.dlg-content').html(this.template({
+              filename: this.filename
+            }));
+          },
+          open: function(print_file_view)
+          {
+            this.render();
+            this.$el.foundation('reveal', 'open');
+          },
+          onYesClicked: function(e)
+          {
+            if(e) e.preventDefault();
 
-        //We can't use evt because this can come from another source than the row print button
-        var loadingBtn = this.$('.loading-button.print');
+            this.$el.foundation('reveal', 'close');
 
-        loadingBtn.addClass('loading');
-        $.ajax({
-            url: '/api/files/local/'+filename,
-            type: "POST",
-            dataType: "json",
-            contentType: "application/json; charset=UTF-8",
-            data: JSON.stringify({command: "select", print: true})
-        })
-        .done(_.bind(function() {
-          setTimeout(function(){
-            loadingBtn.removeClass('loading');
-          },2000);
-        }, this))
-        .fail(function(xhr) {
-          var error = null;
-          if (xhr.status == 409) {
-            error = xhr.responseText;
+            $.ajax({
+                url: '/api/files/eject',
+                type: "POST",
+                dataType: "json",
+                data:
+                  {
+                    drive: this.drive
+                  }
+            })
+            .done(_.bind(function(data) {
+              if(data.error){
+                var error = data.error
+                noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
+              } else {
+                noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
+                this.parentView._print();
+              }
+              setTimeout(_.bind(function(){
+                loadingBtn.removeClass('loading');
+              },this),2000);
+            }, this))
+            .fail(function(xhr) {
+              var error = xhr.responseText;
+              noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
+              loadingBtn.removeClass('loading');
+            })
+            this.$el.foundation('reveal', 'close');
+          },
+          onNoClicked: function(e)
+          {
+            if(e) e.preventDefault();
+
+            this.$el.foundation('reveal', 'close');
+
+            this.parentView._print();
+          },
+        });
+
+        this.ejectBeforePrintDialog = new EjectBeforePrintDialog(
+          {
+            drive: this.usb_file.get('name').split('/').slice(0, -1).join('/'),
+            parentView: this
           }
-          noty({text: error ? error : "There was an error starting the print", timeout: 3000});
-          loadingBtn.removeClass('loading');
-        })
+        );
+        this.ejectBeforePrintDialog.open();
+
       },this))
       .fail(function(){
         noty({text: "Print can not be starterd. Try it again later", timeout: 3000});
       });
-
   },
   copyToHomeProgressUpdater: function(data){
     this.progress = data.progress
@@ -823,6 +946,7 @@ var USBFileView = Backbone.View.extend({
         promise.resolve();
       }
       loadingBtn.removeClass('loading');
+      this.$el.foundation('reveal', 'close');
     }, this))
     .fail(_.bind(function(xhr) {
       this.$('.loading-content').html("");
@@ -832,6 +956,7 @@ var USBFileView = Backbone.View.extend({
       setTimeout(_.bind(function(){
         loadingBtn.removeClass('loading');
       },this),2000);
+      this.$el.foundation('reveal', 'close');
       promise.rejct();
     },this));
   },
@@ -844,49 +969,6 @@ var USBFileView = Backbone.View.extend({
     $.getJSON('/api/files/local-file-exists/' + filename)
       .success(_.bind(function(data){
         if(data.response){
-
-          var ReplaceFileDialog = Backbone.View.extend({
-            el: '#local-file-exists-dlg',
-            filename: null,
-            usbFileView: null,
-            copyFinishedPromise: null,
-            template: _.template( $("#local-file-exists-template").html() ),
-            events: {
-              'click a.replace': 'onReplaceClicked',
-              'click a.cancel': 'onCancelClicked',
-            },
-            initialize: function(params)
-            {
-              this.filename = params.filename;
-              this.usbFileView = params.usbFileView;
-              this.copyFinishedPromise = params.copyFinishedPromise;
-            },
-            render: function()
-            {
-              this.$el.find('.dlg-content').html(this.template({
-                filename: this.filename
-              }));
-            },
-            open: function(print_file_view)
-            {
-              this.render();
-              this.$el.foundation('reveal', 'open');
-            },
-            onReplaceClicked: function(e)
-            {
-              if(e) e.preventDefault();
-
-              this.usbFileView.copyFile(this.copyFinishedPromise);
-              this.$el.foundation('reveal', 'close');
-            },
-            onCancelClicked: function(e)
-            {
-              if(e) e.preventDefault();
-
-              this.copyFinishedPromise.reject();
-              this.$el.foundation('reveal', 'close');
-            },
-          });
 
           this.localFileExistsDialog = new ReplaceFileDialog(
             {
