@@ -142,9 +142,20 @@
       .loading-content{
         position: absolute;
         width: 100%;
-        bottom: 0;
+        top: 0;
         padding: 0;
         left: 0;
+
+        .progress-number{font-size: 18px;}
+
+        .progress{
+          height: 6px;
+          margin: 0;
+          padding: 0;
+          max-width: 70%;
+          margin: 0 auto;
+          background: rgba(240, 82, 81, 0.4);
+        }
       }
     }
 
@@ -192,6 +203,10 @@
       .print-file-options {
         position: relative;
         height: 60px;
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        color: $red;
 
         .download-progress,
         .download-failed {
