@@ -65,7 +65,7 @@
         //padding: 0 10px 0 0;
       }
      .middle-section{
-        height: 67px;
+        height: 60px;
         display: flex;
         justify-content: center;
         flex-direction: column;
@@ -85,8 +85,7 @@
       background-color: white;
       cursor: pointer;
       padding: 6px;
-      //margin-bottom: 4px;
-      border-bottom: 1px solid #f2f2f2;
+      margin-bottom: 3px;
 
       &.remote {
         .left-section {
@@ -124,7 +123,7 @@
 
       .print-file-options {
         position: relative;
-        height: 67px;
+        height: 60px;
 
         .download-progress,
         .download-failed {
@@ -207,7 +206,7 @@
       .middle-section {
         font-size: rem-calc(14);
         color: #a5a5a5;
-        height: 67px;
+        height: 60px;
         display: flex;
         justify-content: center;
         flex-direction: column;
@@ -219,7 +218,7 @@
           i{margin-left: 4px;}
 
           b span{
-            line-height: 17px;
+            line-height: 18px;
             position: relative;
             top: 2px;
             font-size: 22px;
@@ -228,7 +227,7 @@
         }
 
         h3 {
-          font-size: rem-calc(18);
+          font-size: rem-calc(17);
           color: $success-color;
           white-space: nowrap;
           overflow: hidden;
@@ -253,7 +252,6 @@
 
       &:hover{
         background: lighten($primary-color, 35%);
-        box-shadow: inset 0 0 0 2px lighten($primary-color, 30%);
       }
     }
 
