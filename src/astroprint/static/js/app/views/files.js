@@ -721,8 +721,8 @@ var ReplaceFileDialog = Backbone.View.extend({
   copyFinishedPromise: null,
   template: _.template( $("#local-file-exists-template").html() ),
   events: {
-    'click a.replace': 'onReplaceClicked',
-    'click a.cancel': 'onCancelClicked',
+    'click button.replace': 'onReplaceClicked',
+    'click button.cancel': 'onCancelClicked',
   },
   initialize: function(params)
   {
@@ -779,8 +779,8 @@ var USBFileView = Backbone.View.extend({
     }));
 
     this.delegateEvents({
-      'click a.copy': 'copyClicked',
-      'click a.print': 'printClicked'
+      'click button.copy': 'copyClicked',
+      'click button.print': 'printClicked'
     });
   },
   _print: function(){
@@ -912,6 +912,9 @@ var USBFileView = Backbone.View.extend({
   {
     if (evt) evt.preventDefault();
 
+    this.$('button.copy').addClass('hide')
+    this.$('button.print').addClass('hide')
+
     this.tryToCopyFile();
   },
   copyFile: function(promise){
@@ -1017,7 +1020,7 @@ var BrowsingFileView = Backbone.View.extend({
 
     this.delegateEvents({
       'click div.exploreFolder': 'exploreFolder',
-      'click a.eject': 'eject'
+      'click button.eject': 'eject'
     });
   },
   eject: function(evt){

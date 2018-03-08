@@ -195,15 +195,18 @@
     <div class="small-8 large-8 columns middle-section">
       <h3 class="bold"> <%= p.name %></h3>
     </div>
-    <div class="loading-content"></div>
+
     <div class="small-2 large-3 columns right-section">
+
+      <div class="loading-content"></div>
+
       <div class="print-file-options">
         <div class="loading-button print">
-          <button href="#" class="tiny bold radius copy idle">
-            copy to home
+          <button href="#" class="tiny bold radius right columns large-4 print idle">
+            <i class="icon-3d-printer"></i>
           </button>
-          <button href="#" class="tiny bold radius print idle">
-            Print
+          <button href="#" class="tiny bold radius left columns large-8 copy idle">
+            copy to home
           </button>
           <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
         </div>
@@ -220,15 +223,15 @@
 <script type="text/template" id="local-file-exists-template">
   File <%=filename%> already exists in home files. Do you want to replace it?
   <div class="loading-button eject">
-    <a href="#" class="replace idle">
+    <button href="#" class="radius alert replace idle">
       Replace
-    </a>
+    </button>
     <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
   </div>
   <div class="loading-button eject">
-    <a href="#" class="cancel idle">
+    <button href="#" class="radius secondary cancel idle">
       Cancel
-    </a>
+    </button>
     <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
   </div>
 </script>
@@ -255,8 +258,12 @@
 </script>
 
 <script type="text/template" id="copy-to-home-progress">
-  <span class="loading"><%=progress%></span>
+  <div class="progress small">
+    <span class="meter" style="width: <%=progress%>%"></span>
+    <div class="progress-number"><%=progress%>%</div>
+  </div>
 </script>
+
 
 <script type="text/template" id="browsing-file-template">
   <div class="row usb-list">
@@ -272,7 +279,7 @@
       <div class="small-2 large-2 columns right-section">
         <div class="print-file-options">
           <div class="loading-button eject">
-            <button href="#" class="tiny bold radius eject idle">EJECT </button>
+            <button href="#" class="tiny bold radius eject idle">EJECT <i class="icon-eject-alt"></i> </button>
             <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
           </div>
         </div>
@@ -282,10 +289,12 @@
 </script>
 
 <script type="text/template" id="back-folder-template">
-  <div class="row">
-    <div class="small-12 large-12 columns exploreFolder">
+  <div class="row inside">
+    <div class="small-12 large-12 columns exploreFolder ">
       <!--img src="/static/img/file-manager-icon.png" alt="file manager icon"-->
-      <i class="icon-angle-left"></i>
+      <i class="icon-back"></i>
+      <i class="icon-folder-open-empty"></i>
+      <i class="icon-folder-empty"></i>
       <!--img src="/static/img/folder-icon.svg"-->
     </div>
     <!--div class="small-8 large-11 columns middle-section">

@@ -59,6 +59,41 @@
 
     >div{clear: both;}
 
+    .inside{
+      background: $iron;
+
+      .icon-folder-empty{
+        display: none;
+      }
+      .icon-folder-open-empty,.icon-folder-empty{
+        color: $yellow;
+        font-size: rem-calc(36);
+      }
+
+      &:hover{
+        background: lighten($yellow, 20%) !important;
+
+        .icon-folder-empty{
+          display: block;
+        }
+
+        .icon-folder-open-empty{
+          display: none;
+        }
+      }
+
+    }
+
+
+    .icon-back{
+      font-size: 30px;
+      position: absolute;
+      top: 0;
+      left: 40px;
+
+      &:before{margin: 0;}
+    }
+
     .usb-list,.inside-folder{
 
       .left-section{
@@ -69,22 +104,55 @@
         display: flex;
         justify-content: center;
         flex-direction: column;
+        overflow: hidden;
+
+        h3{
+          line-height: 200%;
+          transform: translateX(0);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          transition: all 4s linear;
+          transition-delay: 1s;
+          display: block;
+          position: absolute;
+          width: 100%;
+        }
+
+        &:hover{
+          h3{
+            width: auto;
+            transform: translateX(-40%);
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: initial;
+          }
+
+        }
+
       }
 
       .right-section{
        font-size: rem-calc(32) !important;
       }
 
-      h3{
-        line-height: 200%;
+    }
+
+    .inside-folder{
+      .loading-content{
+        position: absolute;
+        width: 100%;
+        bottom: 0;
+        padding: 0;
+        left: 0;
       }
     }
 
     .row {
       position: relative;
-      background-color: white;
+      background-color: #fdfdfd;
       cursor: pointer;
-      padding: 6px;
+      padding: 6px 0;
       margin-bottom: 3px;
 
       &.remote {
@@ -107,7 +175,7 @@
         transition: opacity 0.5s;
         font-size: rem-calc(40);
         color: #a5a5a5;
-        padding-right: 10px;
+        padding-right: 0;
 
         .thumb-container {
           position: relative;
@@ -182,18 +250,35 @@
           border: 2px solid;
           color: $base;
           background: transparent;
+          margin: 0 0 0 3px;
+          display: block;
+
+          &.print{
+            border: 0;
+            font-size: rem-calc(44);
+            padding: 0;
+            color: $primary-color;
+            max-width: 50%;
+            width: auto;
+
+            &::before{margin: 0;}
+
+            &:hover{
+              border: 0;
+            }
+          }
 
           &:hover{
             color: $white;
-            background: $base;
-            border: 2px solid $base;
+            background: $steel;
+            border: 2px solid $steel;
           }
 
           &:active{
             outline: 0;
             color: $white;
-            background: darken($base, 40%);
-            border: 2px solid darken($base, 40%);
+            background: darken($steel, 40%);
+            border: 2px solid darken($steel, 40%);
             transform: scale(0.95);
           }
 
@@ -201,6 +286,7 @@
             outline: 0;
           }
         }
+
       }
 
       .middle-section {
@@ -251,7 +337,7 @@
       }
 
       &:hover{
-        background: lighten($primary-color, 35%);
+        background: lighten($primary-color, 36%);
       }
     }
 
