@@ -780,7 +780,7 @@ var USBFileView = Backbone.View.extend({
     this.$el.empty();
     //this.downloadProgress = null;
     this.$el.html(this.template({
-      p: usb_file
+      p: this.usb_file.get('name').split('/').splice(-1,1)[0]
     }));
 
     this.delegateEvents({
