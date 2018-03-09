@@ -100,7 +100,7 @@
         //padding: 0 10px 0 0;
       }
      .middle-section{
-        height: 60px;
+        min-height: 60px;
         display: flex;
         justify-content: center;
         flex-direction: column;
@@ -202,10 +202,7 @@
 
       .print-file-options {
         position: relative;
-        height: 60px;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
+        min-height: 60px;
         color: $red;
 
         .download-progress,
@@ -261,11 +258,10 @@
         }
 
         button{
-          letter-spacing: 2px;
+          letter-spacing: 1px;
           border: 2px solid;
           color: $base;
           background: transparent;
-          margin: 0 0 0 3px;
           display: block;
 
           &.print{
@@ -307,7 +303,7 @@
       .middle-section {
         font-size: rem-calc(14);
         color: #a5a5a5;
-        height: 60px;
+        min-height: 60px;
         display: flex;
         justify-content: center;
         flex-direction: column;

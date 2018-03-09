@@ -137,7 +137,7 @@
 </script>
 
 <script type="text/template" id="print-file-template">
-	<div class="small-2 large-1 columns left-section">
+	<div class="small-3 medium-2 large-1 columns left-section">
 		<% if (p.images.thumbnail) { %>
 			<div class="thumb-container">
 				<img src="<%= p.images.thumbnail %>"/>
@@ -146,7 +146,7 @@
 			<i class="icon-3d-object"></i>
 		<% } %>
 	</div>
-	<div class="small-8 large-10 columns middle-section">
+	<div class="small-9 medium-8 large-10 columns middle-section">
     <h3 class="bold"> <%= p.name %></h3>
     <div class="info">
       <%= size_format(p.size) %>
@@ -162,7 +162,7 @@
       <% } %>
     </div>
 	</div>
-	<div class="small-2 large-1 columns right-section">
+	<div class="small-12 medium-2 large-1 columns right-section">
 		<div class="print-file-options">
 			<% if (p.local_filename) { %>
 				<div class="loading-button print">
@@ -189,23 +189,23 @@
 
 <script type="text/template" id="usb-file-template">
   <div class="row inside-folder">
-	  <div class="small-2 large-1 columns left-section">
+	  <div class="small-3 medium-2 large-1 columns left-section">
       <i class="icon-3d-object"></i>
     </div>
-    <div class="small-8 large-8 columns middle-section">
+    <div class="small-9 medium-8 large-10 columns middle-section">
       <h3 class="bold"> <%= p.name %></h3>
     </div>
 
-    <div class="small-2 large-3 columns right-section">
+    <div class="small-12 medium-2 large-1 columns right-section">
 
       <div class="loading-content"></div>
 
       <div class="print-file-options">
         <div class="loading-button print">
-          <button href="#" class="tiny bold radius right columns large-4 print idle">
+          <button href="#" class="tiny bold radius print idle">
             <i class="icon-3d-printer"></i>
           </button>
-          <button href="#" class="tiny bold radius left columns large-8 copy idle">
+          <button href="#" class="tiny bold radius copy idle">
             copy to home
           </button>
           <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
@@ -269,15 +269,15 @@
 <script type="text/template" id="browsing-file-template">
   <div class="row usb-list">
     <div class="exploreFolder large-10 columns" no-padding>
-      <div class="small-2 large-1 columns left-section">
+      <div class="small-3 medium-2 large-1 columns left-section">
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
-      <div class="small-8 large-11 columns middle-section">
+      <div class="small-9 medium-8 large-10 columns middle-section">
         <h3 class="bold"><%= p.name %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
-      <div class="small-2 large-2 columns right-section">
+      <div class="small-12 medium-2 large-1 columns right-section">
         <div class="print-file-options">
           <div class="loading-button eject">
             <button href="#" class="tiny bold radius eject idle">EJECT <i class="icon-eject-alt"></i> </button>
