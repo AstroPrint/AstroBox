@@ -861,8 +861,8 @@ var USBFileView = Backbone.View.extend({
           parentView: null,
           template: _.template( $("#eject-before-print-template").html() ),
           events: {
-            'click a.eject-no': 'onNoClicked',
-            'click a.eject-yes': 'onYesClicked'
+            'click button.eject-no': 'onNoClicked',
+            'click button.eject-yes': 'onYesClicked'
           },
           initialize: function(params)
           {
