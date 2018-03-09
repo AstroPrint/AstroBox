@@ -1002,6 +1002,8 @@ var USBFileView = Backbone.View.extend({
       loadingBtn.removeClass('loading');
       this.$('button.copy').removeClass('hide')
       this.$('button.print').removeClass('hide')
+      app.eventManager.off('astrobox:copyToHomeProgress', this.copyToHomeProgressUpdater, this);
+      this.$('.loading-content').html('');
       this.$el.foundation('reveal', 'close');
     }, this))
     .fail(_.bind(function(xhr) {
@@ -1015,6 +1017,8 @@ var USBFileView = Backbone.View.extend({
       this.$el.foundation('reveal', 'close');
       this.$('button.copy').removeClass('hide')
       this.$('button.print').removeClass('hide')
+      app.eventManager.off('astrobox:copyToHomeProgress', this.copyToHomeProgressUpdater, this);
+      this.$('.loading-content').html('');
       promise.rejct();
     },this));
   },

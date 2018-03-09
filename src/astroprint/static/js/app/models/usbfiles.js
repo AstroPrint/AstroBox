@@ -27,7 +27,6 @@ var USBFileCollection = Backbone.Collection.extend({
 
     $.getJSON('/api/files/local-storages')
       .done(_.bind(function(data){
-        console.log(data);
         this.localStorages = data;
       },this))
       .fail(function(error){
