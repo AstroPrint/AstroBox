@@ -736,6 +736,7 @@ var ReplaceFileDialog = Backbone.View.extend({
   events: {
     'click button.replace': 'onReplaceClicked',
     'click button.cancel': 'onCancelClicked',
+    'closed.fndtn.reveal': 'onClose'
   },
   initialize: function(params)
   {
@@ -768,6 +769,10 @@ var ReplaceFileDialog = Backbone.View.extend({
     this.$el.foundation('reveal', 'close');
     this.copyFinishedPromise.reject();
   },
+  onClose: function(){
+    this.usbFileView.$('button.copy').removeClass('hide')
+    this.usbFileView.$('button.print').removeClass('hide')
+  }
 });
 
 var USBFileView = Backbone.View.extend({
@@ -857,7 +862,7 @@ var USBFileView = Backbone.View.extend({
           template: _.template( $("#eject-before-print-template").html() ),
           events: {
             'click a.eject-no': 'onNoClicked',
-            'click a.eject-yes': 'onYesClicked',
+            'click a.eject-yes': 'onYesClicked'
           },
           initialize: function(params)
           {
@@ -896,6 +901,8 @@ var USBFileView = Backbone.View.extend({
                 noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
               } else {
                 noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
+                this.parentView.$('button.copy').removeClass('hide')
+                this.parentView.$('button.print').removeClass('hide')
                 this.parentView._print();
               }
               setTimeout(_.bind(function(){
@@ -905,6 +912,8 @@ var USBFileView = Backbone.View.extend({
             .fail(function(xhr) {
               var error = xhr.responseText;
               noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
+              this.parentView.$('button.copy').removeClass('hide')
+              this.parentView.$('button.print').removeClass('hide')
               loadingBtn.removeClass('loading');
             })
             this.$el.foundation('reveal', 'close');
@@ -915,8 +924,11 @@ var USBFileView = Backbone.View.extend({
 
             this.$el.foundation('reveal', 'close');
 
+            this.parentView.$('button.copy').removeClass('hide')
+            this.parentView.$('button.print').removeClass('hide')
+
             this.parentView._print();
-          },
+          }
         });
 
         this.ejectBeforePrintDialog = new EjectBeforePrintDialog(
@@ -946,7 +958,15 @@ var USBFileView = Backbone.View.extend({
     this.$('button.copy').addClass('hide')
     this.$('button.print').addClass('hide')
 
-    this.tryToCopyFile();
+    this.tryToCopyFile()
+      .done(_.bind(function(){
+        this.$('button.copy').removeClass('hide')
+        this.$('button.print').removeClass('hide')
+      },this))
+      .fail(_.bind(function(){
+        this.$('button.copy').removeClass('hide')
+        this.$('button.print').removeClass('hide')
+      },this));
   },
   copyFile: function(promise){
 
@@ -980,6 +1000,8 @@ var USBFileView = Backbone.View.extend({
         promise.resolve();
       }
       loadingBtn.removeClass('loading');
+      this.$('button.copy').removeClass('hide')
+      this.$('button.print').removeClass('hide')
       this.$el.foundation('reveal', 'close');
     }, this))
     .fail(_.bind(function(xhr) {
@@ -991,6 +1013,8 @@ var USBFileView = Backbone.View.extend({
         loadingBtn.removeClass('loading');
       },this),2000);
       this.$el.foundation('reveal', 'close');
+      this.$('button.copy').removeClass('hide')
+      this.$('button.print').removeClass('hide')
       promise.rejct();
     },this));
   },
@@ -1019,6 +1043,8 @@ var USBFileView = Backbone.View.extend({
       },this))
       .fail(function(){
         noty({text: "There was an error copying selecte file. Try it again later.", timeout: 3000});
+        this.$('button.copy').removeClass('hide')
+        this.$('button.print').removeClass('hide')
       });
 
     return promise;
