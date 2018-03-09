@@ -129,6 +129,7 @@
         &:hover{
           h3{
             width: auto;
+            transition: all 2s ease;
             transform: translateX(-40%);
             white-space: nowrap;
             overflow: visible;
