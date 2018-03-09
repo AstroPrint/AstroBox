@@ -218,7 +218,7 @@
           .download-progress {
             display: block;
             position: absolute;
-            top: 0;
+            top: 5px;
             bottom: 0;
             left: 0;
             right: 5px;
@@ -457,7 +457,7 @@
   }
 }
 
-#local-file-exists-dlg{
+#local-file-exists-dlg, #eject-before-print-dlg{
   .dlg-content{
     padding:50px 20px 0 20px;
 
