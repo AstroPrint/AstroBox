@@ -767,6 +767,11 @@ var USBFileView = Backbone.View.extend({
   initialize: function(file)
   {
     this.usb_file = file;
+
+  },
+  afterRender: function(){
+    console.log($('.div-container').width())
+    console.log($('.text').width())
   },
   render: function()
   {
@@ -782,6 +787,19 @@ var USBFileView = Backbone.View.extend({
       'click button.copy': 'copyClicked',
       'click button.print': 'printClicked'
     });
+
+    this.try();
+  },
+  try: function () {
+    if (!$(".div-container").size()) {
+      setTimeout(this.try, 500); // give everything some time to render
+    } else {
+      this.$('.text').resize(function(){
+        if($('.text').width() > $('.div-container').width()){
+          this.$('.text').addClass('slide-text')
+        }
+      });
+    }
   },
   _print: function(){
 
