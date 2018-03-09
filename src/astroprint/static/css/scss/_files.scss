@@ -7,7 +7,6 @@
       padding-top: 10px;
       margin: 0;
       vertical-align: middle;
-
     }
 
     ul.storage {
@@ -119,11 +118,6 @@
           display: block;
           position: absolute;
           width: 100%;
-
-          display: block;
-          position: absolute;
-          white-space: normal;
-          background: pink;
         }
 
       }
@@ -323,6 +317,7 @@
         .info{
           letter-spacing: 1px;
           text-transform: uppercase;
+          padding-top: 20px;
 
           i{margin-left: 4px;}
 
@@ -346,7 +341,15 @@
           display: block;
           position: absolute;
           white-space: normal;
-          background: pink;
+
+          display: block;
+          position: absolute;
+          white-space: normal;
+          height: 21px;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
         }
       }
 

@@ -148,19 +148,21 @@
 		<% } %>
 	</div>
 	<div class="small-9 medium-8 large-9 columns middle-section">
-    <h3 class="bold"> <%= p.name %></h3>
-    <div class="info">
-      <%= size_format(p.size) %>
-      <% if (p.info) { %>
-        <% if (p.info.print_time) { %>
-          <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %><span> · </span></b>
+    <div class="info-container">
+      <h3 class="bold"> <%= p.name %></h3>
+      <div class="info">
+        <%= size_format(p.size) %>
+        <% if (p.info) { %>
+          <% if (p.info.print_time) { %>
+            <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %><span> · </span></b>
+          <% } %>
+        <% } else { %>
+          <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
         <% } %>
-      <% } else { %>
-        <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
-      <% } %>
-      <% if (p.uploaded_on) { %>
-        <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
-      <% } %>
+        <% if (p.uploaded_on) { %>
+          <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
+        <% } %>
+      </div>
     </div>
 	</div>
 	<div class="small-12 medium-2 large-2 columns right-section">
