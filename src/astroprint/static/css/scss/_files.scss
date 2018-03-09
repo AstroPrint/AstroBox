@@ -57,6 +57,11 @@
   .design-list-container {
     margin-bottom: 55px;
 
+    .div-container{
+      position: relative;
+      overflow: hidden;
+    }
+
     >div{clear: both;}
 
     .inside{
@@ -84,7 +89,6 @@
 
     }
 
-
     .icon-back{
       font-size: 30px;
       position: absolute;
@@ -105,36 +109,12 @@
         justify-content: center;
         flex-direction: column;
         overflow: hidden;
-        padding:
-
-        h3{
-          line-height: 200%;
-          transform: translateX(0);
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          transition: all 4s linear;
-          transition-delay: 1s;
-          display: block;
-          position: absolute;
-          width: 100%;
-        }
-
+        position: relative;
+        overflow: hidden;
       }
 
       .right-section{
        font-size: rem-calc(32) !important;
-      }
-
-      .slide-text{
-        &:hover{
-          width: auto;
-          transition: all 2s ease;
-          transform: translateX(-40%);
-          white-space: nowrap;
-          overflow: visible;
-          text-overflow: initial;
-        }
       }
     }
 
@@ -196,6 +176,8 @@
           img {
             vertical-align: middle;
             border-radius: $global-radius;
+            padding: 0 6px 2px 0;
+            background: charcoal;
           }
         }
       }
@@ -317,7 +299,7 @@
         .info{
           letter-spacing: 1px;
           text-transform: uppercase;
-          padding-top: 20px;
+          padding-top: 24px;
 
           i{margin-left: 4px;}
 
@@ -330,26 +312,28 @@
           }
         }
 
-        h3 {
+        h3{
           font-size: rem-calc(17);
           color: $success-color;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
           margin: 0;
-
           display: block;
           position: absolute;
-          white-space: normal;
+          white-space: nowrap;
+          transform: translateX(0);
+          text-overflow: ellipsis;
+          transition-delay: 0s;
+        }
 
-          display: block;
-          position: absolute;
-          white-space: normal;
-          height: 21px;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          overflow: hidden;
-          -webkit-box-orient: vertical;
+        .slide-text{
+          &:hover{
+            width: auto;
+            transition-delay: 2s;
+            transition: all 2s ease;
+            transform: translateX(-40%);
+            white-space: nowrap;
+            overflow: visible;
+            text-overflow: initial;
+          }
         }
       }
 
