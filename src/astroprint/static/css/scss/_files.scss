@@ -100,9 +100,6 @@
 
     .usb-list,.inside-folder{
 
-      .left-section{
-        //padding: 0 10px 0 0;
-      }
      .middle-section{
         min-height: 60px;
         display: flex;
@@ -168,6 +165,13 @@
         color: #a5a5a5;
         padding-right: 0;
 
+        img.noimage {
+          vertical-align: middle;
+          border-radius: $global-radius;
+          padding: 0;
+          background: $charcoal;
+        }
+
         .thumb-container {
           position: relative;
           overflow: hidden;
@@ -176,8 +180,6 @@
           img {
             vertical-align: middle;
             border-radius: $global-radius;
-            padding: 0 6px 2px 0;
-            background: charcoal;
           }
         }
       }
@@ -294,7 +296,6 @@
         display: flex;
         justify-content: center;
         flex-direction: column;
-        padding: 0;
 
         .info{
           letter-spacing: 1px;
@@ -321,15 +322,16 @@
           white-space: nowrap;
           transform: translateX(0);
           text-overflow: ellipsis;
-          transition-delay: 0s;
+          transition: all 1s ease;
+          transition-delay: 500ms;
         }
 
         .slide-text{
           &:hover{
             width: auto;
-            transition-delay: 2s;
-            transition: all 2s ease;
-            transform: translateX(-40%);
+            transition: all 3s ease;
+            transition-delay: 1s;
+            transform: translateX(-45%);
             white-space: nowrap;
             overflow: visible;
             text-overflow: initial;
