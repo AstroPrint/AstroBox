@@ -187,6 +187,19 @@ var PrintFileView = Backbone.View.extend({
   {
     this.list = options.list;
     this.print_file = options.print_file;
+
+    this.slideName();
+  },
+  slideName: function () {
+    if (!$(".div-container").size()) {
+      setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
+    } else {
+      if(this.$('.text').width() >= this.$('.div-container').width()){
+        this.$('.text').addClass('slide-text')
+      } else {
+        this.$('.text').removeClass('slide-text')
+      }
+    }
   },
   render: function()
   {
@@ -788,11 +801,11 @@ var USBFileView = Backbone.View.extend({
       'click button.print': 'printClicked'
     });
 
-    this.try();
+    this.slideName();
   },
-  try: function () {
+  slideName: function () {
     if (!$(".div-container").size()) {
-      setTimeout(_.bind(this.try,this), 500); // give everything some time to render
+      setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
         this.$('.text').addClass('slide-text')
@@ -1025,6 +1038,19 @@ var BrowsingFileView = Backbone.View.extend({
     }
 
     this.file = data.file;
+
+    this.slideName();
+  },
+  slideName: function () {
+    if (!$(".div-container").size()) {
+      setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
+    } else {
+      if(this.$('.text').width() >= this.$('.div-container').width()){
+        this.$('.text').addClass('slide-text')
+      } else {
+        this.$('.text').removeClass('slide-text')
+      }
+    }
   },
   render: function()
   {

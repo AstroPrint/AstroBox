@@ -148,8 +148,8 @@
 		<% } %>
 	</div>
 	<div class="small-9 medium-8 large-9 columns middle-section">
-    <div class="info-container">
-      <h3 class="bold"> <%= p.name %></h3>
+    <div class="info-container div-container">
+      <h3 class="bold text"> <%= p.name %></h3>
       <div class="info">
         <%= size_format(p.size) %>
         <% if (p.info) { %>
@@ -280,8 +280,8 @@
       <div class="small-3 medium-2 large-1 columns left-section">
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
-      <div class="small-9 medium-8 large-11 columns middle-section">
-        <h3 class="bold"><%= p.name %></h3>
+      <div class="small-9 medium-8 large-11 columns middle-section div-container">
+        <h3 class="bold text"><%= p.name %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
