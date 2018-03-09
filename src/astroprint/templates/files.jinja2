@@ -143,10 +143,11 @@
 				<img src="<%= p.images.thumbnail %>"/>
 			</div>
 		<% } else { %>
-			<i class="icon-3d-object"></i>
+      <!--i class="icon-3d-object"></i-->
+      <img src="/img/noimage.svg">
 		<% } %>
 	</div>
-	<div class="small-9 medium-8 large-10 columns middle-section">
+	<div class="small-9 medium-8 large-9 columns middle-section">
     <h3 class="bold"> <%= p.name %></h3>
     <div class="info">
       <%= size_format(p.size) %>
@@ -162,7 +163,7 @@
       <% } %>
     </div>
 	</div>
-	<div class="small-12 medium-2 large-1 columns right-section">
+	<div class="small-12 medium-2 large-2 columns right-section">
 		<div class="print-file-options">
 			<% if (p.local_filename) { %>
 				<div class="loading-button print">
@@ -190,13 +191,13 @@
 <script type="text/template" id="usb-file-template">
   <div class="row inside-folder">
 	  <div class="small-3 medium-2 large-1 columns left-section">
-      <i class="icon-3d-object"></i>
+      <img src="/img/noimage.svg">
     </div>
-    <div class="small-9 medium-8 large-10 columns middle-section">
+    <div class="small-9 medium-8 large-8 columns middle-section">
       <h3 class="bold"> <%= p.name %></h3>
     </div>
 
-    <div class="small-12 medium-2 large-1 columns right-section">
+    <div class="small-12 medium-2 large-3 columns right-section">
 
       <div class="loading-content"></div>
 
@@ -221,18 +222,23 @@
 </div>
 
 <script type="text/template" id="local-file-exists-template">
-  File <%=filename%> already exists in home files. Do you want to replace it?
-  <div class="loading-button eject">
-    <button href="#" class="radius alert replace idle">
-      Replace
-    </button>
-    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+  <div class="row" align="center">
+    <p><b>File <%=filename%> already exists in home files. Do you want to replace it?</b></p>
   </div>
-  <div class="loading-button eject">
-    <button href="#" class="radius secondary cancel idle">
-      Cancel
-    </button>
-    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+  <br>
+  <div class="row">
+    <div class="loading-button eject columns small-6">
+      <button href="#" class="radius secondary cancel idle">
+        Cancel
+      </button>
+      <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+    </div>
+    <div class="loading-button eject columns small-6">
+      <button href="#" class="radius alert right replace idle">
+        Replace
+      </button>
+      <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+    </div>
   </div>
 </script>
 
@@ -272,12 +278,12 @@
       <div class="small-3 medium-2 large-1 columns left-section">
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
-      <div class="small-9 medium-8 large-10 columns middle-section">
+      <div class="small-9 medium-8 large-11 columns middle-section">
         <h3 class="bold"><%= p.name %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
-      <div class="small-12 medium-2 large-1 columns right-section">
+      <div class="small-12 medium-2 large-2 columns right-section">
         <div class="print-file-options">
           <div class="loading-button eject">
             <button href="#" class="tiny bold radius eject idle">EJECT <i class="icon-eject-alt"></i> </button>
