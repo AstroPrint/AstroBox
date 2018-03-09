@@ -12,8 +12,7 @@
 	}
 }
 
-
-#custom-view {
+#action-list {
 	padding: 0;
 	[class*="block-grid-"] > li {
 		clear: none !important;
@@ -79,7 +78,7 @@
 
 @media #{$xlarge-up} {
 	.title-heading {
-		border: 1px solid #ccc;
+		border: 2px solid #ccc;
 		border-top: none;
 		border-radius: 0 0 $global-radius $global-radius;
 	}

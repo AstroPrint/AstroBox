@@ -1,0 +1,38 @@
+@import "foundation/components/block-grid";
+
+.title-heading {
+	background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
+	padding: 5px 0 0;
+	margin-bottom: rem-calc(15);
+	border-bottom: 1px solid #ccc;
+	h1 {
+		font-size: rem-calc(28);
+		text-align: center;
+		line-height: 1;
+	}
+}
+
+
+#custom-action-app-container {
+  #img-app {
+    margin: 0 auto;
+    width: 59%;
+  }
+}
+#no-found-action {
+  font-size: 2rem;
+  color: #333;
+  padding: 28px;
+  img {
+    width: 30%;
+    margin-top: 65px;
+  }
+}
+
+@media #{$xlarge-up} {
+	.title-heading {
+		border: 1px solid #ccc;
+		border-top: none;
+		border-radius: 0 0 $global-radius $global-radius;
+	}
+}

@@ -6,10 +6,10 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 # singleton
 _instance = None
 
-def customCommandsManager():
+def customActionsManager():
 	global _instance
 	if _instance is None:
-		_instance = CustomCommandsManager()
+		_instance = CustomActionsManager()
 	return _instance
 
 import yaml
@@ -18,13 +18,13 @@ import logging
 
 from octoprint.settings import settings
 
-class CustomCommandsManager(object):
+class CustomActionsManager(object):
 	def __init__(self):
 		self._settings = settings()
 
 		configDir = self._settings.getConfigFolder()
 
-		self._commandsFile = "%s/custom-commands.yaml" % configDir
+		self._commandsFile = "%s/custom-actions.yaml" % configDir
 		self._logger = logging.getLogger(__name__)
 		self.data = {}
 

@@ -9,7 +9,8 @@ var AppRouter = Backbone.Router.extend({
   filesView: null,
   controlView: null,
   settingsView: null,
-  customView: null,
+  customActionsView: null,
+  customActionView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -22,7 +23,8 @@ var AppRouter = Backbone.Router.extend({
     "control": "control",
     "printing": "printing",
     "settings": "settings",
-    "custom": "custom",
+    "custom": "customActions",
+    "custom/:sequence_id": "customAction",
     "settings/:page": "settings",
     "gcode-terminal": "terminal",
     "camera": "camera",
@@ -115,14 +117,19 @@ var AppRouter = Backbone.Router.extend({
     this.settingsView.menu.changeActive(page || 'printer-connection');
     app.selectQuickNav('settings');
   },
-  custom: function()
+  customActions: function()
   {
-    if (!this.customView) {
-      this.customView = new CustomView();
+    if (!this.customActionsView) {
+      this.customActionsView = new CustomActionsView();
     }
 
-    this.selectView(this.customView);
-    app.selectQuickNav('custom');
+    this.selectView(this.customActionsView);
+
+  },
+  customAction: function(sequence_id)
+  {
+    this.customActionView = new CustomActionView(sequence_id);
+    this.selectView(this.customActionView);
   },
   terminal: function()
   {

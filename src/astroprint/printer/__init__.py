@@ -16,7 +16,7 @@ from octoprint.events import eventManager, Events
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printerprofile import printerProfileManager
-from astroprint.customcommands import customCommandsManager
+from astroprint.customactions import customActionsManager
 from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
@@ -58,7 +58,7 @@ class Printer(object):
 		self._pausedSince = None
 
 		self._profileManager = printerProfileManager()
-		self._customCommands = customCommandsManager()
+		self._customCommands = customActionsManager()
 
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
 		self._fileManager.registerCallback(self)
@@ -105,9 +105,9 @@ class Printer(object):
 
 		# Check and load file with custom commands
 		if self._customCommands.fileExists():
-			self._logger.info('Found and loaded custom-commands.yaml file')
+			self._logger.info('Found and loaded custom-actions.yaml file')
 		else:
-			self._logger.info('Not Found custom-commands.yaml file')
+			self._logger.info('Not Found custom-actions.yaml file')
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 

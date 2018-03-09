@@ -1,0 +1,30 @@
+
+<div class="content">
+  {# ============== CUSTOM APPS MENU ==============#}
+  <div class="row large-collapse">
+    <div class="small-12 columns title-heading">
+      <h1 class="bold">Customized Actions</h1>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-12 columns text-center supplies-heading">
+      <h3 class="bold">Choose a customized instruction</h3>
+      <p class="bold">Here you'll find customized instructions such as Filament loading and unloading, auto leveling...</p>
+    </div>
+  </div>
+
+  <ul id="action-list" class="row action-list-view small-block-grid-3 large-block-grid-6"></ul>
+
+  {# CUSTOM ACTION ICON ROW #}
+  <script type="text/template" id="action-row-template">
+    <a href="#custom/<%= customActionApp.id %>">
+      <div class="app-image">
+        <img src="/static/img/variant/<%= customActionApp.icon_filename %>" alt="<%= customActionApp.strings.en.name %> icon"/>
+        <div class="overlay">
+          <div class="contain"><h4 class="bold">Launch</h4></div>
+        </div>
+      </div>
+    </a>
+    <h1 class="bold"><%= customActionApp.strings.en.name %></h1>
+  </script>
+</div>
