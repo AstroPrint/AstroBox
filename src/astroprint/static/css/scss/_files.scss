@@ -126,24 +126,20 @@
           background: pink;
         }
 
-        &:hover{
-          h3{
-            width: auto;
-            transition: all 2s ease;
-            transform: translateX(-40%);
-            white-space: nowrap;
-            overflow: visible;
-            text-overflow: initial;
-          }
-
-        }
-
       }
 
       .right-section{
        font-size: rem-calc(32) !important;
       }
 
+      .slide-text{
+        width: auto;
+        transition: all 2s ease;
+        transform: translateX(-40%);
+        white-space: nowrap;
+        overflow: visible;
+        text-overflow: initial;
+      }
     }
 
     .inside-folder{
@@ -222,10 +218,11 @@
           .download-progress {
             display: block;
             position: absolute;
-            top: 5px;
+            top: 0;
             bottom: 0;
             left: 0;
             right: 5px;
+            overflow: hidden;
 
             .dw-cancel {
               color: $alert-color;
@@ -460,10 +457,17 @@
   }
 }
 
-.dlg-content{
-  padding:30px 20px 0 20px;
+#local-file-exists-dlg{
+  .dlg-content{
+    padding:50px 20px 0 20px;
 
-
+    .close-reveal-modal{
+      font-size: 65px;
+      position: absolute;
+      top: 0;
+      color: $steel;
+    }
+  }
 }
 
 @media #{$large-up} {
