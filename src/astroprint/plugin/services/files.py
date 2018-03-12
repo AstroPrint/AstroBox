@@ -55,7 +55,7 @@ class FilesService(PluginService):
 
 		ejection = externaldrive.eject(data['drive'])
 
-		if ejection['reponse']:
+		if ejection['result']:
 
 			sendResponse({'success':'no error'})
 		else:
