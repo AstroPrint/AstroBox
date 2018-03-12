@@ -56,6 +56,7 @@ var CustomActionContainerView = Backbone.View.extend({
 
     if (this.customActionApp) {
       var row = new CustomActionAppView({ customActionApp: this.customActionApp});
+      console.log(this.customActionApp);
       actionEl.append(row.render().el);
       this.customActionApp_views[this.customActionApp.get('id')] = row;
     } else {
@@ -70,15 +71,19 @@ var CustomActionContainerView = Backbone.View.extend({
 var CustomActionAppView = Backbone.View.extend({
   className: 'action-app-row',
   customActionApp: null,
-  currentStep: 1,
+  currentIndexStep: 1,
+  currentStep: null,
   events: {
     "click .close": "closeClicked",
-    "click .next": "nextClicked"
+    "click .next": "nextClicked",
+    "click .repeat": "repeatClicked"
   },
   template: _.template($("#custom-action-app-template").html()),
   initialize: function (params)
   {
     this.customActionApp = params.customActionApp;
+    this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
+
     this.$el.attr('id', this.customActionApp.get('id'));
   },
   closeClicked: function (e)
@@ -99,17 +104,91 @@ var CustomActionAppView = Backbone.View.extend({
   },
   doNext()
   {
-    if (this.currentStep < this.customActionApp.get('steps').length) {
-      this.currentStep++;
+    if (this.currentStep.commands.length) {
+      var loadingBtn = this.$('button.next').closest('.loading-button');
+      loadingBtn.addClass('loading');
+      this.sendCommands(null, null)
+        .done(() => {
+          console.log('All the commands have been sent');
+          loadingBtn.removeClass('loading');
+          this.stepManagement();
+        })
+        .fail(() => {
+          loadingBtn.addClass('failed');
+          noty({ text: "There was an error sending a command.", timeout: 3000 });
+          setTimeout(function () {
+            loadingBtn.removeClass('failed');
+          }, 3000);
+        });
+    } else {
+      this.stepManagement();
+    }
+  },
+
+  repeatClicked: function (e)
+  {
+    e.preventDefault();
+    this.doRepeat();
+  },
+
+  doRepeat: function()
+  {
+    this.currentIndexStep = 1;
+    this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
+    this.render();
+  },
+
+  stepManagement: function()
+  {
+    if (this.currentIndexStep < this.customActionApp.get('steps').length) {
+      this.currentIndexStep++;
+      this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
       this.render();
     } else {
       this.doClose();
     }
   },
+
+  sendCommands: function(commandsIndex, promise)
+  {
+    if (!commandsIndex) {
+      var commandsIndex = 0;
+    }
+    if (!promise) {
+      var promise = $.Deferred();
+    }
+
+     $.ajax({
+
+      url: API_BASEURL + 'printer/comm/send',
+      method: 'POST',
+      data: {
+        command: this.currentStep.commands[commandsIndex]
+      }
+    })
+      .success(( () => {
+        console.info('Successfully sent the command: ', this.currentStep.commands[commandsIndex]);
+        if (this.currentStep.commands[commandsIndex+1]) {
+          setTimeout(() => {
+            this.sendCommands(++commandsIndex, promise);
+          }, 300);
+        } else {
+         promise.resolve();
+        }
+
+      }))
+
+      .fail(_.bind(function () {
+        promise.reject()
+      }, this))
+
+      return promise;
+  },
+
   render: function ()
   {
     this.$el.empty();
-    this.$el.html(this.template({currentStep: this.currentStep, customActionApp: this.customActionApp.toJSON() }));
+    this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, customActionApp: this.customActionApp.toJSON() }));
     return this;
   },
 });

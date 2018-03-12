@@ -18,24 +18,31 @@
       </div>
       <div class="row">
       <div class="row">
-        <div id="title-app" class="small-10 columns text-center"><%= customActionApp.steps[currentStep-1].strings.en.title %></div>
-        <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentStep %>/<%= customActionApp.steps.length %></span></div>
+        <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.en.title %></div>
+        <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= customActionApp.steps.length %></span></div>
       </div>
 
       <div id="img-app" class="row">
-        <img src="/static/img/variant/<%= customActionApp.steps[currentStep-1].img_filename %>"  class="small-12 columns text-center">
+        <img src="/static/img/variant/<%= customActionApp.id %>/<%= currentStep.img_filename %>"  class="small-12 columns text-center">
       </div>
 
       <div class="row text-center">
-        <p><%= customActionApp.steps[currentStep-1].strings.en.description %></p>
+        <p><%= currentStep.strings.en.description %></p>
       </div>
 
       <div class="row buttons text-center" >
-        <div class="small-12 large-6  columns" >
+        <div class="small-12 large-4  columns" >
           <button class="alert radius tiny bold close">Close</button>
         </div>
-        <div class="small-12 large-6  columns" >
-          <button class="alert radius tiny bold next"><%= customActionApp.steps[currentStep-1].strings.en.button %></button>
+        <% if (currentIndexStep == customActionApp.steps.length && customActionApp.repeatable) { %>
+        <div class="small-12 large-4 columns" >
+          <button class="alert radius tiny bold repeat">Repeat</button>
+        </div>
+        <% } %>
+        <div class="loading-button small-12 large-4 columns">
+          <button class="success tiny next bold"><%= currentStep.strings.en.button %></button>
+          <span class="button success tiny disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+          <span class="button alert tiny disabled failed"><i class="icon-attention"></i> Failed</span>
         </div>
       </div>
     </div>
