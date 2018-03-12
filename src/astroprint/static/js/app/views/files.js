@@ -369,6 +369,7 @@ var PrintFilesListView = Backbone.View.extend({
   refresh_threshold: 1000, //don't allow refreshes faster than this (in ms)
   last_refresh: 0,
   refreshing: false,
+  need_to_be_refreshed: false,
   events: {
     'click .list-header button.sync': 'forceSync'
   },
@@ -418,7 +419,7 @@ var PrintFilesListView = Backbone.View.extend({
 
           this.usbfile_list.each(_.bind(function(file, idx) {
             if(this.usbfile_list.extensionMatched(file.get('name'))){
-              var usb_file_view = new USBFileView(file);
+              var usb_file_view = new USBFileView(file,this);
             } else {
               var usb_file_view = new BrowsingFileView(
                 {
@@ -455,22 +456,27 @@ var PrintFilesListView = Backbone.View.extend({
       list.children().detach();
 
       if (selectedStorage) {
-        var filteredViews = _.filter(this.print_file_views, function(p){
-          if (selectedStorage == 'local') {
-            if (p.print_file.get('local_filename')) {
-              return true
+        if(this.need_to_be_refreshed && selectedStorage == 'local'){
+          this.refresh('local');
+          this.need_to_be_refreshed = false;
+        } else {
+          var filteredViews = _.filter(this.print_file_views, function(p){
+            if (selectedStorage == 'local') {
+              if (p.print_file.get('local_filename')) {
+                return true
+              }
+            } else if (!p.print_file.get('local_only')) {
+              return true;
             }
-          } else if (!p.print_file.get('local_only')) {
-            return true;
-          }
 
-          return false;
-        });
+            return false;
+          });
+        }
       } else {
         var filteredViews = this.print_file_views;
       }
 
-      if (filteredViews.length) {
+      if (filteredViews && filteredViews.length) {
         _.each(filteredViews, function(p) {
           list.append(p.$el);
         });
@@ -782,9 +788,11 @@ var USBFileView = Backbone.View.extend({
   progress: -1,
   localFileExistsDialog: null,
   ejectBeforePrintDialog: null,
-  initialize: function(file)
+  parentView: false,
+  initialize: function(file,parentView)
   {
     this.usb_file = file;
+    this.parentView = parentView;
 
   },
   afterRender: function(){
@@ -997,6 +1005,7 @@ var USBFileView = Backbone.View.extend({
       } else {
         loadingBtn.removeClass('loading');
         noty({text: "File " + filename + " copied to home",type: 'success',timeout: 3000});
+        this.parentView.need_to_be_refreshed = true;
         promise.resolve();
       }
       loadingBtn.removeClass('loading');
