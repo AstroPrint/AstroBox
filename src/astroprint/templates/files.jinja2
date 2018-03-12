@@ -225,9 +225,11 @@
 
 <script type="text/template" id="local-file-exists-template">
   <div class="row" align="center">
-    <p><b>File <%=filename%> already exists in home files. Do you want to replace it?</b></p>
+    <h2 class="bold"><%=filename%></h2>
+    <div class="modal-content">
+      <p>File <b><%=filename%></b> already exists in home files. Do you want to replace it?</p>
+    </div>
   </div>
-  <br>
   <div class="row">
     <div class="loading-button eject columns small-6">
       <button href="#" class="radius secondary cancel idle">

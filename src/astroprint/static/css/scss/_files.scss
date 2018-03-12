@@ -251,6 +251,10 @@
           display: inline-block;
           margin: 0;
 
+          &.eject{
+            vertical-align: initial;
+          }
+
           &.print{
             border: 0;
             font-size: rem-calc(44);
@@ -319,11 +323,13 @@
           margin: 0;
           display: block;
           position: absolute;
-          white-space: nowrap;
           transform: translateX(0);
-          text-overflow: ellipsis;
           transition: all 1s ease;
           transition-delay: 500ms;
+          max-width: 650px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
 
         .slide-text{
@@ -335,6 +341,7 @@
             white-space: nowrap;
             overflow: visible;
             text-overflow: initial;
+            max-width: initial;
           }
         }
       }
@@ -448,16 +455,15 @@
   }
 }
 
-#local-file-exists-dlg, #eject-before-print-dlg{
-  .dlg-content{
-    padding:50px 20px 0 20px;
+.dlg-content{
 
-    .close-reveal-modal{
-      font-size: 65px;
-      position: absolute;
-      top: 0;
-      color: $steel;
-    }
+  button{width: 100%;}
+
+  .close-reveal-modal{
+    font-size: 65px;
+    position: absolute;
+    top: 0;
+    color: $steel;
   }
 }
 
