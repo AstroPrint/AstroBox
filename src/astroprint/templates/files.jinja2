@@ -224,9 +224,8 @@
 </div>
 
 <script type="text/template" id="local-file-exists-template">
-  <div class="row" align="center">
     <h2 class="bold"><%=filename%></h2>
-    <div class="modal-content">
+    <div class="modal-content" align="center">
       <p>File <b><%=filename%></b> already exists in home files. Do you want to replace it?</p>
     </div>
   </div>
@@ -243,7 +242,6 @@
       </button>
       <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
     </div>
-  </div>
 </script>
 
 <div id="eject-before-print-dlg" class="reveal-modal xlarge" data-reveal>
@@ -252,15 +250,18 @@
 </div>
 
 <script type="text/template" id="eject-before-print-template">
-  <p>External drive now is not needed. Do you want to eject it before start printing?</p>
-  <div class="loading-button eject">
-    <button href="#" class="eject-no idle">
+  <h2 class="bold">External drive now is not needed</h2>
+  <div class="modal-content" align="center">
+    <p>External drive now is not needed. Do you want to eject it before start printing?</p>
+  </div>
+  <div class="loading-button eject columns small-6">
+    <button href="#" class="eject-no idle radius">
       No
     </button>
     <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
   </div>
-  <div class="loading-button eject">
-    <button href="#" class="eject-yes idle">
+  <div class="loading-button eject columns small-6">
+    <button href="#" class="eject-yes idle radius">
       Yes
     </button>
     <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
