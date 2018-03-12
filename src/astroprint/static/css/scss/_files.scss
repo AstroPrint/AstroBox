@@ -1,21 +1,57 @@
 #files-view {
   .list-header {
+    background: #fdfdfd;
+    padding: 15px 0;
+    border-bottom: 3px dashed rgba(108, 201, 195, 0.15);
+
+    button{margin-bottom: 0;}
+
+    .icon-refresh{
+      display: block;
+      margin-bottom: 0;
+    }
     h3 {
       display: inline-block;
       font-size: rem-calc(20);
       padding-right: 10px;
-      padding-top: 10px;
+      padding-top: 14px;
       margin: 0;
       vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-left: 10px;
+      font-size: 14px;
+      color: $base;
     }
 
     ul.storage {
-      a.button.active {
-        background: $alert-color;
-        color: white;
+      li{
+      padding: 0 3px;
+
+        a.button{
+          color: $base;
+          letter-spacing: 1px;
+          background: transparent;
+          border-left: 0;
+          border: 2px solid #e2e2e2;
+          margin-bottom: 0;
+          transition: all 300ms ease;
+          font-size: 12px;
+
+          &:hover{
+            transform: scale(1.05);
+          }
+          &.active {
+            color: $primary-color;
+            border-color: $primary-color;
+            position: relative;
+          }
+        }
+
       }
     }
   }
+
 
   .file-upload-view {
     position: relative;
@@ -140,7 +176,7 @@
       position: relative;
       background-color: #fdfdfd;
       cursor: pointer;
-      padding: 2px 0;
+      //padding: 2px 0;
       margin-bottom: 3px;
 
       &.remote {
