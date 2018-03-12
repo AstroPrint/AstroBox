@@ -56,7 +56,6 @@ var CustomActionContainerView = Backbone.View.extend({
 
     if (this.customActionApp) {
       var row = new CustomActionAppView({ customActionApp: this.customActionApp});
-      console.log(this.customActionApp);
       actionEl.append(row.render().el);
       this.customActionApp_views[this.customActionApp.get('id')] = row;
     } else {
@@ -109,7 +108,7 @@ var CustomActionAppView = Backbone.View.extend({
       loadingBtn.addClass('loading');
       this.sendCommands(null, null)
         .done(() => {
-          console.log('All the commands have been sent');
+          console.info('All the commands have been sent');
           loadingBtn.removeClass('loading');
           this.stepManagement();
         })
@@ -167,7 +166,6 @@ var CustomActionAppView = Backbone.View.extend({
       }
     })
       .success(( () => {
-        console.info('Successfully sent the command: ', this.currentStep.commands[commandsIndex]);
         if (this.currentStep.commands[commandsIndex+1]) {
           setTimeout(() => {
             this.sendCommands(++commandsIndex, promise);
