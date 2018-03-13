@@ -17,32 +17,75 @@
         </div>
       </div>
       <div class="row">
-      <div class="row">
-        <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.en.title %></div>
-        <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= customActionApp.steps.length %></span></div>
-      </div>
+        <div class="row">
+          <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.en.title %></div>
+          <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= customActionApp.steps.length %></span></div>
+        </div>
 
-      <div id="img-app" class="row">
-        <img src="/static/img/variant/<%= customActionApp.id %>/<%= currentStep.img_filename %>"  class="small-12 columns text-center">
-      </div>
+      <% if (currentStep.type == "set_temperature") { %>
+       <!-- Temperature Widget -->
+        <div class="row">
+          <div id="custom-temp-control-template" class="small-12 column temp-container">
+            <div class="clearfix">
+              <div class="small-12 column bottom-space" align="center" id="extruder-container">
+                <div id="extruders" class="row" align="center">
+                  <div class="clearfix">
+                    <div class="temp-subheading text-center bold">Extruder #<%=app.socketData.attributes.tool+1%></div>
+                    <i id="previous" class="icon-angle-left arrow arrow-disabled hide"></i><div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide"></i>
+                  </div>
+                  <div id="slider" class="small-12 column clearfix" aling="center"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% } else if (currentStep.type == "set_extruder") { %>
+        <!-- Extruder picker -->
+        <div class="row text-center" >
+          <div class="small-12 columns" >
+            <label for="extruder-count" class="bold">Filament will be change on this extruder:</label>
+            <select id="extruder-count" name="extruder_count">
+            <% for(var i=0; i < initial_printer_profile.extruder_count; i++) { %>
+              <option value="<%= i %>" <%= app.socketData.attributes.tool == i ? 'selected' : '' %> ><%= i+1 %></option>
+            <% } %>
+            </select>
+          </div>
+        </div>
+      <% } else { %>
+        <!-- Custom Action Image -->
+        <div id="img-app" class="row">
+          <img src="/static/img/variant/<%= customActionApp.id %>/<%= currentStep.img_filename %>"  class="small-12 columns text-center">
+        </div>
+     <% } %>
 
+      <!-- Custom Action description -->
       <div class="row text-center">
         <p><%= currentStep.strings.en.description %></p>
       </div>
 
       <div class="row buttons text-center" >
+        <!-- Close button -->
         <div class="small-12 large-4  columns" >
           <button class="alert radius tiny bold close">Close</button>
         </div>
+        <!-- Repeat button -->
         <% if (currentIndexStep == customActionApp.steps.length && customActionApp.repeatable) { %>
         <div class="small-12 large-4 columns" >
           <button class="alert radius tiny bold repeat">Repeat</button>
         </div>
         <% } %>
+        <!-- Action button -->
+        <% if (currentStep.strings.en.button_action) { %>
+          <div class="small-12 large-4 columns" >
+            <button class="success tiny action bold"><%= currentStep.strings.en.button_action %></button>
+          </div>
+          <% } %>
+        <!-- Next button -->
         <div class="loading-button small-12 large-4 columns">
-          <button class="success tiny next bold"><%= currentStep.strings.en.button %></button>
+          <button class="disabled tiny next bold"><%= currentStep.strings.en.button_next %></button>
           <span class="button success tiny disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
           <span class="button alert tiny disabled failed"><i class="icon-attention"></i> Failed</span>
+          <span class="button secondary tiny disabled inactive"><%= currentStep.strings.en.button_next %></span>
         </div>
       </div>
     </div>

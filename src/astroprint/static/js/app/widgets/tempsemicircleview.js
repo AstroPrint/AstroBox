@@ -8,6 +8,7 @@ var TempSemiCircleView = Backbone.View.extend({
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
   enableOff: true,
+  hideBed: false,
   events: {
     'click button.temp-off': 'turnOff',
     'click .temp-target button.temp-edit': 'onEditClicked',
@@ -18,6 +19,8 @@ var TempSemiCircleView = Backbone.View.extend({
   {
     var tool = params.tool;
     this.enableOff = params.enableOff;
+    this.hideBed = params.hideBed;
+
 
     if (tool != null) {
       this.type = 'tool';
@@ -28,6 +31,10 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.attr('id', 'bed');
     }
     this.$el.attr('align', 'center');
+
+    if (params.preHeat) {
+      this._sendToolCommand('target', this.el.id, 180);
+    }
   },
   render: function ()
   {
@@ -41,6 +48,7 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     this.enableTurnOff(this.enableOff);
+    this.checkHideBed(this.hideBed);
     return this;
   },
   onTempFieldBlur: function(e)
@@ -245,6 +253,14 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.find('.container-off').removeClass('hide');
     } else {
       this.$el.find('.container-off').addClass('hide');
+    }
+  },
+  checkHideBed: function(value)
+  {
+    if (value) {
+      this.$el.find('.icon-bed').addClass('hide');
+    } else {
+      this.$el.find('.icon-bed').removeClass('hide');
     }
   }
 });

@@ -21,7 +21,7 @@ var CustomActionsListView = Backbone.View.extend({
 
       if (data.utilities && data.utilities.length) {
         for (var i = 0; i < data.utilities.length; i++) {
-          let ca = data.utilities[i];
+          var ca = data.utilities[i];
           if (ca.visibility) {
             this.customizedActionCollection.add(new CustomizedAction(ca))
           }
