@@ -137,13 +137,9 @@
     .usb-list,.inside-folder{
 
      .middle-section{
-        min-height: 60px;
-        display: flex;
-        justify-content: center;
-        flex-direction: column;
+        //min-height: 60px;
         overflow: hidden;
         position: relative;
-        overflow: hidden;
       }
 
       .right-section{
@@ -337,6 +333,8 @@
         justify-content: center;
         flex-direction: column;
 
+        .info-container h3{top: initial !important;}
+
         .info{
           letter-spacing: 1px;
           text-transform: uppercase;
@@ -363,9 +361,11 @@
           transition: all 1s ease;
           transition-delay: 500ms;
           max-width: 650px;
+          max-width: 98%;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          top: 34%;
         }
 
         .slide-text{
