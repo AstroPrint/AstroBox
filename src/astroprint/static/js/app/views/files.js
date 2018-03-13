@@ -395,6 +395,8 @@ var PrintFilesListView = Backbone.View.extend({
 
     if(selectedStorage && selectedStorage == 'USB'){//CLICK IN USB TAB
 
+      this.$('.loading-button.print').addClass('loading');
+
       var location = this.storage_control_view.exploringLocation;
 
       //CLEAN FILE LIST SHOWED
@@ -437,6 +439,9 @@ var PrintFilesListView = Backbone.View.extend({
             _.each(this.usb_file_views, function(p) {
               list.append(p.$el);
             });
+
+            this.$('.loading-button.print').removeClass('loading');
+
           } else {
             list.html(
               '<div class="empty panel radius" align="center">'+
@@ -444,6 +449,7 @@ var PrintFilesListView = Backbone.View.extend({
               ' <h3>Nothing here yet.</h3>'+
               '</div>'
             );
+            this.$('.loading-button.print').removeClass('loading');
           }
 
         },this))
