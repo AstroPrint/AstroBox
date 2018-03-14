@@ -22,7 +22,7 @@ def externalDriveManager():
 
 	if _instance is None:
 		if platform == "linux" or platform == "linux2":
-			_instance = ExternalDriveManager(true)
+			_instance = ExternalDriveManager(True)
 
 		elif platform == "darwin":
 			_instance = ExternalDriveManager(False)
@@ -46,7 +46,7 @@ class ExternalDriveManager(threading.Thread):
 
 		if enablingPluggedEvent:
 			self.context = pyudev.Context()
-			self.monitor = pyudev.Monitor.from_netlink(context)
+			self.monitor = pyudev.Monitor.from_netlink(self.context)
 			self.monitor.filter_by(subsystem='usb')
 
 		self._logger = logging.getLogger(__name__)
@@ -54,7 +54,8 @@ class ExternalDriveManager(threading.Thread):
 
 	def run(self):
 		if self.enablingPluggedEvent:
-			for device in iter(monitor.poll, None):
+			for device in iter(self.monitor.poll, None):
+				self._logger.info('wawa')
 				if device.action == 'add':
 					self.connectedCb(device)
 
@@ -69,8 +70,8 @@ class ExternalDriveManager(threading.Thread):
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
 
-		if self.enablingPluggedEvent:
-			self.join()
+		'''if self.enablingPluggedEvent:
+			self.join()'''
 
 		global _instance
 		_instance = None
