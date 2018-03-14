@@ -14,21 +14,21 @@ from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 class FilesSystemReadyWorker(threading.Thread):
-	def __init(self, device):
+	def __init__(self, device):
 		super(FilesSystemReadyWorker,self).__init__()
 
 		self.device = device
 
-		path = settings.getBaseFolder().replace('//','/')
+		path = settings().getBaseFolder('storageLocation').replace('//','/')
 
-		previousStorages = printerManager().fileManager.getLocalStorageLocations()
+		self.previousStorages = printerManager().fileManager.getLocalStorageLocations()
 
 	def run(self):
 
-		newStorageFound = false
+		newStorageFound = False
 
 		while not newStorageFound:
-			newStorageFound = (previousStorages == printerManager().fileManager.getLocalStorageLocations())
+			newStorageFound = (self.previousStorages == printerManager().fileManager.getLocalStorageLocations())
 			time.sleep(0.5)
 
 		eventManager().fire(
@@ -97,7 +97,8 @@ class ExternalDriveManager(threading.Thread):
 				if device.action == 'add' and device.device_type == 'usb_device':
 					self._logger.info('{} connected'.format(device))
 
-					FilesSystemReadyWorker(device).start()
+					fileSystemReadyWorker = FilesSystemReadyWorker(device)
+					fileSystemReadyWorker.start()
 
 
 	def shutdown(self):
