@@ -42,6 +42,8 @@ class ExternalDriveManager(threading.Thread):
 		super(ExternalDriveManager, self).__init__()
 		self.daemon = True
 
+		self.stopThread = False
+
 		self.enablingPluggedEvent = enablingPluggedEvent
 
 		if enablingPluggedEvent:
@@ -55,6 +57,11 @@ class ExternalDriveManager(threading.Thread):
 	def run(self):
 		if self.enablingPluggedEvent:
 			for device in iter(self.monitor.poll, None):
+				if self.stopThread:
+					self.monitor.stop()
+					self.join()
+					return
+
 				if device.action == 'add':
 					self._logger.info('{} connected'.format(device))
 
@@ -69,7 +76,7 @@ class ExternalDriveManager(threading.Thread):
 		self._logger.info('Shutting Down ExternalDriveManager')
 
 		if self.enablingPluggedEvent:
-			self.join()
+			self.stopThread = True
 
 		global _instance
 		_instance = None
