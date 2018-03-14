@@ -7,8 +7,8 @@
 <div class="file-upload-view">
 	<div class="row upload-buttons">
 		<div class="small-12 medium-7 large-4 medium-centered columns">
-			<span class="file-upload-button button bold dark radius expand" style="margin-bottom: 10px">
-				Upload File ( <span class="extensions"></span> )
+			<span class="file-upload-button button radius expand" style="margin-bottom: 10px">
+				<i class="icon-plus"></i><b>Add files</b> <span>(<span class="extensions"></span>)</span>
 				<input class="file-upload" type="file" name="file" accept="">
 			</span>
 		</div>
@@ -29,16 +29,16 @@
 
 <div class="design-list">
 	<div class="row list-header">
-		<div class="small-12 medium-12 large-8 columns">
+		<div class="small-12 medium-12 large-7 columns">
 			{%- if user_email %}
 				<div class="loading-button sync">
 					<button class="tiny success radius sync round"><i class="icon-refresh"></i> <div>Sync</div></button>
 					<span class="tiny success button radius round disabled loading"><i class="icon-refresh animate-spin"></i> <div>Sync</div></span>
 				</div>
       {%- endif %}
-      <h3 class="bold">Printable Files</h3>
+      <h3 class="bold show-for-medium-up printablefiles-message">Printable Files</h3>
 		</div>
-		<div class="small-12 medium-12 large-4 columns">
+		<div class="small-12 medium-12 large-5 columns">
 			<ul class="button-group even-3 storage">
         <li><a href="#" class="button tiny round bold secondary USB">External</a></li>
 			  <li><a href="#" class="button tiny round bold secondary local">Internal</a></li>
@@ -144,7 +144,9 @@
 			</div>
 		<% } else { %>
       <!--i class="icon-3d-object"></i-->
-      <img class="noimage" src="/img/noimage.svg">
+      <div class="thumb-container">
+        <img class="noimage" src="/img/noimage.svg">
+      </div>
 		<% } %>
 	</div>
 	<div class="small-9 medium-8 large-9 columns middle-section">
@@ -279,16 +281,16 @@
 
 <script type="text/template" id="browsing-file-template">
   <div class="row usb-list">
-    <div class="exploreFolder large-10 columns" no-padding>
-      <div class="small-3 medium-2 large-1 columns left-section">
+    <div class="exploreFolder small-12 large-10 columns">
+      <div class="small-2 medium-1 large-1 columns left-section">
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
-      <div class="small-9 medium-8 large-11 columns middle-section div-container">
+      <div class="small-10 medium-11 large-11 columns middle-section div-container">
         <h3 class="bold text"><%= p.name %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
-      <div class="small-12 medium-2 large-2 columns right-section">
+      <div class="small-12 medium-3 large-2 columns right-section">
         <div class="print-file-options">
           <div class="loading-button eject">
             <button href="#" class="tiny bold radius eject idle"><i class="icon-eject-alt"></i> EJECT</button>

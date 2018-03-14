@@ -339,17 +339,20 @@ var StorageControlView = Backbone.View.extend({
   usbClicked: function(e)
   {
     e.preventDefault();
+    $('h3.printablefiles-message').addClass('hide');
     this.exploringLocation = '/';
     this.selectStorage('USB');
   },
   localClicked: function(e)
   {
     e.preventDefault();
+    $('h3.printablefiles-message').removeClass('hide');
     this.selectStorage('local');
   },
   cloudClicked: function(e)
   {
     e.preventDefault();
+    $('h3.printablefiles-message').removeClass('hide');
 
     if (LOGGED_USER) {
       this.selectStorage('cloud');
