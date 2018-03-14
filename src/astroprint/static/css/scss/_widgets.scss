@@ -19,7 +19,7 @@
 
   &.loading {
     button, .button, .idle {
-      display: none;
+      display: none !important;
     }
 
     span.loading {

@@ -175,19 +175,6 @@
       &:before{margin: 0;}
     }
 
-    .usb-list,.inside-folder{
-
-     .middle-section{
-        //min-height: 60px;
-        overflow: hidden;
-        position: relative;
-      }
-
-      .right-section{
-       font-size: rem-calc(32) !important;
-      }
-    }
-
     .inside-folder{
       .loading-content{
         position: absolute;
@@ -327,7 +314,7 @@
           margin: 0;
 
           &.eject{
-            vertical-align: initial;
+            vertical-align: middle;
           }
 
           &.print{
@@ -422,11 +409,14 @@
           max-width: initial;
 
           -webkit-animation-name: example;
-          -webkit-animation-duration: 4s;
+          -webkit-animation-duration: 15s;
           animation-name: example;
-          animation-duration: 4s;
+          animation-duration: 10s;
+          animation-direction: alternate;
+          animation-iteration-count: infinite;
         }
       }
+
 
 
       @keyframes example {
@@ -571,10 +561,6 @@
     }
   }
 
-  .slide-text{
-    width: auto;
-    transition: all 10s linear;
-  }
 }
 
 
