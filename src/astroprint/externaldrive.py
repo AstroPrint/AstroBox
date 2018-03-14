@@ -94,7 +94,7 @@ class ExternalDriveManager(threading.Thread):
 					self.join()
 					return
 
-				if device.action == 'add':
+				if device.action == 'add' and device.device_type == 'usb_device':
 					self._logger.info('{} connected'.format(device))
 
 					FilesSystemReadyWorker(device).start()
