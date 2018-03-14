@@ -55,9 +55,8 @@ class ExternalDriveManager(threading.Thread):
 	def run(self):
 		if self.enablingPluggedEvent:
 			for device in iter(self.monitor.poll, None):
-				self._logger.info('wawa')
 				if device.action == 'add':
-					self.connectedCb(device)
+					self._logger.info('{} connected'.format(device))
 
 					eventManager().fire(
 						Events.EXTERNAL_DRIVE_PLUGGED, {
@@ -65,13 +64,12 @@ class ExternalDriveManager(threading.Thread):
 						}
 					)
 
-					self._logger.info('{} connected'.format(device))
 
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
 
-		'''if self.enablingPluggedEvent:
-			self.join()'''
+		if self.enablingPluggedEvent:
+			self.join()
 
 		global _instance
 		_instance = None

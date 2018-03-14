@@ -475,7 +475,7 @@ class Server():
 
 		from astroprint.externaldrive import externalDriveManager
 
-		externalDriveManager()
+		externalDriveManager().start()
 
 		def access_validation_factory(validator):
 			"""
