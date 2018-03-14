@@ -243,15 +243,17 @@
           border-radius: $global-radius;
           padding-bottom: 3px;
           background: $charcoal;
+          max-width: 100px;
         }
 
         .thumb-container {
           position: relative;
           overflow: hidden;
-          height:60px;
+          text-align: center;
 
           img {
             vertical-align: middle;
+            max-height:65px;
             border-radius: $global-radius;
           }
         }
