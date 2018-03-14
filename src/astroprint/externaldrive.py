@@ -5,158 +5,222 @@ __copyright__ = "Copyright (C) 2018 3DaGoGo, Inc - Released under terms of the A
 import logging
 import subprocess
 import os
+import threading
+
+from astroprint.printer.manager import printerManager
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
-from astroprint.printer.manager import printerManager
+from sys import platform
 
-def _cleanFileLocation(location):
+# singleton
+_instance = None
 
-	logger = logging.getLogger(__name__)
+def externalDriveManager():
+	global _instance
 
-	logger.info('location ' + location)
-	locationParsed = location.replace('//','/')
-	logger.info('locationParsed ' + locationParsed)
+	if _instance is None:
+		if platform == "linux" or platform == "linux2":
+			_instance = ExternalDriveManager(true)
 
-	return locationParsed
+		elif platform == "darwin":
+			_instance = ExternalDriveManager(False)
+			logger = logging.getLogger(__name__)
+			logger.info('darwin platform is not able to watch external drives plugging...')
+
+	return _instance
 
 
-def eject(drive):
+import pyudev
 
-	logger = logging.getLogger(__name__)
+#
+# Thread to get some plugged usb drive
+#
+class ExternalDriveManager(threading.Thread):
+	def __init__(self, enablingPluggedEvent):
+		super(ExternalDriveManager, self).__init__()
+		self.daemon = True
 
-	args = ['eject', drive]
+		self.enablingPluggedEvent = enablingPluggedEvent
 
-	try:
-		ejectProccess = subprocess.Popen(
-			args,
-			stdout=subprocess.PIPE
-		)
+		if enablingPluggedEvent:
+			self.context = pyudev.Context()
+			self.monitor = pyudev.Monitor.from_netlink(context)
+			self.monitor.filter_by(subsystem='usb')
 
-		return {'result': True}
+		self._logger = logging.getLogger(__name__)
 
-	except Exception, error:
 
-		logger.error('Error ejecting drive %s: %s' %  (drive,str(error)))
+	def run(self):
+		if self.enablingPluggedEvent:
+			for device in iter(monitor.poll, None):
+				if device.action == 'add':
+					self.connectedCb(device)
 
-		return {
-			'result': False,
-			'error': str(error)
-		}
+					eventManager().fire(
+						Events.EXTERNAL_DRIVE_PLUGGED, {
+							"device": device
+						}
+					)
 
-def copy(src, dst, progressCb, observerId):
+					self._logger.info('{} connected'.format(device))
 
-		blksize = 1048576 # 1MiB
+	def shutdown(self):
+		self._logger.info('Shutting Down ExternalDriveManager')
+
+		if self.enablingPluggedEvent:
+			self.join()
+
+		global _instance
+		_instance = None
+
+
+	def _cleanFileLocation(self, location):
+
+		self._logger.info('location ' + location)
+		locationParsed = location.replace('//','/')
+		self._logger.info('locationParsed ' + locationParsed)
+
+		return locationParsed
+
+
+	def eject(self, drive):
+
+		args = ['eject', drive]
+
 		try:
-				s = open(src, 'rb')
-				d = open(dst, 'wb')
-		except (KeyboardInterrupt, Exception) as e:
+			ejectProccess = subprocess.Popen(
+				args,
+				stdout=subprocess.PIPE
+			)
+
+			return {'result': True}
+
+		except Exception, error:
+
+			self._logger.error('Error ejecting drive %s: %s' %  (drive,str(error)))
+
+			return {
+				'result': False,
+				'error': str(error)
+			}
+
+	def copy(self, src, dst, progressCb, observerId):
+
+			blksize = 1048576 # 1MiB
+			try:
+					s = open(src, 'rb')
+					d = open(dst, 'wb')
+			except (KeyboardInterrupt, Exception) as e:
+					if 's' in locals():
+							s.close()
+					if 'd' in locals():
+							d.close()
+					raise
+			try:
+					total = float(os.stat(src).st_size)
+
+					while True:
+
+							buf = s.read(blksize)
+							bytes_written = d.write(buf)
+
+							progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
+
+							if blksize > len(buf) or bytes_written == 0:
+									d.write(buf)
+									progressCb(100,dst,observerId)
+									break
+
+			except (KeyboardInterrupt, Exception) as e:
+					s.close()
+					d.close()
+					raise
+			else:
+					progressCb(100,dst,observerId)
+					s.close()
+					d.close()
+
+	def localFileExists(self, filename):
+
+		print self.getBaseFolder('uploads') + '/' + filename
+
+		try:
+				s = open(self.getBaseFolder('uploads') + '/' + filename, 'rb')
+		except Exception as e:
 				if 's' in locals():
-						s.close()
-				if 'd' in locals():
-						d.close()
-				raise
-		try:
-				total = float(os.stat(src).st_size)
+					s.close()
 
-				while True:
+				return False
 
-						buf = s.read(blksize)
-						bytes_written = d.write(buf)
-
-						progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
-
-						if blksize > len(buf) or bytes_written == 0:
-								d.write(buf)
-								progressCb(100,dst,observerId)
-								break
-
-		except (KeyboardInterrupt, Exception) as e:
-				s.close()
-				d.close()
-				raise
-		else:
-				progressCb(100,dst,observerId)
-				s.close()
-				d.close()
-
-def localFileExists(filename):
-
-	print getBaseFolder('uploads') + '/' + filename
-
-	try:
-			s = open(getBaseFolder('uploads') + '/' + filename, 'rb')
-	except Exception as e:
-			if 's' in locals():
-				s.close()
-
-			return False
-
-	s.close()
-
-	return True
-
-
-def _progressCb(progress,file,observerId):
-	eventManager().fire(
-		Events.COPY_TO_HOME_PROGRESS, {
-			"type": "progress",
-			"file": file,
-			"observerId": observerId,
-			"progress": progress
-		}
-	)
-
-def copyFileToLocal(origin, destination, observerId):
-	try:
-		_origin = _cleanFileLocation(origin)
-		copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],_progressCb,observerId)
+		s.close()
 
 		return True
 
-	except Exception as e:
-		logger = logging.getLogger(__name__)
-		logger.error("copy print file to local folder failed", exc_info = True)
 
-		return False
+	def _progressCb(self, progress,file,observerId):
+		eventManager().fire(
+			Events.COPY_TO_HOME_PROGRESS, {
+				"type": "progress",
+				"file": file,
+				"observerId": observerId,
+				"progress": progress
+			}
+		)
 
+	def copyFileToLocal(self, origin, destination, observerId):
+		try:
+			_origin = self._cleanFileLocation(origin)
+			self.copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],self._progressCb,observerId)
 
-def getFileBrowsingExtensions():
-	return printerManager().fileManager.fileBrowsingExtensions
+			return True
 
+		except Exception as e:
+			self._logger.error("copy print file to local folder failed", exc_info = True)
 
-def getFolderExploration(folder):
-
-	try:
-		return printerManager().fileManager.getLocationExploration(_cleanFileLocation(folder))
-
-	except Exception as e:
-		logger = logging.getLogger(__name__)
-		logger.error("exploration folders can not be obtained", exc_info = True)
-		return None
-
-
-def getLocalStorages():
-
-	try:
-		return printerManager().fileManager.getLocalStorageLocations()
-
-	except Exception as e:
-		logger = logging.getLogger(__name__)
-		logger.error("storage folders can not be obtained", exc_info = True)
-		return None
+			return False
 
 
-def getTopStorages():
+	def getFileBrowsingExtensions(self):
+		return printerManager().fileManager.fileBrowsingExtensions
 
-	try:
-		return printerManager().fileManager.getAllStorageLocations()
 
-	except Exception as e:
-		logger = logging.getLogger(__name__)
-		logger.error("top storage folders can not be obtained", exc_info = True)
-		return None
+	def getFolderExploration(self, folder):
 
-def getBaseFolder(key):
-	return _cleanFileLocation(settings().getBaseFolder(key))
+		try:
+			return printerManager().fileManager.getLocationExploration(self._cleanFileLocation(folder))
+
+		except Exception as e:
+			self._logger.error("exploration folders can not be obtained", exc_info = True)
+			return None
+
+
+	def getLocalStorages(self):
+
+		try:
+			return printerManager().fileManager.getLocalStorageLocations()
+
+		except Exception as e:
+			self._logger.error("storage folders can not be obtained", exc_info = True)
+			return None
+
+
+	def getTopStorages(self):
+
+		try:
+			return printerManager().fileManager.getAllStorageLocations()
+
+		except Exception as e:
+			self._logger.error("top storage folders can not be obtained", exc_info = True)
+			return None
+
+	def getBaseFolder(self, key):
+		return self._cleanFileLocation(settings().getBaseFolder(key))
+
+def externalDriveManagerShutdown():
+	global _instance
+
+	if _instance:
+		_instance.shutdown()
+		_instance = None

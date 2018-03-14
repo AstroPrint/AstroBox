@@ -15,7 +15,7 @@ from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
-import astroprint.externaldrive as externaldrive
+from astroprint.externaldrive import externalDriveManager
 
 #~~ GCODE file handling
 
@@ -304,9 +304,11 @@ def exploreFolder():
 
 	location = request.args.get('location')
 
+	externalDriveMgr = externalDriveManager()
+
 	if location == '/':
 
-		usb_folders = externaldrive.getLocalStorages()
+		usb_folders = externalDriveMgr.getLocalStorages()
 
 		homeFound = False
 		idx = 0
@@ -323,30 +325,31 @@ def exploreFolder():
 
 	else:
 
-		return jsonify(externaldrive.getFolderExploration(location))
+		return jsonify(externalDriveMgr.getFolderExploration(location))
 
 @api.route("/files/file-browsing-extensions", methods=["GET"])
 @restricted_access
 def getFileBrowsingExtensions():
-	return jsonify(externaldrive.getFileBrowsingExtensions())
+	return jsonify(externalDriveManager().getFileBrowsingExtensions())
 
 @api.route("/files/local-storages", methods=["GET"])
 @restricted_access
 def getLocalStorages():
-	return jsonify(externaldrive.getLocalStorages())
+	return jsonify(externalDriveManager().getLocalStorages())
 
 @api.route("/files/eject", methods=["POST"])
 @restricted_access
 def eject():
-	return jsonify(externaldrive.eject(request.values.get('drive')))
+	return jsonify(externalDriveManager().eject(request.values.get('drive')))
 
 @api.route("/files/local-file-exists/<string:filename>", methods=["GET"])
 @restricted_access
 def localFileExists(filename):
-	return jsonify({'response': externaldrive.localFileExists(filename)})
+	return jsonify({'response': externalDriveManager().localFileExists(filename)})
 
 
 @api.route("/files/copy-to-local", methods=["POST"])
 @restricted_access
 def copyFileToLocal():
-	return jsonify({'response': externaldrive.copyFileToLocal(request.values.get('file'),externaldrive.getBaseFolder('uploads'),request.values.get('observerId'))})
+	externalDriveMgr = externalDriveManager()
+	return jsonify({'response': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})

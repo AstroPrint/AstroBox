@@ -21,3 +21,4 @@ futures==3.0.4
 blinker==1.4
 v4l2==0.2
 pycrypto==2.6.1
+pyudev==0.21.0

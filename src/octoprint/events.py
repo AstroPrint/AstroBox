@@ -44,6 +44,8 @@ class Events(object):
 	METADATA_ANALYSIS_STARTED = "MetadataAnalysisStarted"
 	METADATA_ANALYSIS_FINISHED = "MetadataAnalysisFinished"
 	FILE_DELETED = "FileDeleted"
+	COPY_TO_HOME_PROGRESS = "CopyToHomeProgress"
+	EXTERNAL_DRIVE_PLUGGED = "ExternalDrivePlugged"
 
 	# SD Upload
 	TRANSFER_STARTED = "TransferStarted"
@@ -86,7 +88,6 @@ class Events(object):
 	INTERNET_CONNECTING_STATUS = "InternetConnectingStatus"
 	SOFTWARE_UPDATE = "SoftwareUpdateEvent"
 	CAPTURE_INFO_CHANGED = "PrintCaptureInfoChanged"
-	COPY_TO_HOME_PROGRESS = "CopyToHomeProgress"
 
 	#Webrtc and local video peer managing
 	GSTREAMER_EVENT = "GstreamerEvent"
