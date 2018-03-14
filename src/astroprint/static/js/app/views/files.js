@@ -393,6 +393,9 @@ var PrintFilesListView = Backbone.View.extend({
     this.refresh('local', options.syncCompleted);
   },
   externalDrivesRefresh: function(){
+
+    var selectedStorage = this.storage_control_view.selected;
+
     if(selectedStorage && selectedStorage == 'USB'){
       this.render();
     }
