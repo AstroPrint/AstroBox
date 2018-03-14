@@ -6,11 +6,43 @@ import logging
 import subprocess
 import os
 import threading
+import time
 
 from astroprint.printer.manager import printerManager
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
+
+class FilesSystemReadyWorker(threading.Thread):
+	def __init(self, device):
+		super(FilesSystemReadyWorker,self).__init__()
+
+		self.device = device
+
+		path = settings.getBaseFolder().replace('//','/')
+
+		previousStorages = printerManager().fileManager.getLocalStorageLocations()
+
+	def run(self):
+
+		newStorageFound = false
+
+		while not newStorageFound:
+			newStorageFound = (previousStorages == printerManager().fileManager.getLocalStorageLocations())
+			time.sleep(0.5)
+
+		eventManager().fire(
+			Events.EXTERNAL_DRIVE_PLUGGED, {
+				"device": self.device
+			}
+		)
+
+		self.join()
+
+		return
+
+
+
 
 from sys import platform
 
@@ -65,11 +97,7 @@ class ExternalDriveManager(threading.Thread):
 				if device.action == 'add':
 					self._logger.info('{} connected'.format(device))
 
-					eventManager().fire(
-						Events.EXTERNAL_DRIVE_PLUGGED, {
-							"device": device
-						}
-					)
+					FilesSystemReadyWorker(device).start()
 
 
 	def shutdown(self):
@@ -84,9 +112,7 @@ class ExternalDriveManager(threading.Thread):
 
 	def _cleanFileLocation(self, location):
 
-		self._logger.info('location ' + location)
 		locationParsed = location.replace('//','/')
-		self._logger.info('locationParsed ' + locationParsed)
 
 		return locationParsed
 
