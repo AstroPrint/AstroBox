@@ -4,11 +4,17 @@
     padding: 15px 0;
     border-bottom: 3px dashed rgba(108, 201, 195, 0.15);
 
-    button{margin-bottom: 0;}
-
+    .loading-button{
+      float: left;
+    }
     .icon-refresh{
-      display: block;
+      display: block !important;
       margin-bottom: 0;
+      margin: 0 auto;
+      font-size: 20px;
+      width: 28px;
+      height: 20px;
+      margin-bottom: 4px;
     }
     h3 {
       display: inline-block;
@@ -22,6 +28,7 @@
       margin-left: 10px;
       font-size: 14px;
       color: $base;
+      float: left;
     }
 
     ul.storage {
@@ -37,6 +44,8 @@
           margin-bottom: 0;
           transition: all 300ms ease;
           font-size: 12px;
+          padding-left: 0;
+          padding-right: 0;
 
           &:hover{
             transform: scale(1.05);
@@ -369,7 +378,7 @@
         }
 
         .slide-text{
-          &:hover{
+
             width: auto;
             transition: all 3s ease;
             transition-delay: 1s;
@@ -378,7 +387,7 @@
             overflow: visible;
             text-overflow: initial;
             max-width: initial;
-          }
+
         }
       }
 
