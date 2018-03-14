@@ -222,6 +222,12 @@ var SocketData = Backbone.Model.extend({
               }
             break;
 
+            case 'ExternalDrivePlugged':
+              if(payload.observerId == AP_SESSION_ID){
+                app.eventManager.trigger('astrobox:externalDrivePlugged', payload);
+              }
+            break;
+
             case 'AstroPrintStatus':
               switch(payload) {
                 case 'connecting':

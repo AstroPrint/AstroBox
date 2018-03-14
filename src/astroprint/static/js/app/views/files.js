@@ -391,12 +391,17 @@ var PrintFilesListView = Backbone.View.extend({
 
     this.refresh('local', options.syncCompleted);
   },
+  externalDrivesRefresh: function(){
+    this.render();
+  },
   render: function()
   {
     var list = this.$('.design-list-container');
     var selectedStorage = this.storage_control_view.selected;
 
     if(selectedStorage && selectedStorage == 'USB'){//CLICK IN USB TAB
+
+      app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
 
       this.$('.loading-button.sync').addClass('loading');
 
@@ -469,6 +474,7 @@ var PrintFilesListView = Backbone.View.extend({
           this.refresh('local');
           this.need_to_be_refreshed = false;
         } else {
+          app.eventManager.off('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
           var filteredViews = _.filter(this.print_file_views, function(p){
             if (selectedStorage == 'local') {
               if (p.print_file.get('local_filename')) {
