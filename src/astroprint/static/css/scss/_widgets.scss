@@ -19,8 +19,10 @@
 
   &.loading {
     button, .button, .idle {
-      display: none !important;
+      display: none;
     }
+
+    .eject{display: none !important;}
 
     span.loading {
       display: inherit;
