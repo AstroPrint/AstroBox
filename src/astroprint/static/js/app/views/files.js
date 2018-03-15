@@ -1127,9 +1127,8 @@ var BrowsingFileView = Backbone.View.extend({
   eject: function(evt){
     if (evt) evt.preventDefault();
 
-    var loadingBtn = this.$('.loading-button.eject');
-
-    loadingBtn.addClass('loading');
+    this.$('button.eject').addClass('hide');
+    this.$('.loading-button.eject').addClass('loading');
 
     $.ajax({
         url: '/api/files/eject',
@@ -1144,18 +1143,18 @@ var BrowsingFileView = Backbone.View.extend({
       if(data.error){
         var error = data.error
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
+        this.$('button.eject').removeClass('hide');
       } else {
+        this.$('.loading-button.eject').removeClass('loading');
         noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
-      }
-      setTimeout(_.bind(function(){
-        loadingBtn.removeClass('loading');
         this.parentView.render()
-      },this),2000);
+      }
     }, this))
     .fail(function(xhr) {
       var error = xhr.responseText;
       noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
-      loadingBtn.removeClass('loading');
+      this.$('.loading-button.eject').removeClass('loading');
+      this.$('button.eject').removeClass('hide');
       this.parentView.refresh()
     })
   },

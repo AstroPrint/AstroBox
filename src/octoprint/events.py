@@ -46,6 +46,7 @@ class Events(object):
 	FILE_DELETED = "FileDeleted"
 	COPY_TO_HOME_PROGRESS = "CopyToHomeProgress"
 	EXTERNAL_DRIVE_PLUGGED = "ExternalDrivePlugged"
+	EXTERNAL_DRIVE_UNPLUGGED = "ExternalDriveUnplugged"
 
 	# SD Upload
 	TRANSFER_STARTED = "TransferStarted"
