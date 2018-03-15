@@ -405,19 +405,16 @@
           overflow: visible;
           text-overflow: initial;
           max-width: initial;
-
-          -webkit-animation-name: example;
+          -webkit-animation-name: slide;
           -webkit-animation-duration: 15s;
-          animation-name: example;
-          animation-duration: 10s;
+          animation-name: slide;
+          animation-duration: 15s;
           animation-direction: alternate;
           animation-iteration-count: infinite;
         }
       }
 
-
-
-      @keyframes example {
+      @keyframes slide {
         from {transform:TranslateX(0%);}
         to {transform:TranslateX(-90%);}
       }
@@ -458,6 +455,7 @@
     }
   }
 }
+
 
 #print-file-info {
   .modal-content {
