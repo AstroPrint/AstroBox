@@ -14,8 +14,10 @@ from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
 class FilesSystemReadyWorker(threading.Thread):
+
 	def __init__(self, device):
 		super(FilesSystemReadyWorker,self).__init__()
+		self.daemon = True
 
 		self.device = device
 
@@ -23,25 +25,24 @@ class FilesSystemReadyWorker(threading.Thread):
 
 		self.previousStorages = printerManager().fileManager.getLocalStorageLocations()
 
-	def run(self):
 
+	def run(self):
 		newStorageFound = False
 
 		while not newStorageFound:
-			newStorageFound = (self.previousStorages == printerManager().fileManager.getLocalStorageLocations())
+			currentStorages = printerManager().fileManager.getLocalStorageLocations()
+			newStorageFound = (self.previousStorages != printerManager().fileManager.getLocalStorageLocations())
 			time.sleep(0.5)
 
 		eventManager().fire(
 			Events.EXTERNAL_DRIVE_PLUGGED, {
-				"device": self.device
+				"device": self.device.sys_name
 			}
 		)
 
 		self.join()
 
 		return
-
-
 
 
 from sys import platform
@@ -78,6 +79,8 @@ class ExternalDriveManager(threading.Thread):
 
 		self.enablingPluggedEvent = enablingPluggedEvent
 
+		self.fileSystemReadyWorker = None
+
 		if enablingPluggedEvent:
 			self.context = pyudev.Context()
 			self.monitor = pyudev.Monitor.from_netlink(self.context)
@@ -95,10 +98,11 @@ class ExternalDriveManager(threading.Thread):
 					return
 
 				if device.action == 'add' and device.device_type == 'usb_device':
+
 					self._logger.info('{} connected'.format(device))
 
-					fileSystemReadyWorker = FilesSystemReadyWorker(device)
-					fileSystemReadyWorker.start()
+					self.fileSystemReadyWorker = FilesSystemReadyWorker(device)
+					self.fileSystemReadyWorker.start()
 
 
 	def shutdown(self):
