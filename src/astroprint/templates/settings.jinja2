@@ -272,7 +272,7 @@
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
-              <div class="input-wrapper">
+              <% if (bed) { %><div class="input-wrapper">
                 <label for="preset-bed-temp" class="bold">
                   Bed Temperature
                 </label>
@@ -283,7 +283,7 @@
                   </div>
                   <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
-              </div>
+              </div> <% } %>
               <div class="loading-button cancel-add-preset">
                 <span class="button cancel expand">Cancel</span>
               </div>

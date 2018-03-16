@@ -462,6 +462,7 @@ var EditPresetsDialog = Backbone.View.extend({
   render: function() {
     this.$el.html(this.template({
       preset: this.preset,
+      bed : this.parent.settings.attributes.heated_bed
     }));
 
     this.$el.foundation('abide');
@@ -471,7 +472,7 @@ var EditPresetsDialog = Backbone.View.extend({
   {
     var form = document.getElementById("preset-form");
     var name = $('#temperature-preset-name').val()
-    var bed = $('#preset-bed-temp').val()
+    var bed = $('#preset-bed-temp').val() ? $('#preset-bed-temp').val() : 0
     var nozzle = $('#preset-nozzle-temp').val()
     if (!this.preset){
       var temp_preset = { 'name' : name, 'bed_temp': bed , 'nozzle_temp' :nozzle }
