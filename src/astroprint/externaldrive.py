@@ -188,8 +188,10 @@ class ExternalDriveManager(threading.Thread):
 		print self.getBaseFolder('uploads') + '/' + filename
 
 		try:
-				s = open(self.getBaseFolder('uploads') + '/' + filename, 'rb')
+				s = open(self._cleanFileLocation(self.getBaseFolder('uploads') + '/' + filename), 'rb')
 		except Exception as e:
+				print 'exception'
+				print e
 				if 's' in locals():
 					s.close()
 
@@ -213,6 +215,7 @@ class ExternalDriveManager(threading.Thread):
 	def copyFileToLocal(self, origin, destination, observerId):
 		try:
 			_origin = self._cleanFileLocation(origin)
+
 			self.copy(_origin,self._cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],self._progressCb,observerId)
 
 			return True

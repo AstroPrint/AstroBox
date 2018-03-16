@@ -66,7 +66,7 @@ class FilesService(PluginService):
 			sendResponse(ejection['error'],True)
 
 	def localFileExists(self, data, sendResponse):
-		if externalDriveManager().localFileExists(data['filename']):
+		if not externalDriveManager().localFileExists(data['filename']):
 			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse({'error': 'local file already exists' },True)
