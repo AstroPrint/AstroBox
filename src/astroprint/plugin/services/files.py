@@ -39,8 +39,6 @@ class FilesService(PluginService):
 		'f¡nished_download_printfile',
 		#watch if an external drive is phisically plugged
 		'external_drive_plugged',
-		#watch if an external drive is phisically unplugged
-		'external_drive_unplugged',
 		################
 		#PLUGIN -> BROWSER
 		#watch the copying progress of a file from external drive to home folder
@@ -55,7 +53,6 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
-		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_UNPLUGGED, self._onExternalDriveUnplugged)
 
 	def eject(self, data, sendResponse):
 
@@ -99,7 +96,7 @@ class FilesService(PluginService):
 	def getTopStorages(self, sendResponse):
 
 		try:
-			sendResponse( { 'storageFolders': externalDriveManager().getTopStorages() })
+			sendResponse( { 'storageFolders': externalDriveManager().getLocalStorages() })
 
 		except Exception as e:
 			self._logger.error("storage folders can not be obtained", exc_info = True)
@@ -359,6 +356,3 @@ class FilesService(PluginService):
 
 	def _onExternalDrivePlugged(self,event,data):
 		self.publishEvent('external_drive_plugged',data)
-
-	def _onExternalDriveUnplugged(self,event,data):
-		self.publishEvent('external_drive_unplugged',data)

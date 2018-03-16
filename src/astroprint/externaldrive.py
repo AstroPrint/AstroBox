@@ -30,9 +30,9 @@ class FilesSystemReadyWorker(threading.Thread):
 		newStorageFound = False
 
 		while not newStorageFound:
+			time.sleep(0.5)
 			currentStorages = printerManager().fileManager.getLocalStorageLocations()
 			newStorageFound = (self.previousStorages != printerManager().fileManager.getLocalStorageLocations())
-			time.sleep(0.5)
 
 		eventManager().fire(
 			Events.EXTERNAL_DRIVE_PLUGGED, {
@@ -77,21 +77,12 @@ class ExternalDriveManager(threading.Thread):
 
 		self.enablingPluggedEvent = enablingPluggedEvent
 
-		self.fileSystemReadyWorkers = {}
-
 		if enablingPluggedEvent:
 			self.context = pyudev.Context()
 			self.monitor = pyudev.Monitor.from_netlink(self.context)
 			self.monitor.filter_by(subsystem='usb')
 
 		self._logger = logging.getLogger(__name__)
-
-
-	def _onExternalDrivePlugged(self, event, device):
-
-		self.fileSystemReadyWorkers[device['device']].join()
-
-		del self.fileSystemReadyWorkers[device['device']]
 
 
 	def run(self):
@@ -110,21 +101,11 @@ class ExternalDriveManager(threading.Thread):
 
 						self._logger.info('{} connected'.format(device))
 
-						self.fileSystemReadyWorkers[device.sys_name] = FilesSystemReadyWorker(device)
-
-						eventManager().subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
-
-						self.fileSystemReadyWorkers[device.sys_name].start()
+						FilesSystemReadyWorker(device).start()
 
 					if device.action == 'remove':
 
 						self._logger.info('{} disconnected'.format(device))
-
-						eventManager().fire(
-							Events.EXTERNAL_DRIVE_UNPLUGGED, {
-								"device": device.sys_name
-							}
-						)
 
 
 
