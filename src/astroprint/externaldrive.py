@@ -213,7 +213,7 @@ class ExternalDriveManager(threading.Thread):
 	def copyFileToLocal(self, origin, destination, observerId):
 		try:
 			_origin = self._cleanFileLocation(origin)
-			self.copy(_origin,_cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],self._progressCb,observerId)
+			self.copy(_origin,self._cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],self._progressCb,observerId)
 
 			return True
 
