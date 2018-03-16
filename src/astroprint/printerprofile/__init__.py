@@ -46,6 +46,8 @@ class PrinterProfileManager(object):
 					'name': "ABS",
 					'nozzle_temp': 230,
 					'bed_temp' : 80}
+			],
+			'last_presets_used' : [
 			]
 		}
 

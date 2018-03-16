@@ -15,13 +15,23 @@
         <div class="small-8 columns temp-target radius">
           <div class="row small-collapse">
             <div class="small-6 columns target">
-              <div class="label-target">Target </div>
-              <div class="target-value bold">- -</div>
+              <div class="label-target">Target: <span class="target-value"></span></div>
+              <div>
+                <select class="freq-selector-<%= tool %>" align="center">
+                  <% _.each( temp_presets, function( temp_preset ){ %>
+                    <option value="<%= temp_preset.id %>" <% if ( temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
+                  <% }); %>
+                  <option value="other"><a>Other...</a></li>
+                </select>
+                <div class="other-temp-<%= tool %> hide">
+                  <input type="number" value="0" min=0 class="text-center expand other-preset" name="temp-selected"/>
+                </div>
+              </div>
             </div>
             <div class="small-6 columns" align="left">
               <input type="number" class="hide"/>
-                <button class="temp-edit">
-                  <i class="icon-pencil"></i>
+                <button class="temp-on">
+                  <i class="icon-temperatire"></i>
                   <i class="icon-rocket-spinner animate-spin"></i>
                 </button>
             </div>
@@ -30,6 +40,9 @@
       </div>
     </div>
   </div>
+  <br>
+  <br>
+  <br>
 </script>
 
 <script type="text/template" id="design-upload-warning-modal-template">

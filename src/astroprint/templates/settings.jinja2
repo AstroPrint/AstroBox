@@ -187,7 +187,7 @@
     <div id="temperature-presets" class="settings-page hide">
       <script type="text/template" id="temperature-presets-settings-page-template">
         <div class="loading-button new-preset">
-           <button class="success radius"><i class="icon-plus">New Temperature Preset</button>
+           <button class="success radius"><i class="icon-plus"></i>New Temperature Preset</button>
         </div>
         <hr/>
         <div class="row element-list">
@@ -206,9 +206,12 @@
                   <%= t.bed_temp %>
                 <% } %>
               </div>
-              <div class="small-2 columns" align="center">
+              <div class="small-1 columns" align="center">
+                  <a title="Edit" class="edit-preset"><i class="icon-pencil"></i></a>
+              </div>
+              <div class="small-1 columns" align="center">
                 <% if (temp_presets.length > 1) { %>
-                  <a title="Remove" class="delete-link"><i class="icon-trash"></i></a>
+                  <a title="Remove" class="delete-preset"><i class="icon-trash"></i></a>
                 <% } %>
               </div>
             </div>
@@ -242,49 +245,56 @@
     </div>
 
     <div id="add-preset-modal" class="reveal-modal medium radius" data-reveal align="center">
-      <h2 class="bold">New Temperature Preset</h2>
-      <div class="modal-actions row">
-        <div class="small-12 medium-6 medium-centered columns">
-          <form data-abide="ajax">
-            <div class="input-wrapper">
-              <label for="network-name" class="bold">
-                Network Name
-              </label>
-              <input id="network-name" name="name" type="text" value="<%= settings.name %>" required pattern="hostname" autocomplete="off"/>
-              <small class="error">Invalid Device Name: use letters, numbers or dashes(-) only.</small>
-            </div>
-            <div class="input-wrapper">
-              <label for="max-nozzle-temp" class="bold">
-                Max. Nozzle Temperature
-              </label>
-              <div class="row collapse">
-                <div class="small-9 columns">
-                  <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-                  <small class="error">Invalid Nozzle Temperature.</small>
-                </div>
-                <div class="small-3 columns"><span class="postfix">&deg;C</div>
+      <script type="text/template" id="temperature-presets-add-modal">
+        <h2 class="bold">
+          <% if (preset) { %>Edit Temperature Preset <% } %>
+          <% if (!preset) { %>New Temperature Preset <% } %>
+        </h2>
+        <div class="modal-actions row">
+          <div class="small-12 medium-6 medium-centered columns">
+            <form data-abide="ajax" id="preset-form">
+              <div class="input-wrapper">
+                <label for="temperature-preset-name" class="bold">
+                  Temperature Preset Name
+                </label>
+                <input id="temperature-preset-name" name="name" type="text" required pattern autocomplete="off"/>
+                <small class="error">Please provide a name</small>
               </div>
-            </div>
-            <div class="input-wrapper">
-              <label for="max-nozzle-temp" class="bold">
-                Max. Nozzle Temperature
-              </label>
-              <div class="row collapse">
-                <div class="small-9 columns">
-                  <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-                  <small class="error">Invalid Nozzle Temperature.</small>
+              <div class="input-wrapper">
+                <label for="preset-nozzle-temp" class="bold">
+                  Nozzle Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="preset-nozzle-temp" name="preset-nozzle-temp" type="number"  required pattern="integer"/>
+                    <small class="error">Invalid Nozzle Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
                 </div>
-                <div class="small-3 columns"><span class="postfix">&deg;C</div>
               </div>
-            </div>
-            <div class="loading-button">
-              <button class="success radius">Save</button>
-              <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-            </div>
-          </form>
-          <button class="secondary radius expand" onclick="$('#add-preset-modal').foundation('reveal', 'close')">Cancel</button>
+              <div class="input-wrapper">
+                <label for="preset-bed-temp" class="bold">
+                  Bed Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="preset-bed-temp" name="preset-bed-temp" type="number" required pattern="integer"/>
+                    <small class="error">Invalid Bed Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                </div>
+              </div>
+              <div class="loading-button cancel-add-preset">
+                <span class="button cancel expand">Cancel</span>
+              </div>
+              <div class="loading-button">
+                <button class="success radius">Save</button>
+                <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
+      </script>
       <a class="close-reveal-modal">&#215;</a>
     </div>
 
