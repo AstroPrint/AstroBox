@@ -315,7 +315,7 @@ var StorageControlView = Backbone.View.extend({
   composeLocation: function(locationNavigation){
     if(locationNavigation != 'back'){
       if(this.exploringLocation != '/'){
-        this.exploringLocation = this._cleanUrlNavigation(this.exploringLocation + '/' + locationNavigation);
+        this.exploringLocation = this._cleanUrlNavigation(locationNavigation);
       } else {
         this.exploringLocation = this._cleanUrlNavigation(this.exploringLocation + locationNavigation);
       }
@@ -1111,7 +1111,7 @@ var BrowsingFileView = Backbone.View.extend({
     data.file.set('location',data.file.get('name'));
 
     if(this.parentView.storage_control_view.exploringLocation != '/'){
-      data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1]);
+      data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1].replace('/',''));
     } else {
       data.file.set('name',data.file.get('name').split(this.parentView.storageLocation)[1].replace('/',''))
     }
