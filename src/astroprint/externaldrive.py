@@ -136,6 +136,12 @@ class ExternalDriveManager(threading.Thread):
 				stdout=subprocess.PIPE
 			)
 
+			eventManager().fire(
+				Events.EXTERNAL_DRIVE_EJECTED, {
+					"device": drive
+				}
+			)
+
 			return {'result': True}
 
 		except Exception, error:

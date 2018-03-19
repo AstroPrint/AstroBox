@@ -39,6 +39,8 @@ class FilesService(PluginService):
 		'f¡nished_download_printfile',
 		#watch if an external drive is phisically plugged
 		'external_drive_plugged',
+		#watch if an external drive is ejected
+		'external_drive_ejected',
 		################
 		#PLUGIN -> BROWSER
 		#watch the copying progress of a file from external drive to home folder
@@ -53,6 +55,7 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
+		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_EJECTED, self._onExternalDriveEjected)
 
 	def eject(self, data, sendResponse):
 
@@ -356,3 +359,6 @@ class FilesService(PluginService):
 
 	def _onExternalDrivePlugged(self,event,data):
 		self.publishEvent('external_drive_plugged',data)
+
+	def _onExternalDriveEjected(self,event,data):
+		self.publishEvent('external_drive_ejected',data)
