@@ -394,7 +394,7 @@ var PrintFilesListView = Backbone.View.extend({
 
     $.getJSON('/api/files/storage-location')
       .success(_.bind(function(data){
-        this.storageLocation = data.response;
+        this.storageLocation = data;
         this.refresh('local', options.syncCompleted);
       },this))
       .fail(function(error){
