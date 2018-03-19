@@ -128,7 +128,7 @@ class ExternalDriveManager(threading.Thread):
 
 	def eject(self, drive):
 
-		args = ['eject', drive]
+		args = ['eject', settings().getBaseFolder('storageLocation').replace('//','/') + drive]
 
 		try:
 			ejectProccess = subprocess.Popen(

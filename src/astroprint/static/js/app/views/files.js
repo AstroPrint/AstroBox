@@ -373,6 +373,7 @@ var PrintFilesListView = Backbone.View.extend({
   last_refresh: 0,
   refreshing: false,
   need_to_be_refreshed: false,
+  storageLocation: null,
   events: {
     'click .list-header button.sync': 'forceSync'
   },
@@ -390,7 +391,18 @@ var PrintFilesListView = Backbone.View.extend({
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
 
-    this.refresh('local', options.syncCompleted);
+
+    $.getJSON('/api/files/storage-location')
+      .success(_.bind(function(data){
+        this.storageLocation = data.response;
+        this.refresh('local', options.syncCompleted);
+      },this))
+      .fail(function(error){
+        console.error();
+        this.refresh('local', options.syncCompleted);
+      }
+    );
+
   },
   externalDrivesRefresh: function(){
 
@@ -431,21 +443,28 @@ var PrintFilesListView = Backbone.View.extend({
             list.append(backView.$el);
           }
 
-          this.usbfile_list.each(_.bind(function(file, idx) {
-            if(this.usbfile_list.extensionMatched(file.get('name'))){
-              var usb_file_view = new USBFileView(file,this);
-            } else {
-              var usb_file_view = new BrowsingFileView(
-                {
-                  parentView: this,
-                  file: file
-                });
+          if(this.storageLocation){
+            this.usbfile_list.each(_.bind(function(file, idx) {
+              if(this.usbfile_list.extensionMatched(file.get('name'))){
+                var usb_file_view = new USBFileView(file,this);
+              } else {
+
+                file.set('name',file.get('name').split(this.storageLocation)[1].replace('/',''))
+
+                var usb_file_view = new BrowsingFileView(
+                  {
+                    parentView: this,
+                    file: file
+                  });
+                usb_file_view.render();
+                this.usb_file_views.push( usb_file_view );
+              }
               usb_file_view.render();
               this.usb_file_views.push( usb_file_view );
-            }
-            usb_file_view.render();
-            this.usb_file_views.push( usb_file_view );
-          }, this));
+            }, this));
+          } else {
+            noty({text: "There was an error retrieving external storage location", timeout: 3000});
+          }
 
           if (this.usb_file_views.length) {
             _.each(this.usb_file_views, function(p) {

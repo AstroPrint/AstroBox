@@ -327,6 +327,12 @@ def exploreFolder():
 
 		return jsonify(externalDriveMgr.getFolderExploration(location))
 
+
+@api.route("/files/storage-location", methods=["GET"])
+@restricted_access
+def getStorageLocation():
+	return jsonify(settings().getStorageLocation())
+
 @api.route("/files/file-browsing-extensions", methods=["GET"])
 @restricted_access
 def getFileBrowsingExtensions():
