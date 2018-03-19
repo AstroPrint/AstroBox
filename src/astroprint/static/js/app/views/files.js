@@ -1108,6 +1108,8 @@ var BrowsingFileView = Backbone.View.extend({
   {
     this.parentView = data.parentView;
 
+    data.file.set('location',data.file.get('name'));
+
     if(this.parentView.storage_control_view.exploringLocation != '/'){
       data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1]);
     } else {
@@ -1182,7 +1184,7 @@ var BrowsingFileView = Backbone.View.extend({
   {
     if (evt) evt.preventDefault();
 
-    var filename = this.file.get('name');
+    var filename = this.file.get('location');
 
     var loadingBtn = this.$('.loading-button.print');
 
