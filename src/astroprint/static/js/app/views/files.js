@@ -308,6 +308,10 @@ var StorageControlView = Backbone.View.extend({
   initialize: function(options)
   {
     this.print_file_view = options.print_file_view;
+    //cloud default selection
+    this.$('a.active').removeClass('active');
+    this.$('a.cloud').addClass('active');
+    this.selected = 'cloud';
   },
   _cleanUrlNavigation: function(location){
     return location.replace(/\/+/g, "/");
