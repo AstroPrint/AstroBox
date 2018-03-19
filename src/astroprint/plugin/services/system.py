@@ -17,6 +17,7 @@ from astroprint.printer.manager import printerManager
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from astroprint.printerprofile import printerProfileManager
+from astroprint.customactions import customActionsManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -232,6 +233,13 @@ class SystemService(PluginService):
 
 			return
 
+	def customActions(self, data ,sendMessage):
+		cam = customActionsManager()
+		result = cam.data.copy()
+
+		sendMessage(result)
+
+		return
 
 	def refreshPluggedCamera(self, data, sendMessage):
 		cm = cameraManager()
