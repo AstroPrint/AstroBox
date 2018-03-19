@@ -4,6 +4,7 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import os
+import shutil
 import time
 from . import PluginService
 
@@ -19,6 +20,7 @@ from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
+from astroprint.externaldrive import externalDriveManager
 
 class FilesService(PluginService):
 	_validEvents = [
@@ -34,8 +36,15 @@ class FilesService(PluginService):
 		#watch downloading progress of a print file
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
-		'f¡nished_download_printfile'
-
+		'f¡nished_download_printfile',
+		#watch if an external drive is phisically plugged
+		'external_drive_plugged',
+		#watch if an external drive is ejected
+		'external_drive_ejected',
+		################
+		#PLUGIN -> BROWSER
+		#watch the copying progress of a file from external drive to home folder
+		'copy_to_home_progress'
 	]
 
 	def __init__(self):
@@ -44,6 +53,60 @@ class FilesService(PluginService):
 		#files managing
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
+		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
+		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
+		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_EJECTED, self._onExternalDriveEjected)
+
+	def eject(self, data, sendResponse):
+
+		ejection = externalDriveManager().eject(data['drive'])
+
+		if ejection['result']:
+
+			sendResponse({'success':'no error'})
+		else:
+
+			sendResponse(ejection['error'],True)
+
+	def localFileExists(self, data, sendResponse):
+		if not externalDriveManager().localFileExists(data['filename']):
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse({'error': 'local file already exists' },True)
+
+	def copyFileToLocal(self, data, sendResponse):
+
+		if externalDriveManager().copyFileToLocal(data['origin'],data['destination'],data['observerId']):
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse({'error': 'copy print file to local folder failed' },True)
+
+
+	def getFileBrowsingExtensions(self, sendResponse):
+		sendResponse({ 'fileBrowsingExtensions' : externalDriveManager().getFileBrowsingExtensions() })
+
+
+	def getFolderExploration(self, folder, sendResponse):
+
+		try:
+			sendResponse( { 'folderExp': externalDriveManager().getFolderExploration(folder) })
+
+		except Exception as e:
+			self._logger.error("exploration folders can not be obtained", exc_info = True)
+			sendResponse('no_folders_obtained',True)
+
+
+	def getTopStorages(self, sendResponse):
+
+		try:
+			sendResponse( { 'storageFolders': externalDriveManager().getLocalStorages() })
+
+		except Exception as e:
+			self._logger.error("storage folders can not be obtained", exc_info = True)
+			sendResponse('no_folders_obtained',True)
+
+	def getBaseFolder(self, key, sendResponse):
+		sendResponse({ 'baseFolder' : externalDriveManager()._cleanFileLocation(settings().getBaseFolder(key))})
 
 	def getLocalFiles(self, sendResponse):
 		try:
@@ -290,3 +353,12 @@ class FilesService(PluginService):
 		if data['type'] == 'success':
 			self.publishEvent('cloud_download_success',data)
 		#else TODO
+
+	def _onCopyToHomeProgress(self,event,data):
+		self.publishEvent('copy_to_home_progress',data)
+
+	def _onExternalDrivePlugged(self,event,data):
+		self.publishEvent('external_drive_plugged',data)
+
+	def _onExternalDriveEjected(self,event,data):
+		self.publishEvent('external_drive_ejected',data)

@@ -17,7 +17,8 @@ class EventSender(object):
 			'status_update': None,
 			'printing_progress': None,
 			'print_capture': None,
-			'print_file_download': None
+			'print_file_download': None,
+			'copy_file_to_home': None
 		}
 
 	def sendLastUpdate(self, event):

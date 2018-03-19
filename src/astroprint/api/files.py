@@ -15,6 +15,7 @@ from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
+from astroprint.externaldrive import externalDriveManager
 
 #~~ GCODE file handling
 
@@ -296,3 +297,65 @@ def deletePrintFile(filename, target):
 
 	return NO_CONTENT
 
+#external drive managing
+@api.route("/files/explore-folder", methods=["GET"])
+@restricted_access
+def exploreFolder():
+
+	location = request.args.get('location')
+
+	externalDriveMgr = externalDriveManager()
+
+	if location == '/':
+
+		usb_folders = externalDriveMgr.getLocalStorages()
+
+		homeFound = False
+		idx = 0
+
+		while not homeFound and idx < len(usb_folders):
+
+			if usb_folders[idx]['icon'] == 'home':
+				del usb_folders[idx]
+				homeFound = True
+
+			idx+=1
+
+		return jsonify(usb_folders)
+
+	else:
+
+		return jsonify(externalDriveMgr.getFolderExploration(location))
+
+
+@api.route("/files/storage-location", methods=["GET"])
+@restricted_access
+def getStorageLocation():
+	return jsonify(settings().getStorageLocation())
+
+@api.route("/files/file-browsing-extensions", methods=["GET"])
+@restricted_access
+def getFileBrowsingExtensions():
+	return jsonify(externalDriveManager().getFileBrowsingExtensions())
+
+@api.route("/files/local-storages", methods=["GET"])
+@restricted_access
+def getLocalStorages():
+	return jsonify(externalDriveManager().getLocalStorages())
+
+@api.route("/files/eject", methods=["POST"])
+@restricted_access
+def eject():
+	return jsonify(externalDriveManager().eject(request.values.get('drive')))
+
+@api.route("/files/local-file-exists/<string:filename>", methods=["GET"])
+@restricted_access
+def localFileExists(filename):
+	return jsonify({'response': externalDriveManager().localFileExists(filename)})
+
+
+@api.route("/files/copy-to-local", methods=["POST"])
+@restricted_access
+def copyFileToLocal():
+	externalDriveMgr = externalDriveManager()
+	return jsonify({'response': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})
