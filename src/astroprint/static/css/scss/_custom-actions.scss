@@ -75,6 +75,27 @@
 	    }
 	}
 }
+.no-connection-overlay {
+  display: none;
+  html.no-printer & {
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    text-align: center;
+    font-size: rem-calc(30);
+    border-radius: 3px;
+    padding: 5px;
+
+    i {
+      font-size: rem-calc(80);
+      display: block;
+    }
+  }
+}
 
 @media #{$xlarge-up} {
 	.title-heading {
