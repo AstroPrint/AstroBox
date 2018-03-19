@@ -5,59 +5,100 @@ var TempSemiCircleView = Backbone.View.extend({
   lastSentTimestamp: null,
   target: 0,
   actual: 0,
+  last_temp: null,
+  temp_presets: [],
+  tool : null,
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
   enableOff: true,
   hideBed: false,
   events: {
     'click button.temp-off': 'turnOff',
-    'click .temp-target button.temp-edit': 'onEditClicked',
-    'change .temp-target input': 'onTempFieldChanged',
-    'blur .temp-target input': 'onTempFieldBlur'
+    'click button.temp-on': 'turnOn',
+    'blur .other-preset' : "onBlurcustomTemp",
+    'keydown .other-preset' : "onCustomTemp",
+    'change select ' :  "onChangePreset"
   },
   initialize: function(params)
   {
+    // Get last preset
+    var lastTemp = function (tool, last_presets_used) {
+      if (!tool) {
+        tool = "bed";
+      }
+      for (last_preset of last_presets_used) {
+        if (tool == last_preset.tool) {
+          return last_preset
+        }
+      }
+      return null
+    }
+    var profile = app.printerProfile.toJSON();
     var tool = params.tool;
+    this.temp_presets = profile.temp_presets;
+
+    last_temp = lastTemp(tool, profile.last_presets_used)
+    if (last_temp) {
+      if (last_temp.id == "custom") {
+        last_preset = last_temp
+      } else {
+        for (let temp_preset of this.temp_presets) {
+          if (temp_preset.id == last_temp.id) {
+            last_preset = last_temp
+            break;
+          }
+        }
+      }
+    }
+
     this.enableOff = params.enableOff;
     this.hideBed = params.hideBed;
-
+    this.last_preset = last_preset;
 
     if (tool != null) {
       this.type = 'tool';
-      this.$el.attr('id', 'tool'+tool);
+      this.tool = tool
+      this.$el.attr('id', this.type+this.tool);
 
     } else {
       this.type = 'bed';
+      this.tool = 'bed';
       this.$el.attr('id', 'bed');
     }
     this.$el.attr('align', 'center');
 
     if (params.preHeat) {
-      this._sendToolCommand('target', this.el.id, 180);
+      this.turnOn();
     }
   },
   render: function ()
   {
-    this.$el.html(this.template());
+    this.$el.html(this.template({
+      temp_presets : this.temp_presets,
+      last_preset : this.last_preset,
+      tool : this.tool
+    }));
 
     if (this.type == 'bed') {
       if (!(app.printerProfile.toJSON()).heated_bed) {
         this.$el.find('.temp-off').attr('disabled','disabled');
-        this.$el.find('.temp-edit').attr('disabled','disabled');
+        this.$el.find('.temp-on').attr('disabled','disabled');
       }
     }
 
     this.enableTurnOff(this.enableOff);
     this.checkHideBed(this.hideBed);
+    if (this.last_preset.id == "custom"){
+      setTimeout( _.bind(function() {
+          var select = $('.freq-selector-' + this.tool);
+          select.prepend($('<option>', {
+            value: "custom",
+            text:  this.last_preset.value + "º"
+          }));
+          select.val(this.last_preset.id)
+        }, this), 1);
+    }
     return this;
-  },
-  onTempFieldBlur: function(e)
-  {
-    var input = $(e.target);
-
-    input.addClass('hide');
-    input.closest('.temp-target').find('button.temp-edit').removeClass('hide');
-
   },
   updateValues: function (temps)
   {
@@ -91,6 +132,72 @@ var TempSemiCircleView = Backbone.View.extend({
       this.setTemps(temps.current, temps.target);
     }
   },
+  onChangePreset : function (e){
+    var elem = $(e.target);
+
+    if (e.target.value == 'other') {
+      elem.addClass('hide');
+      this.$('.other-temp-' + this.tool).removeClass('hide').find('input').focus().select();
+    } else {
+      if ($(".freq-selector-" + this.tool +" option[value='custom']")){
+        $(".freq-selector-" + this.tool +" option[value='custom']").remove();
+      }
+      this.last_preset = {'id' : e.target.value, 'tool' : this.tool}
+      var temperatureToSet = this._getPresetTemperature(e.target.value)
+      this._changeTemperature(temperatureToSet)
+    }
+  },
+  onCustomTemp : function (e)
+  {
+    if (e.keyCode == 13){
+      this.onBlurcustomTemp(e)
+    }
+  },
+  onBlurcustomTemp: function(e)
+  {
+    var input = $(e.target);
+    var select = $('.freq-selector-' + this.tool);
+    if (input.val() && input.val()!= 0){
+      var custom;
+      _.each( this.temp_presets, function( temp_preset ){
+        if (temp_preset.id == "custom"){
+          custom = temp_preset;
+          return
+        }
+      })
+      if (custom){
+        custom.value = input.val()
+        //ToDo
+      } else {
+        custom = {tool: this.tool, id: "custom", value : input.val()}
+      }
+
+      this.last_preset = custom
+      //TODO SAVE LAST TEMP
+
+      if ($(".freq-selector-" + this.tool +" option[value='custom']")){
+        $(".freq-selector-" + this.tool +" option[value='custom']").remove();
+      }
+
+      select.prepend($('<option>', {
+        value: "custom",
+        text: input.val() + "º"
+      }));
+    }
+
+    select.val(this.last_preset.id)
+    $('.other-temp-' + this.tool).addClass('hide');
+    select.removeClass('hide')
+    if (input.val() != 0){
+      this._changeTemperature(input.val())
+      input.val(0)
+    }
+  },
+  turnOn : function()
+  {
+    var temperature = this.last_preset.id == "custom" ? this.last_preset.value : this._getPresetTemperature(this.last_preset.id)
+    this._changeTemperature(temperature);
+  },
   turnOff: function(e)
   {
     var turnOffButton = $(e.currentTarget);
@@ -104,27 +211,10 @@ var TempSemiCircleView = Backbone.View.extend({
 
     }
   },
-  onEditClicked: function(e)
+  _changeTemperature: function(value)
   {
-    e.preventDefault();
 
-    var target = $(e.currentTarget);
-    var container = target.closest('.temp-target');
-    var label = container.find('span.target-value');
-    var button = container.find('button.temp-edit');
-    var input = container.find('input');
-
-    button.addClass('hide');
-    input.removeClass('hide');
-    input.val((label.text()).slice(0, -1));
-    setTimeout(function(){input.focus().select()},100);
-  },
-  onTempFieldChanged: function(e)
-  {
-    var input = $(e.target);
-    var value = input.val();
     var maxValue = null;
-
     if(this.type == 'bed') {
       maxValue = app.printerProfile.get('max_bed_temp');
     } else {
@@ -138,10 +228,10 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     if (value != this.lastSent && !isNaN(value) ) {
-      var loadingBtn = this.$('.temp-edit');
+      var loadingBtn = this.$('.temp-on');
       loadingBtn.addClass('loading');
       this._sendToolCommand('target', this.el.id, value);
-      input.blur();
+      this._saveLastTemp()
     }
   },
   setTemps: function(actual, target)
@@ -178,7 +268,7 @@ var TempSemiCircleView = Backbone.View.extend({
         turnOffButton.removeClass("animate-spin");
       }
 
-      var loadingBtn = this.$('.temp-edit');
+      var loadingBtn = this.$('.temp-on');
       if(loadingBtn.hasClass('loading') ){
         loadingBtn.removeClass('loading');
       }
@@ -246,6 +336,41 @@ var TempSemiCircleView = Backbone.View.extend({
 
     this.lastSentTimestamp = new Date().getTime();
     this.lastSent = temp;
+  },
+  _getPresetTemperature: function (id)
+  {
+    for (let temp_preset of this.temp_presets){
+      if (temp_preset.id == id){
+        return this.tool == "bed"? temp_preset.bed_temp : temp_preset.nozzle_temp
+      }
+    }
+    return null
+  },
+  _saveLastTemp: function()
+  {
+    var profile = app.printerProfile.toJSON();
+    var newTempSaved = true;
+    for (var i in profile.last_presets_used) {
+      if (profile.last_presets_used[i].tool == this.tool) {
+        profile.last_presets_used[i] = this.last_preset;
+        newTempSaved = false
+        break;
+      }
+    }
+    if (newTempSaved){
+      profile.last_presets_used.push(this.last_preset)
+    }
+    attrs= {}
+    attrs.last_presets_used = profile.last_presets_used
+    app.printerProfile.save(attrs, {
+      patch: true,
+      success: _.bind(function() {}, this),
+      error: function() {
+        console.error("error savind last temp")
+      }
+    });
+
+
   },
   enableTurnOff: function(value)
   {

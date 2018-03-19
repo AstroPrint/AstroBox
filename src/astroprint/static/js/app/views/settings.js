@@ -227,9 +227,7 @@ var PrinterProfileView = SettingsPage.extend({
 
       attrs[elem.attr('name')] = value;
     });
-
     attrs.cancel_gcode = attrs.cancel_gcode.trim().split('\n');
-
     this.settings.save(attrs, {
       patch: true,
       success: _.bind(function() {
@@ -243,6 +241,275 @@ var PrinterProfileView = SettingsPage.extend({
         loadingBtn.removeClass('loading');
       }
     });
+  }
+});
+
+/***********************
+* Printer - Temperature Presets
+************************/
+
+var TemperaturePresetsView = SettingsPage.extend({
+  el: '#temperature-presets',
+  template: _.template( $("#temperature-presets-settings-page-template").html() ),
+  settings: null,
+  presetDeleteDlg : null,
+  editPresetDialog : null,
+  events: {
+  'click .stored-presets .delete-preset': 'onDeletePresetClicked',
+  'click .new-preset' : "newPresetClicked",
+  'click .edit-preset' : "editPresetClicked"
+  },
+  show: function() {
+    SettingsPage.prototype.show.apply(this);
+    if (!this.settings) {
+      this.settings = app.printerProfile;
+      this.getInfo();
+    } else {
+      this.render();
+    }
+  },
+  getInfo: function()
+  {
+    $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
+      if (data) {
+        delete data.driverChoices;
+        this.settings.set(data.profile);
+        this.render(); // This removes the animate-spin from the link
+      } else {
+        noty({text: "No Profile found.", timeout: 3000});
+      }
+    }, this))
+    .fail(function() {
+      noty({text: "There was an error getting printer profile.", timeout: 3000});
+    })
+  },
+  render: function() {
+    this.$el.html(this.template({
+      temp_presets: this.settings.attributes.temp_presets,
+      heated_bed : this.settings.attributes.heated_bed
+    }));
+
+    this.$el.foundation('abide');
+
+  },
+  onDeletePresetClicked: function(e)
+  {
+    e.preventDefault();
+    var row = $(e.currentTarget).closest('.row');
+    if (!this.presetDeleteDlg){
+      this.presetDeleteDlg = new DeleteTemperaturePresetsDialog({parent: this})
+    }
+    this.presetDeleteDlg.open({
+      id: row.data('id'),
+      name: row.find('.name').text()
+    })
+      .done(function(deleted) {
+        if (deleted) {
+          row.remove();
+        }
+      })
+      .fail(function() {
+        noty({text: "Unable to Delete Stored Network"});
+      });
+  },
+  newPresetClicked: function(e)
+  {
+    e.preventDefault();
+    if (!this.editPresetsDialog){
+      this.editPresetsDialog = new EditPresetsDialog({parent: this});
+    }
+    this.editPresetsDialog.open()
+  },
+  editPresetClicked: function(e)
+  {
+    var row = $(e.currentTarget).closest('.row');
+    e.preventDefault();
+    if (!this.editPresetsDialog){
+      this.editPresetsDialog = new EditPresetsDialog({parent: this});
+    }
+    this.editPresetsDialog.open({
+      id: row.data('id'),
+    })
+  },
+  updateTemperaturePresets: function(e)
+  {
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        loadingBtn.removeClass('loading');
+        //Make sure we reload next time we load this tab
+        this.parent.subviews['printer-connection'].settings = null;
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        loadingBtn.removeClass('loading');
+      }
+    });
+  }
+});
+
+var DeleteTemperaturePresetsDialog = Backbone.View.extend({
+  el: '#delete-stored-temperature-preset-modal',
+  promise: null,
+  id : null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'close': 'onClose'
+  },
+  initialize: function(params) {
+    this.parent = params.parent;
+  },
+  open: function(info)
+  {
+    this.promise = $.Deferred();
+    this.$('.name').text(info.name);
+    this.id = info.id
+
+    this.$el.foundation('reveal', 'open');
+    return this.promise;
+  },
+  onClose: function()
+  {
+    if (this.promise.state() == 'pending') {
+      this.promise.resolve(false);
+    }
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function(e)
+  {
+    e.preventDefault()
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+
+    for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
+      var obj = this.parent.settings.attributes.temp_presets[i];
+      if(obj.id == this.id) {
+        this.parent.settings.attributes.temp_presets.splice(i, 1);
+        break
+      }
+    }
+    attr = {}
+    attr.temp_presets = this.parent.settings.attributes.temp_presets
+    this.parent.settings.save(attr, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Temperature Preset saved", timeout: 3000, type:"success"});
+        loadingBtn.removeClass('loading');
+        //Make sure we reload next time we load this tab
+        this.parent.parent.subviews['printer-connection'].settings = null;
+        this.doClose();
+      }, this),
+      error: function() {
+        noty({text: "Failed to delete Temperature Preset", timeout: 3000});
+        loadingBtn.removeClass('loading');
+        this.doClose();
+      }
+    });
+
+    if (this.parent.settings.attributes.temp_presets.length > 1){
+      this.promise.resolve(true);
+    } else {
+      this.parent.render();
+      this.promise.resolve(false);
+    }
+  }
+});
+
+var EditPresetsDialog = Backbone.View.extend({
+  el: '#add-preset-modal',
+  template: _.template( $("#temperature-presets-add-modal").html() ),
+  preset : null,
+  events : {
+    "click .cancel-add-preset" : "doClose",
+    "valid.fndtn.abide form": 'validForm',
+  },
+  initialize: function(params) {
+    this.parent = params.parent;
+  },
+  open: function(info = null) {
+    if(info){
+      for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
+        var obj = this.parent.settings.attributes.temp_presets[i];
+        if(obj.id == info.id) {
+          this.preset = obj
+          break
+        }
+      }
+      this.render();
+      $('#temperature-preset-name').val(this.preset.name)
+      $('#preset-bed-temp').val(this.preset.bed_temp)
+      $('#preset-nozzle-temp').val(this.preset.nozzle_temp)
+    } else {
+      this.preset = null
+      this.render();
+    }
+    this.promise = $.Deferred();
+    this.$el.foundation('reveal', 'open');
+    return this.promise;
+  },
+  doClose: function(e)
+  {
+    e.preventDefault()
+    var form = document.getElementById("preset-form");
+    form.reset();
+    this.$el.foundation('reveal', 'close');
+  },
+  render: function() {
+    this.$el.html(this.template({
+      preset: this.preset,
+      bed : this.parent.settings.attributes.heated_bed
+    }));
+
+    this.$el.foundation('abide');
+
+  },
+  validForm: function(e)
+  {
+    var form = document.getElementById("preset-form");
+    var name = $('#temperature-preset-name').val()
+    var bed = $('#preset-bed-temp').val() ? $('#preset-bed-temp').val() : 0
+    var nozzle = $('#preset-nozzle-temp').val()
+    if (!this.preset){
+      var temp_preset = { 'name' : name, 'bed_temp': bed , 'nozzle_temp' :nozzle }
+      $.post(API_BASEURL + 'temperature-preset', temp_preset, _.bind(function(data) {
+        temp_preset.id = data.id
+        this.parent.settings.attributes.temp_presets.push(temp_preset)
+        form.reset();
+        this.parent.render()
+        noty({text: "Temperature Preset saved.", timeout: 3000, type:"success"});
+        this.$el.foundation('reveal', 'close');
+      }, this))
+      .fail( _.bind(function(data) {
+        noty({text: "There was an error saving temperature preset.", timeout: 3000});
+      }));
+    } else {
+      this.preset.name = name;
+      this.preset.bed_temp = bed;
+      this.preset.nozzle_temp = nozzle;
+
+      attr = {}
+      attr.temp_presets = this.parent.settings.attributes.temp_presets
+      this.parent.settings.save(attr, {
+        patch: true,
+        success: _.bind(function() {
+          noty({text: "Temperature Preset modified", timeout: 3000, type:"success"});
+          //Make sure we reload next time we load this tab
+          this.parent.parent.subviews['printer-connection'].settings = null;
+          form.reset();
+          this.parent.render();
+          this.$el.foundation('reveal', 'close');
+        }, this),
+        error: function() {
+          noty({text: "Failed to modify Temperature Preset", timeout: 3000});
+          loadingBtn.removeClass('loading');
+        }
+      });
+    }
   }
 });
 
@@ -1198,7 +1465,7 @@ var PluginUploader = FileUploadBase.extend({
   }
 });
 
-var DeletePluginDialog = Backbone.View.extend({
+var DeletePluginf = Backbone.View.extend({
   el: '#delete-plugin-modal',
   events: {
     'click button.secondary': 'doClose',
@@ -1683,6 +1950,7 @@ var SettingsView = Backbone.View.extend({
     this.subviews = {
       'printer-connection': new PrinterConnectionView({parent: this}),
       'printer-profile': new PrinterProfileView({parent: this}),
+      'temperature-presets': new TemperaturePresetsView({parent: this}),
       'network-name': new NetworkNameView({parent: this}),
       'internet-connection': new InternetConnectionView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),

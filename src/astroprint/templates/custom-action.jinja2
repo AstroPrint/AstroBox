@@ -13,12 +13,12 @@
   <script type="text/template" id="custom-action-app-template">
     <div class="row large-collapse">
         <div class="small-12 columns title-heading">
-          <h1 class="bold"><%= customActionApp.strings.en.name %></h1>
+          <h1 class="bold"><%= customActionApp.strings.EN.name %></h1>
         </div>
       </div>
       <div class="row">
         <div class="row">
-          <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.en.title %></div>
+          <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.EN.title %></div>
           <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= customActionApp.steps.length %></span></div>
         </div>
 
@@ -60,7 +60,7 @@
 
       <!-- Custom Action description -->
       <div class="row text-center">
-        <p><%= currentStep.strings.en.description %></p>
+        <p><%= currentStep.strings.EN.description %></p>
       </div>
 
       <div class="row buttons text-center" >
@@ -75,17 +75,17 @@
         </div>
         <% } %>
         <!-- Action button -->
-        <% if (currentStep.strings.en.button_action) { %>
+        <% if (currentStep.strings.EN.button_action) { %>
           <div class="small-12 large-4 columns" >
-            <button class="success tiny action bold"><%= currentStep.strings.en.button_action %></button>
+            <button class="success tiny action bold"><%= currentStep.strings.EN.button_action %></button>
           </div>
           <% } %>
         <!-- Next button -->
         <div class="loading-button small-12 large-4 columns">
-          <button class="disabled tiny next bold"><%= currentStep.strings.en.button_next %></button>
+          <button class="disabled tiny next bold"><%= currentStep.strings.EN.button_next %></button>
           <span class="button success tiny disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
           <span class="button alert tiny disabled failed"><i class="icon-attention"></i> Failed</span>
-          <span class="button secondary tiny disabled inactive"><%= currentStep.strings.en.button_next %></span>
+          <span class="button secondary tiny disabled inactive"><%= currentStep.strings.EN.button_next %></span>
         </div>
       </div>
     </div>

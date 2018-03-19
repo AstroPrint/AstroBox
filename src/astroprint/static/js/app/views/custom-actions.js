@@ -19,6 +19,7 @@ var CustomActionsListView = Backbone.View.extend({
     //this.customizedActionCollection = 'name'
     $.getJSON(API_BASEURL + 'custom-actions', null, _.bind(function(data) {
 
+
       if (data.utilities && data.utilities.length) {
         for (var i = 0; i < data.utilities.length; i++) {
           var ca = data.utilities[i];

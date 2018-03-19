@@ -86,7 +86,7 @@
               left: -10px;
             }
 
-            .temp-edit {
+            .temp-on {
               width: 38px;
               height: 38px;
 
@@ -95,7 +95,7 @@
               background: #333;
               padding: 4px 10px;
 
-              i.icon-pencil {
+              i.icon-temperatire {
                 &:before {
                   font-size: 20px;
                   color: white;
@@ -113,7 +113,7 @@
                 .icon-rocket-spinner {
                   display: inline-block;
                 }
-                .icon-pencil {
+                .icon-temperatire {
                   display: none;
                 }
               }

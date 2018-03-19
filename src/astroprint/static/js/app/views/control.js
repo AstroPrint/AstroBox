@@ -11,6 +11,7 @@ var TempView = Backbone.View.extend({
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
+  temp_presets : null,
   events: {
     'click .nav-extruder': 'navExtruderClicked',
     'click .semi-circle-temps': 'semiCircleTempsClicked',
@@ -23,7 +24,7 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-
+    this.temp_presets = profile.temp_presets;
     this.renderCircleTemps();
   },
   renderCircleTemps: function() {
@@ -38,7 +39,7 @@ var TempView = Backbone.View.extend({
     this.$el.find('#slider').empty();
     this.$el.find('.bed').empty();
 
-    //extruders
+
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
@@ -419,7 +420,6 @@ var ExtrusionControlView = Backbone.View.extend({
   extruderChanged: function(e)
   {
     var selectedTool = $(e.target).val();
-    console.log("Changed select of extruder for: ", $(e.target).val());
 
     this.setCurrentTool(selectedTool)
     this._sendChangeToolCommand(selectedTool)
