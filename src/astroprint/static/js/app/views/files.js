@@ -1110,6 +1110,8 @@ var BrowsingFileView = Backbone.View.extend({
 
     if(this.parentView.storage_control_view.exploringLocation != '/'){
       data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1]);
+    } else {
+      data.file.set('name',data.file.get('name').split(parentview.storageLocation)[1].replace('/',''))
     }
 
     this.file = data.file;
