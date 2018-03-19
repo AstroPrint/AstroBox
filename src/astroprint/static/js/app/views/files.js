@@ -450,6 +450,7 @@ var PrintFilesListView = Backbone.View.extend({
                 var usb_file_view = new USBFileView(file,this);
               } else {
 
+                file.set('location',file.get('name'))
                 file.set('name',file.get('name').split(this.storageLocation)[1].replace('/',''))
 
                 var usb_file_view = new BrowsingFileView(
@@ -1182,7 +1183,7 @@ var BrowsingFileView = Backbone.View.extend({
   {
     if (evt) evt.preventDefault();
 
-    var filename = this.file.get('name');
+    var filename = this.file.get('location');
 
     var loadingBtn = this.$('.loading-button.print');
 
