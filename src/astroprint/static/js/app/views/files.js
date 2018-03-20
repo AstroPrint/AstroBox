@@ -621,7 +621,7 @@ var PrintFilesListView = Backbone.View.extend({
             print_file_view.downloadProgress = progress.circleProgress({
               value: 0,
               animation: false,
-              size: progressContainer.innerWidth() - 25,
+              size: progressContainer.innerWidth(),
               fill: { color: 'black' }
             });
           } else {
