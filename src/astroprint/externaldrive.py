@@ -8,6 +8,8 @@ import os
 import threading
 import time
 
+from sys import platform
+
 from astroprint.printer.manager import printerManager
 
 from octoprint.events import eventManager, Events
@@ -40,11 +42,6 @@ class FilesSystemReadyWorker(threading.Thread):
 			}
 		)
 
-		return
-
-
-from sys import platform
-
 # singleton
 _instance = None
 
@@ -72,9 +69,7 @@ class ExternalDriveManager(threading.Thread):
 	def __init__(self, enablingPluggedEvent):
 		super(ExternalDriveManager, self).__init__()
 		self.daemon = True
-
 		self.stopThread = False
-
 		self.enablingPluggedEvent = enablingPluggedEvent
 
 		if enablingPluggedEvent:
@@ -84,30 +79,20 @@ class ExternalDriveManager(threading.Thread):
 
 		self._logger = logging.getLogger(__name__)
 
-
 	def run(self):
 		if self.enablingPluggedEvent:
 			for device in iter(self.monitor.poll, None):
 				if self.stopThread:
 					self.monitor.stop()
-					self.join()
 					return
 
 				if device.device_type == 'usb_device':
-
-					print device.action
-
 					if device.action == 'add':
-
 						self._logger.info('{} connected'.format(device))
-
 						FilesSystemReadyWorker(device).start()
 
 					if device.action == 'remove':
-
 						self._logger.info('{} disconnected'.format(device))
-
-
 
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
@@ -120,14 +105,11 @@ class ExternalDriveManager(threading.Thread):
 
 
 	def _cleanFileLocation(self, location):
-
 		locationParsed = location.replace('//','/')
-
 		return locationParsed
 
 
 	def eject(self, drive):
-
 		args = ['eject', settings().getBaseFolder('storageLocation').replace('//','/') + drive]
 
 		try:
@@ -169,7 +151,6 @@ class ExternalDriveManager(threading.Thread):
 					total = float(os.stat(src).st_size)
 
 					while True:
-
 							buf = s.read(blksize)
 							bytes_written = d.write(buf)
 
@@ -190,14 +171,9 @@ class ExternalDriveManager(threading.Thread):
 					d.close()
 
 	def localFileExists(self, filename):
-
-		print self.getBaseFolder('uploads') + '/' + filename
-
 		try:
 				s = open(self._cleanFileLocation(self.getBaseFolder('uploads') + '/' + filename), 'rb')
 		except Exception as e:
-				print 'exception'
-				print e
 				if 's' in locals():
 					s.close()
 
@@ -255,9 +231,7 @@ class ExternalDriveManager(threading.Thread):
 			self._logger.error("storage folders can not be obtained", exc_info = True)
 			return None
 
-
 	def getTopStorages(self):
-
 		try:
 			return printerManager().fileManager.getAllStorageLocations()
 
