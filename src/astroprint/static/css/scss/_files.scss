@@ -259,26 +259,31 @@
         &.downloading {
           .download-progress {
             display: block;
-            position: absolute;
-            top: 5px;
-            bottom: 0;
-            left: 0;
-            right: 5px;
-            overflow: hidden;
+            //position: absolute;
+            //top: 3px;
+            //right:0;
+            margin: 0 auto;
+            max-height: 63px;
+            padding-top: 4px;
+
+            canvas{
+              width: 55px !important;
+              height: 55px !important;
+            }
 
             .dw-cancel {
               color: $alert-color;
               position: absolute;
-              top: 28px;
+              top: 20px;
               left: 0;
               right: 0;
               text-align: center;
-              font-size: rem-calc(20);
+              font-size: rem-calc(28);
             }
 
             span {
               position: absolute;
-              top: 14px;
+              top: 12px;
               left: 0;
               right: 0;
               text-align: center;
@@ -422,6 +427,7 @@
       .right-section {
         font-size: rem-calc(42);
         text-align: center;
+        padding-left: 0;
 
         a {
           color: $success-color;
@@ -558,5 +564,3 @@
   }
 
 }
-
-
