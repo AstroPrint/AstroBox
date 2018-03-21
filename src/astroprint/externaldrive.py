@@ -105,6 +105,12 @@ class ExternalDriveManager(threading.Thread):
 
 					if device.action == 'remove':
 
+						eventManager().fire(
+							Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
+								"device": drive
+							}
+						)
+
 						self._logger.info('{} disconnected'.format(device))
 
 
