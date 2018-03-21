@@ -395,7 +395,7 @@ var PrintFilesListView = Backbone.View.extend({
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
     app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesRefresh, this);
-
+    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesRefresh, this);
 
     $.getJSON('/api/files/storage-location')
       .success(_.bind(function(data){
