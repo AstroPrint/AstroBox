@@ -92,16 +92,13 @@ class ExternalDriveManager(threading.Thread):
 						FilesSystemReadyWorker(device).start()
 
 					if device.action == 'remove':
-<<<<<<< HEAD
 
 						eventManager().fire(
 							Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
-								"device": drive
+								"device": device.sys_name
 							}
 						)
 
-=======
->>>>>>> master
 						self._logger.info('{} disconnected'.format(device))
 
 	def shutdown(self):
