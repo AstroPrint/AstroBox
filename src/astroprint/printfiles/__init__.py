@@ -8,7 +8,6 @@ import threading
 import yaml
 import time
 import octoprint.util as util
-import fnmatch
 
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
@@ -39,7 +38,6 @@ class PrintFilesManager(object):
 		self._settings = settings()
 
 		self._uploadFolder = self._settings.getBaseFolder("uploads")
-		self._storageFolder = self._settings.getStorageLocation()
 
 		self._callbacks = []
 
@@ -364,49 +362,6 @@ class PrintFilesManager(object):
 			return None
 
 		return secure
-
-	def _cleanFileLocation(self, location):
-		return location.replace('//','/')
-
-	def getLocalStorageLocations(self):
-
-		return self.getLocationExploration(self._storageFolder,'usb')
-
-
-	def getAllStorageLocations(self):
-		locations = []
-
-		locations.append({
-			'name': self._uploadFolder,
-			'icon': 'home'
-		})
-		locations.extend(self.getLocalStorageLocations())
-
-		return locations
-
-	def getLocationExploration(self, location, icon='folder', extensions=fileBrowsingExtensions):
-
-		location = self._cleanFileLocation(location)
-
-		locations = []
-
-		for item in os.listdir(location):
-			if not item.startswith('.'):
-				completePath = self._cleanFileLocation(location + '/' + item)
-				if os.path.isdir(completePath):
-					locations.append({
-						'name': completePath,
-						'icon': icon})
-				else:
-					for ext in extensions:
-						if fnmatch.fnmatch(item.lower(), '*' + ext):
-							locations.append({
-								'name': completePath,
-								'icon': ext
-							})
-							break
-
-		return locations
 
 	def getAllFilenames(self):
 		return [x["name"] for x in self.getAllFileData()]

@@ -7,15 +7,16 @@
 var USBFile = Backbone.Model.extend({
   defaults: {
     'name': '',
+    'location': '',
     'image': null
   }
 });
 
 var USBFileCollection = Backbone.Collection.extend({
   model: USBFile,
-  url: API_BASEURL + "files/explore-folder",
+  url: API_BASEURL + "files/folder-contents",
   extensionsAllowed: ['.gcode'],
-  localStorages: ['/media/pi'],
+  localStorages: [],
   initialize: function(){
     $.getJSON('/api/files/file-browsing-extensions')
       .done(function(data){
@@ -25,7 +26,7 @@ var USBFileCollection = Backbone.Collection.extend({
         console.error(error);
       });
 
-    $.getJSON('/api/files/local-storages')
+    $.getJSON('/api/files/removable-drives')
       .done(_.bind(function(data){
         this.localStorages = data;
       },this))

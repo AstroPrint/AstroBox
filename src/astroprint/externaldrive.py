@@ -7,69 +7,29 @@ import subprocess
 import os
 import threading
 import time
+import sarge
+import pyudev
+import fnmatch
 
 from sys import platform
+
+from glob import glob
 
 from astroprint.printer.manager import printerManager
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
 
-class FilesSystemReadyWorker(threading.Thread):
-
-	def __init__(self, device, action):
-		super(FilesSystemReadyWorker,self).__init__()
-		self.daemon = True
-
-		self.device = device
-
-		self.action = action
-
-		path = settings().getBaseFolder('storageLocation').replace('//','/')
-
-		self.previousStorages = printerManager().fileManager.getLocalStorageLocations()
-
-
-	def run(self):
-		newStorageFound = False
-
-		while not newStorageFound:
-			time.sleep(0.5)
-			currentStorages = printerManager().fileManager.getLocalStorageLocations()
-			newStorageFound = (self.previousStorages != printerManager().fileManager.getLocalStorageLocations())
-
-		if self.action == 'PLUG IN':
-
-			eventManager().fire(
-				Events.EXTERNAL_DRIVE_PLUGGED, {
-					"device": self.device.sys_name
-				}
-			)
-
-		elif self.action == 'EJECTION':
-
-			eventManager().fire(
-				Events.EXTERNAL_DRIVE_EJECTED, {
-					"device": self.device
-				}
-			)
-
-		else:#self.action == 'REMOVED'
-
-			eventManager().fire(
-				Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
-					"device": self.device.sys_name
-				}
-			)
-
 # singleton
 _instance = None
+
+ROOT_MOUNT_POINT = '/media/astrobox'
 
 def externalDriveManager():
 	global _instance
 
 	if _instance is None:
-		if platform == "linux" or platform == "linux2":
+		if platform.startswith("linux"):
 			_instance = ExternalDriveManager(True)
 
 		elif platform == "darwin":
@@ -78,9 +38,6 @@ def externalDriveManager():
 			logger.info('darwin platform is not able to watch external drives plugging...')
 
 	return _instance
-
-
-import pyudev
 
 #
 # Thread to get some plugged usb drive
@@ -93,28 +50,81 @@ class ExternalDriveManager(threading.Thread):
 		self.enablingPluggedEvent = enablingPluggedEvent
 
 		if enablingPluggedEvent:
-			self.context = pyudev.Context()
-			self.monitor = pyudev.Monitor.from_netlink(self.context)
-			self.monitor.filter_by(subsystem='usb')
+			self.monitor = pyudev.Monitor.from_netlink(pyudev.Context())
+			self.monitor.filter_by(subsystem='block')
 
 		self._logger = logging.getLogger(__name__)
 
 	def run(self):
 		if self.enablingPluggedEvent:
 			for device in iter(self.monitor.poll, None):
+
 				if self.stopThread:
 					self.monitor.stop()
 					return
 
-				if device.device_type == 'usb_device':
+				if device.device_type == 'partition':
 					if device.action == 'add':
-						self._logger.info('{} connected'.format(device))
-						FilesSystemReadyWorker(device,'PLUG IN').start()
+						devName = device.get('DEVNAME')
+						self._logger.info('%s pluged in' % devName)
+						if self._mountPartition(devName, self._getDeviceMountDirectory(device)):
+							eventManager().fire( Events.EXTERNAL_DRIVE_PLUGGED, { "device": devName } )
+
+						#FilesSystemReadyWorker(device,'PLUG IN').start()
 
 					if device.action == 'remove':
-						self._logger.info('{} disconnected'.format(device))
-						FilesSystemReadyWorker(device,'REMOVED').start()
+						devName = device.get('DEVNAME')
+						self._logger.info('%s removed' % devName)
+						self._umountPartition(self._getDeviceMountDirectory(device))
+						eventManager().fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, { "device": devName })
+						#FilesSystemReadyWorker(device,'REMOVED').start()
 
+	def _getDeviceMountDirectory(self, device):
+		name = device.get('ID_FS_LABEL')
+		uuid = device.get('ID_FS_UUID')
+		return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+
+	def _mountPartition(self, partition, directory):
+		try:
+			if not os.path.exists(directory):
+				os.makedirs(directory)
+
+			p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
+			if p.returncode != 0:
+				returncode = p.returncode
+				stderr_text = p.stderr.text
+				self._logger.warn("Partition mount failed with return code %i: %s" % (returncode, stderr_text))
+				return False
+
+			else:
+				self._logger.info("Partition %s mounted on %s" % (partition, directory))
+				return True
+
+		except Exception, e:
+			self._logger.warn("Mount failed: %s" % e)
+			return False
+
+	def _umountPartition(self, directory):
+		try:
+			if os.path.exists(directory):
+				p = sarge.run('umount %s' % directory, stderr=sarge.Capture())
+				if p.returncode != 0:
+					returncode = p.returncode
+					stderr_text = p.stderr.text
+					self._logger.warn("Partition umount failed with return code %i: %s" % (returncode, stderr_text))
+					return False
+
+				else:
+					os.rmdir(directory)
+					self._logger.info("Partition umounted from %s" % directory)
+					return True
+
+			else:
+				return True
+
+		except Exception, e:
+			self._logger.warn("umount failed: %s" % e)
+			return False
 
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
@@ -131,26 +141,14 @@ class ExternalDriveManager(threading.Thread):
 		return locationParsed
 
 
-	def eject(self, drive):
-		args = ['eject', settings().getBaseFolder('storageLocation').replace('//','/') + drive]
-
-		try:
-			ejectProccess = subprocess.Popen(
-				args,
-				stdout=subprocess.PIPE
-			)
-
-			FilesSystemReadyWorker(drive,'EJECTION').start()
-
+	def eject(self, mountPath):
+		if self._umountPartition(mountPath):
+			eventManager().fire( Events.EXTERNAL_DRIVE_EJECTED, { "path": mountPath })
 			return {'result': True}
-
-		except Exception, error:
-
-			self._logger.error('Error ejecting drive %s: %s' %  (drive,str(error)))
-
+		else:
 			return {
 				'result': False,
-				'error': str(error)
+				'error': "Unable to eject"
 			}
 
 	def copy(self, src, dst, progressCb, observerId):
@@ -201,7 +199,6 @@ class ExternalDriveManager(threading.Thread):
 
 		return True
 
-
 	def _progressCb(self, progress,file,observerId):
 		eventManager().fire(
 			Events.COPY_TO_HOME_PROGRESS, {
@@ -225,40 +222,45 @@ class ExternalDriveManager(threading.Thread):
 
 			return False
 
+	def getRemovableDrives(self):
+		return self.getDirContents('%s/*/*' % ROOT_MOUNT_POINT, 'usb')
 
 	def getFileBrowsingExtensions(self):
 		return printerManager().fileManager.fileBrowsingExtensions
 
-
-	def getFolderExploration(self, folder):
-
+	def getFolderContents(self, folder):
 		try:
-			return printerManager().fileManager.getLocationExploration(self._cleanFileLocation(folder))
+			return self.getDirContents(self._cleanFileLocation(folder))
 
 		except Exception as e:
 			self._logger.error("exploration folders can not be obtained", exc_info = True)
 			return None
 
-
-	def getLocalStorages(self):
-
-		try:
-			return printerManager().fileManager.getLocalStorageLocations()
-
-		except Exception as e:
-			self._logger.error("storage folders can not be obtained", exc_info = True)
-			return None
-
-	def getTopStorages(self):
-		try:
-			return printerManager().fileManager.getAllStorageLocations()
-
-		except Exception as e:
-			self._logger.error("top storage folders can not be obtained", exc_info = True)
-			return None
-
 	def getBaseFolder(self, key):
 		return self._cleanFileLocation(settings().getBaseFolder(key))
+
+	def getDirContents(self, globPattern, icon='folder', extensions=None):
+		if extensions is None:
+			extensions = self.getFileBrowsingExtensions()
+
+		files = []
+
+		for item in glob(globPattern):
+			if os.path.isdir(item):
+				files.append({
+					'name': item,
+					'icon': icon})
+
+			else:
+				for ext in extensions:
+					if fnmatch.fnmatch(item.lower(), '*' + ext):
+						files.append({
+							'name': item,
+							'icon': ext
+						})
+						break
+
+		return files
 
 def externalDriveManagerShutdown():
 	global _instance
