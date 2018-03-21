@@ -191,7 +191,7 @@ var PrintFileView = Backbone.View.extend({
     this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size()) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
@@ -835,10 +835,6 @@ var USBFileView = Backbone.View.extend({
     this.parentView = parentView;
 
   },
-  afterRender: function(){
-    console.log($('.div-container').width())
-    console.log($('.text').width())
-  },
   render: function()
   {
     var usb_file = this.usb_file.toJSON();
@@ -857,7 +853,7 @@ var USBFileView = Backbone.View.extend({
     this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size()) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
@@ -1125,7 +1121,7 @@ var BrowsingFileView = Backbone.View.extend({
     this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size()) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
