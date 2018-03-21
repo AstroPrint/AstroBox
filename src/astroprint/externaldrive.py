@@ -17,11 +17,13 @@ from octoprint.settings import settings
 
 class FilesSystemReadyWorker(threading.Thread):
 
-	def __init__(self, device):
+	def __init__(self, device, action):
 		super(FilesSystemReadyWorker,self).__init__()
 		self.daemon = True
 
 		self.device = device
+
+		self.action = action
 
 		path = settings().getBaseFolder('storageLocation').replace('//','/')
 
@@ -36,11 +38,29 @@ class FilesSystemReadyWorker(threading.Thread):
 			currentStorages = printerManager().fileManager.getLocalStorageLocations()
 			newStorageFound = (self.previousStorages != printerManager().fileManager.getLocalStorageLocations())
 
-		eventManager().fire(
-			Events.EXTERNAL_DRIVE_PLUGGED, {
-				"device": self.device.sys_name
-			}
-		)
+		if action == 'PLUG IN':
+
+			eventManager().fire(
+				Events.EXTERNAL_DRIVE_PLUGGED, {
+					"device": self.device.sys_name
+				}
+			)
+
+		else if action == 'EJECTION':
+
+			eventManager().fire(
+				Events.EXTERNAL_DRIVE_EJECTED, {
+					"device": self.device.sys_name
+				}
+			)
+
+		else:#action = 'REMOVED'
+
+			eventManager().fire(
+				Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
+					"device": self.device.sys_name
+				}
+			)
 
 # singleton
 _instance = None
@@ -89,17 +109,12 @@ class ExternalDriveManager(threading.Thread):
 				if device.device_type == 'usb_device':
 					if device.action == 'add':
 						self._logger.info('{} connected'.format(device))
-						FilesSystemReadyWorker(device).start()
+						FilesSystemReadyWorker(device,'PLUG IN').start()
 
 					if device.action == 'remove':
-
-						eventManager().fire(
-							Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
-								"device": device.sys_name
-							}
-						)
-
 						self._logger.info('{} disconnected'.format(device))
+						FilesSystemReadyWorker(device,'REMOVED').start()
+
 
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
@@ -125,11 +140,7 @@ class ExternalDriveManager(threading.Thread):
 				stdout=subprocess.PIPE
 			)
 
-			eventManager().fire(
-				Events.EXTERNAL_DRIVE_EJECTED, {
-					"device": drive
-				}
-			)
+			FilesSystemReadyWorker(device,'EJECTION').start()
 
 			return {'result': True}
 
