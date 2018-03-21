@@ -187,11 +187,9 @@ var PrintFileView = Backbone.View.extend({
   {
     this.list = options.list;
     this.print_file = options.print_file;
-
-    this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
@@ -229,6 +227,8 @@ var PrintFileView = Backbone.View.extend({
       'click a.download': 'downloadClicked',
       'click a.dw-cancel': 'cancelDownloadClicked'
     });
+
+    this.slideName();
   },
   infoClicked: function(evt)
   {
@@ -395,7 +395,7 @@ var PrintFilesListView = Backbone.View.extend({
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
     app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesRefresh, this);
-
+    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesRefresh, this);
 
     $.getJSON('/api/files/storage-location')
       .success(_.bind(function(data){
@@ -835,10 +835,6 @@ var USBFileView = Backbone.View.extend({
     this.parentView = parentView;
 
   },
-  afterRender: function(){
-    console.log($('.div-container').width())
-    console.log($('.text').width())
-  },
   render: function()
   {
     var usb_file = this.usb_file.toJSON();
@@ -857,7 +853,7 @@ var USBFileView = Backbone.View.extend({
     this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
@@ -1121,11 +1117,9 @@ var BrowsingFileView = Backbone.View.extend({
     }
 
     this.file = data.file;
-
-    this.slideName();
   },
   slideName: function () {
-    if (!$(".div-container").size()) {
+    if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
       setTimeout(_.bind(this.slideName,this), 500); // give everything some time to render
     } else {
       if(this.$('.text').width() >= this.$('.div-container').width()){
@@ -1149,6 +1143,8 @@ var BrowsingFileView = Backbone.View.extend({
       'click div.exploreFolder': 'exploreFolder',
       'click button.eject': 'eject'
     });
+
+    this.slideName();
   },
   eject: function(evt){
     if (evt) evt.preventDefault();
