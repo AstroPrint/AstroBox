@@ -38,7 +38,7 @@ class FilesSystemReadyWorker(threading.Thread):
 			currentStorages = printerManager().fileManager.getLocalStorageLocations()
 			newStorageFound = (self.previousStorages != printerManager().fileManager.getLocalStorageLocations())
 
-		if action == 'PLUG IN':
+		if self.action == 'PLUG IN':
 
 			eventManager().fire(
 				Events.EXTERNAL_DRIVE_PLUGGED, {
@@ -46,15 +46,15 @@ class FilesSystemReadyWorker(threading.Thread):
 				}
 			)
 
-		else if action == 'EJECTION':
+		elif self.action == 'EJECTION':
 
 			eventManager().fire(
 				Events.EXTERNAL_DRIVE_EJECTED, {
-					"device": self.device.sys_name
+					"device": self.device
 				}
 			)
 
-		else:#action = 'REMOVED'
+		else:#self.action == 'REMOVED'
 
 			eventManager().fire(
 				Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
@@ -140,7 +140,7 @@ class ExternalDriveManager(threading.Thread):
 				stdout=subprocess.PIPE
 			)
 
-			FilesSystemReadyWorker(device,'EJECTION').start()
+			FilesSystemReadyWorker(drive,'EJECTION').start()
 
 			return {'result': True}
 
