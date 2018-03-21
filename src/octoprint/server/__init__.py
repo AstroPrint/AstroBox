@@ -45,6 +45,7 @@ eventManager = None
 loginManager = None
 softwareManager = None
 discoveryManager = None
+externalDriveManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -383,6 +384,7 @@ class Server():
 		global debug
 		global softwareManager
 		global discoveryManager
+		global externalDriveManager
 		global VERSION
 		global UI_API_KEY
 
@@ -473,6 +475,10 @@ class Server():
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
 		discoveryManager = DiscoveryManager()
+
+		from astroprint.externaldrive import externalDriveManager
+
+		externalDriveManager().start()
 
 		def access_validation_factory(validator):
 			"""
@@ -629,6 +635,9 @@ class Server():
 		discoveryManager = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
+
+		from astroprint.externaldrive import externalDriveManagerShutdown
+		externalDriveManagerShutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()

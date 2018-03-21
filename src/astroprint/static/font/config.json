@@ -469,6 +469,30 @@
       "css": "certificate",
       "code": 61603,
       "src": "fontawesome"
+    },
+    {
+      "uid": "6533bdc16ab201eb3f3b27ce989cab33",
+      "css": "folder-open-empty",
+      "code": 61717,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "b091a8bd0fdade174951f17d936f51e4",
+      "css": "folder-empty",
+      "code": 61716,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "3ba4275937db277075fc47d6b5a69a2e",
+      "css": "back",
+      "code": 59440,
+      "src": "entypo"
+    },
+    {
+      "uid": "ygvgohzaooew2l8favz2xu2xi59w1hoo",
+      "css": "eject-alt",
+      "code": 59441,
+      "src": "typicons"
     }
   ]
 }

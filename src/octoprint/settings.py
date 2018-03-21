@@ -84,6 +84,7 @@ default_settings = {
 		"logs": None,
 		"virtualSd": None,
 		"userPlugins": None,
+		"storageLocation": '/media/pi/'
 	},
 	"temperature": {
 		"profiles":
@@ -332,6 +333,14 @@ class Settings(object):
 		if isinstance(value, bool):
 			return value
 		return value.lower() in valid_boolean_trues
+
+	def getStorageLocation(self):
+		keys = default_settings["folder"].keys()
+
+		if "storageLocation" in keys:
+			return self.get(['folder','storageLocation'])
+		else:
+			return None
 
 	def getBaseFolder(self, type):
 		if type not in default_settings["folder"].keys():
