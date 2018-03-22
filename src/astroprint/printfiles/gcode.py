@@ -57,8 +57,6 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 			self._gcode = GcodeInterpreter(self._loadedCallback,self._currentFile)
 			self._gcode.progressCallback = self._onParsingProgress
 			self._gcode.load(path)
-			self._logger.debug("Analysis of file %s finished, notifying callback" % filename)
-			self._loadedCallback(self._currentFile, self._gcode)
 
 		finally:
 			self._gcode = None
@@ -115,28 +113,8 @@ class GcodeInterpreter(object):
 			self.filename = filename
 			self._fileSize = os.stat(filename).st_size
 
-		try:
-
-			self.progressCallback(0.0)
-
-			self.timerCalculator = GCodeAnalyzer(self.filename,False,self.cbGCodeAnalyzerReady,None,self)
-
-			self.timePerLayers = self.timerCalculator.makeCalcs()
-
-			#self.extrusionAmount = maxExtrusion
-			#self.extrusionVolume = [0] * len(maxExtrusion)
-			#for i in range(len(maxExtrusion)):
-			# radius = self._filamentDiameter / 2
-			# self.extrusionVolume[i] = (self.extrusionAmount[i] * (math.pi * radius * radius)) / 1000
-			#self.totalMoveTimeMinute = totalMoveTimeMinute
-
-		except:
-
-			parameters = {}
-			parameters['parent'] = self
-			parameters['filename'] = self.filename
-
-			self.cbGCodeAnalyzerException(parameters)
+		self.progressCallback(0.0)
+		GCodeAnalyzer(self.filename, False, self.cbGCodeAnalyzerReady, self.cbGCodeAnalyzerException, self).mmakeCalcs()
 
 	def abort(self):
 		self._abort = True
