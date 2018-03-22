@@ -9,8 +9,8 @@ var AppRouter = Backbone.Router.extend({
   filesView: null,
   controlView: null,
   settingsView: null,
-  customActionsView: null,
-  customActionView: null,
+  additionalTasksView: null,
+  additionalTaskView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -23,8 +23,8 @@ var AppRouter = Backbone.Router.extend({
     "control": "control",
     "printing": "printing",
     "settings": "settings",
-    "custom": "customActions",
-    "custom/:sequence_id": "customAction",
+    "additional-tasks": "additionalTasks",
+    "additional-tasks/:sequence_id": "additionalTask",
     "settings/:page": "settings",
     "gcode-terminal": "terminal",
     "camera": "camera",
@@ -117,19 +117,19 @@ var AppRouter = Backbone.Router.extend({
     this.settingsView.menu.changeActive(page || 'printer-connection');
     app.selectQuickNav('settings');
   },
-  customActions: function()
+  additionalTasks: function()
   {
-    if (!this.customActionsView) {
-      this.customActionsView = new CustomActionsView();
+    if (!this.additionalTasksView) {
+      this.additionalTasksView = new AdditionalTasksView();
     }
 
-    this.selectView(this.customActionsView);
+    this.selectView(this.additionalTasksView);
 
   },
-  customAction: function(sequence_id)
+  additionalTask: function(sequence_id)
   {
-    this.customActionView = new CustomActionView(sequence_id);
-    this.selectView(this.customActionView);
+    this.additionalTaskView = new AdditionalTaskView(sequence_id);
+    this.selectView(this.additionalTaskView);
   },
   terminal: function()
   {

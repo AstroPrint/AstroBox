@@ -1,25 +1,25 @@
 
 
 <div class="content">
-  {# ============== CUSTOM APP ==============#}
-  <div id="custom-action-app-container" class="small-12 large-12 columns">
-    <div class=" bold row text-center" id="no-found-action" style="display:none">No action was found with that ID
+  {# ============== ADDITIONAL TASK APP ==============#}
+  <div id="additional-task-app-container" class="small-12 large-12 columns">
+    <div class=" bold row text-center" id="additional-task" style="display:none">No additional task was found with that ID
       <div class="blink-animation">Redirecting...</div>
       <img src="static/img/sadmonkey-2.png" alt="no-action icon">
     </div>
-    <div class="custom-action-app"></div>
+    <div class="additional-tasks-app"></div>
   </div>
 
-  <script type="text/template" id="custom-action-app-template">
+  <script type="text/template" id="additional-task-app-template">
     <div class="row large-collapse">
         <div class="small-12 columns title-heading">
-          <h1 class="bold"><%= customActionApp.strings.EN.name %></h1>
+          <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
         </div>
       </div>
       <div class="row">
         <div class="row">
           <div id="title-app" class="small-10 columns text-center"><%= currentStep.strings.EN.title %></div>
-          <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= customActionApp.steps.length %></span></div>
+          <div class="small-2 columns text-right">Step <span id="step-counter" ><%= currentIndexStep %>/<%= additionalTaskApp.steps.length %></span></div>
         </div>
 
       <% if (currentStep.type == "set_temperature") { %>
@@ -52,13 +52,13 @@
           </div>
         </div>
       <% } else { %>
-        <!-- Custom Action Image -->
+        <!-- Additional Task Image -->
         <div id="img-app" class="row">
-          <img src="/static/img/variant/<%= customActionApp.id %>/<%= currentStep.img_filename %>"  class="small-12 columns text-center">
+          <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>"  class="small-12 columns text-center">
         </div>
      <% } %>
 
-      <!-- Custom Action description -->
+      <!-- Additional Task description -->
       <div class="row text-center">
         <p><%= currentStep.strings.EN.description %></p>
       </div>
@@ -69,7 +69,7 @@
           <button class="alert radius tiny bold close">Close</button>
         </div>
         <!-- Repeat button -->
-        <% if (currentIndexStep == customActionApp.steps.length && customActionApp.repeatable) { %>
+        <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
         <div class="small-12 large-4 columns" >
           <button class="alert radius tiny bold repeat">Repeat</button>
         </div>

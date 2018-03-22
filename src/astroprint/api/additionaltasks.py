@@ -7,12 +7,12 @@ from flask import jsonify
 from octoprint.server.api import api
 from octoprint.server import restricted_access
 
-from astroprint.customactions import customActionsManager
+from astroprint.additionaltasks import additionalTasksManager
 
-@api.route('/custom-actions', methods=['GET'])
+@api.route('/additional-tasks', methods=['GET'])
 @restricted_access
-def customActions():
-	cam = customActionsManager()
+def additionalTasks():
+	atm = additionalTasksManager()
 
-	result = cam.data.copy()
+	result = atm.data.copy()
 	return jsonify( result )

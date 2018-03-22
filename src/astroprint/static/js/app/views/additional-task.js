@@ -1,33 +1,33 @@
-var CustomActionView = Backbone.View.extend({
-  el: '#custom-action-view',
-  customActionContainerView: null,
+var AdditionalTaskView = Backbone.View.extend({
+  el: '#additional-task-view',
+  additionalTaskContainerView: null,
   events: {
     'hide': 'onHide'
   },
-  initialize: function(customActionSequenceID)
+  initialize: function(additionalTaskSequenceID)
   {
-    this.customActionContainerView = new CustomActionContainerView(customActionSequenceID);
+    this.additionalTaskContainerView = new AdditionalTaskContainerView(additionalTaskSequenceID);
   },
   onHide: function()
   {
-    var customView = this.customActionContainerView.customActionApp_view.customTempView;
-    if (customView) {
+    var taskAppView = this.additionalTaskContainerView.additionalTaskApp_view;
+    if (taskAppView && taskAppView.customTempView) {
       customView.stopListening();
     }
   }
 });
 
-var CustomActionContainerView = Backbone.View.extend({
-  el: '#custom-action-app-container',
-  customActionApp: null,
-  customActionApp_view: null,
-  initialize: function(customActionSequenceID)
+var AdditionalTaskContainerView = Backbone.View.extend({
+  el: '#additional-task-app-container',
+  additionalTaskApp: null,
+  additionalTaskApp_view: null,
+  initialize: function(additionalTaskSequenceID)
   {
-    if (app.router.customActionsView) {
-      this.customActionApp = app.router.customActionsView.customActionsListView.customizedActionCollection.findWhere({ id: customActionSequenceID });
+    if (app.router.additionalTasksView) {
+      this.additionalTaskApp = app.router.additionalTasksView.additionalTasksListView.additionalTaskCollection.findWhere({ id: additionalTaskSequenceID });
       this.render();
     } else {
-      this.getSequence(customActionSequenceID).then(
+      this.getSequence(additionalTaskSequenceID).then(
         success => {
           this.render();
         },
@@ -39,47 +39,47 @@ var CustomActionContainerView = Backbone.View.extend({
     }
   },
 
-  getSequence(customActionSequenceID)
+  getSequence(additionalTaskSequenceID)
   {
-    return $.getJSON(API_BASEURL + 'custom-actions', null, _.bind(function(data) {
+    return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
       if (data.utilities && data.utilities.length) {
         for (var i = 0; i < data.utilities.length; i++) {
           var ca = data.utilities[i];
-          if (ca.id == customActionSequenceID && ca.visibility) {
-            this.customActionApp = new CustomizedAction(ca);
+          if (ca.id == additionalTaskSequenceID && ca.visibility) {
+            this.additionalTaskApp = new AdditionalTask(ca);
           }
         }
       }
     }, this))
     .fail(function() {
-      noty({text: "There was an error getting customized command.", timeout: 3000});
+      noty({text: "There was an error getting additional task.", timeout: 3000});
     })
   },
 
   render: function()
   {
-    var actionEl = this.$el.find('.custom-action-app');
-    var noActionEl = this.$el.find('#no-found-action');
+    var actionEl = this.$el.find('.additional-tasks-app');
+    var noActionEl = this.$el.find('#additional-task');
 
     actionEl.empty();
     noActionEl.hide();
 
-    if (this.customActionApp) {
-      var row = new CustomActionAppView({ customActionApp: this.customActionApp});
+    if (this.additionalTaskApp) {
+      var row = new AdditionalTaskAppView({ additionalTaskApp: this.additionalTaskApp});
       actionEl.append(row.render().el);
-      this.customActionApp_view = row;
+      this.additionalTaskApp_view = row;
     } else {
       noActionEl.show();
       setTimeout(() => {
-        window.location.href = window.location.origin+"/#custom"
+        window.location.href = window.location.origin+"/#additional-tasks"
       }, 2500);
     }
   }
 });
 
-var CustomActionAppView = Backbone.View.extend({
-  className: 'action-app-row',
-  customActionApp: null,
+var AdditionalTaskAppView = Backbone.View.extend({
+  className: 'additional-task-row',
+  additionalTaskApp: null,
   currentIndexStep: 1,
   currentStep: null,
   customTempView: null,
@@ -89,13 +89,13 @@ var CustomActionAppView = Backbone.View.extend({
     "click .action": "actionClicked",
     "click .repeat": "repeatClicked"
   },
-  template: _.template($("#custom-action-app-template").html()),
+  template: _.template($("#additional-task-app-template").html()),
   initialize: function (params)
   {
-    this.customActionApp = params.customActionApp;
-    this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
+    this.additionalTaskApp = params.additionalTaskApp;
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
 
-    this.$el.attr('id', this.customActionApp.get('id'));
+    this.$el.attr('id', this.additionalTaskApp.get('id'));
   },
   closeClicked: function (e)
   {
@@ -188,7 +188,7 @@ var CustomActionAppView = Backbone.View.extend({
   doRepeat: function()
   {
     this.currentIndexStep = 1;
-    this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.render();
   },
 
@@ -196,9 +196,9 @@ var CustomActionAppView = Backbone.View.extend({
   {
 
     // If no Last step
-    if (this.currentIndexStep < this.customActionApp.get('steps').length) {
+    if (this.currentIndexStep < this.additionalTaskApp.get('steps').length) {
       this.currentIndexStep++;
-      this.currentStep = this.customActionApp.get('steps')[this.currentIndexStep-1]
+      this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
       this.render();
       // If Show temp view
       if (this.currentStep.type == "set_temperature") {
@@ -264,7 +264,7 @@ var CustomActionAppView = Backbone.View.extend({
   render: function ()
   {
     this.$el.empty();
-    this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, customActionApp: this.customActionApp.toJSON() }));
+    this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON() }));
     return this;
   },
 });
