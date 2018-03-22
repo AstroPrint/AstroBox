@@ -324,11 +324,12 @@ var StorageControlView = Backbone.View.extend({
       } else {
         this.exploringLocation = this._cleanUrlNavigation(this.exploringLocation + locationNavigation);
       }
-    } else {
-      if(!this.print_file_view.usbfile_list.topLocationMatched(this.exploringLocation)){//BACK
-        var spl = this._cleanUrlNavigation(this.exploringLocation).split('/');
-        spl.splice(-1,1);
-        this.exploringLocation = this._cleanUrlNavigation('/'+(spl).join('/'));
+    } else { //BACK
+      if(!this.print_file_view.usbfile_list.topLocationMatched(this.exploringLocation)){
+        //var spl = this._cleanUrlNavigation(this.exploringLocation).split('/');
+        //spl.splice(-1,1);
+        //this.exploringLocation = this._cleanUrlNavigation('/'+(spl).join('/'));
+        this.exploringLocation = this.exploringLocation.substr(0, this.exploringLocation.lastIndexOf('/'));
       } else {//TOP LOCATION
         this.exploringLocation = '/';
       }
@@ -468,7 +469,12 @@ var PrintFilesListView = Backbone.View.extend({
           );
         }
       } else {
-
+        list.append(
+          '<div class="empty panel radius" align="center">'+
+          ' <i class="icon-inbox empty-icon"></i>'+
+          ' <h3>No External Drives Connected.</h3>'+
+          '</div>'
+        );
       }
 
     } else {
