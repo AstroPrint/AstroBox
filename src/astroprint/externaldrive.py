@@ -82,26 +82,32 @@ class ExternalDriveManager(threading.Thread):
 	def _getDeviceMountDirectory(self, device):
 		name = device.get('ID_FS_LABEL')
 		uuid = device.get('ID_FS_UUID')
-		return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+		if name and uuid:
+			return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+		else:
+			return None
 
 	def _mountPartition(self, partition, directory):
-		try:
-			if not os.path.exists(directory):
-				os.makedirs(directory)
+		if directory:
+			try:
+				if not os.path.exists(directory):
+					os.makedirs(directory)
 
-			p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
-			if p.returncode != 0:
-				returncode = p.returncode
-				stderr_text = p.stderr.text
-				self._logger.warn("Partition mount failed with return code %i: %s" % (returncode, stderr_text))
+				p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
+				if p.returncode != 0:
+					returncode = p.returncode
+					stderr_text = p.stderr.text
+					self._logger.warn("Partition mount failed with return code %i: %s" % (returncode, stderr_text))
+					return False
+
+				else:
+					self._logger.info("Partition %s mounted on %s" % (partition, directory))
+					return True
+
+			except Exception, e:
+				self._logger.warn("Mount failed: %s" % e)
 				return False
-
-			else:
-				self._logger.info("Partition %s mounted on %s" % (partition, directory))
-				return True
-
-		except Exception, e:
-			self._logger.warn("Mount failed: %s" % e)
+		else:
 			return False
 
 	def _umountPartition(self, directory):

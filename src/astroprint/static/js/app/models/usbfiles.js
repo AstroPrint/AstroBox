@@ -56,16 +56,10 @@ var USBFileCollection = Backbone.Collection.extend({
   },
   syncLocation: function(location)
   {
-    params = {}
-
-    if (!location) {
-      params.data = {location:'/'};
-    }
-
-    params.data = {location:location};
-
-    var dataFetched = this.fetch(params);
-
-    return dataFetched
+    return this.fetch({
+      data: {
+        location: location ? location : '/'
+      }
+    });
   }
 });
