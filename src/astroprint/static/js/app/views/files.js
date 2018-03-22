@@ -326,9 +326,6 @@ var StorageControlView = Backbone.View.extend({
       }
     } else { //BACK
       if(!this.print_file_view.usbfile_list.topLocationMatched(this.exploringLocation)){
-        //var spl = this._cleanUrlNavigation(this.exploringLocation).split('/');
-        //spl.splice(-1,1);
-        //this.exploringLocation = this._cleanUrlNavigation('/'+(spl).join('/'));
         this.exploringLocation = this.exploringLocation.substr(0, this.exploringLocation.lastIndexOf('/'));
       } else {//TOP LOCATION
         this.exploringLocation = '/';

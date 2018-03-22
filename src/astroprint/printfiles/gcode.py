@@ -114,7 +114,7 @@ class GcodeInterpreter(object):
 			self._fileSize = os.stat(filename).st_size
 
 		self.progressCallback(0.0)
-		GCodeAnalyzer(self.filename, False, self.cbGCodeAnalyzerReady, self.cbGCodeAnalyzerException, self).mmakeCalcs()
+		GCodeAnalyzer(self.filename, False, self.cbGCodeAnalyzerReady, self.cbGCodeAnalyzerException, self).makeCalcs()
 
 	def abort(self):
 		self._abort = True
