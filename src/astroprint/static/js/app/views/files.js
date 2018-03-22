@@ -343,8 +343,7 @@ var StorageControlView = Backbone.View.extend({
   {
     e.preventDefault();
     $('h3.printablefiles-message').addClass('hide');
-    this.exploringLocation = '/';
-    this.print_file_view.externalDrivesRefresh();
+    this.print_file_view.showRemovableDrives();
     this.selectStorage('USB');
   },
   localClicked: function(e)
@@ -398,15 +397,20 @@ var PrintFilesListView = Backbone.View.extend({
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     this.refresh('local', options.syncCompleted);
   },
+  showRemovableDrives: function()
+  {
+    this.storage_control_view.exploringLocation = '/';
+    this.externalDrivesRefresh();
+  },
   externalDrivesRefresh: function()
   {
-    var selectedStorage = this.storage_control_view.selected;
     var path = this.storage_control_view.exploringLocation;
 
     this.$('.loading-button.sync').addClass('loading');
-    this.usb_file_views = [];
     this.usbfile_list.syncLocation(path)
-      .done(_.bind(function(data){
+      .done(_.bind(function(){
+        this.usb_file_views = [];
+
         if(path != '/'){
           var backView = new BackFolderView(
             {
@@ -848,7 +852,8 @@ var USBFileView = Backbone.View.extend({
       }
     }
   },
-  _print: function(){
+  startPrint: function()
+  {
     var filename = this.usb_file.get('name').split('/').splice(-1,1)[0];
 
     //We can't use evt because this can come from another source than the row print button
@@ -865,7 +870,7 @@ var USBFileView = Backbone.View.extend({
     .done(_.bind(function() {
       setTimeout(function(){
         loadingBtn.removeClass('loading');
-      },2000);
+      }, 2000);
     }, this))
     .fail(function(xhr) {
       var error = null;
@@ -888,7 +893,8 @@ var USBFileView = Backbone.View.extend({
 
         dlg.open({
           drive: filePath.substr(0,filePath.lastIndexOf('/')),
-          parentView: this
+          fileView: this,
+          fileListView: this.parentView
         });
 
       },this))
@@ -946,7 +952,7 @@ var USBFileView = Backbone.View.extend({
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
         promise.reject();
       } else {
-        noty({text: "File " + filename.substr(filename.lastIndexOf('/')+1) + " copied to home",type: 'success',timeout: 3000});
+        noty({text: filename.substr(filename.lastIndexOf('/')+1) + " copied to internal storage.",type: 'success',timeout: 3000});
         this.parentView.need_to_be_refreshed = true;
         promise.resolve();
       }
@@ -974,7 +980,7 @@ var USBFileView = Backbone.View.extend({
     $.getJSON('/api/files/local-file-exists/' + filename)
       .success(_.bind(function(data){
         if(data.response){
-          var dlg = new ReplaceFileDialog( { usbFileView: this });
+          var dlg = new ReplaceFileDialog();
 
           dlg.open({
             usbFileView: this,
@@ -999,7 +1005,8 @@ var USBFileView = Backbone.View.extend({
 var EjectBeforePrintDialog = Backbone.View.extend({
   el: '#eject-before-print-dlg',
   drive: null,
-  parentView: null,
+  fileView: null,
+  fileListView: null,
   template: _.template( $("#eject-before-print-template").html() ),
   events: {
     'click button.eject-no': 'onNoClicked',
@@ -1015,7 +1022,8 @@ var EjectBeforePrintDialog = Backbone.View.extend({
   open: function(options)
   {
     this.drive = options.drive;
-    this.parentView = options.parentView;
+    this.fileView = options.fileView;
+    this.fileListView = options.fileListView;
     this.render();
     this.$el.foundation('reveal', 'open');
   },
@@ -1024,6 +1032,7 @@ var EjectBeforePrintDialog = Backbone.View.extend({
     if(e) e.preventDefault();
 
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
 
     $.ajax({
         url: '/api/files/eject',
@@ -1038,26 +1047,23 @@ var EjectBeforePrintDialog = Backbone.View.extend({
         var error = data.error
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
       } else {
-        noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
-        this.parentView.$('button.copy').removeClass('hide')
-        this.parentView.$('button.print').removeClass('hide')
-        this.parentView._print();
+        this.fileListView.showRemovableDrives();
+        noty({text: "Drive ejected. You can safely remove the external drive.<br>Print Job starting...", type: 'success', timeout: 3000});
+        this.fileView.startPrint();
       }
-      setTimeout(function(){
-        loadingBtn.removeClass('loading');
-      },2000);
-      this.parentView = null;
     }, this))
     .fail(_.bind(function(xhr) {
       var error = xhr.responseText;
       noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
-      this.parentView.$('button.copy').removeClass('hide')
-      this.parentView.$('button.print').removeClass('hide')
+    }, this))
+    .always(_.bind(function(){
+      this.fileView.$('button.copy').removeClass('hide')
+      this.fileView.$('button.print').removeClass('hide')
+      this.fileView = null;
+      this.fileListView = null;
       loadingBtn.removeClass('loading');
-      this.parentView = null;
-    }, this));
-
-    this.$el.foundation('reveal', 'close');
+      this.$el.foundation('reveal', 'close');
+    },this));
   },
   onNoClicked: function(e)
   {
@@ -1065,10 +1071,9 @@ var EjectBeforePrintDialog = Backbone.View.extend({
 
     this.$el.foundation('reveal', 'close');
 
-    this.parentView.$('button.copy').removeClass('hide')
-    this.parentView.$('button.print').removeClass('hide')
-
-    this.parentView._print();
+    this.fileView.$('button.copy').removeClass('hide')
+    this.fileView.$('button.print').removeClass('hide')
+    this.fileView.startPrint();
   },
   onClose: function()
   {
@@ -1143,7 +1148,7 @@ var BrowsingFileView = Backbone.View.extend({
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
         this.$('button.eject').removeClass('hide');
       } else {
-        noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
+        noty({text: "Drive ejected. You can safely remove the external drive", type: 'success', timeout: 3000});
         this.parentView.render()
       }
     }, this))
