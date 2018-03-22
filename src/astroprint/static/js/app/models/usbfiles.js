@@ -18,7 +18,6 @@ var USBFileCollection = Backbone.Collection.extend({
   extensionsAllowed: ['.gcode'],
   localStorages: [],
   initialize: function(){
-    console.log('asldkfj;alskdjf')
     $.getJSON('/api/files/file-browsing-extensions')
       .done(function(data){
         this.extensionsAllowed = data;
