@@ -377,7 +377,6 @@ var PrintFilesListView = Backbone.View.extend({
   last_refresh: 0,
   refreshing: false,
   need_to_be_refreshed: false,
-  storageLocation: null,
   events: {
     'click .list-header button.sync': 'forceSync'
   },
@@ -391,26 +390,17 @@ var PrintFilesListView = Backbone.View.extend({
     });
 
     app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
-    app.eventManager.on('astrobox:MetadataAnalysisFinished', _.bind(this.onMetadataAnalysisFinished, this));
-    this.listenTo(this.file_list, 'remove', this.onFileRemoved);
+    app.eventManager.on('astrobox:MetadataAnalysisFinished', this.onMetadataAnalysisFinished, this);
     app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
     app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesRefresh, this);
     app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesRefresh, this);
 
-    $.getJSON('/api/files/storage-location')
-      .success(_.bind(function(data){
-        this.storageLocation = data;
-        this.refresh('local', options.syncCompleted);
-      },this))
-      .fail(function(error){
-        console.error();
-        this.refresh('local', options.syncCompleted);
-      }
-    );
+    this.listenTo(this.file_list, 'remove', this.onFileRemoved);
 
+    this.refresh('local', options.syncCompleted);
   },
-  externalDrivesRefresh: function(){
-
+  externalDrivesRefresh: function()
+  {
     var selectedStorage = this.storage_control_view.selected;
 
     if(selectedStorage && selectedStorage == 'USB'){
@@ -448,26 +438,22 @@ var PrintFilesListView = Backbone.View.extend({
             list.append(backView.$el);
           }
 
-          if(this.storageLocation){
-            this.usbfile_list.each(_.bind(function(file, idx) {
-              if(this.usbfile_list.extensionMatched(file.get('name'))){
-                var usb_file_view = new USBFileView(file,this);
-              } else {
+          this.usbfile_list.each(_.bind(function(file, idx) {
+            if(this.usbfile_list.extensionMatched(file.get('name'))){
+              var usb_file_view = new USBFileView(file, this);
+            } else {
 
-                var usb_file_view = new BrowsingFileView(
-                  {
-                    parentView: this,
-                    file: file
-                  });
-                usb_file_view.render();
-                this.usb_file_views.push( usb_file_view );
-              }
+              var usb_file_view = new BrowsingFileView(
+                {
+                  parentView: this,
+                  file: file
+                });
               usb_file_view.render();
               this.usb_file_views.push( usb_file_view );
-            }, this));
-          } else {
-            noty({text: "There was an error retrieving external storage location", timeout: 3000});
-          }
+            }
+            usb_file_view.render();
+            this.usb_file_views.push( usb_file_view );
+          }, this));
 
           if (this.usb_file_views.length) {
             _.each(this.usb_file_views, function(p) {
@@ -719,7 +705,7 @@ var FilesView = Backbone.View.extend({
       dropZone: this.$el
     });
     this.printFilesListView = new PrintFilesListView({
-      el: this.$el.find('.design-list'),
+      el: this.$('.design-list'),
       forceSync: options.forceSync,
       syncCompleted: options.syncCompleted
     });
@@ -784,20 +770,17 @@ var ReplaceFileDialog = Backbone.View.extend({
     'click button.cancel': 'onCancelClicked',
     'closed.fndtn.reveal': 'onClose'
   },
-  initialize: function(params)
-  {
-    this.filename = params.filename;
-    this.usbFileView = params.usbFileView;
-    this.copyFinishedPromise = params.copyFinishedPromise;
-  },
   render: function()
   {
-    this.$el.find('.dlg-content').html(this.template({
+    this.$('.dlg-content').html(this.template({
       filename: this.filename
     }));
   },
-  open: function(print_file_view)
+  open: function(options)
   {
+    this.usbFileView = options.usbFileView;
+    this.filename = options.filename;
+    this.copyFinishedPromise = options.copyFinishedPromise;
     this.render();
     this.$el.foundation('reveal', 'open');
   },
@@ -816,8 +799,13 @@ var ReplaceFileDialog = Backbone.View.extend({
     this.copyFinishedPromise.reject();
   },
   onClose: function(){
-    this.usbFileView.$('button.copy').removeClass('hide')
-    this.usbFileView.$('button.print').removeClass('hide')
+    this.usbFileView.$('button.copy').removeClass('hide');
+    this.usbFileView.$('button.print').removeClass('hide');
+    this.$('.dlg-content').empty();
+    this.undelegateEvents();
+    this.usbFileView = null;
+    this.filename = null;;
+    this.copyFinishedPromise = null;
   }
 });
 
@@ -826,14 +814,15 @@ var USBFileView = Backbone.View.extend({
   usb_file: null,
   copying: null,
   progress: -1,
-  localFileExistsDialog: null,
-  ejectBeforePrintDialog: null,
   parentView: false,
-  initialize: function(file,parentView)
+  events: {
+    'click button.copy': 'copyClicked',
+    'click button.print': 'printClicked'
+  },
+  initialize: function(file, parentView)
   {
     this.usb_file = file;
     this.parentView = parentView;
-
   },
   render: function()
   {
@@ -844,11 +833,6 @@ var USBFileView = Backbone.View.extend({
     this.$el.html(this.template({
       p: this.usb_file.get('name').split('/').splice(-1,1)[0]
     }));
-
-    this.delegateEvents({
-      'click button.copy': 'copyClicked',
-      'click button.print': 'printClicked'
-    });
 
     this.slideName();
   },
@@ -892,96 +876,20 @@ var USBFileView = Backbone.View.extend({
       loadingBtn.removeClass('loading');
     })
   },
-  printClicked: function(evt){
-
+  printClicked: function(evt)
+  {
     if (evt) evt.preventDefault();
 
     this.tryToCopyFile()
       .done(_.bind(function(){
 
-        var EjectBeforePrintDialog = Backbone.View.extend({
-          el: '#eject-before-print-dlg',
-          drive: null,
-          parentView: null,
-          template: _.template( $("#eject-before-print-template").html() ),
-          events: {
-            'click button.eject-no': 'onNoClicked',
-            'click button.eject-yes': 'onYesClicked'
-          },
-          initialize: function(params)
-          {
-            this.drive = params.drive;
-            this.parentView = params.parentView;
-          },
-          render: function()
-          {
-            this.$el.find('.dlg-content').html(this.template({
-              filename: this.filename
-            }));
-          },
-          open: function(print_file_view)
-          {
-            this.render();
-            this.$el.foundation('reveal', 'open');
-          },
-          onYesClicked: function(e)
-          {
-            if(e) e.preventDefault();
+        var dlg = new EjectBeforePrintDialog();
+        var filePath = this.usb_file.get('name');
 
-            this.$el.foundation('reveal', 'close');
-
-            $.ajax({
-                url: '/api/files/eject',
-                type: "POST",
-                dataType: "json",
-                data:
-                  {
-                    drive: this.drive
-                  }
-            })
-            .done(_.bind(function(data) {
-              if(data.error){
-                var error = data.error
-                noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
-              } else {
-                noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
-                this.parentView.$('button.copy').removeClass('hide')
-                this.parentView.$('button.print').removeClass('hide')
-                this.parentView._print();
-              }
-              setTimeout(_.bind(function(){
-                loadingBtn.removeClass('loading');
-              },this),2000);
-            }, this))
-            .fail(function(xhr) {
-              var error = xhr.responseText;
-              noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
-              this.parentView.$('button.copy').removeClass('hide')
-              this.parentView.$('button.print').removeClass('hide')
-              loadingBtn.removeClass('loading');
-            })
-            this.$el.foundation('reveal', 'close');
-          },
-          onNoClicked: function(e)
-          {
-            if(e) e.preventDefault();
-
-            this.$el.foundation('reveal', 'close');
-
-            this.parentView.$('button.copy').removeClass('hide')
-            this.parentView.$('button.print').removeClass('hide')
-
-            this.parentView._print();
-          }
+        dlg.open({
+          drive: filePath.substr(0,filePath.lastIndexOf('/')),
+          parentView: this
         });
-
-        this.ejectBeforePrintDialog = new EjectBeforePrintDialog(
-          {
-            drive: this.usb_file.get('name').split('/').slice(0, -1).join('/'),
-            parentView: this
-          }
-        );
-        this.ejectBeforePrintDialog.open();
 
       },this))
       .fail(function(){
@@ -1033,42 +941,32 @@ var USBFileView = Backbone.View.extend({
           }
     })
     .done(_.bind(function(data) {
-      this.$('.loading-content').html("");
       if(!data.response){
         var error = data.error
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
         promise.reject();
       } else {
-        loadingBtn.removeClass('loading');
-        noty({text: "File " + filename + " copied to home",type: 'success',timeout: 3000});
+        noty({text: "File " + filename.substr(filename.lastIndexOf('/')+1) + " copied to home",type: 'success',timeout: 3000});
         this.parentView.need_to_be_refreshed = true;
         promise.resolve();
       }
       loadingBtn.removeClass('loading');
-      this.$('button.copy').removeClass('hide')
-      this.$('button.print').removeClass('hide')
-      app.eventManager.off('astrobox:copyToHomeProgress', this.copyToHomeProgressUpdater, this);
-      this.$('.loading-content').html('');
-      this.$el.foundation('reveal', 'close');
     }, this))
     .fail(_.bind(function(xhr) {
-      this.$('.loading-content').html("");
       var error = data.error
-      loadingBtn.removeClass('loading');
       noty({text: "There was an error copying file...Try it again later", timeout: 3000});
-      setTimeout(_.bind(function(){
-        loadingBtn.removeClass('loading');
-      },this),2000);
+      promise.reject();
+    },this))
+    .always(_.bind(function() {
+      loadingBtn.removeClass('loading');
       this.$el.foundation('reveal', 'close');
       this.$('button.copy').removeClass('hide')
       this.$('button.print').removeClass('hide')
       app.eventManager.off('astrobox:copyToHomeProgress', this.copyToHomeProgressUpdater, this);
       this.$('.loading-content').html('');
-      promise.rejct();
-    },this));
+    }, this));
   },
   tryToCopyFile: function(){
-
     var promise = $.Deferred();
 
     var filename = this.usb_file.get('name').split('/').splice(-1,1)[0];
@@ -1076,27 +974,107 @@ var USBFileView = Backbone.View.extend({
     $.getJSON('/api/files/local-file-exists/' + filename)
       .success(_.bind(function(data){
         if(data.response){
+          var dlg = new ReplaceFileDialog( { usbFileView: this });
 
-          this.localFileExistsDialog = new ReplaceFileDialog(
-            {
-              filename: filename,
-              copyFinishedPromise: promise,
-              usbFileView: this
-            }
-          );
-          this.localFileExistsDialog.open();
-
+          dlg.open({
+            usbFileView: this,
+            filename: filename,
+            copyFinishedPromise: promise
+          });
         } else {
           this.copyFile(promise);
         }
       },this))
-      .fail(function(){
+      .fail(_.bind(function(){
         noty({text: "There was an error copying selecte file. Try it again later.", timeout: 3000});
-        this.$('button.copy').removeClass('hide')
-        this.$('button.print').removeClass('hide')
-      });
+        this.$('button.copy').removeClass('hide');
+        this.$('button.print').removeClass('hide');
+        promise.reject();
+      }, this));
 
     return promise;
+  }
+});
+
+var EjectBeforePrintDialog = Backbone.View.extend({
+  el: '#eject-before-print-dlg',
+  drive: null,
+  parentView: null,
+  template: _.template( $("#eject-before-print-template").html() ),
+  events: {
+    'click button.eject-no': 'onNoClicked',
+    'click button.eject-yes': 'onYesClicked',
+    'closed.fndtn.reveal': 'onClose'
+  },
+  render: function()
+  {
+    this.$('.dlg-content').html(this.template({
+      filename: this.filename
+    }));
+  },
+  open: function(options)
+  {
+    this.drive = options.drive;
+    this.parentView = options.parentView;
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+  onYesClicked: function(e)
+  {
+    if(e) e.preventDefault();
+
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+    $.ajax({
+        url: '/api/files/eject',
+        type: "POST",
+        dataType: "json",
+        data: {
+          drive: this.drive
+        }
+    })
+    .done(_.bind(function(data) {
+      if(data.error){
+        var error = data.error
+        noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
+      } else {
+        noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
+        this.parentView.$('button.copy').removeClass('hide')
+        this.parentView.$('button.print').removeClass('hide')
+        this.parentView._print();
+      }
+      setTimeout(function(){
+        loadingBtn.removeClass('loading');
+      },2000);
+      this.parentView = null;
+    }, this))
+    .fail(_.bind(function(xhr) {
+      var error = xhr.responseText;
+      noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
+      this.parentView.$('button.copy').removeClass('hide')
+      this.parentView.$('button.print').removeClass('hide')
+      loadingBtn.removeClass('loading');
+      this.parentView = null;
+    }, this));
+
+    this.$el.foundation('reveal', 'close');
+  },
+  onNoClicked: function(e)
+  {
+    if(e) e.preventDefault();
+
+    this.$el.foundation('reveal', 'close');
+
+    this.parentView.$('button.copy').removeClass('hide')
+    this.parentView.$('button.print').removeClass('hide')
+
+    this.parentView._print();
+  },
+  onClose: function()
+  {
+    this.undelegateEvents();
+    this.$('.dlg-content').empty();
+    this.drive = null;
   }
 });
 
@@ -1108,13 +1086,10 @@ var BrowsingFileView = Backbone.View.extend({
   {
     this.parentView = data.parentView;
 
-    data.file.set('location',data.file.get('name'));
+    data.file.set('location', data.file.get('name'));
 
-    if(this.parentView.storage_control_view.exploringLocation != '/'){
-      data.file.set('name',data.file.get('name').split(this.parentView.storage_control_view.exploringLocation)[1].replace('/',''));
-    } else {
-      data.file.set('name',data.file.get('name').split(this.parentView.storageLocation)[1].replace('/',''))
-    }
+    var path = data.file.get('name');
+    data.file.set('name', path.substr(path.lastIndexOf('/')+1));
 
     this.file = data.file;
   },
@@ -1158,27 +1133,27 @@ var BrowsingFileView = Backbone.View.extend({
         dataType: "json",
         data:
           {
-            drive: this.file.get('name')
+            drive: this.file.get('location')
           }
     })
     .done(_.bind(function(data) {
+      this.$('.loading-button.eject').removeClass('loading');
       if(data.error){
         var error = data.error
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
         this.$('button.eject').removeClass('hide');
       } else {
-        this.$('.loading-button.eject').removeClass('loading');
         noty({text: "Drive ejected successfully. You can remove the external drive", type: 'success', timeout: 3000});
         this.parentView.render()
       }
     }, this))
-    .fail(function(xhr) {
+    .fail(_.bind(function(xhr) {
       var error = xhr.responseText;
       noty({text: error ? error : "There was an error ejecting drive", timeout: 3000});
       this.$('.loading-button.eject').removeClass('loading');
       this.$('button.eject').removeClass('hide');
       this.parentView.refresh()
-    })
+    }, this));
   },
   exploreFolder: function (evt)
   {

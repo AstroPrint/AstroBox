@@ -252,7 +252,7 @@
         color: $steel;
 
         .download-progress,
-        .download-failed {
+        .download-failed, .loading button {
           display: none;
         }
 
@@ -444,8 +444,10 @@
     }
 
     .empty {
-      color: #ccc;
+      color: $ghost;
       font-size: rem-calc(45);
+      box-shadow: inset -2px -2px 2px hsla(0, 0%, 0%, 0.1);
+      border-top: 0;
 
       h3 {
         color: #ccc;

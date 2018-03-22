@@ -91,24 +91,24 @@ class FilesService(PluginService):
 		sendResponse({ 'fileBrowsingExtensions' : externalDriveManager().getFileBrowsingExtensions() })
 
 
-	def getFolderExploration(self, folder, sendResponse):
+	def getFolderContents(self, folder, sendResponse):
 
 		try:
-			sendResponse( { 'folderExp': externalDriveManager().getFolderExploration(folder) })
+			sendResponse( { 'folderExp': externalDriveManager().getFolderContents(folder) })
 
 		except Exception as e:
 			self._logger.error("exploration folders can not be obtained", exc_info = True)
 			sendResponse('no_folders_obtained',True)
 
-
+	'''
 	def getTopStorages(self, sendResponse):
-
 		try:
-			sendResponse( { 'storageFolders': externalDriveManager().getLocalStorages() })
+			sendResponse( { 'storageFolders': externalDriveManager().getRemovableStorageDrives() })
 
 		except Exception as e:
 			self._logger.error("storage folders can not be obtained", exc_info = True)
 			sendResponse('no_folders_obtained',True)
+	'''
 
 	def getBaseFolder(self, key, sendResponse):
 		sendResponse({ 'baseFolder' : externalDriveManager()._cleanFileLocation(settings().getBaseFolder(key))})
