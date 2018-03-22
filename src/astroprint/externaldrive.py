@@ -23,7 +23,7 @@ from octoprint.settings import settings
 # singleton
 _instance = None
 
-ROOT_MOUNT_POINT = '/Volumes'
+ROOT_MOUNT_POINT = '/media/astrobox'
 
 def externalDriveManager():
 	global _instance
