@@ -48,15 +48,34 @@ class ExternalDriveManager(threading.Thread):
 		self.daemon = True
 		self.stopThread = False
 		self.enablingPluggedEvent = enablingPluggedEvent
-
-		if enablingPluggedEvent:
-			self.monitor = pyudev.Monitor.from_netlink(pyudev.Context())
-			self.monitor.filter_by(subsystem='block')
-
+		self.monitor = None
 		self._logger = logging.getLogger(__name__)
 
 	def run(self):
 		if self.enablingPluggedEvent:
+			context = pyudev.Context()
+
+			#Check the status of the system right now
+			for d in context.list_devices(subsystem='block', DEVTYPE='disk'):
+				if d.attributes.asbool('removable'):
+					#it's removable media, let's find the partitions
+					partitions = list(context.list_devices(subsystem='block', DEVTYPE='partition', parent=d))
+					if len(partitions) > 0:
+						# we only analyze the first one, ignore other partitions
+						p = partitions[0]
+
+						#check if the partition is mounted
+						mountPoint = self._findMountPoint(p.device_node)
+						if mountPoint:
+							self._logger.info('Found mounted removable drive (%s) at %s' % (p.device_node, mountPoint))
+						else:
+							self._logger.info('Mounting inserted removable drive (%s)' % p.device_node)
+							self._mountPartition(p.device_node, self._getDeviceMountDirectory(p))
+
+			# Start listening for events
+			self.monitor = pyudev.Monitor.from_netlink(context)
+			self.monitor.filter_by(subsystem='block')
+
 			for device in iter(self.monitor.poll, None):
 
 				if self.stopThread:
@@ -65,43 +84,57 @@ class ExternalDriveManager(threading.Thread):
 
 				if device.device_type == 'partition':
 					if device.action == 'add':
-						devName = device.get('DEVNAME')
+						devName = device.device_node
 						self._logger.info('%s pluged in' % devName)
 						if self._mountPartition(devName, self._getDeviceMountDirectory(device)):
 							eventManager().fire( Events.EXTERNAL_DRIVE_PLUGGED, { "device": devName } )
 
-						#FilesSystemReadyWorker(device,'PLUG IN').start()
-
 					if device.action == 'remove':
-						devName = device.get('DEVNAME')
+						devName = device.device_node
 						self._logger.info('%s removed' % devName)
 						self._umountPartition(self._getDeviceMountDirectory(device))
 						eventManager().fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, { "device": devName })
-						#FilesSystemReadyWorker(device,'REMOVED').start()
 
 	def _getDeviceMountDirectory(self, device):
 		name = device.get('ID_FS_LABEL')
 		uuid = device.get('ID_FS_UUID')
-		return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+		if name and uuid:
+			return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+		else:
+			return None
+
+	def _findMountPoint(self, devPath):
+		with open('/proc/mounts', 'rt') as f:
+			for line in f:
+				line = line.strip()
+				parts = line.split(' ')
+
+				if parts[0] == devPath:
+					return parts[1]
+
+		return None
 
 	def _mountPartition(self, partition, directory):
-		try:
-			if not os.path.exists(directory):
-				os.makedirs(directory)
+		if directory:
+			try:
+				if not os.path.exists(directory):
+					os.makedirs(directory)
 
-			p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
-			if p.returncode != 0:
-				returncode = p.returncode
-				stderr_text = p.stderr.text
-				self._logger.warn("Partition mount failed with return code %i: %s" % (returncode, stderr_text))
+				p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
+				if p.returncode != 0:
+					returncode = p.returncode
+					stderr_text = p.stderr.text
+					self._logger.warn("Partition mount failed with return code %i: %s" % (returncode, stderr_text))
+					return False
+
+				else:
+					self._logger.info("Partition %s mounted on %s" % (partition, directory))
+					return True
+
+			except Exception, e:
+				self._logger.warn("Mount failed: %s" % e)
 				return False
-
-			else:
-				self._logger.info("Partition %s mounted on %s" % (partition, directory))
-				return True
-
-		except Exception, e:
-			self._logger.warn("Mount failed: %s" % e)
+		else:
 			return False
 
 	def _umountPartition(self, directory):
