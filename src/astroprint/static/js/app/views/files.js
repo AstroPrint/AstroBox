@@ -336,7 +336,9 @@ var StorageControlView = Backbone.View.extend({
   {
     this.$('a.active').removeClass('active');
     this.$('a.'+storage).addClass('active');
+    this.$('div.list-header').removeClass(this.selected)
     this.selected = storage;
+    this.$('div.list-header').addClass(this.selected)
     this.print_file_view.render();
   },
   usbClicked: function(e)

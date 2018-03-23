@@ -233,6 +233,7 @@ var PrinterProfileView = SettingsPage.extend({
     this.settings.save(attrs, {
       patch: true,
       success: _.bind(function() {
+        app.router.filesView.printFilesListView.need_to_be_refreshed = true;
         noty({text: "Profile changes saved", timeout: 3000, type:"success"});
         loadingBtn.removeClass('loading');
         //Make sure we reload next time we load this tab
