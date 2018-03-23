@@ -261,7 +261,7 @@ class ExternalDriveManager(threading.Thread):
 		return self.getDirContents('%s/*/*' % ROOT_MOUNT_POINT, 'usb')
 
 	def getFileBrowsingExtensions(self):
-		return printerManager().fileManager.fileBrowsingExtensions
+		return printerManager().fileManager.SUPPORTED_EXTENSIONS
 
 	def getFolderContents(self, folder):
 		try:

@@ -29,10 +29,6 @@ class PrintFilesManager(object):
 	SUPPORTED_EXTENSIONS = []
 	SUPPORTED_DESIGN_EXTENSIONS = ["stl"]
 
-	fileBrowsingExtensions = [
-		'.gcode'
-	]
-
 	def __init__(self):
 
 		self._settings = settings()
