@@ -16,6 +16,7 @@ from sys import platform
 from glob import glob
 
 from astroprint.printer.manager import printerManager
+from astroprint.printfiles.map import printFileManagerMap
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -207,6 +208,7 @@ class ExternalDriveManager(threading.Thread):
 
 							if blksize > len(buf) or bytes_written == 0:
 									d.write(buf)
+									printerManager().fileManager._metadataAnalyzer.addFileToQueue(dst)
 									progressCb(100,dst,observerId)
 									break
 
