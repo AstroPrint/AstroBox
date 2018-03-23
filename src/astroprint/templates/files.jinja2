@@ -29,13 +29,19 @@
 
 <div class="design-list">
 	<div class="row list-header">
-		<div class="small-12 medium-12 large-7 columns">
+		<div class="small-12 medium-12 large-7 columns sync-container">
 			{%- if user_email %}
 				<div class="loading-button sync">
 					<button class="tiny success radius sync round"><i class="icon-refresh"></i> <div>Sync</div></button>
 					<span class="tiny success button radius round disabled loading"><i class="icon-refresh animate-spin"></i> <div>Sync</div></span>
 				</div>
+      {%- else %}
+        <div class="loading-button sync no-user">
+          <button class="tiny success radius sync round"><i class="icon-refresh"></i> <div>Sync</div></button>
+          <span class="tiny success button radius round disabled loading"><i class="icon-refresh animate-spin"></i> <div>Sync</div></span>
+        </div>
       {%- endif %}
+
       <h3 class="bold show-for-medium-up printablefiles-message">Printable Files</h3>
 		</div>
 		<div class="small-12 medium-12 large-5 columns">
