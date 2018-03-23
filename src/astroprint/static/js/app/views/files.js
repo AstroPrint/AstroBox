@@ -448,6 +448,69 @@ var PrintFilesListView = Backbone.View.extend({
         this.$('.loading-button.sync').removeClass('loading');
       },this))
   },
+  syncAfterSavePrinterProfile: function(){
+    if(this.storage_control_view.selected == 'USB'){
+
+      var path = this.storage_control_view.exploringLocation;
+
+      this.usbfile_list.syncLocation(path)
+        .done(_.bind(function(){
+          this.usb_file_views = [];
+
+          if(path != '/'){
+            var backView = new BackFolderView(
+              {
+                parentView: this
+              });
+              backView.render();
+            this.usb_file_views.push(backView);
+          }
+
+          this.usbfile_list.each(_.bind(function(file, idx) {
+            if(this.usbfile_list.extensionMatched(file.get('name'))){
+              var usb_file_view = new USBFileView(file, this);
+            } else {
+
+              var usb_file_view = new BrowsingFileView(
+                {
+                  parentView: this,
+                  file: file
+                });
+              usb_file_view.render();
+              this.usb_file_views.push( usb_file_view );
+            }
+            usb_file_view.render();
+            this.usb_file_views.push( usb_file_view );
+          }, this));
+
+          var list = this.$('.design-list-container');
+
+          list.children().detach();
+
+          if (this.usb_file_views.length) {
+            _.each(this.usb_file_views, function(p) {
+              list.append(p.$el);
+            });
+
+            if (this.usb_file_views.length == 1) {
+              list.append(
+                '<div class="empty panel radius" align="center">'+
+                ' <i class="icon-inbox empty-icon"></i>'+
+                ' <h3>No Printable files.</h3>'+
+                '</div>'
+              );
+            }
+          } else {
+            list.append(
+              '<div class="empty panel radius" align="center">'+
+              ' <i class="icon-inbox empty-icon"></i>'+
+              ' <h3>No External Drives Connected.</h3>'+
+              '</div>'
+            );
+          }
+        },this))
+    }
+  },
   render: function()
   {
     var list = this.$('.design-list-container');
