@@ -38,7 +38,7 @@ var USBFileCollection = Backbone.Collection.extend({
   {
     var matched = false;
 
-    for(var i=0; i<this.extensionsAllowed.length && !matched; i++){
+    for(var i=0; !matched && i<this.extensionsAllowed.length; i++){
       matched = file.endsWith(this.extensionsAllowed[i]);
     }
 
@@ -48,7 +48,7 @@ var USBFileCollection = Backbone.Collection.extend({
   {
     var matched = false;
 
-    for(var i=0; i<this.localStorages.length && !matched; i++){
+    for(var i=0; !matched && i<this.localStorages.length; i++){
       matched = (location == (this.localStorages[i].name));
     }
 
@@ -56,16 +56,10 @@ var USBFileCollection = Backbone.Collection.extend({
   },
   syncLocation: function(location)
   {
-    params = {}
-
-    if (!location) {
-      params.data = {location:'/'};
-    }
-
-    params.data = {location:location};
-
-    var dataFetched = this.fetch(params);
-
-    return dataFetched
+    return this.fetch({
+      data: {
+        location: location ? location : '/'
+      }
+    });
   }
 });
