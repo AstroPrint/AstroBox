@@ -76,6 +76,25 @@
 
       }
     }
+
+    .external{
+      div.no-user{
+        display: block
+      }
+    }
+
+    .internal{
+      div.no-user{
+        display: none
+      }
+    }
+
+    .cloud{
+      div.no-user{
+        display: none
+      }
+    }
+
   }
 
 
