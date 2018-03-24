@@ -64,9 +64,9 @@ class ExternalDriveManager(threading.Thread):
 				if d.attributes.asbool('removable'):
 					#it's removable media, let's find the partitions
 					partitions = list(context.list_devices(subsystem='block', DEVTYPE='partition', parent=d))
-					if len(partitions) > 0:
+					for p in partitions:
 						# we only analyze the first one, ignore other partitions
-						p = partitions[0]
+						#p = partitions[0]
 
 						#check if the partition is mounted
 						mountPoint = self._findMountPoint(p.device_node)
