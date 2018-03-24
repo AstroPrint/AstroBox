@@ -369,6 +369,7 @@ var StorageControlView = Backbone.View.extend({
 
 var PrintFilesListView = Backbone.View.extend({
   info_dialog: null,
+  external_removed_warning_dlg: null,
   print_file_views: [],
   usb_file_views: [],
   storage_control_view: null,
@@ -412,8 +413,16 @@ var PrintFilesListView = Backbone.View.extend({
       break;
 
       case 'ejected':
+        this.usbfile_list.onDriveRemoved(data.mount_path);
+      break;
+
       case 'removed':
         this.usbfile_list.onDriveRemoved(data.mount_path);
+        if (!this.external_removed_warning_dlg) {
+          this.external_removed_warning_dlg = new ExternalRemovedWarningDlg();
+        }
+
+        this.external_removed_warning_dlg.open();
     }
 
     this.externalDrivesRefresh();
@@ -785,6 +794,22 @@ var FilesView = Backbone.View.extend({
   }
 });
 
+var ExternalRemovedWarningDlg = Backbone.View.extend({
+  el: '#external-removed-warning-dlg',
+  events: {
+    "click button.close": "onCloseClicked"
+  },
+  open: function(options)
+  {
+    this.$el.foundation('reveal', 'open');
+  },
+  onCloseClicked: function(e)
+  {
+    e.preventDefault();
+    this.$el.foundation('reveal', 'close');
+  }
+});
+
 var ReplaceFileDialog = Backbone.View.extend({
   el: '#local-file-exists-dlg',
   filename: null,
@@ -854,7 +879,6 @@ var USBFileView = Backbone.View.extend({
   {
     var usb_file = this.usb_file.toJSON();
 
-    //this.downloadProgress = null;
     this.$el.html(this.template({
       p: this.usb_file.get('name').split('/').splice(-1,1)[0]
     }));
