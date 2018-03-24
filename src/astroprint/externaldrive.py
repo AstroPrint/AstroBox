@@ -331,7 +331,7 @@ class ExternalDriveManager(threading.Thread):
 
 			else:
 				for ext in extensions:
-					if fnmatch.fnmatch(item.lower(), '*' + ext):
+					if fnmatch.fnmatch(item.lower(), '*.' + ext):
 						files.append({
 							'name': item,
 							'icon': ext

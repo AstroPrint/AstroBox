@@ -18,13 +18,7 @@ var USBFileCollection = Backbone.Collection.extend({
   extensionsAllowed: ['gcode'],
   localStorages: [],
   initialize: function(){
-    $.getJSON('/api/files/file-browsing-extensions')
-      .done(_.bind(function(data){
-        this.extensionsAllowed = data;
-      }, this))
-      .fail(function(error){
-        console.error(error);
-      });
+    this.refreshExtensions();
 
     $.getJSON('/api/files/removable-drives')
       .done(_.bind(function(data){
@@ -44,6 +38,16 @@ var USBFileCollection = Backbone.Collection.extend({
     if (idx >= 0) {
       delete this.localStorages[idx];
     }
+  },
+  refreshExtensions: function()
+  {
+    return $.getJSON('/api/files/file-browsing-extensions')
+      .done(_.bind(function(data){
+        this.extensionsAllowed = data;
+      }, this))
+      .fail(function(error){
+        console.error(error);
+      });
   },
   extensionMatched: function(file)
   {
