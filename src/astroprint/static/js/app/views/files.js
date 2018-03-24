@@ -445,13 +445,10 @@ var PrintFilesListView = Backbone.View.extend({
                 parentView: this,
                 file: file
               });
-
-            usb_file_view.render();
-            this.usb_file_views.push( usb_file_view );
           }
 
-          usb_file_view.render();
           this.usb_file_views.push( usb_file_view );
+
         }, this));
 
         this.render();
@@ -470,15 +467,16 @@ var PrintFilesListView = Backbone.View.extend({
 
     list.empty();
 
-    if(selectedStorage == 'USB'){//CLICK IN USB TAB
+    if(selectedStorage == 'USB') { //CLICKED IN THE USB TAB
       //CLEAN FILE LIST SHOWED
 
       if (this.usb_file_views.length) {
         _.each(this.usb_file_views, function(p) {
           list.append(p.$el);
+          p.render();
         });
 
-        if (this.usb_file_views.length == 1) {
+        if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView ) {
           list.append(
             '<div class="empty panel radius" align="center">'+
             ' <i class="icon-inbox empty-icon"></i>'+
@@ -862,6 +860,7 @@ var USBFileView = Backbone.View.extend({
     }));
 
     this.slideName();
+    this.delegateEvents();
   },
   slideName: function () {
     if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
@@ -1147,6 +1146,7 @@ var BrowsingFileView = Backbone.View.extend({
     }));
 
     this.slideName();
+    this.delegateEvents();
   },
   eject: function(evt)
   {
@@ -1217,6 +1217,8 @@ var BackFolderView = BrowsingFileView.extend({
     this.$el.html(this.template({
       p: print_file
     }));
+
+    this.delegateEvents();
   },
   exploreFolder: function (evt)
   {
