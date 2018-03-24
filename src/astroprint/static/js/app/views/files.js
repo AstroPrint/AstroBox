@@ -417,12 +417,14 @@ var PrintFilesListView = Backbone.View.extend({
       break;
 
       case 'removed':
-        this.usbfile_list.onDriveRemoved(data.mount_path);
-        if (!this.external_removed_warning_dlg) {
-          this.external_removed_warning_dlg = new ExternalRemovedWarningDlg();
-        }
+        if (this.usbfile_list.isMounted(data.mount_path)) {
+          this.usbfile_list.onDriveRemoved(data.mount_path);
+          if (!this.external_removed_warning_dlg) {
+            this.external_removed_warning_dlg = new ExternalRemovedWarningDlg();
+          }
 
-        this.external_removed_warning_dlg.open();
+          this.external_removed_warning_dlg.open();
+        }
     }
 
     this.externalDrivesRefresh();

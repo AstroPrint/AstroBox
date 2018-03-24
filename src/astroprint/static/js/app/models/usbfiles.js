@@ -39,6 +39,10 @@ var USBFileCollection = Backbone.Collection.extend({
       delete this.localStorages[idx];
     }
   },
+  isMounted: function(path)
+  {
+    return this.localStorages.indexOf(path) >= 0;
+  },
   refreshExtensions: function()
   {
     return $.getJSON('/api/files/file-browsing-extensions')
