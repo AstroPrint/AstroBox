@@ -392,9 +392,9 @@ var PrintFilesListView = Backbone.View.extend({
 
     app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
     app.eventManager.on('astrobox:MetadataAnalysisFinished', this.onMetadataAnalysisFinished, this);
-    app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
-    app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesRefresh, this);
-    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesRefresh, this);
+    app.eventManager.on('astrobox:externalDriveMounted', this.externalDrivesChanged, this);
+    app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesChanged, this);
+    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesChanged, this);
 
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     this.refresh('local', options.syncCompleted);
@@ -402,6 +402,20 @@ var PrintFilesListView = Backbone.View.extend({
   showRemovableDrives: function()
   {
     this.storage_control_view.exploringLocation = '/';
+    this.externalDrivesRefresh();
+  },
+  externalDrivesChanged: function(data)
+  {
+    switch(data.action) {
+      case 'mounted':
+        this.usbfile_list.onDriveAdded(data.mount_path);
+      break;
+
+      case 'ejected':
+      case 'removed':
+        this.usbfile_list.onDriveRemoved(data.mount_path);
+    }
+
     this.externalDrivesRefresh();
   },
   externalDrivesRefresh: function()
@@ -1113,8 +1127,10 @@ var EjectBeforePrintDialog = Backbone.View.extend({
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
       } else {
         this.fileListView.showRemovableDrives();
-        noty({text: "Drive ejected. You can safely remove the external drive.<br>Print Job starting...", type: 'success', timeout: 3000});
         this.fileView.startPrint();
+        setTimeout(function(){
+          noty({text: "Drive ejected. You can safely remove the external drive.<br>Print Job starting...", type: 'success', timeout: 3000});
+        }, 1500);
       }
     }, this))
     .fail(_.bind(function(xhr) {
@@ -1213,8 +1229,10 @@ var BrowsingFileView = Backbone.View.extend({
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
         this.$('button.eject').removeClass('hide');
       } else {
-        noty({text: "Drive ejected. You can safely remove the external drive", type: 'success', timeout: 3000});
-        this.parentView.render()
+        setTimeout(_.bind(function(){
+          noty({text: "Drive ejected. You can safely remove the external drive", type: 'success', timeout: 3000});
+          this.parentView.render()
+      }, this), 1500)
       }
     }, this))
     .fail(_.bind(function(xhr) {

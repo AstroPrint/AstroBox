@@ -52,6 +52,7 @@ class ExternalDriveManager(threading.Thread):
 		self.monitor = None
 		self._mountPoints = None
 		self._logger = logging.getLogger(__name__)
+		self._eventManager = eventManager()
 
 	def run(self):
 		if self.enablingPluggedEvent:
@@ -100,14 +101,22 @@ class ExternalDriveManager(threading.Thread):
 					if device.action == 'add':
 						devName = device.device_node
 						self._logger.info('%s pluged in' % devName)
-						if self._mountPartition(devName, self._getDeviceMountDirectory(device)):
-							eventManager().fire( Events.EXTERNAL_DRIVE_PLUGGED, { "device": devName } )
+						mountPath = self._getDeviceMountDirectory(device)
+						if self._mountPartition(devName, mountPath):
+							self._eventManager.fire( Events.EXTERNAL_DRIVE_MOUNTED, {
+								"mount_path": mountPath,
+								"device_node": devName
+							})
 
 					if device.action == 'remove':
 						devName = device.device_node
+						mountPath = self._getDeviceMountDirectory(device)
 						self._logger.info('%s removed' % devName)
-						self._umountPartition(self._getDeviceMountDirectory(device))
-						eventManager().fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, { "device": devName })
+						if self._umountPartition(self._getDeviceMountDirectory(device)):
+							self._eventManager.fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
+								"device_node": devName,
+								"mount_path": mountPath,
+							})
 
 	def _getDeviceMountDirectory(self, device):
 		name = device.get('ID_FS_LABEL')
@@ -210,7 +219,9 @@ class ExternalDriveManager(threading.Thread):
 
 	def eject(self, mountPath):
 		if self._umountPartition(mountPath):
-			eventManager().fire( Events.EXTERNAL_DRIVE_EJECTED, { "path": mountPath })
+			self._eventManager.fire( Events.EXTERNAL_DRIVE_EJECTED, {
+				"mount_path": mountPath
+			})
 			return {'result': True}
 		else:
 			return {
@@ -267,7 +278,7 @@ class ExternalDriveManager(threading.Thread):
 		return True
 
 	def _progressCb(self, progress,file,observerId):
-		eventManager().fire(
+		self._eventManager.fire(
 			Events.COPY_TO_HOME_PROGRESS, {
 				"type": "progress",
 				"file": file,

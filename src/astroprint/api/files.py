@@ -318,7 +318,7 @@ def getFileBrowsingExtensions():
 @api.route("/files/removable-drives", methods=["GET"])
 @restricted_access
 def getRemovableDrives():
-	return jsonify(externalDriveManager().getRemovableDrives())
+	return jsonify([d["name"] for d in externalDriveManager().getRemovableDrives()])
 
 @api.route("/files/eject", methods=["POST"])
 @restricted_access

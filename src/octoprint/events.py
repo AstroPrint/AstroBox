@@ -45,7 +45,7 @@ class Events(object):
 	METADATA_ANALYSIS_FINISHED = "MetadataAnalysisFinished"
 	FILE_DELETED = "FileDeleted"
 	COPY_TO_HOME_PROGRESS = "CopyToHomeProgress"
-	EXTERNAL_DRIVE_PLUGGED = "ExternalDrivePlugged"
+	EXTERNAL_DRIVE_MOUNTED = "ExternalDriveMounted"
 	EXTERNAL_DRIVE_EJECTED = "ExternalDriveEjected"
 	EXTERNAL_DRIVE_PHISICALLY_REMOVED = "ExternalDrivePhisicallyRemoved"
 

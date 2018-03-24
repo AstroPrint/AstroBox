@@ -57,7 +57,7 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
-		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
+		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_MOUNTED, self._onExternalDriveMounted)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_EJECTED, self._onExternalDriveEjected)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, self._onExternalDrivePhisicallyRemoved)
 
@@ -362,8 +362,8 @@ class FilesService(PluginService):
 	def _onCopyToHomeProgress(self,event,data):
 		self.publishEvent('copy_to_home_progress',data)
 
-	def _onExternalDrivePlugged(self,event,data):
-		self.publishEvent('external_drive_plugged',data)
+	def _onExternalDriveMounted(self,event,data):
+		self.publishEvent('external_drive_mounted',data)
 
 	def _onExternalDriveEjected(self,event,data):
 		self.publishEvent('external_drive_ejected',data)
