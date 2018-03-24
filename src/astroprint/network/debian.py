@@ -633,14 +633,18 @@ class DebianNetworkManager(NetworkManagerBase):
 		return False
 
 	def _getIpAddress(self, device):
-		if device.Ip4Config:
-			if not hasattr(device.Ip4Config, 'AddressData'):
-				if hasattr(device.Ip4Config, 'Addresses'):
-					return device.Ip4Config.Addresses[0][0]
-				elif device.Ip4Address and device.Ip4Address != '0.0.0.0':
-					return device.Ip4Address
-			else:
-				return device.Ip4Config.AddressData[0]['address']
+		try:
+			if device.Ip4Config:
+				if not hasattr(device.Ip4Config, 'AddressData'):
+					if hasattr(device.Ip4Config, 'Addresses'):
+						return device.Ip4Config.Addresses[0][0]
+					elif device.Ip4Address and device.Ip4Address != '0.0.0.0':
+						return device.Ip4Address
+				else:
+					return device.Ip4Config.AddressData[0]['address']
+
+		except AttributeError:
+			pass
 
 		return None
 

@@ -45,7 +45,6 @@ eventManager = None
 loginManager = None
 softwareManager = None
 discoveryManager = None
-externalDriveManager = None
 
 principals = Principal(app)
 admin_permission = Permission(RoleNeed("admin"))
@@ -71,6 +70,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
+from astroprint.externaldrive import externalDriveManager
 
 UI_API_KEY = None
 VERSION = None
@@ -381,7 +381,6 @@ class Server():
 		global debug
 		global softwareManager
 		global discoveryManager
-		global externalDriveManager
 		global VERSION
 		global UI_API_KEY
 
@@ -472,8 +471,6 @@ class Server():
 		self._router = SockJSRouter(self._createSocketConnection, "/sockjs")
 
 		discoveryManager = DiscoveryManager()
-
-		from astroprint.externaldrive import externalDriveManager
 
 		externalDriveManager().start()
 
@@ -632,9 +629,7 @@ class Server():
 		discoveryManager = None
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
-
-		from astroprint.externaldrive import externalDriveManagerShutdown
-		externalDriveManagerShutdown()
+		externalDriveManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()
