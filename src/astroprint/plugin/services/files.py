@@ -38,8 +38,8 @@ class FilesService(PluginService):
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
 		'f¡nished_download_printfile',
-		#watch if an external drive is phisically plugged
-		'external_drive_plugged',
+		#watch if an external drive is mounted
+		'external_drive_mounted',
 		#watch if an external drive is ejected
 		'external_drive_ejected',
 		################
