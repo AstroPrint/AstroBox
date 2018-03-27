@@ -369,6 +369,7 @@ var StorageControlView = Backbone.View.extend({
 
 var PrintFilesListView = Backbone.View.extend({
   info_dialog: null,
+  external_removed_warning_dlg: null,
   print_file_views: [],
   usb_file_views: [],
   storage_control_view: null,
@@ -392,9 +393,9 @@ var PrintFilesListView = Backbone.View.extend({
 
     app.eventManager.on('astrobox:cloudDownloadEvent', this.downloadProgress, this);
     app.eventManager.on('astrobox:MetadataAnalysisFinished', this.onMetadataAnalysisFinished, this);
-    app.eventManager.on('astrobox:externalDrivePlugged', this.externalDrivesRefresh, this);
-    app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesRefresh, this);
-    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesRefresh, this);
+    app.eventManager.on('astrobox:externalDriveMounted', this.externalDrivesChanged, this);
+    app.eventManager.on('astrobox:externalDriveEjected', this.externalDrivesChanged, this);
+    app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesChanged, this);
 
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
     this.refresh('local', options.syncCompleted);
@@ -402,6 +403,30 @@ var PrintFilesListView = Backbone.View.extend({
   showRemovableDrives: function()
   {
     this.storage_control_view.exploringLocation = '/';
+    this.externalDrivesRefresh();
+  },
+  externalDrivesChanged: function(data)
+  {
+    switch(data.action) {
+      case 'mounted':
+        this.usbfile_list.onDriveAdded(data.mount_path);
+      break;
+
+      case 'ejected':
+        this.usbfile_list.onDriveRemoved(data.mount_path);
+      break;
+
+      case 'removed':
+        if (this.usbfile_list.isMounted(data.mount_path)) {
+          this.usbfile_list.onDriveRemoved(data.mount_path);
+          if (!this.external_removed_warning_dlg) {
+            this.external_removed_warning_dlg = new ExternalRemovedWarningDlg();
+          }
+
+          this.external_removed_warning_dlg.open();
+        }
+    }
+
     this.externalDrivesRefresh();
   },
   externalDrivesRefresh: function()
@@ -423,20 +448,18 @@ var PrintFilesListView = Backbone.View.extend({
         }
 
         this.usbfile_list.each(_.bind(function(file, idx) {
-          if(this.usbfile_list.extensionMatched(file.get('name'))){
+          if(this.usbfile_list.extensionMatched(file.get('name'))) {
             var usb_file_view = new USBFileView(file, this);
           } else {
-
             var usb_file_view = new BrowsingFileView(
               {
                 parentView: this,
                 file: file
               });
-            usb_file_view.render();
-            this.usb_file_views.push( usb_file_view );
           }
-          usb_file_view.render();
+
           this.usb_file_views.push( usb_file_view );
+
         }, this));
 
         this.render();
@@ -448,85 +471,23 @@ var PrintFilesListView = Backbone.View.extend({
         this.$('.loading-button.sync').removeClass('loading');
       },this))
   },
-  syncAfterSavePrinterProfile: function(){
-    if(this.storage_control_view.selected == 'USB'){
-
-      var path = this.storage_control_view.exploringLocation;
-
-      this.usbfile_list.syncLocation(path)
-        .done(_.bind(function(){
-          this.usb_file_views = [];
-
-          if(path != '/'){
-            var backView = new BackFolderView(
-              {
-                parentView: this
-              });
-              backView.render();
-            this.usb_file_views.push(backView);
-          }
-
-          this.usbfile_list.each(_.bind(function(file, idx) {
-            if(this.usbfile_list.extensionMatched(file.get('name'))){
-              var usb_file_view = new USBFileView(file, this);
-            } else {
-
-              var usb_file_view = new BrowsingFileView(
-                {
-                  parentView: this,
-                  file: file
-                });
-              usb_file_view.render();
-              this.usb_file_views.push( usb_file_view );
-            }
-            usb_file_view.render();
-            this.usb_file_views.push( usb_file_view );
-          }, this));
-
-          var list = this.$('.design-list-container');
-
-          list.children().detach();
-
-          if (this.usb_file_views.length) {
-            _.each(this.usb_file_views, function(p) {
-              list.append(p.$el);
-            });
-
-            if (this.usb_file_views.length == 1) {
-              list.append(
-                '<div class="empty panel radius" align="center">'+
-                ' <i class="icon-inbox empty-icon"></i>'+
-                ' <h3>No Printable files.</h3>'+
-                '</div>'
-              );
-            }
-          } else {
-            list.append(
-              '<div class="empty panel radius" align="center">'+
-              ' <i class="icon-inbox empty-icon"></i>'+
-              ' <h3>No External Drives Connected.</h3>'+
-              '</div>'
-            );
-          }
-        },this))
-    }
-  },
   render: function()
   {
     var list = this.$('.design-list-container');
     var selectedStorage = this.storage_control_view.selected;
 
-    if(selectedStorage == 'USB'){//CLICK IN USB TAB
-      //CLEAN FILE LIST SHOWED
+    list.empty();
 
-      list.children().detach();
+    if(selectedStorage == 'USB') { //CLICKED IN THE USB TAB
+      //CLEAN FILE LIST SHOWED
 
       if (this.usb_file_views.length) {
         _.each(this.usb_file_views, function(p) {
           list.append(p.$el);
+          p.render();
         });
 
-        if (this.usb_file_views.length == 1) {
+        if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView ) {
           list.append(
             '<div class="empty panel radius" align="center">'+
             ' <i class="icon-inbox empty-icon"></i>'+
@@ -544,9 +505,6 @@ var PrintFilesListView = Backbone.View.extend({
       }
 
     } else {
-
-      list.children().detach();
-
       if (selectedStorage) {
         if(this.need_to_be_refreshed && selectedStorage == 'local'){
           this.refresh('local');
@@ -721,7 +679,10 @@ var PrintFilesListView = Backbone.View.extend({
   onSyncClicked: function(e)
   {
     e.preventDefault();
-
+    this.doSync();
+  },
+  doSync: function()
+  {
     switch(this.storage_control_view.selected)
     {
       case 'USB':
@@ -758,6 +719,12 @@ var PrintFilesListView = Backbone.View.extend({
       affected_view.print_file.set('info', data.result);
       affected_view.render();
     }
+  },
+  onPrinterDriverChanged: function()
+  {
+    this.usbfile_list.refreshExtensions().done(_.bind(function(){
+      this.doSync();
+    },this));
   }
 });
 
@@ -826,6 +793,22 @@ var FilesView = Backbone.View.extend({
   {
     this.uploadView.render();
     this.printFilesListView.refresh('cloud');
+  }
+});
+
+var ExternalRemovedWarningDlg = Backbone.View.extend({
+  el: '#external-removed-warning-dlg',
+  events: {
+    "click button.close": "onCloseClicked"
+  },
+  open: function(options)
+  {
+    this.$el.foundation('reveal', 'open');
+  },
+  onCloseClicked: function(e)
+  {
+    e.preventDefault();
+    this.$el.foundation('reveal', 'close');
   }
 });
 
@@ -898,13 +881,12 @@ var USBFileView = Backbone.View.extend({
   {
     var usb_file = this.usb_file.toJSON();
 
-    this.$el.empty();
-    //this.downloadProgress = null;
     this.$el.html(this.template({
       p: this.usb_file.get('name').split('/').splice(-1,1)[0]
     }));
 
     this.slideName();
+    this.delegateEvents();
   },
   slideName: function () {
     if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
@@ -1113,8 +1095,10 @@ var EjectBeforePrintDialog = Backbone.View.extend({
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
       } else {
         this.fileListView.showRemovableDrives();
-        noty({text: "Drive ejected. You can safely remove the external drive.<br>Print Job starting...", type: 'success', timeout: 3000});
         this.fileView.startPrint();
+        setTimeout(function(){
+          noty({text: "Drive ejected. You can safely remove the external drive.<br>Print Job starting...", type: 'success', timeout: 3000});
+        }, 1500);
       }
     }, this))
     .fail(_.bind(function(xhr) {
@@ -1182,13 +1166,13 @@ var BrowsingFileView = Backbone.View.extend({
   {
     var print_file = this.file.toJSON();
 
-    this.$el.empty();
     this.downloadProgress = null;
     this.$el.html(this.template({
       p: print_file
     }));
 
     this.slideName();
+    this.delegateEvents();
   },
   eject: function(evt)
   {
@@ -1213,8 +1197,10 @@ var BrowsingFileView = Backbone.View.extend({
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
         this.$('button.eject').removeClass('hide');
       } else {
-        noty({text: "Drive ejected. You can safely remove the external drive", type: 'success', timeout: 3000});
-        this.parentView.render()
+        setTimeout(_.bind(function(){
+          noty({text: "Drive ejected. You can safely remove the external drive", type: 'success', timeout: 3000});
+          this.parentView.render()
+      }, this), 1500)
       }
     }, this))
     .fail(_.bind(function(xhr) {
@@ -1253,11 +1239,12 @@ var BackFolderView = BrowsingFileView.extend({
       icon: 'folder'
     }
 
-    this.$el.empty();
     this.downloadProgress = null;
     this.$el.html(this.template({
       p: print_file
     }));
+
+    this.delegateEvents();
   },
   exploreFolder: function (evt)
   {

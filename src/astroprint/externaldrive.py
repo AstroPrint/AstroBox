@@ -50,20 +50,23 @@ class ExternalDriveManager(threading.Thread):
 		self.stopThread = False
 		self.enablingPluggedEvent = enablingPluggedEvent
 		self.monitor = None
+		self._mountPoints = None
 		self._logger = logging.getLogger(__name__)
+		self._eventManager = eventManager()
 
 	def run(self):
 		if self.enablingPluggedEvent:
 			context = pyudev.Context()
 
 			#Check the status of the system right now
+			# 1. Check if we have any drives connected
 			for d in context.list_devices(subsystem='block', DEVTYPE='disk'):
 				if d.attributes.asbool('removable'):
 					#it's removable media, let's find the partitions
 					partitions = list(context.list_devices(subsystem='block', DEVTYPE='partition', parent=d))
-					if len(partitions) > 0:
+					for p in partitions:
 						# we only analyze the first one, ignore other partitions
-						p = partitions[0]
+						#p = partitions[0]
 
 						#check if the partition is mounted
 						mountPoint = self._findMountPoint(p.device_node)
@@ -72,6 +75,17 @@ class ExternalDriveManager(threading.Thread):
 						else:
 							self._logger.info('Mounting inserted removable drive (%s)' % p.device_node)
 							self._mountPartition(p.device_node, self._getDeviceMountDirectory(p))
+
+			# 2. Check if there are left over directories with no drives mounted
+			for f in glob('%s/*/*' % ROOT_MOUNT_POINT):
+				if os.path.isdir(f) and not os.listdir(f):
+					#empty directory found, let's see if it's mounted
+					if not self._isMounted(f):
+						#Not mounted and empty, delete directory.
+						os.rmdir(f) #main dir
+						os.rmdir('/'.join(f.split('/')[:-1])) #uuid dir
+
+			self._mountPoints = None # We reset here since we don't need it anymore, it will be re-created on shutdown
 
 			# Start listening for events
 			self.monitor = pyudev.Monitor.from_netlink(context)
@@ -87,14 +101,22 @@ class ExternalDriveManager(threading.Thread):
 					if device.action == 'add':
 						devName = device.device_node
 						self._logger.info('%s pluged in' % devName)
-						if self._mountPartition(devName, self._getDeviceMountDirectory(device)):
-							eventManager().fire( Events.EXTERNAL_DRIVE_PLUGGED, { "device": devName } )
+						mountPath = self._getDeviceMountDirectory(device)
+						if self._mountPartition(devName, mountPath):
+							self._eventManager.fire( Events.EXTERNAL_DRIVE_MOUNTED, {
+								"mount_path": mountPath,
+								"device_node": devName
+							})
 
 					if device.action == 'remove':
 						devName = device.device_node
+						mountPath = self._getDeviceMountDirectory(device)
 						self._logger.info('%s removed' % devName)
-						self._umountPartition(self._getDeviceMountDirectory(device))
-						eventManager().fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, { "device": devName })
+						if self._umountPartition(self._getDeviceMountDirectory(device)):
+							self._eventManager.fire( Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, {
+								"device_node": devName,
+								"mount_path": mountPath,
+							})
 
 	def _getDeviceMountDirectory(self, device):
 		name = device.get('ID_FS_LABEL')
@@ -104,16 +126,30 @@ class ExternalDriveManager(threading.Thread):
 		else:
 			return None
 
-	def _findMountPoint(self, devPath):
+	def _loadMountPoints(self):
+		self._mountPoints = {}
 		with open('/proc/mounts', 'rt') as f:
 			for line in f:
 				line = line.strip()
 				parts = line.split(' ')
 
-				if parts[0] == devPath:
-					return parts[1]
+				self._mountPoints[parts[0]] = parts[1]
 
-		return None
+	def _findMountPoint(self, devPath):
+		if self._mountPoints is None:
+			self._loadMountPoints()
+
+		return self._mountPoints.get(devPath)
+
+	def _isMounted(self, dirPath):
+		if self._mountPoints is None:
+			self._loadMountPoints()
+
+		for dev, path in self._mountPoints.iteritems():
+			if path == dirPath:
+				return True
+
+		return False
 
 	def _mountPartition(self, partition, directory):
 		if directory:
@@ -150,6 +186,7 @@ class ExternalDriveManager(threading.Thread):
 
 				else:
 					os.rmdir(directory)
+					os.rmdir('/'.join(directory.split('/')[:-1])) #uuid dir
 					self._logger.info("Partition umounted from %s" % directory)
 					return True
 
@@ -162,6 +199,11 @@ class ExternalDriveManager(threading.Thread):
 
 	def shutdown(self):
 		self._logger.info('Shutting Down ExternalDriveManager')
+
+		#Unmount mounted drives
+		for d in glob('%s/*/*' % ROOT_MOUNT_POINT):
+			if self._isMounted(d):
+				self._umountPartition(d)
 
 		if self.enablingPluggedEvent:
 			self.stopThread = True
@@ -177,7 +219,9 @@ class ExternalDriveManager(threading.Thread):
 
 	def eject(self, mountPath):
 		if self._umountPartition(mountPath):
-			eventManager().fire( Events.EXTERNAL_DRIVE_EJECTED, { "path": mountPath })
+			self._eventManager.fire( Events.EXTERNAL_DRIVE_EJECTED, {
+				"mount_path": mountPath
+			})
 			return {'result': True}
 		else:
 			return {
@@ -186,7 +230,6 @@ class ExternalDriveManager(threading.Thread):
 			}
 
 	def copy(self, src, dst, progressCb, observerId):
-
 			blksize = 1048576 # 1MiB
 			try:
 					s = open(src, 'rb')
@@ -235,7 +278,7 @@ class ExternalDriveManager(threading.Thread):
 		return True
 
 	def _progressCb(self, progress,file,observerId):
-		eventManager().fire(
+		self._eventManager.fire(
 			Events.COPY_TO_HOME_PROGRESS, {
 				"type": "progress",
 				"file": file,
@@ -288,7 +331,7 @@ class ExternalDriveManager(threading.Thread):
 
 			else:
 				for ext in extensions:
-					if fnmatch.fnmatch(item.lower(), '*' + ext):
+					if fnmatch.fnmatch(item.lower(), '*.' + ext):
 						files.append({
 							'name': item,
 							'icon': ext
@@ -296,10 +339,3 @@ class ExternalDriveManager(threading.Thread):
 						break
 
 		return files
-
-def externalDriveManagerShutdown():
-	global _instance
-
-	if _instance:
-		_instance.shutdown()
-		_instance = None

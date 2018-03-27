@@ -234,7 +234,7 @@ var PrinterProfileView = SettingsPage.extend({
       patch: true,
       success: _.bind(function() {
         if(app.router.filesView && app.router.filesView.printFilesListView){
-          app.router.filesView.printFilesListView.externalDrivesRefresh()
+          app.router.filesView.printFilesListView.onPrinterDriverChanged();
         }
         noty({text: "Profile changes saved", timeout: 3000, type:"success"});
         loadingBtn.removeClass('loading');
