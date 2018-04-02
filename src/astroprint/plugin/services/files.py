@@ -7,6 +7,7 @@ import os
 import shutil
 import time
 from . import PluginService
+import logging
 
 from flask_login import current_user
 from flask import jsonify
@@ -37,8 +38,8 @@ class FilesService(PluginService):
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
 		'f¡nished_download_printfile',
-		#watch if an external drive is phisically plugged
-		'external_drive_plugged',
+		#watch if an external drive is mounted
+		'external_drive_mounted',
 		#watch if an external drive is ejected
 		'external_drive_ejected',
 		################
@@ -64,7 +65,13 @@ class FilesService(PluginService):
 
 	def eject(self, data, sendResponse):
 
+		logger = logging.getLogger(__name__)
+
 		ejection = externalDriveManager().eject(data['drive'])
+
+		logger.info('eject')
+		logger.info(data['drive'])
+		logger.info(ejection)
 
 		if ejection['result']:
 
@@ -91,7 +98,7 @@ class FilesService(PluginService):
 		sendResponse({ 'fileBrowsingExtensions' : externalDriveManager().getFileBrowsingExtensions() })
 
 
-	def getFolderContents(self, folder, sendResponse):
+	def getFolderExploration(self, folder, sendResponse):
 
 		try:
 			sendResponse( { 'folderExp': externalDriveManager().getFolderContents(folder) })
@@ -109,6 +116,15 @@ class FilesService(PluginService):
 			self._logger.error("storage folders can not be obtained", exc_info = True)
 			sendResponse('no_folders_obtained',True)
 	'''
+
+	def getFolderContents(self, folder, sendResponse):
+
+		if folder == '/':
+			sendResponse( { 'folderContents': externalDriveManager().getRemovableDrives() })
+
+		else:
+			sendResponse( { 'folderContents': externalDriveManager().getFolderContents("%s/*" % folder) })
+
 
 	def getBaseFolder(self, key, sendResponse):
 		sendResponse({ 'baseFolder' : externalDriveManager()._cleanFileLocation(settings().getBaseFolder(key))})
