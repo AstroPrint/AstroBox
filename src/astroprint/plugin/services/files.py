@@ -7,7 +7,6 @@ import os
 import shutil
 import time
 from . import PluginService
-import logging
 
 from flask_login import current_user
 from flask import jsonify
@@ -64,17 +63,9 @@ class FilesService(PluginService):
 
 
 	def eject(self, data, sendResponse):
-
-		logger = logging.getLogger(__name__)
-
 		ejection = externalDriveManager().eject(data['drive'])
 
-		logger.info('eject')
-		logger.info(data['drive'])
-		logger.info(ejection)
-
 		if ejection['result']:
-
 			sendResponse({'success':'no error'})
 		else:
 
@@ -363,7 +354,6 @@ class FilesService(PluginService):
 			sendResponse({'success':'no error'})
 		else:
 			sendResponse('cancel_error',True)
-
 
 	#EVENTS
 
