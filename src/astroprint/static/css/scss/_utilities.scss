@@ -568,15 +568,16 @@ html.no-printer {
     }
   }
 }
+.fan-flow-container {
+  border-top: 1px dashed #e2e2e2;
+  padding-top: 10px;
+}
 
-#fan-control {
-  text-align: center;
-  position: absolute;
-  right: 0;
-  bottom: 11px;
+#fan-control, #printing-speed {
 
-  .border-left{
-    border-left: 1px dashed gainsboro;
+
+  .border-right{
+    //border-right: 1px dashed gainsboro;
   }
 
   .fan-on{
@@ -590,7 +591,18 @@ html.no-printer {
       color: white;
     }
   }
+  .flow-icon {
+    position: relative;
+    top: 17px;
+    color: $charcoal;
+    display: block;
+    margin-bottom: 24px;
 
+    &:before{
+      font-size: 40px;
+      margin: 0;
+    }
+  }
   .fan_icon {
     position: relative;
     top: 17px;
@@ -608,9 +620,6 @@ html.no-printer {
     background: $oil;
     border: 2px solid $oil;
     margin-top: 16px;
-  }
-  .fans{
-    padding: 14px;
   }
 
   .other-fan-speed .postfix{

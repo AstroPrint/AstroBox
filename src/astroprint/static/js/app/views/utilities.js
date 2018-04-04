@@ -542,7 +542,7 @@ var FanControlView = Backbone.View.extend({
       });
       this.$('.fan_icon').addClass(speedClass);
       this.$('.fans').removeClass('fan-on').addClass('fan-off');
-      this.$('.fans').text('Turn OFF');
+      this.$('.fans').text('STOP');
     }
 
   },
@@ -551,7 +551,7 @@ var FanControlView = Backbone.View.extend({
     this._setFanSpeed(0);
     this.$('.fan_icon').removeClass('animate-spin');
     this.$('.fans').removeClass('fan-off').addClass('fan-on');
-    this.$('.fans').text('ON');
+    this.$('.fans').text('START');
   },
   _setFanSpeed: function(speed)
   {
