@@ -144,7 +144,7 @@ var TempView = Backbone.View.extend({
           }
         }
 
-        if ($("#control-view").hasClass('print-paused')) {
+        if ($("#utilities-view").hasClass('print-paused')) {
           this.semiCircleTemp_views[i].enableTurnOff(false);
         } else {
           this.semiCircleTemp_views[i].enableTurnOff(true);
@@ -557,7 +557,7 @@ var FanControlView = Backbone.View.extend({
   {
     var data = {
       command: "set",
-      tool:  $('#control-view #extrusion-control .extruder-number').val(),
+      tool:  $('#utilities-view #extrusion-control .extruder-number').val(),
       speed: speed
     }
 
@@ -587,8 +587,8 @@ var FanControlView = Backbone.View.extend({
   }
 });
 
-var ControlView = Backbone.View.extend({
-  el: '#control-view',
+var UtilitiesView = Backbone.View.extend({
+  el: '#utilities-view',
   events: {
     'click .back-to-print button': 'resumePrinting',
     'show': 'render'

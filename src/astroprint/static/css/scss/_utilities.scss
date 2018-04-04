@@ -1,4 +1,4 @@
-.controls-container{
+.utilities-container{
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
@@ -230,7 +230,7 @@
   }
 }
 
-#control-view {
+#utilities-view {
 
   >.row:first-child{overflow: hidden;}
 
@@ -357,7 +357,7 @@ html.no-printer {
 	}
 }
 
-#control-view{
+#utilities-view{
     .temp-target{
     @extend.no-paddingleft;
   }
@@ -711,7 +711,7 @@ html.no-printer {
 }
 
 @media #{$large-up} {
-	#control-view {
+	#utilities-view {
 		h1 {
 			@include side-radius(bottom);
 			border: 1px solid #e6e6e6;

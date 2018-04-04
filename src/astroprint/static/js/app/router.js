@@ -7,7 +7,7 @@
 var AppRouter = Backbone.Router.extend({
   homeView: null,
   filesView: null,
-  controlView: null,
+  utilitiesView: null,
   settingsView: null,
   printingView: null,
   terminalView: null,
@@ -18,7 +18,7 @@ var AppRouter = Backbone.Router.extend({
     "": "home",
     "files": "files",
     "file-info/:fileId": "fileInfo",
-    "control": "control",
+    "utilities": "utilities",
     "printing": "printing",
     "settings": "settings",
     "settings/:page": "settings",
@@ -39,7 +39,7 @@ var AppRouter = Backbone.Router.extend({
         app.setPrinting();
 
         if  (callback != this.printing &&
-          (callback != this.control || !is_paused)
+          (callback != this.utilities || !is_paused)
         ) {
           this.navigate('printing', {trigger: true, replace:true});
           return;
@@ -86,14 +86,14 @@ var AppRouter = Backbone.Router.extend({
 
     this.navigate('files', {trigger: true, replace:true});
   },
-  control: function()
+  utilities: function()
   {
-    if (!this.controlView) {
-      this.controlView = new ControlView();
+    if (!this.utilitiesView) {
+      this.utilitiesView = new UtilitiesView();
     }
 
-    this.selectView(this.controlView);
-    app.selectQuickNav('control');
+    this.selectView(this.utilitiesView);
+    app.selectQuickNav('utilities');
   },
   printing: function()
   {
@@ -157,9 +157,9 @@ var AppRouter = Backbone.Router.extend({
         currentView.addClass('hide').removeClass('active');
         currentView.trigger('hide');
 
-        if (targetId == 'control-view') {
-          this.controlView.tempView.show();
-          this.controlView.extrusionView.render();
+        if (targetId == 'utilities-view') {
+          this.utilitiesView.tempView.show();
+          this.utilitiesView.extrusionView.render();
         }
       }
 

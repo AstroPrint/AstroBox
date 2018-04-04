@@ -335,7 +335,7 @@ el: '#printing-view',
   events: {
     'click button.stop-print': 'stopPrint',
     'click button.pause-print': 'togglePausePrint',
-    'click button.controls': 'showControlPage',
+    'click button.controls': 'showUtilitiesPage',
     'show': 'show',
     'hide': 'onHide',
     'click .nav-extruder': 'navExtruderClicked',
@@ -599,9 +599,9 @@ el: '#printing-view',
       loadingBtn.removeClass('loading');
     });
   },
-  showControlPage: function()
+  showUtilitiesPage: function()
   {
-    app.router.navigate('control', {trigger: true, replace: true});
+    app.router.navigate('utilities', {trigger: true, replace: true});
     this.$el.addClass('hide');
   },
   _jobCommand: function(command, data, callback)
