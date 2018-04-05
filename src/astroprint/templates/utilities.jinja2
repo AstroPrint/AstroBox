@@ -20,61 +20,99 @@
       <span class="meter" style="width: 0%;"></span>
     </div>
   </div>
-  <div class="medium-12 large-8 columns utilities-container">
+  <div class="medium-12 large-8 columns control-container">
     <div class="heading-box bold">Movement controls</div>
-    <div class="row clearfix">
-
-      <div class="small-12 medium-8 columns medium-offset-0" id="xy-controls" align="center">
-        <h5>Horizontal (XY)</h5>
-        <div class="control_bg_xy" align="center">
-          <div class="bed-mesh">
-            <a class="btn_y_plus control-btn-wrapper">
-              <div class="btn"><i class="icon-right-open"></i></div>
-            </a>
-            <a class="btn_x_minus control-btn-wrapper">
-              <div class="btn"><i class="icon-right-open"></i></div>
-            </a>
-            <a class="btn_home_xy control-btn-wrapper">
-              <div class="btn"><i class="icon-home"></i></div>
-            </a>
-            <a class="btn_x_plus control-btn-wrapper">
-              <div class="btn"><i class="icon-right-open"></i></div>
-            </a>
-            <a class="btn_y_minus control-btn-wrapper">
-              <div class="btn"><i class="icon-right-open"></i></div>
-            </a>
-          </div>
+      <!-- CONTROL -->
+      <div id="controls">
+        <div class="no-paused-overlay">
+          <i class="icon-3d-printer"></i>
+          <b>Pause the printing to enable this</b>
         </div>
+        <div class="blur-effect">
+            <div class="small-12 medium-8 columns medium-offset-0" id="xy-controls" align="center">
+                <h5>Horizontal (XY)</h5>
+                <div class="control_bg_xy" align="center">
+                  <div class="bed-mesh">
+                    <a class="btn_y_plus control-btn-wrapper">
+                      <div class="btn">
+                        <i class="icon-right-open"></i>
+                      </div>
+                    </a>
+                    <a class="btn_x_minus control-btn-wrapper">
+                      <div class="btn">
+                        <i class="icon-right-open"></i>
+                      </div>
+                    </a>
+                    <a class="btn_home_xy control-btn-wrapper">
+                      <div class="btn">
+                        <i class="icon-home"></i>
+                      </div>
+                    </a>
+                    <a class="btn_x_plus control-btn-wrapper">
+                      <div class="btn">
+                        <i class="icon-right-open"></i>
+                      </div>
+                    </a>
+                    <a class="btn_y_minus control-btn-wrapper">
+                      <div class="btn">
+                        <i class="icon-right-open"></i>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <div class="small-12 medium-2 columns" id="z-controls">
+                <h5>Vertical (Z)</h5>
+                <a class="btn_z_plus control-btn-wrapper">
+                  <div class="btn">
+                    <i class="icon-right-open"></i>
+                  </div>
+                </a>
+                <a class="btn_home_z control-btn-wrapper">
+                  <div class="btn">
+                    <i class="icon-home"></i>
+                  </div>
+                </a>
+                <a class="btn_z_minus control-btn-wrapper">
+                  <div class="btn">
+                    <i class="icon-right-open"></i>
+                  </div>
+                </a>
+              </div>
+              <div class="small-12 columns" id="distance-control">
+                <center>
+                  <h2>Set movement distance</h2>
+                  <ul class="button-group radius">
+                    <li>
+                      <button class="tiny bold secondary" data-value="0.1">0.1</button>
+                    </li>
+                    <li>
+                      <button class="tiny bold secondary" data-value="1">1</button>
+                    </li>
+                    <li>
+                      <button class="tiny bold success" data-value="10">10</button>
+                    </li>
+                    <li>
+                      <button class="tiny bold secondary" data-value="100">100</button>
+                    </li>
+                  </ul>
+                </center>
+              </div>
+        </div>
+
       </div>
 
-      <div class="small-12 medium-2 columns" id="z-controls">
-        <h5>Vertical (Z)</h5>
-        <a class="btn_z_plus control-btn-wrapper">
-          <div class="btn"><i class="icon-right-open"></i></div>
-        </a>
-        <a class="btn_home_z control-btn-wrapper">
-          <div class="btn"><i class="icon-home"></i></div>
-        </a>
-        <a class="btn_z_minus control-btn-wrapper">
-          <div class="btn"><i class="icon-right-open"></i></div>
-        </a>
-      </div>
-
-      <div class="small-12 columns" id="distance-control">
-        <center>
-          <h2>Set movement distance</h2>
-          <ul class="button-group radius">
-            <li><button class="tiny bold secondary" data-value="0.1">0.1</button></li>
-            <li><button class="tiny bold secondary" data-value="1">1</button></li>
-            <li><button class="tiny bold success" data-value="10">10</button></li>
-            <li><button class="tiny bold secondary" data-value="100">100</button></li>
-          </ul>
-        </center>
-      </div>
-      <div class="clearfix"></div>
+    <div class="row clearfix">
       <!-- EXTRUDE/RETRACT -->
       <div class="small-12 columns" id="extrusion-control">
-        <div class="row extruder-switch closer"></div>
+        <div class="no-paused-overlay">
+          <i class="icon-3d-printer"></i>
+          <b>Pause the printing to enable this</b>
+        </div>
+        <div class="blur-effect">
+          <div class="row extruder-switch closer"></div>
+        </div>
+
         <script type="text/template" id="extruder-switch-template">
           <div class="text-center extruder-heading">
             <img class="extruder-icon" src="/img/icon-extruder.svg"/>

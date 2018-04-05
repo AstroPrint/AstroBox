@@ -1,4 +1,4 @@
-.utilities-container{
+.control-container{
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
@@ -250,7 +250,12 @@
     font-size: 14px;
     margin-top: 5px;
     margin-bottom: 0px;
-	}
+  }
+
+  #controls {
+    position: relative;
+    display: table;
+  }
 
 	.printing-activity {
 		display: none;
@@ -272,7 +277,7 @@
 				white-space: nowrap;
 				text-overflow: ellipsis;
 			}
-		}
+    }
 
 		#z-controls {
 			.btn_home_z {
@@ -332,6 +337,13 @@
     }
   }
   &.print-active {
+    .no-paused-overlay {
+      display: inline-block;
+    }
+    .blur-effect {
+      filter:blur(5px);
+    }
+
     .resume-container {
       display: none !important;
     }
@@ -359,6 +371,22 @@
         font-size: rem-calc(80);
         display: block;
       }
+    }
+  }
+  .no-paused-overlay {
+    display: none;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.36);
+    color: white;
+    text-align: center;
+    font-size: rem-calc(25);
+    border-radius: 3px;
+    z-index: 1;
+    i {
+      font-size: rem-calc(60);
+      display: block;
     }
   }
 
