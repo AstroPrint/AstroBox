@@ -13,7 +13,7 @@
     </div>
   </div>
 
-  <ul id="task-list" class="row task-list-view small-block-grid-3 large-block-grid-6"></ul>
+  <ul id="task-list" class="row task-list-view small-block-grid-3 large-block-grid-1"></ul>
 
   {# ADDITIONAL TASK ICON ROW #}
   <script type="text/template" id="task-row-template">
@@ -21,11 +21,11 @@
       <div class="app-image">
         <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= additionalTaskApp.icon_filename %>" alt="<%= additionalTaskApp.strings.EN.name %> icon"/>
         <div class="overlay">
-          <div class="contain"><h4 class="bold">Launch</h4></div>
+          <h4 class="bold">Launch</h4>
         </div>
       </div>
+      <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
     </a>
-    <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
   </script>
 
   <div class="no-connection-overlay">

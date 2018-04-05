@@ -13,7 +13,6 @@
 }
 
 #task-list {
-	padding: 0;
 	[class*="block-grid-"] > li {
 		clear: none !important;
 		white-space: nowrap;
@@ -24,22 +23,39 @@
 		margin: 0 auto;
 	}
 	h1 {
-		font-size: rem-calc(18);
+		font-size: rem-calc(20);
 		text-align: center;
 		text-overflow: ellipsis;
 		overflow-x: hidden;
-	}
+  }
+
 
 	.app-image {
-		position: relative;
-		display: block;
-		margin: 0 auto;
-		max-width: 140px;
-	}
+    img{max-height:40px;}
+  }
+
+  .task-row a{
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    position: relative;
+    padding: 10px;
+    background: white;
+    border-radius: $global-radius;
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+
+    h1{
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      padding-left: 15px;
+      color: $charcoal;
+    }
+  }
 
 	.overlay {
-	    opacity:0;
-	    -webkit-transition: opacity .25s ease;
+    opacity:0;
+    -webkit-transition: opacity .25s ease;
 		-moz-transition: opacity .25s ease;
 		transition: opacity .25s ease;
 		position: absolute;
@@ -47,34 +63,36 @@
 		left: 0;
 		width: 100%;
 		height: 100%;
-		max-width:140px;
 		padding: 2px 4px;
 		@include radius($global-radius);
-		background: rgba(34, 34, 34, 0.6);
-		.contain {
-			position: relative;
-  			max-width: 140px;
-  			height: 75%;
+    background: rgba(243, 101, 35, 0.3);
+    border: 2px solid rgba(13, 13, 13, 0.05);
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    padding: 10px;
 
-			h4 {
-					color: #fff;
-					padding: 2px 5px;
-					border: 3px solid #fff;
-					text-align: center;
-					font-size: rem-calc(18);
-					position: absolute;
-					bottom: 0;
-					width: 100%;
+      h4 {
+        color: $oil;
+        padding: 4px 10px;
+        border: 2px solid $oil;
+        margin: 0;
+        text-align: center;
+        font-size: 1.125rem;
+        min-width: 140px;
 				}
-			}
+
 	}
 
 	.no-touch & {
-		li:hover .overlay {
-	       	opacity:1;
-	    }
+    li:hover {
+      .overlay { opacity:1;}
+    }
+
 	}
 }
+
+
 .no-connection-overlay {
   display: none;
   html.no-printer & {
