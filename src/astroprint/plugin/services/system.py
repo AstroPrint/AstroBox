@@ -233,6 +233,19 @@ class SystemService(PluginService):
 
 			return
 
+	def saveTempPreset(self, data, sendMessage):
+		ppm = printerProfileManager()
+
+		print "save temp preset"
+		print data['name']
+		print data['nozzle_temp']
+		print data['bed_temp']
+		if data:
+			id = ppm.createTempPreset(data['name'], data['nozzle_temp'], data['bed_temp'])
+			sendMessage( id )
+
+		return
+
 	def additionalTasks(self, data ,sendMessage):
 		atm = additionalTasksManager()
 		result = atm.data.copy()

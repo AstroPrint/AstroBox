@@ -8,7 +8,6 @@ from octoprint.server.api import api
 from octoprint.server import restricted_access
 
 from astroprint.printerprofile import printerProfileManager
-import uuid
 
 
 @api.route('/printer-profile', methods=['PATCH', 'GET'])
@@ -33,20 +32,11 @@ def printer_profile_patch():
 
 @api.route('/temperature-preset', methods=['POST'])
 @restricted_access
-def temp_preset_post():
+def temp_preset_create():
+	ppm = printerProfileManager()
 
-	id = uuid.uuid4().hex
 	name = request.values.get('name', None)
 	nozzle_temp = request.values.get('nozzle_temp', None)
 	bed_temp = request.values.get('bed_temp', None)
 
-	temp_update = { 'id' : id, 'name' : name, 'nozzle_temp' : nozzle_temp, 'bed_temp' : bed_temp}
-
-	ppm = printerProfileManager()
-	changes = ppm.data.copy()
-	changes['temp_presets'].append(temp_update)
-
-	ppm.set(changes)
-	ppm.save()
-
-	return jsonify( {'id' : id} )
+	return jsonify( {'id' : ppm.createTempPreset(name, nozzle_temp, bed_temp)} )

@@ -23,7 +23,7 @@ var TempSemiCircleView = Backbone.View.extend({
   {
     // Get last preset
     var lastTemp = function (tool, last_presets_used) {
-      if (!tool) {
+      if (tool === null) {
         tool = "bed";
       }
       for (last_preset of last_presets_used) {
@@ -36,7 +36,7 @@ var TempSemiCircleView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     var tool = params.tool;
     this.temp_presets = profile.temp_presets;
-
+    last_preset = null
     last_temp = lastTemp(tool, profile.last_presets_used)
     if (last_temp) {
       if (last_temp.id == "custom") {
@@ -90,7 +90,7 @@ var TempSemiCircleView = Backbone.View.extend({
 
     this.enableTurnOff(this.enableOff);
     this.checkHideBed(this.hideBed);
-    if (this.last_preset.id == "custom"){
+    if (this.last_preset && this.last_preset.id == "custom"){
       setTimeout( _.bind(function() {
           var select = $('.freq-selector-' + this.tool);
           select.prepend($('<option>', {
@@ -175,7 +175,6 @@ var TempSemiCircleView = Backbone.View.extend({
       }
 
       this.last_preset = custom
-      //TODO SAVE LAST TEMP
 
       if ($(".freq-selector-" + this.tool +" option[value='custom']")){
         $(".freq-selector-" + this.tool +" option[value='custom']").remove();

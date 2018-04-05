@@ -16,6 +16,7 @@ import os
 import yaml
 import logging
 import shutil
+import uuid
 
 from octoprint.settings import settings
 from astroprint.plugin import pluginManager
@@ -109,6 +110,17 @@ class PrinterProfileManager(object):
 		})
 
 		return result
+
+	def createTempPreset(self, name, nozzle_temp, bed_temp):
+		id = uuid.uuid4().hex
+		temp_update = { 'id' : id, 'name' : name, 'nozzle_temp' : int(nozzle_temp), 'bed_temp' : int(bed_temp)}
+
+		changes = self.data.copy()
+		changes['temp_presets'].append(temp_update)
+		self.set(changes)
+		self.save()
+
+		return id
 
 	def _clean(self, field, value):
 		if field in ['extruder_count', 'max_nozzle_temp', 'max_bed_temp']:

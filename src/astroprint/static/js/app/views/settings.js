@@ -475,8 +475,8 @@ var EditPresetsDialog = Backbone.View.extend({
   {
     var form = document.getElementById("preset-form");
     var name = $('#temperature-preset-name').val()
-    var bed = $('#preset-bed-temp').val() ? $('#preset-bed-temp').val() : 0
-    var nozzle = $('#preset-nozzle-temp').val()
+    var bed = $('#preset-bed-temp').val() ?  parseInt($('#preset-bed-temp').val()) : 0
+    var nozzle =  parseInt($('#preset-nozzle-temp').val())
     if (!this.preset){
       var temp_preset = { 'name' : name, 'bed_temp': bed , 'nozzle_temp' :nozzle }
       $.post(API_BASEURL + 'temperature-preset', temp_preset, _.bind(function(data) {
