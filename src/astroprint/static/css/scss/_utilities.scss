@@ -252,12 +252,12 @@
     margin-bottom: 0px;
 	}
 
-	.back-to-print {
+	.printing-activity {
 		display: none;
 	}
 
-	&.print-paused {
-		.back-to-print {
+	&.print-paused, &.print-active {
+		.printing-activity {
 			display: block;
 			margin-top: 10px;
 
@@ -286,8 +286,59 @@
 				opacity: 0.1;
 				cursor: not-allowed;
 			}
-		}
-	}
+    }
+    div {
+      #filename-progress-container {
+        margin: 15px !important;
+        margin-top: -5px !important;
+      }
+    }
+
+    .progress {
+      background-color: rgba(240, 82, 81, 0.2);
+      position: relative;
+      text-align: left;
+      height: 15px;
+      margin-top: 50px;
+      margin-bottom: -10px;
+
+      .filename {
+        position: absolute;
+        top: -22px;
+        left: 2px;
+        color: rgba(0, 0, 0, 0.3);
+        font-size: rem-calc(14);
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 60%;
+      }
+
+      .progress-label {
+        position: absolute;
+        right: 0;
+        top: -45px;
+        font-size: rem-calc(36);
+        color: $green;
+      }
+    }
+  }
+  &.print-paused {
+    .resume-container {
+      display: inline-block !important;
+    }
+    .pause-container {
+      display: none !important;
+    }
+  }
+  &.print-active {
+    .resume-container {
+      display: none !important;
+    }
+    .pause-container {
+      display: inline-block !important;
+    }
+  }
 
   .no-connection-overlay {
     display: none;

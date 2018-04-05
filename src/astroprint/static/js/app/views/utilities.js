@@ -419,7 +419,6 @@ var ExtrusionControlView = Backbone.View.extend({
   extruderChanged: function(e)
   {
     var selectedTool = $(e.target).val();
-    console.log("Changed select of extruder for: ", $(e.target).val());
 
     this.setCurrentTool(selectedTool)
     this._sendChangeToolCommand(selectedTool)
@@ -590,8 +589,10 @@ var FanControlView = Backbone.View.extend({
 var UtilitiesView = Backbone.View.extend({
   el: '#utilities-view',
   events: {
-    'click .back-to-print button': 'resumePrinting',
-    'show': 'render'
+    'click .back': 'back',
+    'click .resume,.pause': 'togglePausePrint',
+    'show': 'onShow',
+    'hide': 'onHide'
   },
   tempView: null,
   distanceControl: null,
@@ -613,7 +614,7 @@ var UtilitiesView = Backbone.View.extend({
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
-
+    this.listenTo(app.socketData, 'change:printing', this.onPrintingChanged);
   },
   updateTemps: function(s, value)
   {
@@ -621,8 +622,19 @@ var UtilitiesView = Backbone.View.extend({
       this.tempView.updateTemps(value);
     }
   },
-  render: function()
+  onPrintingChanged: function(s, isPrinting)
   {
+    if (!isPrinting) {
+      this.$el.removeClass('print-active print-paused')
+    }
+  },
+  back: function()
+  {
+    app.router.navigate("printing", {replace: true, trigger: true});
+  },
+  onShow: function()
+  {
+    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
     if (this.currentTool != null && this.extrusionView.currentTool != this.currentTool) {
       this.extrusionView.setCurrentTool(this.currentTool);
     }
@@ -630,36 +642,64 @@ var UtilitiesView = Backbone.View.extend({
 
     this.extrusionView.render();
   },
-  resumePrinting: function(e)
+  onHide: function()
   {
-    app.setPrinting();
-    app.router.navigate("printing", {replace: true, trigger: true});
-    app.router.printingView.togglePausePrint(e);
+    this.stopListening(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+  },
+  togglePausePrint: function(e)
+  {
+    var loadingBtn = $(e.target).closest('.loading-button');
+    var wasPaused = app.socketData.get('paused');
 
-    this.$el.addClass('hide');
+    loadingBtn.addClass('loading');
+    this._jobCommand('pause', null, function (data) {
+      if (data && _.has(data, 'error')) {
+        console.error(data.error);
+      } else {
+        app.socketData.set('paused', !wasPaused);
+      }
+      loadingBtn.removeClass('loading');
+    });
   },
   onPrintingProgressChanged: function(model, printingProgress)
   {
-    var el = this.$('.back-to-print .filename');
-
-    if (printingProgress && printingProgress.printFileName && printingProgress.printFileName != el.text()) {
-      el.text(printingProgress.printFileName)
+    if (printingProgress) {
+      this.updatePrintingContainer(printingProgress.printFileName, printingProgress.percent)
     }
   },
   onPausedChanged: function(model, paused)
   {
-    if (paused) {
-      this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-      this.$el.addClass('print-paused');
-    } else {
-      this.stopListening(app.socketData, 'change:printing_progress');
+    var printingProgress = model.get('printing_progress');
+    if (printingProgress) {
+      this.updatePrintingContainer(printingProgress.printFileName, printingProgress.percent);
+    }
 
+    if (paused) {
+      this.$el.addClass('print-paused');
+      this.$el.removeClass('print-active');
+    } else {
       if (app.socketData.get('printing')) {
-        app.router.navigate("printing", {replace: true, trigger: true});
-      } else {
+        this.$el.addClass('print-active');
         this.$el.removeClass('print-paused');
+      } else {
+        this.$el.removeClass('print-paused print-active');
+        this.stopListening(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
       }
     }
+  },
+  updatePrintingContainer: function(filename, progress)
+  {
+    // File name
+    if (filename) {
+      var nameEl = this.$('.progress .filename');
+      if (filename != nameEl.text()) {
+        nameEl.text(filename)
+      }
+    }
+
+    // Progress bar
+    this.$('.progress .progress-label').text(progress+"%");
+    this.$('.progress .meter').css('width', progress+"%");
   },
   onToolChanged: function(s, value)
   {
@@ -679,5 +719,21 @@ var UtilitiesView = Backbone.View.extend({
         }
       }
     }
-  }
+  },
+  _jobCommand: function(command, data, callback)
+  {
+    $.ajax({
+      url: API_BASEURL + "job",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(_.extend({command: command}, data))
+    }).
+    done(function(data){
+      if (callback) callback(data);
+    }).
+    fail(function(error) {
+      if (callback) callback({error:error.responseText});
+    });
+  },
 });

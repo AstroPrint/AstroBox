@@ -76,7 +76,8 @@ var ConnectionView = Backbone.View.extend({
           if (response.current.state == 'Printing' || response.current.state == 'Paused') {
             app.setPrinting();
 
-            if (response.current.state == 'Printing') {
+            // If printing and user is not in utilities view, navigate to printing
+            if (response.current.state == 'Printing' && !app.router.utilitiesView ) {
               app.router.navigate("printing", {replace: true, trigger: true});
             }
           }

@@ -409,14 +409,10 @@ el: '#printing-view',
 
     //Paused state
     var pauseBtn = this.$el.find('button.pause-print');
-    var controlBtn = this.$el.find('button.controls');
-
     if (this.paused) {
       pauseBtn.html('<i class="icon-play"></i> Resume Print');
-      controlBtn.show();
     } else {
       pauseBtn.html('<i class="icon-pause"></i> Pause Print');
-      controlBtn.hide();
     }
   },
   renderCircleTemps: function()
@@ -602,7 +598,6 @@ el: '#printing-view',
   showUtilitiesPage: function()
   {
     app.router.navigate('utilities', {trigger: true, replace: true});
-    this.$el.addClass('hide');
   },
   _jobCommand: function(command, data, callback)
   {

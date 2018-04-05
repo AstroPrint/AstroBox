@@ -38,9 +38,8 @@ var AppRouter = Backbone.Router.extend({
       if (is_printing || is_paused) {
         app.setPrinting();
 
-        if  (callback != this.printing &&
-          (callback != this.utilities || !is_paused)
-        ) {
+        // Redirect to printing if printingView or utilitiesView are not the cb
+        if (callback != this.printing && callback != this.utilities) {
           this.navigate('printing', {trigger: true, replace:true});
           return;
         }
