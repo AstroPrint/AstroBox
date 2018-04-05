@@ -49,6 +49,8 @@ var TempSemiCircleView = Backbone.View.extend({
           }
         }
       }
+    } else {
+      last_preset = profile.temp_presets[0];
     }
 
     this.enableOff = params.enableOff;
