@@ -43,8 +43,8 @@
         <!-- Extruder picker -->
         <div class="row text-center" >
           <div class="small-12 columns" >
-            <label for="extruder-count" class="bold">Filament will be change on this extruder:</label>
-            <select id="extruder-count" name="extruder_count">
+            <label for="extruder-count">Filament will be change on this extruder:</label>
+            <select id="extruder-count" class="bold" name="extruder_count">
             <% for(var i=0; i < initial_printer_profile.extruder_count; i++) { %>
               <option value="<%= i %>" <%= app.socketData.attributes.tool == i ? 'selected' : '' %> ><%= i+1 %></option>
             <% } %>

@@ -1,17 +1,5 @@
 @import "foundation/components/block-grid";
 
-.title-heading {
-	background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
-	padding: 5px 0 0;
-	margin-bottom: rem-calc(15);
-	border-bottom: 1px solid #ccc;
-	h1 {
-		font-size: rem-calc(28);
-		text-align: center;
-		line-height: 1;
-	}
-}
-
 
 #additional-task-app-container {
   #img-app {
@@ -49,10 +37,21 @@
   }
 }
 
-@media #{$xlarge-up} {
-	.title-heading {
-		border: 1px solid #ccc;
-		border-top: none;
-		border-radius: 0 0 $global-radius $global-radius;
-	}
+
+.additional-task-row{
+
+  #extruder-count{
+    background: url("/img/icon-extruder-active.svg") bottom no-repeat;
+    background-size: 90%;
+    max-width: 100px;
+    font-size: 35px;
+    outline: 0;
+    margin: 0 auto;
+    height: 85px;
+    width: auto;
+    min-width: 85px;
+    text-align-last: center;
+    color: $white;
+  }
+
 }

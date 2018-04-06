@@ -39,7 +39,7 @@
     justify-content: flex-start;
     flex-direction: row;
     position: relative;
-    padding: 10px;
+    padding: 12px;
     background: white;
     border-radius: $global-radius;
     box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
@@ -49,7 +49,7 @@
       justify-content: center;
       flex-direction: column;
       padding-left: 15px;
-      color: $charcoal;
+      color: $steel;
     }
   }
 
@@ -65,7 +65,7 @@
 		height: 100%;
 		padding: 2px 4px;
 		@include radius($global-radius);
-    background: rgba(243, 101, 35, 0.3);
+    background: rgba(243, 101, 35, 0.6);
     border: 2px solid rgba(13, 13, 13, 0.05);
     display: flex;
     justify-content: flex-end;
@@ -73,23 +73,27 @@
     padding: 10px;
 
       h4 {
-        color: $oil;
+        color: $white;
         padding: 4px 10px;
-        border: 2px solid $oil;
+        border: 2px solid $white;
         margin: 0;
         text-align: center;
         font-size: 1.125rem;
         min-width: 140px;
+        display: flex;
+        justify-content: center;
+        letter-spacing: 1px;
+        flex-direction: column;
 				}
 
 	}
 
 	.no-touch & {
-    li:hover {
+    li:hover, li:active {
       .overlay { opacity:1;}
     }
+  }
 
-	}
 }
 
 
@@ -113,12 +117,4 @@
       display: block;
     }
   }
-}
-
-@media #{$xlarge-up} {
-	.title-heading {
-		border: 2px solid #ccc;
-		border-top: none;
-		border-radius: 0 0 $global-radius $global-radius;
-	}
 }
