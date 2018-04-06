@@ -617,13 +617,16 @@ var PrintingSpeedControlView = Backbone.View.extend({
       this.$('.other-printing-speed-amount').removeClass('hide').find('input').focus().select();
     } else {
       var amount = elem.val();
-      this.$('input[name="printing-speed-amount"]').val(elem.val());
+      this.$('input[name="printing-speed-amount"]').val(amount);
       this._setPrintSpeed(amount);
     }
   },
   onCustomSpeedChanged: function(e) {
     var elem = $(e.target);
-    this._setPrintSpeed(elem.val());
+    var amount = elem.val();
+    if (amount < 25) { amount = 25; } else if (amount > 500) { amount = 500;}
+    elem.val(amount);
+    this._setPrintSpeed(amount);
     $(e.target).blur();
   }
 });

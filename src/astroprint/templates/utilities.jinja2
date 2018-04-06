@@ -220,14 +220,15 @@
               <div class="small-8 medium-9 large-9 columns">
                 <label>Print speed</label>
                 <select class="printing-speed-amount right bold">
-                  <option value="10">10%</option>
+                  <option value="25">25%</option>
                   <option value="50">50%</option>
                   <option value="100" selected default>100%</option>
+                  <option value="200">200%</option>
                   <option value="other">Other...</option>
                 </select>
                 <div class="row other-printing-speed-amount hide collapse">
                   <div class="small-9 columns">
-                    <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
+                    <input type="number" value="100" max=500 min=25 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
                   </div>
                   <div class="small-3 columns">
                     <span class="postfix radius">%</span>
