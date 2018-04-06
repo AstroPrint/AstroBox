@@ -1,11 +1,22 @@
 @import "foundation/components/block-grid";
 
+.task-main{
+  height: calc(100vh - 240px);
+  background: #333333;
+  position: relative;
 
-#additional-task-app-container {
-  #img-app {
-    margin: 0 auto;
+  .buttons{
+    //position: absolute;
+    width: 100%;
+    //bottom: 0;
+    //left: 0;
+  }
+
+  .step-description{
+    background: wheat;
   }
 }
+
 #additional-task {
   font-size: 2rem;
   color: #333;
@@ -52,6 +63,7 @@
     min-width: 85px;
     text-align-last: center;
     color: $white;
+    border: 0;
   }
 
 }
