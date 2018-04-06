@@ -586,6 +586,48 @@ var FanControlView = Backbone.View.extend({
   }
 });
 
+var FlowrateControlView = Backbone.View.extend({
+  el: '.flowrate-control',
+  events: {
+    'change .flow-percentage': 'rateChanged',
+    'change .other-flow-percentage input': 'onCustomRateChanged'
+  },
+
+  _setFlowRate: function(amount)
+  {
+    var data = {
+      command: "set",
+      amount: amount
+    }
+
+    $.ajax({
+      url: API_BASEURL + "printer/flowrate",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
+  },
+  rateChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-flow-percentage').removeClass('hide').find('input').focus().select();
+    } else {
+      var amount = elem.val();
+      this.$('input[name="flow-percentage"]').val(elem.val());
+      this._setFlowRate(amount);
+    }
+  },
+  onCustomRateChanged: function(e) {
+    var elem = $(e.target);
+    this._setFlowRate(elem.val());
+    $(e.target).blur();
+  }
+});
+
 var UtilitiesView = Backbone.View.extend({
   el: '#utilities-view',
   events: {
@@ -600,6 +642,7 @@ var UtilitiesView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
+  flowrateView: null,
   currentTool: null,
   initialize: function()
   {
@@ -609,6 +652,7 @@ var UtilitiesView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
+    this.flowrateView = new FlowrateControlView();
     this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);

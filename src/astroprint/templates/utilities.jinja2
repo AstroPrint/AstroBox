@@ -210,33 +210,33 @@
             </div>
           </div>
         </div>
-        <!-- PRINTING SPEED -->
-        <div id="printing-speed" class="small-12 medium-12 large-6 columns text-center">
-            <div class="fan-control clearfix">
-              <div class=" bold text-left clearfix">
-                <div class="columns small-4 medium-3 large-3 text-center left variable-speed">
-                  <i class="icon-extruder flow-icon"></i>
-                </div>
-                <div class="small-8 medium-9 large-9 columns">
-                  <label>Printing speed</label>
-                  <select class="fan-speed right bold">
-                    <option value="10">10%</option>
-                    <option value="50">50%</option>
-                    <option value="100" selected default>100%</option>
-                    <option value="other">Other...</option>
-                  </select>
-                  <div class="row other-printing-speed hide collapse">
-                    <div class="small-9 columns">
-                      <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-fan-speed" name="fan-speed"/>
-                    </div>
-                    <div class="small-3 columns">
-                      <span class="postfix radius">%</span>
-                    </div>
+        <!-- FLOW RATE -->
+        <div id="flowrate-control" class="small-12 medium-12 large-6 columns text-center">
+          <div class="flowrate-control clearfix">
+            <div class=" bold text-left clearfix">
+              <div class="columns small-4 medium-3 large-3 text-center left variable-speed">
+                <i class="icon-extruder flow-icon"></i>
+              </div>
+              <div class="small-8 medium-9 large-9 columns">
+                <label>Printing speed</label>
+                <select class="flow-percentage right bold">
+                  <option value="10">10%</option>
+                  <option value="50">50%</option>
+                  <option value="100" selected default>100%</option>
+                  <option value="other">Other...</option>
+                </select>
+                <div class="row other-flow-percentage hide collapse">
+                  <div class="small-9 columns">
+                    <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-flow-percentage" name="flow-percentage"/>
+                  </div>
+                  <div class="small-3 columns">
+                    <span class="postfix radius">%</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
       </div>
     </div>
   </div>

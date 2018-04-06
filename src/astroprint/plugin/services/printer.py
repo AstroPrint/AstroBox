@@ -130,6 +130,15 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
+	def printerFlowRate(self, data, callback):
+		pm = printerManager()
+
+		amount = data["amount"]
+
+		pm.flowRate(amount)
+
+		callback({'success': 'no_error'})
+
 	def printerFanSpeed(self, data, callback):
 		pm = printerManager()
 

@@ -190,12 +190,35 @@ def printerFanCommand():
 	valid_commands = {
 		"set": ["tool", "speed"]
 	}
-
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response
 
 	pm.fan(data["tool"], data["speed"])
+
+	return NO_CONTENT
+
+
+##~~ Flow rate
+
+
+@api.route("/printer/flowrate", methods=["POST"])
+def printerFlowrateCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	valid_commands = {
+		"set": ["amount"]
+	}
+
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+
+	if response is not None:
+		return response
+
+	pm.flowRate(data["amount"])
 
 	return NO_CONTENT
 

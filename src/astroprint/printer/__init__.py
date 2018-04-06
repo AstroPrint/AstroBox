@@ -663,6 +663,9 @@ class Printer(object):
 	def home(self, axes):
 		raise NotImplementedError()
 
+	def flowRate(self, amount):
+		raise NotImplementedError()
+
 	def fan(self, tool, speed):
 		raise NotImplementedError()
 
