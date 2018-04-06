@@ -311,7 +311,8 @@ class WebRtc(object):
 					self._connectedPeers = {}
 
 					#STOP TIMER FOR LOST PEERS
-					self.peersDeadDetacher.cancel()
+					if self.peersDeadDetacher:
+						self.peersDeadDetacher.cancel()
 
 					ready = signal('manage_fatal_error_webrtc')
 					ready.disconnect(self.closeAllSessions)

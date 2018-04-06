@@ -37,8 +37,8 @@ class FilesService(PluginService):
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
 		'f¡nished_download_printfile',
-		#watch if an external drive is phisically plugged
-		'external_drive_plugged',
+		#watch if an external drive is mounted
+		'external_drive_mounted',
 		#watch if an external drive is ejected
 		'external_drive_ejected',
 		################
@@ -57,17 +57,15 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.FILE_DELETED, self._onFileDeleted)
 		self._eventManager.subscribe(Events.CLOUD_DOWNLOAD, self._onCloudDownloadStateChanged)
 		self._eventManager.subscribe(Events.COPY_TO_HOME_PROGRESS, self._onCopyToHomeProgress)
-		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PLUGGED, self._onExternalDrivePlugged)
+		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_MOUNTED, self._onExternalDriveMounted)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_EJECTED, self._onExternalDriveEjected)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, self._onExternalDrivePhisicallyRemoved)
 
 
 	def eject(self, data, sendResponse):
-
 		ejection = externalDriveManager().eject(data['drive'])
 
 		if ejection['result']:
-
 			sendResponse({'success':'no error'})
 		else:
 
@@ -91,7 +89,7 @@ class FilesService(PluginService):
 		sendResponse({ 'fileBrowsingExtensions' : externalDriveManager().getFileBrowsingExtensions() })
 
 
-	def getFolderContents(self, folder, sendResponse):
+	def getFolderExploration(self, folder, sendResponse):
 
 		try:
 			sendResponse( { 'folderExp': externalDriveManager().getFolderContents(folder) })
@@ -109,6 +107,15 @@ class FilesService(PluginService):
 			self._logger.error("storage folders can not be obtained", exc_info = True)
 			sendResponse('no_folders_obtained',True)
 	'''
+
+	def getFolderContents(self, folder, sendResponse):
+
+		if folder == '/':
+			sendResponse( { 'folderContents': externalDriveManager().getRemovableDrives() })
+
+		else:
+			sendResponse( { 'folderContents': externalDriveManager().getFolderContents("%s/*" % folder) })
+
 
 	def getBaseFolder(self, key, sendResponse):
 		sendResponse({ 'baseFolder' : externalDriveManager()._cleanFileLocation(settings().getBaseFolder(key))})
@@ -348,7 +355,6 @@ class FilesService(PluginService):
 		else:
 			sendResponse('cancel_error',True)
 
-
 	#EVENTS
 
 	def _onFileDeleted(self,event,data):
@@ -362,8 +368,8 @@ class FilesService(PluginService):
 	def _onCopyToHomeProgress(self,event,data):
 		self.publishEvent('copy_to_home_progress',data)
 
-	def _onExternalDrivePlugged(self,event,data):
-		self.publishEvent('external_drive_plugged',data)
+	def _onExternalDriveMounted(self,event,data):
+		self.publishEvent('external_drive_mounted',data)
 
 	def _onExternalDriveEjected(self,event,data):
 		self.publishEvent('external_drive_ejected',data)

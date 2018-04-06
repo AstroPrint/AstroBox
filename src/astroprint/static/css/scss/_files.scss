@@ -567,6 +567,13 @@
   }
 }
 
+#external-removed-warning-dlg {
+  i.icon-attention {
+    color: $alert-color;
+    font-size: 50px;
+  }
+}
+
 @media #{$large-up} {
   #printer-file-info {
     max-width: 900px;

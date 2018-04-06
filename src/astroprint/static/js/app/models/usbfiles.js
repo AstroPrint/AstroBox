@@ -15,16 +15,10 @@ var USBFile = Backbone.Model.extend({
 var USBFileCollection = Backbone.Collection.extend({
   model: USBFile,
   url: API_BASEURL + "files/folder-contents",
-  extensionsAllowed: ['.gcode'],
+  extensionsAllowed: ['gcode'],
   localStorages: [],
   initialize: function(){
-    $.getJSON('/api/files/file-browsing-extensions')
-      .done(function(data){
-        this.extensionsAllowed = data;
-      })
-      .fail(function(error){
-        console.error(error);
-      });
+    this.refreshExtensions();
 
     $.getJSON('/api/files/removable-drives')
       .done(_.bind(function(data){
@@ -34,25 +28,38 @@ var USBFileCollection = Backbone.Collection.extend({
         console.error(error);
       });
   },
+  onDriveAdded: function(path)
+  {
+    this.localStorages.push(path);
+  },
+  onDriveRemoved: function(path)
+  {
+    var idx = this.localStorages.indexOf(path)
+    if (idx >= 0) {
+      delete this.localStorages[idx];
+    }
+  },
+  isMounted: function(path)
+  {
+    return this.localStorages.indexOf(path) >= 0;
+  },
+  refreshExtensions: function()
+  {
+    return $.getJSON('/api/files/file-browsing-extensions')
+      .done(_.bind(function(data){
+        this.extensionsAllowed = data;
+      }, this))
+      .fail(function(error){
+        console.error(error);
+      });
+  },
   extensionMatched: function(file)
   {
-    var matched = false;
-
-    for(var i=0; !matched && i<this.extensionsAllowed.length; i++){
-      matched = file.endsWith(this.extensionsAllowed[i]);
-    }
-
-    return matched;
+    return _.find(this.extensionsAllowed, function(ext) { return file.toLowerCase().endsWith('.' + ext) } ) != undefined;
   },
   topLocationMatched: function(location)
   {
-    var matched = false;
-
-    for(var i=0; !matched && i<this.localStorages.length; i++){
-      matched = (location == (this.localStorages[i].name));
-    }
-
-    return matched;
+    return this.localStorages.indexOf(location) >= 0;
   },
   syncLocation: function(location)
   {
