@@ -1,19 +1,77 @@
 @import "foundation/components/block-grid";
+@import "foundation/components/progress-bars";
 
 .task-main{
-  height: calc(100vh - 240px);
-  background: #333333;
-  position: relative;
+  //height: calc(100vh - 180px);
+  //background: #333333;
+  //position: relative;
+  //background: #ffffffab;
+  background:rgba(244, 100, 35, 0.1);
+  border-radius: 4px;
+  padding-bottom: 15px;
+  min-height:75vh;
+  box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+
+  .padding-top{
+    padding-top: 10px;
+  }
 
   .buttons{
-    //position: absolute;
+    position: absolute;
     width: 100%;
-    //bottom: 0;
-    //left: 0;
+    bottom: 0;
+    left: 0;
+  }
+
+  .progress{
+    height: 0.4rem;
+    margin: 0;
+    padding: 0;
+
+    .meter{
+      background: $orange;
+    }
   }
 
   .step-description{
-    background: wheat;
+    padding: 5px 0.9375rem;
+
+    p{
+      margin-top: 5px;
+      margin-bottom: 10px;
+      line-height: 125%;
+    }
+  }
+
+  #img-app {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+
+    img{
+      display: block;
+      max-height: 64vh;
+      margin: 0 auto;
+   }
+  }
+
+  #step-counter{
+    .current{
+      width: 20px;
+      height: 20px;
+      border-radius: 100%;
+      font-size: 14px;
+      background: $oil;
+      text-align: center;
+      display: inline-block;
+      color: $white;
+    }
+
+    .total{
+      @extend .current;
+      background: transparent;
+      color: $oil;
+    }
   }
 }
 
@@ -34,6 +92,7 @@
     height: 100%;
     width: 100%;
     top: 0;
+    left: 0;
     background: rgba(0,0,0,0.7);
     color: white;
     text-align: center;
@@ -50,6 +109,11 @@
 
 
 .additional-task-row{
+
+  .title-heading{
+    margin: 0;
+    border: 0;
+  }
 
   #extruder-count{
     background: url("/img/icon-extruder-active.svg") bottom no-repeat;
