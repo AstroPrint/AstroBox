@@ -236,10 +236,6 @@ class SystemService(PluginService):
 	def saveTempPreset(self, data, sendMessage):
 		ppm = printerProfileManager()
 
-		print "save temp preset"
-		print data['name']
-		print data['nozzle_temp']
-		print data['bed_temp']
 		if data:
 			id = ppm.createTempPreset(data['name'], data['nozzle_temp'], data['bed_temp'])
 			sendMessage( id )
