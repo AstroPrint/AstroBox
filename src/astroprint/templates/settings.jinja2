@@ -17,6 +17,7 @@
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
         <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
+        <li class="bluetooth dotted"><a href="#settings/bluetooth">Bluetooth</a></li>
         <li class="heading bold">Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
         <li class="software-license dotted"><a href="#settings/software-license">License</a></li>
@@ -570,6 +571,49 @@
             <div class="small-10 large-11 columns">
               <label for="hotspot-off">
                 <b>Turn hotspot off when a known network is found in the future.</b>
+              </label>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </script>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/bluetooth"><h1 class="bold" align="center">Bluetooth</h1></a>
+    </div>
+    <div id="bluetooth" class="settings-page hide"></div>
+    <script type="text/template" id="bluetooth-settings-page-template">
+      <% if (settings.bluetooth === false) { %>
+        <div class="text-center no-hotspot">
+          <i class="icon-attention"></i>
+          <h4 class="bold">Creating a Hotspot is not supported on this device</h4>
+        </div>
+      <% } else { %>
+        <h3 class="bold">Local Hotspot</h3>
+        <div>
+          <% if (settings.bluetooth.active) { %>
+            <h4>Bluetooth device name: <b><%= settings.bluetooth.name %></b></h4>
+            <div class="loading-button stop-bluetooth">
+              <button class="radius">Stop bluetooth</button>
+              <span class="loading button disabled radius">
+                <i class="icon-rocket-spinner animate-spin"></i> Stopping Bluetooth...
+              </span>
+            </div>
+          <% } else { %>
+            <div class="loading-button start-bluetooth">
+              <button class="radius">Start bluetooth</button>
+              <span class="loading button disabled radius">
+                <i class="icon-rocket-spinner animate-spin"></i> Starting Bluetooth...
+              </span>
+            </div>
+          <% } %>
+          <div class="row bluetooth-off">
+            <div class="small-2 large-1 columns">
+              <input id="hotspot-off" type="checkbox" <% if (settings.bluetooth.bluetoothOnlyOffline) { %> value="yes" checked <% } %>>
+            </div>
+            <div class="small-10 large-11 columns">
+              <label for="bluetooth-off">
+                <b>Turn bluetooth off when a known network is found in the future.</b>
               </label>
             </div>
           </div>

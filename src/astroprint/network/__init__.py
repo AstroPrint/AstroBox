@@ -54,6 +54,9 @@ class NetworkManager(object):
 	def isHotspotable(self):
 		return None
 
+	def isBluetoothable(self):
+		return None
+
 	def getActiveConnections(self):
 		return None
 
@@ -72,6 +75,9 @@ class NetworkManager(object):
 	def isHotspotActive(self):
 		return None
 
+	def isBluetoothActive(self):
+		return None
+
 	def hasWifi(self):
 		return None
 
@@ -85,6 +91,18 @@ class NetworkManager(object):
 	def stopHotspot(self):
 		#return True when succesful
 		return "Stopping a hotspot is not supported"
+
+	def startBluetooth(self):
+		return {
+			'status': False,
+			'info': "Starting bluetooth is no supported"
+		}
+
+	def stopBluetooth(self):
+		return {
+			'status': False,
+			'info': "Stopping bluetooth is no supported"
+		}
 
 	def getHostname(self):
 		return None

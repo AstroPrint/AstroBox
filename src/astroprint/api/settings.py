@@ -156,6 +156,49 @@ def handleWifiHotspot():
 		else:
 			return (result, 500)
 
+
+@api.route("/settings/network/bluetooth", methods=["GET", "POST", "PUT", "DELETE"])
+@restricted_access
+def handleBluetoothHotspot():
+	nm = networkManager()
+
+	if request.method == "GET":
+		return jsonify({
+			'bluetooth': {
+				'active': nm.isBluetoothActive(),
+				'name': nm.getHostname(),
+				'bluetoothOnlyOffline': settings().getBoolean(['bluetooth', 'bluetoothOnlyOffline'])
+			} if nm.isBluetoothable() else False
+		})
+
+	elif request.method == "PUT":
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
+
+			if "bluetoothOnlyOffline" in data:
+				s = settings()
+				s.setBoolean(['bluetooth', 'bluetoothOnlyOffline'], data["bluetoothOnlyOffline"])
+				s.save()
+				return jsonify()
+
+		return ("Invalid Request", 400)
+
+	elif request.method == "DELETE":
+		result = networkManager().stopBluetooth()
+
+		if result is True:
+			return jsonify()
+		else:
+			return (result, 500)
+
+	else: #POST
+		result = nm.startBluetooth()
+
+		if result is True:
+			return jsonify()
+		else:
+			return (result, 500)
+
 @api.route("/settings/camera", methods=["GET", "POST"])
 @restricted_access
 def cameraSettings():

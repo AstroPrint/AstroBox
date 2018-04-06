@@ -15,6 +15,7 @@ from dbus.exceptions import DBusException
 from gi.repository import GObject
 
 from astroprint.network import NetworkManager as NetworkManagerBase
+from astroprint.bt_comms import bluetoothCommsManager
 
 logger = logging.getLogger(__name__)
 
@@ -277,6 +278,9 @@ class NetworkManagerEvents(threading.Thread):
 					else:
 						logger.error('Failed to start hostspot: %s' % result)
 
+				#start bluetooth comms
+				self._manager.startBluetooth()
+
 class DebianNetworkManager(NetworkManagerBase):
 	def __init__(self):
 		super(DebianNetworkManager, self).__init__()
@@ -293,6 +297,9 @@ class DebianNetworkManager(NetworkManagerBase):
 
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
+
+		if not self.settings.getBoolean(['bluetooth', 'bluetoothOnlyOffline']):
+			self.startBluetooth()
 
 		#Find out and set the active WiFi Device
 		self._activeWifiDevice = self._getWifiDevice()
@@ -375,6 +382,10 @@ class DebianNetworkManager(NetworkManagerBase):
 
 	def isHotspotable(self):
 		return bool(self.settings.get(['wifi', 'hotspotDevice'])) and self.isHotspotActive() != None
+
+	def isBluetoothable(self):
+		#return bool(self.settings.get(['wifi', 'hotspotDevice'])) and self.isBluetoothActive() != None
+		return bluetoothCommsManager().isBTAvailable
 
 	def hasWifi(self):
 		return bool(self._activeWifiDevice)
@@ -479,11 +490,37 @@ class DebianNetworkManager(NetworkManagerBase):
 		if not self.isHotspotActive():
 			self.startHotspot()
 
+		self.startBluetooth()
+
 		for c in conns:
 			settings = c.GetSettings()
 			if '802-11-wireless' in settings:
 				logger.info('Deleting connection %s' % settings['802-11-wireless']['ssid'])
 				c.Delete()
+
+	def isBluetoothActive(self):
+		return bluetoothCommsManager().isBTON()
+
+	def startBluetooth(self):
+		#start bluetooth comms
+		result = bluetoothCommsManager().turnBTOn()
+		if result['status']:
+			logger.info('Bluetooth started')
+			return True
+		else:
+			logger.error('Failed to start bluetooth: ' + result['info'])
+			return False
+
+	def stopBluetooth(self):
+		#start bluetooth comms
+		result = bluetoothCommsManager().turnBTOff()
+		if result['status']:
+			logger.info('Bluetooth stopped')
+			return True
+		else:
+			logger.error('Failed to stop bluetooth: ' + result['info'])
+			return False
+
 
 	def isHotspotActive(self):
 		interface = self.settings.get(['wifi', 'hotspotDevice'])
@@ -647,4 +684,3 @@ class DebianNetworkManager(NetworkManagerBase):
 			pass
 
 		return None
-

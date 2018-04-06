@@ -71,6 +71,7 @@ from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
+from astroprint.bt_comms import bluetoothCommsManager
 
 UI_API_KEY = None
 VERSION = None
@@ -473,6 +474,7 @@ class Server():
 		discoveryManager = DiscoveryManager()
 
 		externalDriveManager().start()
+		bluetoothCommsManager().start()
 
 		def access_validation_factory(validator):
 			"""
@@ -630,6 +632,7 @@ class Server():
 		boxrouterManager().shutdown()
 		cameraManager().shutdown()
 		externalDriveManager().shutdown()
+		bluetoothCommsManager().shutdown()
 
 		from astroprint.network.manager import networkManagerShutdown
 		networkManagerShutdown()

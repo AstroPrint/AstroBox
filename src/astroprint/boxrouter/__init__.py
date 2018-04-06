@@ -350,14 +350,24 @@ class AstroprintBoxRouter(object):
 
 			#Are we offline?
 			nm = networkManager()
-			if not nm.checkOnline() and nm.isHotspotActive() is False: #isHotspotActive will return None if not possible
-				#get the box hotspot up
-				self._logger.info('AstroBox is offline. Starting hotspot...')
-				result = nm.startHotspot()
-				if result is True:
-					self._logger.info('Hostspot started.')
-				else:
-					self._logger.error('Failed to start hostspot: %s' % result)
+			if not nm.checkOnline():
+				if nm.isHotspotActive() is False: #isHotspotActive will return None if not possible
+					#get the box hotspot up
+					self._logger.info('AstroBox is offline. Starting hotspot...')
+					result = nm.startHotspot()
+					if result is True:
+						self._logger.info('Hostspot started.')
+					else:
+						self._logger.error('Failed to start hostspot: %s' % result)
+
+				if not nm.isBluetoothActive(): #isBluetoothActive will return None if not possible
+					#start bluetooth comms
+					self._logger.info('AstroBox is offline. Starting bluetooth...')
+					result = nm.startBluetooth()
+					if result['status']:
+						self._logger.info('Bluetooth started')
+					else:
+						self._logger.error('Failed to start bluetooth: ' + result['info'])
 
 	def cancelRetry(self):
 		if self._retryTimer:

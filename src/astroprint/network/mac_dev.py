@@ -75,6 +75,18 @@ class MacDevNetworkManager(NetworkManagerBase):
 		#return True when succesful
 		return "Not supporded on Mac"
 
+	def startBluetooth(self):
+		return {
+			'status': False
+			'info': "Starting bluetooth is no supported"
+		}
+
+	def stopBluetooth(self):
+		return {
+			'status': False
+			'info': "Stopping bluetooth is no supported"
+		}
+
 	def getHostname(self):
 		return self.name
 

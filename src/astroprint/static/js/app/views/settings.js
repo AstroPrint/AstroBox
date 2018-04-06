@@ -961,8 +961,8 @@ var WifiHotspotView = SettingsPage.extend({
       url: API_BASEURL + "settings/network/hotspot",
       type: "POST",
       success: _.bind(function(data, code, xhr) {
-        noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
-        this.settings.hotspot.active = true;
+        noty({text: 'Your '+PRODUCT_NAME+' has turned the bluetooth on. Name: <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
+        this.settings.bluetooth.active = true;
         this.render();
       }, this),
       error: function(xhr) {
@@ -982,8 +982,8 @@ var WifiHotspotView = SettingsPage.extend({
       url: API_BASEURL + "settings/network/hotspot",
       type: "DELETE",
       success: _.bind(function(data, code, xhr) {
-        noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
-        this.settings.hotspot.active = false;
+        noty({text: 'The bluetooth has been stopped', type: 'success', timeout:3000});
+        this.settings.bluetooth.active = false;
         this.render();
       }, this),
       error: function(xhr) {
@@ -1013,6 +1013,103 @@ var WifiHotspotView = SettingsPage.extend({
       }, this))
       .fail(function(){
         noty({text: "There was an error saving hotspot option.", timeout: 3000});
+      });
+  }
+});
+
+/*************************
+* Network - Bluetooth
+**************************/
+
+var BluetoothView = SettingsPage.extend({
+  el: '#bluetooth',
+  template: _.template( $("#bluetooth-settings-page-template").html() ),
+  settings: null,
+  events: {
+    'click .loading-button.start-bluetooth button': 'startBluetoothClicked',
+    'click .loading-button.stop-bluetooth button': 'stopBluetoothClicked',
+    'change .bluetooth-off input': 'bluetoothOffChanged'
+  },
+  show: function() {
+    //Call Super
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.settings) {
+      $.getJSON(API_BASEURL + 'settings/network/bluetooth', null, _.bind(function(data) {
+        this.settings = data;
+        this.render();
+      }, this))
+      .fail(function() {
+        noty({text: "There was an error getting Bluetooth settings.", timeout: 3000});
+      });
+    }
+  },
+  render: function() {
+    this.$el.html(this.template({
+      settings: this.settings
+    }));
+  },
+  startBluetoothClicked: function(e) {
+    var el = $(e.target).closest('.loading-button');
+
+    el.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + "settings/network/bluetooth",
+      type: "POST",
+      success: _.bind(function(data, code, xhr) {
+        noty({text: 'Your '+PRODUCT_NAME+' has created a bluetooth', type: 'success', timeout:3000});
+        this.settings.bluetooth.active = true;
+        this.render();
+      }, this),
+      error: function(xhr) {
+        noty({text: xhr.responseText, timeout:3000});
+      },
+      complete: function() {
+        el.removeClass('loading');
+      }
+    });
+  },
+  stopBluetoothClicked: function(e) {
+    var el = $(e.target).closest('.loading-button');
+
+    el.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + "settings/network/bluetooth",
+      type: "DELETE",
+      success: _.bind(function(data, code, xhr) {
+        noty({text: 'The bluetooth has been stopped', type: 'success', timeout:3000});
+        this.settings.bluetooth.active = false;
+        this.render();
+      }, this),
+      error: function(xhr) {
+        noty({text: xhr.responseText, timeout:3000});
+      },
+      complete: function() {
+        el.removeClass('loading');
+      }
+    });
+  },
+  bluetoothOffChanged: function(e)
+  {
+    var target = $(e.currentTarget);
+    var checked = target.is(':checked');
+
+    $.ajax({
+      url: '/api/settings/network/bluetooth',
+      method: 'PUT',
+      data: JSON.stringify({
+        'bluetoothOnlyOffline': checked
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+      .done(_.bind(function(){
+        this.settings.bluetooth.bluetoothOnlyOffline = checked;
+      }, this))
+      .fail(function(){
+        noty({text: "There was an error saving bluetooth option.", timeout: 3000});
       });
   }
 });
@@ -1690,6 +1787,7 @@ var SettingsView = Backbone.View.extend({
       'internet-connection': new InternetConnectionView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
+      'bluetooth': new BluetoothView({parent: this}),
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
       'software-advanced': new SoftwareAdvancedView({parent: this}),

@@ -171,6 +171,9 @@ default_settings = {
 		"manager": "debianNetworkManager",
 		"interface": 'wlan0'
 	},
+	"bluetooth": {
+		"bluetoothOnlyOffline": True
+	},
 	"software": {
 		"infoDir": None,
 		"variantFile": None,
