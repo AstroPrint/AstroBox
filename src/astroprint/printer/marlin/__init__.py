@@ -180,9 +180,9 @@ class PrinterMarlin(Printer):
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
-	def flowRate(self, amount):
+	def printingSpeed(self, amount):
 		try:
-			self.command("M221 S%s" % amount)
+			self.command("M220 S%s" % amount)
 		except ValueError:
 			pass
 

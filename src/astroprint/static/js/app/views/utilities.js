@@ -586,14 +586,14 @@ var FanControlView = Backbone.View.extend({
   }
 });
 
-var FlowrateControlView = Backbone.View.extend({
-  el: '.flowrate-control',
+var PrintingSpeedControlView = Backbone.View.extend({
+  el: '.printing-speed-control',
   events: {
-    'change .flow-percentage': 'rateChanged',
-    'change .other-flow-percentage input': 'onCustomRateChanged'
+    'change .printing-speed-amount': 'rateChanged',
+    'change .other-printing-speed-amount input': 'onCustomSpeedChanged'
   },
 
-  _setFlowRate: function(amount)
+  _setPrintSpeed: function(amount)
   {
     var data = {
       command: "set",
@@ -601,7 +601,7 @@ var FlowrateControlView = Backbone.View.extend({
     }
 
     $.ajax({
-      url: API_BASEURL + "printer/flowrate",
+      url: API_BASEURL + "printer/printing-speed",
       type: "POST",
       dataType: "json",
       contentType: "application/json; charset=UTF-8",
@@ -614,16 +614,16 @@ var FlowrateControlView = Backbone.View.extend({
 
     if (elem.val() == 'other') {
       elem.addClass('hide');
-      this.$('.other-flow-percentage').removeClass('hide').find('input').focus().select();
+      this.$('.other-printing-speed-amount').removeClass('hide').find('input').focus().select();
     } else {
       var amount = elem.val();
-      this.$('input[name="flow-percentage"]').val(elem.val());
-      this._setFlowRate(amount);
+      this.$('input[name="printing-speed-amount"]').val(elem.val());
+      this._setPrintSpeed(amount);
     }
   },
-  onCustomRateChanged: function(e) {
+  onCustomSpeedChanged: function(e) {
     var elem = $(e.target);
-    this._setFlowRate(elem.val());
+    this._setPrintSpeed(elem.val());
     $(e.target).blur();
   }
 });
@@ -652,7 +652,7 @@ var UtilitiesView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
-    this.flowrateView = new FlowrateControlView();
+    this.flowrateView = new PrintingSpeedControlView();
     this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);

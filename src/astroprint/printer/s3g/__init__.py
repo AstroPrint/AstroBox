@@ -376,7 +376,7 @@ class PrinterS3g(Printer):
 				)
 				self._comm.tool_action_command(int(tool), makerbot_driver.slave_action_command_dict['TOGGLE_EXTRA_OUTPUT'], payload)
 
-	def flowRate(self, amount):
+	def printingSpeed(self, amount):
 		raise NotImplementedError()
 
 	def extrude(self, tool, amount, speed=None):

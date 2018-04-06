@@ -199,10 +199,10 @@ def printerFanCommand():
 	return NO_CONTENT
 
 
-##~~ Flow rate
+##~~ Printing Speed
 
 
-@api.route("/printer/flowrate", methods=["POST"])
+@api.route("/printer/printing-speed", methods=["POST"])
 def printerFlowrateCommand():
 	pm = printerManager()
 
@@ -218,7 +218,7 @@ def printerFlowrateCommand():
 	if response is not None:
 		return response
 
-	pm.flowRate(data["amount"])
+	pm.printingSpeed(data["amount"])
 
 	return NO_CONTENT
 

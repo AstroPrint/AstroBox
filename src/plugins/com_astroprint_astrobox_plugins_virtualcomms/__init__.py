@@ -138,8 +138,8 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def home(self, axes):
 		self._logger.info('Home - Axes: %s', ', '.join(axes))
 
-	def flowRate(self, amount):
-		self._logger.info("Flow rate - Amount: %s", amount)
+	def printingSpeed(self, amount):
+		self._logger.info("Printing Speed - Amount: %s", amount)
 
 	def fan(self, tool, speed):
 		speed = (int(speed) / 100.0) * 255

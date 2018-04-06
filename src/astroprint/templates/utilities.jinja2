@@ -210,24 +210,24 @@
             </div>
           </div>
         </div>
-        <!-- FLOW RATE -->
-        <div id="flowrate-control" class="small-12 medium-12 large-6 columns text-center">
-          <div class="flowrate-control clearfix">
+        <!-- PRINT SPEED -->
+        <div id="printing-speed-control" class="small-12 medium-12 large-6 columns text-center">
+          <div class="printing-speed-control clearfix">
             <div class=" bold text-left clearfix">
               <div class="columns small-4 medium-3 large-3 text-center left variable-speed">
                 <i class="icon-extruder flow-icon"></i>
               </div>
               <div class="small-8 medium-9 large-9 columns">
-                <label>Printing speed</label>
-                <select class="flow-percentage right bold">
+                <label>Print speed</label>
+                <select class="printing-speed-amount right bold">
                   <option value="10">10%</option>
                   <option value="50">50%</option>
                   <option value="100" selected default>100%</option>
                   <option value="other">Other...</option>
                 </select>
-                <div class="row other-flow-percentage hide collapse">
+                <div class="row other-printing-speed-amount hide collapse">
                   <div class="small-9 columns">
-                    <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-flow-percentage" name="flow-percentage"/>
+                    <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
                   </div>
                   <div class="small-3 columns">
                     <span class="postfix radius">%</span>

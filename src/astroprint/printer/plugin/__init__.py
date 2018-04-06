@@ -231,8 +231,8 @@ class PrinterWithPlugin(Printer):
 	def home(self, axes):
 		self._plugin.home(axes)
 
-	def flowRate(self, amount):
-		self._plugin.flowRate(amount)
+	def printingSpeed(self, amount):
+		self._plugin.printingSpeed(amount)
 
 	def fan(self, tool, speed):
 		self._plugin.fan(tool, speed)
