@@ -592,7 +592,22 @@ var PrintingSpeedControlView = Backbone.View.extend({
     'change .printing-speed-amount': 'rateChanged',
     'change .other-printing-speed-amount input': 'onCustomSpeedChanged'
   },
+  initialize: function()
+  {
+    var printingSpeedAmount = app.socketData.attributes.printing_speed;
 
+    this.setSpeedValue(printingSpeedAmount);
+  },
+
+  setSpeedValue: function(value)
+  {
+    if (value == 25 || value == 50 || value == 100 || value == 200 ) {
+      this.$('select.printing-speed-amount').val(value).change();
+    } else {
+      this.$('select.printing-speed-amount').val("other").change();
+      this.$('input[name="printing-speed-amount"]').val(value);
+    }
+  },
   _setPrintSpeed: function(amount)
   {
     var data = {
@@ -645,7 +660,7 @@ var UtilitiesView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
-  flowrateView: null,
+  printSpeedView: null,
   currentTool: null,
   initialize: function()
   {
@@ -655,19 +670,24 @@ var UtilitiesView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
-    this.flowrateView = new PrintingSpeedControlView();
+    this.printSpeedView = new PrintingSpeedControlView();
     this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
     this.listenTo(app.socketData, 'change:printing', this.onPrintingChanged);
+    this.listenTo(app.socketData, 'change:printing_speed', this.onPrintingSpeedChanged);
   },
   updateTemps: function(s, value)
   {
     if (!this.$el.hasClass('hide')) {
       this.tempView.updateTemps(value);
     }
+  },
+  onPrintingSpeedChanged: function(m, value)
+  {
+    this.printSpeedView.setSpeedValue(value);
   },
   onPrintingChanged: function(s, isPrinting)
   {

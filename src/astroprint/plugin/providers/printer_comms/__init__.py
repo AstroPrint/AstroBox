@@ -507,6 +507,14 @@ class PrinterCommsService(CommandPluginInterface):
 	def reportToolChange(self, newTool, oldTool):
 		self._printerManager.mcToolChange(newTool, oldTool)
 
+	#
+	# Report a new printing speed
+	#
+	# - amount: The printing speed in percentage
+	#
+	def reportPrintingSpeedChange(self, amount):
+		self._printerManager.mcPrintingSpeedChange(amount)
+
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# CommandPluginInterface     ~
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -551,3 +559,7 @@ class PrinterCommsService(CommandPluginInterface):
 			self._materialCounter.changeActiveTool(str(tool), str(oldTool))
 			self._currentTool = tool
 			self.reportToolChange(tool, oldTool)
+
+	def onPrintingSpeedChanged(self, amount):
+			self._printingSpeed = amount
+			self.reportPrintingSpeedChange(amount)

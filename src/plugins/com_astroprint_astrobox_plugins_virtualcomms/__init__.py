@@ -19,6 +19,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		seettings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
 		self._previousSelectedTool = 0
 		self._currentSelectedTool = 0
+		self._printingSpeed = 100
 
 		self._vpSettings = {
 			'connection': 1.0,
@@ -138,8 +139,6 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def home(self, axes):
 		self._logger.info('Home - Axes: %s', ', '.join(axes))
 
-	def printingSpeed(self, amount):
-		self._logger.info("Printing Speed - Amount: %s", amount)
 
 	def fan(self, tool, speed):
 		speed = (int(speed) / 100.0) * 255
@@ -147,6 +146,11 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def extrude(self, tool, amount, speed=None):
 		self._logger.info('Extrude - Tool: %s, Amount: %s, Speed: %s', tool, amount, speed)
+
+	def setPrintingSpeed(self, amount):
+		self._printingSpeed = amount
+		self._logger.info("Printing Speed - Amount: %s", amount)
+		self.onPrintingSpeedChanged(amount)
 
 	def changeTool(self, tool):
 		self._logger.info('Change tool from %s to %s', self.currentTool, tool)

@@ -46,6 +46,7 @@ class PrinterS3g(Printer):
 		self._heatingUp = False
 		self._firmwareVersion = None
 		self._selectedTool = 0
+		self._printingSpeed = 100
 		self._previousSelectedTool = 0
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
@@ -376,7 +377,7 @@ class PrinterS3g(Printer):
 				)
 				self._comm.tool_action_command(int(tool), makerbot_driver.slave_action_command_dict['TOGGLE_EXTRA_OUTPUT'], payload)
 
-	def printingSpeed(self, amount):
+	def setPrintingSpeed(self, amount):
 		raise NotImplementedError()
 
 	def extrude(self, tool, amount, speed=None):
@@ -535,6 +536,9 @@ class PrinterS3g(Printer):
 
 	def getSelectedTool(self):
 		return self._selectedTool
+
+	def getPrintingSpeed(self):
+		return self._printingSpeed
 
 	def getPrintFilepos(self):
 		if self._currentFile is None:

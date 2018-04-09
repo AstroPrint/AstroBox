@@ -203,7 +203,7 @@ def printerFanCommand():
 
 
 @api.route("/printer/printing-speed", methods=["POST"])
-def printerFlowrateCommand():
+def setPrinterSpeedCommand():
 	pm = printerManager()
 
 	if not pm.isOperational():
@@ -218,10 +218,22 @@ def printerFlowrateCommand():
 	if response is not None:
 		return response
 
-	pm.printingSpeed(data["amount"])
+	pm.setPrintingSpeed(data["amount"])
 
 	return NO_CONTENT
 
+@api.route("/printer/printing-speed", methods=["GET"])
+def getPrinterSpeedCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	result = {}
+
+	result['speed'] = pm.getPrintingSpeed()
+
+	return jsonify(result)
 
 ##~~ Print head
 

@@ -303,6 +303,28 @@ class PrinterService(PluginService):
 
 		return selectedTool
 
+	def getPrintingSpeed(self, data, sendResponse= None):
+		pm = printerManager()
+
+		if pm.isConnected():
+			printingSpeed = pm.getPrintingSpeed()
+		else:
+			printingSpeed = None
+
+		if sendResponse:
+			sendResponse(printingSpeed)
+
+		return printingSpeed
+
+	def setPrintingSpeed(self, data, sendResponse= None):
+		pm = printerManager()
+
+		pm.setPrintingSpeed(data)
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
 	def selectTool(self,data,sendResponse):
 
 		pm = printerManager()
