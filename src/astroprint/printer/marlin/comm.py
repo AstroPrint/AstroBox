@@ -1333,7 +1333,6 @@ class MachineCom(object):
 
 	def _gcode_T(self, cmd):
 		toolMatch = self._regex_paramTInt.search(cmd)
-		print toolMatch
 		if toolMatch:
 			tool = int(toolMatch.group(1))
 			if self._currentTool != tool:
