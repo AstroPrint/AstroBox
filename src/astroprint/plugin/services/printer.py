@@ -308,12 +308,12 @@ class PrinterService(PluginService):
 		pm = printerManager()
 
 		if pm.isConnected():
-			printingSpeed = pm.getPrintingSpeed()
+			printingSpeed = int(pm.getPrintingSpeed())
 		else:
 			printingSpeed = None
 
 		if sendResponse:
-			sendResponse(int(printingSpeed))
+			sendResponse(printingSpeed)
 
 		return printingSpeed
 
