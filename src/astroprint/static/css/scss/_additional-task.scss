@@ -8,9 +8,8 @@
   //background: #ffffffab;
   background:rgba(244, 100, 35, 0.1);
   border-radius: 4px;
-  padding-bottom: 15px;
   min-height:75vh;
-  box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+  //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
 
   .padding-top{
     padding-top: 10px;
@@ -21,6 +20,16 @@
     width: 100%;
     bottom: 0;
     left: 0;
+  }
+
+  .repeat{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(34, 34, 34, 0.85);
+    font-size: 2rem;
+    border: 3px solid $jet;
   }
 
   .progress{
@@ -45,6 +54,7 @@
 
   #img-app {
     width: 100%;
+    height: 40vh;
     margin: 0 auto;
     position: relative;
 
@@ -110,24 +120,29 @@
 
 .additional-task-row{
 
-  .title-heading{
+  /*.title-heading{
     margin: 0;
     border: 0;
+  }*/
+
+  .extruder-selector{
+    padding-top: 6%;
+
+    #extruder-count{
+      background: url("/img/icon-extruder-active.svg") bottom no-repeat;
+      background-size: 90%;
+      max-width: 100px;
+      font-size: 35px;
+      outline: 0;
+      margin: 0 auto;
+      height: 85px;
+      width: auto;
+      min-width: 85px;
+      text-align-last: center;
+      color: $white;
+      border: 0;
+    }
   }
 
-  #extruder-count{
-    background: url("/img/icon-extruder-active.svg") bottom no-repeat;
-    background-size: 90%;
-    max-width: 100px;
-    font-size: 35px;
-    outline: 0;
-    margin: 0 auto;
-    height: 85px;
-    width: auto;
-    min-width: 85px;
-    text-align-last: center;
-    color: $white;
-    border: 0;
-  }
 
 }

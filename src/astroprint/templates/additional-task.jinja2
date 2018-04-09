@@ -41,9 +41,9 @@
         <% if (currentStep.type == "set_temperature") { %>
         <!-- Temperature Widget -->
           <div class="columns-small-12">
-            <div id="custom-temp-control-template" class="small-12 column temp-container">
+            <div id="custom-temp-control-template" class="temp-container">
               <div class="clearfix">
-                <div class="small-12 column bottom-space" align="center" id="extruder-container">
+                <div class="small-12 column" id="extruder-container">
                   <div id="extruders" class="row" align="center">
                     <div class="clearfix">
                       <div class="temp-subheading text-center bold">Extruder #<%=app.socketData.attributes.tool+1%></div>
@@ -58,7 +58,7 @@
           </div>
         <% } else if (currentStep.type == "set_extruder") { %>
           <!-- Extruder picker -->
-          <div class="columns-small-12 text-center">
+          <div class="columns-small-12 text-center extruder-selector">
             <label for="extruder-count">Filament will be change on this extruder:</label>
             <select id="extruder-count" class="bold" name="extruder_count">
             <% for(var i=0; i < initial_printer_profile.extruder_count; i++) { %>
@@ -72,18 +72,17 @@
             <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
           </div>
       <% } %>
+        <!-- Repeat button -->
+        <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
 
+            <button class="round small bold repeat"><i class="icon-cw"></i></button>
+          <% } %>
         <div class="columns-small-12 buttons text-center" >
           <!-- Close button -->
           <div class="small-6 large-4  columns" >
             <button class="alert radius small bold close">Close</button>
           </div>
-          <!-- Repeat button -->
-          <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
-          <div class="small-6 large-4 columns" >
-            <button class="alert radius small bold repeat">Repeat</button>
-          </div>
-          <% } %>
+
           <!-- Action button -->
           <% if (currentStep.strings.EN.button_action) { %>
             <div class="small-6 large-4 columns" >
