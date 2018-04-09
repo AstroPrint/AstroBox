@@ -313,14 +313,14 @@ class PrinterService(PluginService):
 			printingSpeed = None
 
 		if sendResponse:
-			sendResponse(printingSpeed)
+			sendResponse(int(printingSpeed))
 
 		return printingSpeed
 
 	def setPrintingSpeed(self, data, sendResponse= None):
 		pm = printerManager()
 
-		pm.setPrintingSpeed(data)
+		pm.setPrintingSpeed(int(data))
 
 		sendResponse({'success': 'no_error'})
 

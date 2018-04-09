@@ -278,6 +278,8 @@ class PrinterCommsService(CommandPluginInterface):
 		self._printerManager = printerManager
 
 		self._currentTool = 0
+		self._printingSpeed = 100
+
 		self._currentZ = 0
 		self._lastLayerHeight = 0
 
@@ -561,5 +563,6 @@ class PrinterCommsService(CommandPluginInterface):
 			self.reportToolChange(tool, oldTool)
 
 	def onPrintingSpeedChanged(self, amount):
+		if self._printingSpeed != amount:
 			self._printingSpeed = amount
 			self.reportPrintingSpeedChange(amount)

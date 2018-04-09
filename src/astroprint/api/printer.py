@@ -231,7 +231,7 @@ def getPrinterSpeedCommand():
 
 	result = {}
 
-	result['speed'] = pm.getPrintingSpeed()
+	result['speed'] = int(pm.getPrintingSpeed())
 
 	return jsonify(result)
 
