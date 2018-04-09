@@ -11,7 +11,7 @@
       .graphic-container {
         .circle-container{
           max-width: 360px;
-          height: 116px;
+          height: 110px;
 
           .progress-temp-circle {
 
@@ -45,7 +45,6 @@
           max-width: 360px;
           height: 50px;
           position: relative;
-          top: -6px;
           left: -5px;
 
           .container-off {
@@ -69,13 +68,42 @@
           .temp-target {
             right: -20px;
 
+            select{
+              max-width: 100px;
+              margin: 0 auto;
+              background-size: 20px 5px;
+              background-position: 100% 14px;
+              border: 2px solid gainsboro;
+              padding-right: 25px;
+              font-size: 13px;
+              border-radius: 15px;
+            }
+
+            .select-container {
+              position: relative;
+              width: 100px;
+              .dots{
+                position: absolute;
+                pointer-events: none;
+                right: 17px;
+                top: 2px;
+                color: $jet;
+                width: 24px;
+                padding-right: 3px;
+                text-align: right;
+                height: 2rem;
+                background: linear-gradient(to right, transparent 10%, #fafafa 36%);
+              }
+            }
+
             .label-target{
               text-transform: uppercase;
               font-size: 13px;
               letter-spacing: 1px;
-              left: -20%;
-              margin-bottom: -3px;
+              line-height: 140%;
               color: #333;
+              margin-top: -15px;
+              margin-bottom: 4px;
             }
             .target-value {
               left: -20%;

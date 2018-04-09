@@ -16,7 +16,8 @@
           <div class="row small-collapse">
             <div class="small-6 columns target">
               <div class="label-target">Target: <span class="target-value"></span></div>
-              <div>
+              <div class="select-container">
+                <div class="dots">...</div>
                 <select class="freq-selector-<%= tool %>" align="center">
                   <% _.each( temp_presets, function( temp_preset ){ %>
                     <option value="<%= temp_preset.id %>" <% if ( last_preset && temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
