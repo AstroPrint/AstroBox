@@ -34,6 +34,7 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.CONNECTING, self._onConnecting)
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
+		self._eventManager.subscribe(Events.PRINTINGSPEED_CHANGE, self._onPrintingSpeedChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -374,7 +375,7 @@ class PrinterService(PluginService):
 
 
 	def getTimelapse(self,data,sendResponse):
-		sendResponse(cameraManager().timelapseInfo);
+		sendResponse(cameraManager().timelapseInfo)
 
 	#EVENTS
 
@@ -389,6 +390,9 @@ class PrinterService(PluginService):
 
 	def _onToolChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"tool": value})
+
+	def _onPrintingSpeedChange(self,event,value):
+		self.publishEvent('printer_state_changed', {"speed": value})
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})
