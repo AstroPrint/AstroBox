@@ -180,3 +180,10 @@
 
 
 }
+
+
+@media #{$large-up} {
+ #img-app{
+   height: 52vh !important;
+ }
+}
