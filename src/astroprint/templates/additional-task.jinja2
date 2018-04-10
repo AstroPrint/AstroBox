@@ -74,27 +74,30 @@
       <% } %>
         <!-- Repeat button -->
         <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
+          <button class="round small bold repeat"><i class="icon-cw"></i></button>
+        <% } %>
 
-            <button class="round small bold repeat"><i class="icon-cw"></i></button>
-          <% } %>
         <div class="columns-small-12 buttons text-center" >
           <!-- Close button -->
-          <div class="small-6 large-4  columns" >
-            <button class="alert radius small bold close">Close</button>
+          <div class="small-6 large-3 columns" >
+            <button class="alert radius small expand bold close">Close</button>
           </div>
 
           <!-- Action button -->
           <% if (currentStep.strings.EN.button_action) { %>
-            <div class="small-6 large-4 columns" >
-              <button class="success small action bold"><%= currentStep.strings.EN.button_action %></button>
+            <div class="small-6 large-3 columns" >
+              <button class="danger small radius action bold"><%= currentStep.strings.EN.button_action %></button>
             </div>
             <% } %>
           <!-- Next button -->
-          <div class="loading-button small-6 large-4 columns">
-            <button class="disabled small next bold"><%= currentStep.strings.EN.button_next %></button>
-            <span class="button success small disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
-            <span class="button alert small disabled failed"><i class="icon-attention"></i> Failed</span>
-            <span class="button secondary small disabled inactive"><%= currentStep.strings.EN.button_next %></span>
+          <div class="loading-button small-6 large-3 columns">
+            <button class="small expand radius next bold"><%= currentStep.strings.EN.button_next %></button>
+            <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+            <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+            <span class="button secondary small expand radius disabled inactive">
+              <i class="icon-rocket-spinner animate-spin"></i>
+              <%= currentStep.strings.EN.button_next %>
+            </span>
           </div>
         </div>
 

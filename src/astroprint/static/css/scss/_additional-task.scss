@@ -9,17 +9,50 @@
   background:rgba(244, 100, 35, 0.1);
   border-radius: 4px;
   min-height:75vh;
+  position: relative;
+  padding-bottom: 15px;
   //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+
+  .temp-target{padding: 0;}
 
   .padding-top{
     padding-top: 10px;
   }
 
   .buttons{
-    position: absolute;
+    position: relative;
     width: 100%;
-    top: 62vh;
+    top: 10px;
     left: 0;
+    display: flex;
+    justify-content: center;
+
+
+    button{
+      border: 3px solid;
+      letter-spacing: 1px;
+      background: #333333;
+      border-color: rgba(0, 0, 0, 0.1);
+      outline: 0;
+        &:active{
+          transform: scale(0.94);
+        }
+    }
+
+    .close{
+      background: gainsboro;
+      color: #333333;
+    }
+
+    .action{background:#f05151;}
+
+    .disabled{
+      border: 3px solid;
+      border-color: rgba(0, 0, 0, 0.1);
+      outline: 0;
+      background: gainsboro;
+      color: #333333;
+    }
   }
 
   .repeat{
@@ -46,7 +79,7 @@
     padding: 5px 0.9375rem;
 
     p{
-      margin-top: 5px;
+      margin-top: 15px;
       margin-bottom: 10px;
       line-height: 125%;
     }
@@ -59,8 +92,9 @@
 
     img{
       display: block;
-      max-height: 64vh;
+      max-height: 52vh;
       margin: 0 auto;
+      border-radius: $global-radius;
    }
   }
 
@@ -119,13 +153,14 @@
 
 .additional-task-row{
 
-  /*.title-heading{
-    margin: 0;
-    border: 0;
-  }*/
+  #custom-temp-control-template{
+    padding-top: 8%;
+    padding-bottom: 6%;
+  }
 
   .extruder-selector{
-    padding-top: 10%;
+    padding-top: 8%;
+    padding-bottom: 6%;
 
     #extruder-count{
       background: url("/img/icon-extruder-active.svg") bottom no-repeat;
