@@ -130,7 +130,7 @@ class WebRtc(object):
 			else:
 				self.closeLocalSession(sessionId)
 
-		self.stopJanus()
+		return self.stopJanus()
 
 	def preparePlugin(self, sessionId):
 		try:
@@ -324,6 +324,9 @@ class WebRtc(object):
 
 			return False
 
+	def restartJanus(self):
+		return self.stopJanus() and self.startJanus()
+
 	def sendEventToPeers(self, type, data=None):
 		for peer in self._connectedPeers:
 			#if peer != 'local':
@@ -495,7 +498,18 @@ class ConnectionPeer(object):
 		##
 
 		self.session.register_plugin(self.streamingPlugin)
-		self.session.connect()
+		try:
+			self.session.connect()
+		except Exception as e:
+			if e.errno == 111:
+				#Connection refused
+				self._logger.warn('Janus was unavailable. Restarting...')
+				if self._parent.restartJanus():
+					self._logger.info('Janus succesfully restarted')
+					self.session.connect()
+				else:
+					self._logger.error('Janus could not be restarted')
+					return None
 
 		self.sessionKa = KeepAlive(self.session)
 		self.sessionKa.daemon = True
