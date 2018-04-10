@@ -347,7 +347,7 @@ var CustomTempView = Backbone.View.extend({
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
 
-    if (temp_values.extruders[this.currentExtruder].current > 180 && temp_values.extruders[this.currentExtruder].current >= temp_values.extruders[this.currentExtruder].target ) {
+    if (temp_values.extruders[this.currentExtruder].current >= temp_values.extruders[this.currentExtruder].target ) {
       var loadingBtn = $('button.next').closest('.loading-button');
       loadingBtn.removeClass('inactive');
     }
