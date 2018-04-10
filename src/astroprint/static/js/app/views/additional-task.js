@@ -106,7 +106,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   doClose()
   {
     var currentLocation = window.location
-    currentLocation.href = currentLocation.origin+"/#custom"
+    currentLocation.href = currentLocation.origin+"/#additional-tasks"
 
     if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
