@@ -232,6 +232,10 @@
 
 #control-view {
 
+  #bed-container{
+    padding: 0;
+  }
+
   >.row:first-child{overflow: hidden;}
 
   :focus{
@@ -504,8 +508,7 @@ html.no-printer {
       }
       .graphic-container {
         width: 100%;
-
-          padding: 0;
+        padding: 0;
       }
     }
 
@@ -513,8 +516,8 @@ html.no-printer {
       white-space: nowrap;
       overflow: hidden;
       overflow-x: scroll;
-      margin-top: 12px;
-      margin-bottom: -12px;
+      margin-top: 10px;
+      margin-bottom: -10px;
       padding: 0;
 
       img.icon-bed{display: none;}
@@ -538,7 +541,15 @@ html.no-printer {
       padding-top: 5px;
       margin-bottom: 12px;
     }
+
+   .semi-circle-temps .temp-container .graphic-container{
+     padding: 0 !important;
+     .buttons-container{
+       margin: 0 auto;
+     }
+   }
   }
+
   .temp-subheading{
     padding:5px 20px 2px 20px;
     background: $white;
