@@ -234,6 +234,7 @@ class ExternalDriveManager(threading.Thread):
 			try:
 					s = open(src, 'rb')
 					d = open(dst, 'wb')
+					sizeWritten = 0
 			except (KeyboardInterrupt, Exception) as e:
 					if 's' in locals():
 							s.close()
@@ -243,14 +244,15 @@ class ExternalDriveManager(threading.Thread):
 			try:
 					total = float(os.stat(src).st_size)
 
-					while True:
+					while sizeWritten <= total:
 							buf = s.read(blksize)
 							bytes_written = d.write(buf)
 
 							progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
 
+							sizeWritten += blksize
+
 							if blksize > len(buf) or bytes_written == 0:
-									d.write(buf)
 									printerManager().fileManager._metadataAnalyzer.addFileToQueue(dst)
 									progressCb(100,dst,observerId)
 									break
