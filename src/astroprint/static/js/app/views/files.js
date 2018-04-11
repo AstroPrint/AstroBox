@@ -586,8 +586,6 @@ var PrintFilesListView = Backbone.View.extend({
               doneCb(true);
             }
 
-            //$.localtime.format(this.$el);
-
             loadingArea.removeClass('loading');
             this.refreshing = false;
           }, this))
