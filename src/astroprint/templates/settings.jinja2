@@ -184,36 +184,38 @@
       </script>
     </div>
 
+    <div class="show-for-small zebra temperature-presets">
+      <a href="#settings/temperature-presets"><h1 class="bold" align="center">Temperature Presets</h1></a>
+    </div>
+
     <div id="temperature-presets" class="settings-page hide text-center">
       <script type="text/template" id="temperature-presets-settings-page-template">
         <div class="loading-button new-preset">
-           <button class="success radius"><i class="icon-plus"></i>New Temperature Preset</button>
+           <button class="alert radius"><i class="icon-plus"></i>New Temperature Preset</button>
         </div>
-        <hr/>
         <div class="row element-list">
-          <h3 class="bold">Saved Temperature Presets</h3>
+          <h5 class="bold">Saved Temperature Presets</h5>
           <% _.each(temp_presets, function(t){ %>
             <div class="row stored-presets text-left" data-id="<%= t.id %>" data-preset-name="<%= t.name %>">
-              <div class="small-6 columns name">
+              <div class="small-12 large-6 columns name">
                 <%= t.name %>
               </div>
-              <div class="small-2 columns extruder-temp" align="center">
+              <div class="small-4 large-2 columns extruder-temp" align="center">
                 <img class="icon-extruder" src="img/icon-extruder.svg">
                 <b><%= t.nozzle_temp %>º</b>
               </div>
-              <div class="small-2 columns bed-temp" align="center">
+              <div class="small-4 large-2 columns bed-temp" align="center">
                 <% if (heated_bed) { %>
                   <img class="icon-bed" src="img/icon-bed.svg">
                   <b><%= t.bed_temp %>º</b>
                 <% } %>
               </div>
-              <div class="small-1 columns no-padding" align="center">
+              <div class="small-4 large-2 columns no-padding" align="center">
                   <a title="Edit" class="edit-preset"><i class="icon-pencil"></i></a>
-              </div>
-              <div class="small-1 columns no-padding" align="center">
-                <% if (temp_presets.length > 1) { %>
-                  <a title="Remove" class="delete-preset"><i class="icon-trash"></i></a>
-                <% } %>
+
+                  <% if (temp_presets.length > 1) { %>
+                    <a title="Remove" class="delete-preset"><i class="icon-trash"></i></a>
+                  <% } %>
               </div>
             </div>
           <% }) %>
@@ -252,7 +254,7 @@
           <% if (!preset) { %>New Temperature Preset <% } %>
         </h2>
         <div class="modal-actions row">
-          <div class="small-12 medium-6 medium-centered columns">
+          <div class="small-12 medium-10 large-6 medium-centered columns">
             <form data-abide="ajax" id="preset-form">
               <div class="input-wrapper">
                 <label for="temperature-preset-name" class="bold">
@@ -266,11 +268,14 @@
                   Nozzle Temperature
                 </label>
                 <div class="row collapse">
-                  <div class="small-9 columns">
+                  <div class="small-3 columns">
+                    <img class="icon-extruder" src="img/icon-extruder-active.svg">
+                  </div>
+                  <div class="small-5 columns">
                     <input id="preset-nozzle-temp" name="preset-nozzle-temp" type="number"  required pattern="integer"/>
                     <small class="error">Invalid Nozzle Temperature.</small>
                   </div>
-                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  <div class="small-2 left columns"><span class="postfix">&deg;C</div>
                 </div>
               </div>
               <% if (bed) { %><div class="input-wrapper">
@@ -278,18 +283,21 @@
                   Bed Temperature
                 </label>
                 <div class="row collapse">
-                  <div class="small-9 columns">
+                  <div class="small-3 columns">
+                      <img class="icon-bed" src="img/icon-bed.svg">
+                  </div>
+                  <div class="small-5 columns">
                     <input id="preset-bed-temp" name="preset-bed-temp" type="number" required pattern="integer"/>
                     <small class="error">Invalid Bed Temperature.</small>
                   </div>
-                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  <div class="small-2 left columns"><span class="postfix">&deg;C</div>
                 </div>
               </div> <% } %>
-              <div class="loading-button cancel-add-preset">
-                <span class="button cancel secondary radius">Cancel</span>
+              <div class="loading-button cancel-add-preset small-12 large-5">
+                <span class="button cancel secondary radius expand">Cancel</span>
               </div>
-              <div class="loading-button">
-                <button class="success radius">Save</button>
+              <div class="loading-button small-12 large-5">
+                <button class="success radius expand">Save</button>
                 <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
               </div>
             </form>
