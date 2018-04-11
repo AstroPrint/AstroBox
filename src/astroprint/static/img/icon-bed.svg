@@ -7,29 +7,50 @@
 	.st1{fill:#F05151;}
 	
 		.st2{fill:#333333;fill-opacity:0;stroke:#F05251;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
-	.st3{fill:#F05251;stroke:#F05251;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
-	.st4{fill:url(#SVGID_3_);fill-opacity:0.7;}
-	.st5{fill:url(#SVGID_4_);fill-opacity:0.7;}
+	.st3{opacity:0.15;fill:#F05251;}
+	.st4{fill:#F05251;stroke:#F05251;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;}
+	.st5{fill:url(#SVGID_1_);fill-opacity:0.7;}
+	.st6{fill:url(#SVGID_2_);fill-opacity:0.7;}
 </style>
-<pattern  y="21.7" width="3" height="4" patternUnits="userSpaceOnUse" id="SVGID_1_" viewBox="0.6 -4.6 3 4" style="overflow:visible;">
+<pattern  y="21.7" width="3" height="4" patternUnits="userSpaceOnUse" id="SVGID_3_" viewBox="0.6 -4.6 3 4" style="overflow:visible;">
 	<g>
 		<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
 		<g>
 			<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
-			<circle class="st1" cx="3.6" cy="-4.6" r="0.6"/>
-			<circle class="st1" cx="0.6" cy="-4.6" r="0.6"/>
-			<circle class="st1" cx="2.1" cy="-2.6" r="0.6"/>
-			<circle class="st1" cx="3.6" cy="-0.6" r="0.6"/>
-			<circle class="st1" cx="0.6" cy="-0.6" r="0.6"/>
+			<g>
+				<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
+				<circle class="st1" cx="3.6" cy="-0.6" r="0.6"/>
+				<circle class="st1" cx="0.6" cy="-0.6" r="0.6"/>
+				<circle class="st1" cx="2.1" cy="-2.6" r="0.6"/>
+				<circle class="st1" cx="3.6" cy="-4.6" r="0.6"/>
+				<circle class="st1" cx="0.6" cy="-4.6" r="0.6"/>
+			</g>
+		</g>
+	</g>
+</pattern>
+<pattern  y="21.7" width="3" height="4" patternUnits="userSpaceOnUse" id="SVGID_4_" viewBox="0.6 -4.6 3 4" style="overflow:visible;">
+	<g>
+		<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
+		<g>
+			<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
+			<g>
+				<rect x="0.6" y="-4.6" class="st0" width="3" height="4"/>
+				<circle class="st1" cx="3.6" cy="-0.6" r="0.6"/>
+				<circle class="st1" cx="0.6" cy="-0.6" r="0.6"/>
+				<circle class="st1" cx="2.1" cy="-2.6" r="0.6"/>
+				<circle class="st1" cx="3.6" cy="-4.6" r="0.6"/>
+				<circle class="st1" cx="0.6" cy="-4.6" r="0.6"/>
+			</g>
 		</g>
 	</g>
 </pattern>
 <polygon class="st2" points="52.3,12.9 1.3,12.9 12.2,0.9 40.4,0.9 "/>
-<rect x="1.3" y="12.9" class="st3" width="51" height="6.3"/>
-<pattern  id="SVGID_3_" xlink:href="#SVGID_1_" patternTransform="matrix(1 0 0 -1 -9.6 -32791.2031)">
+<polygon class="st3" points="52.3,12.9 1.3,12.9 12.2,0.9 40.4,0.9 "/>
+<rect x="1.3" y="12.9" class="st4" width="51" height="6.3"/>
+<pattern  id="SVGID_1_" xlink:href="#SVGID_3_" patternTransform="matrix(1 0 0 1 -9.2 33186.9023)">
 </pattern>
-<polygon class="st4" points="11.1,2.6 11.9,2.2 40.1,2.3 49.9,11.9 40.8,11.9 "/>
-<pattern  id="SVGID_4_" xlink:href="#SVGID_1_" patternTransform="matrix(1 0 0 -1 -9.6 -32791.2031)">
+<polygon class="st5" points="11.1,2.6 11.9,2.2 40.1,2.3 49.9,11.9 40.8,11.9 "/>
+<pattern  id="SVGID_2_" xlink:href="#SVGID_4_" patternTransform="matrix(1 0 0 1 -9.2 33186.9023)">
 </pattern>
-<polygon class="st5" points="11.1,2.6 11.9,2.2 40.5,2.3 49.9,11.9 40.8,11.9 "/>
+<polygon class="st6" points="11.1,2.6 11.9,2.2 40.5,2.3 49.9,11.9 40.8,11.9 "/>
 </svg>

@@ -536,6 +536,52 @@
   }
 }
 
+#temperature-presets{
+
+  .new-preset button{
+    letter-spacing: 1px;
+    box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
+    margin-top: 10px;
+  }
+
+  img{
+    height: 43px;
+    filter: grayscale(100%);
+    opacity: 0.2;
+  }
+
+  .extruder-temp,.bed-temp{
+    position: relative;
+    b{
+      position: absolute;
+      top: 5px;
+      left: 0;
+      width: 100%;
+      color: #f05151;
+      letter-spacing: 1px;
+      font-size: 18px;
+      left: 4px;
+    }
+  }
+
+  a{
+    font-size: 30px;
+    border: 0;
+    color: #333333;
+    padding: 4px;
+    border-radius: 3px;
+
+    &.delete-preset{
+      color: #f05151;
+    }
+  }
+
+  .no-padding{
+    padding: 0;
+  }
+}
+
 @media #{$small-only} {
   #settings-view {
     .settings-page.hide {

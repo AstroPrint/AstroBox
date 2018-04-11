@@ -184,7 +184,7 @@
       </script>
     </div>
 
-    <div id="temperature-presets" class="settings-page hide">
+    <div id="temperature-presets" class="settings-page hide text-center">
       <script type="text/template" id="temperature-presets-settings-page-template">
         <div class="loading-button new-preset">
            <button class="success radius"><i class="icon-plus"></i>New Temperature Preset</button>
@@ -193,23 +193,24 @@
         <div class="row element-list">
           <h3 class="bold">Saved Temperature Presets</h3>
           <% _.each(temp_presets, function(t){ %>
-            <div class="row stored-presets" data-id="<%= t.id %>" data-preset-name="<%= t.name %>">
+            <div class="row stored-presets text-left" data-id="<%= t.id %>" data-preset-name="<%= t.name %>">
               <div class="small-6 columns name">
                 <%= t.name %>
               </div>
-              <div class="small-2 columns" align="center">
-                  <i class="icon-extruder"></i><%= t.nozzle_temp %>
+              <div class="small-2 columns extruder-temp" align="center">
+                <img class="icon-extruder" src="img/icon-extruder.svg">
+                <b><%= t.nozzle_temp %>º</b>
               </div>
-              <div class="small-2 columns" align="center">
+              <div class="small-2 columns bed-temp" align="center">
                 <% if (heated_bed) { %>
                   <img class="icon-bed" src="img/icon-bed.svg">
-                  <%= t.bed_temp %>
+                  <b><%= t.bed_temp %>º</b>
                 <% } %>
               </div>
-              <div class="small-1 columns" align="center">
+              <div class="small-1 columns no-padding" align="center">
                   <a title="Edit" class="edit-preset"><i class="icon-pencil"></i></a>
               </div>
-              <div class="small-1 columns" align="center">
+              <div class="small-1 columns no-padding" align="center">
                 <% if (temp_presets.length > 1) { %>
                   <a title="Remove" class="delete-preset"><i class="icon-trash"></i></a>
                 <% } %>
@@ -285,7 +286,7 @@
                 </div>
               </div> <% } %>
               <div class="loading-button cancel-add-preset">
-                <span class="button cancel expand">Cancel</span>
+                <span class="button cancel secondary radius">Cancel</span>
               </div>
               <div class="loading-button">
                 <button class="success radius">Save</button>
