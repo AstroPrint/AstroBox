@@ -29,13 +29,19 @@
 
 <div class="design-list">
 	<div class="row list-header">
-		<div class="small-12 medium-12 large-7 columns">
+		<div class="small-12 medium-12 large-7 columns sync-container">
 			{%- if user_email %}
 				<div class="loading-button sync">
 					<button class="tiny success radius sync round"><i class="icon-refresh"></i> <div>Sync</div></button>
 					<span class="tiny success button radius round disabled loading"><i class="icon-refresh animate-spin"></i> <div>Sync</div></span>
 				</div>
+      {%- else %}
+        <div class="loading-button sync no-user">
+          <button class="tiny success radius sync round"><i class="icon-refresh"></i> <div>Sync</div></button>
+          <span class="tiny success button radius round disabled loading"><i class="icon-refresh animate-spin"></i> <div>Sync</div></span>
+        </div>
       {%- endif %}
+
       <h3 class="bold show-for-medium-up printablefiles-message">Printable Files</h3>
 		</div>
 		<div class="small-12 medium-12 large-5 columns">
@@ -61,6 +67,22 @@
 <div id="print-file-info" class="reveal-modal xlarge" data-reveal>
 	<div class="dlg-content"></div>
 	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<div id="external-removed-warning-dlg" class="reveal-modal" data-reveal>
+  <div class="dlg-content">
+    <h2 class="bold">Eject Before Removing</h2>
+    <div class="modal-content" align="center">
+      <i class="icon-attention"></i>
+      <p>Please use the Eject option before physically removing the external drive to avoid loss of data or corruption.</p>
+    </div>
+    <div class="row">
+      <div class="columns small-12 medium-6 large-4 medium-centered">
+        <button class="close radius">Ok, got it</button>
+      </div>
+    </div>
+  </div>
+  <a class="close-reveal-modal">&#215;</a>
 </div>
 
 <script type="text/template" id="printfile-info-template">
@@ -149,7 +171,7 @@
       </div>
 		<% } %>
 	</div>
-	<div class="small-9 medium-8 large-9 columns middle-section">
+	<div class="small-9 medium-8 large-10 columns middle-section">
     <div class="info-container div-container">
       <h3 class="bold text"> <%= p.name %></h3>
       <div class="info">
@@ -167,7 +189,7 @@
       </div>
     </div>
 	</div>
-	<div class="small-4 medium-2 large-2 columns right-section">
+	<div class="small-4 medium-2 large-1 columns right-section">
 		<div class="print-file-options">
 			<% if (p.local_filename) { %>
 				<div class="loading-button print">
@@ -211,9 +233,8 @@
             <i class="icon-3d-printer"></i>
           </button>
           <button href="#" class="tiny bold radius copy idle">
-            copy to home
+            copy to internal
           </button>
-          <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
         </div>
       </div>
     </div>
@@ -226,9 +247,9 @@
 </div>
 
 <script type="text/template" id="local-file-exists-template">
-    <h2 class="bold"><%=filename%></h2>
+    <h2 class="bold">File is already in internal storage</h2>
     <div class="modal-content" align="center">
-      <p>File <b><%=filename%></b> already exists in home files. Do you want to replace it?</p>
+      <p>The file <b><%=filename%></b> is already in your internal storage. Replace it?</p>
     </div>
   </div>
   <div class="row">
@@ -252,12 +273,13 @@
 </div>
 
 <script type="text/template" id="eject-before-print-template">
-  <h2 class="bold">External drive now is not needed</h2>
+  <h2 class="bold">Eject External Drive</h2>
   <div class="modal-content" align="center">
-    <p>External drive now is not needed. Do you want to eject it before start printing?</p>
+    <p>The external drive is not needed to complete the print. You will not be able to eject it during the print.</p>
+    <p class="bold">Would you like to eject the external drive now?</p>
   </div>
   <div class="loading-button eject columns small-6">
-    <button href="#" class="eject-no idle radius">
+    <button href="#" class="eject-no idle alert radius">
       No
     </button>
     <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
@@ -266,7 +288,9 @@
     <button href="#" class="eject-yes idle radius">
       Yes
     </button>
-    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+    <span class="loading button disabled radius">
+      <i class="icon-rocket-spinner animate-spin"></i> Ejecting...
+    </span>
   </div>
 </script>
 
@@ -277,7 +301,6 @@
     <span class="meter" style="width: <%=progress%>%"></span>
   </div>
 </script>
-
 
 <script type="text/template" id="browsing-file-template">
   <div class="row usb-list">

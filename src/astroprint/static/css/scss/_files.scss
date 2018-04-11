@@ -76,6 +76,25 @@
 
       }
     }
+
+    .USB{
+      div.no-user{
+        display: block
+      }
+    }
+
+    .internal{
+      div.no-user{
+        display: none
+      }
+    }
+
+    .cloud{
+      div.no-user{
+        display: none
+      }
+    }
+
   }
 
 
@@ -252,33 +271,38 @@
         color: $steel;
 
         .download-progress,
-        .download-failed {
+        .download-failed, .loading button {
           display: none;
         }
 
         &.downloading {
           .download-progress {
             display: block;
-            position: absolute;
-            top: 5px;
-            bottom: 0;
-            left: 0;
-            right: 5px;
-            overflow: hidden;
+            //position: absolute;
+            //top: 3px;
+            //right:0;
+            margin: 0 auto;
+            max-height: 63px;
+            padding-top: 4px;
+
+            canvas{
+              width: 55px !important;
+              height: 55px !important;
+            }
 
             .dw-cancel {
               color: $alert-color;
               position: absolute;
-              top: 28px;
+              top: 20px;
               left: 0;
               right: 0;
               text-align: center;
-              font-size: rem-calc(20);
+              font-size: rem-calc(28);
             }
 
             span {
               position: absolute;
-              top: 14px;
+              top: 12px;
               left: 0;
               right: 0;
               text-align: center;
@@ -388,8 +412,7 @@
           //transform: translateX(0);
           transition: all 1s ease;
           transition-delay: 500ms;
-          max-width: 650px;
-          max-width: 98%;
+          //max-width: 650px;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -422,6 +445,7 @@
       .right-section {
         font-size: rem-calc(42);
         text-align: center;
+        padding-left: 0;
 
         a {
           color: $success-color;
@@ -439,8 +463,10 @@
     }
 
     .empty {
-      color: #ccc;
+      color: $ghost;
       font-size: rem-calc(45);
+      box-shadow: inset -2px -2px 2px hsla(0, 0%, 0%, 0.1);
+      border-top: 0;
 
       h3 {
         color: #ccc;
@@ -541,6 +567,13 @@
   }
 }
 
+#external-removed-warning-dlg {
+  i.icon-attention {
+    color: $alert-color;
+    font-size: 50px;
+  }
+}
+
 @media #{$large-up} {
   #printer-file-info {
     max-width: 900px;
@@ -558,5 +591,3 @@
   }
 
 }
-
-

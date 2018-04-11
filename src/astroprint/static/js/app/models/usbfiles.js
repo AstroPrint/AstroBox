@@ -7,25 +7,20 @@
 var USBFile = Backbone.Model.extend({
   defaults: {
     'name': '',
+    'location': '',
     'image': null
   }
 });
 
 var USBFileCollection = Backbone.Collection.extend({
   model: USBFile,
-  url: API_BASEURL + "files/explore-folder",
-  extensionsAllowed: ['.gcode'],
-  localStorages: ['/media/pi'],
+  url: API_BASEURL + "files/folder-contents",
+  extensionsAllowed: ['gcode'],
+  localStorages: [],
   initialize: function(){
-    $.getJSON('/api/files/file-browsing-extensions')
-      .done(function(data){
-        this.extensionsAllowed = data;
-      })
-      .fail(function(error){
-        console.error(error);
-      });
+    this.refreshExtensions();
 
-    $.getJSON('/api/files/local-storages')
+    $.getJSON('/api/files/removable-drives')
       .done(_.bind(function(data){
         this.localStorages = data;
       },this))
@@ -33,38 +28,45 @@ var USBFileCollection = Backbone.Collection.extend({
         console.error(error);
       });
   },
+  onDriveAdded: function(path)
+  {
+    this.localStorages.push(path);
+  },
+  onDriveRemoved: function(path)
+  {
+    var idx = this.localStorages.indexOf(path)
+    if (idx >= 0) {
+      delete this.localStorages[idx];
+    }
+  },
+  isMounted: function(path)
+  {
+    return this.localStorages.indexOf(path) >= 0;
+  },
+  refreshExtensions: function()
+  {
+    return $.getJSON('/api/files/file-browsing-extensions')
+      .done(_.bind(function(data){
+        this.extensionsAllowed = data;
+      }, this))
+      .fail(function(error){
+        console.error(error);
+      });
+  },
   extensionMatched: function(file)
   {
-    var matched = false;
-
-    for(var i=0; i<this.extensionsAllowed.length && !matched; i++){
-      matched = file.endsWith(this.extensionsAllowed[i]);
-    }
-
-    return matched;
+    return _.find(this.extensionsAllowed, function(ext) { return file.toLowerCase().endsWith('.' + ext) } ) != undefined;
   },
   topLocationMatched: function(location)
   {
-    var matched = false;
-
-    for(var i=0; i<this.localStorages.length && !matched; i++){
-      matched = (location == (this.localStorages[i].name));
-    }
-
-    return matched;
+    return this.localStorages.indexOf(location) >= 0;
   },
   syncLocation: function(location)
   {
-    params = {}
-
-    if (!location) {
-      params.data = {location:'/'};
-    }
-
-    params.data = {location:location};
-
-    var dataFetched = this.fetch(params);
-
-    return dataFetched
+    return this.fetch({
+      data: {
+        location: location ? location : '/'
+      }
+    });
   }
 });

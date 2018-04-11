@@ -298,50 +298,27 @@ def deletePrintFile(filename, target):
 	return NO_CONTENT
 
 #external drive managing
-@api.route("/files/explore-folder", methods=["GET"])
+@api.route("/files/folder-contents", methods=["GET"])
 @restricted_access
-def exploreFolder():
-
+def folderContents():
 	location = request.args.get('location')
-
 	externalDriveMgr = externalDriveManager()
 
 	if location == '/':
-
-		usb_folders = externalDriveMgr.getLocalStorages()
-
-		homeFound = False
-		idx = 0
-
-		while not homeFound and idx < len(usb_folders):
-
-			if usb_folders[idx]['icon'] == 'home':
-				del usb_folders[idx]
-				homeFound = True
-
-			idx+=1
-
-		return jsonify(usb_folders)
+		return jsonify(externalDriveMgr.getRemovableDrives())
 
 	else:
-
-		return jsonify(externalDriveMgr.getFolderExploration(location))
-
-
-@api.route("/files/storage-location", methods=["GET"])
-@restricted_access
-def getStorageLocation():
-	return jsonify(settings().getStorageLocation())
+		return jsonify(externalDriveMgr.getFolderContents("%s/*" % location))
 
 @api.route("/files/file-browsing-extensions", methods=["GET"])
 @restricted_access
 def getFileBrowsingExtensions():
 	return jsonify(externalDriveManager().getFileBrowsingExtensions())
 
-@api.route("/files/local-storages", methods=["GET"])
+@api.route("/files/removable-drives", methods=["GET"])
 @restricted_access
-def getLocalStorages():
-	return jsonify(externalDriveManager().getLocalStorages())
+def getRemovableDrives():
+	return jsonify([d["name"] for d in externalDriveManager().getRemovableDrives()])
 
 @api.route("/files/eject", methods=["POST"])
 @restricted_access

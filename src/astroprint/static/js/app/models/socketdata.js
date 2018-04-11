@@ -222,12 +222,19 @@ var SocketData = Backbone.Model.extend({
               }
             break;
 
-            case 'ExternalDrivePlugged':
-                app.eventManager.trigger('astrobox:externalDrivePlugged', payload);
+            case 'ExternalDriveMounted':
+              payload.action = 'mounted';
+              app.eventManager.trigger('astrobox:externalDriveMounted', payload);
             break;
 
             case 'ExternalDriveEjected':
-                app.eventManager.trigger('astrobox:externalDriveEjected', payload);
+              payload.action = 'ejected';
+              app.eventManager.trigger('astrobox:externalDriveEjected', payload);
+            break;
+
+            case 'ExternalDrivePhisicallyRemoved':
+              payload.action = 'removed';
+              app.eventManager.trigger('astrobox:externalDrivePhisicallyRemoved', payload);
             break;
 
             case 'AstroPrintStatus':
