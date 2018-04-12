@@ -94,7 +94,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     this.additionalTaskApp = params.additionalTaskApp;
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
-
     this.$el.attr('id', this.additionalTaskApp.get('id'));
   },
   closeClicked: function (e)
@@ -105,18 +104,28 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doClose()
   {
-    var currentLocation = window.location
-    currentLocation.href = currentLocation.origin+"/#additional-tasks"
+    window.location.href = window.location.origin+"/#additional-tasks"
+  },
 
+  currentStepManagement: function()
+  {
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    // If Show temp view
     if (this.currentStep.type == "set_temperature") {
-      this.customTempView.stopListening();
+      var loadingBtn = this.$('button.next').closest('.loading-button');
+      loadingBtn.addClass('inactive');
+      setTimeout( function() {
+        this.customTempView = new CustomTempView();
+      }.bind(this), 300);
     }
   },
+
   nextClicked: function (e)
   {
     e.preventDefault();
     this.doNext();
   },
+
   doNext()
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
@@ -194,18 +203,11 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   checkNextStep: function()
   {
-
     // If no Last step
     if (this.currentIndexStep < this.additionalTaskApp.get('steps').length) {
       this.currentIndexStep++;
       this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
       this.render();
-      // If Show temp view
-      if (this.currentStep.type == "set_temperature") {
-        var loadingBtn = this.$('button.next').closest('.loading-button');
-        loadingBtn.addClass('inactive');
-        this.customTempView = new CustomTempView();
-      }
     // If Last step
     } else {
       this.doClose();
@@ -265,6 +267,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     this.$el.empty();
     this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON() }));
+    this.currentStepManagement();
     return this;
   },
 });
@@ -273,13 +276,15 @@ var CustomTempView = Backbone.View.extend({
   className: 'control-temps small-12 columns',
   el: '#custom-temp-control-template',
   semiCircleTempView: null,
-  currentExtruder: null,
+  currentExtruder: 0,
   socketTemps: null,
   initialize: function()
   {
     new SemiCircleProgress();
     var profile = app.printerProfile.toJSON();
-    this.currentExtruder = app.socketData.attributes.tool;
+    if (app.socketData.get('tool') >= 0) {
+      this.currentExtruder = app.socketData.get('tool');
+    }
     this.renderCircleTemps();
     this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
