@@ -12,7 +12,7 @@ var AdditionalTaskView = Backbone.View.extend({
   {
     var taskAppView = this.additionalTaskContainerView.additionalTaskApp_view;
     if (taskAppView && taskAppView.customTempView) {
-      customView.stopListening();
+      taskAppView.customTempView.stopListening();
     }
   }
 });
@@ -281,8 +281,7 @@ var CustomTempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.currentExtruder = app.socketData.attributes.tool;
     this.renderCircleTemps();
-
-    this.listenTo(app.socketData, 'change:temps', this.updateTemps);
+    this.listenTo(app.socketData, 'change:temps', this.onTempsChanged);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
   },
@@ -300,7 +299,7 @@ var CustomTempView = Backbone.View.extend({
 
     this.$el.find('#slider').append(this.semiCircleTempView.render().el);
 
-    if (this.socketTemps.lenght > 0) {
+    if (this.socketTemps.extruders) {
       temps = {
         current: this.socketTemps.extruders[this.currentExtruder].current,
         target: this.socketTemps.extruders[this.currentExtruder].target
@@ -319,14 +318,19 @@ var CustomTempView = Backbone.View.extend({
       thickness: 20,
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
-
-    if (this.socketTemps.length > 0) {
+    if (this.socketTemps.extruders) {
       this.updateTemps(this.socketTemps);
     }
   },
-  updateTemps: function(value)
+
+  onTempsChanged: function(socketTempData)
   {
-    var temp_values = value.get('temps');
+    var temp_values = socketTempData.get('temps');
+    this.updateTemps(temp_values);
+  },
+
+  updateTemps: function(temp_values)
+  {
     var temps = { 'current': temp_values.extruders[this.currentExtruder].current, 'target': temp_values.extruders[this.currentExtruder].target };
 
     (this.semiCircleTempView).updateValues(temps);
