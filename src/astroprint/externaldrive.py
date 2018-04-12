@@ -218,16 +218,29 @@ class ExternalDriveManager(threading.Thread):
 
 
 	def eject(self, mountPath):
-		if self._umountPartition(mountPath):
+
+		retries = 5
+		timeout = 3
+
+		ejected = False
+
+		for i in (0,retries):
+			if self._umountPartition(mountPath):
+				ejected = True
+			else:
+				sleep(timeout)
+
+		if ejected:
 			self._eventManager.fire( Events.EXTERNAL_DRIVE_EJECTED, {
 				"mount_path": mountPath
 			})
 			return {'result': True}
-		else:
-			return {
-				'result': False,
-				'error': "Unable to eject"
-			}
+
+		return {
+			'result': False,
+			'error': "Unable to eject"
+		}
+
 
 	def copy(self, src, dst, progressCb, observerId):
 			blksize = 1048576 # 1MiB
