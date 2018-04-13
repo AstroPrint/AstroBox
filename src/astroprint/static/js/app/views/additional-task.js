@@ -185,7 +185,26 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doAction: function()
   {
-    this.sendCommands("action");
+    var action_commands = this.currentStep.commands_on_action;
+    var isLink = false;
+    if (action_commands && action_commands[0]) {
+      isLink = action_commands[0].startsWith("#");
+    }
+    if (isLink) {
+      var stepID = action_commands[0].replace('#', '');
+      this.linkToStep(stepID);
+    } else {
+      this.sendCommands("action");
+    }
+  },
+
+  linkToStep: function(stepID)
+  {
+    var stepToGoData = this._getStepByID(stepID);
+
+    this.currentIndexStep = stepToGoData.index+1;
+    this.currentStep = stepToGoData.step;
+    this.render()
   },
 
   repeatClicked: function (e)
@@ -261,6 +280,19 @@ var AdditionalTaskAppView = Backbone.View.extend({
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify(data)
     });
+  },
+
+  _getStepByID: function(ID)
+  {
+    var steps = this.additionalTaskApp.get('steps');
+    var result = null;
+
+    for (i = 0; i < steps.length; i++) {
+      if (steps[i].id == ID) {
+        result = {"step" : steps[i],"index": i};
+      }
+    }
+    return result;
   },
 
   render: function ()
