@@ -45,6 +45,9 @@ class FilesService(PluginService):
 		#watch if an external drive is phisically removed
 		'external_drive_phisically_removed',
 		################
+		#watch metadata analysis finished
+		'metadata_analysis_finished',
+		################
 		#PLUGIN -> BROWSER
 		#watch the copying progress of a file from external drive to home folder
 		'copy_to_home_progress'
@@ -60,6 +63,7 @@ class FilesService(PluginService):
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_MOUNTED, self._onExternalDriveMounted)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_EJECTED, self._onExternalDriveEjected)
 		self._eventManager.subscribe(Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, self._onExternalDrivePhisicallyRemoved)
+		self._eventManager.subscribe(Events.METADATA_ANALYSIS_FINISHED, self._onMetadataAnalysisFinished)
 
 
 	def eject(self, data, sendResponse):
@@ -376,3 +380,6 @@ class FilesService(PluginService):
 
 	def _onExternalDrivePhisicallyRemoved(self,event,data):
 		self.publishEvent('external_drive_phisically_removed',data)
+
+	def _onMetadataAnalysisFinished(self,event,data):
+		self.publishEvent('metadata_analysis_finished',data);
