@@ -119,17 +119,18 @@ def index():
 			wsToken= create_ws_token(publicKey)
 		)
 
-	elif softwareManager.updatingRelease or softwareManager.forceUpdateInfo:
+	elif softwareManager.status != 'idle' or softwareManager.forceUpdateInfo:
 		return render_template(
 			"updating.jinja2",
 			uiApiKey= UI_API_KEY,
-			showForceUpdate=  softwareManager.forceUpdateInfo != None,
-			releaseInfo= softwareManager.updatingRelease or softwareManager.forceUpdateInfo,
+			forceUpdateInfo=  softwareManager.forceUpdateInfo,
+			releases= softwareManager.updatingReleases or [softwareManager.forceUpdateInfo['id']],
 			lastCompletionPercent= softwareManager.lastCompletionPercent,
 			lastMessage= softwareManager.lastMessage,
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
-			wsToken= create_ws_token(publicKey)
+			wsToken= create_ws_token(publicKey),
+			status= softwareManager.status
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
