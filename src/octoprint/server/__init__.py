@@ -472,7 +472,7 @@ class Server():
 
 		discoveryManager = DiscoveryManager()
 
-		externalDriveManager().start()
+		externalDriveManager()
 
 		def access_validation_factory(validator):
 			"""
@@ -515,7 +515,6 @@ class Server():
 				t = threading.Thread(target=printer.connect, args=(port, baudrate))
 				t.daemon = True
 				t.start()
-				#printer.connect(port, baudrate)
 
 		# start up watchdogs
 		observer = Observer()
