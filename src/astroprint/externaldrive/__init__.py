@@ -17,7 +17,7 @@ def externalDriveManager():
 			_instance.start()
 
 		elif platform == "darwin":
-			from .mac import ExternalDriveManager
+			from .mac_dev import ExternalDriveManager
 			_instance = ExternalDriveManager()
 
 	return _instance
