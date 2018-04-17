@@ -8,47 +8,55 @@
 {% endblock %}
 
 {% block content %}
-<div id="updating-view" class="row">
-  {% if showForceUpdate %}
+{% set showForcedInfo = forceUpdateInfo and status == 'idle' %}
+<div id="updating-view" class="row {{status}} {%- if showForcedInfo %} forced {%- endif %}">
+  {% if showForcedInfo %}
     <div class="small-12 medium-11 large-8 medium-centered large-centered columns info">
       <h1 class="bold" align="center">System Update</h1>
       <p>
         <i class="icon-attention"></i> Your software is currently out of date and needs to be
         updated in order to continue using your {{variantData['productName']}}.
       </p>
-      <p><b>Version</b>: {{ releaseInfo['major'] }}.{{ releaseInfo['minor'] }}({{ releaseInfo['build'] }})</p>
-      <p><b>Release Date</b>: {% if releaseInfo['date'] -%} {{ releaseInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
+      <p><b>Version</b>: {{ forceUpdateInfo['major'] }}.{{ forceUpdateInfo['minor'] }}({{ forceUpdateInfo['build'] }})</p>
+      <p><b>Release Date</b>: {% if forceUpdateInfo['date'] -%} {{ forceUpdateInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
       <p>
         <b>Release Notes:</b>
         <div class="release-notes">
-          {{ releaseInfo['release_notes'] }}
+          {{ forceUpdateInfo['release_notes'] }}
         </div>
       </p>
       <center>
         <div class="loading-button">
           <button class="success radius bold">Install Now</button>
-          <span class="loading button success disabled radius">
+          <span class="loading button bold success disabled radius">
             <i class="icon-rocket-spinner animate-spin"></i> Initiating...
           </span>
+          <span class="failed button alert bold disabled radius"><i class="icon-attention"></i> Failed</span>
         </div>
       </center>
     </div>
   {% endif %}
-  <div class="small-12 columns progress-info {%- if showForceUpdate %} hide {%- endif %}">
-    <h1 class="bold" align="center">Software Update in Progress</h1>
+
+  <div class="small-12 columns progress-info">
+    <div align="center">
+      <i class="icon-rocket"></i>
+    </div>
+    <h1 class="bold updating" align="center">Software Update in Progress <i class="icon-refresh animate-spin"></i></h1>
+    <h1 class="bold done" align="center"><i class="icon-ok-circled"></i> Software Update Completed</h1>
     <div class="progress success round">
       <span class="meter" style="width:0%"></span>
     </div>
-    <h3 align="center" class="message">Downloading release...</h3>
-    <center>
-      <div class="progress-animation">
-        <img class="progress-img" src="/img/progress-animation-4.5.gif"/>
-        <img class="left-img" src="/img/globe.png"/>
-        <img class="right-img" src="/img/astrobox.png"/>
+    <h3 align="center" class="message updating">Downloading release...</h3>
+    <div align="center" class="reboot-container done">
+      <div class="loading-button">
+        <button class="secondary reboot radius">Reboot</button>
+        <span class="button radius secondary disabled loading"><i class="icon-refresh animate-spin"></i> Rebooting...</span>
+        <span class="button radius alert disabled failed"><i class="icon-attention"></i> Failed to Reboot</span>
       </div>
-    </center>
+    </div>
   </div>
-  <div class="small-12 medium-11 medium-centered large-8 large-centered columns error hide">
+
+  <div class="small-12 medium-11 medium-centered large-8 large-centered columns error">
     <h1 class="bold" align="center">System Update Failed</h1>
     <p>
       <i class="icon-attention"></i> An error occured and your {{variantData['productName']}} was unable to
@@ -56,14 +64,21 @@
     </p>
     <div class="row">
       <div class="small-12 medium-6 columns">
-        <button class="expand radius secondary bold close">Close</button>
+        <div class="loading-button expand">
+          <button class="expand radius secondary bold close">Close</button>
+          <span class="loading button secondary bold expand disabled radius">
+            <i class="icon-refresh animate-spin"></i> Closing...
+          </span>
+          <span class="failed button alert bold expand disabled radius"><i class="icon-attention"></i> Failed</span>
+        </div>
       </div>
       <div class="small-12 medium-6 columns">
         <div class="loading-button expand">
           <button class="expand radius success bold retry">Retry</button>
-          <span class="loading button success expand disabled radius">
+          <span class="loading button success bold expand disabled radius">
             <i class="icon-rocket-spinner animate-spin"></i> Initiating...
           </span>
+          <span class="failed button alert bold expand disabled radius"><i class="icon-attention"></i> Retry Failed</span>
         </div>
       </div>
     </div>
@@ -77,7 +92,7 @@
     var BASEURL = "{{ url_for('index') }}";
     var API_BASEURL = BASEURL + "api/";
     var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-    var RELEASE_ID = "{{ releaseInfo['id'] }}";
+    var RELEASE_IDS = {{ releases | tojson }};
     var WS_TOKEN = "{{ wsToken }}";
     var updateInfo = {
       'progress': {{ lastCompletionPercent or 'null' }},

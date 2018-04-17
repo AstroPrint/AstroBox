@@ -454,18 +454,23 @@ def checkSoftwareVersion():
 	else:
 		return ("There was an error checking for new software.", 400)
 
-@api.route("/settings/software/update", methods=['POST'])
+@api.route("/settings/software/update", methods=['POST', 'DELETE'])
 @restricted_access
 def updateSoftwareVersion():
-	data = request.get_json()
+	if request.method == 'DELETE':
+		softwareManager.resetUpdate()
+		return jsonify()
 
-	if 'release_ids' in data:
-		if softwareManager.updateSoftware(data['release_ids']):
-			return jsonify()
-		else:
-			return ("Unable to update", 500)
 	else:
-		return ("Invalid data", 400)
+		data = request.get_json()
+
+		if 'release_ids' in data:
+			if softwareManager.updateSoftware(data['release_ids']):
+				return jsonify()
+			else:
+				return ("Unable to update", 500)
+		else:
+			return ("Invalid data", 400)
 
 @api.route("/settings/software/restart", methods=['POST'])
 @restricted_access

@@ -161,6 +161,10 @@ class SoftwareUpdater(threading.Thread):
 		self._pkgPrgSpread = 1.0 / self._pkgCount
 		self._lastPkgPrgEnd = 0
 		self._cache = None
+		self._stop = False
+
+	def stop(self):
+		self._stop = True
 
 	def run(self):
 		#We need to give the UI a chance to update before starting so that the message can be sent...
@@ -172,7 +176,8 @@ class SoftwareUpdater(threading.Thread):
 		self._installNextPackage()
 
 	def _installNextPackage(self):
-		self._installPackage(self.vData[self._currentPackage])
+		if not self._stop:
+			self._installPackage(self.vData[self._currentPackage])
 
 	def _installPackage(self, relData):
 		r = requests.get(relData['download_url'], stream=True, headers = self._manager._requestHeaders)
@@ -287,7 +292,7 @@ class SoftwareUpdater(threading.Thread):
 			if self._currentPackage < self._pkgCount:
 				self._installNextPackage()
 			else:
-				self._progressCb("release_finalize", 1.0, "Restarting. Please wait...")
+				self._progressCb("release_finalize", 1.0, "Update Completed")
 				self._logger.info("Software Update completed succesfully")
 				self._completionCb(True)
 		else:
@@ -303,6 +308,8 @@ class SoftwareManager(object):
 		self._logger = logging.getLogger(__name__)
 		self._wasBadShutdown = None
 		self._badShutdownShown = False
+		self._status = 'idle'
+		self._releases = None
 
 		self.lastCompletionPercent = None
 		self.lastMessage = None
@@ -380,11 +387,15 @@ class SoftwareManager(object):
 		)
 
 	@property
-	def updatingRelease(self):
-		if self._updater and self._updater.isAlive():
-			return self._updater.vData
+	def updatingReleases(self):
+		if self._releases:
+			return self._releases
 		else:
 			return False
+
+	@property
+	def status(self):
+		return self._status
 
 	@property
 	def shouldCheckForNew(self):
@@ -474,6 +485,8 @@ class SoftwareManager(object):
 		return data
 
 	def updateSoftware(self, releases):
+		self._status = 'updating'
+		self._releases = releases
 		releaseInfo = []
 		platforms = {
 			self.data['variant']['id']: self.data['platform']
@@ -498,19 +511,23 @@ class SoftwareManager(object):
 
 						else:
 							self._logger.error('Invalid Platform: %s' % data['platform'])
+							self._status = 'failed'
 							return False
 
 					else:
 						self._logger.error('Invalid Server response:')
 						self._logger.error(data)
+						self._status = 'failed'
 						return False
 
 				else:
 					self._logger.error('Error updating software release info. Server returned: %d' % r.status_code)
+					self._status = 'failed'
 					return False
 
 			except Exception as e:
 				self._logger.error('Error updating software release info: %s' % e, exc_info = True)
+				self._status = 'failed'
 				return False
 
 		if releaseInfo:
@@ -532,19 +549,9 @@ class SoftwareManager(object):
 
 				if success:
 					self.forceUpdateInfo = None
-					#schedule a restart
-
-					def tryRestart():
-						if not self.restartServer():
-							eventManager().fire(Events.SOFTWARE_UPDATE, {
-								'completed': True,
-								'progress': 1,
-								'success': False,
-								'message': 'Unable to restart'
-							})
-
-					threading.Timer(1, tryRestart).start()
-
+					self._status = 'done'
+				else:
+					self._status = 'failed'
 
 			self.lastCompletionPercent = None
 			self.lastMessage = None
@@ -553,7 +560,14 @@ class SoftwareManager(object):
 			self._updater.start()
 			return True
 
+		self._status = 'failed'
 		return False
+
+	def resetUpdate(self):
+		self._status = 'idle'
+		self._releases = None
+		self._updater.stop()
+		self._updater = None
 
 	def restartServer(self):
 		if platformStr == "linux" or platformStr == "linux2":
