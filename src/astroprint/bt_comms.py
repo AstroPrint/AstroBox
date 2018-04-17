@@ -8,7 +8,7 @@ import json
 import subprocess
 import time
 
-from bluetooth import BluetoothSocket, L2CAP, BluetoothError
+from bluetooth import BluetoothSocket, RFCOMM, BluetoothError
 from netifaces import interfaces, ifaddresses, AF_INET
 from sys import platform
 from astroprint.network.manager import networkManager
@@ -41,10 +41,10 @@ class BluetoothCommsManager(threading.Thread):
 
 		if self._isBTAvailable():
 			self.isBTAvailable = True
-			self.server_sock = BluetoothSocket( L2CAP )
+			self.server_sock = BluetoothSocket( RFCOMM )
 			self.client_sock = None
 			self.client_addr = None
-			self.port = 0x1001
+			self.port = 1
 			self.BTProcess = None
 
 		else :
@@ -90,7 +90,7 @@ class BluetoothCommsManager(threading.Thread):
 				'info': info
 			}
 
-		args = ['hciconfig', 'hci0', 'up', 'piscan']
+		args = ['hciconfig', 'hci0', 'up', 'sspmode', '1', 'piscan', 'class', '0x0000020c']
 
 		try:
 			self.BTProcess = subprocess.Popen(
@@ -102,6 +102,19 @@ class BluetoothCommsManager(threading.Thread):
 			info = "Error turning ON Bluetooth Device: %s" % str(error)
 			self._logger.error(info)
 			self.BTProcess = None
+
+		'''args = ['bluetooth-agent', '1234']
+
+		try:
+			self.BTProcess = subprocess.Popen(
+				args,
+				stdout=subprocess.PIPE
+			)
+
+		except Exception, error:
+			info = "Error turning ON Bluetooth Device: %s" % str(error)
+			self._logger.error(info)
+			self.BTProcess = None'''
 
 		time.sleep(1)
 
@@ -215,6 +228,8 @@ class BluetoothCommsManager(threading.Thread):
 			if 103 in t:
 				self._logger.error('AstroBox ' + t[1])
 
+			self._disconnect()
+
 	def parseMessage(self,data):
 
 		try:
@@ -274,11 +289,7 @@ class BluetoothCommsManager(threading.Thread):
 
 				## DISCONNECT ##
 				elif message['action'] == 'disconnect':
-					self.sendMessage(self.composeMessage('disconnect','will_be_disconnected'))
-					self.dataRecv = None
-					self.client_sock.close()
-					self.client_sock = None
-					self.newConnection()
+					self._disconnect()
 
 				else:
 					self.sendMessage(self.composeMessage(message['action'],'invalid_message',True))
@@ -318,6 +329,13 @@ class BluetoothCommsManager(threading.Thread):
 			self.client_sock.close()
 			self.client_sock = None
 			self.newConnection()
+
+	def _disconnect(self):
+		self.sendMessage(self.composeMessage('disconnect','will_be_disconnected'))
+		self.dataRecv = None
+		self.client_sock.close()
+		self.client_sock = None
+		self.newConnection()
 
 	def shutdown(self):
 		self._logger.info('Shutting Down BluetoothCommsManager')
