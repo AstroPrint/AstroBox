@@ -218,22 +218,36 @@ class ExternalDriveManager(threading.Thread):
 
 
 	def eject(self, mountPath):
-		if self._umountPartition(mountPath):
+
+		retries = 5
+		timeout = 3
+
+		ejected = False
+
+		for i in (0,retries):
+			if self._umountPartition(mountPath):
+				ejected = True
+			else:
+				sleep(timeout)
+
+		if ejected:
 			self._eventManager.fire( Events.EXTERNAL_DRIVE_EJECTED, {
 				"mount_path": mountPath
 			})
 			return {'result': True}
-		else:
-			return {
-				'result': False,
-				'error': "Unable to eject"
-			}
+
+		return {
+			'result': False,
+			'error': "Unable to eject"
+		}
+
 
 	def copy(self, src, dst, progressCb, observerId):
 			blksize = 1048576 # 1MiB
 			try:
 					s = open(src, 'rb')
 					d = open(dst, 'wb')
+					sizeWritten = 0
 			except (KeyboardInterrupt, Exception) as e:
 					if 's' in locals():
 							s.close()
@@ -243,14 +257,15 @@ class ExternalDriveManager(threading.Thread):
 			try:
 					total = float(os.stat(src).st_size)
 
-					while True:
+					while sizeWritten <= total:
 							buf = s.read(blksize)
 							bytes_written = d.write(buf)
 
 							progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
 
+							sizeWritten += blksize
+
 							if blksize > len(buf) or bytes_written == 0:
-									d.write(buf)
 									printerManager().fileManager._metadataAnalyzer.addFileToQueue(dst)
 									progressCb(100,dst,observerId)
 									break
