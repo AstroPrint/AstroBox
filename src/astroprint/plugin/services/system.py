@@ -592,3 +592,10 @@ class SystemService(PluginService):
 			sendResponse(boxId)
 
 		return boxId
+
+	def restartServer(self, data=None, sendResponse=None):
+		#We should reboot the whole device
+		if softwareManager.restartServer():
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse("error_restarting",True)
