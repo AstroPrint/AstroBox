@@ -598,4 +598,4 @@ class SystemService(PluginService):
 		if softwareManager.restartServer():
 			sendResponse({'success': 'no_error'})
 		else:
-			sendResponse("error_rebooting",True)
+			sendResponse("error_restarting",True)
