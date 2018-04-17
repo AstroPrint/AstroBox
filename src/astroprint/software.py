@@ -535,6 +535,7 @@ class SoftwareManager(object):
 				eventManager().fire(Events.SOFTWARE_UPDATE, {
 					'completed': False,
 					'progress': progress,
+					'status': self._status,
 					'message': message
 				})
 
@@ -542,16 +543,17 @@ class SoftwareManager(object):
 				self.lastMessage = message
 
 			def completionCb(success):
-				eventManager().fire(Events.SOFTWARE_UPDATE, {
-					'completed': True,
-					'success': success
-				})
-
 				if success:
 					self.forceUpdateInfo = None
 					self._status = 'done'
 				else:
 					self._status = 'failed'
+
+				eventManager().fire(Events.SOFTWARE_UPDATE, {
+					'completed': True,
+					'status': self._status,
+					'success': success
+				})
 
 			self.lastCompletionPercent = None
 			self.lastMessage = None
