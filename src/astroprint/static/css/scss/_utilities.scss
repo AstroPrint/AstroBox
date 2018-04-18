@@ -2,7 +2,7 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
-  padding: 31px 30px 10px 30px;
+  padding: 31px 30px 4px 30px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -22,6 +22,7 @@
     margin-bottom: -1px;
     font-family: sans-serif;
     letter-spacing: 1.5px;
+    white-space: nowrap;
   }
 
   input, select, .postfix {
@@ -44,8 +45,6 @@
     /* padding-top: 0px; */
     background-size: 23px 5px;
     background-position: 100% 16px;
-    padding-left: 0;
-    text-align-last: center;
     padding-right: 0;
     -moz-appearance: none;
     border: 2px solid gainsboro;
@@ -423,7 +422,7 @@ html.no-printer {
 }
 
 #distance-control {
-  margin-bottom: 28px;
+  margin-bottom: 25px;
   padding: 0;
 
 	ul {
@@ -650,14 +649,20 @@ html.no-printer {
 .fan-flow-container {
   border-top: 1px dashed #e2e2e2;
   padding-top: 10px;
+
+  .no-paddingleft{
+    padding-left: 0;
+  }
+
 }
 
 #fan-control, #printing-speed-control {
 
+  &.border-left{border-left: 1px dashed gainsboro;}
 
-  .border-right{
-    //border-right: 1px dashed gainsboro;
-  }
+  .variable-speed{padding: 0;}
+
+  .no-paddingleft{padding-left: 0;}
 
   .fan-on{
     border: 2px solid $oil;
@@ -684,15 +689,11 @@ html.no-printer {
   }
   .fan_icon {
     position: relative;
-    top: 17px;
+    top: 8px;
     color: $charcoal;
     display: block;
-    margin-bottom: 24px;
-
-    &:before{
-      font-size: 40px;
-      margin: 0;
-    }
+    margin-bottom: 15px;
+    font-size: 38px;
   }
 
   .fan-off{
@@ -732,6 +733,7 @@ html.no-printer {
   .no-paddingright{
     padding-right: 0;
   }
+
 	.columns {
 		&.padded-top {
 			padding-top: 21px;
@@ -770,11 +772,15 @@ html.no-printer {
   button{
     background: $oil;
     margin-top: 15px;
+
+    &:active{
+      transform: scale(0.9);
+    }
   }
 
   div.extruder-heading{
     background: #e2e2e2;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
   }
   select{
     -moz-appearance: none;
@@ -814,6 +820,9 @@ html.no-printer {
 }
 
 @media #{$small-only} {
+  #temp-control-template {
+    margin-top: 30px;
+  }
 
   .border-left{border-left: 0 !important;}
 
