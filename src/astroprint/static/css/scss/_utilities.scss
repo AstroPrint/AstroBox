@@ -52,25 +52,28 @@
 
   select.extruder-number{
     border: 0;
-    font-size: 15px;
     margin-top: 0;
-    font-size: 18px;
     background-color: transparent;
     background-size: 25px 7px;
     background-position-y: 23px;
     margin-bottom: 10px;
-    text-align: left;
     padding-bottom: 0;
-    max-width: 160px;
-    letter-spacing: 1px;
+    max-width: 77px;
+    padding-left: 0;
     opacity: 1;
+    z-index: 99999;
+    color: #333333;
+    margin-left: -59px;
+    font-size: 22px;
+    text-align-last:center;
+
     &.no-selected {
       opacity: 0;
     }
   }
 
   .extruder-icon{
-    height: 22px;
+    height: 37px;
   }
 
   .heading-box{
@@ -779,8 +782,11 @@ html.no-printer {
   }
 
   div.extruder-heading{
-    background: #e2e2e2;
+    background: #e5e5e5;
     margin-bottom: 10px;
+    letter-spacing: 1px;
+    font-size: 14px;
+    color: #333333;
   }
   select{
     -moz-appearance: none;

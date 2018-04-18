@@ -115,10 +115,11 @@
 
         <script type="text/template" id="extruder-switch-template">
           <div class="text-center extruder-heading">
-            <img class="extruder-icon" src="/img/icon-extruder.svg"/>
+            <span>Extruder selected: </span>
+            <img class="extruder-icon" src="/img/icon-extruder-movement.svg"/>
             <select class="extruder-number bold no-selected">
               <% for(var i=0; i<profile.extruder_count; i++) { %>
-                <option value="<%= i %>">Extruder <%= i+1 %></option>
+                <option value="<%= i %>"><%= i+1 %></option>
               <% } %>
             </select>
           </div>
