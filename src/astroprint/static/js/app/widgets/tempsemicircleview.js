@@ -26,13 +26,12 @@ var TempSemiCircleView = Backbone.View.extend({
       if (tool === null) {
         tool = "bed";
       }
-      for (last_preset of last_presets_used) {
-        if (tool == last_preset.tool) {
-          return last_preset
-        }
-      }
-      return null
+
+      return _.find(last_presets_used, function(last_preset) {
+        return tool == last_preset.tool
+      })
     }
+
     var profile = app.printerProfile.toJSON();
     var tool = params.tool;
     this.temp_presets = profile.temp_presets;
