@@ -11,6 +11,7 @@
         <li class="heading bold">3D Printer</li>
         <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
         <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+        <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         <li class="heading bold">Camera</li>
         <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
         <li class="heading bold">Network</li>
@@ -181,6 +182,120 @@
           </div>
         </div>
       </script>
+    </div>
+
+    <div id="temperature-presets" class="settings-page hide">
+      <script type="text/template" id="temperature-presets-settings-page-template">
+        <div class="loading-button new-preset">
+           <button class="success radius"><i class="icon-plus"></i>New Temperature Preset</button>
+        </div>
+        <hr/>
+        <div class="row element-list">
+          <h3 class="bold">Saved Temperature Presets</h3>
+          <% _.each(temp_presets, function(t){ %>
+            <div class="row stored-presets" data-id="<%= t.id %>" data-preset-name="<%= t.name %>">
+              <div class="small-6 columns name">
+                <%= t.name %>
+              </div>
+              <div class="small-2 columns" align="center">
+                  <i class="icon-extruder"></i><%= t.nozzle_temp %>
+              </div>
+              <div class="small-2 columns" align="center">
+                <% if (heated_bed) { %>
+                  <img class="icon-bed" src="img/icon-bed.svg">
+                  <%= t.bed_temp %>
+                <% } %>
+              </div>
+              <div class="small-1 columns" align="center">
+                  <a title="Edit" class="edit-preset"><i class="icon-pencil"></i></a>
+              </div>
+              <div class="small-1 columns" align="center">
+                <% if (temp_presets.length > 1) { %>
+                  <a title="Remove" class="delete-preset"><i class="icon-trash"></i></a>
+                <% } %>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </script>
+    </div>
+
+    <div id="delete-stored-temperature-preset-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Stored Temperature Preset</h2>
+      <div class="modal-body">
+        <p>
+          This will delete the <span class="name bold"></span> stored data.
+        </p>
+        <p>
+          Are you sure you want to delete <span class="name bold"></span> temperature preset?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Delete Temperature Preset</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div id="add-preset-modal" class="reveal-modal medium radius" data-reveal align="center">
+      <script type="text/template" id="temperature-presets-add-modal">
+        <h2 class="bold">
+          <% if (preset) { %>Edit Temperature Preset <% } %>
+          <% if (!preset) { %>New Temperature Preset <% } %>
+        </h2>
+        <div class="modal-actions row">
+          <div class="small-12 medium-6 medium-centered columns">
+            <form data-abide="ajax" id="preset-form">
+              <div class="input-wrapper">
+                <label for="temperature-preset-name" class="bold">
+                  Temperature Preset Name
+                </label>
+                <input id="temperature-preset-name" name="name" type="text" required pattern autocomplete="off"/>
+                <small class="error">Please provide a name</small>
+              </div>
+              <div class="input-wrapper">
+                <label for="preset-nozzle-temp" class="bold">
+                  Nozzle Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="preset-nozzle-temp" name="preset-nozzle-temp" type="number"  required pattern="integer"/>
+                    <small class="error">Invalid Nozzle Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                </div>
+              </div>
+              <% if (bed) { %><div class="input-wrapper">
+                <label for="preset-bed-temp" class="bold">
+                  Bed Temperature
+                </label>
+                <div class="row collapse">
+                  <div class="small-9 columns">
+                    <input id="preset-bed-temp" name="preset-bed-temp" type="number" required pattern="integer"/>
+                    <small class="error">Invalid Bed Temperature.</small>
+                  </div>
+                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                </div>
+              </div> <% } %>
+              <div class="loading-button cancel-add-preset">
+                <span class="button cancel expand">Cancel</span>
+              </div>
+              <div class="loading-button">
+                <button class="success radius">Save</button>
+                <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+              </div>
+            </form>
+          </div>
+        </div>
+      </script>
+      <a class="close-reveal-modal">&#215;</a>
     </div>
 
     <div class="show-for-small zebra camera">

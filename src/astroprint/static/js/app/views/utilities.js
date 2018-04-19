@@ -11,6 +11,7 @@ var TempView = Backbone.View.extend({
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
+  temp_presets : null,
   events: {
     'click .nav-extruder': 'navExtruderClicked',
     'click .semi-circle-temps': 'semiCircleTempsClicked',
@@ -23,7 +24,7 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-
+    this.temp_presets = profile.temp_presets;
     this.renderCircleTemps();
   },
   renderCircleTemps: function() {
@@ -39,8 +40,19 @@ var TempView = Backbone.View.extend({
     this.$el.find('.bed').empty();
 
     //extruders
+    var lastExtruderTemp = function (tool, last_presets_used) {
+      for (last_preset of last_presets_used){
+        if( tool == last_preset.tool){
+          return last_preset
+        }
+      }
+      return null
+    }
+    var profile = app.printerProfile.toJSON();
+
     for (var i = 0; i < this.extruders_count; i++) {
-      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
+      const last_temp = lastExtruderTemp(i, profile.last_presets_used)
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true, 'temp_presets' : profile.temp_presets, 'last_temp' : last_temp});
       this.semiCircleTemp_views[i] = semiCircleTemp;
       this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
 
@@ -64,7 +76,8 @@ var TempView = Backbone.View.extend({
     } else {
       this.$el.find('#bed-container').addClass('no-bed');
     }
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+    const bed_last_temp = lastExtruderTemp("bed", profile.last_presets_used)
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true, 'temp_presets' : profile.temp_presets, 'last_temp' : bed_last_temp});
     this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
     this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
