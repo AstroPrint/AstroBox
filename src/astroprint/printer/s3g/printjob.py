@@ -135,7 +135,7 @@ class PrintJobS3G(threading.Thread):
 							packetLen = struct.calcsize(parse)
 							packetData = f.read(packetLen)
 							if len(packetData) != packetLen:
-								raise Exception("Packet incomplete")
+								raise Exception("Packet incomplete when reading command 0x%x from file" % command[0])
 						else:
 							packetData = parse(f)
 
