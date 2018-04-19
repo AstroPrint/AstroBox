@@ -64,7 +64,7 @@
     z-index: 99999;
     color: #333333;
     margin-left: -59px;
-    font-size: 22px;
+    font-size: 20px;
     text-align-last:center;
 
     &.no-selected {
@@ -783,10 +783,9 @@ html.no-printer {
 
   div.extruder-heading{
     background: #e5e5e5;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     letter-spacing: 1px;
     font-size: 14px;
-    color: #333333;
   }
   select{
     -moz-appearance: none;
