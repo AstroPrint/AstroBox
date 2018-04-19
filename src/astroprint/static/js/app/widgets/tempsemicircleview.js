@@ -42,12 +42,9 @@ var TempSemiCircleView = Backbone.View.extend({
       if (last_temp.id == "custom") {
         last_preset = last_temp
       } else {
-        for (var temp_preset of this.temp_presets) {
-          if (temp_preset.id == last_temp.id) {
-            last_preset = last_temp
-            break;
-          }
-        }
+        last_preset = _.find(this.temp_presets, function(temp_preset) {
+          return temp_preset.id == last_temp.id
+        });
       }
     } else {
       last_preset = profile.temp_presets[0];
@@ -340,12 +337,15 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   _getPresetTemperature: function (id)
   {
-    for ( var temp_preset of this.temp_presets){
-      if (temp_preset.id == id){
-        return this.tool == "bed"? temp_preset.bed_temp : temp_preset.nozzle_temp
-      }
+    var preset = _.find(this.temp_presets, function(temp_preset) {
+      return temp_preset.id == id
+    });
+
+    if (preset) {
+      return this.tool == "bed" ? preset.bed_temp : preset.nozzle_temp
+    } else {
+      return null
     }
-    return null
   },
   _saveLastTemp: function()
   {
