@@ -434,8 +434,8 @@ var EditPresetsDialog = Backbone.View.extend({
   initialize: function(params) {
     this.parent = params.parent;
   },
-  open: function(info = null) {
-    if(info){
+  open: function(info) {
+    if(info) {
       for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
         var obj = this.parent.settings.attributes.temp_presets[i];
         if(obj.id == info.id) {

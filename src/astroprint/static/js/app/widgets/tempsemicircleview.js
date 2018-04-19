@@ -42,7 +42,7 @@ var TempSemiCircleView = Backbone.View.extend({
       if (last_temp.id == "custom") {
         last_preset = last_temp
       } else {
-        for (let temp_preset of this.temp_presets) {
+        for ( temp_preset of this.temp_presets) {
           if (temp_preset.id == last_temp.id) {
             last_preset = last_temp
             break;
@@ -340,7 +340,7 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   _getPresetTemperature: function (id)
   {
-    for (let temp_preset of this.temp_presets){
+    for ( temp_preset of this.temp_presets){
       if (temp_preset.id == id){
         return this.tool == "bed"? temp_preset.bed_temp : temp_preset.nozzle_temp
       }
