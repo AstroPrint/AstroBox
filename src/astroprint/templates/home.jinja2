@@ -62,6 +62,15 @@
 			</a>
 				<h1 class="bold">Settings</h1>
 		</li>
+    {% if additionalTasks %}
+    <li>
+			<a href="#additional-tasks"><div class="app-image tasks">
+				<img src="/static/img/tasks-icon.svg" alt="custom icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
+			</a>
+				<h1 class="bold">Additional Tasks</h1>
+		</li>
+    {% endif %}
 		<li class="gcode-terminal-app-icon">
 			<a href="#gcode-terminal"><div class="app-image">
 				<img src="/static/img/gcode-terminal-icon.png" alt="settings icon"/>

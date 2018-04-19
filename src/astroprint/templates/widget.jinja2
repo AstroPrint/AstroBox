@@ -9,17 +9,18 @@
         </div>
       </div>
       <div class="row buttons-container clearfix" align="center">
-        <div class="small-offset-1 small-3 medium-2 medium-offset-2 columns container-off" align="center">
+        <div class="small-offset-1 small-3 medium-3 medium-offset-1 columns container-off" align="center">
           <button class="temp-off secondary small radius expand"><i class="icon-snow"></i></button>
         </div>
         <div class="small-8 columns temp-target radius">
           <div class="row small-collapse">
-            <div class="small-6 columns target">
+            <div class="small-7 columns target">
               <div class="label-target">Target: <span class="target-value"></span></div>
-              <div>
+              <div class="select-container">
+                <div class="dots">...</div>
                 <select class="freq-selector-<%= tool %>" align="center">
                   <% _.each( temp_presets, function( temp_preset ){ %>
-                    <option value="<%= temp_preset.id %>" <% if ( temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
+                    <option value="<%= temp_preset.id %>" <% if ( last_preset && temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
                   <% }); %>
                   <option value="other"><a>Other...</a></li>
                 </select>
@@ -28,7 +29,7 @@
                 </div>
               </div>
             </div>
-            <div class="small-6 columns" align="left">
+            <div class="small-5 columns" align="left">
               <input type="number" class="hide"/>
                 <button class="temp-on">
                   <i class="icon-temperatire"></i>

@@ -150,6 +150,22 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
+	def sendComm(self, data ,callback):
+		pm = printerManager()
+
+		if not pm.allowTerminal:
+			callback('Driver does not support terminal access',True)
+		if not pm.isOperational():
+			callback('No Printer connected',True)
+
+		command = data['command']
+
+		if command:
+			pm.sendRawCommand(command)
+			callback({'success': 'no_error'})
+		else:
+			callback("Command is missing", True)
+
 	##Printer connection
 
 	def getConnection(self):

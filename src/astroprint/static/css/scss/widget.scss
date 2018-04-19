@@ -1,17 +1,19 @@
-#temp-control-template{
+#temp-control-template, #custom-temp-control-template{
 
   .semi-circle-temps {
-
+    height: 160px;
+    vertical-align: top;
     .temp-container {
       position: relative;
       max-width: 100%;
       margin: 0 auto;
-      height: 170px;
+      height: 180px;
 
       .graphic-container {
+        height: 170px;
         .circle-container{
           max-width: 360px;
-          height: 116px;
+          height: 110px;
 
           .progress-temp-circle {
 
@@ -42,45 +44,73 @@
         }
 
         .buttons-container {
-          max-width: 360px;
           height: 50px;
           position: relative;
-          top: -6px;
-          left: -5px;
+          max-width: 290px;
+          margin: 0 auto;
 
           .container-off {
+            padding: 0;
             button.temp-off {
               outline: 0;
               background: #00bff3;
-              width: 38px;
-              height: 38px;
+              width: 40px;
+              height: 40px;
               border-radius: 50px;
             }
 
             i.icon-snow {
               &:before {
                 position: relative;
-                top: -5px;
-                font-size: 20px;
+                top: -6px;
+                font-size: 23px;
                 color: white;
               }
             }
           }
           .temp-target {
-            right: -20px;
+
+            select{
+              max-width: 100px;
+              margin: 0 auto;
+              background-size: 20px 5px;
+              background-position: 100% 14px;
+              border: 2px solid gainsboro;
+              padding-right: 25px;
+              font-size: 13px;
+              border-radius: 15px;
+            }
+
+            .select-container {
+              position: relative;
+              width: 100px;
+              .dots{
+                position: absolute;
+                pointer-events: none;
+                right: 17px;
+                top: 2px;
+                color: #222222;
+                width: 24px;
+                padding-right: 3px;
+                text-align: right;
+                height: 2rem;
+                background: linear-gradient(to right, transparent 10%, #fafafa 36%);
+              }
+            }
 
             .label-target{
               text-transform: uppercase;
               font-size: 13px;
               letter-spacing: 1px;
-              left: -20%;
-              margin-bottom: -3px;
+              line-height: 140%;
               color: #333;
+              margin-top: -20px;
+              margin-bottom: 3px;
             }
             .target-value {
               left: -20%;
               color: #333;
-              font-size: 18px;
+              font-size: 16px;
             }
             .target-value {
               left: -10px;

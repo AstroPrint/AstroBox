@@ -7,13 +7,15 @@
 
     span.loading,
     span.failed,
+    span.inactive,
     button, .button, .idle {
       width: 100%;
     }
   }
 
   span.loading,
-  span.failed {
+  span.failed,
+  span.inactive {
     display: none;
   }
 
@@ -37,6 +39,21 @@
     span.failed {
       display: inherit;
       font-style: normal;
+    }
+  }
+
+  &.inactive {
+    button, .button, .idle {
+      display: none;
+    }
+
+    span.inactive {
+      display: inherit !important;
+      cursor: not-allowed;
+
+      &.expand {
+        width: 100%;
+      }
     }
   }
 }

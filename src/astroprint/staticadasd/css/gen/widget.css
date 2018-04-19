@@ -1,0 +1,114 @@
+#temp-control-template .semi-circle-temps, #custom-temp-control-template .semi-circle-temps {
+  height: 160px;
+  vertical-align: top; }
+  #temp-control-template .semi-circle-temps .temp-container, #custom-temp-control-template .semi-circle-temps .temp-container {
+    position: relative;
+    max-width: 100%;
+    margin: 0 auto;
+    height: 180px; }
+    #temp-control-template .semi-circle-temps .temp-container .graphic-container, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container {
+      height: 170px; }
+      #temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container {
+        max-width: 360px;
+        height: 110px; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container .progress-temp-circle .target-selector, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container .progress-temp-circle .target-selector {
+          width: 24px;
+          height: 5px;
+          border-radius: 24px;
+          background: #000;
+          position: relative;
+          top: -98px;
+          left: -80px;
+          transform-origin: 93px 2px;
+          transform: rotate(0deg);
+          transition: transform 2s; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container .progress-temp-circle .current, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .circle-container .progress-temp-circle .current {
+          position: relative;
+          top: -154px;
+          padding-left: 8px;
+          font-size: 40px;
+          font-weight: bold;
+          color: #f05251;
+          width: 50%;
+          margin: 0 auto; }
+      #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container {
+        height: 50px;
+        position: relative;
+        max-width: 290px;
+        margin: 0 auto; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off {
+          padding: 0; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off button.temp-off, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off button.temp-off {
+            outline: 0;
+            background: #00bff3;
+            width: 40px;
+            height: 40px;
+            border-radius: 50px; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off i.icon-snow:before, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .container-off i.icon-snow:before {
+            position: relative;
+            top: -6px;
+            font-size: 23px;
+            color: white; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target select, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target select {
+          max-width: 100px;
+          margin: 0 auto;
+          background-size: 20px 5px;
+          background-position: 100% 14px;
+          border: 2px solid gainsboro;
+          padding-right: 25px;
+          font-size: 13px;
+          border-radius: 15px; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .select-container, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .select-container {
+          position: relative;
+          width: 100px; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .select-container .dots, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .select-container .dots {
+            position: absolute;
+            pointer-events: none;
+            right: 17px;
+            top: 2px;
+            color: #222222;
+            width: 24px;
+            padding-right: 3px;
+            text-align: right;
+            height: 2rem;
+            background: linear-gradient(to right, transparent 10%, #fafafa 36%); }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .label-target, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .label-target {
+          text-transform: uppercase;
+          font-size: 13px;
+          letter-spacing: 1px;
+          line-height: 140%;
+          color: #333;
+          margin-top: -20px;
+          margin-bottom: 3px; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .target-value, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .target-value {
+          left: -20%;
+          color: #333;
+          font-size: 16px; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .target-value, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .target-value {
+          left: -10px; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on {
+          width: 38px;
+          height: 38px;
+          outline: 0;
+          border-radius: 3px;
+          background: #333;
+          padding: 4px 10px; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on i.icon-temperatire:before, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on i.icon-temperatire:before {
+            font-size: 20px;
+            color: white;
+            position: relative;
+            left: -5px; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on .icon-rocket-spinner, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on .icon-rocket-spinner {
+            display: none;
+            position: relative;
+            left: -2px; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on.loading .icon-rocket-spinner, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on.loading .icon-rocket-spinner {
+            display: inline-block; }
+          #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on.loading .icon-temperatire, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target .temp-on.loading .icon-temperatire {
+            display: none; }
+        #temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target input, #custom-temp-control-template .semi-circle-temps .temp-container .graphic-container .buttons-container .temp-target input {
+          position: absolute;
+          height: 38px;
+          width: 60px; }
+
+/*# sourceMappingURL=widget.css.map */

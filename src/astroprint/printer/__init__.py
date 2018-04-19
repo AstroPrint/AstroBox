@@ -16,6 +16,7 @@ from octoprint.events import eventManager, Events
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printerprofile import printerProfileManager
+from astroprint.additionaltasks import additionalTasksManager
 from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
@@ -57,6 +58,7 @@ class Printer(object):
 		self._pausedSince = None
 
 		self._profileManager = printerProfileManager()
+		self._additionalTasks = additionalTasksManager()
 
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
 		self._fileManager.registerCallback(self)
@@ -100,6 +102,12 @@ class Printer(object):
 			progress={"completion": None, "filepos": None, "printTime": None, "printTimeLeft": None},
 			currentZ=None
 		)
+
+		# Check and load file with custom commands
+		if self._additionalTasks.fileExists():
+			self._logger.info('Found and loaded additional-tasks.yaml file')
+		else:
+			self._logger.info('Not Found additional-tasks.yaml file')
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 

@@ -47,7 +47,12 @@
 		position: relative;
 		display: block;
 		margin: 0 auto;
-		max-width: 140px;
+    max-width: 140px;
+
+    &.tasks img{
+      background: $orange;
+      border-radius: $global-radius;
+    }
 	}
 
 	.overlay {

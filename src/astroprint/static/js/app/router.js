@@ -9,6 +9,8 @@ var AppRouter = Backbone.Router.extend({
   filesView: null,
   utilitiesView: null,
   settingsView: null,
+  additionalTasksView: null,
+  additionalTaskView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -21,6 +23,8 @@ var AppRouter = Backbone.Router.extend({
     "utilities": "utilities",
     "printing": "printing",
     "settings": "settings",
+    "additional-tasks": "additionalTasks",
+    "additional-tasks/:sequence_id": "additionalTask",
     "settings/:page": "settings",
     "gcode-terminal": "terminal",
     "camera": "camera",
@@ -111,6 +115,20 @@ var AppRouter = Backbone.Router.extend({
     this.selectView(this.settingsView);
     this.settingsView.menu.changeActive(page || 'printer-connection');
     app.selectQuickNav('settings');
+  },
+  additionalTasks: function()
+  {
+    if (!this.additionalTasksView) {
+      this.additionalTasksView = new AdditionalTasksView();
+    }
+
+    this.selectView(this.additionalTasksView);
+
+  },
+  additionalTask: function(sequence_id)
+  {
+    this.additionalTaskView = new AdditionalTaskView(sequence_id);
+    this.selectView(this.additionalTaskView);
   },
   terminal: function()
   {

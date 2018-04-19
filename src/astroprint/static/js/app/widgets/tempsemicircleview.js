@@ -11,6 +11,7 @@ var TempSemiCircleView = Backbone.View.extend({
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
   enableOff: true,
+  hideBed: false,
   events: {
     'click button.temp-off': 'turnOff',
     'click button.temp-on': 'turnOn',
@@ -20,25 +21,40 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   initialize: function(params)
   {
+    // Get last preset
+    var lastTemp = function (tool, last_presets_used) {
+      if (tool === null) {
+        tool = "bed";
+      }
+      for (last_preset of last_presets_used) {
+        if (tool == last_preset.tool) {
+          return last_preset
+        }
+      }
+      return null
+    }
+    var profile = app.printerProfile.toJSON();
     var tool = params.tool;
-    this.enableOff = params.enableOff;
-    this.temp_presets = params.temp_presets;
-    var last_preset = this.temp_presets[0];
-
-
-    if (params.last_temp){
-      if(params.last_temp.id == "custom"){
-        last_preset = params.last_temp
+    this.temp_presets = profile.temp_presets;
+    last_preset = null
+    last_temp = lastTemp(tool, profile.last_presets_used)
+    if (last_temp) {
+      if (last_temp.id == "custom") {
+        last_preset = last_temp
       } else {
-        for (let temp_preset of this.temp_presets){
-          if (temp_preset.id == params.last_temp.id){
-            last_preset = params.last_temp
+        for (let temp_preset of this.temp_presets) {
+          if (temp_preset.id == last_temp.id) {
+            last_preset = last_temp
             break;
           }
         }
       }
+    } else {
+      last_preset = profile.temp_presets[0];
     }
 
+    this.enableOff = params.enableOff;
+    this.hideBed = params.hideBed;
     this.last_preset = last_preset;
 
     if (tool != null) {
@@ -52,10 +68,13 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.attr('id', 'bed');
     }
     this.$el.attr('align', 'center');
+
+    if (params.preHeat) {
+      this.turnOn();
+    }
   },
   render: function ()
   {
-    console
     this.$el.html(this.template({
       temp_presets : this.temp_presets,
       last_preset : this.last_preset,
@@ -70,7 +89,8 @@ var TempSemiCircleView = Backbone.View.extend({
     }
 
     this.enableTurnOff(this.enableOff);
-    if (this.last_preset.id == "custom"){
+    this.checkHideBed(this.hideBed);
+    if (this.last_preset && this.last_preset.id == "custom"){
       setTimeout( _.bind(function() {
           var select = $('.freq-selector-' + this.tool);
           select.prepend($('<option>', {
@@ -155,7 +175,6 @@ var TempSemiCircleView = Backbone.View.extend({
       }
 
       this.last_preset = custom
-      //TODO SAVE LAST TEMP
 
       if ($(".freq-selector-" + this.tool +" option[value='custom']")){
         $(".freq-selector-" + this.tool +" option[value='custom']").remove();
@@ -330,7 +349,6 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   _saveLastTemp: function()
   {
-    console.log("_saveLastTemp")
     var profile = app.printerProfile.toJSON();
     var newTempSaved = true;
     for (var i in profile.last_presets_used) {
@@ -345,14 +363,11 @@ var TempSemiCircleView = Backbone.View.extend({
     }
     attrs= {}
     attrs.last_presets_used = profile.last_presets_used
-    console.log(attrs)
     app.printerProfile.save(attrs, {
       patch: true,
-      success: _.bind(function() {
-        console.log("succes saving last temp")
-      }, this),
+      success: _.bind(function() {}, this),
       error: function() {
-        console.log("error savind last temp")
+        console.error("error savind last temp")
       }
     });
 
@@ -364,6 +379,14 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.find('.container-off').removeClass('hide');
     } else {
       this.$el.find('.container-off').addClass('hide');
+    }
+  },
+  checkHideBed: function(value)
+  {
+    if (value) {
+      this.$el.find('.icon-bed').addClass('hide');
+    } else {
+      this.$el.find('.icon-bed').removeClass('hide');
     }
   }
 });

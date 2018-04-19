@@ -39,20 +39,9 @@ var TempView = Backbone.View.extend({
     this.$el.find('#slider').empty();
     this.$el.find('.bed').empty();
 
-    //extruders
-    var lastExtruderTemp = function (tool, last_presets_used) {
-      for (last_preset of last_presets_used){
-        if( tool == last_preset.tool){
-          return last_preset
-        }
-      }
-      return null
-    }
-    var profile = app.printerProfile.toJSON();
 
     for (var i = 0; i < this.extruders_count; i++) {
-      const last_temp = lastExtruderTemp(i, profile.last_presets_used)
-      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true, 'temp_presets' : profile.temp_presets, 'last_temp' : last_temp});
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
       this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
 
@@ -76,8 +65,7 @@ var TempView = Backbone.View.extend({
     } else {
       this.$el.find('#bed-container').addClass('no-bed');
     }
-    const bed_last_temp = lastExtruderTemp("bed", profile.last_presets_used)
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true, 'temp_presets' : profile.temp_presets, 'last_temp' : bed_last_temp});
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
     this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
     this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
