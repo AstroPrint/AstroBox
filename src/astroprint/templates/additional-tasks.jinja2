@@ -1,0 +1,35 @@
+
+<div class="content">
+  {# ============== ADDITIONAL TASKS MENU ==============#}
+  <div class="row large-collapse">
+    <div class="small-12 columns title-heading">
+      <h1 class="bold">Additional Tasks</h1>
+    </div>
+  </div>
+  <div class="row collapse">
+    <div class="small-12 columns text-center supplies-heading">
+      <h3 class="bold">Choose an additional task</h3>
+      <p>Here you'll find additional tasks such as Filament loading and unloading, auto leveling...</p>
+    </div>
+  </div>
+
+  <ul id="task-list" class="row task-list-view small-block-grid-1"></ul>
+
+  {# ADDITIONAL TASK ICON ROW #}
+  <script type="text/template" id="task-row-template">
+    <a href="#additional-tasks/<%= additionalTaskApp.id %>">
+      <div class="app-image">
+        <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= additionalTaskApp.icon_filename %>" alt="<%= additionalTaskApp.strings.EN.name %> icon"/>
+        <div class="overlay">
+          <h4 class="bold">Launch</h4>
+        </div>
+      </div>
+      <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
+    </a>
+  </script>
+
+  <div class="no-connection-overlay">
+    <i class="icon-usb"></i>
+    <b>Please, connect a 3D Printer via USB.</b>
+  </div>
+</div>

@@ -68,6 +68,7 @@ class Events(object):
 	HOME = "Home"
 	Z_CHANGE = "ZChange"
 	TOOL_CHANGE = "ToolChange"
+	PRINTINGSPEED_CHANGE = "PrintingSpeedChange"
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"

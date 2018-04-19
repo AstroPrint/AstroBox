@@ -67,6 +67,7 @@ from astroprint.camera import cameraManager
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.additionaltasks import additionalTasksManager
 from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
@@ -149,6 +150,7 @@ def index():
 		nm = networkManager()
 		swm = swManager()
 		cm = cameraManager()
+		ccm = additionalTasksManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
@@ -170,6 +172,7 @@ def index():
 			variantData= variantManager().data,
 			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log']),
+			additionalTasks= ccm.fileExists(),
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey)
 		)

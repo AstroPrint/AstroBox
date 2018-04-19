@@ -16,6 +16,7 @@ from octoprint.events import eventManager, Events
 
 from astroprint.cloud import astroprintCloud
 from astroprint.printerprofile import printerProfileManager
+from astroprint.additionaltasks import additionalTasksManager
 from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
@@ -57,6 +58,7 @@ class Printer(object):
 		self._pausedSince = None
 
 		self._profileManager = printerProfileManager()
+		self._additionalTasks = additionalTasksManager()
 
 		self._fileManager= printFileManagerMap[self._fileManagerClass.name]()
 		self._fileManager.registerCallback(self)
@@ -100,6 +102,12 @@ class Printer(object):
 			progress={"completion": None, "filepos": None, "printTime": None, "printTimeLeft": None},
 			currentZ=None
 		)
+
+		# Check and load file with custom commands
+		if self._additionalTasks.fileExists():
+			self._logger.info('Found and loaded additional-tasks.yaml file')
+		else:
+			self._logger.info('Not Found additional-tasks.yaml file')
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
@@ -480,6 +488,10 @@ class Printer(object):
 		self._stateMonitor.setCurrentTool(newTool)
 		eventManager().fire(Events.TOOL_CHANGE, {"new": newTool, "old": oldTool})
 
+	def mcPrintingSpeedChange(self, amount):
+		self._stateMonitor.setPrintingSpeed(amount)
+		eventManager().fire(Events.PRINTINGSPEED_CHANGE, {"amount": amount})
+
 	def reportNewLayer(self):
 		self._currentLayer += 1
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": self.getCurrentLayer()})
@@ -648,6 +660,9 @@ class Printer(object):
 	def getSelectedTool(self):
 		raise NotImplementedError()
 
+	def getPrintingSpeed(self):
+		raise NotImplementedError()
+
 	def getPrintProgress(self):
 		raise NotImplementedError()
 
@@ -700,7 +715,7 @@ class StateMonitor(object):
 		self._progress = None
 		self._stop = False
 		self._currentTool = 0
-
+		self._printingSpeed = 100
 		self._offsets = {}
 
 		self._changeEvent = threading.Event()
@@ -757,6 +772,10 @@ class StateMonitor(object):
 		self._currentTool = currentTool
 		self._changeEvent.set()
 
+	def setPrintingSpeed(self, amount):
+		self._printingSpeed = amount
+		self._changeEvent.set()
+
 	def _work(self):
 		while True:
 			self._changeEvent.wait()
@@ -787,5 +806,6 @@ class StateMonitor(object):
 			"currentZ": self._currentZ, # this should probably be deprecated
 			"progress": self._progress,
 			"offsets": self._offsets,
-			"tool": self._currentTool
+			"tool": self._currentTool,
+			"printing_speed": self._printingSpeed
 		}

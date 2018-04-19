@@ -1,4 +1,5 @@
 @import "foundation/components/block-grid";
+@import "foundation/components/dropdown";
 
 .title-heading {
 	background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
@@ -46,7 +47,12 @@
 		position: relative;
 		display: block;
 		margin: 0 auto;
-		max-width: 140px;
+    max-width: 140px;
+
+    &.tasks img{
+      background: $orange;
+      border-radius: $global-radius;
+    }
 	}
 
 	.overlay {

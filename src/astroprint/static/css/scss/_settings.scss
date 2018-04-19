@@ -536,6 +536,89 @@
   }
 }
 
+#temperature-presets{
+
+  h5{
+    color: $base;
+    letter-spacing: 1px;
+    padding: 2px 15px;
+    margin-top: 20px;
+    border-bottom: 2px solid #f4f4f4;
+    line-height: 120%;
+    font-size: 16px;
+  }
+
+  .new-preset button{
+    letter-spacing: 1px;
+    box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
+    -moz-box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
+    margin: 10px auto 0 auto;
+  }
+
+  img{
+    height: 26px;
+    filter: grayscale(100%);
+    opacity: 0.2;
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 100%;
+
+    &.icon-extruder{
+      height: 35px;
+    }
+
+    &.icon-bed{
+      top: 8px;
+    }
+  }
+
+  .extruder-temp,.bed-temp{
+    position: relative;
+    padding-top: 5px;
+
+    b{
+      width: 100%;
+      color: #f05151;
+      font-size: 18px;
+      margin-left: 2px;
+    }
+  }
+
+  a{
+    font-size: 29px;
+    border: 0;
+    color: #333333;
+
+    &.delete-preset{
+      color: #f05151;
+    }
+  }
+
+  .no-padding{
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    border-left: 1px dotted #cccccc;
+  }
+}
+
+#preset-form{
+  label{margin-top: 10px;}
+
+  img{
+    max-width: 30px;
+    padding-top: 6px;
+    margin-right: 10px;
+
+    &.icon-bed{
+      max-width: 38px;
+    }
+  }
+}
+
+
 @media #{$small-only} {
   #settings-view {
     .settings-page.hide {
@@ -555,4 +638,7 @@
     margin: 0;
     border: none;
   }
+
+  #temperature-presets .stored-presets{margin: 0 -20px;}
+
 }

@@ -1,0 +1,116 @@
+
+
+<div class="content">
+  {# ============== ADDITIONAL TASK APP ==============#}
+  <div id="additional-task-app-container">
+    <div class=" bold row text-center" id="additional-task" style="display:none">No additional task was found with that ID
+      <div class="blink-animation">Redirecting...</div>
+      <img src="static/img/sadmonkey-2.png" alt="no-action icon">
+    </div>
+    <div class="additional-tasks-app"></div>
+  </div>
+
+  <script type="text/template" id="additional-task-app-template">
+    <div class="row large-collapse">
+      <div class="small-12 columns title-heading">
+        <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="task-main">
+
+        <div class="columns-small-12">
+          <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.EN.title %></div>
+          <div class="small-12 medium-4 columns text-right padding-top">Step
+            <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
+          </div>
+        </div>
+
+        <div class="columns-small-12 clearfix">
+          <div class="progress">
+            <span class="meter"></span>
+          </div>
+        </div>
+
+        <!-- Additional Task description -->
+        <div class="columns-small-12 step-description text-center">
+          <p><%= currentStep.strings.EN.description %></p>
+        </div>
+
+        <% if (currentStep.type == "set_temperature") { %>
+        <!-- Temperature Widget -->
+          <div class="columns-small-12">
+            <div id="custom-temp-control-template" class="temp-container">
+              <div class="clearfix">
+                <div class="small-12 column" id="extruder-container">
+                  <div id="extruders" class="row" align="center">
+                    <div class="clearfix">
+                      <div class="temp-subheading text-center bold">Extruder #<%=app.socketData.attributes.tool+1%></div>
+                      <i id="previous" class="icon-angle-left arrow arrow-disabled hide"></i>
+                      <div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide"></i>
+                    </div>
+                    <div id="slider" class="small-12 column clearfix" aling="center"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } else if (currentStep.type == "set_extruder") { %>
+          <!-- Extruder picker -->
+          <div class="columns-small-12 text-center extruder-selector">
+            <label for="extruder-count">Filament will be change on this extruder:</label>
+            <select id="extruder-count" class="bold" name="extruder_count">
+            <% for(var i=0; i < initial_printer_profile.extruder_count; i++) { %>
+              <option value="<%= i %>" <%= app.socketData.attributes.tool == i ? 'selected' : '' %> ><%= i+1 %></option>
+            <% } %>
+            </select>
+          </div>
+        <% } else { %>
+           <!-- Additional Task Media -->
+          <div id="img-app" class="columns-small-12 text-center">
+          <% if (currentStep.img_filename ) { %>
+            <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
+          <% } else if (currentStep.vid_filename) { %>
+            <video autoplay="autoplay" loop="loop" src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.vid_filename %>" ></video>
+          <% } %>
+          </div>
+      <% } %>
+        <!-- Repeat button -->
+        <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
+          <button class="round small bold repeat"><i class="icon-cw"></i></button>
+        <% } %>
+
+        <div class="columns-small-12 buttons text-center" >
+          <!-- Close button -->
+          <div class="small-6 large-3 columns" >
+            <button class="alert radius small expand bold close">Close</button>
+          </div>
+
+          <!-- Action button -->
+          <% if (currentStep.strings.EN.button_action) { %>
+            <div class="small-6 large-3 columns" >
+              <button class="danger small radius action bold"><%= currentStep.strings.EN.button_action %></button>
+            </div>
+            <% } %>
+          <!-- Next button -->
+          <div class="loading-button small-6 large-3 columns">
+            <button class="small expand radius next bold"><%= currentStep.strings.EN.button_next %></button>
+            <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+            <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+            <span class="button secondary small expand radius disabled inactive">
+              <i class="icon-rocket-spinner animate-spin"></i>
+              <%= currentStep.strings.EN.button_next %>
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </script>
+  <div class="no-connection-overlay">
+    <i class="icon-usb"></i>
+    <b>Please, connect a 3D Printer via USB.</b>
+  </div>
+</div>

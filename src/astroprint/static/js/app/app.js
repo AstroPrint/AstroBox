@@ -102,7 +102,7 @@ var AstroBoxApp = Backbone.View.extend({
       }, {silent: true});
       $('body').removeClass('printing');
       this.$('.quick-nav').show();
-      this.router.navigate("control", {replace: true, trigger: true});
+      this.router.navigate("utilities", {replace: true, trigger: true});
     }
   },
   selectQuickNav: function(tab)

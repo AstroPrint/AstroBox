@@ -7,8 +7,10 @@
 var AppRouter = Backbone.Router.extend({
   homeView: null,
   filesView: null,
-  controlView: null,
+  utilitiesView: null,
   settingsView: null,
+  additionalTasksView: null,
+  additionalTaskView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -18,9 +20,11 @@ var AppRouter = Backbone.Router.extend({
     "": "home",
     "files": "files",
     "file-info/:fileId": "fileInfo",
-    "control": "control",
+    "utilities": "utilities",
     "printing": "printing",
     "settings": "settings",
+    "additional-tasks": "additionalTasks",
+    "additional-tasks/:sequence_id": "additionalTask",
     "settings/:page": "settings",
     "gcode-terminal": "terminal",
     "camera": "camera",
@@ -38,9 +42,8 @@ var AppRouter = Backbone.Router.extend({
       if (is_printing || is_paused) {
         app.setPrinting();
 
-        if  (callback != this.printing &&
-          (callback != this.control || !is_paused)
-        ) {
+        // Redirect to printing if printingView or utilitiesView are not the cb
+        if (callback != this.printing && callback != this.utilities) {
           this.navigate('printing', {trigger: true, replace:true});
           return;
         }
@@ -86,14 +89,14 @@ var AppRouter = Backbone.Router.extend({
 
     this.navigate('files', {trigger: true, replace:true});
   },
-  control: function()
+  utilities: function()
   {
-    if (!this.controlView) {
-      this.controlView = new ControlView();
+    if (!this.utilitiesView) {
+      this.utilitiesView = new UtilitiesView();
     }
 
-    this.selectView(this.controlView);
-    app.selectQuickNav('control');
+    this.selectView(this.utilitiesView);
+    app.selectQuickNav('utilities');
   },
   printing: function()
   {
@@ -112,6 +115,20 @@ var AppRouter = Backbone.Router.extend({
     this.selectView(this.settingsView);
     this.settingsView.menu.changeActive(page || 'printer-connection');
     app.selectQuickNav('settings');
+  },
+  additionalTasks: function()
+  {
+    if (!this.additionalTasksView) {
+      this.additionalTasksView = new AdditionalTasksView();
+    }
+
+    this.selectView(this.additionalTasksView);
+
+  },
+  additionalTask: function(sequence_id)
+  {
+    this.additionalTaskView = new AdditionalTaskView(sequence_id);
+    this.selectView(this.additionalTaskView);
   },
   terminal: function()
   {
@@ -157,9 +174,9 @@ var AppRouter = Backbone.Router.extend({
         currentView.addClass('hide').removeClass('active');
         currentView.trigger('hide');
 
-        if (targetId == 'control-view') {
-          this.controlView.tempView.show();
-          this.controlView.extrusionView.render();
+        if (targetId == 'utilities-view') {
+          this.utilitiesView.tempView.show();
+          this.utilitiesView.extrusionView.render();
         }
       }
 

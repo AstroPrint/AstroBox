@@ -195,6 +195,14 @@ class CommandPluginInterface(object):
 		pass
 
 	#
+	# Called when printing speed is changed
+	#
+	# - amount: The speed in percentage
+	#
+	def onPrintingSpeedChanged(self, amount):
+		pass
+
+	#
 	# Called when a command was sent that requests current position
 	#
 	def onCurrentPositionRequested(self):
