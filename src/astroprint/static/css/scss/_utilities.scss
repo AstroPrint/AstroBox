@@ -2,7 +2,8 @@
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
-  padding: 31px 30px 4px 30px;
+  padding-top: 27px;
+  padding-bottom: 5px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -33,6 +34,7 @@
   }
 
   .extruder-switch{
+    margin: 0;
     .small-3{
       position: absolute;
       bottom: -120px;
@@ -272,10 +274,6 @@
 			display: block;
 			margin-top: 10px;
 
-			button {
-				margin: 0;
-			}
-
 			.filename {
 				font-size: rem-calc(17);
 				line-height: 1.5em;
@@ -310,7 +308,7 @@
       position: relative;
       text-align: left;
       height: 15px;
-      margin-top: 50px;
+      margin-top: 45px;
       margin-bottom: -10px;
 
       .filename {
@@ -347,7 +345,7 @@
       display: inline-block;
     }
     .blur-effect {
-      filter:blur(5px);
+      filter:blur(4px);
     }
 
     .resume-container {
@@ -382,7 +380,7 @@
   .no-paused-overlay {
     display: none;
     position: absolute;
-    height: 100%;
+    height: 99%;
     width: 100%;
     background: rgba(0, 0, 0, 0.36);
     color: white;
@@ -472,7 +470,7 @@ html.no-printer {
   #extruder-container {
     display: inline-block;
     white-space: nowrap;
-    min-height: 260px;
+    min-height: 272px;
     background: $white;
 
     .arrow {
@@ -632,7 +630,7 @@ html.no-printer {
   }
 
   .temp-subheading{
-    padding:5px 20px 2px 20px;
+    padding:10px 20px 2px 20px;
     background: $white;
     color: darkgrey;
     text-transform: uppercase;
