@@ -20,7 +20,8 @@ var SoftwareUpdateProgress = Backbone.View.extend({
   events: {
     'click .error button.close': 'closeClicked',
     'click .error button.retry': 'installClicked',
-    'click .info button': 'installClicked'
+    'click .info button': 'installClicked',
+    'click button.reboot': 'onRebootClicked'
   },
   initialize: function()
   {
@@ -100,14 +101,10 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 
             if (payload.completed) {
               if (payload.success) {
-                setTimeout(function() {
-                  location.reload();
-                }, 9000);
+                this.updateState('done');
               } else {
                 //error case here
-                this.$el.find('.progress-info').addClass('hide');
-                this.$el.find('.error').removeClass('hide');
-                this.$el.find('.info').addClass('hide');
+                this.updateState('failed');
               }
             } else if (payload.message) {
               this.updateInfo(payload.progress, payload.message);
@@ -130,13 +127,30 @@ var SoftwareUpdateProgress = Backbone.View.extend({
   closeClicked: function(e)
   {
     e.preventDefault();
-    location.href="/#settings/software-update";
-    location.reload();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + 'settings/software/update',
+      type: 'DELETE',
+      success: function() {
+        loadingBtn.removeClass('loading');
+        location.href="/#settings/software-update";
+        location.reload();
+      },
+      error: function(xhr) {
+        loadingBtn.removeClass('loading').addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000)
+      }
+    });
   },
   installClicked: function(e)
   {
     e.preventDefault();
-    var loadingBtn = $(e).closest('.loading-button');
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
     loadingBtn.addClass('loading');
     $.ajax({
       url: API_BASEURL + 'settings/software/update',
@@ -144,20 +158,45 @@ var SoftwareUpdateProgress = Backbone.View.extend({
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify({
-        release_id: RELEASE_ID
+        release_ids: RELEASE_IDS
       }),
       success: _.bind(function() {
-        this.$el.find('.progress-info').removeClass('hide');
-        this.$el.find('.error').addClass('hide');
-        this.$el.find('.info').addClass('hide');
+        this.updateInfo(0.02);
+        this.updateState('updating');
+        loadingBtn.removeClass('loading');
       }, this),
       error: _.bind(function(xhr) {
-        this.$el.find('.progress-info').addClass('hide');
-        this.$el.find('.error').removeClass('hide');
-        this.$el.find('.info').addClass('hide');
+        loadingBtn.removeClass('loading').addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000)
+      }, this)
+    });
+  },
+  updateState: function(state)
+  {
+    this.$el.removeClass('done failed updating forced').addClass(state);
+  },
+  onRebootClicked: function(e)
+  {
+    e.preventDefault();
+
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+    loadingBtn.addClass('loading');
+    $.ajax({
+      url: API_BASEURL + 'settings/software/restart',
+      type: 'POST',
+      success: _.bind(function() {
+        setTimeout(function() {
+          location.reload();
+        }, 9000);
       }, this),
-      complete: function() {
-        loadingBtn.removeClass('loading');
+      error: function(xhr) {
+        loadingBtn.removeClass('loading').addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000)
       }
     });
   }

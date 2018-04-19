@@ -183,6 +183,12 @@ var PrintFileView = Backbone.View.extend({
   list: null,
   printWhenDownloaded: false,
   downloadProgress: null,
+  events: {
+    'click .left-section, .middle-section': 'infoClicked',
+    'click a.print': 'printClicked',
+    'click a.download': 'downloadClicked',
+    'click a.dw-cancel': 'cancelDownloadClicked'
+  },
   initialize: function(options)
   {
     this.list = options.list;
@@ -221,12 +227,7 @@ var PrintFileView = Backbone.View.extend({
       size_format: app.utils.sizeFormat
     }));
 
-    this.delegateEvents({
-      'click .left-section, .middle-section': 'infoClicked',
-      'click a.print': 'printClicked',
-      'click a.download': 'downloadClicked',
-      'click a.dw-cancel': 'cancelDownloadClicked'
-    });
+    $.localtime.format(this.$('.info-container'));
 
     this.slideName();
   },
@@ -529,6 +530,7 @@ var PrintFilesListView = Backbone.View.extend({
       if (filteredViews && filteredViews.length) {
         _.each(filteredViews, function(p) {
           list.append(p.$el);
+          p.delegateEvents();
         });
       } else {
         list.html(
@@ -583,8 +585,6 @@ var PrintFilesListView = Backbone.View.extend({
             if (_.isFunction(doneCb)) {
               doneCb(true);
             }
-
-            $.localtime.format(this.$el);
 
             loadingArea.removeClass('loading');
             this.refreshing = false;
@@ -648,7 +648,6 @@ var PrintFilesListView = Backbone.View.extend({
             print_file.set('uploaded_on', Date.now() / 1000);
 
             print_file_view.render();
-            $.localtime.format(print_file_view.$el);
 
             if (print_file_view.printWhenDownloaded) {
               print_file_view.printWhenDownloaded = false;
