@@ -73,6 +73,7 @@ from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
 
+
 UI_API_KEY = None
 VERSION = None
 
@@ -150,7 +151,6 @@ def index():
 		nm = networkManager()
 		swm = swManager()
 		cm = cameraManager()
-		ccm = additionalTasksManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()
@@ -172,7 +172,7 @@ def index():
 			variantData= variantManager().data,
 			checkSoftware= swm.shouldCheckForNew,
 			serialLogActive= s.getBoolean(['serial', 'log']),
-			additionalTasks= ccm.fileExists(),
+			additionalTasks= True,
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey)
 		)
@@ -525,6 +525,9 @@ class Server():
 		observer.daemon = True
 		observer.schedule(UploadCleanupWatchdogHandler(), s.getBaseFolder("uploads"))
 		observer.start()
+
+		#Load additional Tasks
+		additionalTasksManager()
 
 		try:
 			self._ioLoop = IOLoop.instance()

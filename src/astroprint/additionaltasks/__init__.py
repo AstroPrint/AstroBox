@@ -15,33 +15,34 @@ def additionalTasksManager():
 import yaml
 import os
 import logging
+import glob
 
 from octoprint.settings import settings
 
 class AdditionalTasksManager(object):
 	def __init__(self):
 		self._settings = settings()
-
-		configDir = self._settings.getConfigFolder()
-
-		self._commandsFile = "%s/additional-tasks.yaml" % configDir
 		self._logger = logging.getLogger(__name__)
 		self.data = {}
 
-		if self.fileExists():
-			if self._commandsFile:
-				with open(self._commandsFile, "r") as f:
-					config = yaml.safe_load(f)
+		self._logger.info("Loading Additional Tasks...")
 
-				def merge_dict(a,b):
-					for key in b:
-						if isinstance(b[key], dict):
-							merge_dict(a[key], b[key])
-						else:
-							a[key] = b[key]
+		tasksDir = "%s/tasks" % self._settings.getConfigFolder()
 
-				if config:
-					merge_dict(self.data, config)
+		if os.path.isdir(tasksDir):
+			taskFiles = glob.glob('%s/*.yaml' % tasksDir)
+			if len(taskFiles):
+				self._logger.info("Found %d tasks to load." % len(taskFiles))
+				for f in taskFiles:
+					try:
+						with open(f, "r") as f:
+							config = yaml.safe_load(f)
+							if config:
+								self.data[config['id']] = config
 
-	def fileExists(self):
-		return os.path.isfile(self._commandsFile)
+					except:
+						self._logger.info("There was an error loading %s:" % f, exc_info= True)
+
+				return
+
+		self._logger.info("No additional Tasks present.")
