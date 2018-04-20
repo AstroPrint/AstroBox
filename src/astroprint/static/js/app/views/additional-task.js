@@ -28,18 +28,17 @@ var AdditionalTaskContainerView = Backbone.View.extend({
       this.render();
     } else {
       this.getSequence(additionalTaskSequenceID).then(
-        success => {
+        _.bind(function(success) {
           this.render();
-        },
-        error => {
+        }, this),
+        _.bind(function(error) {
           console.error('error', error);
           this.render();
-        }
+        }, this)
       );
     }
   },
-
-  getSequence(additionalTaskSequenceID)
+  getSequence: function(additionalTaskSequenceID)
   {
     return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
       if (data.utilities && data.utilities.length) {
@@ -70,7 +69,7 @@ var AdditionalTaskContainerView = Backbone.View.extend({
       this.additionalTaskApp_view = row;
     } else {
       noActionEl.show();
-      setTimeout(() => {
+      setTimeout(function() {
         window.location.href = window.location.origin+"/#additional-tasks"
       }, 2500);
     }
@@ -102,7 +101,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.doClose();
   },
 
-  doClose()
+  doClose: function()
   {
     window.location.href = window.location.origin+"/#additional-tasks"
   },
@@ -126,7 +125,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.doNext();
   },
 
-  doNext()
+  doNext: function()
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
 
@@ -134,11 +133,11 @@ var AdditionalTaskAppView = Backbone.View.extend({
       case "set_extruder":
         // Change active extruder
         this._sendChangeToolCommand(this.$('#extruder-count').val())
-          .done(() => {
+          .done(_.bind( function() {
             loadingBtn.removeClass('loading');
             this.checkNextStep();
-          })
-          .fail(() => {
+          }, this))
+          .fail(function() {
             loadingBtn.addClass('failed');
             noty({ text: "There was an error sending a command.", timeout: 3000 });
             setTimeout(function () {
@@ -154,12 +153,12 @@ var AdditionalTaskAppView = Backbone.View.extend({
         loadingBtn.addClass('loading');
         if (this.currentStep.commands_on_next) {
           this.sendCommands("next")
-            .done(() => {
+            .done(function() {
               console.info('All the commands have been sent');
               loadingBtn.removeClass('loading');
               this.checkNextStep();
             })
-            .fail(() => {
+            .fail(function() {
               loadingBtn.addClass('failed');
               noty({ text: "There was an error sending a command.", timeout: 3000 });
               setTimeout(function () {
@@ -251,13 +250,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
         command: arrayCommands[commandsIndex]
       }
     })
-      .success(( () => {
+      .success( _.bind(function() {
         if (arrayCommands[commandsIndex + 1]) {
           this.sendCommands(type, ++commandsIndex, promise);
         } else {
           promise.resolve();
         }
-      }))
+      }, this))
 
       .fail(_.bind(function () {
         promise.reject()
