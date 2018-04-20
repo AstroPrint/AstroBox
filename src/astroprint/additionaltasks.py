@@ -121,7 +121,7 @@ class AdditionalTasksManager(object):
 
 			taskId = definition.get('id')
 			if taskId:
-				assetsDir = 'src/astroprint/static/img/variant/%s' % taskId
+				assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','variant', taskId))
 				for file in zip_ref.namelist():
 					if file.startswith('assets/'):
 						filename = file.replace('assets/','')
@@ -158,7 +158,7 @@ class AdditionalTasksManager(object):
 			#remove definition file
 			os.remove(os.path.join(tasksDir, "%s.yaml" % tId))
 			#remove asset dir
-			shutil.rmtree( 'src/astroprint/static/img/variant/%s' % tId )
+			shutil.rmtree( os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','variant', tId) )
 
 			self._logger.info("Task [%s] Removed" % tId)
 
