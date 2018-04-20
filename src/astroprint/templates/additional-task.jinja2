@@ -20,18 +20,28 @@
     <div class="row">
       <div class="task-main">
 
-        <div class="columns-small-12">
-          <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.EN.title %></div>
-          <div class="small-12 medium-4 columns text-right padding-top">Step
-            <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
+        <div class="columns small-12 large-1 text-center no-padding">
+          <!-- Close button -->
+          <button class="dark radius tiny expand bold close"><i class="icon-plus"></i></button>
+        </div>
+
+        <div class="columns small-12 large-11 no-padding right">
+          <div class="clearfix">
+            <div class="columns-small-12 clearfix">
+              <div class="progress">
+                <span class="meter"></span>
+              </div>
+            </div>
+
+            <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.EN.title %>
+            </div>
+            <div class="small-12 medium-4 columns text-right padding-top">Step
+              <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
+            </div>
           </div>
         </div>
 
-        <div class="columns-small-12 clearfix">
-          <div class="progress">
-            <span class="meter"></span>
-          </div>
-        </div>
+        <div class="clearfix"></div>
 
         <!-- Additional Task description -->
         <div class="columns-small-12 step-description text-center">
@@ -78,18 +88,13 @@
       <% } %>
         <!-- Repeat button -->
         <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
-          <button class="round small bold repeat"><i class="icon-cw"></i></button>
+          <button class="round small bold repeat"><i class="icon-refresh"></i></button>
         <% } %>
 
         <div class="columns-small-12 buttons text-center" >
-          <!-- Close button -->
-          <div class="small-6 large-3 columns" >
-            <button class="alert radius small expand bold close">Close</button>
-          </div>
-
           <!-- Action button -->
           <% if (currentStep.strings.EN.button_action) { %>
-            <div class="small-6 large-3 columns" >
+            <div class="small-6 large-3 offset-3 columns" >
               <button class="danger small radius action bold"><%= currentStep.strings.EN.button_action %></button>
             </div>
             <% } %>

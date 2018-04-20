@@ -19,14 +19,26 @@
     padding-top: 10px;
   }
 
+  .no-padding{padding: 0;}
+
+  .close{
+    background: rgba(34, 34, 34, 0.6);
+    color: white;
+    margin: 0;
+    i:before{
+      transform: rotate(45deg);
+      font-size: 1.35rem;
+    }
+
+  }
+
   .buttons{
     position: relative;
     width: 100%;
-    top: 10px;
+    top: -10px;
     left: 0;
     display: flex;
     justify-content: center;
-
 
     button{
       border: 3px solid;
@@ -37,11 +49,6 @@
         &:active{
           transform: scale(0.94);
         }
-    }
-
-    .close{
-      background: gainsboro;
-      color: #333333;
     }
 
     .action{background:#f05151;}
@@ -77,6 +84,7 @@
 
   .step-description{
     padding: 5px 0.9375rem;
+    min-height: 75px;
 
     p{
       margin-top: 15px;
@@ -99,12 +107,15 @@
   }
 
   #step-counter{
+    white-space: nowrap;
+    letter-spacing: -1px;
+
     .current{
-      width: 20px;
-      height: 20px;
+      width: 18px;
+      height: 18px;
       border-radius: 100%;
       font-size: 14px;
-      background: $oil;
+      background: #f46423;
       text-align: center;
       display: inline-block;
       color: $white;
@@ -113,7 +124,7 @@
     .total{
       @extend .current;
       background: transparent;
-      color: $oil;
+      color: $charcoal;
     }
   }
 }
