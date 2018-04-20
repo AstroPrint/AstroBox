@@ -12,6 +12,33 @@
 	}
 }
 
+#additional-tasks-view {
+  .file-upload-view {
+    position: relative;
+
+    input[type=file] {
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+  }
+
+  .upload-progress {
+    .progress-message {
+      font-size: rem-calc(18);
+      color: $success-color;
+    }
+
+    .meter {
+      transition: width 1s;
+    }
+  }
+}
+
 #task-list {
 	[class*="block-grid-"] > li {
 		clear: none !important;
@@ -34,7 +61,7 @@
     img{max-height:40px;}
   }
 
-  .task-row a{
+  .task-row a.launch {
     display: flex;
     justify-content: flex-start;
     flex-direction: row;
@@ -72,19 +99,28 @@
     flex-direction: row;
     padding: 10px;
 
-      h4 {
-        color: $white;
-        padding: 4px 10px;
-        border: 2px solid $white;
-        margin: 0;
-        text-align: center;
-        font-size: 1.125rem;
-        min-width: 140px;
-        display: flex;
-        justify-content: center;
-        letter-spacing: 1px;
-        flex-direction: column;
-				}
+    h4 {
+      color: $white;
+      padding: 4px 10px;
+      border: 2px solid $white;
+      margin: 0;
+      text-align: center;
+      font-size: 1.125rem;
+      min-width: 140px;
+      display: flex;
+      justify-content: center;
+      letter-spacing: 1px;
+      flex-direction: column;
+
+      &.remove {
+        margin-left: 10px;
+        min-width: 50px;
+
+        &:hover {
+          background: rgba(255,255,255,0.4);
+        }
+      }
+		}
 
 	}
 

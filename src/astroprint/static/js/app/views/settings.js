@@ -1468,7 +1468,7 @@ var PluginUploader = FileUploadBase.extend({
   }
 });
 
-var DeletePluginf = Backbone.View.extend({
+var DeletePluginDialog = Backbone.View.extend({
   el: '#delete-plugin-modal',
   events: {
     'click button.secondary': 'doClose',
