@@ -61,7 +61,7 @@
     img{max-height:40px;}
   }
 
-  .task-row a{
+  .task-row a.launch {
     display: flex;
     justify-content: flex-start;
     flex-direction: row;
@@ -99,19 +99,28 @@
     flex-direction: row;
     padding: 10px;
 
-      h4 {
-        color: $white;
-        padding: 4px 10px;
-        border: 2px solid $white;
-        margin: 0;
-        text-align: center;
-        font-size: 1.125rem;
-        min-width: 140px;
-        display: flex;
-        justify-content: center;
-        letter-spacing: 1px;
-        flex-direction: column;
-				}
+    h4 {
+      color: $white;
+      padding: 4px 10px;
+      border: 2px solid $white;
+      margin: 0;
+      text-align: center;
+      font-size: 1.125rem;
+      min-width: 140px;
+      display: flex;
+      justify-content: center;
+      letter-spacing: 1px;
+      flex-direction: column;
+
+      &.remove {
+        margin-left: 10px;
+        min-width: 50px;
+
+        &:hover {
+          background: rgba(255,255,255,0.4);
+        }
+      }
+		}
 
 	}
 

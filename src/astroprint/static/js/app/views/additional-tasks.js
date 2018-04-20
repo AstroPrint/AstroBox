@@ -2,6 +2,10 @@ var AdditionalTasksView = Backbone.View.extend({
   el: '#additional-tasks-view',
   additionalTasksListView: null,
   upload: null,
+  deleteDlg: null,
+  events: {
+    "click .task-row .overlay h4.remove": "onRemoveClicked"
+  },
   initialize: function()
   {
     this.additionalTasksListView = new AdditionalTasksListView();
@@ -15,7 +19,18 @@ var AdditionalTasksView = Backbone.View.extend({
   onTaskInstalled: function()
   {
     noty({type: "success", text: "Task Installed", timeout: 3000});
-    this.additionalTasksListView.refreshList();
+    this.additionalTasksListView.refreshTaskList();
+  },
+  onRemoveClicked: function(e)
+  {
+    e.preventDefault();
+
+    if (!this.deleteDlg) {
+      this.deleteDlg = new DeleteTaskDialog({parent: this.additionalTasksListView});
+    }
+
+    var row = $(e.currentTarget).closest('.task-row');
+    this.deleteDlg.open(row.attr('id'), row.find('h1.name').text());
   }
 });
 
@@ -27,9 +42,9 @@ var AdditionalTasksListView = Backbone.View.extend({
   initialize: function()
   {
     this.additionalTaskCollection = new AdditionalTaskCollection();
-    this.refreshList();
+    this.refreshTaskList();
   },
-  refreshList: function()
+  refreshTaskList: function()
   {
     this.additionalTaskCollection.reset();
     $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
@@ -178,5 +193,60 @@ var TaskUploader = FileUploadBase.extend({
     this.progressBar.hide();
     this.buttonContainer.show();
     this.progress(0);
+  }
+});
+
+var DeleteTaskDialog = Backbone.View.extend({
+  el: '#delete-task-modal',
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'open.fndtn.reveal': 'onOpen'
+  },
+  parent: null,
+  id: null,
+  name: null,
+  initialize: function(options)
+  {
+    this.parent = options.parent;
+  },
+  open: function(id, name)
+  {
+    this.id = id;
+    this.name = name;
+
+    this.$('.name').text(name);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function()
+  {
+    var loadingBtn = this.$('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + 'additional-tasks',
+      type: 'DELETE',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify({id: this.id})
+    })
+      .done(_.bind(function(data){
+        this.parent.refreshTaskList();
+        this.doClose();
+      }, this))
+      .fail(function(){
+        loadingBtn.addClass('failed');
+        setTimeout(function(){
+          loadingBtn.removeClass('failed');
+        }, 3000);
+      })
+      .always(function(){
+        loadingBtn.removeClass('loading');
+      });
   }
 });

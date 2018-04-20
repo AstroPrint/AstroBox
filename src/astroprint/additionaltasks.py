@@ -17,6 +17,7 @@ import os
 import logging
 import glob
 import zipfile
+import shutil
 
 from werkzeug.utils import secure_filename
 from tempfile import gettempdir
@@ -142,3 +143,26 @@ class AdditionalTasksManager(object):
 			zip_ref.close()
 
 		return False
+
+	def removeTask(self, tId):
+		task = self.getTask(tId)
+
+		if task:
+			for t in self.data['utilities']:
+				if t['id'] == tId:
+					self.data['utilities'].remove(t)
+					break
+
+			tasksDir = settings().getBaseFolder('tasks')
+
+			#remove definition file
+			os.remove(os.path.join(tasksDir, "%s.yaml" % tId))
+			#remove asset dir
+			shutil.rmtree( 'src/astroprint/static/img/variant/%s' % tId )
+
+			self._logger.info("Task [%s] Removed" % tId)
+
+			return {'removed': tId}
+
+		else:
+			return {'error': 'not_found'}
