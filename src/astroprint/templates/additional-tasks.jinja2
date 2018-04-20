@@ -1,11 +1,31 @@
-
 <div class="content">
-  {# ============== ADDITIONAL TASKS MENU ==============#}
   <div class="row large-collapse">
     <div class="small-12 columns title-heading">
       <h1 class="bold">Additional Tasks</h1>
     </div>
   </div>
+
+  <div class="file-upload-view">
+    <div class="row upload-buttons">
+      <div class="small-12 large-7 medium-centered columns">
+        <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
+          <i class="icon-plus"></i> Upload New Task ( <span class="extensions">.zip</span> )
+          <input class="file-upload" type="file" name="file" accept="">
+        </span>
+      </div>
+    </div>
+    <div class="row upload-progress" style="display:none">
+      <div class="small-12 large-10 large-centered columns">
+        <div class="progress radius">
+          <div class="meter" style="width: 0%"></div>
+        </div>
+        <div class="progress-message" align="center">
+          <i class="icon-rocket-spinner animate-spin"></i> <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="row collapse">
     <div class="small-12 columns text-center supplies-heading">
       <h3 class="bold">Choose an additional task</h3>
@@ -15,7 +35,6 @@
 
   <ul id="task-list" class="row task-list-view small-block-grid-1"></ul>
 
-  {# ADDITIONAL TASK ICON ROW #}
   <script type="text/template" id="task-row-template">
     <a href="#additional-tasks/<%= additionalTaskApp.id %>">
       <div class="app-image">
@@ -26,6 +45,7 @@
       </div>
       <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
     </a>
+    <a href="#"><i class="icon-trash"></i></a>
   </script>
 
   <div class="no-connection-overlay">
