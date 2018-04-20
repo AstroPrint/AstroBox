@@ -23,7 +23,7 @@ class AdditionalTasksManager(object):
 	def __init__(self):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
-		self.data = {}
+		self.data = {'utilities': []}
 
 		self._logger.info("Loading Additional Tasks...")
 
@@ -38,7 +38,7 @@ class AdditionalTasksManager(object):
 						with open(f, "r") as f:
 							config = yaml.safe_load(f)
 							if config:
-								self.data[config['id']] = config
+								self.data['utilities'].append(config)
 
 					except:
 						self._logger.info("There was an error loading %s:" % f, exc_info= True)
