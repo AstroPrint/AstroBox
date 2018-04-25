@@ -26,7 +26,7 @@ def maintenanceMenuCreate():
 	file = request.files["file"]
 
 	mmenu = maintenanceMenuManager()
-	r = mmenu.checkTaskFile(file)
+	r = mmenu.checkMenuFile(file)
 
 	if 'error' in r:
 		return make_response(r['error'], 500)

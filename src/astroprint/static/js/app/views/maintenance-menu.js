@@ -66,12 +66,21 @@ var MaintenanceMenuListView = Backbone.View.extend({
     if (!submenu) {
       $.getJSON(this.maintenanceMenuCollection.url, null, _.bind(function(data) {
         if (data && data.length) {
-          for (var i = 0; i < data.length; i++) {
-            this.maintenanceMenuCollection.add(new MaintenanceMenu(data[i]))
+          if (data[0].label) {
+            for (var i = 0; i < data.length; i++) {
+              this.maintenanceMenuCollection.add(new MaintenanceMenu(data[i]))
+            }
+            $('#menu-error').hide();
+            $('.error-message').hide();
+          } else {
+            $('.error-message').show();
+            $('#menu-error').show();
           }
           $('#no-menu').hide();
           this.render();
         } else {
+          $('.error-message').show();
+          $('#menu-error').hide();
           $('#no-menu').show();
         }
       }, this))
@@ -178,7 +187,6 @@ var MenuUploader = FileUploadBase.extend({
   },
   success: function(data)
   {
-    console.log("data", data);
     if (data.result.tmp_file) {
       $.ajax({
         url: API_BASEURL + 'maintenance-menu/install',

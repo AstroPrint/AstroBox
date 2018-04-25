@@ -28,7 +28,10 @@
 
   <div id="menu-list" class="row menu-list-view small-block-grid-1">
     <div id="back-button" style="display: none" > <i class="icon-back"></i></div>
-    <div id="no-menu" class="bold" style="display: none" >No maintenance menu was found. Use the button above to upload yours.</div>
+    <div class="error-message bold" >
+      <span id="no-menu" >No maintenance menu was found. Use the button above to upload yours.</span>
+      <span id="menu-error" >The menu loaded <u>does not have a corret data structure</u>. Check the documentation to know the required structure and upload it again.</span>
+    </div>
     <ul id="menu-rows-container"></ul>
   </div>
 

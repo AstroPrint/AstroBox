@@ -40,10 +40,13 @@
 }
 
 #menu-list {
-  #no-menu {
+  .error-message {
     text-align: center;
     font-size: 23px;
     margin-top: 50px;
+    #menu-error {
+      color: $alert-color;
+    }
   }
   ul {
     list-style: none;

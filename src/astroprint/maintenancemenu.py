@@ -57,14 +57,13 @@ class MaintenanceMenuManager(object):
 	def fileExists(self):
 		return len(self.data)
 
-	def checkTaskFile(self, file):
+	def checkMenuFile(self, file):
 		filename = file.filename
 
 		if not ('.' in filename and filename.rsplit('.', 1)[1].lower() in ['yaml']):
 			return {'error':'invalid_file'}
 
 		savedFile = os.path.join(gettempdir(), secure_filename(file.filename))
-
 		try:
 			file.save(savedFile)
 
@@ -98,11 +97,11 @@ class MaintenanceMenuManager(object):
 
 			configFolder = settings().getConfigFolder()
 
-			#extract the yaml file in it's directory
+			#get  yaml file content from tmp directory
 			with open(filename, "r") as f:
 				definition = yaml.safe_load(f)
 
-			#rename the yaml file
+			#copy yaml content in config directory
 			os.rename(filename, os.path.join(configFolder, "maintenance-menu.yaml"))
 
 			self.data = definition
