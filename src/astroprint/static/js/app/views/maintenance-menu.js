@@ -72,7 +72,6 @@ var MaintenanceMenuListView = Backbone.View.extend({
           $('#no-menu').hide();
           this.render();
         } else {
-          console.log('mefemfef show');
           $('#no-menu').show();
         }
       }, this))
