@@ -103,7 +103,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doClose: function()
   {
-    window.location.href = window.location.origin+"/#additional-tasks"
+    window.history.back();
   },
 
   currentStepManagement: function()

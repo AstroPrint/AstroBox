@@ -38,6 +38,7 @@ from astroprint.api import cloud as api_astroprint_cloud
 from astroprint.api import camera as api_astroprint_camera
 from astroprint.api import printerprofile as api_astroprint_printerprofile
 from astroprint.api import additionaltasks as api_astroprint_additionaltasks
+from astroprint.api import maintenancemenu as api_astroprint_maintenancemenu
 from astroprint.api import printer as api_astroprint_printer
 from astroprint.api import connection as api_astroprint_connection
 from astroprint.api import files as api_astroprint_files

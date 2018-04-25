@@ -1,0 +1,174 @@
+@import "foundation/components/block-grid";
+
+.title-heading {
+  background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
+	padding: 5px 0 0;
+	margin-bottom: rem-calc(15);
+	border-bottom: 1px solid #ccc;
+	h1 {
+		font-size: rem-calc(28);
+		text-align: center;
+		line-height: 1;
+	}
+}
+
+#maintenance-menu-view {
+  .file-upload-view {
+    position: relative;
+
+    input[type=file] {
+      opacity: 0;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+  }
+
+  .upload-progress {
+    .progress-message {
+      font-size: rem-calc(18);
+      color: $success-color;
+    }
+
+    .meter {
+      transition: width 1s;
+    }
+  }
+}
+
+#menu-list {
+  #no-menu {
+    text-align: center;
+    font-size: 23px;
+    margin-top: 50px;
+  }
+  ul {
+    list-style: none;
+  }
+	[class*="block-grid-"] > li {
+		clear: none !important;
+		white-space: nowrap;
+	}
+
+	&.row {
+		max-width: rem-calc(1000);
+		margin: 0 auto;
+	}
+	h1 {
+		font-size: rem-calc(20);
+		text-align: center;
+		text-overflow: ellipsis;
+		overflow-x: hidden;
+  }
+
+	.app-image {
+    img{max-height:40px;}
+  }
+  i.icon-back {
+    font-size: 25px !important;
+    color: $success-color;
+  }
+  .menu-row {
+    margin-top: 9px;
+  }
+
+  .menu-row a.launch, #back-button {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row;
+    position: relative;
+    padding: 12px;
+    background: white;
+    border-radius: $global-radius;
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+
+    h1{
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      padding-left: 15px;
+      color: $steel;
+    }
+  }
+
+  #back-button {
+    margin-left: 1.1rem;
+    background: #e6e6e6 !important;
+  }
+	.overlay {
+    opacity:0;
+    -webkit-transition: opacity .25s ease;
+		-moz-transition: opacity .25s ease;
+		transition: opacity .25s ease;
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		padding: 2px 4px;
+		@include radius($global-radius);
+    background: rgba(243, 101, 35, 0.6);
+    border: 2px solid rgba(13, 13, 13, 0.05);
+    display: flex;
+    justify-content: flex-end;
+    flex-direction: row;
+    padding: 10px;
+
+    h4 {
+      color: $white;
+      padding: 4px 10px;
+      border: 2px solid $white;
+      margin: 0;
+      text-align: center;
+      font-size: 1.125rem;
+      min-width: 140px;
+      display: flex;
+      justify-content: center;
+      letter-spacing: 1px;
+      flex-direction: column;
+
+      &.remove {
+        margin-left: 10px;
+        min-width: 50px;
+
+        &:hover {
+          background: rgba(255,255,255,0.4);
+        }
+      }
+		}
+
+	}
+
+	.no-touch & {
+    li:hover:not(.menu), li:active:not(.menu) {
+      .overlay { opacity:1;}
+    }
+  }
+
+}
+
+
+.no-connection-overlay {
+  display: none;
+  html.no-printer & {
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    text-align: center;
+    font-size: rem-calc(30);
+    border-radius: 3px;
+    padding: 5px;
+
+    i {
+      font-size: rem-calc(80);
+      display: block;
+    }
+  }
+}
