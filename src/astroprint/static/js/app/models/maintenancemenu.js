@@ -12,6 +12,6 @@
   model: MaintenanceMenu,
   url: API_BASEURL + "maintenance-menu",
   comparator: function(item) {
-    return item.get('menu');
-}
+    return item.get('type');
+  }
 });

@@ -25,6 +25,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
   maintenanceMenu_views: [],
   parentCollection: [],
   maintenanceMenuCollection: null,
+  tasks: [],
   deepIndex: 0,
   events: {
     'click a.launch': 'onLaunchClicked',
@@ -58,17 +59,47 @@ var MaintenanceMenuListView = Backbone.View.extend({
   initialize: function()
   {
     this.maintenanceMenuCollection = new MaintenanceMenuCollection();
-    this.refreshMaintenanceMenuList();
+    this.getTasks()
+      .done(_.bind(function () {
+        this.refreshMaintenanceMenuList();
+      }, this))
+      .fail(_.bind(function () {
+        console.error('Unable to retrieve tasks');
+        noty({text: "Unable to retrieve tasks", timeout: 3000});
+      }, this));
   },
+
+  getTasks: function()
+  {
+    return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function (data) {
+      if (data.utilities && data.utilities.length) {
+        this.tasks = data.utilities;
+      }
+    }, this))
+      .fail(function () {
+        noty({ text: "There was an error getting additional task.", timeout: 3000 });
+      })
+  },
+
   refreshMaintenanceMenuList: function(submenu)
   {
     this.maintenanceMenuCollection.reset();
     if (!submenu) {
       $.getJSON(this.maintenanceMenuCollection.url, null, _.bind(function(data) {
-        if (data && data.length) {
-          if (data[0].label) {
-            for (var i = 0; i < data.length; i++) {
-              this.maintenanceMenuCollection.add(new MaintenanceMenu(data[i]))
+
+        var filteredMenu = _.filter(data, function(mm){
+          if (mm.type != "utility") {return true}
+          return false;
+        });
+
+        if (filteredMenu && filteredMenu.length) {
+          if (filteredMenu[0].type) {
+            for (var i = 0; i < filteredMenu.length; i++) {
+              var iconFileName = this._iconMatchedTask(filteredMenu[i].id);
+              if (iconFileName) {
+                filteredMenu[i]['icon_filename'] = iconFileName;
+              }
+              this.maintenanceMenuCollection.add(new MaintenanceMenu(filteredMenu[i]))
             }
             $('#menu-error').hide();
             $('.error-message').hide();
@@ -89,11 +120,23 @@ var MaintenanceMenuListView = Backbone.View.extend({
       })
     } else {
       for (var i = 0; i < submenu.length; i++) {
+        var iconFileName = this._iconMatchedTask(submenu[i].id);
+        if (iconFileName) {
+          submenu[i]['icon_filename'] = iconFileName;
+        }
         this.maintenanceMenuCollection.add(new MaintenanceMenu(submenu[i]))
       }
       this.render();
     }
 
+  },
+  _iconMatchedTask: function(menuElID)
+  {
+    for (let j = 0; j < this.tasks.length; j++) {
+      if (this.tasks[j].id == menuElID) {
+        return this.tasks[j].icon_filename;
+      }
+    }
   },
   render: function()
   {

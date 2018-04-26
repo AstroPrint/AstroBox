@@ -35,13 +35,13 @@ class MaintenanceMenuManager(object):
 
 		configDir = self._settings.getConfigFolder()
 
-		maintenanceMenu = "%s/maintenance-menu.yaml" % configDir
+		self._maintenanceMenu = "%s/utilities-menu.yaml" % configDir
 
-		if os.path.isfile(maintenanceMenu):
+		if os.path.isfile(self._maintenanceMenu):
 			config = None
 			self._logger.info("Found maintenance menu to load.")
 			try:
-				with open(maintenanceMenu, "r") as f:
+				with open(self._maintenanceMenu, "r") as f:
 					config = yaml.safe_load(f)
 					if config:
 						self.data = config
@@ -50,9 +50,132 @@ class MaintenanceMenuManager(object):
 				self._logger.info("There was an error loading %s:" % f, exc_info= True)
 
 			return
+		else:
+			self._logger.info("No Utilities menu present: A new one was created.")
+			self.data = [
+				{
+					'id' : "movements_controls",
+					'name' : {
+						'EN': "Movement Controls",
+						'ES': "Controles y movimiento"
+					},
+					'type' : "utility",
+					'hiddenOnPrinting' : True
+				},
+				{
+					'id' : "preheat",
+					'name' : {
+						'EN': "Pre Heat",
+						'ES': "Pre Calentar"
+					},
+					'type' : "utility"
+				},
+					{
+					'id' : "fan",
+					'name' : {
+						'EN': "Fan",
+						'ES': "Ventiladores"
+					},
+					'type' : "utility"
+				},
+				{
+					'id' : "filament_extruder",
+					'name' : {
+						'EN': "Filament Extruder",
+						'ES': "Extrusión Filamento"
+					},
+					'type' : "utility",
+					'hiddenOnPrinting' : True
+				},
+				{
+					'id' : "tasks",
+					'name' : {
+						'EN': "Tasks",
+						'ES': "Tareas"
+					},
+					'type' : "utility",
+					'hiddenOnPrinting' : True
+				},{
+					'id' : "printing_speed",
+					'name' : {
+						'EN': "Printing Speed",
+						'ES': "Velocidad Impresión"
+					},
+					'type' : "utility"
+				}
+				# the following are only for testing porpuses
+				,{
+					'id' : "leveling_relia5000",
+					'name' : {
+						'EN': "Bed Leveling",
+						'ES': "Nivelar cama"
+					},
+					'type' : "task",
+					'hiddenOnPrinting' : True,
+					'hiddenOnPause' : True
+				},
+				{
+					'id' : "menu_filament",
+					'name' : {
+						'EN': "Filament Tools",
+						'ES': "Herramientas filamento"
+					},
+					'type' : "menu",
+					'hiddenOnPrinting' : True,
+					'hiddenOnPause' : True,
+					'menu': 	[
+						{
+							'name' : {
+								'EN': "Change",
+								'ES': "Cambiar"
+							},
+							'type' : "menu",
+							'menu': [
+								{
+									'id' : "load_wanhaoi3",
+									'name' : {
+										'EN': "Load",
+										'ES': "Cargar"
+									},
+									'type' : "task"
+								},
+								{
+									'id' : "load_relia5000",
+									'name' : {
+										'EN': "Unload",
+										'ES': "Descargar"
+									},
+									'type' : "task"
+								}
+							]
+						}
+					]
+				}
+			]
+			open(self._maintenanceMenu, 'w').close()
 
-		self._logger.info("No Maintenance menu present")
+			if self._maintenanceMenu:
+				config = None
+				with open(self._maintenanceMenu, "r") as f:
+					config = yaml.safe_load(f)
 
+				def merge_dict(a,b):
+					for key in b:
+						if isinstance(b[key], dict):
+							merge_dict(a[key], b[key])
+						else:
+							a[key] = b[key]
+
+				if config:
+					merge_dict(self.data, config)
+
+			self.save()
+
+			return
+
+	def save(self):
+		with open(self._maintenanceMenu, "wb") as maintenanceMenu:
+			yaml.safe_dump(self.data, maintenanceMenu, default_flow_style=False, indent="    ", allow_unicode=True)
 
 	def fileExists(self):
 		return len(self.data)
@@ -102,7 +225,7 @@ class MaintenanceMenuManager(object):
 				definition = yaml.safe_load(f)
 
 			#copy yaml content in config directory
-			os.rename(filename, os.path.join(configFolder, "maintenance-menu.yaml"))
+			os.rename(filename, os.path.join(configFolder, "utilities-menu.yaml"))
 
 			self.data = definition
 			return True
@@ -114,7 +237,7 @@ class MaintenanceMenuManager(object):
 		configFolder = settings().getConfigFolder()
 
 		#remove definition file
-		os.remove(os.path.join(configFolder, "maintenance-menu.yaml"))
+		os.remove(os.path.join(configFolder, "utilities-menu.yaml"))
 
 		self._logger.info("Menu Removed")
 
