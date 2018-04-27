@@ -15,6 +15,7 @@ var MaintenanceMenuView = Backbone.View.extend({
   onMenuInstalled: function()
   {
     noty({type: "success", text: "Menu Installed", timeout: 3000});
+    this.maintenanceMenuListView.deepIndex = 0;
     this.maintenanceMenuListView.refreshMaintenanceMenuList();
   }
 });
