@@ -189,8 +189,8 @@ var MenuUploader = FileUploadBase.extend({
 
     this.progressBar = options.progressBar;
     this.buttonContainer = options.buttonContainer;
-    this.$el.attr('accept', '.yaml');
-    this.acceptFileTypes = /(\.|\/)(yaml)$/i;
+    this.$el.attr('accept', '.zip');
+    this.acceptFileTypes = /(\.|\/)(zip)$/i;
     this.uploadUrl = API_BASEURL + 'maintenance-menu';
     this.installedCallback = options.installedCallback;
   },

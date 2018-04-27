@@ -116,6 +116,7 @@ class MaintenanceMenuManager(object):
 				},
 				{
 					'id' : "menu_filament",
+					'customIcon_extension': "png",
 					'name' : {
 						'en': "Filament Tools",
 						'es': "Herramientas filamento"
@@ -165,24 +166,26 @@ class MaintenanceMenuManager(object):
 	def checkMenuFile(self, file):
 		filename = file.filename
 
-		if not ('.' in filename and filename.rsplit('.', 1)[1].lower() in ['yaml']):
+		if not ('.' in filename and filename.rsplit('.', 1)[1].lower() in ['zip']):
 			return {'error':'invalid_file'}
 
 		savedFile = os.path.join(gettempdir(), secure_filename(file.filename))
 		try:
 			file.save(savedFile)
-
-			with open(savedFile, "r") as f:
-				definition = yaml.safe_load(f)
+			zip_ref = zipfile.ZipFile(savedFile, 'r')
+			menuInfo = zip_ref.open('utilities-menu.yaml', 'r')
+			definition = yaml.safe_load(menuInfo)
 
 		except KeyError:
+			zip_ref.close()
 			os.unlink(savedFile)
 			return {'error':'invalid_menu_file'}
 
 		except:
+			zip_ref.close()
 			os.unlink(savedFile)
 
-			self._logger.error('Error checking uploaded Yaml file', exc_info=True)
+			self._logger.error('Error checking uploaded Zip file', exc_info=True)
 			return {'error':'error_checking_file'}
 
 		#Check if the min_api_version is valid
@@ -199,15 +202,32 @@ class MaintenanceMenuManager(object):
 
 	def installFile(self, filename):
 		if os.path.isfile(filename):
+			configDir = settings().getConfigFolder()
 
-			configFolder = settings().getConfigFolder()
+			#extract the contents of the plugin in it's directory
+			zip_ref = zipfile.ZipFile(filename, 'r')
+			menuInfo = zip_ref.open('utilities-menu.yaml', 'r')
+			definition = yaml.safe_load(menuInfo)
+			assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','utilities_menu'))
 
-			#get  yaml file content from tmp directory
-			with open(filename, "r") as f:
-				definition = yaml.safe_load(f)
+			#remove utilities_menu folder
+			shutil.rmtree(assetsDir, ignore_errors=True)
 
-			#copy yaml content in config directory
-			os.rename(filename, os.path.join(configFolder, "utilities-menu.yaml"))
+			#move the image files into utilities_menu folder
+			for file in zip_ref.namelist():
+				if file.startswith('assets/'):
+					fileIcon = file.replace('assets/','')
+					if fileIcon:
+						zip_ref.extract(file, assetsDir)
+						os.rename(os.path.join(assetsDir, file), os.path.join(assetsDir, file.replace('assets/','')))
+
+				if os.path.isdir(os.path.join(assetsDir, 'assets')):
+					os.rmdir(os.path.join(assetsDir, 'assets'))
+
+			zip_ref.extract('utilities-menu.yaml', configDir)
+			#rename the yaml file
+			os.rename(os.path.join(configDir,'utilities-menu.yaml'), os.path.join(configDir, "utilities-menu.yaml"))
+			zip_ref.close()
 
 			self.data = definition
 			return True
