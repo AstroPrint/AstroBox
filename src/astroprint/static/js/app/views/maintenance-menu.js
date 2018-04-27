@@ -40,7 +40,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     if (targetView.maintenanceMenuElement.get('task_id')) {
       window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('task_id');
     } else {
-      this.parentCollection[this.deepIndex] = new Backbone.Collection(this.maintenanceMenuCollection.toJSON());
+      this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
 
       var targetSubmenu = targetView.maintenanceMenuElement.get('menu');
@@ -115,7 +115,8 @@ var MaintenanceMenuListView = Backbone.View.extend({
           $('#no-menu').show();
         }
       }, this))
-      .fail(function() {
+      .fail(function(e) {
+        console.error(e);
         noty({text: "There was an error getting maintenance menu.", timeout: 3000});
       })
     } else {
