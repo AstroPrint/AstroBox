@@ -103,55 +103,6 @@ class MaintenanceMenuManager(object):
 					},
 					'type' : "utility"
 				}
-				# the following are only for testing porpuses
-				,{
-					'id' : "leveling_relia5000",
-					'name' : {
-						'en': "Bed Leveling",
-						'es': "Nivelar cama"
-					},
-					'type' : "task",
-					'hiddenOnPrinting' : True,
-					'hiddenOnPause' : True
-				},
-				{
-					'id' : "menu_filament",
-					'customIcon_extension': "png",
-					'name' : {
-						'en': "Filament Tools",
-						'es': "Herramientas filamento"
-					},
-					'type' : "menu",
-					'hiddenOnPrinting' : True,
-					'hiddenOnPause' : True,
-					'menu': 	[
-						{
-							'name' : {
-								'en': "Change",
-								'es': "Cambiar"
-							},
-							'type' : "menu",
-							'menu': [
-								{
-									'id' : "load_wanhaoi3",
-									'name' : {
-										'en': "Load",
-										'es': "Cargar"
-									},
-									'type' : "task"
-								},
-								{
-									'id' : "load_relia5000",
-									'name' : {
-										'en': "Unload",
-										'es': "Descargar"
-									},
-									'type' : "task"
-								}
-							]
-						}
-					]
-				}
 			]
 
 			return
