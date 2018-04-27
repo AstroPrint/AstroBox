@@ -56,8 +56,8 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "movements_controls",
 					'name' : {
-						'EN': "Movement Controls",
-						'ES': "Controles y movimiento"
+						'en': "Movement Controls",
+						'es': "Controles y movimiento"
 					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
@@ -65,24 +65,24 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "preheat",
 					'name' : {
-						'EN': "Pre Heat",
-						'ES': "Pre Calentar"
+						'en': "Pre Heat",
+						'es': "Pre Calentar"
 					},
 					'type' : "utility"
 				},
 					{
 					'id' : "fan",
 					'name' : {
-						'EN': "Fan",
-						'ES': "Ventiladores"
+						'en': "Fan",
+						'es': "Ventiladores"
 					},
 					'type' : "utility"
 				},
 				{
 					'id' : "filament_extruder",
 					'name' : {
-						'EN': "Filament Extruder",
-						'ES': "Extrusión Filamento"
+						'en': "Filament Extruder",
+						'es': "Extrusión Filamento"
 					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
@@ -90,16 +90,16 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "tasks",
 					'name' : {
-						'EN': "Tasks",
-						'ES': "Tareas"
+						'en': "Tasks",
+						'es': "Tareas"
 					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
 				},{
 					'id' : "printing_speed",
 					'name' : {
-						'EN': "Printing Speed",
-						'ES': "Velocidad Impresión"
+						'en': "Printing Speed",
+						'es': "Velocidad Impresión"
 					},
 					'type' : "utility"
 				}
@@ -107,8 +107,8 @@ class MaintenanceMenuManager(object):
 				,{
 					'id' : "leveling_relia5000",
 					'name' : {
-						'EN': "Bed Leveling",
-						'ES': "Nivelar cama"
+						'en': "Bed Leveling",
+						'es': "Nivelar cama"
 					},
 					'type' : "task",
 					'hiddenOnPrinting' : True,
@@ -117,8 +117,8 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "menu_filament",
 					'name' : {
-						'EN': "Filament Tools",
-						'ES': "Herramientas filamento"
+						'en': "Filament Tools",
+						'es': "Herramientas filamento"
 					},
 					'type' : "menu",
 					'hiddenOnPrinting' : True,
@@ -126,24 +126,24 @@ class MaintenanceMenuManager(object):
 					'menu': 	[
 						{
 							'name' : {
-								'EN': "Change",
-								'ES': "Cambiar"
+								'en': "Change",
+								'es': "Cambiar"
 							},
 							'type' : "menu",
 							'menu': [
 								{
 									'id' : "load_wanhaoi3",
 									'name' : {
-										'EN': "Load",
-										'ES': "Cargar"
+										'en': "Load",
+										'es': "Cargar"
 									},
 									'type' : "task"
 								},
 								{
 									'id' : "load_relia5000",
 									'name' : {
-										'EN': "Unload",
-										'ES': "Descargar"
+										'en': "Unload",
+										'es': "Descargar"
 									},
 									'type' : "task"
 								}

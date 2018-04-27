@@ -39,9 +39,9 @@
     <a class="launch">
       <div class="app-image">
       <% if (maintenanceMenuElement.type == 'task') { %>
-        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.EN %> icon"/>
+        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.en %> icon"/>
       <%  } else if (maintenanceMenuElement.icon_filename) { %>
-        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.EN %> icon"/>
+        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.en %> icon"/>
         <%  } %>
     <div class="overlay">
       <% if (maintenanceMenuElement.type == 'task') { %>
@@ -49,7 +49,7 @@
       <%  } %>
     </div>
       </div>
-      <h1 class="name bold"><%= maintenanceMenuElement.name.EN %></h1>
+      <h1 class="name bold"><%= maintenanceMenuElement.name.en %></h1>
     </a>
   </script>
 
