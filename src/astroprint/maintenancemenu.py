@@ -51,7 +51,7 @@ class MaintenanceMenuManager(object):
 
 			return
 		else:
-			self._logger.info("No Utilities menu present: A new one was created.")
+			self._logger.info("No Utilities menu present: A new one was loaded in memory.")
 			self.data = [
 				{
 					'id' : "movements_controls",
@@ -152,24 +152,6 @@ class MaintenanceMenuManager(object):
 					]
 				}
 			]
-			open(self._maintenanceMenu, 'w').close()
-
-			if self._maintenanceMenu:
-				config = None
-				with open(self._maintenanceMenu, "r") as f:
-					config = yaml.safe_load(f)
-
-				def merge_dict(a,b):
-					for key in b:
-						if isinstance(b[key], dict):
-							merge_dict(a[key], b[key])
-						else:
-							a[key] = b[key]
-
-				if config:
-					merge_dict(self.data, config)
-
-			self.save()
 
 			return
 
