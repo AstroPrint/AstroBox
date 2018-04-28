@@ -153,11 +153,11 @@ var AdditionalTaskAppView = Backbone.View.extend({
         loadingBtn.addClass('loading');
         if (this.currentStep.commands_on_next) {
           this.sendCommands("next")
-            .done(function() {
+            .done(_.bind(function() {
               console.info('All the commands have been sent');
               loadingBtn.removeClass('loading');
               this.checkNextStep();
-            })
+            },this))
             .fail(function() {
               loadingBtn.addClass('failed');
               noty({ text: "There was an error sending a command.", timeout: 3000 });
@@ -185,12 +185,12 @@ var AdditionalTaskAppView = Backbone.View.extend({
   doAction: function()
   {
     var action_commands = this.currentStep.commands_on_action;
-    var isLink = false;
+    var isLink = false
     if (action_commands && action_commands[0]) {
-      isLink = action_commands[0].startsWith("#");
+      isLink = action_commands[0].startsWith("@");
     }
     if (isLink) {
-      var stepID = action_commands[0].replace('#', '');
+      var stepID = action_commands[0].replace('@', '');
       this.linkToStep(stepID);
     } else {
       this.sendCommands("action");
