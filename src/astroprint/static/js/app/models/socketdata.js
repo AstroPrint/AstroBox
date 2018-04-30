@@ -179,6 +179,7 @@ var SocketData = Backbone.Model.extend({
           }
 
           this.set('paused', flags.paused);
+          this.set('camera', flags.camera);
 
           if (flags.printing || flags.paused) {
             var progress = data.progress;
