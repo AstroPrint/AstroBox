@@ -96,9 +96,8 @@ var MaintenanceMenuListView = Backbone.View.extend({
         if (filteredMenu && filteredMenu.length) {
           if (filteredMenu[0].type) {
             for (var i = 0; i < filteredMenu.length; i++) {
-              var iconFileName = this._iconMatchedTask(filteredMenu[i].id);
-              if (iconFileName) {
-                filteredMenu[i]['icon_filename'] = iconFileName;
+              if (filteredMenu[i].type == "task") {
+                this._taskFormatData(filteredMenu[i]);
               }
               this.maintenanceMenuCollection.add(new MaintenanceMenu(filteredMenu[i]))
             }
@@ -122,24 +121,26 @@ var MaintenanceMenuListView = Backbone.View.extend({
       })
     } else {
       for (var i = 0; i < submenu.length; i++) {
-        var iconFileName = this._iconMatchedTask(submenu[i].id);
-        if (iconFileName) {
-          submenu[i]['icon_filename'] = iconFileName;
+        if (filteredMenu[i].type == "task") {
+          this._taskFormatData(submenu[i]);
         }
         this.maintenanceMenuCollection.add(new MaintenanceMenu(submenu[i]))
       }
       this.render();
     }
-
   },
-  _iconMatchedTask: function(menuElID)
+  _taskFormatData: function(task)
   {
-    for (let j = 0; j < this.tasks.length; j++) {
-      if (this.tasks[j].id == menuElID) {
-        return this.tasks[j].icon_filename;
+    for (let i = 0; i < this.tasks.length; i++) {
+      if (this.tasks[i].id == task.id) {
+        task['icon_filename'] = this.tasks[i].icon_filename;
+        task['name'] = [];
+        task['name'].en = this.tasks[i].strings['en'].name;
+        task['name'].es = this.tasks[i].strings['es'].name;
       }
     }
   },
+
   render: function()
   {
     var menuContainer = this.$('#menu-rows-container');
