@@ -18,6 +18,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
+from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -245,6 +246,14 @@ class SystemService(PluginService):
 	def additionalTasks(self, data ,sendMessage):
 		atm = additionalTasksManager()
 		result = atm.data.copy()
+
+		sendMessage(result)
+
+		return
+
+	def maintenanceMenu(self, data ,sendMessage):
+		mmenu = maintenanceMenuManager()
+		result = mmenu.data
 
 		sendMessage(result)
 

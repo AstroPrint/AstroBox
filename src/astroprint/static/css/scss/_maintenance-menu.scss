@@ -1,7 +1,7 @@
 @import "foundation/components/block-grid";
 
 .title-heading {
-	background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
+  background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
 	padding: 5px 0 0;
 	margin-bottom: rem-calc(15);
 	border-bottom: 1px solid #ccc;
@@ -12,7 +12,7 @@
 	}
 }
 
-#additional-tasks-view {
+#maintenance-menu-view {
   .file-upload-view {
     position: relative;
 
@@ -39,7 +39,18 @@
   }
 }
 
-#task-list {
+#menu-list {
+  .error-message {
+    text-align: center;
+    font-size: 23px;
+    margin-top: 50px;
+    #menu-error {
+      color: $alert-color;
+    }
+  }
+  ul {
+    list-style: none;
+  }
 	[class*="block-grid-"] > li {
 		clear: none !important;
 		white-space: nowrap;
@@ -56,21 +67,24 @@
 		overflow-x: hidden;
   }
 
-
 	.app-image {
     img{max-height:40px;}
   }
+  i.icon-back {
+    font-size: 25px !important;
+    color: $success-color;
+  }
+  .menu-row {
+    margin-top: 9px;
+  }
 
-  .task-row a.launch {
+  .menu-row a.launch, #back-button {
     display: flex;
     justify-content: flex-start;
     flex-direction: row;
     position: relative;
     padding: 12px;
-    background: white;
     border-radius: $global-radius;
-    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
-
     h1{
       display: flex;
       justify-content: center;
@@ -79,7 +93,16 @@
       color: $steel;
     }
   }
+  .menu-row.menu {
+    background: white;
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+  }
 
+
+  #back-button {
+    margin-left: 1.1rem;
+    background: #e6e6e6 !important;
+  }
 	.overlay {
     opacity:0;
     -webkit-transition: opacity .25s ease;
@@ -125,7 +148,7 @@
 	}
 
 	.no-touch & {
-    li:hover, li:active {
+    li:hover:not(.menu), li:active:not(.menu) {
       .overlay { opacity:1;}
     }
   }

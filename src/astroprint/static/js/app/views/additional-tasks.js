@@ -56,6 +56,8 @@ var AdditionalTasksListView = Backbone.View.extend({
           }
         }
         this.render();
+      } else {
+        this.render();
       }
     }, this))
     .fail(function() {

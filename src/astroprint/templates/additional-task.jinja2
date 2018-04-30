@@ -10,7 +10,7 @@
   <script type="text/template" id="additional-task-app-template">
     <div class="row large-collapse">
       <div class="small-12 columns title-heading">
-        <h1 class="bold"><%= additionalTaskApp.strings.EN.name %></h1>
+        <h1 class="bold"><%= additionalTaskApp.strings.en.name %></h1>
       </div>
     </div>
 
@@ -30,7 +30,7 @@
               </div>
             </div>
 
-            <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.EN.title %>
+            <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.en.title %>
             </div>
             <div class="small-12 medium-4 columns text-right padding-top">Step
               <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
@@ -42,7 +42,7 @@
 
         <!-- Additional Task description -->
         <div class="columns-small-12 step-description text-center">
-          <p><%= currentStep.strings.EN.description %></p>
+          <p><%= currentStep.strings.en.description %></p>
         </div>
 
         <% if (currentStep.type == "set_temperature") { %>
@@ -90,19 +90,19 @@
 
         <div class="columns-small-12 buttons text-center" >
           <!-- Action button -->
-          <% if (currentStep.strings.EN.button_action) { %>
+          <% if (currentStep.strings.en.button_action) { %>
             <div class="small-6 large-3 offset-3 columns" >
-              <button class="danger small radius action bold"><%= currentStep.strings.EN.button_action %></button>
+              <button class="danger small radius action bold"><%= currentStep.strings.en.button_action %></button>
             </div>
             <% } %>
           <!-- Next button -->
           <div class="loading-button small-6 large-3 columns">
-            <button class="small expand radius next bold"><%= currentStep.strings.EN.button_next %></button>
+            <button class="small expand radius next bold"><%= currentStep.strings.en.button_next %></button>
             <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
             <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
             <span class="button secondary small expand radius disabled inactive">
               <i class="icon-rocket-spinner animate-spin"></i>
-              <%= currentStep.strings.EN.button_next %>
+              <%= currentStep.strings.en.button_next %>
             </span>
           </div>
         </div>
