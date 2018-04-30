@@ -121,7 +121,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
       })
     } else {
       for (var i = 0; i < submenu.length; i++) {
-        if (filteredMenu[i].type == "task") {
+        if (submenu[i].type == "task") {
           this._taskFormatData(submenu[i]);
         }
         this.maintenanceMenuCollection.add(new MaintenanceMenu(submenu[i]))
