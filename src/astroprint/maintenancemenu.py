@@ -55,52 +55,28 @@ class MaintenanceMenuManager(object):
 			self.data = [
 				{
 					'id' : "movements_controls",
-					'name' : {
-						'en': "Movement Controls",
-						'es': "Controles y movimiento"
-					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
 				},
 				{
 					'id' : "preheat",
-					'name' : {
-						'en': "Pre Heat",
-						'es': "Pre Calentar"
-					},
 					'type' : "utility"
 				},
 					{
 					'id' : "fan",
-					'name' : {
-						'en': "Fan",
-						'es': "Ventiladores"
-					},
 					'type' : "utility"
 				},
 				{
 					'id' : "filament_extruder",
-					'name' : {
-						'en': "Filament Extruder",
-						'es': "Extrusión Filamento"
-					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
 				},
 				{
 					'id' : "tasks",
-					'name' : {
-						'en': "Tasks",
-						'es': "Tareas"
-					},
 					'type' : "utility",
 					'hiddenOnPrinting' : True
 				},{
 					'id' : "printing_speed",
-					'name' : {
-						'en': "Printing Speed",
-						'es': "Velocidad Impresión"
-					},
 					'type' : "utility"
 				}
 			]
