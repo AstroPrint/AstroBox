@@ -97,7 +97,7 @@ class ExternalDriveManager(threading.Thread):
 						})
 
 	def _getDeviceMountDirectory(self, device):
-		name = device.get('ID_FS_LABEL')
+		name = device.get('ID_FS_LABEL', 'NO NAME')
 		uuid = device.get('ID_FS_UUID')
 		if name and uuid:
 			return os.path.join(ROOT_MOUNT_POINT, uuid, name)
@@ -135,7 +135,7 @@ class ExternalDriveManager(threading.Thread):
 				if not os.path.exists(directory):
 					os.makedirs(directory)
 
-				p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
+				p = sarge.run("mount %s '%s'" % (partition, directory), stderr=sarge.Capture())
 				if p.returncode != 0:
 					returncode = p.returncode
 					stderr_text = p.stderr.text
@@ -157,7 +157,7 @@ class ExternalDriveManager(threading.Thread):
 		if directory:
 			try:
 				if os.path.exists(directory):
-					p = sarge.run('umount %s' % directory, stderr=sarge.Capture())
+					p = sarge.run("umount '%s'" % directory, stderr=sarge.Capture())
 					if p.returncode != 0:
 						returncode = p.returncode
 						stderr_text = p.stderr.text
