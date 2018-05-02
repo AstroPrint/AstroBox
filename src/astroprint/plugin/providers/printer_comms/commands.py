@@ -203,6 +203,14 @@ class CommandPluginInterface(object):
 		pass
 
 	#
+	# Called when printing flow is changed
+	#
+	# - amount: The flow in percentage
+	#
+	def onPrintingFlowChanged(self, amount):
+		pass
+
+	#
 	# Called when a command was sent that requests current position
 	#
 	def onCurrentPositionRequested(self):
