@@ -37,9 +37,8 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
     e.preventDefault();
-
-    if (targetView.maintenanceMenuElement.get('task_id')) {
-      window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('task_id');
+    if (targetView.maintenanceMenuElement.get('type') == "task") {
+      window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('id');
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
