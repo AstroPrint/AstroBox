@@ -20,6 +20,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._previousSelectedTool = 0
 		self._currentSelectedTool = 0
 		self.printingSpeed = 100
+		self.printingFlow = 100
 		self._vpSettings = {
 			'connection': 1.0,
 			'heatingUp': 2.0,
@@ -150,6 +151,11 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self.printingSpeed = amount
 		self._logger.info("Printing Speed - Amount: %s", amount)
 		self.onPrintingSpeedChanged(amount)
+
+	def setPrintingFlow(self, amount):
+		self.printingFlow = amount
+		self._logger.info("Printing Flow - Amount: %s", amount)
+		self.onPrintingFlowChanged(amount)
 
 	def changeTool(self, tool):
 		self._logger.info('Change tool from %s to %s', self.currentTool, tool)
