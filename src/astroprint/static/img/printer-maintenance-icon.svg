@@ -8,10 +8,11 @@
 	.st2{fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linejoin:round;stroke-miterlimit:10;}
 	.st3{fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:10;}
 	.st4{opacity:0.35;fill:none;stroke:#333333;stroke-width:3;stroke-miterlimit:10;}
-	.st5{opacity:0.35;fill:#333333;}
-	.st6{fill:none;stroke:#FFFFFF;stroke-width:2;stroke-linecap:square;stroke-miterlimit:10;stroke-dasharray:2,4;}
-	.st7{fill:#FFFFFF;}
-	.st8{fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linejoin:round;}
+	.st5{opacity:0.35;fill:#161615;}
+	.st6{opacity:0.35;fill:#333333;}
+	.st7{fill:none;stroke:#FFFFFF;stroke-width:2;stroke-linecap:square;stroke-miterlimit:10;stroke-dasharray:2,4;}
+	.st8{fill:#FFFFFF;}
+	.st9{fill:none;stroke:#FFFFFF;stroke-width:3;stroke-linejoin:round;}
 </style>
 <g class="st0">
 	<rect x="22.1" y="68.1" class="st1" width="3.1" height="26.6"/>
@@ -75,38 +76,38 @@
 <path class="st5" d="M90.1,48.4H48h-4.6c-0.4,0-0.7,0.4-0.7,0.8v9.9V99c0,0.4,0.3,0.8,0.7,0.8H95c0.4,0,0.7-0.4,0.7-0.8V59.1v-9.9
 	c0-0.4-0.3-0.8-0.7-0.8H90.1z M88.9,92.2H49.2c-0.4,0-0.7-0.3-0.7-0.8V59.9c0-0.4,0.3-0.8,0.7-0.8h39.6c0.4,0,0.7,0.3,0.7,0.8v31.5
 	C89.5,91.9,89.2,92.2,88.9,92.2z"/>
-<path class="st5" d="M73,71.8h-8.1c-0.6,0-1.1-0.4-1.2-1L63,63.4c-0.1-0.6,0.5-1.2,1.2-1.2h9.7c0.7,0,1.3,0.6,1.2,1.2l-0.8,7.3
+<path class="st6" d="M73,71.8h-8.1c-0.6,0-1.1-0.4-1.2-1L63,63.4c-0.1-0.6,0.5-1.2,1.2-1.2h9.7c0.7,0,1.3,0.6,1.2,1.2l-0.8,7.3
 	C74.1,71.3,73.6,71.8,73,71.8z"/>
-<polyline class="st6" points="97.7,68.2 109,68.2 109,34.3 101,34.3 "/>
-<path class="st7" d="M100.7,32.3c-0.1-1-0.3-1.9-0.6-2.8l1.9-2.2l-2.5-3.1L97,25.5c-0.8-0.6-1.7-1-2.6-1.3l-0.5-2.8h-4l-0.5,2.8
+<polyline class="st7" points="97.7,68.2 109,68.2 109,34.3 101,34.3 "/>
+<path class="st8" d="M100.7,32.3c-0.1-1-0.3-1.9-0.6-2.8l1.9-2.2l-2.5-3.1L97,25.5c-0.8-0.6-1.7-1-2.6-1.3l-0.5-2.8h-4l-0.5,2.8
 	c-0.9,0.3-1.8,0.7-2.6,1.3l-2.5-1.3l-2.5,3.1l1.9,2.2c-0.4,0.9-0.6,1.8-0.6,2.8l-2.6,1.1l0.9,3.9l2.8-0.1c0.5,0.8,1.1,1.6,1.8,2.3
 	L85,42.2l3.6,1.7l1.7-2.3c0.5,0.1,1,0.1,1.5,0.1c0.5,0,1,0,1.4-0.1l1.7,2.3l3.6-1.7l-0.7-2.8c0.7-0.6,1.3-1.4,1.8-2.3l2.8,0.1
 	l0.9-3.9L100.7,32.3z M91.9,37.3c-2.4,0-4.3-1.9-4.3-4.3c0-2.4,1.9-4.3,4.3-4.3c2.4,0,4.3,1.9,4.3,4.3
 	C96.1,35.4,94.2,37.3,91.9,37.3z"/>
 <g>
-	<path class="st7" d="M92.7,120.8l-2.9-4.3l-2.9,4.3l-3.7-2.7l3.2-3.8l-4.6-0.9l1.4-4.6l4.5,1.7l-0.2-4.6h4.7l-0.5,4.7l4.8-1.8
+	<path class="st8" d="M92.7,120.8l-2.9-4.3l-2.9,4.3l-3.7-2.7l3.2-3.8l-4.6-0.9l1.4-4.6l4.5,1.7l-0.2-4.6h4.7l-0.5,4.7l4.8-1.8
 		l1.3,4.6l-4.7,0.9l3.4,3.8L92.7,120.8z"/>
 </g>
-<polyline class="st6" points="47.2,103.4 47.2,113.3 81.8,113.3 "/>
+<polyline class="st7" points="47.2,103.4 47.2,113.3 81.8,113.3 "/>
 <g>
 	<g>
-		<path class="st6" d="M30.9,61.4c0.9-9,4.7-25.4,20.6-25.4c14.2,0,17.1,12.8,17.6,20.5"/>
+		<path class="st7" d="M30.9,61.4c0.9-9,4.7-25.4,20.6-25.4c14.2,0,17.1,12.8,17.6,20.5"/>
 		<g>
-			<polygon class="st7" points="35.1,60.5 30.7,67.1 27.1,60 			"/>
+			<polygon class="st8" points="35.1,60.5 30.7,67.1 27.1,60 			"/>
 		</g>
 		<g>
-			<polygon class="st7" points="65,55.4 69.1,62.2 73,55.3 			"/>
+			<polygon class="st8" points="65,55.4 69.1,62.2 73,55.3 			"/>
 		</g>
 	</g>
 </g>
 <g>
 	<g>
-		<line class="st8" x1="84.2" y1="76.9" x2="84.2" y2="85.5"/>
+		<line class="st9" x1="84.2" y1="76.9" x2="84.2" y2="85.5"/>
 		<g>
-			<polygon class="st7" points="81.3,77.7 84.2,72.6 87.2,77.7 			"/>
+			<polygon class="st8" points="81.3,77.7 84.2,72.6 87.2,77.7 			"/>
 		</g>
 		<g>
-			<polygon class="st7" points="81.3,84.7 84.2,89.8 87.2,84.7 			"/>
+			<polygon class="st8" points="81.3,84.7 84.2,89.8 87.2,84.7 			"/>
 		</g>
 	</g>
 </g>

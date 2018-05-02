@@ -74,8 +74,14 @@
     font-size: 25px !important;
     color: $success-color;
   }
+
   .menu-row {
-    margin-top: 9px;
+    padding: 9px;
+    //background: white;
+   // box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+   border-bottom: 2px dashed gainsboro;
+
+    i{display: none;}
   }
 
   .menu-row a.launch, #back-button {
@@ -85,6 +91,16 @@
     position: relative;
     padding: 12px;
     border-radius: $global-radius;
+    cursor: pointer;
+
+    &:active{
+      transform: scale(0.98);
+    }
+
+    &:hover{
+      background: rgba(51, 51, 51, 0.15);
+    }
+
     h1{
       display: flex;
       justify-content: center;
@@ -94,13 +110,22 @@
     }
   }
   .menu-row.menu {
-    background: white;
-    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+    background: transparent;
+    box-shadow: none;
+
+    i{
+      font-size: rem-calc(25);
+      color: $oil;
+      display: block;
+      position: absolute;
+      right: 10px;
+      top: 14px;
+    }
   }
 
+  #menu-rows-container {padding-left: 5%;}
 
   #back-button {
-    margin-left: 1.1rem;
     background: #e6e6e6 !important;
   }
 	.overlay {
