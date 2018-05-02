@@ -342,6 +342,28 @@ class PrinterService(PluginService):
 
 		return
 
+	def getPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		if pm.isConnected():
+			printingFlow = int(pm.getPrintingFlow())
+		else:
+			printingFlow = None
+
+		if sendResponse:
+			sendResponse(printingFlow)
+
+		return printingFlow
+
+	def setPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		pm.setPrintingFlow(int(data))
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
 	def selectTool(self,data,sendResponse):
 
 		pm = printerManager()

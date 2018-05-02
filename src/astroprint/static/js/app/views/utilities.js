@@ -647,6 +647,66 @@ var PrintingSpeedControlView = Backbone.View.extend({
   }
 });
 
+var PrintingFlowControlView = Backbone.View.extend({
+  el: '.printing-flow-control',
+  events: {
+    'change .printing-flow-amount': 'rateChanged',
+    'change .other-printing-flow-amount input': 'onCustomFlowChanged'
+  },
+  initialize: function()
+  {
+    var printingFlowAmount = app.socketData.attributes.printing_flow;
+
+    this.setFlowValue(printingFlowAmount);
+  },
+
+  setFlowValue: function(value)
+  {
+    if (value == 25 || value == 50 || value == 100 || value == 200 ) {
+      this.$('select.printing-flow-amount').val(value).change();
+    } else {
+      this.$('select.printing-flow-amount').val("other").change();
+      this.$('input[name="printing-flow-amount"]').val(value);
+    }
+  },
+  _setPrintFlow: function(amount)
+  {
+    var data = {
+      command: "set",
+      amount: amount
+    }
+
+    $.ajax({
+      url: API_BASEURL + "printer/printing-flow",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
+  },
+  rateChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-printing-flow-amount').removeClass('hide').find('input').focus().select();
+    } else {
+      var amount = elem.val();
+      this.$('input[name="printing-flow-amount"]').val(amount);
+      this._setPrintFlow(amount);
+    }
+  },
+  onCustomFlowChanged: function(e) {
+    var elem = $(e.target);
+    var amount = elem.val();
+    if (amount < 25) { amount = 25; } else if (amount > 200) { amount = 200;}
+    elem.val(amount);
+    this._setPrintFlow(amount);
+    $(e.target).blur();
+  }
+});
+
 var UtilitiesView = Backbone.View.extend({
   el: '#utilities-view',
   events: {
@@ -672,6 +732,7 @@ var UtilitiesView = Backbone.View.extend({
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
     this.printSpeedView = new PrintingSpeedControlView();
+    this.printFlowView = new PrintingFlowControlView();
     this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
@@ -679,6 +740,7 @@ var UtilitiesView = Backbone.View.extend({
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
     this.listenTo(app.socketData, 'change:printing', this.onPrintingChanged);
     this.listenTo(app.socketData, 'change:printing_speed', this.onPrintingSpeedChanged);
+    this.listenTo(app.socketData, 'change:printing_flow', this.onPrintingFlowChanged);
   },
   updateTemps: function(s, value)
   {
@@ -689,6 +751,10 @@ var UtilitiesView = Backbone.View.extend({
   onPrintingSpeedChanged: function(m, value)
   {
     this.printSpeedView.setSpeedValue(value);
+  },
+  onPrintingFlowChanged: function(m, value)
+  {
+    this.printFlowView.setFlowValue(value);
   },
   onPrintingChanged: function(s, isPrinting)
   {

@@ -484,6 +484,10 @@ class Printer(object):
 		self._stateMonitor.setPrintingSpeed(amount)
 		eventManager().fire(Events.PRINTINGSPEED_CHANGE, {"amount": amount})
 
+	def mcPrintingFlowChange(self, amount):
+		self._stateMonitor.setPrintingFlow(amount)
+		eventManager().fire(Events.PRINTINGFLOW_CHANGE, {"amount": amount})
+
 	def reportNewLayer(self):
 		self._currentLayer += 1
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": self.getCurrentLayer()})
@@ -655,6 +659,9 @@ class Printer(object):
 	def getPrintingSpeed(self):
 		raise NotImplementedError()
 
+	def getPrintingFlow(self):
+		raise NotImplementedError()
+
 	def getPrintProgress(self):
 		raise NotImplementedError()
 
@@ -708,6 +715,7 @@ class StateMonitor(object):
 		self._stop = False
 		self._currentTool = 0
 		self._printingSpeed = 100
+		self._printingFlow = 100
 		self._offsets = {}
 
 		self._changeEvent = threading.Event()
@@ -768,6 +776,10 @@ class StateMonitor(object):
 		self._printingSpeed = amount
 		self._changeEvent.set()
 
+	def setPrintingFlow(self, amount):
+		self._printingFlow = amount
+		self._changeEvent.set()
+
 	def _work(self):
 		while True:
 			self._changeEvent.wait()
@@ -799,5 +811,6 @@ class StateMonitor(object):
 			"progress": self._progress,
 			"offsets": self._offsets,
 			"tool": self._currentTool,
-			"printing_speed": self._printingSpeed
+			"printing_speed": self._printingSpeed,
+			"printing_flow": self._printingFlow
 		}

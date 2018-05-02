@@ -212,13 +212,13 @@
           </div>
         </div>
         <!-- PRINT SPEED -->
-        <div id="printing-speed-control" class="small-12 medium-4 large-6 columns text-center border-left no-paddingleft">
+        <div id="printing-speed-control" class="small-12 medium-2 large-3 columns text-center border-left no-paddingleft">
           <div class="printing-speed-control clearfix">
             <div class=" bold text-left clearfix">
-              <div class="columns small-3 medium-4 large-3 large-offset-1 text-center left variable-speed">
+              <!-- <div class="columns small-3 medium-4 large-3 large-offset-1 text-center left variable-speed">
                 <i class="icon-print-speed flow-icon"></i>
-              </div>
-              <div class="small-9 medium-8 large-5 left no-paddingleft columns">
+              </div> -->
+              <div class="small-9 medium-8 large-12 left no-paddingleft columns">
                 <label>Print speed</label>
                 <select class="printing-speed-amount right bold">
                   <option value="25" >25%</option>
@@ -231,6 +231,35 @@
                 <div class="row other-printing-speed-amount hide collapse">
                   <div class="small-9 columns">
                     <input type="number" value="100" max=500 min=25 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
+                  </div>
+                  <div class="small-3 columns">
+                    <span class="postfix radius">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- PRINT FLOW -->
+        <div id="printing-flow-control" class="small-12 medium-2 large-3 columns text-center border-left no-paddingleft">
+          <div class="printing-flow-control clearfix">
+            <div class=" bold text-left clearfix">
+             <!--  <div class="columns small-3 medium-4 large-3 large-offset-1 text-center left variable-flow">
+                <i class="icon-print-speed flow-icon"></i>
+              </div> -->
+              <div class="small-9 medium-8 large-12 left no-paddingleft columns">
+                <label>Print Flow</label>
+                <select class="printing-flow-amount right bold">
+                  <option value="25" >25%</option>
+                  <option value="50">50%</option>
+                  <option value="100" selected >100%</option>
+                  <option value="150" >150%</option>
+                  <option value="200">200%</option>
+                  <option value="other">Other...</option>
+                </select>
+                <div class="row other-printing-flow-amount hide collapse">
+                  <div class="small-9 columns">
+                    <input type="number" value="100" max=200 min=25 class="text-center expand back-to-select other-printing-flow-amount" name="printing-flow-amount"/>
                   </div>
                   <div class="small-3 columns">
                     <span class="postfix radius">%</span>

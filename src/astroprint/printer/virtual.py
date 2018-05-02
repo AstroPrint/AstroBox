@@ -58,6 +58,7 @@ class PrinterVirtual(Printer):
 		self._printJob = None
 		self.selectedTool = 0
 		self.printingSpeed = 100
+		self.printingFlow = 100
 
 		self._logger = logging.getLogger(__name__)
 		super(PrinterVirtual, self).__init__()
@@ -276,6 +277,9 @@ class PrinterVirtual(Printer):
 	def getPrintingSpeed(self):
 		return self.printingSpeed
 
+	def getPrintingFlow(self):
+		return self.printingFlow
+
 	def getPrintProgress(self):
 		if self._printJob:
 			return self._printJob.progress
@@ -322,6 +326,11 @@ class PrinterVirtual(Printer):
 		self.printingSpeed = amount
 		self.mcPrintingSpeedChange(amount)
 		self._logger.info("Printing Speed - Amount: %s", amount)
+
+	def setPrintingFlow(self, amount):
+		self.printingFlow = amount
+		self.mcPrintingFlowChange(amount)
+		self._logger.info("Printing Flow - Amount: %s", amount)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
