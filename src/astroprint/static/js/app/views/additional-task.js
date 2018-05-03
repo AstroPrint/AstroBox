@@ -161,7 +161,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
     loadingBtn.addClass("loading");
-    if ( direction == "next" && this.currentStep.commands_on_next || direction == "back" && this.currentStep.commands_on_back) {
+    if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
           console.info('All the commands have been sent');
@@ -188,7 +188,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doAction: function()
   {
-    var action_commands = this.currentStep.commands_on_action;
+    var action_commands = this.currentStep.actions.commands;
 
     if (action_commands ) {
       if (Array.isArray(action_commands) && action_commands.length > 0) {
@@ -252,11 +252,11 @@ var AdditionalTaskAppView = Backbone.View.extend({
     var arrayCommands = [];
 
     if (type == "action") {
-      arrayCommands = this.currentStep.commands_on_action;
+      arrayCommands = this.currentStep.actions.commands;
     } else if (type == "next") {
-      arrayCommands = this.currentStep.commands_on_next;
+      arrayCommands = this.currentStep.next_button.commands;
     } else if (type == "back") {
-      arrayCommands = this.currentStep.commands_on_back;
+      arrayCommands = this.currentStep.back_button.commands;
     }
     var currentCommand = arrayCommands[commandsIndex];
 
