@@ -188,10 +188,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doAction: function()
   {
-    var action_commands = this.currentStep.actions.commands;
-
-    if (action_commands ) {
-      if (Array.isArray(action_commands) && action_commands.length > 0) {
+    var actions = this.currentStep.actions.commands;
+    if (actions && Array.isArray(actions)) {
+      // Multiple actions
+      if (actions[0] !== null && typeof actions[0] === 'object') {
+        new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
+      // Single action
+      } else {
         this.sendCommands("action");
       }
     }
@@ -240,40 +243,39 @@ var AdditionalTaskAppView = Backbone.View.extend({
   },
 
 
-  sendCommands: function (type, stepID, commandsIndex, promise )
+  sendCommands: function (type, arrayCommands, stepID, commandsIndex, promise )
   {
-    if (!commandsIndex) {
-      var commandsIndex = 0;
+
+    if (!commandsIndex) { var commandsIndex = 0;}
+
+    if (!promise) { var promise = $.Deferred();}
+
+    if (!arrayCommands) {
+      arrayCommands = [];
+      if (type == "action") {
+        arrayCommands = this.currentStep.actions.commands;
+      } else if (type == "next") {
+        arrayCommands = this.currentStep.next_button.commands;
+      } else if (type == "back") {
+        arrayCommands = this.currentStep.back_button.commands;
+      }
     }
 
-    if (!promise) {
-      var promise = $.Deferred();
-    }
-    var arrayCommands = [];
-
-    if (type == "action") {
-      arrayCommands = this.currentStep.actions.commands;
-    } else if (type == "next") {
-      arrayCommands = this.currentStep.next_button.commands;
-    } else if (type == "back") {
-      arrayCommands = this.currentStep.back_button.commands;
-    }
     var currentCommand = arrayCommands[commandsIndex];
 
     // Check if it's a step-link ID
     if (currentCommand.startsWith("@")) {
       stepID = currentCommand.replace('@', '');
+      currentCommand = arrayCommands[++commandsIndex];
 
-      arrayCommands.splice(arrayCommands.indexOf(currentCommand), 1);
-      currentCommand = arrayCommands[commandsIndex];
-
-      if (!arrayCommands[commandsIndex]) {
+      if (!currentCommand) {
         this.linkToStep(stepID);
         promise.resolve();
+        return promise;
       }
     }
-    $.ajax({
 
+    $.ajax({
       url: API_BASEURL + 'printer/comm/send',
       method: 'POST',
       data: {
@@ -282,7 +284,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     })
       .success(_.bind(function () {
         if (arrayCommands[commandsIndex + 1]) {
-          this.sendCommands(type, stepID, ++commandsIndex, promise);
+          this.sendCommands(type, arrayCommands, stepID, ++commandsIndex, promise);
         } else {
           promise.resolve();
           if (stepID) {
@@ -425,5 +427,69 @@ var CustomTempView = Backbone.View.extend({
       loadingBtn.removeClass('inactive');
     }
 
+  }
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Multiple actions Dialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var MultipleActionsDialog = Backbone.View.extend({
+  el: '#multiple-actions-dlg',
+  actions: [],
+  stepView: null,
+  events: {
+    "click .action": "actionClicked",
+    "click button.cancel": "doCancel",
+    'closed.fndtn.reveal': 'onClosed',
+    'opened.fndtn.reveal': 'onOpened'
+  },
+  initialize: function(opts)
+  {
+    this.actions = opts.actions;
+    this.title = opts.title;
+    this.stepView = opts.stepView
+  },
+  render: function()
+  {
+    this.$('.title-dlg').text(this.title);
+    var actionsContainer = this.$('.actions-container');
+
+    for (let i = 0; i <  this.actions.length; i++) {
+      const ac =  this.actions[i];
+      actionsContainer.append("<div class='action bold' data-id='"+ i +"'>"+ ac.name.en +"</div>");
+    }
+  },
+  open: function()
+  {
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+
+  actionClicked: function( e )
+  {
+    e.preventDefault();
+    var action = $(e.currentTarget);
+
+    this.doAction(action.data("id"));
+  },
+
+  doAction: function(actionID) {
+    this.stepView.sendCommands("action", this.actions[actionID].commands);
+    for (let i = 0; i < this.actions[actionID].commands.length; i++) {
+      const element = this.actions[actionID].commands[i];
+      if (element.startsWith("@")) {
+        this.doCancel();
+      }
+    }
+  },
+
+  doCancel: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onClosed: function()
+  {
+    this.undelegateEvents();
   }
 });
