@@ -454,7 +454,7 @@ var MultipleActionsDialog = Backbone.View.extend({
   {
     this.$('.title-dlg').text(this.title);
     var actionsContainer = this.$('.actions-container');
-
+    actionsContainer.empty();
     for (let i = 0; i <  this.actions.length; i++) {
       const ac =  this.actions[i];
       actionsContainer.append("<div class='action bold' data-id='"+ i +"'>"+ ac.name.en +"</div>");
