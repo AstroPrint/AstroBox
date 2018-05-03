@@ -7,7 +7,7 @@
 
   <div class="file-upload-view">
     <div class="row upload-buttons">
-      <div class="small-12 large-7 medium-centered columns">
+      <div class="small-12 large-5 medium-centered columns">
         <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
           <i class="icon-plus"></i> Upload New Menu ( <span class="extensions">.zip</span> )
           <input class="file-upload" type="file" name="file" accept=".zip">
@@ -27,7 +27,7 @@
   </div>
 
   <div id="menu-list" class="row menu-list-view small-block-grid-1">
-    <div id="back-button" style="display: none" > <i class="icon-back"></i></div>
+    <div id="back-button" style="display: none"> <i class="icon-angle-left"></i></div>
     <div class="error-message bold" style="display: none" >
       <span id="no-menu" >No maintenance menu was found. Use the button above to upload yours.</span>
       <span id="menu-error" >The menu loaded <u>does not have a corret data structure</u>. Check the documentation to know the required structure and upload it again.</span>
@@ -49,7 +49,7 @@
       <%  } %>
     </div>
       </div>
-      <h1 class="name bold"><%= maintenanceMenuElement.name.en %></h1><i class="icon-right-open"></i>
+      <h5 class="name bold"><%= maintenanceMenuElement.name.en %></h5><i class="icon-angle-right"></i>
     </a>
   </script>
 
