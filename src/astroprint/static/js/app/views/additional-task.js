@@ -202,6 +202,9 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   linkToStep: function(stepID)
   {
+    if (this.currentStep.type == "set_temperature") {
+      this.customTempView.stopListening();
+    }
     var stepToGoData = this._getStepByID(stepID);
 
     this.currentIndexStep = stepToGoData.index+1;
