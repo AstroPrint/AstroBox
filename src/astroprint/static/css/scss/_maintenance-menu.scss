@@ -40,6 +40,7 @@
 }
 
 #menu-list {
+
   .error-message {
     text-align: center;
     font-size: 23px;
@@ -68,54 +69,110 @@
   }
 
 	.app-image {
-    img{max-height:40px;}
+    background: $jet;
+    text-align: center;
+
+    img{
+      opacity: 0.25;
+      max-height: 150px;
+      margin: 0 auto;
+    }
   }
   i.icon-back {
     font-size: 25px !important;
     color: $success-color;
   }
-  .menu-row {
-    margin-top: 9px;
-  }
 
-  .menu-row a.launch, #back-button {
+  #menu-rows-container{
     display: flex;
-    justify-content: flex-start;
-    flex-direction: row;
-    position: relative;
-    padding: 12px;
-    border-radius: $global-radius;
-    h1{
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      padding-left: 15px;
-      color: $steel;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0;
+
+    .menu-row {
+      padding: 9px;
+
+      i{display: none;}
+
+      .launch, #back-button {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        height: 150px;
+        position: relative;
+        border-radius: $global-radius;
+        cursor: pointer;
+        background: $white;
+        box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+
+        &:hover{transform: scale(1.02);}
+
+        &:active{transform: scale(1);}
+
+        h5{
+          display: flex;
+          justify-content: center;
+          flex-direction: column;
+          height: 100%;
+          text-align: center;
+          padding: 0 15px;
+          position: absolute;
+          color: $white;
+          letter-spacing: 1px;
+        }
+      }
+
+      &.menu {
+        background: transparent;
+        box-shadow: none;
+
+        .launch{padding: 12px;}
+
+        i{
+          font-size: rem-calc(25);
+          color: $oil;
+          display: block;
+          width: 100%;
+          text-align: right;
+          border-top: 1px dotted $iron;
+        }
+
+        h5{
+          position: relative;
+          color: $charcoal;
+        }
+      }
+
+      &:not(.menu) {
+        &:hover img, &:hover h5{
+        filter: blur(1px);
+        }
+      }
     }
   }
-  .menu-row.menu {
-    background: white;
-    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
-  }
-
 
   #back-button {
-    margin-left: 1.1rem;
-    background: #e6e6e6 !important;
+    background: white;
+    display: block;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    font-size: rem-calc(34);
+
+    &:hover{
+      background:darken($ghost,10%);
+    }
   }
 	.overlay {
     opacity:0;
-    -webkit-transition: opacity .25s ease;
-		-moz-transition: opacity .25s ease;
-		transition: opacity .25s ease;
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
 		height: 100%;
 		padding: 2px 4px;
-		@include radius($global-radius);
-    background: rgba(243, 101, 35, 0.6);
+    @include radius($global-radius);
+    z-index: 10;
+    background: rgba(243, 101, 35, 0.8);
     border: 2px solid rgba(13, 13, 13, 0.05);
     display: flex;
     justify-content: flex-end;
@@ -129,7 +186,7 @@
       margin: 0;
       text-align: center;
       font-size: 1.125rem;
-      min-width: 140px;
+      width: 100%;
       display: flex;
       justify-content: center;
       letter-spacing: 1px;
