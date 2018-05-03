@@ -94,7 +94,20 @@
             <div class="small-6 large-3 offset-3 columns" >
               <button class="danger small radius action bold"><%= currentStep.strings.en.button_action %></button>
             </div>
-            <% } %>
+          <% } %>
+          <% if (currentStep.strings.en.button_back) { %>
+            <!-- Back button -->
+            <div class="loading-button small-6 large-3 columns">
+              <button class="small expand radius back bold"><%= currentStep.strings.en.button_back %></button>
+              <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+              <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+              <span class="button secondary small expand radius disabled inactive">
+                <i class="icon-rocket-spinner animate-spin"></i>
+                <%= currentStep.strings.en.button_back %>
+              </span>
+            </div>
+          <% } %>
+
           <!-- Next button -->
           <div class="loading-button small-6 large-3 columns">
             <button class="small expand radius next bold"><%= currentStep.strings.en.button_next %></button>
