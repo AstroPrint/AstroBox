@@ -32,9 +32,11 @@
 
             <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.en.title %>
             </div>
+            <% if (!isModal) { %>
             <div class="small-12 medium-4 columns text-right padding-top">Step
               <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
             </div>
+            <% } %>
           </div>
         </div>
 
@@ -84,33 +86,60 @@
           </div>
       <% } %>
         <!-- Repeat button -->
-        <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
+        <% if (!isModal && currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
           <button class="round small bold repeat"><i class="icon-refresh"></i></button>
         <% } %>
 
         <div class="columns-small-12 buttons text-center" >
           <!-- Action button -->
-          <% if (currentStep.strings.en.button_action) { %>
+          <% if (currentStep.actions) { %>
             <div class="small-6 large-3 offset-3 columns" >
-              <button class="danger small radius action bold"><%= currentStep.strings.en.button_action %></button>
+              <button class="danger small radius action bold"><%= currentStep.actions.name.en %></button>
             </div>
-            <% } %>
+          <% } %>
+          <% if (currentStep.back_button) { %>
+            <!-- Back button -->
+            <div class="loading-button small-6 large-3 columns">
+              <button class="small expand radius back bold"><%= currentStep.back_button.name.en %></button>
+              <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+              <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+              <span class="button secondary small expand radius disabled inactive">
+                <i class="icon-rocket-spinner animate-spin"></i>
+                <%= currentStep.back_button.name.en %>
+              </span>
+            </div>
+          <% } %>
+
           <!-- Next button -->
+          <% if (!isModal) { %>
           <div class="loading-button small-6 large-3 columns">
-            <button class="small expand radius next bold"><%= currentStep.strings.en.button_next %></button>
+            <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
             <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
             <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
             <span class="button secondary small expand radius disabled inactive">
               <i class="icon-rocket-spinner animate-spin"></i>
-              <%= currentStep.strings.en.button_next %>
+              <%= currentStep.next_button.name.en %>
             </span>
           </div>
+          <% } %>
         </div>
 
       </div>
 
     </div>
   </script>
+
+  <!-- @MULTIPLE ACTIONS DLG -->
+  <div id="multiple-actions-dlg" class="reveal-modal medium" data-reveal>
+    <h2 class="bold title-dlg">{{title}}</h2>
+    <div class="reveal-content">
+    <!-- ACTION BUTTONS HERE -->
+      <div class="actions-container"></div>
+    </div>
+
+    <a class="close-reveal-modal">&#215;</a>
+  </div>
+
   <div class="no-connection-overlay">
     <i class="icon-usb"></i>
     <b>Please, connect a 3D Printer via USB.</b>
