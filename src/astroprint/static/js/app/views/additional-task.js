@@ -82,9 +82,12 @@ var AdditionalTaskAppView = Backbone.View.extend({
   currentIndexStep: 1,
   currentStep: null,
   customTempView: null,
+  modal: null,
+  isModal: false,
   events: {
     "click .close": "closeClicked",
     "click .next": "nextClicked",
+    "click .back": "backClicked",
     "click .action": "actionClicked",
     "click .repeat": "repeatClicked"
   },
@@ -94,6 +97,20 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.additionalTaskApp = params.additionalTaskApp;
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.$el.attr('id', this.additionalTaskApp.get('id'));
+  },
+  render: function ()
+  {
+    this.$el.empty();
+    var params = {};
+    if (!this.isModal) {
+      params = {currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
+    } else {
+      params = {currentStep: this.modal, additionalTaskApp: this.additionalTaskApp.toJSON(),  isModal: this.isModal }
+    }
+
+    this.$el.html(this.template(params));
+    if (!this.isModal){this.currentStepManagement()}
+    return this;
   },
   closeClicked: function (e)
   {
@@ -122,57 +139,66 @@ var AdditionalTaskAppView = Backbone.View.extend({
   nextClicked: function (e)
   {
     e.preventDefault();
-    this.doNext();
+    this.checkStepType("next");
   },
 
-  doNext: function()
+  backClicked: function (e)
+  {
+    e.preventDefault();
+    if (!this.isModal) {
+      this.checkStepType("back");
+    } else {
+      this.isModal = false;
+      this.modal = null;
+      this.render();
+    }
+  },
+
+  checkStepType: function(direction)
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
+    if (this.currentStep.type == "set_extruder") {
+      // Change active extruder
+      this._sendChangeToolCommand(this.$('#extruder-count').val())
+        .done(_.bind(function () {
+          loadingBtn.removeClass('loading');
+          this.checkForCommandsAndMove(direction);
+        }, this))
+        .fail(function () {
+          loadingBtn.addClass('failed');
+          noty({ text: "There was an error sending a command.", timeout: 3000 });
+          setTimeout(function () {
+            loadingBtn.removeClass('failed');
+          }, 3000);
+        });
+    } else if (this.currentStep.type == "set_temperature") {
+      this.customTempView.stopListening();
+      this.checkForCommandsAndMove(direction);
+    } else {
+      this.checkForCommandsAndMove(direction);
+    }
+  },
 
-    switch (this.currentStep.type) {
-      case "set_extruder":
-        // Change active extruder
-        this._sendChangeToolCommand(this.$('#extruder-count').val())
-          .done(_.bind( function() {
-            loadingBtn.removeClass('loading');
-            this.checkNextStep();
-          }, this))
-          .fail(function() {
-            loadingBtn.addClass('failed');
-            noty({ text: "There was an error sending a command.", timeout: 3000 });
-            setTimeout(function () {
-              loadingBtn.removeClass('failed');
-            }, 3000);
-          });
-        break;
-      case "set_temperature":
-        this.customTempView.stopListening();
-        this.checkNextStep();
-        break;
-      case "action":
-        loadingBtn.addClass('loading');
-        if (this.currentStep.commands_on_next) {
-          this.sendCommands("next")
-            .done(_.bind(function() {
-              console.info('All the commands have been sent');
-              loadingBtn.removeClass('loading');
-              this.checkNextStep();
-            },this))
-            .fail(function() {
-              loadingBtn.addClass('failed');
-              noty({ text: "There was an error sending a command.", timeout: 3000 });
-              setTimeout(function () {
-                loadingBtn.removeClass('failed');
-              }, 3000);
-            });
-        } else {
-          this.checkNextStep();
-        }
-
-        break;
-      case "information":
-        this.checkNextStep();
-        break;
+  checkForCommandsAndMove(direction)
+  {
+    var loadingBtn = this.$('button.next').closest('.loading-button');
+    loadingBtn.addClass("loading");
+    if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
+      this.sendCommands(direction)
+        .done(_.bind(function() {
+          console.info('All the commands have been sent');
+          loadingBtn.removeClass('loading');
+          if (direction == "next") { this.checkNextStep()} else {this.goBackStep()}
+        },this))
+        .fail(function() {
+          loadingBtn.addClass('failed');
+          noty({ text: "There was an error sending a command.", timeout: 3000 });
+          setTimeout(function () {
+            loadingBtn.removeClass('failed');
+          }, 3000);
+        });
+    } else {
+      if (direction == "next") { this.checkNextStep()} else {this.goBackStep()}
     }
   },
 
@@ -184,25 +210,36 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doAction: function()
   {
-    var action_commands = this.currentStep.commands_on_action;
-    var isLink = false
-    if (action_commands && action_commands[0]) {
-      isLink = action_commands[0].startsWith("@");
-    }
-    if (isLink) {
-      var stepID = action_commands[0].replace('@', '');
-      this.linkToStep(stepID);
-    } else {
-      this.sendCommands("action");
+    var actions = this.isModal ? this.modal.actions.commands : this.currentStep.actions.commands;
+    if (actions && Array.isArray(actions)) {
+      // Multiple actions
+      if (actions[0] !== null && typeof actions[0] === 'object') {
+        new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
+      // Single action
+      } else {
+        this.sendCommands("action");
+      }
     }
   },
 
-  linkToStep: function(stepID)
+  linkTo: function(ID)
   {
-    var stepToGoData = this._getStepByID(stepID);
+    if (this.currentStep.type == "set_temperature") {
+      this.customTempView.stopListening();
+    }
+    var stepToGoData = this._getStepByID(ID);
 
-    this.currentIndexStep = stepToGoData.index+1;
-    this.currentStep = stepToGoData.step;
+    if (stepToGoData) {
+      this.isModal = false;
+      this.currentIndexStep = stepToGoData.index+1;
+      this.currentStep = stepToGoData.step;
+    } else {
+      var modalToGoData = this._getModalByID(ID);
+      if (modalToGoData) {
+        this.modal = modalToGoData;
+        this.isModal = true;
+      }
+    }
     this.render()
   },
 
@@ -215,6 +252,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
   doRepeat: function()
   {
     this.currentIndexStep = 1;
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    this.render();
+  },
+
+  goBackStep: function()
+  {
+    this.currentIndexStep--;
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.render();
   },
@@ -232,29 +276,62 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
   },
 
-  sendCommands: function(type, commandsIndex, promise)
+
+  sendCommands: function (type, arrayCommands, linkID, commandsIndex, promise )
   {
-    if (!commandsIndex) {
-      var commandsIndex = 0;
-    }
-    if (!promise) {
-      var promise = $.Deferred();
+
+    if (!commandsIndex) { var commandsIndex = 0;}
+
+    if (!promise) { var promise = $.Deferred();}
+
+    if (!arrayCommands) {
+      arrayCommands = [];
+      if (!this.isModal) {
+        if (type == "action") {
+          arrayCommands = this.currentStep.actions.commands;
+        } else if (type == "next") {
+          arrayCommands = this.currentStep.next_button.commands;
+        } else if (type == "back") {
+          arrayCommands = this.currentStep.back_button.commands;
+        }
+      } else {
+        if (type == "action") {
+          arrayCommands = this.modal.actions.commands;
+        } else if (type == "back") {
+          arrayCommands = this.modal.back_button.commands;
+        }
+      }
+
     }
 
-    var arrayCommands = type == "action" ? this.currentStep.commands_on_action : this.currentStep.commands_on_next;
-     $.ajax({
+    var currentCommand = arrayCommands[commandsIndex];
 
+    // Check if it's a step-link ID
+    if (type == "action" && currentCommand.startsWith("@")) {
+      linkID = currentCommand.replace('@', '');
+      currentCommand = arrayCommands[++commandsIndex];
+
+      if (!currentCommand) {
+        this.linkTo(linkID);
+        promise.resolve();
+        return promise;
+      }
+    }
+    $.ajax({
       url: API_BASEURL + 'printer/comm/send',
       method: 'POST',
       data: {
-        command: arrayCommands[commandsIndex]
+        command: currentCommand
       }
     })
-      .success( _.bind(function() {
+      .success(_.bind(function () {
         if (arrayCommands[commandsIndex + 1]) {
-          this.sendCommands(type, ++commandsIndex, promise);
+          this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
         } else {
           promise.resolve();
+          if (linkID) {
+            this.linkTo(linkID);
+          }
         }
       }, this))
 
@@ -262,7 +339,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
         promise.reject()
       }, this))
 
-      return promise;
+    return promise;
   },
 
   _sendChangeToolCommand: function(tool)
@@ -294,13 +371,18 @@ var AdditionalTaskAppView = Backbone.View.extend({
     return result;
   },
 
-  render: function ()
+  _getModalByID: function(ID)
   {
-    this.$el.empty();
-    this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON() }));
-    this.currentStepManagement();
-    return this;
-  },
+    var modal = this.additionalTaskApp.get('modals');
+    var result = null;
+
+    for (i = 0; i < modal.length; i++) {
+      if (modal[i].id == ID) {
+        result = modal[i];
+      }
+    }
+    return result;
+  }
 });
 
 var CustomTempView = Backbone.View.extend({
@@ -392,5 +474,69 @@ var CustomTempView = Backbone.View.extend({
       loadingBtn.removeClass('inactive');
     }
 
+  }
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Multiple actions Dialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var MultipleActionsDialog = Backbone.View.extend({
+  el: '#multiple-actions-dlg',
+  actions: [],
+  stepView: null,
+  events: {
+    "click .action": "actionClicked",
+    "click button.cancel": "doCancel",
+    'closed.fndtn.reveal': 'onClosed',
+    'opened.fndtn.reveal': 'onOpened'
+  },
+  initialize: function(opts)
+  {
+    this.actions = opts.actions;
+    this.title = opts.title;
+    this.stepView = opts.stepView
+  },
+  render: function()
+  {
+    this.$('.title-dlg').text(this.title);
+    var actionsContainer = this.$('.actions-container');
+    actionsContainer.empty();
+    for (let i = 0; i <  this.actions.length; i++) {
+      const ac =  this.actions[i];
+      actionsContainer.append("<div class='action bold' data-id='"+ i +"'>"+ ac.name.en +"</div>");
+    }
+  },
+  open: function()
+  {
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+
+  actionClicked: function( e )
+  {
+    e.preventDefault();
+    var action = $(e.currentTarget);
+
+    this.doAction(action.data("id"));
+  },
+
+  doAction: function(actionID) {
+    this.stepView.sendCommands("action", this.actions[actionID].commands);
+    for (let i = 0; i < this.actions[actionID].commands.length; i++) {
+      const element = this.actions[actionID].commands[i];
+      if (element.startsWith("@")) {
+        this.doCancel();
+      }
+    }
+  },
+
+  doCancel: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onClosed: function()
+  {
+    this.undelegateEvents();
   }
 });

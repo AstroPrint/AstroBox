@@ -161,6 +161,24 @@
   }
 }
 
+#multiple-actions-dlg {
+  .actions-container {
+    height: 250px;
+    overflow: hidden;
+    overflow-y: scroll;
+    .action {
+      margin: 10px;
+      border: 1px solid black;
+      padding: 3px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 28px;
+    }
+    .action:hover {
+      background: lightblue;
+    }
+  }
+}
 
 .additional-task-row{
 
