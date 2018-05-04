@@ -307,7 +307,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     var currentCommand = arrayCommands[commandsIndex];
 
     // Check if it's a step-link ID
-    if (currentCommand.startsWith("@")) {
+    if (type == "action" && currentCommand.startsWith("@")) {
       linkID = currentCommand.replace('@', '');
       currentCommand = arrayCommands[++commandsIndex];
 
