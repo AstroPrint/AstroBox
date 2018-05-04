@@ -82,6 +82,8 @@ var AdditionalTaskAppView = Backbone.View.extend({
   currentIndexStep: 1,
   currentStep: null,
   customTempView: null,
+  modal: null,
+  isModal: false,
   events: {
     "click .close": "closeClicked",
     "click .next": "nextClicked",
@@ -95,6 +97,20 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.additionalTaskApp = params.additionalTaskApp;
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.$el.attr('id', this.additionalTaskApp.get('id'));
+  },
+  render: function ()
+  {
+    this.$el.empty();
+    var params = {};
+    if (!this.isModal) {
+      params = {currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
+    } else {
+      params = {currentStep: this.modal, additionalTaskApp: this.additionalTaskApp.toJSON(),  isModal: this.isModal }
+    }
+
+    this.$el.html(this.template(params));
+    if (!this.isModal){this.currentStepManagement()}
+    return this;
   },
   closeClicked: function (e)
   {
@@ -129,7 +145,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
   backClicked: function (e)
   {
     e.preventDefault();
-    this.checkStepType("back");
+    if (!this.isModal) {
+      this.checkStepType("back");
+    } else {
+      this.isModal = false;
+      this.modal = null;
+      this.render();
+    }
   },
 
   checkStepType: function(direction)
@@ -200,15 +222,24 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
   },
 
-  linkToStep: function(stepID)
+  linkTo: function(ID)
   {
     if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
     }
-    var stepToGoData = this._getStepByID(stepID);
+    var stepToGoData = this._getStepByID(ID);
 
-    this.currentIndexStep = stepToGoData.index+1;
-    this.currentStep = stepToGoData.step;
+    if (stepToGoData) {
+      this.isModal = false;
+      this.currentIndexStep = stepToGoData.index+1;
+      this.currentStep = stepToGoData.step;
+    } else {
+      var modalToGoData = this._getModalByID(ID);
+      if (modalToGoData) {
+        this.modal = modalToGoData;
+        this.isModal = true;
+      }
+    }
     this.render()
   },
 
@@ -246,7 +277,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   },
 
 
-  sendCommands: function (type, arrayCommands, stepID, commandsIndex, promise )
+  sendCommands: function (type, arrayCommands, linkID, commandsIndex, promise )
   {
 
     if (!commandsIndex) { var commandsIndex = 0;}
@@ -255,29 +286,37 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
     if (!arrayCommands) {
       arrayCommands = [];
-      if (type == "action") {
-        arrayCommands = this.currentStep.actions.commands;
-      } else if (type == "next") {
-        arrayCommands = this.currentStep.next_button.commands;
-      } else if (type == "back") {
-        arrayCommands = this.currentStep.back_button.commands;
+      if (!this.isModal) {
+        if (type == "action") {
+          arrayCommands = this.currentStep.actions.commands;
+        } else if (type == "next") {
+          arrayCommands = this.currentStep.next_button.commands;
+        } else if (type == "back") {
+          arrayCommands = this.currentStep.back_button.commands;
+        }
+      } else {
+        if (type == "action") {
+          arrayCommands = this.modal.actions.commands;
+        } else if (type == "back") {
+          arrayCommands = this.modal.back_button.commands;
+        }
       }
+
     }
 
     var currentCommand = arrayCommands[commandsIndex];
 
     // Check if it's a step-link ID
     if (currentCommand.startsWith("@")) {
-      stepID = currentCommand.replace('@', '');
+      linkID = currentCommand.replace('@', '');
       currentCommand = arrayCommands[++commandsIndex];
 
       if (!currentCommand) {
-        this.linkToStep(stepID);
+        this.linkTo(linkID);
         promise.resolve();
         return promise;
       }
     }
-
     $.ajax({
       url: API_BASEURL + 'printer/comm/send',
       method: 'POST',
@@ -287,11 +326,11 @@ var AdditionalTaskAppView = Backbone.View.extend({
     })
       .success(_.bind(function () {
         if (arrayCommands[commandsIndex + 1]) {
-          this.sendCommands(type, arrayCommands, stepID, ++commandsIndex, promise);
+          this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
         } else {
           promise.resolve();
-          if (stepID) {
-            this.linkToStep(stepID);
+          if (linkID) {
+            this.linkTo(linkID);
           }
         }
       }, this))
@@ -332,13 +371,18 @@ var AdditionalTaskAppView = Backbone.View.extend({
     return result;
   },
 
-  render: function ()
+  _getModalByID: function(ID)
   {
-    this.$el.empty();
-    this.$el.html(this.template({currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON() }));
-    this.currentStepManagement();
-    return this;
-  },
+    var modal = this.additionalTaskApp.get('modals');
+    var result = null;
+
+    for (i = 0; i < modal.length; i++) {
+      if (modal[i].id == ID) {
+        result = modal[i];
+      }
+    }
+    return result;
+  }
 });
 
 var CustomTempView = Backbone.View.extend({

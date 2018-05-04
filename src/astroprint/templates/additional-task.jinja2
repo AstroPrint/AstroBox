@@ -32,9 +32,11 @@
 
             <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.en.title %>
             </div>
+            <% if (!isModal) { %>
             <div class="small-12 medium-4 columns text-right padding-top">Step
               <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
             </div>
+            <% } %>
           </div>
         </div>
 
@@ -84,7 +86,7 @@
           </div>
       <% } %>
         <!-- Repeat button -->
-        <% if (currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
+        <% if (!isModal && currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
           <button class="round small bold repeat"><i class="icon-refresh"></i></button>
         <% } %>
 
@@ -109,6 +111,7 @@
           <% } %>
 
           <!-- Next button -->
+          <% if (!isModal) { %>
           <div class="loading-button small-6 large-3 columns">
             <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
             <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
@@ -118,6 +121,7 @@
               <%= currentStep.next_button.name.en %>
             </span>
           </div>
+          <% } %>
         </div>
 
       </div>
