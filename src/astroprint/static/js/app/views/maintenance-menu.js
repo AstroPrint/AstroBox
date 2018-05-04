@@ -130,7 +130,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
   },
   _taskFormatData: function(task)
   {
-    for (let i = 0; i < this.tasks.length; i++) {
+    for (var i = 0; i < this.tasks.length; i++) {
       if (this.tasks[i].id == task.id) {
         task['icon_filename'] = this.tasks[i].icon_filename;
         task['name'] = [];
