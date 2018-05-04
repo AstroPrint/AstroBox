@@ -210,7 +210,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doAction: function()
   {
-    var actions = this.currentStep.actions.commands;
+    var actions = this.isModal ? this.modal.actions.commands : this.currentStep.actions.commands;
     if (actions && Array.isArray(actions)) {
       // Multiple actions
       if (actions[0] !== null && typeof actions[0] === 'object') {
