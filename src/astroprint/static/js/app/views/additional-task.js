@@ -179,7 +179,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
   },
 
-  checkForCommandsAndMove(direction)
+  checkForCommandsAndMove: function(direction)
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
     loadingBtn.addClass("loading");
@@ -502,8 +502,8 @@ var MultipleActionsDialog = Backbone.View.extend({
     this.$('.title-dlg').text(this.title);
     var actionsContainer = this.$('.actions-container');
     actionsContainer.empty();
-    for (let i = 0; i <  this.actions.length; i++) {
-      const ac =  this.actions[i];
+    for (var i = 0; i <  this.actions.length; i++) {
+      var ac =  this.actions[i];
       actionsContainer.append("<div class='action bold' data-id='"+ i +"'>"+ ac.name.en +"</div>");
     }
   },
@@ -523,8 +523,8 @@ var MultipleActionsDialog = Backbone.View.extend({
 
   doAction: function(actionID) {
     this.stepView.sendCommands("action", this.actions[actionID].commands);
-    for (let i = 0; i < this.actions[actionID].commands.length; i++) {
-      const element = this.actions[actionID].commands[i];
+    for (var i = 0; i < this.actions[actionID].commands.length; i++) {
+      var element = this.actions[actionID].commands[i];
       if (element.startsWith("@")) {
         this.doCancel();
       }
