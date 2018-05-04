@@ -35,6 +35,7 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
 		self._eventManager.subscribe(Events.PRINTINGSPEED_CHANGE, self._onPrintingSpeedChange)
+		self._eventManager.subscribe(Events.PRINTINGFLOW_CHANGE, self._onPrintingFlowChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -342,6 +343,28 @@ class PrinterService(PluginService):
 
 		return
 
+	def getPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		if pm.isConnected():
+			printingFlow = int(pm.getPrintingFlow())
+		else:
+			printingFlow = None
+
+		if sendResponse:
+			sendResponse(printingFlow)
+
+		return printingFlow
+
+	def setPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		pm.setPrintingFlow(int(data))
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
 	def selectTool(self,data,sendResponse):
 
 		pm = printerManager()
@@ -409,6 +432,9 @@ class PrinterService(PluginService):
 
 	def _onPrintingSpeedChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"speed": value})
+
+	def _onPrintingFlowChange(self,event,value):
+		self.publishEvent('printer_state_changed', {"flow": value})
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})

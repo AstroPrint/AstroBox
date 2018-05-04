@@ -78,6 +78,10 @@ class MaintenanceMenuManager(object):
 				},{
 					'id' : "printing_speed",
 					'type' : "utility"
+				},
+				{
+					'id' : "printing_flow",
+					'type' : "utility"
 				}
 			]
 

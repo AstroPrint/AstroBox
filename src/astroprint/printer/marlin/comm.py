@@ -103,6 +103,7 @@ class MachineCom(object):
 		self._heatupWaitTimeLost = 0.0
 		self._currentTool = 0
 		self._printingSpeed = 100
+		self._printingFlow = 100
 		self._previousSelectedTool = 0
 		self._oksAfterHeatingUp = 0
 		self._pauseInProgress = False
@@ -319,6 +320,9 @@ class MachineCom(object):
 
 	def getPrintingSpeed(self):
 		return self._printingSpeed
+
+	def getPrintingFlow(self):
+		return self._printingFlow
 
 	##~~ external interface
 
@@ -1329,6 +1333,15 @@ class MachineCom(object):
 			if self._printingSpeed != speed:
 				self._printingSpeed = speed
 				self._callback.mcPrintingSpeedChange(speed)
+		return cmd
+
+	def _gcode_M221(self, cmd):
+		flowMatch = self._regex_paramSInt.search(cmd)
+		if flowMatch:
+			flow = int(flowMatch.group(1))
+			if self._printingFlow != flow:
+				self._printingFlow = flow
+				self._callback.mcPrintingFlowChange(flow)
 		return cmd
 
 	def _gcode_T(self, cmd):

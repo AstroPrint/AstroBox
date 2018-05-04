@@ -33,7 +33,8 @@ var SocketData = Backbone.Model.extend({
     },
     print_capture: null,
     tool: null,
-    printing_speed: "100"
+    printing_speed: "100",
+    printing_flow: "100"
   },
   extruder_count: null,
   initialize: function()
@@ -202,6 +203,7 @@ var SocketData = Backbone.Model.extend({
 
           this.set('tool', data.tool);
           this.set('printing_speed', data.printing_speed);
+          this.set('printing_flow', data.printing_flow);
         }
         break;
 

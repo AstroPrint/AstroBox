@@ -43,8 +43,6 @@
 
   select.fan-speed{
     border: 0;
-    font-size: 20px;
-    /* padding-top: 0px; */
     background-size: 23px 5px;
     background-position: 100% 16px;
     padding-right: 0;
@@ -668,13 +666,20 @@ html.no-printer {
 
 }
 
-#fan-control, #printing-speed-control {
+#printing-speed-control, #printing-flow-control{
+  select{width: 95%;}
+}
+
+#fan-control, #printing-speed-control, #printing-flow-control{
+
 
   &.border-left{border-left: 1px dashed gainsboro;}
 
   .variable-speed{padding: 0;}
 
   .no-paddingleft{padding-left: 0;}
+  .nopadding{padding: 0;}
+  .no-paddingright{padding-right: 0;}
 
   .fan-on{
     border: 2px solid $oil;
@@ -695,7 +700,7 @@ html.no-printer {
     margin-bottom: 24px;
 
     &:before{
-      font-size: 40px;
+      font-size: 38px;
       margin: 0;
     }
   }
@@ -704,7 +709,6 @@ html.no-printer {
     top: 8px;
     color: $charcoal;
     display: block;
-    margin-bottom: 15px;
     font-size: 38px;
   }
 

@@ -182,13 +182,13 @@
 
       <div class="fan-flow-container text-center" >
         <!-- FAN SPEED -->
-        <div id="fan-control" class="small-12 medium-8 large-6 columns text-center">
+        <div id="fan-control" class="small-12 medium-6 large-6 columns text-center">
           <div class="fan-control clearfix">
             <div class=" bold text-left clearfix">
-              <div class="columns small-2 medium-2 large-2 text-center no-padding left variable-speed">
+              <div class="columns small-12 large-2 text-center no-padding left variable-speed">
                 <i class="icon-fan fan_icon"></i>
               </div>
-              <div class="small-6 medium-6 large-5 columns">
+              <div class="small-6 large-5 columns">
                 <label>Fan speed</label>
                 <select class="fan-speed right bold">
                   <option value="10">10%</option>
@@ -205,22 +205,22 @@
                   </div>
                 </div>
               </div>
-              <div class="small-4 medium-4 large-5 right columns no-paddingleft">
+              <div class="small-6 large-5 right columns no-paddingleft">
                 <button class="radius tiny success fans right bold fan-on expand">Start</button>
               </div>
             </div>
           </div>
         </div>
         <!-- PRINT SPEED -->
-        <div id="printing-speed-control" class="small-12 medium-4 large-6 columns text-center border-left no-paddingleft">
+        <div id="printing-speed-control" class="small-12 medium-3 large-3 columns text-center border-left">
           <div class="printing-speed-control clearfix">
             <div class=" bold text-left clearfix">
-              <div class="columns small-3 medium-4 large-3 large-offset-1 text-center left variable-speed">
+              <div class="columns small-3 medium-12 large-3 text-center variable-speed">
                 <i class="icon-print-speed flow-icon"></i>
               </div>
-              <div class="small-9 medium-8 large-5 left no-paddingleft columns">
+              <div class="small-9 medium-12 large-9 no-paddingright text-center columns">
                 <label>Print speed</label>
-                <select class="printing-speed-amount right bold">
+                <select class="printing-speed-amount bold">
                   <option value="25" >25%</option>
                   <option value="50">50%</option>
                   <option value="100" >100%</option>
@@ -231,6 +231,35 @@
                 <div class="row other-printing-speed-amount hide collapse">
                   <div class="small-9 columns">
                     <input type="number" value="100" max=500 min=25 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
+                  </div>
+                  <div class="small-3 columns">
+                    <span class="postfix radius">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- PRINT FLOW -->
+        <div id="printing-flow-control" class="small-12 medium-3 large-3 columns text-center border-left">
+          <div class="printing-flow-control clearfix">
+            <div class=" bold text-left clearfix">
+             <div class="columns small-3 medium-12 large-3 text-center variable-flow nopadding">
+                <i class="icon-print-flow flow-icon"></i>
+              </div>
+              <div class="small-9 medium-12 large-9 columns text-center no-paddingright">
+                <label>Print Flow</label>
+                <select class="printing-flow-amount bold">
+                  <option value="25" >25%</option>
+                  <option value="50">50%</option>
+                  <option value="100" selected >100%</option>
+                  <option value="150" >150%</option>
+                  <option value="200">200%</option>
+                  <option value="other">Other...</option>
+                </select>
+                <div class="row other-printing-flow-amount hide collapse">
+                  <div class="small-9 columns">
+                    <input type="number" value="100" max=200 min=25 class="text-center expand back-to-select other-printing-flow-amount" name="printing-flow-amount"/>
                   </div>
                   <div class="small-3 columns">
                     <span class="postfix radius">%</span>
