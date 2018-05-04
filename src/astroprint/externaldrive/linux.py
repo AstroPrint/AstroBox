@@ -97,7 +97,7 @@ class ExternalDriveManager(threading.Thread):
 						})
 
 	def _getDeviceMountDirectory(self, device):
-		name = device.get('ID_FS_LABEL')
+		name = device.get('ID_FS_LABEL', 'NO NAME')
 		uuid = device.get('ID_FS_UUID')
 		if name and uuid:
 			return os.path.join(ROOT_MOUNT_POINT, uuid, name)
@@ -135,7 +135,7 @@ class ExternalDriveManager(threading.Thread):
 				if not os.path.exists(directory):
 					os.makedirs(directory)
 
-				p = sarge.run('mount %s %s' % (partition, directory), stderr=sarge.Capture())
+				p = sarge.run("mount %s '%s'" % (partition, directory), stderr=sarge.Capture())
 				if p.returncode != 0:
 					returncode = p.returncode
 					stderr_text = p.stderr.text
@@ -149,30 +149,35 @@ class ExternalDriveManager(threading.Thread):
 			except Exception, e:
 				self._logger.warn("Mount failed: %s" % e)
 				return False
+
 		else:
 			return False
 
 	def _umountPartition(self, directory):
-		try:
-			if os.path.exists(directory):
-				p = sarge.run('umount %s' % directory, stderr=sarge.Capture())
-				if p.returncode != 0:
-					returncode = p.returncode
-					stderr_text = p.stderr.text
-					self._logger.warn("Partition umount failed with return code %i: %s" % (returncode, stderr_text))
-					return False
+		if directory:
+			try:
+				if os.path.exists(directory):
+					p = sarge.run("umount '%s'" % directory, stderr=sarge.Capture())
+					if p.returncode != 0:
+						returncode = p.returncode
+						stderr_text = p.stderr.text
+						self._logger.warn("Partition umount failed with return code %i: %s" % (returncode, stderr_text))
+						return False
+
+					else:
+						os.rmdir(directory)
+						os.rmdir('/'.join(directory.split('/')[:-1])) #uuid dir
+						self._logger.info("Partition umounted from %s" % directory)
+						return True
 
 				else:
-					os.rmdir(directory)
-					os.rmdir('/'.join(directory.split('/')[:-1])) #uuid dir
-					self._logger.info("Partition umounted from %s" % directory)
 					return True
 
-			else:
-				return True
+			except Exception, e:
+				self._logger.warn("umount failed: %s" % e)
+				return False
 
-		except Exception, e:
-			self._logger.warn("umount failed: %s" % e)
+		else:
 			return False
 
 	def shutdown(self):
