@@ -667,7 +667,7 @@ html.no-printer {
 }
 
 #printing-speed-control, #printing-flow-control{
-  select{width: 70px;}
+  select{width: 95%;}
 }
 
 #fan-control, #printing-speed-control, #printing-flow-control{
@@ -709,7 +709,6 @@ html.no-printer {
     top: 8px;
     color: $charcoal;
     display: block;
-    margin-bottom: 15px;
     font-size: 38px;
   }
 
