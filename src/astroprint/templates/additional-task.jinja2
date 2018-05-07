@@ -74,6 +74,7 @@
               <option value="<%= i %>" <%= app.socketData.attributes.tool == i ? 'selected' : '' %> ><%= i+1 %></option>
             <% } %>
             </select>
+            <i class="icon-play"></i>
           </div>
         <% } else { %>
            <!-- Additional Task Media -->
@@ -90,13 +91,7 @@
           <button class="round small bold repeat"><i class="icon-refresh"></i></button>
         <% } %>
 
-        <div class="columns-small-12 buttons text-center" >
-          <!-- Action button -->
-          <% if (currentStep.actions) { %>
-            <div class="small-6 large-3 offset-3 columns" >
-              <button class="danger small radius action bold"><%= currentStep.actions.name.en %></button>
-            </div>
-          <% } %>
+        <div class="buttons text-center" >
           <% if (currentStep.back_button) { %>
             <!-- Back button -->
             <div class="loading-button small-6 large-3 columns">
@@ -107,6 +102,13 @@
                 <i class="icon-rocket-spinner animate-spin"></i>
                 <%= currentStep.back_button.name.en %>
               </span>
+            </div>
+          <% } %>
+
+          <!-- Action button -->
+          <% if (currentStep.actions) { %>
+            <div class="small-6 large-3 offset-3 columns" >
+              <button class="danger small radius action expand bold"><%= currentStep.actions.name.en %></button>
             </div>
           <% } %>
 
@@ -131,7 +133,6 @@
 
   <!-- @MULTIPLE ACTIONS DLG -->
   <div id="multiple-actions-dlg" class="reveal-modal medium" data-reveal>
-    <h2 class="bold title-dlg">{{title}}</h2>
     <div class="reveal-content">
     <!-- ACTION BUTTONS HERE -->
       <div class="actions-container"></div>
