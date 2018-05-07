@@ -34,7 +34,7 @@ class AdditionalTasksManager(object):
 
 		self._logger.info("Loading Additional Tasks...")
 
-		tasksDir = settings().getBaseFolder('tasks')
+		tasksDir = self._settings.getBaseFolder('tasks')
 		#tasksDir = "%s/tasks" % self._settings.getConfigFolder()
 
 		if os.path.isdir(tasksDir):

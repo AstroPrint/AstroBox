@@ -196,12 +196,18 @@ class Settings(object):
 		self._config = None
 		self._dirty = False
 
-		self._init_settings_dir(basedir)
-
 		if configfile is not None:
 			self._configfile = configfile
+
 		else:
-			self._configfile = os.path.join(self.settings_dir, "config.yaml")
+			if basedir:
+				settings_dir = basedir
+			else:
+				settings_dir = os.path.realpath(os.path.dirname(__file__)+'/../../local')
+
+			self._configfile = os.path.join(settings_dir, "config.yaml")
+
+		self._init_settings_dir(basedir)
 
 		self._factoryConfigFile = os.path.join(os.path.dirname(self._configfile), "config.factory")
 
@@ -211,7 +217,7 @@ class Settings(object):
 		if basedir is not None:
 			self.settings_dir = basedir
 		else:
-			self.settings_dir = _resolveSettingsDir(APPNAME)
+			self.settings_dir = self.getConfigFolder()
 
 	def _getDefaultFolder(self, type):
 		folder = default_settings["folder"][type]
@@ -481,18 +487,3 @@ class Settings(object):
 				self._config["folder"] = {}
 			self._config["folder"][type] = path
 			self._dirty = True
-
-def _resolveSettingsDir(applicationName):
-	return os.path.realpath(os.path.dirname(__file__)+'/../../local')
-	# taken from http://stackoverflow.com/questions/1084697/how-do-i-store-desktop-application-data-in-a-cross-platform-way-for-python
-	#if sys.platform == "darwin":
-	#	from AppKit import NSSearchPathForDirectoriesInDomains
-		# http://developer.apple.com/DOCUMENTATION/Cocoa/Reference/Foundation/Miscellaneous/Foundation_Functions/Reference/reference.html#//apple_ref/c/func/NSSearchPathForDirectoriesInDomains
-		# NSApplicationSupportDirectory = 14
-		# NSUserDomainMask = 1
-		# True for expanding the tilde into a fully qualified path
-	#	return os.path.join(NSSearchPathForDirectoriesInDomains(14, 1, True)[0], applicationName)
-	#elif sys.platform == "win32":
-	#	return os.path.join(os.environ["APPDATA"], applicationName)
-	#else:
-	#	return os.path.expanduser(os.path.join("~", "." + applicationName.lower()))
