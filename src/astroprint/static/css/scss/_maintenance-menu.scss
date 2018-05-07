@@ -69,13 +69,18 @@
   }
 
 	.app-image {
-    background: $jet;
+    background: $orange;
     text-align: center;
+    border-radius: $global-radius;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
 
     img{
-      opacity: 0.25;
-      max-height: 150px;
+      opacity: 0.9;
+      max-height: 70px;
       margin: 0 auto;
+      border-radius: $global-radius;
     }
   }
   i.icon-back {
@@ -85,27 +90,26 @@
 
   #menu-rows-container{
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
     margin: 0;
+    padding-top: 15px;
 
     .menu-row {
-      padding: 9px;
+      padding: 7px;
 
       i{display: none;}
 
       .launch, #back-button {
         display: flex;
-        justify-content: center;
-        flex-direction: column;
-        height: 150px;
+        justify-content: flex-start;
+        flex-direction: row;
+        min-height: 70px;
         position: relative;
         border-radius: $global-radius;
         cursor: pointer;
         background: $white;
         box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
-
-        &:hover{transform: scale(1.02);}
 
         &:active{transform: scale(1);}
 
@@ -113,11 +117,9 @@
           display: flex;
           justify-content: center;
           flex-direction: column;
-          height: 100%;
-          text-align: center;
           padding: 0 15px;
-          position: absolute;
-          color: $white;
+          margin: 0;
+          color: $orange;
           letter-spacing: 1px;
         }
       }
@@ -126,20 +128,22 @@
         background: transparent;
         box-shadow: none;
 
-        .launch{padding: 12px;}
+        .launch{
+          padding: 12px;
+
+          &:hover{background:lighten($orange,40%);}
+        }
 
         i{
-          font-size: rem-calc(25);
-          color: $oil;
-          display: block;
-          width: 100%;
-          text-align: right;
-          border-top: 1px dotted $iron;
+          font-size: rem-calc(30);
+          color: $steel;
+          display: inline-block;
         }
 
         h5{
           position: relative;
           color: $charcoal;
+          width: 100%;
         }
       }
 
@@ -152,14 +156,18 @@
   }
 
   #back-button {
-    background: white;
+    background: $orange;
     display: block;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.06);
     cursor: pointer;
     font-size: rem-calc(34);
+    color: $white;
+    max-width: 80px;
+    border-radius:$global-radius;
+    display: block;
+    text-align: center;
 
     &:hover{
-      background:darken($ghost,10%);
+      background:darken($orange,5%);
     }
   }
 	.overlay {
@@ -172,7 +180,7 @@
 		padding: 2px 4px;
     @include radius($global-radius);
     z-index: 10;
-    background: rgba(243, 101, 35, 0.8);
+    background: rgba(243, 101, 35, 0.6);
     border: 2px solid rgba(13, 13, 13, 0.05);
     display: flex;
     justify-content: flex-end;
@@ -184,7 +192,7 @@
       padding: 4px 10px;
       border: 2px solid $white;
       margin: 0;
-      text-align: center;
+      text-align: right;
       font-size: 1.125rem;
       width: 100%;
       display: flex;
