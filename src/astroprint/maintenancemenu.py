@@ -33,9 +33,7 @@ class MaintenanceMenuManager(object):
 
 		self._logger.info("Loading Maintenance Menu...")
 
-		configDir = self._settings.getConfigFolder()
-
-		self._maintenanceMenu = "%s/utilities-menu.yaml" % configDir
+		self._maintenanceMenu = "%s/utilities-menu.yaml" % self._settings.getBaseFolder('tasks')
 
 		if os.path.isfile(self._maintenanceMenu):
 			config = None
@@ -91,9 +89,6 @@ class MaintenanceMenuManager(object):
 		with open(self._maintenanceMenu, "wb") as maintenanceMenu:
 			yaml.safe_dump(self.data, maintenanceMenu, default_flow_style=False, indent="    ", allow_unicode=True)
 
-	def fileExists(self):
-		return len(self.data)
-
 	def checkMenuFile(self, file):
 		filename = file.filename
 
@@ -133,13 +128,12 @@ class MaintenanceMenuManager(object):
 
 	def installFile(self, filename):
 		if os.path.isfile(filename):
-			configDir = settings().getConfigFolder()
 
 			#extract the contents of the plugin in it's directory
 			zip_ref = zipfile.ZipFile(filename, 'r')
 			menuInfo = zip_ref.open('utilities-menu.yaml', 'r')
 			definition = yaml.safe_load(menuInfo)
-			assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','utilities_menu'))
+			assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','variant','utilities_menu'))
 
 			#remove utilities_menu folder
 			shutil.rmtree(assetsDir, ignore_errors=True)
@@ -155,9 +149,7 @@ class MaintenanceMenuManager(object):
 				if os.path.isdir(os.path.join(assetsDir, 'assets')):
 					os.rmdir(os.path.join(assetsDir, 'assets'))
 
-			zip_ref.extract('utilities-menu.yaml', configDir)
-			#rename the yaml file
-			os.rename(os.path.join(configDir,'utilities-menu.yaml'), os.path.join(configDir, "utilities-menu.yaml"))
+			zip_ref.extract('utilities-menu.yaml', os.path.dirname(self._maintenanceMenu))
 			zip_ref.close()
 
 			self.data = definition
@@ -166,14 +158,11 @@ class MaintenanceMenuManager(object):
 		return False
 
 	def removeMenu(self, tId):
-
-		configFolder = settings().getConfigFolder()
-
 		#remove definition file
-		os.remove(os.path.join(configFolder, "utilities-menu.yaml"))
+		os.remove(self._maintenanceMenu)
 
-		self._logger.info("Menu Removed")
+		self._logger.info("Menu [%s] Removed" % tId)
 
-		return {'removed Menu'}
+		return {"success": True}
 
 

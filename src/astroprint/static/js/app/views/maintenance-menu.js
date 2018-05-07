@@ -34,9 +34,10 @@ var MaintenanceMenuListView = Backbone.View.extend({
   },
   onLaunchClicked: function(e)
   {
+    e.preventDefault();
+
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
-    e.preventDefault();
     if (targetView.maintenanceMenuElement.get('type') == "task") {
       window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('id');
     } else {
@@ -172,11 +173,20 @@ var MaintenanceMenuRowView = Backbone.View.extend({
   },
   render: function ()
   {
-    this.$el.empty();
-    this.$el.html(this.template({ view: this, maintenanceMenuElement: this.maintenanceMenuElement.toJSON() }));
-    if (this.maintenanceMenuElement.get('menu')) {
+    var item = this.maintenanceMenuElement;
+    var name = item.get('name');
+
+    this.$el.html(this.template({
+      id: item.get('id'),
+      type: item.get('type'),
+      icon_filename: item.get('icon_filename'),
+      name: name && name.en ? name.en : "Name missing for "+item.get('id')
+    }));
+
+    if (item.get('menu')) {
       this.$el.addClass('menu');
     }
+
     return this;
   }
 });

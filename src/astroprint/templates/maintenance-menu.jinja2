@@ -38,18 +38,18 @@
   <script type="text/template" id="maintenance-menu-row-template">
     <a class="launch">
       <div class="app-image">
-      <% if (maintenanceMenuElement.type == 'task') { %>
-        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.en %> icon"/>
-      <%  } else if (maintenanceMenuElement.icon_filename) { %>
-        <img src="/static/img/variant/<%= maintenanceMenuElement.id %>/<%= maintenanceMenuElement.icon_filename %>" alt="<%= maintenanceMenuElement.name.en %> icon"/>
+        <% if (type == 'task') { %>
+          <img src="/static/img/variant/<%= id %>/<%= icon_filename %>"/>
+        <%  } else if (icon_filename) { %>
+          <img src="/static/img/variant/utilities_menu/<%= id %>.png"/>
         <%  } %>
-    <div class="overlay">
-      <% if (maintenanceMenuElement.type == 'task') { %>
-        <h4 class="bold">Launch</h4>
-      <%  } %>
-    </div>
+        <div class="overlay">
+          <% if (type == 'task') { %>
+            <h4 class="bold">Launch</h4>
+          <%  } %>
+        </div>
       </div>
-      <h5 class="name bold"><%= maintenanceMenuElement.name.en %></h5> <i class="icon-angle-right"></i>
+      <h5 class="name bold"><%= name %></h5> <i class="icon-angle-right"></i>
     </a>
   </script>
 
