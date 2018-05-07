@@ -89,10 +89,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     if (!submenu) {
       $.getJSON(this.maintenanceMenuCollection.url, null, _.bind(function(data) {
 
-        var filteredMenu = _.filter(data, function(mm){
-          if (mm.type != "utility") {return true}
-          return false;
-        });
+        var filteredMenu = _.filter(data, function(mm) { return mm.type != "utility" });
 
         if (filteredMenu && filteredMenu.length) {
           if (filteredMenu[0].type) {
