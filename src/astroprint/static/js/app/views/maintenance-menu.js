@@ -39,7 +39,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
     if (targetView.maintenanceMenuElement.get('type') == "task") {
-      window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('id');
+      app.router.navigate("#additional-tasks/"+targetView.maintenanceMenuElement.get('id'), {trigger: true});
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
@@ -175,12 +175,14 @@ var MaintenanceMenuRowView = Backbone.View.extend({
   {
     var item = this.maintenanceMenuElement;
     var name = item.get('name');
+    var type = item.get('type');
+    var id = item.get('id');
 
     this.$el.html(this.template({
-      id: item.get('id'),
-      type: item.get('type'),
-      icon_filename: item.get('icon_filename'),
-      name: name && name.en ? name.en : "Name missing for "+item.get('id')
+      id: id,
+      type: type,
+      icon: type == 'task' ? item.get('icon_filename') : id+'.png',
+      name: name && name.en ? name.en : "Name missing for "+id
     }));
 
     if (item.get('menu')) {

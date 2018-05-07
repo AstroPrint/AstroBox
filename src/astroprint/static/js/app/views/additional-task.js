@@ -70,7 +70,7 @@ var AdditionalTaskContainerView = Backbone.View.extend({
     } else {
       noActionEl.show();
       setTimeout(function() {
-        window.location.href = window.location.origin+"/#additional-tasks"
+        app.router.navigate("#additional-tasks", {trigger: true});
       }, 2500);
     }
   }
