@@ -32,6 +32,20 @@ var MaintenanceMenuListView = Backbone.View.extend({
     'click a.launch': 'onLaunchClicked',
     'click #back-button': 'onBackClicked',
   },
+
+  initialize: function()
+  {
+    this.maintenanceMenuCollection = new MaintenanceMenuCollection();
+    this.getTasks()
+      .done(_.bind(function () {
+        this.refreshMaintenanceMenuList();
+      }, this))
+      .fail(_.bind(function () {
+        console.error('Unable to retrieve tasks');
+        noty({text: "Unable to retrieve tasks", timeout: 3000});
+      }, this));
+  },
+
   onLaunchClicked: function(e)
   {
     e.preventDefault();
@@ -55,19 +69,6 @@ var MaintenanceMenuListView = Backbone.View.extend({
     this.maintenanceMenuCollection = this.parentCollection[this.deepIndex];
     this.parentCollection.splice(this.deepIndex, 1);
     this.render();
-  },
-
-  initialize: function()
-  {
-    this.maintenanceMenuCollection = new MaintenanceMenuCollection();
-    this.getTasks()
-      .done(_.bind(function () {
-        this.refreshMaintenanceMenuList();
-      }, this))
-      .fail(_.bind(function () {
-        console.error('Unable to retrieve tasks');
-        noty({text: "Unable to retrieve tasks", timeout: 3000});
-      }, this));
   },
 
   getTasks: function()
@@ -120,25 +121,31 @@ var MaintenanceMenuListView = Backbone.View.extend({
         noty({text: "There was an error getting maintenance menu.", timeout: 3000});
       })
     } else {
-      for (var i = 0; i < submenu.length; i++) {
-        if (submenu[i].type == "task") {
-          this._taskFormatData(submenu[i]);
+      _.each(submenu, _.bind(function(m) {
+        if (m.type == 'task') {
+          m = this._taskFormatData(m);
         }
-        this.maintenanceMenuCollection.add(new MaintenanceMenu(submenu[i]))
-      }
+        if (m) {
+          this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+        }
+      }, this));
+
       this.render();
     }
   },
   _taskFormatData: function(task)
   {
-    for (var i = 0; i < this.tasks.length; i++) {
-      if (this.tasks[i].id == task.id) {
-        task['icon_filename'] = this.tasks[i].icon_filename;
-        task['name'] = [];
-        task['name'].en = this.tasks[i].strings['en'].name;
-        task['name'].es = this.tasks[i].strings['es'].name;
-      }
+    var taskFound = _.find(this.tasks, function(t) { return t.id == task.id} );
+    if (taskFound) {
+      task['icon_filename'] = taskFound.icon_filename;
+      task['name'] = {
+        en: taskFound.strings.en.name,
+        es: taskFound.strings.es.name
+      };
+      return task
     }
+
+    return null;
   },
 
   render: function()
