@@ -93,12 +93,15 @@ var MaintenanceMenuListView = Backbone.View.extend({
 
         if (filteredMenu && filteredMenu.length) {
           if (filteredMenu[0].type) {
-            for (var i = 0; i < filteredMenu.length; i++) {
-              if (filteredMenu[i].type == "task") {
-                this._taskFormatData(filteredMenu[i]);
+            _.each(filteredMenu, _.bind(function(m) {
+              if (m.type == 'task') {
+                m = this._taskFormatData(m);
               }
-              this.maintenanceMenuCollection.add(new MaintenanceMenu(filteredMenu[i]))
-            }
+
+              if (m) {
+                this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+              }
+            }, this));
             $('#menu-error').hide();
             $('.error-message').hide();
           } else {
