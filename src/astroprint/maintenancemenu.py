@@ -133,7 +133,7 @@ class MaintenanceMenuManager(object):
 			zip_ref = zipfile.ZipFile(filename, 'r')
 			menuInfo = zip_ref.open('utilities-menu.yaml', 'r')
 			definition = yaml.safe_load(menuInfo)
-			assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','utilities_menu'))
+			assetsDir = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','variant','utilities_menu'))
 
 			#remove utilities_menu folder
 			shutil.rmtree(assetsDir, ignore_errors=True)
