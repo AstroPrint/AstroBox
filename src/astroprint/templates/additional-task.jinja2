@@ -1,6 +1,7 @@
 <div class="content">
   <div id="additional-task-app-container">
-    <div class=" bold row text-center" id="additional-task" style="display:none">No Task was found with that ID
+    <div class="bold row text-center" id="additional-task" style="display:none">
+      No Task was found with that ID
       <div class="blink-animation">Redirecting...</div>
       <img src="static/img/sadmonkey-2.png" alt="no-action icon">
     </div>
@@ -18,7 +19,7 @@
       <div class="task-main">
 
         <div class="columns small-12 large-1 text-center no-padding">
-          <!-- Close button -->
+          {# Close button #}
           <button class="dark radius tiny expand bold close"><i class="icon-plus"></i></button>
         </div>
 
@@ -42,13 +43,13 @@
 
         <div class="clearfix"></div>
 
-        <!-- Additional Task description -->
+        {# Additional Task description #}
         <div class="columns-small-12 step-description text-center">
           <p><%= currentStep.strings.en.description %></p>
         </div>
 
         <% if (currentStep.type == "set_temperature") { %>
-        <!-- Temperature Widget -->
+        {# Temperature Widget #}
           <div class="columns-small-12">
             <div id="custom-temp-control-template" class="temp-container">
               <div class="clearfix">
@@ -66,7 +67,7 @@
             </div>
           </div>
         <% } else if (currentStep.type == "set_extruder") { %>
-          <!-- Extruder picker -->
+          {# Extruder picker #}
           <div class="columns-small-12 text-center extruder-selector">
             <label for="extruder-count">Filament will be change on this extruder:</label>
             <select id="extruder-count" class="bold" name="extruder_count">
@@ -77,7 +78,7 @@
             <i class="icon-play"></i>
           </div>
         <% } else { %>
-           <!-- Additional Task Media -->
+           {# Additional Task Media #}
           <div id="img-app" class="columns-small-12 text-center">
           <% if (currentStep.img_filename ) { %>
             <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
@@ -86,7 +87,7 @@
           <% } %>
           </div>
       <% } %>
-        <!-- Repeat button -->
+        {# Repeat button #}
         <% if (!isModal && currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
           <button class="round small bold repeat"><i class="icon-refresh"></i></button>
         <% } %>
@@ -105,14 +106,14 @@
             </div>
           <% } %>
 
-          <!-- Action button -->
+          {# Action button #}
           <% if (currentStep.actions) { %>
             <div class="small-6 large-3 offset-3 columns" >
               <button class="danger small radius action expand bold"><%= currentStep.actions.name.en %></button>
             </div>
           <% } %>
 
-          <!-- Next button -->
+          {# Next button #}
           <% if (!isModal) { %>
           <div class="loading-button small-6 large-3 columns">
             <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
@@ -131,10 +132,10 @@
     </div>
   </script>
 
-  <!-- @MULTIPLE ACTIONS DLG -->
+  {# @MULTIPLE ACTIONS DLG #}
   <div id="multiple-actions-dlg" class="reveal-modal medium" data-reveal>
     <div class="reveal-content">
-    <!-- ACTION BUTTONS HERE -->
+    {# ACTION BUTTONS HERE #}
       <div class="actions-container"></div>
     </div>
 

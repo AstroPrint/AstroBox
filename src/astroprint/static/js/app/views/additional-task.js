@@ -41,12 +41,10 @@ var AdditionalTaskContainerView = Backbone.View.extend({
   getSequence: function(additionalTaskSequenceID)
   {
     return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
-      if (data.utilities && data.utilities.length) {
-        for (var i = 0; i < data.utilities.length; i++) {
-          var ca = data.utilities[i];
-          if (ca.id == additionalTaskSequenceID && ca.visibility) {
-            this.additionalTaskApp = new AdditionalTask(ca);
-          }
+      if (data) {
+        var task = _.find(data, function(task) { return task.id == additionalTaskSequenceID && task.visibility });
+        if (task) {
+          this.additionalTaskApp = new AdditionalTask(task);
         }
       }
     }, this))
