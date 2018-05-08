@@ -74,8 +74,8 @@ var MaintenanceMenuListView = Backbone.View.extend({
   getTasks: function()
   {
     return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function (data) {
-      if (data.utilities && data.utilities.length) {
-        this.tasks = data.utilities;
+      if (data) {
+        this.tasks = data;
       }
     }, this))
       .fail(function () {

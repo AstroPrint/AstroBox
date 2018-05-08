@@ -8,7 +8,7 @@ var AdditionalTasksView = Backbone.View.extend({
   },
   initialize: function()
   {
-    this.additionalTasksListView = new AdditionalTasksListView();
+    this.additionalTasksListView = new AdditionalTasksListView({page: this});
     this.uploader = new TaskUploader({
       el: this.$('input.file-upload'),
       progressBar: this.$('.upload-progress'),
@@ -39,8 +39,10 @@ var AdditionalTasksListView = Backbone.View.extend({
   el: '#task-list',
   additionalTask_views: [],
   additionalTaskCollection: null,
-  initialize: function()
+  page: null,
+  initialize: function(options)
   {
+    this.page = options.page;
     this.additionalTaskCollection = new AdditionalTaskCollection();
     this.refreshTaskList();
   },
@@ -48,8 +50,8 @@ var AdditionalTasksListView = Backbone.View.extend({
   {
     this.additionalTaskCollection.reset();
     $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
-      if (data.utilities) {
-        _.each(data.utilities, function(adTask){
+      if (data) {
+        _.each(data, function(adTask){
           if (adTask.visibility) {
             this.additionalTaskCollection.add(new AdditionalTask(adTask))
           }
@@ -65,11 +67,23 @@ var AdditionalTasksListView = Backbone.View.extend({
   {
     this.$el.empty();
     // Render each box
-    this.additionalTaskCollection.each(function (additionalTaskApp) {
-      var row = new AdditionalTaskRowView({ additionalTaskApp: additionalTaskApp});
-      this.$el.append(row.render().el);
-      this.additionalTask_views[additionalTaskApp.get('id')] = row;
-    }, this);
+
+    var taskCount = this.additionalTaskCollection.length;
+
+    console.log(taskCount)
+
+    if (taskCount > 0) {
+      this.page.$('.task-list-container').removeClass('hide');
+      this.page.$('.empty-tasks-list').addClass('hide');
+      this.additionalTaskCollection.each(function (additionalTaskApp) {
+        var row = new AdditionalTaskRowView({ additionalTaskApp: additionalTaskApp});
+        this.$el.append(row.render().el);
+        this.additionalTask_views[additionalTaskApp.get('id')] = row;
+      }, this);
+    } else {
+      this.page.$('.task-list-container').addClass('hide');
+      this.page.$('.empty-tasks-list').removeClass('hide');
+    }
   }
 });
 

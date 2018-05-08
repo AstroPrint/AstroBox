@@ -33,7 +33,7 @@ class MaintenanceMenuManager(object):
 
 		self._logger.info("Loading Maintenance Menu...")
 
-		self._maintenanceMenu = "%s/utilities-menu.yaml" % self._settings.getBaseFolder('tasks')
+		self._maintenanceMenu = "%s/menu/utilities-menu.yaml" % self._settings.getBaseFolder('tasks')
 
 		if os.path.isfile(self._maintenanceMenu):
 			config = None

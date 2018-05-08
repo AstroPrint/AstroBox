@@ -5,10 +5,10 @@
     </div>
   </div>
 
-  <div class="row collapse empty-tasks-list">
+  <div class="row collapse empty-tasks-list hide">
     <div class="small-12 columns text-center">
       <i class="icon-inbox"></i>
-      <h4 class="bold">No tasks added</h4>
+      <h4 class="bold">No tasks</h4>
       <p>You can create some!</p>
     </div>
   </div>
@@ -34,14 +34,16 @@
     </div>
   </div>
 
-  <div class="row collapse">
-    <div class="small-12 columns text-center supplies-heading">
-      <h3 class="bold">Choose a Task</h3>
-      <p>Here you'll find tasks such as Filament loading and unloading, auto leveling...</p>
+  <div class="task-list-container">
+    <div class="row collapse">
+      <div class="small-12 columns text-center supplies-heading">
+        <h3 class="bold">Choose a Task</h3>
+        <p>Here you'll find tasks such as Filament loading and unloading, auto leveling...</p>
+      </div>
     </div>
-  </div>
 
-  <ul id="task-list" class="row task-list-view small-block-grid-1"></ul>
+    <ul id="task-list" class="row task-list-view small-block-grid-1"></ul>
+  </div>
 
   <script type="text/template" id="task-row-template">
     <a class="launch" href="#additional-tasks/<%= additionalTaskApp.id %>">

@@ -244,11 +244,7 @@ class SystemService(PluginService):
 		return
 
 	def additionalTasks(self, data ,sendMessage):
-		atm = additionalTasksManager()
-		result = atm.data.copy()
-
-		sendMessage(result)
-
+		sendMessage( additionalTasksManager().data.copy() )
 		return
 
 	def maintenanceMenu(self, data ,sendMessage):
