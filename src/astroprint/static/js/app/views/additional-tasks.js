@@ -70,8 +70,6 @@ var AdditionalTasksListView = Backbone.View.extend({
 
     var taskCount = this.additionalTaskCollection.length;
 
-    console.log(taskCount)
-
     if (taskCount > 0) {
       this.page.$('.task-list-container').removeClass('hide');
       this.page.$('.empty-tasks-list').addClass('hide');

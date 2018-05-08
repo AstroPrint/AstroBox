@@ -184,7 +184,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
     if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
-          console.info('All the commands have been sent');
           loadingBtn.removeClass('loading');
           if (direction == "next") { this.checkNextStep()} else {this.goBackStep()}
         },this))
