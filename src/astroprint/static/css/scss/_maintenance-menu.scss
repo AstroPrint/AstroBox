@@ -78,7 +78,7 @@
 
     img{
       max-height: 55px;
-      margin: 0 auto;
+      margin: 0 5px;
       border-radius: $global-radius;
     }
   }
@@ -193,7 +193,6 @@
       margin: 0;
       text-align: right;
       font-size: 1.125rem;
-      width: 100%;
       display: flex;
       justify-content: center;
       letter-spacing: 1px;
