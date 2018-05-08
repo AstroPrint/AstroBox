@@ -46,12 +46,12 @@
           <% } %>
         <% } %>
         <div class="overlay">
-          <% if (type == 'task') { %>
+          <% if (type == 'task' && name != 'not_found') { %>
             <h4 class="bold">Launch</h4>
           <%  } %>
         </div>
       </div>
-      <h5 class="name bold"><%= name %></h5> <i class="icon-angle-right"></i>
+      <h5 class="name bold"><%= name != 'not_found' ? name : 'Task [' + id + '] not installed' %></h5> <i class="icon-angle-right"></i>
     </a>
   </script>
 

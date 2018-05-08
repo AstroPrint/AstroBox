@@ -48,17 +48,14 @@ var AdditionalTasksListView = Backbone.View.extend({
   {
     this.additionalTaskCollection.reset();
     $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
-      if (data.utilities && data.utilities.length) {
-        for (var i = 0; i < data.utilities.length; i++) {
-          var adTask = data.utilities[i];
+      if (data.utilities) {
+        _.each(data.utilities, function(adTask){
           if (adTask.visibility) {
             this.additionalTaskCollection.add(new AdditionalTask(adTask))
           }
-        }
-        this.render();
-      } else {
-        this.render();
+        }, this);
       }
+      this.render();
     }, this))
     .fail(function() {
       noty({text: "There was an error getting additional tasks.", timeout: 3000});

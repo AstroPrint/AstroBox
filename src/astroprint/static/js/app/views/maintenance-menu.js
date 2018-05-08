@@ -93,15 +93,13 @@ var MaintenanceMenuListView = Backbone.View.extend({
 
         if (filteredMenu && filteredMenu.length) {
           if (filteredMenu[0].type) {
-            _.each(filteredMenu, _.bind(function(m) {
+            _.each(filteredMenu, function(m) {
               if (m.type == 'task') {
-                m = this._taskFormatData(m);
+                this._taskFormatData(m);
               }
 
-              if (m) {
-                this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
-              }
-            }, this));
+              this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+            }, this);
             $('#menu-error').hide();
             $('.error-message').hide();
           } else {
@@ -121,14 +119,13 @@ var MaintenanceMenuListView = Backbone.View.extend({
         noty({text: "There was an error getting maintenance menu.", timeout: 3000});
       })
     } else {
-      _.each(submenu, _.bind(function(m) {
+      _.each(submenu, function(m) {
         if (m.type == 'task') {
-          m = this._taskFormatData(m);
+          this._taskFormatData(m);
         }
-        if (m) {
-          this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
-        }
-      }, this));
+
+        this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+      }, this);
 
       this.render();
     }
@@ -137,15 +134,16 @@ var MaintenanceMenuListView = Backbone.View.extend({
   {
     var taskFound = _.find(this.tasks, function(t) { return t.id == task.id} );
     if (taskFound) {
-      task['icon_filename'] = taskFound.icon_filename;
-      task['name'] = {
+      task.icon_filename = taskFound.icon_filename;
+      task.name = {
         en: taskFound.strings.en.name,
         es: taskFound.strings.es.name
       };
-      return task
+    } else {
+      task.name = { en: "not_found" };
     }
 
-    return null;
+    return task;
   },
 
   render: function()
@@ -189,7 +187,7 @@ var MaintenanceMenuRowView = Backbone.View.extend({
       id: id,
       type: type,
       icon: type == 'task' ? item.get('icon_filename') : id+'.png',
-      name: name && name.en ? name.en : "Name missing for "+id
+      name: name && name.en ? name.en : id
     }));
 
     if (item.get('menu')) {
