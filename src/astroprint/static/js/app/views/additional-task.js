@@ -123,14 +123,18 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   currentStepManagement: function()
   {
-    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1];
     // If Show temp view
     if (this.currentStep.type == "set_temperature") {
       var loadingBtn = this.$('button.next').closest('.loading-button');
       loadingBtn.addClass('inactive');
-      setTimeout( function() {
+      setTimeout( _.bind(function() {
         this.customTempView = new CustomTempView();
-      }.bind(this), 300);
+      },this), 300);
+    }
+
+    if (this.currentStep.on_enter_commands) {
+      this.sendCommands('on_enter', this.currentStep.on_enter_commands);
     }
   },
 
