@@ -42,3 +42,6 @@ class ExternalDriveManager(object):
 
 	def getDirContents(self, globPattern, icon='folder', extensions=None):
 		return []
+
+	def getBaseFolder(self, key):
+		return settings().getBaseFolder(key)

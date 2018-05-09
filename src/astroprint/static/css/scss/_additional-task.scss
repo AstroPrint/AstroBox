@@ -100,7 +100,7 @@
 
     img{
       display: block;
-      max-height: 52vh;
+      max-height: 49vh;
       margin: 0 auto;
       border-radius: $global-radius;
    }
@@ -162,21 +162,58 @@
 }
 
 #multiple-actions-dlg {
+  outline: 0;
+  text-align: center;
+  box-shadow: none;
+  border: 0;
+
+  .close-reveal-modal {
+    font-size: rem-calc(60);
+    color: $primary-color;
+  }
+
+  ::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border-radius: 5px;
+    background-color: rgba(0,0,0,.5);
+    -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+  }
+
   .actions-container {
-    height: 250px;
+    padding:20px;
+    margin-top: 40px;
     overflow: hidden;
     overflow-y: scroll;
+    max-height: 67vh;
+
     .action {
-      margin: 10px;
-      border: 1px solid black;
-      padding: 3px;
-      border-radius: 4px;
+      padding: 12px;
       text-align: center;
-      font-size: 28px;
+      width: 100%;
+      font-size: rem-calc(18);
+      border: 2px solid rgba(102, 102, 102, 0.15);
+      vertical-align: top;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      margin: 10px 7px 0 7px;
+      color: $charcoal;
+      border-radius: 30px;
+      background: $white;
+
+      &:hover {
+        cursor: pointer;
+        background: $oil;
+        color: $white;
+        transform:scaleY(1.03);
+        transition: transform 100ms linear;
+      }
     }
-    .action:hover {
-      background: lightblue;
-    }
+
   }
 }
 
@@ -188,8 +225,10 @@
   }
 
   .extruder-selector{
-    padding-top: 8%;
-    padding-bottom: 6%;
+    padding-top: 5%;
+    padding-bottom: 10%;
+
+    label{color: $base;}
 
     #extruder-count{
       background: url("/img/icon-extruder-active.svg") bottom no-repeat;
@@ -204,6 +243,17 @@
       text-align-last: center;
       color: $white;
       border: 0;
+      -moz-appearance:none;
+    }
+
+    i:before{
+      transform: rotate(90deg);
+      margin: 0;
+      position: relative;
+      right: 32px;
+      top: -10px;
+      color: white;
+      font-size: rem-calc(12);
     }
   }
 

@@ -41,12 +41,10 @@ var AdditionalTaskContainerView = Backbone.View.extend({
   getSequence: function(additionalTaskSequenceID)
   {
     return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function(data) {
-      if (data.utilities && data.utilities.length) {
-        for (var i = 0; i < data.utilities.length; i++) {
-          var ca = data.utilities[i];
-          if (ca.id == additionalTaskSequenceID && ca.visibility) {
-            this.additionalTaskApp = new AdditionalTask(ca);
-          }
+      if (data) {
+        var task = _.find(data, function(task) { return task.id == additionalTaskSequenceID && task.visibility });
+        if (task) {
+          this.additionalTaskApp = new AdditionalTask(task);
         }
       }
     }, this))
@@ -70,7 +68,7 @@ var AdditionalTaskContainerView = Backbone.View.extend({
     } else {
       noActionEl.show();
       setTimeout(function() {
-        window.location.href = window.location.origin+"/#additional-tasks"
+        app.router.navigate("#additional-tasks", {trigger: true});
       }, 2500);
     }
   }
@@ -125,14 +123,18 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   currentStepManagement: function()
   {
-    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1];
     // If Show temp view
     if (this.currentStep.type == "set_temperature") {
       var loadingBtn = this.$('button.next').closest('.loading-button');
       loadingBtn.addClass('inactive');
-      setTimeout( function() {
+      setTimeout( _.bind(function() {
         this.customTempView = new CustomTempView();
-      }.bind(this), 300);
+      },this), 300);
+    }
+
+    if (this.currentStep.on_enter_commands) {
+      this.sendCommands('on_enter', this.currentStep.on_enter_commands);
     }
   },
 
@@ -186,7 +188,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
     if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
-          console.info('All the commands have been sent');
           loadingBtn.removeClass('loading');
           if (direction == "next") { this.checkNextStep()} else {this.goBackStep()}
         },this))
