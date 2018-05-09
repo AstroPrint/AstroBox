@@ -72,12 +72,15 @@
           <div id="view-container" class="small-12 columns">
             <div id="home-view" class="app-view hide"> {%- include 'home.jinja2' -%} </div>
             <div id="files-view" class="app-view hide"> {%- include 'files.jinja2' -%} </div>
-            <div id="control-view" class="app-view hide"> {%- include 'control.jinja2' -%} </div>
+            <div id="utilities-view" class="app-view hide"> {%- include 'utilities.jinja2' -%} </div>
             <div id="settings-view" class="app-view hide"> {%- include 'settings.jinja2' -%} </div>
             <div id="printing-view" class="app-view hide"> {%- include 'printing.jinja2' -%} </div>
             <div id="terminal-view" class="app-view hide"> {%- include 'terminal.jinja2' -%} </div>
             <div id="camera-view" class="app-view hide"> {%- include 'camera.jinja2' -%} </div>
             <div id="supplies-view" class="app-view hide"> {%- include 'supplies.jinja2' -%} </div>
+            <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
+            <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
+            <div id="maintenance-menu-view" class="app-view hide"> {%- include 'maintenance-menu.jinja2' -%} </div>
             <div id="help-view" class="app-view hide"> {%- include 'help.jinja2' -%} </div>
           </div>
         </div>
@@ -87,7 +90,7 @@
           <ul class="small-block-grid-5 columns text-center">
             <li class="dash"><a href="#" title="Dashboard"><i class="icon-th"></i></a></li>
             <li class="files"><a href="#files" title="File Manager"><i class="icon-folder"></i></a></li>
-            <li class="control"><a href="#control" title="Control Panel"><i class="icon-move"></i></a></li>
+            <li class="utilities"><a href="#utilities" title="Control Panel"><i class="icon-move"></i></a></li>
             <li class="camera"><a href="#camera" title="Camera"><i class="icon-videocam-1"></i></a></li>
             <li class="settings"><a href="#settings" title="Settings"><i class="icon-cog"></i></a></li>
           </ul>
@@ -148,6 +151,7 @@
       print_capture: {% if print_capture -%} {{ print_capture | tojson | safe }} {%- else -%} null {%- endif %},
       online: {% if online -%} true {%- else -%} false {%- endif %},
       checkSoftware: {% if checkSoftware -%} true {%- else -%} false {%- endif %},
+      additionalTasks: {% if additionalTasks -%} true {%- else -%} false {%- endif %},
       userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
     };
     var initial_printer_profile = {{ printer_profile | tojson | safe }};
@@ -159,11 +163,11 @@
     "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
     "js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
     "js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js", "js/lib/jquery.localtime.min.js",
-    "js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/usbfiles.js", "js/app/models/printerprofile.js",
+    "js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/usbfiles.js", "js/app/models/printerprofile.js","js/app/models/additionaltask.js","js/app/models/maintenancemenu.js",
     "js/app/widgets/tempsemicircleview.js", "js/app/widgets/semicircleprogress.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
-    "js/app/views/home.js", "js/app/views/files.js", "js/app/views/control.js", "js/app/views/settings.js", "js/app/views/connection.js",
+    "js/app/views/home.js", "js/app/views/files.js", "js/app/views/utilities.js", "js/app/views/settings.js", "js/app/views/connection.js",
     "js/app/views/turnoff.js", "js/app/views/reboot.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js", "js/app/views/supplies.js", "js/app/views/help.js",
-    "js/app/router.js",
+    "js/app/router.js","js/app/views/additional-tasks.js","js/app/views/additional-task.js","js/app/views/maintenance-menu.js",
     "js/app/app.js" -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}

@@ -278,6 +278,9 @@ class PrinterCommsService(CommandPluginInterface):
 		self._printerManager = printerManager
 
 		self._currentTool = 0
+		self._printingSpeed = 100
+		self._printingFlow = 100
+
 		self._currentZ = 0
 		self._lastLayerHeight = 0
 
@@ -507,6 +510,22 @@ class PrinterCommsService(CommandPluginInterface):
 	def reportToolChange(self, newTool, oldTool):
 		self._printerManager.mcToolChange(newTool, oldTool)
 
+	#
+	# Report a new printing speed
+	#
+	# - amount: The printing speed in percentage
+	#
+	def reportPrintingSpeedChange(self, amount):
+		self._printerManager.mcPrintingSpeedChange(amount)
+
+	#
+	# Report a new printing flow
+	#
+	# - amount: The printing flow in percentage
+	#
+	def reportPrintingFlowChange(self, amount):
+		self._printerManager.mcPrintingFlowChange(amount)
+
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 	# CommandPluginInterface     ~
 	# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -551,3 +570,13 @@ class PrinterCommsService(CommandPluginInterface):
 			self._materialCounter.changeActiveTool(str(tool), str(oldTool))
 			self._currentTool = tool
 			self.reportToolChange(tool, oldTool)
+
+	def onPrintingSpeedChanged(self, amount):
+		if self._printingSpeed != amount:
+			self._printingSpeed = amount
+			self.reportPrintingSpeedChange(amount)
+
+	def onPrintingFlowChanged(self, amount):
+		if self._printingFlow != amount:
+			self._printingFlow = amount
+			self.reportPrintingFlowChange(amount)

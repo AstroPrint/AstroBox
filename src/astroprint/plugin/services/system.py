@@ -17,6 +17,8 @@ from astroprint.printer.manager import printerManager
 from netifaces import interfaces, ifaddresses, AF_INET
 
 from astroprint.printerprofile import printerProfileManager
+from astroprint.additionaltasks import additionalTasksManager
+from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -232,6 +234,30 @@ class SystemService(PluginService):
 
 			return
 
+	def saveTempPreset(self, data, sendMessage):
+		ppm = printerProfileManager()
+
+		if data:
+			id = ppm.createTempPreset(data['name'], data['nozzle_temp'], data['bed_temp'])
+			sendMessage( id )
+
+		return
+
+	def additionalTasks(self, data ,sendMessage):
+		atm = additionalTasksManager()
+		result = atm.data.copy()
+
+		sendMessage(result)
+
+		return
+
+	def maintenanceMenu(self, data ,sendMessage):
+		mmenu = maintenanceMenuManager()
+		result = mmenu.data
+
+		sendMessage(result)
+
+		return
 
 	def refreshPluggedCamera(self, data, sendMessage):
 		cm = cameraManager()
@@ -592,3 +618,10 @@ class SystemService(PluginService):
 			sendResponse(boxId)
 
 		return boxId
+
+	def restartServer(self, data=None, sendResponse=None):
+		#We should reboot the whole device
+		if softwareManager.restartServer():
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse("error_restarting",True)

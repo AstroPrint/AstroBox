@@ -320,14 +320,13 @@
     color: $iron;
 
     .semi-circle-temps {
-      width: 300px !important;
+      width: 280px !important;
       .temp-container .buttons-container {
         .temp-target {
           .target {
-            left: 3%;
+            left: 2%;
             padding: 0;
           }
-          right: 0px;
         }
       }
       .progress-temp-circle {
@@ -373,10 +372,12 @@
 
       .icon-angle-left {
         left: 10px;
+        padding: 0;
       }
 
       .icon-angle-right {
         right: 5px;
+        padding: 0;
       }
 
       #slider-nav {
@@ -427,8 +428,8 @@
         white-space: nowrap;
         overflow: hidden;
         overflow-x: scroll;
-        margin-top: 12px;
-        margin-bottom: -15px;
+        margin-top: 10px;
+        padding-bottom: 25px;
 
         .semi-circle-temps {
           display: inline-block;
@@ -472,7 +473,7 @@
     }
 
     .bed {
-      height: 240px;
+      height: 245px;
       box-shadow: 0px 3px 2px 2px rgba(82, 82, 82, 0.04);
       .semi-circle-temps {
         width: 100% !important;

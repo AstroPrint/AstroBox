@@ -1,8 +1,9 @@
-.controls-container{
+.control-container{
   margin-bottom: 0px;
   @include radius($global-radius);
   background: $white;
-  padding: 31px 30px 10px 30px;
+  padding-top: 27px;
+  padding-bottom: 5px;
 
   .extruder-number{
     margin-bottom: 0;
@@ -22,6 +23,7 @@
     margin-bottom: -1px;
     font-family: sans-serif;
     letter-spacing: 1.5px;
+    white-space: nowrap;
   }
 
   input, select, .postfix {
@@ -32,6 +34,7 @@
   }
 
   .extruder-switch{
+    margin: 0;
     .small-3{
       position: absolute;
       bottom: -120px;
@@ -40,12 +43,8 @@
 
   select.fan-speed{
     border: 0;
-    font-size: 20px;
-    /* padding-top: 0px; */
     background-size: 23px 5px;
     background-position: 100% 16px;
-    padding-left: 0;
-    text-align-last: center;
     padding-right: 0;
     -moz-appearance: none;
     border: 2px solid gainsboro;
@@ -53,25 +52,28 @@
 
   select.extruder-number{
     border: 0;
-    font-size: 15px;
     margin-top: 0;
-    font-size: 18px;
     background-color: transparent;
     background-size: 25px 7px;
     background-position-y: 23px;
     margin-bottom: 10px;
-    text-align: left;
     padding-bottom: 0;
-    max-width: 160px;
-    letter-spacing: 1px;
+    max-width: 77px;
+    padding-left: 0;
     opacity: 1;
+    z-index: 99999;
+    color: #333333;
+    margin-left: -59px;
+    font-size: 20px;
+    text-align-last:center;
+
     &.no-selected {
       opacity: 0;
     }
   }
 
   .extruder-icon{
-    height: 22px;
+    height: 37px;
   }
 
   .heading-box{
@@ -230,7 +232,11 @@
   }
 }
 
-#control-view {
+#utilities-view {
+
+  #bed-container{
+    padding: 0;
+  }
 
   >.row:first-child{overflow: hidden;}
 
@@ -250,20 +256,21 @@
     font-size: 14px;
     margin-top: 5px;
     margin-bottom: 0px;
-	}
+  }
 
-	.back-to-print {
+  #controls {
+    position: relative;
+    display: table;
+  }
+
+	.printing-activity {
 		display: none;
 	}
 
-	&.print-paused {
-		.back-to-print {
+	&.print-paused, &.print-active {
+		.printing-activity {
 			display: block;
 			margin-top: 10px;
-
-			button {
-				margin: 0;
-			}
 
 			.filename {
 				font-size: rem-calc(17);
@@ -272,7 +279,7 @@
 				white-space: nowrap;
 				text-overflow: ellipsis;
 			}
-		}
+    }
 
 		#z-controls {
 			.btn_home_z {
@@ -286,8 +293,66 @@
 				opacity: 0.1;
 				cursor: not-allowed;
 			}
-		}
-	}
+    }
+    div {
+      #filename-progress-container {
+        margin: 15px !important;
+        margin-top: -5px !important;
+      }
+    }
+
+    .progress {
+      background-color: rgba(240, 82, 81, 0.2);
+      position: relative;
+      text-align: left;
+      height: 15px;
+      margin-top: 45px;
+      margin-bottom: -10px;
+
+      .filename {
+        position: absolute;
+        top: -22px;
+        left: 2px;
+        color: rgba(0, 0, 0, 0.3);
+        font-size: rem-calc(14);
+        overflow-x: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 60%;
+      }
+
+      .progress-label {
+        position: absolute;
+        right: 0;
+        top: -45px;
+        font-size: rem-calc(36);
+        color: $green;
+      }
+    }
+  }
+  &.print-paused {
+    .resume-container {
+      display: inline-block !important;
+    }
+    .pause-container {
+      display: none !important;
+    }
+  }
+  &.print-active {
+    .no-paused-overlay {
+      display: inline-block;
+    }
+    .blur-effect {
+      filter:blur(4px);
+    }
+
+    .resume-container {
+      display: none !important;
+    }
+    .pause-container {
+      display: inline-block !important;
+    }
+  }
 
   .no-connection-overlay {
     display: none;
@@ -308,6 +373,22 @@
         font-size: rem-calc(80);
         display: block;
       }
+    }
+  }
+  .no-paused-overlay {
+    display: none;
+    position: absolute;
+    height: 99%;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.36);
+    color: white;
+    text-align: center;
+    font-size: rem-calc(25);
+    border-radius: 3px;
+    z-index: 1;
+    i {
+      font-size: rem-calc(60);
+      display: block;
     }
   }
 
@@ -344,7 +425,7 @@ html.no-printer {
 }
 
 #distance-control {
-  margin-bottom: 28px;
+  margin-bottom: 25px;
   padding: 0;
 
 	ul {
@@ -357,7 +438,7 @@ html.no-printer {
 	}
 }
 
-#control-view{
+#utilities-view{
     .temp-target{
     @extend.no-paddingleft;
   }
@@ -387,7 +468,7 @@ html.no-printer {
   #extruder-container {
     display: inline-block;
     white-space: nowrap;
-    min-height: 260px;
+    min-height: 272px;
     background: $white;
 
     .arrow {
@@ -504,8 +585,7 @@ html.no-printer {
       }
       .graphic-container {
         width: 100%;
-
-          padding: 0;
+        padding: 0;
       }
     }
 
@@ -513,8 +593,8 @@ html.no-printer {
       white-space: nowrap;
       overflow: hidden;
       overflow-x: scroll;
-      margin-top: 12px;
-      margin-bottom: -12px;
+      margin-top: 10px;
+      margin-bottom: -10px;
       padding: 0;
 
       img.icon-bed{display: none;}
@@ -538,9 +618,17 @@ html.no-printer {
       padding-top: 5px;
       margin-bottom: 12px;
     }
+
+   .semi-circle-temps .temp-container .graphic-container{
+     padding: 0 !important;
+     .buttons-container{
+       margin: 0 auto;
+     }
+   }
   }
+
   .temp-subheading{
-    padding:5px 20px 2px 20px;
+    padding:10px 20px 2px 20px;
     background: $white;
     color: darkgrey;
     text-transform: uppercase;
@@ -568,16 +656,30 @@ html.no-printer {
     }
   }
 }
+.fan-flow-container {
+  border-top: 1px dashed #e2e2e2;
+  padding-top: 10px;
 
-#fan-control {
-  text-align: center;
-  position: absolute;
-  right: 0;
-  bottom: 11px;
-
-  .border-left{
-    border-left: 1px dashed gainsboro;
+  .no-paddingleft{
+    padding-left: 0;
   }
+
+}
+
+#printing-speed-control, #printing-flow-control{
+  select{width: 95%;}
+}
+
+#fan-control, #printing-speed-control, #printing-flow-control{
+
+
+  &.border-left{border-left: 1px dashed gainsboro;}
+
+  .variable-speed{padding: 0;}
+
+  .no-paddingleft{padding-left: 0;}
+  .nopadding{padding: 0;}
+  .no-paddingright{padding-right: 0;}
 
   .fan-on{
     border: 2px solid $oil;
@@ -590,8 +692,7 @@ html.no-printer {
       color: white;
     }
   }
-
-  .fan_icon {
+  .flow-icon {
     position: relative;
     top: 17px;
     color: $charcoal;
@@ -599,18 +700,22 @@ html.no-printer {
     margin-bottom: 24px;
 
     &:before{
-      font-size: 40px;
+      font-size: 38px;
       margin: 0;
     }
+  }
+  .fan_icon {
+    position: relative;
+    top: 8px;
+    color: $charcoal;
+    display: block;
+    font-size: 38px;
   }
 
   .fan-off{
     background: $oil;
     border: 2px solid $oil;
     margin-top: 16px;
-  }
-  .fans{
-    padding: 14px;
   }
 
   .other-fan-speed .postfix{
@@ -644,6 +749,7 @@ html.no-printer {
   .no-paddingright{
     padding-right: 0;
   }
+
 	.columns {
 		&.padded-top {
 			padding-top: 21px;
@@ -682,11 +788,17 @@ html.no-printer {
   button{
     background: $oil;
     margin-top: 15px;
+
+    &:active{
+      transform: scale(0.9);
+    }
   }
 
   div.extruder-heading{
-    background: #e2e2e2;
-    margin-bottom: 15px;
+    background: #e5e5e5;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    font-size: 14px;
   }
   select{
     -moz-appearance: none;
@@ -711,7 +823,7 @@ html.no-printer {
 }
 
 @media #{$large-up} {
-	#control-view {
+	#utilities-view {
 		h1 {
 			@include side-radius(bottom);
 			border: 1px solid #e6e6e6;
@@ -726,6 +838,9 @@ html.no-printer {
 }
 
 @media #{$small-only} {
+  #temp-control-template {
+    margin-top: 30px;
+  }
 
   .border-left{border-left: 0 !important;}
 

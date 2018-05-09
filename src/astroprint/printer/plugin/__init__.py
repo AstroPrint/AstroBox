@@ -231,6 +231,12 @@ class PrinterWithPlugin(Printer):
 	def home(self, axes):
 		self._plugin.home(axes)
 
+	def setPrintingSpeed(self, amount):
+		self._plugin.setPrintingSpeed(amount)
+
+	def setPrintingFlow(self, amount):
+		self._plugin.setPrintingFlow(amount)
+
 	def fan(self, tool, speed):
 		self._plugin.fan(tool, speed)
 
@@ -309,6 +315,11 @@ class PrinterWithPlugin(Printer):
 	def getSelectedTool(self):
 		return self._plugin.currentTool
 
+	def getPrintingSpeed(self):
+		return self._plugin.printingSpeed
+
+	def getPrintingFlow(self):
+		return self._plugin.printingFlow
 
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):

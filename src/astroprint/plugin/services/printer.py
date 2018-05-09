@@ -34,6 +34,8 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.CONNECTING, self._onConnecting)
 		self._eventManager.subscribe(Events.HEATING_UP, self._onHeatingUp)
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
+		self._eventManager.subscribe(Events.PRINTINGSPEED_CHANGE, self._onPrintingSpeedChange)
+		self._eventManager.subscribe(Events.PRINTINGFLOW_CHANGE, self._onPrintingFlowChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -130,6 +132,15 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
+	def printerPrintingSpeed(self, data, callback):
+		pm = printerManager()
+
+		amount = data["amount"]
+
+		pm.printingSpeed(amount)
+
+		callback({'success': 'no_error'})
+
 	def printerFanSpeed(self, data, callback):
 		pm = printerManager()
 
@@ -139,6 +150,22 @@ class PrinterService(PluginService):
 		pm.fan(tool, speed)
 
 		callback({'success': 'no_error'})
+
+	def sendComm(self, data ,callback):
+		pm = printerManager()
+
+		if not pm.allowTerminal:
+			callback('Driver does not support terminal access',True)
+		if not pm.isOperational():
+			callback('No Printer connected',True)
+
+		command = data['command']
+
+		if command:
+			pm.sendRawCommand(command)
+			callback({'success': 'no_error'})
+		else:
+			callback("Command is missing", True)
 
 	##Printer connection
 
@@ -294,6 +321,50 @@ class PrinterService(PluginService):
 
 		return selectedTool
 
+	def getPrintingSpeed(self, data, sendResponse= None):
+		pm = printerManager()
+
+		if pm.isConnected():
+			printingSpeed = int(pm.getPrintingSpeed())
+		else:
+			printingSpeed = None
+
+		if sendResponse:
+			sendResponse(printingSpeed)
+
+		return printingSpeed
+
+	def setPrintingSpeed(self, data, sendResponse= None):
+		pm = printerManager()
+
+		pm.setPrintingSpeed(int(data))
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
+	def getPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		if pm.isConnected():
+			printingFlow = int(pm.getPrintingFlow())
+		else:
+			printingFlow = None
+
+		if sendResponse:
+			sendResponse(printingFlow)
+
+		return printingFlow
+
+	def setPrintingFlow(self, data, sendResponse= None):
+		pm = printerManager()
+
+		pm.setPrintingFlow(int(data))
+
+		sendResponse({'success': 'no_error'})
+
+		return
+
 	def selectTool(self,data,sendResponse):
 
 		pm = printerManager()
@@ -343,7 +414,7 @@ class PrinterService(PluginService):
 
 
 	def getTimelapse(self,data,sendResponse):
-		sendResponse(cameraManager().timelapseInfo);
+		sendResponse(cameraManager().timelapseInfo)
 
 	#EVENTS
 
@@ -358,6 +429,12 @@ class PrinterService(PluginService):
 
 	def _onToolChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"tool": value})
+
+	def _onPrintingSpeedChange(self,event,value):
+		self.publishEvent('printer_state_changed', {"speed": value})
+
+	def _onPrintingFlowChange(self,event,value):
+		self.publishEvent('printer_state_changed', {"flow": value})
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})

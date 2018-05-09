@@ -39,7 +39,9 @@ class RequestHandler(object):
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
 			'capabilities': softwareManager.capabilities() + cm.capabilities,
-			'tool': printer.getSelectedTool() if printer.isOperational() else None
+			'tool': printer.getSelectedTool() if printer.isOperational() else None,
+			'printSpeed': printer.getPrintingSpeed(),
+			'printFlow': printer.getPrintingFlow()
 		}
 
 		if state['printing'] or state['paused']:

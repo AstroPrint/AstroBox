@@ -180,6 +180,18 @@ class PrinterMarlin(Printer):
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
+	def setPrintingSpeed(self, amount):
+		try:
+			self.command("M220 S%s" % amount)
+		except ValueError:
+			pass
+
+	def setPrintingFlow(self, amount):
+		try:
+			self.command("M221 S%s" % amount)
+		except ValueError:
+			pass
+
 	def extrude(self, tool, amount, speed=None):
 		if self._comm:
 			if speed:
@@ -535,6 +547,12 @@ class PrinterMarlin(Printer):
 
 	def getSelectedTool(self):
 		return self._comm.getSelectedTool()
+
+	def getPrintingSpeed(self):
+		return self._comm.getPrintingSpeed()
+
+	def getPrintingFlow(self):
+		return self._comm.getPrintingFlow()
 
 	def getPrintProgress(self):
 		return self._comm.getPrintProgress()

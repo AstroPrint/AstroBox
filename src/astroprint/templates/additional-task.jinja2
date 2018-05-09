@@ -1,0 +1,147 @@
+<div class="content">
+  <div id="additional-task-app-container">
+    <div class=" bold row text-center" id="additional-task" style="display:none">No Task was found with that ID
+      <div class="blink-animation">Redirecting...</div>
+      <img src="static/img/sadmonkey-2.png" alt="no-action icon">
+    </div>
+    <div class="additional-tasks-app"></div>
+  </div>
+
+  <script type="text/template" id="additional-task-app-template">
+    <div class="row large-collapse">
+      <div class="small-12 columns title-heading">
+        <h1 class="bold"><%= additionalTaskApp.strings.en.name %></h1>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="task-main">
+
+        <div class="columns small-12 large-1 text-center no-padding">
+          <!-- Close button -->
+          <button class="dark radius tiny expand bold close"><i class="icon-plus"></i></button>
+        </div>
+
+        <div class="columns small-12 large-11 no-padding right">
+          <div class="clearfix">
+            <div class="columns-small-12 clearfix">
+              <div class="progress">
+                <span class="meter"></span>
+              </div>
+            </div>
+
+            <div id="title-app" class="small-12 medium-8 columns padding-top bold"><%= currentStep.strings.en.title %>
+            </div>
+            <% if (!isModal) { %>
+            <div class="small-12 medium-4 columns text-right padding-top">Step
+              <span id="step-counter" ><span class="current bold"><%= currentIndexStep %></span><span class="total bold"> / <%= additionalTaskApp.steps.length %></span></span>
+            </div>
+            <% } %>
+          </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <!-- Additional Task description -->
+        <div class="columns-small-12 step-description text-center">
+          <p><%= currentStep.strings.en.description %></p>
+        </div>
+
+        <% if (currentStep.type == "set_temperature") { %>
+        <!-- Temperature Widget -->
+          <div class="columns-small-12">
+            <div id="custom-temp-control-template" class="temp-container">
+              <div class="clearfix">
+                <div class="small-12 column" id="extruder-container">
+                  <div id="extruders" class="row" align="center">
+                    <div class="clearfix">
+                      <div class="temp-subheading text-center bold">Extruder #<%=app.socketData.attributes.tool+1%></div>
+                      <i id="previous" class="icon-angle-left arrow arrow-disabled hide"></i>
+                      <div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide"></i>
+                    </div>
+                    <div id="slider" class="small-12 column clearfix" aling="center"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        <% } else if (currentStep.type == "set_extruder") { %>
+          <!-- Extruder picker -->
+          <div class="columns-small-12 text-center extruder-selector">
+            <label for="extruder-count">Filament will be change on this extruder:</label>
+            <select id="extruder-count" class="bold" name="extruder_count">
+            <% for(var i=0; i < initial_printer_profile.extruder_count; i++) { %>
+              <option value="<%= i %>" <%= app.socketData.attributes.tool == i ? 'selected' : '' %> ><%= i+1 %></option>
+            <% } %>
+            </select>
+          </div>
+        <% } else { %>
+           <!-- Additional Task Media -->
+          <div id="img-app" class="columns-small-12 text-center">
+          <% if (currentStep.img_filename ) { %>
+            <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
+          <% } else if (currentStep.vid_filename) { %>
+            <video autoplay="autoplay" loop="loop" src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.vid_filename %>" ></video>
+          <% } %>
+          </div>
+      <% } %>
+        <!-- Repeat button -->
+        <% if (!isModal && currentIndexStep == additionalTaskApp.steps.length && additionalTaskApp.repeatable) { %>
+          <button class="round small bold repeat"><i class="icon-refresh"></i></button>
+        <% } %>
+
+        <div class="columns-small-12 buttons text-center" >
+          <!-- Action button -->
+          <% if (currentStep.actions) { %>
+            <div class="small-6 large-3 offset-3 columns" >
+              <button class="danger small radius action bold"><%= currentStep.actions.name.en %></button>
+            </div>
+          <% } %>
+          <% if (currentStep.back_button) { %>
+            <!-- Back button -->
+            <div class="loading-button small-6 large-3 columns">
+              <button class="small expand radius back bold"><%= currentStep.back_button.name.en %></button>
+              <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+              <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+              <span class="button secondary small expand radius disabled inactive">
+                <i class="icon-rocket-spinner animate-spin"></i>
+                <%= currentStep.back_button.name.en %>
+              </span>
+            </div>
+          <% } %>
+
+          <!-- Next button -->
+          <% if (!isModal) { %>
+          <div class="loading-button small-6 large-3 columns">
+            <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
+            <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+            <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
+            <span class="button secondary small expand radius disabled inactive">
+              <i class="icon-rocket-spinner animate-spin"></i>
+              <%= currentStep.next_button.name.en %>
+            </span>
+          </div>
+          <% } %>
+        </div>
+
+      </div>
+
+    </div>
+  </script>
+
+  <!-- @MULTIPLE ACTIONS DLG -->
+  <div id="multiple-actions-dlg" class="reveal-modal medium" data-reveal>
+    <h2 class="bold title-dlg">{{title}}</h2>
+    <div class="reveal-content">
+    <!-- ACTION BUTTONS HERE -->
+      <div class="actions-container"></div>
+    </div>
+
+    <a class="close-reveal-modal">&#215;</a>
+  </div>
+
+  <div class="no-connection-overlay">
+    <i class="icon-usb"></i>
+    <b>Please, connect a 3D Printer via USB.</b>
+  </div>
+</div>

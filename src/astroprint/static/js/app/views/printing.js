@@ -335,7 +335,7 @@ el: '#printing-view',
   events: {
     'click button.stop-print': 'stopPrint',
     'click button.pause-print': 'togglePausePrint',
-    'click button.controls': 'showControlPage',
+    'click button.controls': 'showUtilitiesPage',
     'show': 'show',
     'hide': 'onHide',
     'click .nav-extruder': 'navExtruderClicked',
@@ -409,14 +409,10 @@ el: '#printing-view',
 
     //Paused state
     var pauseBtn = this.$el.find('button.pause-print');
-    var controlBtn = this.$el.find('button.controls');
-
     if (this.paused) {
       pauseBtn.html('<i class="icon-play"></i> Resume Print');
-      controlBtn.show();
     } else {
       pauseBtn.html('<i class="icon-pause"></i> Pause Print');
-      controlBtn.hide();
     }
   },
   renderCircleTemps: function()
@@ -599,10 +595,9 @@ el: '#printing-view',
       loadingBtn.removeClass('loading');
     });
   },
-  showControlPage: function()
+  showUtilitiesPage: function()
   {
-    app.router.navigate('control', {trigger: true, replace: true});
-    this.$el.addClass('hide');
+    app.router.navigate('utilities', {trigger: true, replace: true});
   },
   _jobCommand: function(command, data, callback)
   {

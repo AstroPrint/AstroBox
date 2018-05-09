@@ -16,6 +16,7 @@ import os
 import yaml
 import logging
 import shutil
+import uuid
 
 from octoprint.settings import settings
 from astroprint.plugin import pluginManager
@@ -28,7 +29,6 @@ class PrinterProfileManager(object):
 
 		self._infoFile = "%s/printer-profile.yaml" % configDir
 		self._logger = logging.getLogger(__name__)
-
 		self.data = {
 			'driver': "marlin",
 			'plugin': None,
@@ -37,7 +37,19 @@ class PrinterProfileManager(object):
 			'max_bed_temp': 140,
 			'heated_bed': True,
 			'cancel_gcode': ['G28 X0 Y0'],
-			'invert_z': False
+			'invert_z': False,
+			'temp_presets' : [
+					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
+					'name' : "PLA",
+					'nozzle_temp' : 220,
+					'bed_temp' : 40},
+				 	{'id' : "2cc9df599f3e4292b379913f4940c000s",
+					'name': "ABS",
+					'nozzle_temp': 230,
+					'bed_temp' : 80}
+			],
+			'last_presets_used' : [
+			]
 		}
 
 		if not os.path.isfile(self._infoFile):
@@ -98,6 +110,17 @@ class PrinterProfileManager(object):
 		})
 
 		return result
+
+	def createTempPreset(self, name, nozzle_temp, bed_temp):
+		id = uuid.uuid4().hex
+		temp_update = { 'id' : id, 'name' : name, 'nozzle_temp' : int(nozzle_temp), 'bed_temp' : int(bed_temp)}
+
+		changes = self.data.copy()
+		changes['temp_presets'].append(temp_update)
+		self.set(changes)
+		self.save()
+
+		return id
 
 	def _clean(self, field, value):
 		if field in ['extruder_count', 'max_nozzle_temp', 'max_bed_temp']:

@@ -4,6 +4,7 @@
 	"fonts",
 	"normalize",
 	"fontello",
+  "animations",
 	"foundation/settings",
 	"foundation/components/grid",
 	"foundation/components/buttons",
@@ -12,10 +13,14 @@
 	"widgets";
 
 body {
-	background: url('/img/upload-bg.jpg') no-repeat;
-	background-size: cover;
+	background: black;
 	height: 100%;
 	width: 100%;
+}
+
+.icon-rocket {
+  color: white;
+  font-size: 70px;
 }
 
 .info {
@@ -36,7 +41,8 @@ body {
 		font-size: rem-calc(14);
 	}
 
-	button {
+	button,
+  .button {
 		font-size: rem-calc(26);
 	}
 }
@@ -82,31 +88,54 @@ body {
 		}
 	}
 
-	button {
+	button,
+  .button {
 		font-size: rem-calc(25);
 	}
 }
 
-.progress-animation {
-	width: 100%;
-	max-width: 600px;
-	position: relative;
+#updating-view {
+  .icon-ok-circled {
+    color: $success-color;
+  }
 
-	.left-img {
-		position: absolute;
-		bottom: -50px;
-		left: 0;
-		width: 30%;
-	}
+  .done,
+  .error,
+  .info {
+    display: none;
+  }
 
-	.right-img {
-		position: absolute;
-		bottom: -50px;
-		right: 0;
-		width: 30%;
-	}
+  &.done {
+    .updating {
+      display: none
+    }
 
-	.progress-img {
-		width: 75%;
-	}
+    .done {
+      display: block;
+    }
+  }
+
+  &.failed {
+    .progress-info {
+      display: none;
+    }
+
+    .error {
+      display: inherit;
+    }
+
+    .updating {
+      display: none;
+    }
+  }
+
+  &.forced {
+    .progress-info {
+      display: none;
+    }
+
+    .info {
+      display: block;
+    }
+  }
 }

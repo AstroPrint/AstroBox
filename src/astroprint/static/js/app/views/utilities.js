@@ -11,6 +11,7 @@ var TempView = Backbone.View.extend({
   extruders_count: null,
   socketTemps: null,
   heated_bed: null,
+  temp_presets : null,
   events: {
     'click .nav-extruder': 'navExtruderClicked',
     'click .semi-circle-temps': 'semiCircleTempsClicked',
@@ -23,7 +24,7 @@ var TempView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     this.extruders_count = profile.extruder_count;
     this.heated_bed = profile.heated_bed;
-
+    this.temp_presets = profile.temp_presets;
     this.renderCircleTemps();
   },
   renderCircleTemps: function() {
@@ -38,7 +39,7 @@ var TempView = Backbone.View.extend({
     this.$el.find('#slider').empty();
     this.$el.find('.bed').empty();
 
-    //extruders
+
     for (var i = 0; i < this.extruders_count; i++) {
       semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
@@ -144,7 +145,7 @@ var TempView = Backbone.View.extend({
           }
         }
 
-        if ($("#control-view").hasClass('print-paused')) {
+        if ($("#utilities-view").hasClass('print-paused')) {
           this.semiCircleTemp_views[i].enableTurnOff(false);
         } else {
           this.semiCircleTemp_views[i].enableTurnOff(true);
@@ -419,7 +420,6 @@ var ExtrusionControlView = Backbone.View.extend({
   extruderChanged: function(e)
   {
     var selectedTool = $(e.target).val();
-    console.log("Changed select of extruder for: ", $(e.target).val());
 
     this.setCurrentTool(selectedTool)
     this._sendChangeToolCommand(selectedTool)
@@ -542,7 +542,7 @@ var FanControlView = Backbone.View.extend({
       });
       this.$('.fan_icon').addClass(speedClass);
       this.$('.fans').removeClass('fan-on').addClass('fan-off');
-      this.$('.fans').text('Turn OFF');
+      this.$('.fans').text('STOP');
     }
 
   },
@@ -551,13 +551,13 @@ var FanControlView = Backbone.View.extend({
     this._setFanSpeed(0);
     this.$('.fan_icon').removeClass('animate-spin');
     this.$('.fans').removeClass('fan-off').addClass('fan-on');
-    this.$('.fans').text('ON');
+    this.$('.fans').text('START');
   },
   _setFanSpeed: function(speed)
   {
     var data = {
       command: "set",
-      tool:  $('#control-view #extrusion-control .extruder-number').val(),
+      tool:  $('#utilities-view #extrusion-control .extruder-number').val(),
       speed: speed
     }
 
@@ -587,11 +587,133 @@ var FanControlView = Backbone.View.extend({
   }
 });
 
-var ControlView = Backbone.View.extend({
-  el: '#control-view',
+var PrintingSpeedControlView = Backbone.View.extend({
+  el: '.printing-speed-control',
   events: {
-    'click .back-to-print button': 'resumePrinting',
-    'show': 'render'
+    'change .printing-speed-amount': 'rateChanged',
+    'change .other-printing-speed-amount input': 'onCustomSpeedChanged'
+  },
+  initialize: function()
+  {
+    var printingSpeedAmount = app.socketData.attributes.printing_speed;
+
+    this.setSpeedValue(printingSpeedAmount);
+  },
+
+  setSpeedValue: function(value)
+  {
+    if (value == 25 || value == 50 || value == 100 || value == 200 ) {
+      this.$('select.printing-speed-amount').val(value).change();
+    } else {
+      this.$('select.printing-speed-amount').val("other").change();
+      this.$('input[name="printing-speed-amount"]').val(value);
+    }
+  },
+  _setPrintSpeed: function(amount)
+  {
+    var data = {
+      command: "set",
+      amount: amount
+    }
+
+    $.ajax({
+      url: API_BASEURL + "printer/printing-speed",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
+  },
+  rateChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-printing-speed-amount').removeClass('hide').find('input').focus().select();
+    } else {
+      var amount = elem.val();
+      this.$('input[name="printing-speed-amount"]').val(amount);
+      this._setPrintSpeed(amount);
+    }
+  },
+  onCustomSpeedChanged: function(e) {
+    var elem = $(e.target);
+    var amount = elem.val();
+    if (amount < 25) { amount = 25; } else if (amount > 500) { amount = 500;}
+    elem.val(amount);
+    this._setPrintSpeed(amount);
+    $(e.target).blur();
+  }
+});
+
+var PrintingFlowControlView = Backbone.View.extend({
+  el: '.printing-flow-control',
+  events: {
+    'change .printing-flow-amount': 'rateChanged',
+    'change .other-printing-flow-amount input': 'onCustomFlowChanged'
+  },
+  initialize: function()
+  {
+    var printingFlowAmount = app.socketData.attributes.printing_flow;
+
+    this.setFlowValue(printingFlowAmount);
+  },
+
+  setFlowValue: function(value)
+  {
+    if (value == 25 || value == 50 || value == 100 || value == 200 ) {
+      this.$('select.printing-flow-amount').val(value).change();
+    } else {
+      this.$('select.printing-flow-amount').val("other").change();
+      this.$('input[name="printing-flow-amount"]').val(value);
+    }
+  },
+  _setPrintFlow: function(amount)
+  {
+    var data = {
+      command: "set",
+      amount: amount
+    }
+
+    $.ajax({
+      url: API_BASEURL + "printer/printing-flow",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
+  },
+  rateChanged: function(e)
+  {
+    var elem = $(e.target);
+
+    if (elem.val() == 'other') {
+      elem.addClass('hide');
+      this.$('.other-printing-flow-amount').removeClass('hide').find('input').focus().select();
+    } else {
+      var amount = elem.val();
+      this.$('input[name="printing-flow-amount"]').val(amount);
+      this._setPrintFlow(amount);
+    }
+  },
+  onCustomFlowChanged: function(e) {
+    var elem = $(e.target);
+    var amount = elem.val();
+    if (amount < 25) { amount = 25; } else if (amount > 200) { amount = 200;}
+    elem.val(amount);
+    this._setPrintFlow(amount);
+    $(e.target).blur();
+  }
+});
+
+var UtilitiesView = Backbone.View.extend({
+  el: '#utilities-view',
+  events: {
+    'click .back': 'back',
+    'click .resume,.pause': 'togglePausePrint',
+    'show': 'onShow',
+    'hide': 'onHide'
   },
   tempView: null,
   distanceControl: null,
@@ -599,6 +721,7 @@ var ControlView = Backbone.View.extend({
   zControlView: null,
   extrusionView: null,
   fanView: null,
+  printSpeedView: null,
   currentTool: null,
   initialize: function()
   {
@@ -608,12 +731,16 @@ var ControlView = Backbone.View.extend({
     this.zControlView = new ZControlView({distanceControl: this.distanceControl});
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
+    this.printSpeedView = new PrintingSpeedControlView();
+    this.printFlowView = new PrintingFlowControlView();
     this.currentTool = app.socketData.attributes.tool;
 
     this.listenTo(app.socketData, 'change:temps', this.updateTemps);
     this.listenTo(app.socketData, 'change:paused', this.onPausedChanged);
     this.listenTo(app.socketData, 'change:tool', this.onToolChanged);
-
+    this.listenTo(app.socketData, 'change:printing', this.onPrintingChanged);
+    this.listenTo(app.socketData, 'change:printing_speed', this.onPrintingSpeedChanged);
+    this.listenTo(app.socketData, 'change:printing_flow', this.onPrintingFlowChanged);
   },
   updateTemps: function(s, value)
   {
@@ -621,8 +748,27 @@ var ControlView = Backbone.View.extend({
       this.tempView.updateTemps(value);
     }
   },
-  render: function()
+  onPrintingSpeedChanged: function(m, value)
   {
+    this.printSpeedView.setSpeedValue(value);
+  },
+  onPrintingFlowChanged: function(m, value)
+  {
+    this.printFlowView.setFlowValue(value);
+  },
+  onPrintingChanged: function(s, isPrinting)
+  {
+    if (!isPrinting) {
+      this.$el.removeClass('print-active print-paused')
+    }
+  },
+  back: function()
+  {
+    app.router.navigate("printing", {replace: true, trigger: true});
+  },
+  onShow: function()
+  {
+    this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
     if (this.currentTool != null && this.extrusionView.currentTool != this.currentTool) {
       this.extrusionView.setCurrentTool(this.currentTool);
     }
@@ -630,36 +776,64 @@ var ControlView = Backbone.View.extend({
 
     this.extrusionView.render();
   },
-  resumePrinting: function(e)
+  onHide: function()
   {
-    app.setPrinting();
-    app.router.navigate("printing", {replace: true, trigger: true});
-    app.router.printingView.togglePausePrint(e);
+    this.stopListening(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
+  },
+  togglePausePrint: function(e)
+  {
+    var loadingBtn = $(e.target).closest('.loading-button');
+    var wasPaused = app.socketData.get('paused');
 
-    this.$el.addClass('hide');
+    loadingBtn.addClass('loading');
+    this._jobCommand('pause', null, function (data) {
+      if (data && _.has(data, 'error')) {
+        console.error(data.error);
+      } else {
+        app.socketData.set('paused', !wasPaused);
+      }
+      loadingBtn.removeClass('loading');
+    });
   },
   onPrintingProgressChanged: function(model, printingProgress)
   {
-    var el = this.$('.back-to-print .filename');
-
-    if (printingProgress && printingProgress.printFileName && printingProgress.printFileName != el.text()) {
-      el.text(printingProgress.printFileName)
+    if (printingProgress) {
+      this.updatePrintingContainer(printingProgress.printFileName, printingProgress.percent)
     }
   },
   onPausedChanged: function(model, paused)
   {
-    if (paused) {
-      this.listenTo(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
-      this.$el.addClass('print-paused');
-    } else {
-      this.stopListening(app.socketData, 'change:printing_progress');
+    var printingProgress = model.get('printing_progress');
+    if (printingProgress) {
+      this.updatePrintingContainer(printingProgress.printFileName, printingProgress.percent);
+    }
 
+    if (paused) {
+      this.$el.addClass('print-paused');
+      this.$el.removeClass('print-active');
+    } else {
       if (app.socketData.get('printing')) {
-        app.router.navigate("printing", {replace: true, trigger: true});
-      } else {
+        this.$el.addClass('print-active');
         this.$el.removeClass('print-paused');
+      } else {
+        this.$el.removeClass('print-paused print-active');
+        this.stopListening(app.socketData, 'change:printing_progress', this.onPrintingProgressChanged);
       }
     }
+  },
+  updatePrintingContainer: function(filename, progress)
+  {
+    // File name
+    if (filename) {
+      var nameEl = this.$('.progress .filename');
+      if (filename != nameEl.text()) {
+        nameEl.text(filename)
+      }
+    }
+
+    // Progress bar
+    this.$('.progress .progress-label').text(progress+"%");
+    this.$('.progress .meter').css('width', progress+"%");
   },
   onToolChanged: function(s, value)
   {
@@ -679,5 +853,21 @@ var ControlView = Backbone.View.extend({
         }
       }
     }
-  }
+  },
+  _jobCommand: function(command, data, callback)
+  {
+    $.ajax({
+      url: API_BASEURL + "job",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(_.extend({command: command}, data))
+    }).
+    done(function(data){
+      if (callback) callback(data);
+    }).
+    fail(function(error) {
+      if (callback) callback({error:error.responseText});
+    });
+  },
 });

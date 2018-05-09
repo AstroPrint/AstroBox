@@ -42,11 +42,11 @@
 				<h1 class="bold">File Manager</h1>
 		</li>
 		<li>
-			<a href="#control"><div class="app-image">
+			<a href="#utilities"><div class="app-image">
 				<img src="/static/img/control-icon.png" alt="control icon"/>
 				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
 			</a>
-				<h1 class="bold">Control</h1>
+				<h1 class="bold">Utilities</h1>
 		</li>
 		<li>
 			<a href="#camera"><div class="app-image">
@@ -62,6 +62,24 @@
 			</a>
 				<h1 class="bold">Settings</h1>
 		</li>
+    {% if additionalTasks %}
+    <li>
+			<a href="#additional-tasks"><div class="app-image tasks">
+				<img src="/static/img/tasks-icon.svg" alt="custom icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
+			</a>
+				<h1 class="bold">Tasks</h1>
+		</li>
+    {% endif %}
+    {% if maintenanceMenu %}
+    <li>
+			<a href="#maintenance-menu"><div class="app-image maintentance-menu">
+				<img src="/static/img/printer-maintenance-icon.svg" alt="custom icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
+			</a>
+				<h1 class="bold">Printer Maintenance</h1>
+		</li>
+    {% endif %}
 		<li class="gcode-terminal-app-icon">
 			<a href="#gcode-terminal"><div class="app-image">
 				<img src="/static/img/gcode-terminal-icon.png" alt="settings icon"/>

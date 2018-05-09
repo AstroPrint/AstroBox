@@ -1,0 +1,218 @@
+@import "foundation/components/block-grid";
+@import "foundation/components/progress-bars";
+
+.task-main{
+  //height: calc(100vh - 180px);
+  //background: #333333;
+  //position: relative;
+  //background: #ffffffab;
+  background:rgba(244, 100, 35, 0.1);
+  border-radius: 4px;
+  min-height:75vh;
+  position: relative;
+  padding-bottom: 15px;
+  //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+
+  .temp-target{padding: 0;}
+
+  .padding-top{
+    padding-top: 10px;
+  }
+
+  .no-padding{padding: 0;}
+
+  .close{
+    background: rgba(34, 34, 34, 0.6);
+    color: white;
+    margin: 0;
+    i:before{
+      transform: rotate(45deg);
+      font-size: 1.35rem;
+    }
+
+  }
+
+  .buttons{
+    position: relative;
+    width: 100%;
+    top: -10px;
+    left: 0;
+    display: flex;
+    justify-content: center;
+
+    button{
+      border: 3px solid;
+      letter-spacing: 1px;
+      background: #333333;
+      border-color: rgba(0, 0, 0, 0.1);
+      outline: 0;
+        &:active{
+          transform: scale(0.94);
+        }
+    }
+
+    .action{background:#f05151;}
+
+    .disabled{
+      border: 3px solid;
+      border-color: rgba(0, 0, 0, 0.1);
+      outline: 0;
+      background: gainsboro;
+      color: #333333;
+    }
+  }
+
+  .repeat{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(34, 34, 34, 0.85);
+    font-size: 2rem;
+    border: 3px solid $jet;
+  }
+
+  .progress{
+    height: 0.4rem;
+    margin: 0;
+    padding: 0;
+
+    .meter{
+      background: $orange;
+    }
+  }
+
+  .step-description{
+    padding: 5px 0.9375rem;
+    min-height: 75px;
+
+    p{
+      margin-top: 15px;
+      margin-bottom: 10px;
+      line-height: 125%;
+    }
+  }
+
+  #img-app {
+    width: 100%;
+    margin: 0 auto;
+    position: relative;
+
+    img{
+      display: block;
+      max-height: 52vh;
+      margin: 0 auto;
+      border-radius: $global-radius;
+   }
+  }
+
+  #step-counter{
+    white-space: nowrap;
+    letter-spacing: -1px;
+
+    .current{
+      width: 18px;
+      height: 18px;
+      border-radius: 100%;
+      font-size: 14px;
+      background: #f46423;
+      text-align: center;
+      display: inline-block;
+      color: $white;
+    }
+
+    .total{
+      @extend .current;
+      background: transparent;
+      color: $charcoal;
+    }
+  }
+}
+
+#additional-task {
+  font-size: 2rem;
+  color: #333;
+  padding: 28px;
+  img {
+    width: 30%;
+    margin-top: 65px;
+  }
+}
+.no-connection-overlay {
+  display: none;
+  html.no-printer & {
+    display: block;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    text-align: center;
+    font-size: rem-calc(30);
+    border-radius: 3px;
+    padding: 5px;
+
+    i {
+      font-size: rem-calc(80);
+      display: block;
+    }
+  }
+}
+
+#multiple-actions-dlg {
+  .actions-container {
+    height: 250px;
+    overflow: hidden;
+    overflow-y: scroll;
+    .action {
+      margin: 10px;
+      border: 1px solid black;
+      padding: 3px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 28px;
+    }
+    .action:hover {
+      background: lightblue;
+    }
+  }
+}
+
+.additional-task-row{
+
+  #custom-temp-control-template{
+    padding-top: 8%;
+    padding-bottom: 6%;
+  }
+
+  .extruder-selector{
+    padding-top: 8%;
+    padding-bottom: 6%;
+
+    #extruder-count{
+      background: url("/img/icon-extruder-active.svg") bottom no-repeat;
+      background-size: 90%;
+      max-width: 100px;
+      font-size: 35px;
+      outline: 0;
+      margin: 0 auto;
+      height: 85px;
+      width: auto;
+      min-width: 85px;
+      text-align-last: center;
+      color: $white;
+      border: 0;
+    }
+  }
+
+
+}
+
+
+@media #{$large-up} {
+ #img-app{
+   height: 52vh !important;
+ }
+}

@@ -190,7 +190,6 @@ def printerFanCommand():
 	valid_commands = {
 		"set": ["tool", "speed"]
 	}
-
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response
@@ -199,6 +198,78 @@ def printerFanCommand():
 
 	return NO_CONTENT
 
+
+##~~ Printing Speed
+
+
+@api.route("/printer/printing-speed", methods=["POST"])
+def setPrinterSpeedCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	valid_commands = {
+		"set": ["amount"]
+	}
+
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+
+	if response is not None:
+		return response
+
+	pm.setPrintingSpeed(data["amount"])
+
+	return NO_CONTENT
+
+@api.route("/printer/printing-speed", methods=["GET"])
+def getPrinterSpeedCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	result = {}
+
+	result['speed'] = int(pm.getPrintingSpeed())
+
+	return jsonify(result)
+
+##~~ Printing Flow
+
+
+@api.route("/printer/printing-flow", methods=["POST"])
+def setPrinterFlowCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	valid_commands = {
+		"set": ["amount"]
+	}
+
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+
+	if response is not None:
+		return response
+
+	pm.setPrintingFlow(data["amount"])
+
+	return NO_CONTENT
+
+@api.route("/printer/printing-flow", methods=["GET"])
+def getPrinterFlowCommand():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("Printer is not operational", 409)
+
+	result = {}
+
+	result['flow'] = int(pm.getPrintingFlow())
+
+	return jsonify(result)
 
 ##~~ Print head
 

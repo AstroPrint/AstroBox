@@ -34,6 +34,7 @@ local/*
 
 .webassets-cache
 .sass-cache
+src/astroprint/static/img/variant
 src/astroprint/static/css/scss/*.css
 src/astroprint/static/css/gen/*.css
 src/astroprint/static/css/gen/*.css.map
