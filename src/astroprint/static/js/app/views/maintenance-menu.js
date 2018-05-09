@@ -186,7 +186,7 @@ var MaintenanceMenuRowView = Backbone.View.extend({
     this.$el.html(this.template({
       id: id,
       type: type,
-      icon: type == 'task' ? item.get('icon_filename') : id+'.png',
+      icon: item.get('icon_filename'),
       name: name && name.en ? name.en : id
     }));
 
