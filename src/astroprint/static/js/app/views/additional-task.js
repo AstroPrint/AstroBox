@@ -107,7 +107,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
 
     this.$el.html(this.template(params));
-    if (!this.isModal){this.currentStepManagement()}
+    if (!this.isModal){
+      this.currentStepManagement()
+    } else {
+      if (this.modal.on_enter_commands) {
+        this.sendCommands('on_enter', this.modal.on_enter_commands);
+      }
+    }
     return this;
   },
   closeClicked: function (e)
