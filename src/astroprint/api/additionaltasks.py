@@ -12,10 +12,7 @@ from astroprint.additionaltasks import additionalTasksManager
 @api.route('/additional-tasks', methods=['GET'])
 @restricted_access
 def additionalTasks():
-	atm = additionalTasksManager()
-
-	result = atm.data.copy()
-	return jsonify( result )
+	return jsonify( additionalTasksManager().data )
 
 @api.route('/additional-tasks', methods=['POST'])
 @restricted_access

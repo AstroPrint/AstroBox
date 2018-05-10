@@ -190,11 +190,9 @@ class ExternalDriveManager(threading.Thread):
 
 		self.stopThread = True
 
-
 	def _cleanFileLocation(self, location):
 		locationParsed = location.replace('//','/')
 		return locationParsed
-
 
 	def eject(self, mountPath):
 

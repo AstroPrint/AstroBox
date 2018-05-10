@@ -38,18 +38,20 @@
   <script type="text/template" id="maintenance-menu-row-template">
     <a class="launch">
       <div class="app-image">
-        <% if (type == 'task') { %>
-          <img src="/static/img/variant/<%= id %>/<%= icon_filename %>"/>
-        <%  } else if (icon_filename) { %>
-          <img src="/static/img/variant/utilities_menu/<%= id %>.png"/>
-        <%  } %>
-        <div class="overlay">
+        <% if (icon) { %>
           <% if (type == 'task') { %>
+            <img src="/static/img/variant/<%= id %>/<%= icon %>"/>
+          <% } else { %>
+            <img src="/static/img/variant/utilities_menu/<%= icon %>"/>
+          <% } %>
+        <% } %>
+        <div class="overlay">
+          <% if (type == 'task' && name != 'not_found') { %>
             <h4 class="bold">Launch</h4>
           <%  } %>
         </div>
       </div>
-      <h5 class="name bold"><%= name %></h5><i class="icon-angle-right"></i>
+      <h5 class="name bold"><%= name != 'not_found' ? name : 'Task [' + id + '] not installed' %></h5> <i class="icon-angle-right"></i>
     </a>
   </script>
 

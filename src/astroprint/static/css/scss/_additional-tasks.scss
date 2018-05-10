@@ -27,6 +27,21 @@
     }
   }
 
+  .empty-tasks-list{
+    opacity: 0.5;
+    padding-top: 5%;
+
+    h4{margin: 0;}
+
+    i{
+      font-size: rem-calc(80);
+      margin-bottom: -20px;
+      &:before{
+        transform: scaleY(1.3);
+      }
+    }
+  }
+
   .upload-progress {
     .progress-message {
       font-size: rem-calc(18);

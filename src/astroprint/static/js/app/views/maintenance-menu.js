@@ -32,6 +32,20 @@ var MaintenanceMenuListView = Backbone.View.extend({
     'click a.launch': 'onLaunchClicked',
     'click #back-button': 'onBackClicked',
   },
+
+  initialize: function()
+  {
+    this.maintenanceMenuCollection = new MaintenanceMenuCollection();
+    this.getTasks()
+      .done(_.bind(function () {
+        this.refreshMaintenanceMenuList();
+      }, this))
+      .fail(_.bind(function () {
+        console.error('Unable to retrieve tasks');
+        noty({text: "Unable to retrieve tasks", timeout: 3000});
+      }, this));
+  },
+
   onLaunchClicked: function(e)
   {
     e.preventDefault();
@@ -39,7 +53,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
     if (targetView.maintenanceMenuElement.get('type') == "task") {
-      window.location.href = "#additional-tasks/"+targetView.maintenanceMenuElement.get('id');
+      app.router.navigate("#additional-tasks/"+targetView.maintenanceMenuElement.get('id'), {trigger: true});
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
@@ -57,24 +71,11 @@ var MaintenanceMenuListView = Backbone.View.extend({
     this.render();
   },
 
-  initialize: function()
-  {
-    this.maintenanceMenuCollection = new MaintenanceMenuCollection();
-    this.getTasks()
-      .done(_.bind(function () {
-        this.refreshMaintenanceMenuList();
-      }, this))
-      .fail(_.bind(function () {
-        console.error('Unable to retrieve tasks');
-        noty({text: "Unable to retrieve tasks", timeout: 3000});
-      }, this));
-  },
-
   getTasks: function()
   {
     return $.getJSON(API_BASEURL + 'additional-tasks', null, _.bind(function (data) {
-      if (data.utilities && data.utilities.length) {
-        this.tasks = data.utilities;
+      if (data) {
+        this.tasks = data;
       }
     }, this))
       .fail(function () {
@@ -88,19 +89,17 @@ var MaintenanceMenuListView = Backbone.View.extend({
     if (!submenu) {
       $.getJSON(this.maintenanceMenuCollection.url, null, _.bind(function(data) {
 
-        var filteredMenu = _.filter(data, function(mm){
-          if (mm.type != "utility") {return true}
-          return false;
-        });
+        var filteredMenu = _.filter(data, function(mm) { return mm.type != "utility" });
 
         if (filteredMenu && filteredMenu.length) {
           if (filteredMenu[0].type) {
-            for (var i = 0; i < filteredMenu.length; i++) {
-              if (filteredMenu[i].type == "task") {
-                this._taskFormatData(filteredMenu[i]);
+            _.each(filteredMenu, function(m) {
+              if (m.type == 'task') {
+                this._taskFormatData(m);
               }
-              this.maintenanceMenuCollection.add(new MaintenanceMenu(filteredMenu[i]))
-            }
+
+              this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+            }, this);
             $('#menu-error').hide();
             $('.error-message').hide();
           } else {
@@ -120,25 +119,31 @@ var MaintenanceMenuListView = Backbone.View.extend({
         noty({text: "There was an error getting maintenance menu.", timeout: 3000});
       })
     } else {
-      for (var i = 0; i < submenu.length; i++) {
-        if (submenu[i].type == "task") {
-          this._taskFormatData(submenu[i]);
+      _.each(submenu, function(m) {
+        if (m.type == 'task') {
+          this._taskFormatData(m);
         }
-        this.maintenanceMenuCollection.add(new MaintenanceMenu(submenu[i]))
-      }
+
+        this.maintenanceMenuCollection.add( new MaintenanceMenu(m));
+      }, this);
+
       this.render();
     }
   },
   _taskFormatData: function(task)
   {
-    for (var i = 0; i < this.tasks.length; i++) {
-      if (this.tasks[i].id == task.id) {
-        task['icon_filename'] = this.tasks[i].icon_filename;
-        task['name'] = [];
-        task['name'].en = this.tasks[i].strings['en'].name;
-        task['name'].es = this.tasks[i].strings['es'].name;
-      }
+    var taskFound = _.find(this.tasks, function(t) { return t.id == task.id} );
+    if (taskFound) {
+      task.icon_filename = taskFound.icon_filename;
+      task.name = {
+        en: taskFound.strings.en.name,
+        es: taskFound.strings.es.name
+      };
+    } else {
+      task.name = { en: "not_found" };
     }
+
+    return task;
   },
 
   render: function()
@@ -175,12 +180,14 @@ var MaintenanceMenuRowView = Backbone.View.extend({
   {
     var item = this.maintenanceMenuElement;
     var name = item.get('name');
+    var type = item.get('type');
+    var id = item.get('id');
 
     this.$el.html(this.template({
-      id: item.get('id'),
-      type: item.get('type'),
-      icon_filename: item.get('icon_filename'),
-      name: name && name.en ? name.en : "Name missing for "+item.get('id')
+      id: id,
+      type: type,
+      icon: item.get('icon_filename'),
+      name: name && name.en ? name.en : id
     }));
 
     if (item.get('menu')) {

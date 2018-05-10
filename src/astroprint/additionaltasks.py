@@ -30,7 +30,7 @@ class AdditionalTasksManager(object):
 	def __init__(self):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
-		self.data = {'utilities': []}
+		self.data = []
 
 		self._logger.info("Loading Additional Tasks...")
 
@@ -46,7 +46,7 @@ class AdditionalTasksManager(object):
 						with open(f, "r") as f:
 							config = yaml.safe_load(f)
 							if config:
-								self.data['utilities'].append(config)
+								self.data.append(config)
 
 					except:
 						self._logger.info("There was an error loading %s:" % f, exc_info= True)
@@ -56,7 +56,7 @@ class AdditionalTasksManager(object):
 		self._logger.info("No additional Tasks present.")
 
 	def getTask(self, id):
-		for task in self.data['utilities']:
+		for task in self.data:
 			if task['id'] == id:
 				return task
 
@@ -137,7 +137,7 @@ class AdditionalTasksManager(object):
 				os.rename(os.path.join(tasksDir,'task.yaml'), os.path.join(tasksDir, "%s.yaml" % taskId))
 				zip_ref.close()
 
-				self.data['utilities'].append(definition)
+				self.data.append(definition)
 				return True
 
 			zip_ref.close()
@@ -148,9 +148,9 @@ class AdditionalTasksManager(object):
 		task = self.getTask(tId)
 
 		if task:
-			for t in self.data['utilities']:
+			for t in self.data:
 				if t['id'] == tId:
-					self.data['utilities'].remove(t)
+					self.data.remove(t)
 					break
 
 			tasksDir = settings().getBaseFolder('tasks')

@@ -113,7 +113,6 @@ class FilesService(PluginService):
 	'''
 
 	def getFolderContents(self, folder, sendResponse):
-
 		if folder == '/':
 			sendResponse( { 'folderContents': externalDriveManager().getRemovableDrives() })
 
@@ -122,7 +121,7 @@ class FilesService(PluginService):
 
 
 	def getBaseFolder(self, key, sendResponse):
-		sendResponse({ 'baseFolder' : externalDriveManager()._cleanFileLocation(settings().getBaseFolder(key))})
+		sendResponse({ 'baseFolder' : externalDriveManager().getBaseFolder(key) })
 
 	def getLocalFiles(self, sendResponse):
 		try:
