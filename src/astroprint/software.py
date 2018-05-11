@@ -640,7 +640,7 @@ class SoftwareManager(object):
 			return False
 
 	def clearLogs(self):
-		activeLogFiles = ['astrobox.log', 'serial.log']
+		activeLogFiles = ['astrobox.log', 'serial.log', 'electron.log', 'touch.log']
 
 		logsDir = self._settings.getBaseFolder("logs")
 
