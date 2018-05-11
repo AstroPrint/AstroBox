@@ -11,8 +11,8 @@ var AdditionalTaskView = Backbone.View.extend({
   onHide: function()
   {
     var taskAppView = this.additionalTaskContainerView.additionalTaskApp_view;
-    if (taskAppView && taskAppView.customTempView) {
-      taskAppView.customTempView.stopListening();
+    if (taskAppView) {
+      taskAppView.cleanAndUndelegate()
     }
   }
 });
@@ -80,6 +80,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   currentIndexStep: 1,
   currentStep: null,
   customTempView: null,
+  controlView: null,
   modal: null,
   isModal: false,
   events: {
@@ -103,10 +104,16 @@ var AdditionalTaskAppView = Backbone.View.extend({
     if (!this.isModal) {
       params = {currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
     } else {
-      params = {currentStep: this.modal, additionalTaskApp: this.additionalTaskApp.toJSON(),  isModal: this.isModal }
+      params = { currentStep: this.modal, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
     }
 
     this.$el.html(this.template(params));
+
+    // Add Control view widget
+    if (this.currentStep.type == "control_movement" ||  (this.isModal && this.modal.type == "control_movement")) {
+      this.controlView = new ControlView({ignorePrintingStatus: true});
+      this.$el.find('#control-container').append(this.controlView.render());
+    }
     if (!this.isModal){
       this.currentStepManagement()
     } else {
@@ -115,6 +122,12 @@ var AdditionalTaskAppView = Backbone.View.extend({
       }
     }
     return this;
+  },
+  cleanAndUndelegate: function ()
+  {
+    if (this.customTempView) {
+      this.customTempView.stopListening();
+    }
   },
   closeClicked: function (e)
   {

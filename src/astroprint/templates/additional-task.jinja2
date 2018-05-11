@@ -77,7 +77,9 @@
             </select>
             <i class="icon-play"></i>
           </div>
-        <% } else { %>
+        <% } else if (currentStep.type == "control_movement") { %>
+          <div id="control-container" class="columns-small-12 text-center "></div>
+      <% } else { %>
            {# Additional Task Media #}
           <div id="img-app" class="columns-small-12 text-center">
           <% if (currentStep.img_filename ) { %>

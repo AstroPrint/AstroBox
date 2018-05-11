@@ -605,9 +605,6 @@ var UtilitiesView = Backbone.View.extend({
     'hide': 'onHide'
   },
   tempView: null,
-  distanceControl: null,
-  xyControlView: null,
-  zControlView: null,
   extrusionView: null,
   fanView: null,
   printSpeedView: null,
@@ -615,9 +612,9 @@ var UtilitiesView = Backbone.View.extend({
   initialize: function()
   {
     this.tempView = new TempView();
-    this.distanceControl = new DistanceControl();
-    this.xyControlView = new XYControlView({distanceControl: this.distanceControl});
-    this.zControlView = new ZControlView({distanceControl: this.distanceControl});
+    this.controlView = new ControlView();
+    this.$el.find('#control-container').append(this.controlView.render());
+
     this.extrusionView = new ExtrusionControlView();
     this.fanView = new FanControlView();
     this.printSpeedView = new PrintingSpeedControlView();

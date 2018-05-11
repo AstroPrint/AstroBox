@@ -20,282 +20,208 @@
       <span class="meter" style="width: 0%;"></span>
     </div>
   </div>
-  <div class="medium-12 large-8 columns control-container">
-    <div class="heading-box bold">Movement controls</div>
-      <!-- CONTROL -->
-      <div id="controls" class="row clearfix">
-        <div class="no-paused-overlay">
-          <i class="icon-3d-printer"></i>
-          <b>Pause the printing to enable this</b>
-        </div>
-        <div class="blur-effect">
-            <div class="small-12 medium-8 columns medium-offset-0" id="xy-controls" align="center">
-                <h5>Horizontal (XY)</h5>
-                <div class="control_bg_xy" align="center">
-                  <div class="bed-mesh">
-                    <a class="btn_y_plus control-btn-wrapper">
-                      <div class="btn">
-                        <i class="icon-right-open"></i>
-                      </div>
-                    </a>
-                    <a class="btn_x_minus control-btn-wrapper">
-                      <div class="btn">
-                        <i class="icon-right-open"></i>
-                      </div>
-                    </a>
-                    <a class="btn_home_xy control-btn-wrapper">
-                      <div class="btn">
-                        <i class="icon-home"></i>
-                      </div>
-                    </a>
-                    <a class="btn_x_plus control-btn-wrapper">
-                      <div class="btn">
-                        <i class="icon-right-open"></i>
-                      </div>
-                    </a>
-                    <a class="btn_y_minus control-btn-wrapper">
-                      <div class="btn">
-                        <i class="icon-right-open"></i>
-                      </div>
-                    </a>
-                  </div>
-                </div>
-              </div>
-              <div class="small-12 medium-2 columns" id="z-controls">
-                <h5>Vertical (Z)</h5>
-                <a class="btn_z_plus control-btn-wrapper">
-                  <div class="btn">
-                    <i class="icon-right-open"></i>
-                  </div>
-                </a>
-                <a class="btn_home_z control-btn-wrapper">
-                  <div class="btn">
-                    <i class="icon-home"></i>
-                  </div>
-                </a>
-                <a class="btn_z_minus control-btn-wrapper">
-                  <div class="btn">
-                    <i class="icon-right-open"></i>
-                  </div>
-                </a>
-              </div>
-              <div class="small-12 columns" id="distance-control">
-                <center>
-                  <h2>Set movement distance</h2>
-                  <ul class="button-group radius">
-                    <li>
-                      <button class="tiny bold secondary" data-value="0.1">0.1</button>
-                    </li>
-                    <li>
-                      <button class="tiny bold secondary" data-value="1">1</button>
-                    </li>
-                    <li>
-                      <button class="tiny bold success" data-value="10">10</button>
-                    </li>
-                    <li>
-                      <button class="tiny bold secondary" data-value="100">100</button>
-                    </li>
-                  </ul>
-                </center>
-              </div>
-        </div>
 
-      </div>
+    <div class="medium-12 large-8 columns control-container">
+      <div class="heading-box bold">Movement controls</div>
 
-    <div class="row clearfix">
-      <!-- EXTRUDE/RETRACT -->
-      <div class="small-12 columns" id="extrusion-control">
-        <div class="no-paused-overlay">
-          <i class="icon-3d-printer"></i>
-          <b>Pause the printing to enable this</b>
-        </div>
-        <div class="blur-effect">
-          <div class="row clearfix extruder-switch closer"></div>
-        </div>
+      <div id="control-container"></div>
 
-        <script type="text/template" id="extruder-switch-template">
-          <div class="text-center extruder-heading">
-            <span>Extruder selected: </span>
-            <img class="extruder-icon" src="/img/icon-extruder.svg"/>
-            <select class="extruder-number bold no-selected">
-              <% for(var i=0; i<profile.extruder_count; i++) { %>
-                <option value="<%= i %>"><%= i+1 %></option>
-              <% } %>
-            </select>
+      <div class="row clearfix">
+        <!-- EXTRUDE/RETRACT -->
+        <div class="small-12 columns" id="extrusion-control">
+          <div class="no-paused-overlay">
+            <i class="icon-3d-printer"></i>
+            <b>Pause the printing to enable this</b>
           </div>
-          <div class="small-12 medium-12 large-12 columns">
-            <div class="small-12 medium-1 large-1 columns text-center icon-container">
-              <i class="icon-extruder"></i>
-            </div>
+          <div class="blur-effect">
+            <div class="row clearfix extruder-switch closer"></div>
+          </div>
 
-            <div class="small-12 medium-3 large-2 columns select-with-text no-paddingright">
-              <label>Amount</label>
-              <select class="extrusion-length bold">
-                <option value="10" selected default>10 mm</option>
-                <option value="50">50 mm</option>
-                <option value="100">100 mm</option>
-                <option value="200">200 mm</option>
-                <option value="other">Other...</option>
+          <script type="text/template" id="extruder-switch-template">
+            <div class="text-center extruder-heading">
+              <span>Extruder selected: </span>
+              <img class="extruder-icon" src="/img/icon-extruder.svg"/>
+              <select class="extruder-number bold no-selected">
+                <% for(var i=0; i<profile.extruder_count; i++) { %>
+                  <option value="<%= i %>"><%= i+1 %></option>
+                <% } %>
               </select>
-              <div class="row collapse other-length hide">
-                <div class="small-8 columns">
-                  <input type="number" value="10" class="expand back-to-select" name="extrusion-length"/>
-                </div>
-                <div class="small-4 columns">
-                  <span class="postfix radius">mm</span>
-                </div>
-              </div>
             </div>
+            <div class="small-12 medium-12 large-12 columns">
+              <div class="small-12 medium-1 large-1 columns text-center icon-container">
+                <i class="icon-extruder"></i>
+              </div>
 
-            <div class="small-12 medium-4 large-3 no-paddingright columns ">
-              <div class="select-with-text">
-                <label>Speed</label>
-                <select class="extrusion-speed bold">
-                  <option value="50">Fast (50 mm/s)</option>
-                  <option value="2" selected default>Normal (2 mm/s)</option>
-                  <option value="0.5">Slow (0.5 mm/s)</option>
+              <div class="small-12 medium-3 large-2 columns select-with-text no-paddingright">
+                <label>Amount</label>
+                <select class="extrusion-length bold">
+                  <option value="10" selected default>10 mm</option>
+                  <option value="50">50 mm</option>
+                  <option value="100">100 mm</option>
+                  <option value="200">200 mm</option>
                   <option value="other">Other...</option>
                 </select>
-                <div class="row collapse other-speed hide">
-                  <div class="small-7 columns">
-                    <input type="number" value="2" class="expand back-to-select" name="extrusion-speed"/>
+                <div class="row collapse other-length hide">
+                  <div class="small-8 columns">
+                    <input type="number" value="10" class="expand back-to-select" name="extrusion-length"/>
                   </div>
-                  <div class="small-5 columns">
-                    <span class="postfix radius">mm/s</span>
+                  <div class="small-4 columns">
+                    <span class="postfix radius">mm</span>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="small-6  medium-2 large-3 columns no-paddingright">
-              <button class="small radius expand success extrude">Extrude</button>
+              <div class="small-12 medium-4 large-3 no-paddingright columns ">
+                <div class="select-with-text">
+                  <label>Speed</label>
+                  <select class="extrusion-speed bold">
+                    <option value="50">Fast (50 mm/s)</option>
+                    <option value="2" selected default>Normal (2 mm/s)</option>
+                    <option value="0.5">Slow (0.5 mm/s)</option>
+                    <option value="other">Other...</option>
+                  </select>
+                  <div class="row collapse other-speed hide">
+                    <div class="small-7 columns">
+                      <input type="number" value="2" class="expand back-to-select" name="extrusion-speed"/>
+                    </div>
+                    <div class="small-5 columns">
+                      <span class="postfix radius">mm/s</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="small-6  medium-2 large-3 columns no-paddingright">
+                <button class="small radius expand success extrude">Extrude</button>
+              </div>
+              <div class="small-6 medium-2 large-3 columns no-paddingright">
+                <button class="small radius expand success retract">Retract</button>
+              </div>
+              </div>
             </div>
-            <div class="small-6 medium-2 large-3 columns no-paddingright">
-              <button class="small radius expand success retract">Retract</button>
-            </div>
+          </script>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="fan-flow-container text-center" >
+          <!-- FAN SPEED -->
+          <div id="fan-control" class="small-12 medium-6 large-6 columns text-center">
+            <div class="fan-control clearfix">
+              <div class=" bold text-left clearfix">
+                <div class="columns small-12 large-2 text-center no-padding left variable-speed">
+                  <i class="icon-fan fan_icon"></i>
+                </div>
+                <div class="small-6 large-5 columns">
+                  <label>Fan speed</label>
+                  <select class="fan-speed right bold">
+                    <option value="10">10%</option>
+                    <option value="50">50%</option>
+                    <option value="100" selected default>100%</option>
+                    <option value="other">Other...</option>
+                  </select>
+                  <div class="row other-fan-speed hide collapse">
+                    <div class="small-9 columns">
+                      <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-fan-speed" name="fan-speed"/>
+                    </div>
+                    <div class="small-3 columns">
+                      <span class="postfix radius">%</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="small-6 large-5 right columns no-paddingleft">
+                  <button class="radius tiny success fans right bold fan-on expand">Start</button>
+                </div>
+              </div>
             </div>
           </div>
-        </script>
-      </div>
-
-      <div class="clearfix"></div>
-
-      <div class="fan-flow-container text-center" >
-        <!-- FAN SPEED -->
-        <div id="fan-control" class="small-12 medium-6 large-6 columns text-center">
-          <div class="fan-control clearfix">
-            <div class=" bold text-left clearfix">
-              <div class="columns small-12 large-2 text-center no-padding left variable-speed">
-                <i class="icon-fan fan_icon"></i>
-              </div>
-              <div class="small-6 large-5 columns">
-                <label>Fan speed</label>
-                <select class="fan-speed right bold">
-                  <option value="10">10%</option>
-                  <option value="50">50%</option>
-                  <option value="100" selected default>100%</option>
-                  <option value="other">Other...</option>
-                </select>
-                <div class="row other-fan-speed hide collapse">
-                  <div class="small-9 columns">
-                    <input type="number" value="100" max=100 min=0 class="text-center expand back-to-select other-fan-speed" name="fan-speed"/>
-                  </div>
-                  <div class="small-3 columns">
-                    <span class="postfix radius">%</span>
+          <!-- PRINT SPEED -->
+          <div id="printing-speed-control" class="small-12 medium-3 large-3 columns text-center border-left">
+            <div class="printing-speed-control clearfix">
+              <div class=" bold text-left clearfix">
+                <div class="columns small-3 medium-12 large-3 text-center variable-speed">
+                  <i class="icon-print-speed flow-icon"></i>
+                </div>
+                <div class="small-9 medium-12 large-9 no-paddingright text-center columns">
+                  <label>Print speed</label>
+                  <select class="printing-speed-amount bold">
+                    <option value="25" >25%</option>
+                    <option value="50">50%</option>
+                    <option value="100" >100%</option>
+                    <option value="150" >150%</option>
+                    <option value="200">200%</option>
+                    <option value="other">Other...</option>
+                  </select>
+                  <div class="row other-printing-speed-amount hide collapse">
+                    <div class="small-9 columns">
+                      <input type="number" value="100" max=500 min=25 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
+                    </div>
+                    <div class="small-3 columns">
+                      <span class="postfix radius">%</span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="small-6 large-5 right columns no-paddingleft">
-                <button class="radius tiny success fans right bold fan-on expand">Start</button>
+            </div>
+          </div>
+          <!-- PRINT FLOW -->
+          <div id="printing-flow-control" class="small-12 medium-3 large-3 columns text-center border-left">
+            <div class="printing-flow-control clearfix">
+              <div class=" bold text-left clearfix">
+              <div class="columns small-3 medium-12 large-3 text-center variable-flow nopadding">
+                  <i class="icon-print-flow flow-icon"></i>
+                </div>
+                <div class="small-9 medium-12 large-9 columns text-center no-paddingright">
+                  <label>Print Flow</label>
+                  <select class="printing-flow-amount bold">
+                    <option value="25" >25%</option>
+                    <option value="50">50%</option>
+                    <option value="100" selected >100%</option>
+                    <option value="150" >150%</option>
+                    <option value="200">200%</option>
+                    <option value="other">Other...</option>
+                  </select>
+                  <div class="row other-printing-flow-amount hide collapse">
+                    <div class="small-9 columns">
+                      <input type="number" value="100" max=200 min=25 class="text-center expand back-to-select other-printing-flow-amount" name="printing-flow-amount"/>
+                    </div>
+                    <div class="small-3 columns">
+                      <span class="postfix radius">%</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <!-- PRINT SPEED -->
-        <div id="printing-speed-control" class="small-12 medium-3 large-3 columns text-center border-left">
-          <div class="printing-speed-control clearfix">
-            <div class=" bold text-left clearfix">
-              <div class="columns small-3 medium-12 large-3 text-center variable-speed">
-                <i class="icon-print-speed flow-icon"></i>
-              </div>
-              <div class="small-9 medium-12 large-9 no-paddingright text-center columns">
-                <label>Print speed</label>
-                <select class="printing-speed-amount bold">
-                  <option value="25" >25%</option>
-                  <option value="50">50%</option>
-                  <option value="100" >100%</option>
-                  <option value="150" >150%</option>
-                  <option value="200">200%</option>
-                  <option value="other">Other...</option>
-                </select>
-                <div class="row other-printing-speed-amount hide collapse">
-                  <div class="small-9 columns">
-                    <input type="number" value="100" max=500 min=25 class="text-center expand back-to-select other-printing-speed-amount" name="printing-speed-amount"/>
-                  </div>
-                  <div class="small-3 columns">
-                    <span class="postfix radius">%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- PRINT FLOW -->
-        <div id="printing-flow-control" class="small-12 medium-3 large-3 columns text-center border-left">
-          <div class="printing-flow-control clearfix">
-            <div class=" bold text-left clearfix">
-             <div class="columns small-3 medium-12 large-3 text-center variable-flow nopadding">
-                <i class="icon-print-flow flow-icon"></i>
-              </div>
-              <div class="small-9 medium-12 large-9 columns text-center no-paddingright">
-                <label>Print Flow</label>
-                <select class="printing-flow-amount bold">
-                  <option value="25" >25%</option>
-                  <option value="50">50%</option>
-                  <option value="100" selected >100%</option>
-                  <option value="150" >150%</option>
-                  <option value="200">200%</option>
-                  <option value="other">Other...</option>
-                </select>
-                <div class="row other-printing-flow-amount hide collapse">
-                  <div class="small-9 columns">
-                    <input type="number" value="100" max=200 min=25 class="text-center expand back-to-select other-printing-flow-amount" name="printing-flow-amount"/>
-                  </div>
-                  <div class="small-3 columns">
-                    <span class="postfix radius">%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="temp-control-template" class="medium-12 large-4 column temp-container">
-    <div class="heading-box bold">Temperatures</div>
-    <div class="clearfix">
-      <div class="small-12 column bottom-space" align="center" id="extruder-container">
-        <div id="extruders" class="row" align="center">
-          <div class="clearfix">
-            <div class="temp-subheading text-center">Extruders</div>
-            <i id="previous" class="icon-angle-left arrow arrow-disabled hide"></i><div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide"></i>
-          </div>
-          <div id="slider" class="small-12 column clearfix" aling="center"></div>
-        </div>
-      </div>
-
-      <div class="small-12 column" id="bed-container">
-        <hr>
-        <div class="temp-subheading text-center"><span>Bed</span></div>
-        <div class="bed text-center clearfix"></div>
       </div>
     </div>
-  </div>
+
+    <div id="temp-control-template" class="medium-12 large-4 column temp-container">
+        <div class="heading-box bold">Temperatures</div>
+        <div class="clearfix">
+          <div class="small-12 column bottom-space" align="center" id="extruder-container">
+            <div id="extruders" class="row" align="center">
+              <div class="clearfix">
+                <div class="temp-subheading text-center">Extruders</div>
+                <i id="previous" class="icon-angle-left arrow arrow-disabled hide"></i><div id="slider-nav" class="small-centered small-8 columns"></div><i id="next" class="icon-angle-right arrow hide"></i>
+              </div>
+              <div id="slider" class="small-12 column clearfix" aling="center"></div>
+            </div>
+          </div>
+
+          <div class="small-12 column" id="bed-container">
+            <hr>
+            <div class="temp-subheading text-center"><span>Bed</span></div>
+            <div class="bed text-center clearfix"></div>
+          </div>
+        </div>
+      </div>
+</div>
+
+
 
   <div class="no-connection-overlay">
     <i class="icon-usb"></i>
     <b>Please, connect a 3D Printer via USB.</b>
   </div>
-</div>
