@@ -640,7 +640,7 @@ class SoftwareManager(object):
 			return False
 
 	def clearLogs(self):
-		activeLogFiles = ['astrobox.log', 'serial.log']
+		activeLogFiles = ['astrobox.log', 'serial.log', 'electron.log', 'touch.log']
 
 		logsDir = self._settings.getBaseFolder("logs")
 
@@ -653,8 +653,10 @@ class SoftwareManager(object):
 
 		# then truncate the currently used one
 		for f in activeLogFiles:
-			with open(os.path.join(logsDir,f), 'w'):
-				pass
+			path = os.path.join(logsDir,f)
+			if os.path.isfile(path):
+				with open(path, 'w'):
+					pass
 
 		return True
 
