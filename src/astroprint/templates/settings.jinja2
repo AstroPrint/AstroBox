@@ -144,16 +144,47 @@
                 <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
                 <label for="heated-bed"></label>
               </div>
-              <label for="invert-z" class="bold">
-                Z-Axis Movement
+              <label class="bold">
+                Movement
               </label>
-              <div class="toggle">
-                <span class="side-label">Head Moves</span>
-                <span class="switch radius">
-                  <input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
-                  <label for="invert-z"></label>
-                </span>
-                <span class="side-label">Bed Moves</span>
+              <div class="row movement">
+                <div class="small-4 large-2 columns bold"><i class="icon-x-axis"></i> X</div>
+                <div class="small-8 large-10 columns">
+                  <div class="toggle">
+                    <span class="side-label">Head Moves</span>
+                    <span class="switch radius">
+                      <input id="invert-x" name="invert_x" type="checkbox" value="yes" <% if(settings.invert_x) { %> checked <% } %>>
+                      <label for="invert-x"></label>
+                    </span>
+                    <span class="side-label">Bed Moves</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row movement">
+                <div class="small-4 large-2 columns bold"><i class="icon-y-axis"></i> Y</div>
+                <div class="small-8 large-10 columns">
+                  <div class="toggle">
+                    <span class="side-label">Head Moves</span>
+                    <span class="switch radius">
+                      <input id="invert-y" name="invert_y" type="checkbox" value="yes" <% if(settings.invert_y) { %> checked <% } %>>
+                      <label for="invert-y"></label>
+                    </span>
+                    <span class="side-label">Bed Moves</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row movement">
+                <div class="small-4 large-2 columns bold"><i class="icon-z-axis"></i> Z</div>
+                <div class="small-8 large-10 columns">
+                  <div class="toggle">
+                    <span class="side-label">Head Moves</span>
+                    <span class="switch radius">
+                      <input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
+                      <label for="invert-z"></label>
+                    </span>
+                    <span class="side-label">Bed Moves</span>
+                  </div>
+                </div>
               </div>
               <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
                 <label for="max-bed-temp" class="bold">

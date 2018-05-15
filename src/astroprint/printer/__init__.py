@@ -542,6 +542,10 @@ class Printer(object):
 	def jogAmountWithPrinterProfile(self, axis, amount):
 		if axis == 'z':
 			return (-amount if self._profileManager.data.get('invert_z') else amount)
+		elif axis == 'x':
+			return (-amount if self._profileManager.data.get('invert_x') else amount)
+		elif axis == 'y':
+			return (-amount if self._profileManager.data.get('invert_y') else amount)
 
 		return amount
 

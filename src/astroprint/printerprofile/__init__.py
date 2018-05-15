@@ -38,6 +38,8 @@ class PrinterProfileManager(object):
 			'heated_bed': True,
 			'cancel_gcode': ['G28 X0 Y0'],
 			'invert_z': False,
+			'invert_x': False,
+			'invert_y': False,
 			'temp_presets' : [
 					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
 					'name' : "PLA",
