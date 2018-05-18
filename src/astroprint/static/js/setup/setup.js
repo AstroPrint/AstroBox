@@ -659,6 +659,7 @@ var StepShare = StepView.extend({
 });
 
 var SetupView = Backbone.View.extend({
+  el: "#setup-view",
   steps: null,
   current_step: 'welcome',
   router: null,
@@ -668,6 +669,7 @@ var SetupView = Backbone.View.extend({
   _autoReconnectTrial: 0,
   _autoReconnectTimeouts: [1, 1, 2, 2, 2, 3, 3, 5, 5, 10],
   previousflags: null,
+  turnOffModal: null,
   initialize: function()
   {
     this.steps = {
@@ -683,6 +685,8 @@ var SetupView = Backbone.View.extend({
     this.eventManager = Backbone.Events;
     this.router = new SetupRouter({'setup_view': this});
     this.connect(WS_TOKEN);
+
+    $('#version-label a.shutdown').on('click', _.bind(this.onShutdownClicked, this));
   },
   connect: function(token)
   {
@@ -774,6 +778,19 @@ var SetupView = Backbone.View.extend({
     } else {
       this.router.navigate("", {trigger: true, replace: true});
     }
+  },
+  onShutdownClicked: function(e)
+  {
+    e.preventDefault();
+
+    if (!this.turnOffModal) {
+      this.turnOffModal = new TurnoffConfirmationModal({router: setup_view.router});
+    }
+
+    this.turnOffModal.open().fail(_.bind(function(){
+      this.$el.removeClass('hide');
+      $('#version-label').removeClass('hide');
+    },this));
   }
 });
 
@@ -795,6 +812,14 @@ var SetupRouter = Backbone.Router.extend({
   notFound: function()
   {
     this.navigate("", {trigger: true, replace: true});
+  },
+  selectView: function(view)
+  {
+    this.setup_view.$el.addClass('hide');
+    $('#version-label').addClass('hide');
+    view.$el.removeClass('hide');
+    //At the moment only used for turnoff view
+
   }
 });
 

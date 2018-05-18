@@ -181,40 +181,6 @@ i.animate-spin {
   }
 }
 
-.reveal-modal {
-  padding: 0;
-
-  h2 {
-    width: 100%;
-    text-align: center;
-    background-color: $success-color;
-    color: white;
-    font-size: rem-calc(22);
-    padding: 15px 40px;
-    margin: 0;
-  }
-
-  .modal-body {
-    margin: 10px $column-gutter;
-
-    p {
-      text-align: left;
-    }
-  }
-
-  .close-reveal-modal {
-    color: white;
-  }
-
-  .modal-content {
-    padding: 20px;
-  }
-
-  .modal-actions {
-    padding: 0px 20px;
-  }
-}
-
 .quick-nav {
   background: #fafafa;
   border-top: 1px solid #ccc;

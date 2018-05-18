@@ -12,8 +12,7 @@
 	"foundation/components/forms",
 	"foundation/components/alert-boxes",
 	"foundation/components/tables",
-	"common-main",
-	"widgets";
+	"common-main";
 
 $setup-heading-nub-size: 15px;
 
@@ -22,6 +21,10 @@ $setup-heading-nub-size: 15px;
 	color: #666;
 	font-size: rem-calc(13);
 	margin-bottom: 50px;
+
+  a {
+    color: $alert-color;
+  }
 }
 
 #setup-view {
@@ -335,4 +338,5 @@ $setup-heading-nub-size: 15px;
 
 @import
 	"noty",
+  "turnoff",
 	"widgets";

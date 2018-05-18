@@ -343,7 +343,10 @@
     </div>
   </div>
 </div>
-<div id="version-label">{{version}}</div>
+<div id="version-label">{{version}} &bull; <a href="#" class="shutdown" title="Shutdown"><i class="icon-off"></i></a></div>
+
+<div id="turnoff-view" class="app-view hide" data-fullscreen="1"> {%- include 'turnoff.jinja2' -%} </div>
+
 {% endblock %}
 
 {% block js %}
@@ -359,7 +362,7 @@
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
-    "js/setup/setup.js" -%}
+    "js/app/views/turnoff.js", "js/setup/setup.js" -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}
   <script type="text/javascript">

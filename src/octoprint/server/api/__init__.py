@@ -164,7 +164,7 @@ def apiVersion():
 
 
 @api.route("/system", methods=["POST"])
-@restricted_access
+#@restricted_access
 #@admin_permission.require(403)
 def performSystemAction():
 	if "action" in request.values.keys():
