@@ -537,28 +537,36 @@ class PrinterMarlin(Printer):
 		return self._comm.getStateString(), port, baudrate
 
 	def getPrintTime(self):
-		return self._comm.getPrintTime()
+		if self._comm:
+			return self._comm.getPrintTime()
 
 	def getConsumedFilament(self):
-		return self._comm.getConsumedFilament()
+		if self._comm:
+			return self._comm.getConsumedFilament()
 
 	def getTotalConsumedFilament(self):
-		return self._comm.getTotalConsumedFilament()
+		if self._comm:
+			return self._comm.getTotalConsumedFilament()
 
 	def getSelectedTool(self):
-		return self._comm.getSelectedTool()
+		if self._comm:
+			return self._comm.getSelectedTool()
 
 	def getPrintingSpeed(self):
-		return self._comm.getPrintingSpeed()
+		if self._comm:
+			return self._comm.getPrintingSpeed()
 
 	def getPrintingFlow(self):
-		return self._comm.getPrintingFlow()
+		if self._comm:
+			return self._comm.getPrintingFlow()
 
 	def getPrintProgress(self):
-		return self._comm.getPrintProgress()
+		if self._comm:
+			return self._comm.getPrintProgress()
 
 	def getPrintFilepos(self):
-		return self._comm.getPrintFilepos()
+		if self._comm:
+			return self._comm.getPrintFilepos()
 
 	def isReady(self):
 		return self.isOperational() and not self._comm.isStreaming()
