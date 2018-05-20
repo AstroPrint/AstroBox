@@ -170,6 +170,12 @@ class AstroPrintCloud(object):
 
 						userValidated = True
 
+					else:
+						return False
+
+				else:
+					return False
+
 			except ConnectionError as e:
 				self._logger.error('Connection error when trying to validate password: %s' % e)
 
@@ -182,7 +188,6 @@ class AstroPrintCloud(object):
 			userId = user.get_id()
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
 			self.settings.save()
-
 
 		return userValidated
 
