@@ -888,7 +888,7 @@
       <h3 class="bold">Additional Installed Core Packages</h3>
       <ul>
         <% _.each(packages, function(pkg) { %>
-          <li><%= pkg.variant.name %> - v<%= [pkg.version.major, pkg.version.minor, pkg.version.build].join('.') %></li>
+          <li>v<%= [pkg.version.major, pkg.version.minor, pkg.version.build].join('.') %> - <%= pkg.variant ? pkg.variant.name : pkg.package.name + ' Package' %></li>
         <% }) %>
       </ul>
     </script>

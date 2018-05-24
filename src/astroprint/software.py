@@ -450,27 +450,41 @@ class SoftwareManager(object):
 			}
 
 			for package in ([self.data] + self.data['additional']):
-				r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
-						'current': [
-							package['version']['major'],
-							package['version']['minor'],
-							package['version']['build']
-						],
-						'variant': package['variant']['id'],
-						'platform': package['platform']
-					}),
-					auth = self._checkAuth(),
-					headers = self._requestHeaders
-				)
+				if 'variant' in package:
+					r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
+							'current': [
+								package['version']['major'],
+								package['version']['minor'],
+								package['version']['build']
+							],
+							'variant': package['variant']['id'],
+							'platform': package['platform']
+						}),
+						auth = self._checkAuth(),
+						headers = self._requestHeaders
+					)
+				elif 'package' in package:
+					r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
+							'current': [
+								package['version']['major'],
+								package['version']['minor'],
+								package['version']['build']
+							],
+							'package': package['package']['id'],
+							'variant': self.data['variant']['id']
+						}),
+						auth = self._checkAuth(),
+						headers = self._requestHeaders
+					)
 
 				if r.status_code != 200:
 					self._logger.error('Error getting software release info: %d.' % r.status_code)
 					return None
 				else:
 					packageData = r.json()
-					packageData['name'] = package['variant']['name']
+					packageData['name'] = package['variant']['name'] if 'variant' in package else package['package']['name']
 
-					if packageData and packageData['update_available']:
+					if packageData['update_available']:
 						#check if it's the same one we have installed
 						packageData['is_current'] = packageData['release']['major'] == int(package['version']['major']) and packageData['release']['minor'] == int(package['version']['minor']) and packageData['release']['build'] == package['version']['build']
 						if not packageData['is_current']:
