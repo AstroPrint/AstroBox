@@ -234,6 +234,21 @@ class SystemService(PluginService):
 
 			return
 
+	def printingInfo(self, data, sendMessage):
+		pm = printerManager()
+		fileName = None
+		result = {}
+
+		if pm.isPrinting():
+			currentFile = pm.selectedFile
+			fileName = currentFile["filename"]
+
+			result = pm.getFileInfo(fileName)
+
+		sendMessage(result)
+
+		return
+
 	def saveTempPreset(self, data, sendMessage):
 		ppm = printerProfileManager()
 
