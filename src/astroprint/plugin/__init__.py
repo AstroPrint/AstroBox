@@ -371,7 +371,7 @@ class PluginManager(object):
 
 	def _fireEvent(self, event, params=[]):
 		if event in self._eventListeners:
-			for e in self._eventListeners[event]:
+			for e in list(self._eventListeners[event]):
 				try:
 					e(*params)
 				except Exception as e:
