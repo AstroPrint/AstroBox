@@ -229,7 +229,7 @@ class Plugin(object):
 		if pluginListeners:
 			eventListeners = pluginListeners.get(event)
 			if eventListeners:
-				for l in eventListeners:
+				for l in list(eventListeners):
 					try:
 						l(pluginId, event, data)
 					except Exception as e:
@@ -370,8 +370,9 @@ class PluginManager(object):
 				del self._eventListeners[event]
 
 	def _fireEvent(self, event, params=[]):
-		if event in self._eventListeners:
-			for e in list(self._eventListeners[event]):
+		listeners = self._eventListeners.get(event)
+		if listeners:
+			for e in list(listeners):
 				try:
 					e(*params)
 				except Exception as e:
