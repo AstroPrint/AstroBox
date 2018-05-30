@@ -234,6 +234,43 @@ class SystemService(PluginService):
 
 			return
 
+	def printingInfo(self, data, sendMessage):
+		pm = printerManager()
+		result = {}
+
+		if pm.isPrinting() or pm.isPaused():
+
+			# PRINTING INFO
+			currentFile = pm.selectedFile
+			fileName = currentFile["filename"]
+
+			result = pm.getFileInfo(fileName)
+
+			# PRINTING PROGRESS
+			printTime = pm.getPrintTime()
+			progress = pm.getPrintProgress()
+			estimatedTimeLeft = None
+
+			if pm._estimatedPrintTime:
+				if printTime and progress:
+					if progress < 1.0:
+						estimatedTimeLeft = pm._estimatedPrintTime * ( 1.0 - progress )
+						elaspedTimeVariance = printTime - ( pm._estimatedPrintTime - estimatedTimeLeft )
+						adjustedEstimatedTime = pm._estimatedPrintTime + elaspedTimeVariance
+						estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 -  progress) ) / 60
+					else:
+						estimatedTimeLeft = 0
+
+				else:
+					estimatedTimeLeft = pm._estimatedPrintTime / 60
+
+			value = pm._formatPrintingProgressData(progress, pm.getPrintFilepos(), printTime, estimatedTimeLeft, pm.getCurrentLayer())
+			result['progress'] = value
+
+		sendMessage(result)
+
+		return
+
 	def saveTempPreset(self, data, sendMessage):
 		ppm = printerProfileManager()
 
