@@ -78,8 +78,10 @@
             <div id="terminal-view" class="app-view hide"> {%- include 'terminal.jinja2' -%} </div>
             <div id="camera-view" class="app-view hide"> {%- include 'camera.jinja2' -%} </div>
             <div id="supplies-view" class="app-view hide"> {%- include 'supplies.jinja2' -%} </div>
-            <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
-            <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
+            {% if mfDefinition.additional_custom_tasks %}
+              <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
+              <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
+            {% endif %}
             <div id="maintenance-menu-view" class="app-view hide"> {%- include 'maintenance-menu.jinja2' -%} </div>
             <div id="help-view" class="app-view hide"> {%- include 'help.jinja2' -%} </div>
           </div>

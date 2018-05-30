@@ -25,6 +25,7 @@ class ManufacturerPkgManager(object):
 			'customization': {
 				'printer_profile_edit': True,
 				'additional_custom_tasks': True,
+				'allow_menu_upload': True,
 				'logo': 'astrobox_logo_medium.png'
 			},
 			'printer_profile': {
@@ -64,8 +65,6 @@ class ManufacturerPkgManager(object):
 					if definition:
 						self._logger.info("Manufacturer definition loaded.")
 						merge_dict(self.data, definition)
-
-						print self.data
 
 				except:
 					self._logger.error("There was an error loading %s:" % def_file, exc_info= True)
