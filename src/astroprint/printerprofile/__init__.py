@@ -19,7 +19,9 @@ import shutil
 import uuid
 
 from octoprint.settings import settings
+
 from astroprint.plugin import pluginManager
+from astroprint.util import merge_dict
 
 class PrinterProfileManager(object):
 	def __init__(self):
@@ -65,13 +67,6 @@ class PrinterProfileManager(object):
 			config = None
 			with open(self._infoFile, "r") as f:
 				config = yaml.safe_load(f)
-
-			def merge_dict(a,b):
-				for key in b:
-					if isinstance(b[key], dict):
-						merge_dict(a[key], b[key])
-					else:
-						a[key] = b[key]
 
 			if config:
 				merge_dict(self.data, config)

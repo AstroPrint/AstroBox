@@ -84,7 +84,8 @@ default_settings = {
 		"logs": None,
 		"virtualSd": None,
 		"userPlugins": None,
-		'tasks': None
+		"tasks": None,
+		"manufacturerPkg": None
 	},
 	"temperature": {
 		"profiles":

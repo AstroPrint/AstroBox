@@ -73,7 +73,7 @@ from astroprint.variant import variantManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
-
+from astroprint.manufacturerpkg import manufacturerPkgManager
 
 UI_API_KEY = None
 VERSION = None
@@ -119,7 +119,8 @@ def index():
 			astroboxName= networkManager().getHostname(),
 			checkSoftware= swm.shouldCheckForNew,
 			settings= s,
-			wsToken= create_ws_token(publicKey)
+			wsToken= create_ws_token(publicKey),
+			mfDefinition= manufacturerPkgManager().customization
 		)
 
 	elif softwareManager.status != 'idle' or softwareManager.forceUpdateInfo:
@@ -133,7 +134,8 @@ def index():
 			variantData= variantManager().data,
 			astroboxName= networkManager().getHostname(),
 			wsToken= create_ws_token(publicKey),
-			status= softwareManager.status
+			status= softwareManager.status,
+			mfDefinition= manufacturerPkgManager().customization
 		)
 
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
@@ -144,7 +146,8 @@ def index():
 			username= loggedUsername,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager().getHostname(),
-			variantData= variantManager().data
+			variantData= variantManager().data,
+			mfDefinition= manufacturerPkgManager().customization
 		)
 
 	else:
@@ -177,7 +180,8 @@ def index():
 			additionalTasks= True,
 			maintenanceMenu= True,
 			cameraManager= cm.name,
-			wsToken= create_ws_token(publicKey)
+			wsToken= create_ws_token(publicKey),
+			mfDefinition= manufacturerPkgManager().customization
 		)
 
 @app.route("/discovery.xml")
@@ -429,6 +433,7 @@ class Server():
 		from astroprint.migration import migrateSettings
 		migrateSettings()
 
+		manufacturerPkgManager()
 		pluginManager().loadPlugins()
 
 		eventManager = events.eventManager()

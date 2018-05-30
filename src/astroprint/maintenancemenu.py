@@ -45,7 +45,7 @@ class MaintenanceMenuManager(object):
 						self.data = config
 
 			except:
-				self._logger.info("There was an error loading %s:" % f, exc_info= True)
+				self._logger.error("There was an error loading %s:" % self._maintenanceMenu, exc_info= True)
 
 			return
 		else:
