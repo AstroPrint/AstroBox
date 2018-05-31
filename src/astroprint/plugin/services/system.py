@@ -19,7 +19,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
 from astroprint.maintenancemenu import maintenanceMenuManager
-from astroprint.manufacturerpkg import manufacturerSettings
+from astroprint.manufacturerpkg import manufacturerPkgManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -293,9 +293,9 @@ class SystemService(PluginService):
 
 		return
 
-	def manufacturerSettings(self, data ,sendMessage):
-		mansettings = manufacturerSettings()
-		result = mansettings.data
+	def manufacturerPackage(self, data ,sendMessage):
+		manPackage = manufacturerPkgManager()
+		result = manPackage.data
 
 		sendMessage(result)
 
