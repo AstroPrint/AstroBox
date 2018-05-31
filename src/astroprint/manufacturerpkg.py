@@ -24,6 +24,7 @@ class ManufacturerPkgManager(object):
 		self.data = {
 			'customization': {
 				'printer_profile_edit': True,
+				'allow_camera_settings': True,
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
 				'logo': 'astrobox_logo_medium.png'
@@ -39,6 +40,10 @@ class ManufacturerPkgManager(object):
 				'invert_x': None,
 				'invert_y': None,
 				'temp_presets' : None
+			},
+			'printer_connection':{
+				'baudrate': None,
+				'port': None
 			}
 		}
 		self.settings = settings()
@@ -52,6 +57,10 @@ class ManufacturerPkgManager(object):
 	@property
 	def printerProfile(self):
 		return self.data['printer_profile']
+
+	@property
+	def printerConnection(self):
+		return self.data['printer_connection']
 
 	def _loadDefinition(self, folder):
 		if os.path.isdir(folder):
