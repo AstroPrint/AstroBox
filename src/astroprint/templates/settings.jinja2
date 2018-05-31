@@ -14,8 +14,10 @@
           <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
         <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
-        <li class="heading bold">Camera</li>
-        <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
+        {% if mfDefinition.allow_camera_settings %}
+          <li class="heading bold">Camera</li>
+          <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
+        {% endif %}
         <li class="heading bold">Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
@@ -342,141 +344,143 @@
       <a class="close-reveal-modal">&#215;</a>
     </div>
 
-    <div class="show-for-small zebra camera">
-      <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
-    </div>
-    <div id="video-stream" class="settings-page hide">
-      <script type="text/template" id="video-stream-settings-page-template">
-        <% if (this.cameraName && settings && settings.structure) { %>
-          <div class="text-center">
-            <label class="bold"><%= this.cameraName %></label>
-            <div id="buttonRefresh" class="loading-button still">
-              <div class="still-camera">
-                <button class="success radius spin">Re-scan for plugged camera</i></button>
-                <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+    {% if mfDefinition.allow_camera_settings %}
+      <div class="show-for-small zebra camera">
+        <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
+      </div>
+      <div id="video-stream" class="settings-page hide">
+        <script type="text/template" id="video-stream-settings-page-template">
+          <% if (this.cameraName && settings && settings.structure) { %>
+            <div class="text-center">
+              <label class="bold"><%= this.cameraName %></label>
+              <div id="buttonRefresh" class="loading-button still">
+                <div class="still-camera">
+                  <button class="success radius spin">Re-scan for plugged camera</i></button>
+                  <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                </div>
               </div>
             </div>
-          </div>
-          <hr>
-          <% if(!this.videoSettingsError) { %>
-            <div class="row">
-              <div class="small-12">
-                <form>
-                  <% if (settings.structure.busSource && settings.structure.busSource.length > 0) { %>
-                    <label for="video-stream-format" class="bold">
-                      Camera Type
-                    </label>
-                    <% if (settings.structure.busSource.length > 1) { %>
-                      <select id="video-stream-source" name="source">
-                        <% _.each(settings.structure.busSource, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.source == v.value ? 'selected' : '' %>><%= v.label %></option>
+            <hr>
+            <% if(!this.videoSettingsError) { %>
+              <div class="row">
+                <div class="small-12">
+                  <form>
+                    <% if (settings.structure.busSource && settings.structure.busSource.length > 0) { %>
+                      <label for="video-stream-format" class="bold">
+                        Camera Type
+                      </label>
+                      <% if (settings.structure.busSource.length > 1) { %>
+                        <select id="video-stream-source" name="source">
+                          <% _.each(settings.structure.busSource, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.source == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.source[0].label %></div>
+                        <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.cameraOutput.length > 0) { %>
+                      <label for="camera-output-format" class="bold">
+                        Camera Ouput Format
+                      </label>
+                      <% if (settings.structure.cameraOutput.length > 1) { %>
+                        <select id="camera-output-format" name="format">
+                          <% _.each(settings.structure.cameraOutput, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
+                        <input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.videoEncoding.length > 0) { %>
+                      <label for="video-stream-format" class="bold">
+                        Video Stream Encoding
+                      </label>
+                      <% if (settings.structure.videoEncoding.length > 1) { %>
+                        <select id="video-stream-encoding" name="encoding">
+                          <% _.each(settings.structure.videoEncoding, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
+                        <input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.frameSizes.length > 0) { %>
+                      <label for="video-stream-size" class="bold">
+                        Image Resolution
+                      </label>
+                      <% if (settings.structure.frameSizes.length > 1) { %>
+                        <select id="video-stream-size" name="size">
+                          <% _.each(settings.structure.frameSizes, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
+                        <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.video_rotation.length > 0) { %>
+                      <label for="video-rotation" class="bold">
+                        Image Rotation
+                      </label>
+                      <select id="video-rotation" name="video_rotation">
+                        <% _.each(settings.structure.video_rotation, function(r) { %>
+                          <option value="<%= r.value %>" <%= settings.video_rotation == r.value ? 'selected' : '' %>><%= r.label %></option>
                         <% }) %>
                       </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.source[0].label %></div>
-                      <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
                     <% } %>
-                  <% } %>
-                  <% if (settings.structure.cameraOutput.length > 0) { %>
-                    <label for="camera-output-format" class="bold">
-                      Camera Ouput Format
-                    </label>
-                    <% if (settings.structure.cameraOutput.length > 1) { %>
-                      <select id="camera-output-format" name="format">
-                        <% _.each(settings.structure.cameraOutput, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
-                      <input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+                    <% if (settings.structure.fps.length > 0) { %>
+                      <label for="video-stream-framerate" class="bold">
+                        Video Stream Frame Rate
+                      </label>
+                      <% if (settings.structure.fps.length > 1) { %>
+                        <select id="video-stream-framerate" name="framerate">
+                          <% _.each(settings.structure.fps, function(v) {
+                              if(v.resolution == settings.size) { %>
+                                <option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <%    }
+                            }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.fps[0].label %></div>
+                        <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
+                      <% } %>
                     <% } %>
-                  <% } %>
-                  <% if (settings.structure.videoEncoding.length > 0) { %>
-                    <label for="video-stream-format" class="bold">
-                      Video Stream Encoding
-                    </label>
-                    <% if (settings.structure.videoEncoding.length > 1) { %>
-                      <select id="video-stream-encoding" name="encoding">
-                        <% _.each(settings.structure.videoEncoding, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
-                      <input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <% if (settings.structure.frameSizes.length > 0) { %>
-                    <label for="video-stream-size" class="bold">
-                      Image Resolution
-                    </label>
-                    <% if (settings.structure.frameSizes.length > 1) { %>
-                      <select id="video-stream-size" name="size">
-                        <% _.each(settings.structure.frameSizes, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
-                      <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <% if (settings.structure.video_rotation.length > 0) { %>
-                    <label for="video-rotation" class="bold">
-                      Image Rotation
-                    </label>
-                    <select id="video-rotation" name="video_rotation">
-                      <% _.each(settings.structure.video_rotation, function(r) { %>
-                        <option value="<%= r.value %>" <%= settings.video_rotation == r.value ? 'selected' : '' %>><%= r.label %></option>
-                      <% }) %>
-                    </select>
-                  <% } %>
-                  <% if (settings.structure.fps.length > 0) { %>
-                    <label for="video-stream-framerate" class="bold">
-                      Video Stream Frame Rate
-                    </label>
-                    <% if (settings.structure.fps.length > 1) { %>
-                      <select id="video-stream-framerate" name="framerate">
-                        <% _.each(settings.structure.fps, function(v) {
-                            if(v.resolution == settings.size) { %>
-                              <option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <%    }
-                          }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.fps[0].label %></div>
-                      <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <hr/>
-                  <div class="loading-button">
-                    <button class="success radius">Save</button>
-                    <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-                  </div>
-                </form>
+                    <hr/>
+                    <div class="loading-button">
+                      <button class="success radius">Save</button>
+                      <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
+            <% } else { %>
+              <div class="error-message" align="center">
+                <i class="icon-attention"></i><br/>
+                <p class="bold"><%= this.videoSettingsError %></p>
+              </div>
+            <% } %>
           <% } else { %>
-            <div class="error-message" align="center">
-              <i class="icon-attention"></i><br/>
-              <p class="bold"><%= this.videoSettingsError %></p>
+            <div class="text-center no-camera">
+              <i class="icon-attention"></i>
+              <label class="bold">No Camera Found</label>
+              <div id="buttonRefresh" class="loading-button still">
+                <div class="still-camera">
+                  <button class="success radius spin">Scan for Cameras</i></button>
+                  <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                </div>
+              </div>
             </div>
           <% } %>
-        <% } else { %>
-          <div class="text-center no-camera">
-            <i class="icon-attention"></i>
-            <label class="bold">No Camera Found</label>
-            <div id="buttonRefresh" class="loading-button still">
-              <div class="still-camera">
-                <button class="success radius spin">Scan for Cameras</i></button>
-                <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-              </div>
-            </div>
-          </div>
-        <% } %>
-      </script>
-    </div>
+        </script>
+      </div>
+    {% endif %}
 
     <div class="show-for-small zebra">
       <a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
