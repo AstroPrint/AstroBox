@@ -295,8 +295,13 @@ class SystemService(PluginService):
 
 	def manufacturerPackage(self, data ,sendMessage):
 		manPackage = manufacturerPkgManager()
-		result = manPackage.data
 
+		if data:
+			result = manPackage.data.get(data)
+			sendMessage(result)
+			return
+
+		result = manPackage.data
 		sendMessage(result)
 
 		return
