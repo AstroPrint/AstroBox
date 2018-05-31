@@ -19,6 +19,7 @@ from netifaces import interfaces, ifaddresses, AF_INET
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
 from astroprint.maintenancemenu import maintenanceMenuManager
+from astroprint.manufacturerpkg import manufacturerPkgManager
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -288,6 +289,19 @@ class SystemService(PluginService):
 		mmenu = maintenanceMenuManager()
 		result = mmenu.data
 
+		sendMessage(result)
+
+		return
+
+	def manufacturerPackage(self, data ,sendMessage):
+		manPackage = manufacturerPkgManager()
+
+		if data:
+			result = manPackage.data.get(data)
+			sendMessage(result)
+			return
+
+		result = manPackage.data
 		sendMessage(result)
 
 		return
