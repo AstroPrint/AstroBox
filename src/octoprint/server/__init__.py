@@ -434,10 +434,11 @@ class Server():
 		migrateSettings()
 
 		manufacturerPkgManager()
+		ppm = printerProfileManager()
 		pluginManager().loadPlugins()
 
 		eventManager = events.eventManager()
-		printer = printerManager(printerProfileManager().data['driver'])
+		printer = printerManager(ppm.data['driver'])
 
 		#Start some of the managers here to make sure there are no thread collisions
 		from astroprint.network.manager import networkManager
