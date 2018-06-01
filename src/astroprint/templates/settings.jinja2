@@ -9,12 +9,12 @@
     <div id="settings-side-bar">
       <ul class="side-nav">
         <li class="heading bold">3D Printer</li>
-        {% if mfDefinition.printer_profile_edit %}
+        {% if mfDefinition.variant.printer_profile_edit %}
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
           <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
         <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
-        {% if mfDefinition.allow_camera_settings %}
+        {% if mfDefinition.variant.allow_camera_settings %}
           <li class="heading bold">Camera</li>
           <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
         {% endif %}
@@ -32,7 +32,7 @@
   </div>
   <div class="small-12 medium-7 large-8 columns">
 
-    {% if mfDefinition.printer_profile_edit %}
+    {% if mfDefinition.variant.printer_profile_edit %}
       <div class="show-for-small zebra">
         <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
       </div>
@@ -344,7 +344,7 @@
       <a class="close-reveal-modal">&#215;</a>
     </div>
 
-    {% if mfDefinition.allow_camera_settings %}
+    {% if mfDefinition.variant.allow_camera_settings %}
       <div class="show-for-small zebra camera">
         <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
       </div>
@@ -502,7 +502,7 @@
             </p>
             <ul class="preview">
               <li><i class="icon-signal"></i> Hotspot WiFi name: <span class="network-name bold"><%= settings.name %></span></li>
-              <li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
+              <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
             </ul>
             <hr/>
             <div class="loading-button">
@@ -1008,7 +1008,7 @@
     <div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
       <h2 class="bold">Are you sure?</h2>
       <div class="modal-body">
-        <p>This will delete all your settings and files from this {{variantData['productName']}}.</p>
+        <p>This will delete all your settings and files from this {{mfDefinition.variant.product_name}}.</p>
         <p>
           <label for="confirmation">
             <b>Write "RESET" to confirm</b>

@@ -15,7 +15,7 @@ import time
 
 from octoprint.events import eventManager, Events
 
-from astroprint.variant import variantManager
+from astroprint.manufacturerpkg import manufacturerPkgManager
 from astroprint.network.manager import networkManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.software import softwareManager
@@ -29,7 +29,7 @@ class DiscoveryManager(object):
 
 		self.logger = logging.getLogger(__name__)
 
-		self.variantMgr = variantManager()
+		self.mfDefinition = manufacturerPkgManager()
 		self.softwareMgr = softwareManager()
 
 		# upnp/ssdp
@@ -74,8 +74,8 @@ class DiscoveryManager(object):
 	# SSDP/UPNP
 
 	def getDiscoveryXmlContents(self):
-		modelName = self.variantMgr.data.get('productName')
-		modelLink = self.variantMgr.data.get('productLink')
+		modelName = self.mfDefinition.variant.product_name
+		modelLink = self.mfDefinition.links.product
 		modelDescription = "%s running on %s" % (self.softwareMgr.versionString, self.softwareMgr.platform)
 		vendor = "AstroPrint"
 		vendorUrl = "https://www.astroprint.com/"
@@ -111,7 +111,7 @@ class DiscoveryManager(object):
 	serialNumber=self.get_uuid(),
 	uuid=self.get_uuid(),
 	presentationUrl=flask.url_for("index", _external=True)
-)	
+)
 
 	def _ssdp_register(self):
 		"""

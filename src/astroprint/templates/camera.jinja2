@@ -14,7 +14,7 @@
 				<h3 class="bold">Camera error</h3>
 			<% } %>
 			<p><%= this.videoStreamingError %></p>
-      {% if mfDefinition.allow_camera_settings %}
+      {% if mfDefinition.variant.allow_camera_settings %}
         <p><b>Did you plug another camera?</b> Did you selected a correct "Video Format" and resolution in settings?</p><p>Please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button
       {% endif %}
 			</p>
@@ -26,7 +26,7 @@
 			<i class="icon-attention"></i>
 			<h3 class="bold">Camera is not supported by Astrobox</h3>
 			<p>It appears that your camera is not supported.</p>
-      {% if mfDefinition.allow_camera_settings %}
+      {% if mfDefinition.variant.allow_camera_settings %}
 			 <p>Please, connect another camera, <a href="/#settings/video-stream"><b>click here</b></a> and press the <b>"Scan for Cameras"</b> button</p>
       {% endif %}
 		</div>
@@ -161,7 +161,7 @@
 		<i class="icon-camera"></i>
 		<h3 class="bold">No Camera Detected</h3>
 		<p>Connect a USB camera and start monitoring your prints. Take photos, create timelapses, or stream live video. Connect to your AstroPrint.com account and check on your print from anywhere.</p>
-    {% if mfDefinition.allow_camera_settings %}
+    {% if mfDefinition.variant.allow_camera_settings %}
 		  <p>If you turned on your Astrobox before plugging the camera, please, <a href="/#settings/video-stream"><b>click here</b></a> and press the <b>"Scan for Cameras"</b> button</p>
     {% endif %}
 	</div>

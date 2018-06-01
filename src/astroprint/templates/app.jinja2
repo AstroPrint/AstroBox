@@ -25,7 +25,7 @@
         </section>
         <section class="middle tab-bar-section">
           <span class="top-logo-small show-for-small"><a href="#"><i class="icon-rocket"></i></a></span>
-          <h1 class="title hide-for-small"><a href="#"><img src="/img/{{mfDefinition.logo}}"/></a></h1>
+          <h1 class="title hide-for-small"><a href="#"><img src="/img/{{mfDefinition.variant.logo}}"/></a></h1>
           <div id="connection-view">
             <a href="#settings/internet-connection" class="offline" data-title="Not connected to the internet">
               <img src="/img/no-internet-icon.png" />
@@ -47,10 +47,10 @@
             <li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
           {% endif %}
           <li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
-          {% if variantData['suppliesLink'] %}
-            <li><a href="{{variantData['suppliesLink']}}"><i class="icon-basket"></i> Supplies</a></li>
+          {% if mfDefinition.links.supplies %}
+            <li><a href="{{mfDefinition.links.supplies}}"><i class="icon-basket"></i> Supplies</a></li>
           {% endif %}
-          <li><a href="{{variantData['supportLink']}}"><i class="icon-lifebuoy"></i> Help</a></li>
+          <li><a href="{{mfDefinition.links.support}}"><i class="icon-lifebuoy"></i> Help</a></li>
           {% if user_email %}
             <li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
             <li><a class="launch-ap" href="#"><i class="icon-rocket"></i> AstroPrint Cloud</a></li>
@@ -78,7 +78,7 @@
             <div id="terminal-view" class="app-view hide"> {%- include 'terminal.jinja2' -%} </div>
             <div id="camera-view" class="app-view hide"> {%- include 'camera.jinja2' -%} </div>
             <div id="supplies-view" class="app-view hide"> {%- include 'supplies.jinja2' -%} </div>
-            {% if mfDefinition.additional_custom_tasks %}
+            {% if mfDefinition.variant.additional_custom_tasks %}
               <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
               <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
             {% endif %}
@@ -144,7 +144,7 @@
     var LOGGED_USER = {% if user_email -%} "{{user_email}}" {%- else -%} null {%- endif %};
     var app = null;
     var ASTROBOX_NAME = "{{astroboxName}}";
-    var PRODUCT_NAME = "{{variantData['productName']}}";
+    var PRODUCT_NAME = "mfDefinition.variant.product_name";
     var CAMERA_MANAGER = "{{cameraManager}}";
     var WS_TOKEN = "{{ wsToken }}";
     var initial_states = {
