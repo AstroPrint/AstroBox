@@ -11,25 +11,25 @@
 <div id="setup-view" class="row">
   <div class="small-12 large-8 large-centered columns" align="center">
     <div id="step-welcome" class="step hide">
-      <h1 class="bold">{{variantData['welcomeMsgHeader']}}<div class="nub"></div></h1>
+      <h1 class="bold">{{mfDefinition.getString('welcome_header','en')}}<div class="nub"></div></h1>
       <div class="content" align="center">
         <img src="/img/setup/step_1_rocket.png" height="104"/>
-        {{variantData['welcomeMsgContent']}}
+        <p>{{mfDefinition.getString('welcome_content','en')}}</p>
         <a class="button success radius expand bold" href="#name">Begin Setup</i></a>
       </div>
     </div>
 
     <div id="step-name" class="step hide">
-      <h1 class="bold">Name Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
+      <h1 class="bold">Name Your {{mfDefinition.variant.product_name}}<div class="nub"></div></h1>
       <div class="content">
         <img src="/img/setup/step_2_rocket.png" height="104"/>
         <p>
-          If you have more than one {{variantData['productName']}}, be sure to give them different names to prevent conflicts!
+          If you have more than one {{mfDefinition.variant.product_name}}, be sure to give them different names to prevent conflicts!
         </p>
         <div class="settings-state">
           <form align="center">
             <label for="astrobox-name">
-              <b>{{variantData['productName']}} Name:</b>
+              <b>{{mfDefinition.variant.product_name}} Name:</b>
               <input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
             </label>
             <p>
@@ -37,7 +37,7 @@
             </p>
             <ul class="preview">
               <li><i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span></li>
-              <li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="astrobox-url bold"></span>.local</li>
+              <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="astrobox-url bold"></span>.local</li>
             </ul>
             <div class="loading-button expand">
               <a class="button success radius submit-action expand" href="#internet"><small>Next:</small> <b>Internet Setup</b> <i class="icon-right-open"></i></a>
@@ -64,7 +64,7 @@
           <img src="/img/setup/step_4_wifi-box.png" height="107"/>
           <h3 class="bold" align="center">Success!</h3>
           <p>
-            Your {{variantData['productName']}} is now connected to the internet.
+            Your {{mfDefinition.variant.product_name}} is now connected to the internet.
           </p>
           <hr/>
           <div class="row hotspot-off">
@@ -89,7 +89,7 @@
           <h3 class="bold" align="center"></h3>
           <button class="success radius expand">Retry</button>
           <div align="right">
-            <a href="#connect-printer" class="skip-step">Skip internet. Use {{variantData['productName']}} offline <i class="icon-right-open"></i></a>
+            <a href="#connect-printer" class="skip-step">Skip internet. Use {{mfDefinition.variant.product_name}} offline <i class="icon-right-open"></i></a>
           </div>
         </div>
         <div class="settings-state">
@@ -112,7 +112,7 @@
           </div>
           <p class="small">
             <sup>*</sup> Without being connected to the internet, you can only
-            use the {{variantData['productName']}} when you are near it.
+            use the {{mfDefinition.variant.product_name}} when you are near it.
           </p>
         </div>
       </div>
@@ -232,11 +232,11 @@
       <div class="content">
         <img src="/img/setup/step_6_connect-box.png" height="90"/>
         <p align="center">
-          Plug your printer's USB in the {{variantData['productName']}} and click continue when done.
+          Plug your printer's USB in the {{mfDefinition.variant.product_name}} and click continue when done.
         </p>
         <a href="#printer" class="button success radius share-button bold expand">Continue</a>
         <div align="right">
-          <a class="skip-step" href="#share">Skip and Configure Later <i class="icon-right-open"></i></a>
+          <a class="skip-step" href="#done">Skip and Configure Later <i class="icon-right-open"></i></a>
         </div>
       </div>
     </div>
@@ -255,7 +255,7 @@
           </p>
           <form></form>
           <div align="right">
-            <a href="#share" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
+            <a href="#done" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
           </div>
         </div>
       </div>
@@ -307,7 +307,7 @@
         <% if (settings.portOptions.length > 0 ) { %>
           <div align="center">
             <div class="loading-button expand">
-              <button class="button success radius submit-action expand bold" href="#share">
+              <button class="button success radius submit-action expand bold" href="#done">
                 Connect
               </button>
               <span class="button success disabled radius loading expand">
@@ -322,19 +322,11 @@
       </script>
     </div>
 
-    <div id="step-share" class="step hide">
+    <div id="step-done" class="step hide">
       <h1 class="bold">You're done!<div class="nub"></div></h1>
       <div class="content">
         <img src="/img/setup/final_step_astroprint_logo.png" height=""/>
-        <p>{{variantData['congratsMsg']}}</p>
-        <div class="row">
-          <div class="small-offset-1 small-5 columns">
-            <button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i></button>
-          </div>
-          <div class="small-5 small-pull-1 columns">
-            <button class="radius share-button twitter bold expand"><i class="icon-twitter"></i></button>
-          </div>
-        </div>
+        <p><b>Congratulations!</b> {{mfDefinition.getString('setup_done','en')}}</p>
         <div class="loading-button expand">
           <a class="button radius success bold setup-done expand" href="#">Start Printing <i class="icon-right-open"></i></a>
           <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Launching</span>
@@ -355,9 +347,8 @@
     var BASEURL = "{{ url_for('index') }}";
     var API_BASEURL = BASEURL + "api/";
     var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-    var PRODUCT_NAME = "{{variantData['productName']}}";
+    var PRODUCT_NAME = "{{mfDefinition.variant.product_name}}";
     var WS_TOKEN = "{{ wsToken }}";
-    var shareOptions = {{ variantData['share'] | tojson | safe }}
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",

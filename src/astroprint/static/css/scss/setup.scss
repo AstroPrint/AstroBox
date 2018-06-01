@@ -318,19 +318,7 @@ $setup-heading-nub-size: 15px;
 	}
 }
 
-#step-share {
-	.share-button {
-		font-size: rem-calc(40) !important;
-
-		&.facebook {
-			background-color: #45619d;
-		}
-
-		&.twitter {
-			background-color: #2fc2ef;
-		}
-	}
-
+#step-done {
 	a.button.setup-done {
 		margin-top: 20px;
 	}

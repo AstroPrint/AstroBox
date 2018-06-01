@@ -261,12 +261,9 @@ class PrinterS3g(Printer):
 
 	# ~~~ Printer API ~~~~~
 
-	def connect(self, port= None, baudrate = None):
+	def doConnect(self, port, baudrate):
 		with self._state_condition:
 			self._changeState(self.STATE_CONNECTING)
-
-			if port is None:
-				port = settings().get(["serial", "port"])
 
 			self._errorValue = ''
 			self._port = port
@@ -278,12 +275,14 @@ class PrinterS3g(Printer):
 				self._botThread = threading.Thread(target=self._work)
 				self._botThread.daemon = True
 				self._botThread.start()
+				return True
 
 			else:
 				self._changeState(self.STATE_ERROR)
 				self._errorValue = "No compatible machine detected in %s" % self._port
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				self._logger.warn(self._errorValue)
+				return False
 
 	def isConnected(self):
 		return self._comm and self._comm.is_open()

@@ -89,7 +89,7 @@ var AdditionalTaskRowView = Backbone.View.extend({
   className: 'task-row',
   tagName: 'li',
   additionalTaskApp: null,
-  template: _.template($("#task-row-template").html()),
+  template: null,
   initialize: function (params)
   {
     this.additionalTaskApp = params.additionalTaskApp;
@@ -97,6 +97,10 @@ var AdditionalTaskRowView = Backbone.View.extend({
   },
   render: function ()
   {
+    if (!this.template) {
+      this.template = _.template($("#task-row-template").html());
+    }
+
     this.$el.empty();
     this.$el.html(this.template({ view: this, additionalTaskApp: this.additionalTaskApp.toJSON() }));
     return this;

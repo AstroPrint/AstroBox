@@ -183,63 +183,6 @@ class PrinterService(PluginService):
 		return { 'current': current, 'option': pm.getConnectionOptions() }
 
 
-	''' Function Already existing in system.py
-	def connectionCommand(self,data,callback):
-		valid_commands = {
-			"connect": ["autoconnect"],
-			"disconnect": []
-		}
-
-		pm = printerManager()
-
-		command = data['command']
-
-		if command == "connect":
-			s = settings()
-
-			port = None
-			baudrate = None
-
-			options = pm.getConnectionOptions()
-
-			if "port" in data:
-				port = data["port"]
-				if port not in options["ports"]:
-					callback('Invalid port: ' + port,True)
-
-					return
-
-			if "baudrate" in data:
-				baudrate = int(data["baudrate"])
-				if baudrate:
-					baudrates = options["baudrates"]
-					if baudrates and baudrate not in baudrates:
-						callback('Invalid baudrate: ' + baudrate,True)
-
-						return
-
-				else:
-					callback('Baudrate is null',True)
-
-					return
-
-			if "save" in data and data["save"]:
-				s.set(["serial", "port"], port)
-				s.setInt(["serial", "baudrate"], baudrate)
-
-			if "autoconnect" in data:
-				s.setBoolean(["serial", "autoconnect"], data["autoconnect"])
-
-			s.save()
-
-			pm.connect(port=port, baudrate=baudrate)
-
-		elif command == "disconnect":
-			pm.disconnect()
-
-		callback({'success': 'no_error'})
- '''
-
 	##Temperature
 
 	def getTemperature(self):

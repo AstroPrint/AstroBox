@@ -90,7 +90,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     "click .action": "actionClicked",
     "click .repeat": "repeatClicked"
   },
-  template: _.template($("#additional-task-app-template").html()),
+  template: null,
   initialize: function (params)
   {
     this.additionalTaskApp = params.additionalTaskApp;
@@ -99,6 +99,10 @@ var AdditionalTaskAppView = Backbone.View.extend({
   },
   render: function ()
   {
+    if (!this.template) {
+      this.template = _.template($("#additional-task-app-template").html());
+    }
+
     this.$el.empty();
     var params = {};
     if (!this.isModal) {

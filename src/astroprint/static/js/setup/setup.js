@@ -618,29 +618,15 @@ var StepPrinter = StepView.extend({
 });
 
 /**************
-* Share
+* Done
 ***************/
 
-var StepShare = StepView.extend({
-  el: "#step-share",
+var StepDone = StepView.extend({
+  el: "#step-done",
   constructor: function()
   {
-    this.events["click .share-button.facebook"] = "onFacebookClicked";
-    this.events["click .share-button.twitter"] = "onTwitterClicked";
     this.events["click .setup-done"] = "onSetupDone";
     StepView.apply(this, arguments);
-  },
-  onFacebookClicked: function(e)
-  {
-    e.preventDefault();
-    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareOptions.facebook.link),'facebook','width=740,height=280,left=300,top=300');
-    this.$el.find('a.button.setup-done').show();
-  },
-  onTwitterClicked: function(e)
-  {
-    e.preventDefault();
-    window.open('https://twitter.com/share?url='+encodeURIComponent(shareOptions.twitter.link)+'&text='+encodeURIComponent(shareOptions.twitter.copy),'twitter','width=740,height=280,left=300,top=300');
-    this.$el.find('a.button.setup-done').show();
   },
   onSetupDone: function(e)
   {
@@ -679,7 +665,7 @@ var SetupView = Backbone.View.extend({
       'astroprint': new StepAstroprint({'setup_view': this}),
       'connect-printer': new StepConnectPrinter({'setup_view': this}),
       'printer': new StepPrinter({'setup_view': this}),
-      'share': new StepShare({'setup_view': this})
+      'done': new StepDone({'setup_view': this})
     };
 
     this.eventManager = Backbone.Events;

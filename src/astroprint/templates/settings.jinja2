@@ -9,11 +9,15 @@
     <div id="settings-side-bar">
       <ul class="side-nav">
         <li class="heading bold">3D Printer</li>
-        <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
-        <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+        {% if mfDefinition.variant.printer_profile_edit %}
+          <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
+          <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+        {% endif %}
         <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
-        <li class="heading bold">Camera</li>
-        <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
+        {% if mfDefinition.variant.allow_camera_settings %}
+          <li class="heading bold">Camera</li>
+          <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
+        {% endif %}
         <li class="heading bold">Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
@@ -28,192 +32,194 @@
   </div>
   <div class="small-12 medium-7 large-8 columns">
 
-    <div class="show-for-small zebra">
-      <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
-    </div>
-    <div id="printer-connection" class="settings-page">
-      <div class="row connection-status">
-        <div class="small-12">
-          <span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
-          <span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
-          <span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
-        </div>
+    {% if mfDefinition.variant.printer_profile_edit %}
+      <div class="show-for-small zebra">
+        <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
       </div>
-      <form></form>
-    </div>
+      <div id="printer-connection" class="settings-page">
+        <div class="row connection-status">
+          <div class="small-12">
+            <span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
+            <span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
+            <span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
+          </div>
+        </div>
+        <form></form>
+      </div>
 
-    <script type="text/template" id="printer-connection-settings-page-template">
-      <div class="row">
-        <div class="small-12">
-          <label class="bold">
-            Printer Communications Driver
-            <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
-          </label>
-          <label for="settings-serial-port" class="bold">
-            USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
-            <% if (settings.serial.portOptions.length > 0) { %>
-              <% if (settings.serial.portOptions.length > 1) { %>
-                <select id="settings-serial-port" name="port">
-                  <% _.each(settings.serial.portOptions, function(e) { %>
-                    <option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
-                  <% }) %>
-                </select>
-              <% } else { %>
-                <% var e = settings.serial.portOptions[0] %>
-                <input type="hidden" value="<%= e[0] %>" name="port"/>
-                <p><%= e[1] %></p>
-              <% } %>
-            <% } else { %>
-              <p>
-              No printer detected. Is your printer plugged in?<br/>
-              <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
-              </p>
-            <% } %>
-          </label>
-        </div>
-      </div>
-      <% if (settings.serial.portOptions.length > 0 && settings.serial.baudrateOptions.length > 0) { %>
+      <script type="text/template" id="printer-connection-settings-page-template">
         <div class="row">
           <div class="small-12">
-            <label for="settings-baudrate" class="bold">Baud Rate
-            <% if (settings.serial.baudrateOptions.length > 1) { %>
-              <select id="settings-baudrate" name="baudrate">
-                <% _.each(settings.serial.baudrateOptions, function(e) { %>
-                  <option value="<%= e %>"<%= settings.serial.baudrate == e ? ' selected' : '' %>><%= e %></option>
-                <% }) %>
-              </select>
-            <% } else { %>
-              <input type="hidden" value="<%= settings.serial.baudrateOptions[0] %>" name="baudrate"/>
-              <p><%= e %></p>
-            <% } %>
+            <label class="bold">
+              Printer Communications Driver
+              <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+            </label>
+            <label for="settings-serial-port" class="bold">
+              USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
+              <% if (settings.serial.portOptions.length > 0) { %>
+                <% if (settings.serial.portOptions.length > 1) { %>
+                  <select id="settings-serial-port" name="port">
+                    <% _.each(settings.serial.portOptions, function(e) { %>
+                      <option value="<%= e[0] %>"<%= settings.serial.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+                    <% }) %>
+                  </select>
+                <% } else { %>
+                  <% var e = settings.serial.portOptions[0] %>
+                  <input type="hidden" value="<%= e[0] %>" name="port"/>
+                  <p><%= e[1] %></p>
+                <% } %>
+              <% } else { %>
+                <p>
+                No printer detected. Is your printer plugged in?<br/>
+                <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+                </p>
+              <% } %>
             </label>
           </div>
         </div>
-      <% } %>
-      <% if (settings.serial.portOptions.length > 0)  { %>
-        <div align="center">
-          <div class="loading-button test-connection">
-            <button class="success radius">Test Connection</button>
-            <span class="button disabled radius success loading">Connecting...</span>
-          </div>
-        </div>
-      <% } %>
-    </script>
-
-    <div class="show-for-small zebra">
-      <a href="#settings/printer-profile"><h1 class="bold" align="center">3D Printer Profile</h1></a>
-    </div>
-    <div id="printer-profile" class="settings-page hide">
-      <script type="text/template" id="printer-profile-settings-page-template">
-        <div class="row">
-          <div class="small-12">
-            <form data-abide="ajax">
-              <label for="settings-printer-driver" class="bold">
-                Driver
-                <select id="settings-printer-driver" name="driver">
-                  <% _.each(driverChoices, function(p, k) { %>
-                    <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+        <% if (settings.serial.portOptions.length > 0 && settings.serial.baudrateOptions.length > 0) { %>
+          <div class="row">
+            <div class="small-12">
+              <label for="settings-baudrate" class="bold">Baud Rate
+              <% if (settings.serial.baudrateOptions.length > 1) { %>
+                <select id="settings-baudrate" name="baudrate">
+                  <% _.each(settings.serial.baudrateOptions, function(e) { %>
+                    <option value="<%= e %>"<%= settings.serial.baudrate == e ? ' selected' : '' %>><%= e %></option>
                   <% }) %>
                 </select>
+              <% } else { %>
+                <input type="hidden" value="<%= settings.serial.baudrateOptions[0] %>" name="baudrate"/>
+                <p><%= e %></p>
+              <% } %>
               </label>
-              <label for="extruder-count" class="bold">
-                No. of Extruders
-              </label>
-              <select id="extruder-count" name="extruder_count">
-                <option value='1'>1</option>
-                <option value='2'>2</option>
-                <option value='3'>3</option>
-                <option value='4'>4</option>
-              </select>
-              <div class="input-wrapper">
-                <label for="max-nozzle-temp" class="bold">
-                  Max. Nozzle Temperature
-                </label>
-                <div class="row collapse">
-                  <div class="small-9 columns">
-                    <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-                    <small class="error">Invalid Nozzle Temperature.</small>
-                  </div>
-                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
-                </div>
-              </div>
-              <label for="heated-bed" class="bold">
-                Heated Bed
-              </label>
-              <div class="switch radius">
-                <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-                <label for="heated-bed"></label>
-              </div>
-              <label class="bold">
-                Movement
-              </label>
-              <div class="row movement">
-                <div class="small-4 large-2 columns bold"><i class="icon-x-axis"></i> X</div>
-                <div class="small-8 large-10 columns">
-                  <div class="toggle">
-                    <span class="side-label">Head Moves</span>
-                    <span class="switch radius">
-                      <input id="invert-x" name="invert_x" type="checkbox" value="yes" <% if(settings.invert_x) { %> checked <% } %>>
-                      <label for="invert-x"></label>
-                    </span>
-                    <span class="side-label">Bed Moves</span>
-                  </div>
-                </div>
-              </div>
-              <div class="row movement">
-                <div class="small-4 large-2 columns bold"><i class="icon-y-axis"></i> Y</div>
-                <div class="small-8 large-10 columns">
-                  <div class="toggle">
-                    <span class="side-label">Head Moves</span>
-                    <span class="switch radius">
-                      <input id="invert-y" name="invert_y" type="checkbox" value="yes" <% if(settings.invert_y) { %> checked <% } %>>
-                      <label for="invert-y"></label>
-                    </span>
-                    <span class="side-label">Bed Moves</span>
-                  </div>
-                </div>
-              </div>
-              <div class="row movement">
-                <div class="small-4 large-2 columns bold"><i class="icon-z-axis"></i> Z</div>
-                <div class="small-8 large-10 columns">
-                  <div class="toggle">
-                    <span class="side-label">Head Moves</span>
-                    <span class="switch radius">
-                      <input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
-                      <label for="invert-z"></label>
-                    </span>
-                    <span class="side-label">Bed Moves</span>
-                  </div>
-                </div>
-              </div>
-              <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-                <label for="max-bed-temp" class="bold">
-                  Max. Bed Temperature
-                </label>
-                <div class="row collapse">
-                  <div class="small-9 columns">
-                    <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-                    <small class="error">Invalid Bed Temperature.</small>
-                  </div>
-                  <div class="small-3 columns"><span class="postfix">&deg;C</div>
-                </div>
-              </div>
-              <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
-                <label for="cancel-gcode" class="bold">
-                  Cancel GCODE
-                </label>
-                <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
-              </div>
-              <hr/>
-              <div class="loading-button">
-                <button class="success radius">Save Profile</button>
-                <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-              </div>
-            </form>
+            </div>
           </div>
-        </div>
+        <% } %>
+        <% if (settings.serial.portOptions.length > 0)  { %>
+          <div align="center">
+            <div class="loading-button test-connection">
+              <button class="success radius">Test Connection</button>
+              <span class="button disabled radius success loading">Connecting...</span>
+            </div>
+          </div>
+        <% } %>
       </script>
-    </div>
+
+      <div class="show-for-small zebra">
+        <a href="#settings/printer-profile"><h1 class="bold" align="center">3D Printer Profile</h1></a>
+      </div>
+      <div id="printer-profile" class="settings-page hide">
+        <script type="text/template" id="printer-profile-settings-page-template">
+          <div class="row">
+            <div class="small-12">
+              <form data-abide="ajax">
+                <label for="settings-printer-driver" class="bold">
+                  Driver
+                  <select id="settings-printer-driver" name="driver">
+                    <% _.each(driverChoices, function(p, k) { %>
+                      <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                    <% }) %>
+                  </select>
+                </label>
+                <label for="extruder-count" class="bold">
+                  No. of Extruders
+                </label>
+                <select id="extruder-count" name="extruder_count">
+                  <option value='1'>1</option>
+                  <option value='2'>2</option>
+                  <option value='3'>3</option>
+                  <option value='4'>4</option>
+                </select>
+                <div class="input-wrapper">
+                  <label for="max-nozzle-temp" class="bold">
+                    Max. Nozzle Temperature
+                  </label>
+                  <div class="row collapse">
+                    <div class="small-9 columns">
+                      <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+                      <small class="error">Invalid Nozzle Temperature.</small>
+                    </div>
+                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  </div>
+                </div>
+                <label for="heated-bed" class="bold">
+                  Heated Bed
+                </label>
+                <div class="switch radius">
+                  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+                  <label for="heated-bed"></label>
+                </div>
+                <label class="bold">
+                  Movement
+                </label>
+                <div class="row movement">
+                  <div class="small-4 large-2 columns bold"><i class="icon-x-axis"></i> X</div>
+                  <div class="small-8 large-10 columns">
+                    <div class="toggle">
+                      <span class="side-label">Head Moves</span>
+                      <span class="switch radius">
+                        <input id="invert-x" name="invert_x" type="checkbox" value="yes" <% if(settings.invert_x) { %> checked <% } %>>
+                        <label for="invert-x"></label>
+                      </span>
+                      <span class="side-label">Bed Moves</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="row movement">
+                  <div class="small-4 large-2 columns bold"><i class="icon-y-axis"></i> Y</div>
+                  <div class="small-8 large-10 columns">
+                    <div class="toggle">
+                      <span class="side-label">Head Moves</span>
+                      <span class="switch radius">
+                        <input id="invert-y" name="invert_y" type="checkbox" value="yes" <% if(settings.invert_y) { %> checked <% } %>>
+                        <label for="invert-y"></label>
+                      </span>
+                      <span class="side-label">Bed Moves</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="row movement">
+                  <div class="small-4 large-2 columns bold"><i class="icon-z-axis"></i> Z</div>
+                  <div class="small-8 large-10 columns">
+                    <div class="toggle">
+                      <span class="side-label">Head Moves</span>
+                      <span class="switch radius">
+                        <input id="invert-z" name="invert_z" type="checkbox" value="yes" <% if(settings.invert_z) { %> checked <% } %>>
+                        <label for="invert-z"></label>
+                      </span>
+                      <span class="side-label">Bed Moves</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                  <label for="max-bed-temp" class="bold">
+                    Max. Bed Temperature
+                  </label>
+                  <div class="row collapse">
+                    <div class="small-9 columns">
+                      <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+                      <small class="error">Invalid Bed Temperature.</small>
+                    </div>
+                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  </div>
+                </div>
+                <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
+                  <label for="cancel-gcode" class="bold">
+                    Cancel GCODE
+                  </label>
+                  <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
+                </div>
+                <hr/>
+                <div class="loading-button">
+                  <button class="success radius">Save Profile</button>
+                  <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+                </div>
+              </form>
+            </div>
+          </div>
+        </script>
+      </div>
+    {% endif %}
 
     <div class="show-for-small zebra temperature-presets">
       <a href="#settings/temperature-presets"><h1 class="bold" align="center">Temperature Presets</h1></a>
@@ -338,141 +344,143 @@
       <a class="close-reveal-modal">&#215;</a>
     </div>
 
-    <div class="show-for-small zebra camera">
-      <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
-    </div>
-    <div id="video-stream" class="settings-page hide">
-      <script type="text/template" id="video-stream-settings-page-template">
-        <% if (this.cameraName && settings && settings.structure) { %>
-          <div class="text-center">
-            <label class="bold"><%= this.cameraName %></label>
-            <div id="buttonRefresh" class="loading-button still">
-              <div class="still-camera">
-                <button class="success radius spin">Re-scan for plugged camera</i></button>
-                <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+    {% if mfDefinition.variant.allow_camera_settings %}
+      <div class="show-for-small zebra camera">
+        <a href="#settings/video-stream"><h1 class="bold" align="center">Image/Video</h1></a>
+      </div>
+      <div id="video-stream" class="settings-page hide">
+        <script type="text/template" id="video-stream-settings-page-template">
+          <% if (this.cameraName && settings && settings.structure) { %>
+            <div class="text-center">
+              <label class="bold"><%= this.cameraName %></label>
+              <div id="buttonRefresh" class="loading-button still">
+                <div class="still-camera">
+                  <button class="success radius spin">Re-scan for plugged camera</i></button>
+                  <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                </div>
               </div>
             </div>
-          </div>
-          <hr>
-          <% if(!this.videoSettingsError) { %>
-            <div class="row">
-              <div class="small-12">
-                <form>
-                  <% if (settings.structure.busSource && settings.structure.busSource.length > 0) { %>
-                    <label for="video-stream-format" class="bold">
-                      Camera Type
-                    </label>
-                    <% if (settings.structure.busSource.length > 1) { %>
-                      <select id="video-stream-source" name="source">
-                        <% _.each(settings.structure.busSource, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.source == v.value ? 'selected' : '' %>><%= v.label %></option>
+            <hr>
+            <% if(!this.videoSettingsError) { %>
+              <div class="row">
+                <div class="small-12">
+                  <form>
+                    <% if (settings.structure.busSource && settings.structure.busSource.length > 0) { %>
+                      <label for="video-stream-format" class="bold">
+                        Camera Type
+                      </label>
+                      <% if (settings.structure.busSource.length > 1) { %>
+                        <select id="video-stream-source" name="source">
+                          <% _.each(settings.structure.busSource, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.source == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.source[0].label %></div>
+                        <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.cameraOutput.length > 0) { %>
+                      <label for="camera-output-format" class="bold">
+                        Camera Ouput Format
+                      </label>
+                      <% if (settings.structure.cameraOutput.length > 1) { %>
+                        <select id="camera-output-format" name="format">
+                          <% _.each(settings.structure.cameraOutput, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
+                        <input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.videoEncoding.length > 0) { %>
+                      <label for="video-stream-format" class="bold">
+                        Video Stream Encoding
+                      </label>
+                      <% if (settings.structure.videoEncoding.length > 1) { %>
+                        <select id="video-stream-encoding" name="encoding">
+                          <% _.each(settings.structure.videoEncoding, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
+                        <input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.frameSizes.length > 0) { %>
+                      <label for="video-stream-size" class="bold">
+                        Image Resolution
+                      </label>
+                      <% if (settings.structure.frameSizes.length > 1) { %>
+                        <select id="video-stream-size" name="size">
+                          <% _.each(settings.structure.frameSizes, function(v) { %>
+                            <option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <% }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
+                        <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
+                      <% } %>
+                    <% } %>
+                    <% if (settings.structure.video_rotation.length > 0) { %>
+                      <label for="video-rotation" class="bold">
+                        Image Rotation
+                      </label>
+                      <select id="video-rotation" name="video_rotation">
+                        <% _.each(settings.structure.video_rotation, function(r) { %>
+                          <option value="<%= r.value %>" <%= settings.video_rotation == r.value ? 'selected' : '' %>><%= r.label %></option>
                         <% }) %>
                       </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.source[0].label %></div>
-                      <input type="hidden" name="source" value="<%= settings.structure.source[0].value %>"/>
                     <% } %>
-                  <% } %>
-                  <% if (settings.structure.cameraOutput.length > 0) { %>
-                    <label for="camera-output-format" class="bold">
-                      Camera Ouput Format
-                    </label>
-                    <% if (settings.structure.cameraOutput.length > 1) { %>
-                      <select id="camera-output-format" name="format">
-                        <% _.each(settings.structure.cameraOutput, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.format == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.cameraOutput[0].label %></div>
-                      <input type="hidden" name="format" value="<%= settings.structure.cameraOutput[0].value %>"/>
+                    <% if (settings.structure.fps.length > 0) { %>
+                      <label for="video-stream-framerate" class="bold">
+                        Video Stream Frame Rate
+                      </label>
+                      <% if (settings.structure.fps.length > 1) { %>
+                        <select id="video-stream-framerate" name="framerate">
+                          <% _.each(settings.structure.fps, function(v) {
+                              if(v.resolution == settings.size) { %>
+                                <option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
+                          <%    }
+                            }) %>
+                        </select>
+                      <% } else { %>
+                        <div class="field-value"><%= settings.structure.fps[0].label %></div>
+                        <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
+                      <% } %>
                     <% } %>
-                  <% } %>
-                  <% if (settings.structure.videoEncoding.length > 0) { %>
-                    <label for="video-stream-format" class="bold">
-                      Video Stream Encoding
-                    </label>
-                    <% if (settings.structure.videoEncoding.length > 1) { %>
-                      <select id="video-stream-encoding" name="encoding">
-                        <% _.each(settings.structure.videoEncoding, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.encoding == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.videoEncoding[0].label %></div>
-                      <input type="hidden" name="encoding" value="<%= settings.structure.videoEncoding[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <% if (settings.structure.frameSizes.length > 0) { %>
-                    <label for="video-stream-size" class="bold">
-                      Image Resolution
-                    </label>
-                    <% if (settings.structure.frameSizes.length > 1) { %>
-                      <select id="video-stream-size" name="size">
-                        <% _.each(settings.structure.frameSizes, function(v) { %>
-                          <option value="<%= v.value %>" <%= settings.size == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <% }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.frameSizes[0].label %></div>
-                      <input type="hidden" name="size" value="<%= settings.structure.frameSizes[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <% if (settings.structure.video_rotation.length > 0) { %>
-                    <label for="video-rotation" class="bold">
-                      Image Rotation
-                    </label>
-                    <select id="video-rotation" name="video_rotation">
-                      <% _.each(settings.structure.video_rotation, function(r) { %>
-                        <option value="<%= r.value %>" <%= settings.video_rotation == r.value ? 'selected' : '' %>><%= r.label %></option>
-                      <% }) %>
-                    </select>
-                  <% } %>
-                  <% if (settings.structure.fps.length > 0) { %>
-                    <label for="video-stream-framerate" class="bold">
-                      Video Stream Frame Rate
-                    </label>
-                    <% if (settings.structure.fps.length > 1) { %>
-                      <select id="video-stream-framerate" name="framerate">
-                        <% _.each(settings.structure.fps, function(v) {
-                            if(v.resolution == settings.size) { %>
-                              <option value="<%= v.value %>" <%= settings.framerate == v.value ? 'selected' : '' %>><%= v.label %></option>
-                        <%    }
-                          }) %>
-                      </select>
-                    <% } else { %>
-                      <div class="field-value"><%= settings.structure.fps[0].label %></div>
-                      <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
-                    <% } %>
-                  <% } %>
-                  <hr/>
-                  <div class="loading-button">
-                    <button class="success radius">Save</button>
-                    <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-                  </div>
-                </form>
+                    <hr/>
+                    <div class="loading-button">
+                      <button class="success radius">Save</button>
+                      <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+                    </div>
+                  </form>
+                </div>
               </div>
-            </div>
+            <% } else { %>
+              <div class="error-message" align="center">
+                <i class="icon-attention"></i><br/>
+                <p class="bold"><%= this.videoSettingsError %></p>
+              </div>
+            <% } %>
           <% } else { %>
-            <div class="error-message" align="center">
-              <i class="icon-attention"></i><br/>
-              <p class="bold"><%= this.videoSettingsError %></p>
+            <div class="text-center no-camera">
+              <i class="icon-attention"></i>
+              <label class="bold">No Camera Found</label>
+              <div id="buttonRefresh" class="loading-button still">
+                <div class="still-camera">
+                  <button class="success radius spin">Scan for Cameras</i></button>
+                  <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+                </div>
+              </div>
             </div>
           <% } %>
-        <% } else { %>
-          <div class="text-center no-camera">
-            <i class="icon-attention"></i>
-            <label class="bold">No Camera Found</label>
-            <div id="buttonRefresh" class="loading-button still">
-              <div class="still-camera">
-                <button class="success radius spin">Scan for Cameras</i></button>
-                <span class="button success radius loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
-              </div>
-            </div>
-          </div>
-        <% } %>
-      </script>
-    </div>
+        </script>
+      </div>
+    {% endif %}
 
     <div class="show-for-small zebra">
       <a href="#settings/network-name"><h1 class="bold" align="center">Network Name</h1></a>
@@ -494,7 +502,7 @@
             </p>
             <ul class="preview">
               <li><i class="icon-signal"></i> Hotspot WiFi name: <span class="network-name bold"><%= settings.name %></span></li>
-              <li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
+              <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
             </ul>
             <hr/>
             <div class="loading-button">
@@ -1000,7 +1008,7 @@
     <div id="restore-confirm-modal" class="reveal-modal medium radius" data-reveal>
       <h2 class="bold">Are you sure?</h2>
       <div class="modal-body">
-        <p>This will delete all your settings and files from this {{variantData['productName']}}.</p>
+        <p>This will delete all your settings and files from this {{mfDefinition.variant.product_name}}.</p>
         <p>
           <label for="confirmation">
             <b>Write "RESET" to confirm</b>
