@@ -62,7 +62,7 @@
 			</a>
 				<h1 class="bold">Settings</h1>
 		</li>
-    {% if mfDefinition.additional_custom_tasks and additionalTasks %}
+    {% if mfDefinition.variant.additional_custom_tasks and additionalTasks %}
     <li>
 			<a href="#additional-tasks"><div class="app-image tasks">
 				<img src="/static/img/tasks-icon.svg" alt="custom icon"/>
@@ -88,15 +88,15 @@
 				<h1 class="bold">GCODE Terminal</h1>
 		</li>
 		<li>
-			<a href="{{variantData['supportLink']}}"><div class="app-image">
+			<a href="{{mfDefinition.links.support}}"><div class="app-image">
 				<img src="/static/img/support-icon.png" alt="support icon"/>
 				<div class="overlay"><div class="contain"><h4 class="bold">Get Help</h4></div></div></div>
 			</a>
 				<h1 class="bold">Help</h1>
 		</li>
-		{% if variantData['suppliesLink'] %}
+		{% if mfDefinition.links.supplies %}
 		<li>
-			<a href="{{variantData['suppliesLink']}}"><div class="app-image">
+			<a href="{{mfDefinition.links.supplies}}"><div class="app-image">
 				<img src="/static/img/supplies-icon.png" alt="supplies icon"/>
 				<div class="overlay"><div class="contain"><h4 class="bold">Shop</h4></div></div></div>
 			</a>

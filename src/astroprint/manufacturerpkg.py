@@ -22,12 +22,33 @@ from astroprint.util import merge_dict
 class ManufacturerPkgManager(object):
 	def __init__(self):
 		self.data = {
-			'customization': {
+			'variant': {
 				'printer_profile_edit': True,
 				'allow_camera_settings': True,
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
-				'logo': 'astrobox_logo_medium.png'
+				'logo': 'astrobox_logo_medium.png',
+				'product_name': 'AstroBox',
+				'network_name': 'astrobox'
+			},
+			'links': {
+				'support': '#help',
+				'supplies': '#supplies',
+				'product': 'https://www.astroprint.com/products/p/astrobox'
+			},
+			'strings': {
+				'welcome_header': {
+					'en': 'Welcome to Your AstroBox',
+					'es': 'Bienvenid@ a AstroBox'
+				},
+				'welcome_content': {
+					'en': 'Your support makes AstroPrint a reality! In other words, you are amazing and you are changing the world for the better',
+					'es': '¡Tu contribución hace AstroPrint una realidad! En otras palabras, eres genial y estas cambiando el mundo a mejor'
+				},
+				'setup_done': {
+					'en': 'Your AstroBox is all set up. Now go print something awesome!',
+					'es': 'AstroBox está completamente configurada. ¡Corre a imprimir algo fascinante!'
+				}
 			},
 			'printer_profile': {
 				'driver': None,
@@ -41,7 +62,7 @@ class ManufacturerPkgManager(object):
 				'invert_y': None,
 				'temp_presets' : None
 			},
-			'printer_connection':{
+			'printer_connection': {
 				'baudrate': None,
 				'port': None
 			}
@@ -51,8 +72,8 @@ class ManufacturerPkgManager(object):
 		self._loadDefinition( self.settings.get(['folder', 'manufacturerPkg']) or ( '%sAstroBox-Manufacturer' % os.sep ) )
 
 	@property
-	def customization(self):
-		return self.data['customization']
+	def variant(self):
+		return self.data['variant']
 
 	@property
 	def printerProfile(self):
@@ -61,6 +82,17 @@ class ManufacturerPkgManager(object):
 	@property
 	def printerConnection(self):
 		return self.data['printer_connection']
+
+	@property
+	def links(self):
+		return self.data['links']
+
+	def getString(self, strId, lang):
+		string = self.data['strings'].get(strId)
+		if string:
+			return string.get(lang) or string.get('en')
+
+		return None
 
 	def _loadDefinition(self, folder):
 		if os.path.isdir(folder):

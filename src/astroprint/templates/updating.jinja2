@@ -15,7 +15,7 @@
       <h1 class="bold" align="center">System Update</h1>
       <p>
         <i class="icon-attention"></i> Your software is currently out of date and needs to be
-        updated in order to continue using your {{variantData['productName']}}.
+        updated in order to continue using your {{mfDefinition.variant.product_name}}.
       </p>
       <p><b>Version</b>: {{ forceUpdateInfo['major'] }}.{{ forceUpdateInfo['minor'] }}({{ forceUpdateInfo['build'] }})</p>
       <p><b>Release Date</b>: {% if forceUpdateInfo['date'] -%} {{ forceUpdateInfo['date'].strftime('%b %d, %Y') }} {%- else -%} No published {%- endif %}</p>
@@ -59,7 +59,7 @@
   <div class="small-12 medium-11 medium-centered large-8 large-centered columns error">
     <h1 class="bold" align="center">System Update Failed</h1>
     <p>
-      <i class="icon-attention"></i> An error occured and your {{variantData['productName']}} was unable to
+      <i class="icon-attention"></i> An error occured and your {{mfDefinition.variant.product_name}} was unable to
       complete the update.
     </p>
     <div class="row">

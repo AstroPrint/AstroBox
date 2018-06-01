@@ -618,7 +618,7 @@ var NetworkNameView = SettingsPage.extend({
 
 var CameraVideoStreamView = SettingsPage.extend({
   el: '#video-stream',
-  template: _.template( $("#video-stream-settings-page-template").html() ),
+  template: null,
   settings: null,
   settingsSizeDefault: '640x480',
   cameraName: 'No camera plugged',
@@ -769,6 +769,10 @@ var CameraVideoStreamView = SettingsPage.extend({
       })
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template( $("#video-stream-settings-page-template").html() );
+    }
+
     this.$el.html(this.template({
       settings: this.settings
     }));
