@@ -165,7 +165,7 @@ class Printer(object):
 			connectionOptions = self.getConnectionOptions()
 			if port in connectionOptions["ports"] and self.doConnect(port, baudrate):
 				s = settings()
-				self._logger.info('Serial port [%s] opened with baudrate [%d]' % (port, baudrate))
+				self._logger.info('Serial port [%s] opened with baudrate [%s]' % (port, baudrate))
 				savedPort = s.get(["serial", "port"])
 				savedBaudrate = s.getInt(["serial", "baurate"])
 				needsSave = False
@@ -183,7 +183,7 @@ class Printer(object):
 
 				return True
 
-		self._logger.warn('Unable to open serial port [%s] with baudrate [%d]' % (port, baudrate))
+		self._logger.warn('Unable to open serial port [%s] with baudrate [%s]' % (port, baudrate))
 		return False
 
 	@property
