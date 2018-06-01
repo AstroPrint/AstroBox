@@ -74,14 +74,6 @@ class MachineCom(object):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 		self._settings = settings()
 
-		if port == None:
-			port = self._settings.get(["serial", "port"])
-		if baudrate == None:
-			settingsBaudrate = self._settings.getInt(["serial", "baudrate"])
-			if settingsBaudrate is None:
-				baudrate = 0
-			else:
-				baudrate = settingsBaudrate
 		if callbackObject == None:
 			callbackObject = MachineComPrintCallback()
 

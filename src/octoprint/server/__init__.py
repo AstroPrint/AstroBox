@@ -517,12 +517,9 @@ class Server():
 
 		eventManager.fire(events.Events.STARTUP)
 		if s.getBoolean(["serial", "autoconnect"]):
-			(port, baudrate) = s.get(["serial", "port"]), s.getInt(["serial", "baudrate"])
-			connectionOptions = printer.getConnectionOptions()
-			if port in connectionOptions["ports"]:
-				t = threading.Thread(target=printer.connect, args=(port, baudrate))
-				t.daemon = True
-				t.start()
+			t = threading.Thread(target=printer.connect)
+			t.daemon = True
+			t.start()
 
 		# start up watchdogs
 		observer = Observer()

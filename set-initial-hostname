@@ -25,12 +25,12 @@ defaultHostnameFile = "%s/default-hostname" % os.path.dirname(_settings._configf
 if not os.path.exists(defaultHostnameFile):
 	import random
 
-	from astroprint.variant import variantManager
+	from astroprint.manufacturerpkg import manufacturerPkgManager
 	from astroprint.network.debian import DebianNetworkManager
 
-	rmdId = random.randint(0, 9999) 
+	rmdId = random.randint(0, 9999)
 
-	defaultHostname = '%s-%04d' % (variantManager().data['networkName'], rmdId)
+	defaultHostname = '%s-%04d' % (manufacturerPkgManager().variant['network_name'], rmdId)
 
 	with open(defaultHostnameFile, 'w') as f:
 		f.write(defaultHostname)

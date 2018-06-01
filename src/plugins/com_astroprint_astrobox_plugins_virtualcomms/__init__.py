@@ -73,6 +73,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
 		t.start()
+		return True
 
 	def disconnect(self):
 		if self._comm:

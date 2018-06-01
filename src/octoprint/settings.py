@@ -26,7 +26,7 @@ def settings(init=False, configfile=None, basedir=None):
 default_settings = {
 	"serial": {
 		"port": None,
-		"baudrate": 250000,
+		"baudrate": None,
 		"autoconnect": True,
 		"log": False,
 		"dsrdtrFlowControl": False,

@@ -166,11 +166,11 @@ class PrinterVirtual(Printer):
 	def baudrateList(self):
 		return []
 
-	def connect(self, port=None, baudrate=None):
+	def doConnect(self, port, baudrate):
 		self._comm = True
 		self._changeState(self.STATE_CONNECTING)
 
-		def doConnect():
+		def connect():
 			if not self._shutdown:
 				self._changeState(self.STATE_OPERATIONAL)
 				self._temperatureChanger = TempsChanger(self)
@@ -182,8 +182,10 @@ class PrinterVirtual(Printer):
 					self.setTemperature('tool'+str(i), 25)
 				self.setTemperature('bed', 25)
 
-		t = threading.Timer(self._settings['connection'], doConnect)
+		t = threading.Timer(self._settings['connection'], connect)
 		t.start()
+
+		return True
 
 	def isConnected(self):
 		return self._comm

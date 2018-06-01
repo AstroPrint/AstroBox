@@ -128,18 +128,22 @@ class PrinterMarlin(Printer):
 			ret.insert(0, prev)
 		return ret
 
-	def connect(self, port=None, baudrate=None):
+	def doConnect(self, port, baudrate):
 		"""
-		 Connects to the printer. If port and/or baudrate is provided, uses these settings, otherwise autodetection
-		 will be attempted.
+		 Connects to the printer.
 		"""
 
-		if self._comm is not None:
-			self._comm.close()
+		if port and baudrate:
 
-		import astroprint.printer.marlin.comm as comm
+			if self._comm is not None:
+				self._comm.close()
 
-		self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
+			import astroprint.printer.marlin.comm as comm
+
+			self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
+			return True
+
+		return False
 
 	def disconnect(self):
 		"""
