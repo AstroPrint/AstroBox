@@ -295,11 +295,26 @@ class SystemService(PluginService):
 
 	def manufacturerPackage(self, data ,sendMessage):
 		manPackage = manufacturerPkgManager()
+		result = {}
 
 		if data:
-			result = manPackage.data.get(data)
-			sendMessage(result)
-			return
+			if "parameter" in data:
+				if data['parameter'] == "strings":
+					lang = "en"
+					if "language" in data:
+						lang = data['language']
+
+					strings = manPackage.data.get("strings")
+					for s in strings:
+						result[s]= manPackage.getString(s,lang)
+				else:
+					result = manPackage.data.get(data["parameter"])
+		else:
+			result = manPackage.data
+
+		sendMessage(result)
+
+		return
 
 		result = manPackage.data
 		sendMessage(result)
