@@ -19,6 +19,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
+from astroprint.manufacturerpkg import manufacturerPkgManager
 
 class Printer(object):
 	STATE_NONE = 0
@@ -103,12 +104,6 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
-		#s = settings()
-
-		# don't try to connect when the device hasn't been setup
-		#if not s.getBoolean(['server', 'firstRun']):
-		#	self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
-
 	@property
 	def fileManager(self):
 		return self._fileManager
@@ -158,6 +153,64 @@ class Printer(object):
 	def unregisterCallback(self, callback):
 		if callback in self._callbacks:
 			self._callbacks.remove(callback)
+
+	def connect(self, port=None, baudrate=None):
+		if port is None:
+			port = self.savedPort
+
+		if baudrate is None:
+			baudrate = self.savedBaudrate
+
+		if port is not None:
+			connectionOptions = self.getConnectionOptions()
+			if port in connectionOptions["ports"] and self.doConnect(port, baudrate):
+				s = settings()
+				self._logger.info('Serial port [%s] opened with baudrate [%d]' % (port, baudrate))
+				savedPort = s.get(["serial", "port"])
+				savedBaudrate = s.getInt(["serial", "baurate"])
+				needsSave = False
+
+				if port != savedPort:
+					s.set(["serial", "port"], port)
+					needsSave = True
+
+				if baudrate != savedBaudrate:
+					s.set(["serial", "baudrate"], baudrate)
+					needsSave = True
+
+				if needsSave:
+					s.save()
+
+				return True
+
+		self._logger.warn('Unable to open serial port [%s] with baudrate [%d]' % (port, baudrate))
+		return False
+
+	@property
+	def savedPort(self):
+		mf = manufacturerPkgManager()
+		port = None
+
+		if mf.variant['printer_profile_edit']:
+			port = settings().get(["serial", "port"])
+
+		if port is None:
+			port = mf.printerConnection['port']
+
+		return port
+
+	@property
+	def savedBaudrate(self):
+		mf = manufacturerPkgManager()
+		baudrate = None
+
+		if mf.variant['printer_profile_edit']:
+			baudrate = settings().getInt(["serial", "baudrate"])
+
+		if baudrate is None:
+			baudrate = mf.printerConnection['baudrate']
+
+		return baudrate
 
 	@property
 	def registeredCallbacks(self):
@@ -627,7 +680,7 @@ class Printer(object):
 	def baudrateList(self):
 		raise NotImplementedError()
 
-	def connect(self, port=None, baudrate=None):
+	def doConnect(self, port=None, baudrate=None):
 		raise NotImplementedError()
 
 	def isConnected(self):

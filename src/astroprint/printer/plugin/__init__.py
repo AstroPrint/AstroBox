@@ -65,27 +65,8 @@ class PrinterWithPlugin(Printer):
 	def _fileManagerClass(self):
 		return self._plugin.fileManagerClass
 
-	def connect(self, port=None, baudrate=None):
-		if self._plugin.connect(port, baudrate):
-			s = settings()
-			savedPort = s.get(["serial", "port"])
-			savedBaudrate = s.getInt(["serial", "baurate"])
-			needsSave = False
-
-			if port != savedPort:
-				s.set(["serial", "port"], port)
-				needsSave = True
-
-			if baudrate != savedBaudrate:
-				s.set(["serial", "baudrate"], baudrate)
-				needsSave = True
-
-			if needsSave:
-				s.save()
-
-			return True
-		else:
-			return False
+	def doConnect(self, port, baudrate):
+		return self._plugin.connect(port, baudrate)
 
 	def disconnect(self):
 		return self._plugin.disconnect()
