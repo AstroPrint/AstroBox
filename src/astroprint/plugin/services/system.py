@@ -316,11 +316,6 @@ class SystemService(PluginService):
 
 		return
 
-		result = manPackage.data
-		sendMessage(result)
-
-		return
-
 	def refreshPluggedCamera(self, data, sendMessage):
 		cm = cameraManager()
 
