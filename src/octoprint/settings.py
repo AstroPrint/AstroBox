@@ -177,7 +177,8 @@ default_settings = {
 		"infoDir": None,
 		"variantFile": None,
 		"useUnreleased": False,
-		"lastCheck": None
+		"lastCheck": None,
+		"channel": 20 #production
 	},
 	"printerSelected": None,
 	"materialSelected": None,

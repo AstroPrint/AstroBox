@@ -1733,7 +1733,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
   settings: null,
   events: {
     'change #serial-logs': 'serialLogChanged',
-    'change #apikey-regenerate': 'regenerateApiKeyChange'
+    'change #apikey-regenerate': 'regenerateApiKeyChange',
+    'change select.update-channel': 'onUpdateChannelChanged'
   },
   initialize: function(params)
   {
@@ -1763,6 +1764,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
       data: this.settings,
       size_format: app.utils.sizeFormat
     }));
+
+    this.$('select.update-channel').val(this.settings.updateChannel);
   },
   regenerateApiKeyChange: function(e)
   {
@@ -1808,6 +1811,32 @@ var SoftwareAdvancedView = SettingsPage.extend({
       noty({text: "There was an error changing serial logs.", timeout: 3000});
       target.prop('checked', !active);
     });
+  },
+  onUpdateChannelChanged: function(e)
+  {
+    e.preventDefault();
+
+    var select = $(e.currentTarget);
+    var oldValue = this.settings.updateChannel;
+    var newValue = select.val();
+
+    $.ajax({
+      url: '/api/settings/software/advanced/update-channel',
+      method: 'PUT',
+      data: JSON.stringify({
+        'channel': newValue
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .done(_.bind(function(){
+      this.settings.updateChannel = newValue;
+    }, this))
+    .fail(_.bind(function(){
+      noty({text: "There was an error changing update channel.", timeout: 3000});
+      this.settings.updateChannel = oldValue;
+      select.val(oldValue);
+    }, this));
   }
 });
 

@@ -970,6 +970,14 @@
     <div id="software-advanced" class="settings-page hide" align="center"></div>
 
     <script type="text/template" id="software-advanced-content-template">
+      {% if mfDefinition.variant.change_update_channel %}
+        <h4 class="bold">Update Channel</h4>
+        <select class="update-channel">
+          <option value="10">Beta</option>
+          <option value="20">Production</option>
+        </select>
+        <hr/>
+      {% endif %}
       <h4 class="bold">API Key</h4>
       <div class="apiKey"><%= data.apiKey.key %></div>
       <div class="row collapse apikey-regenerate">

@@ -458,7 +458,8 @@ class SoftwareManager(object):
 								package['version']['build']
 							],
 							'variant': package['variant']['id'],
-							'platform': package['platform']
+							'platform': package['platform'],
+							'channel': self._settings.getInt(['software', 'channel'])
 						}),
 						auth = self._checkAuth(),
 						headers = self._requestHeaders
@@ -471,7 +472,8 @@ class SoftwareManager(object):
 								package['version']['build']
 							],
 							'package': package['package']['id'],
-							'variant': self.data['variant']['id']
+							'variant': self.data['variant']['id'],
+							'channel': self._settings.getInt(['software', 'channel'])
 						}),
 						auth = self._checkAuth(),
 						headers = self._requestHeaders

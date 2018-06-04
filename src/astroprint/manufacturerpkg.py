@@ -27,6 +27,7 @@ class ManufacturerPkgManager(object):
 				'allow_camera_settings': True,
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
+				'change_update_channel': True,
 				'logo': 'astrobox_logo_medium.png',
 				'product_name': 'AstroBox',
 				'network_name': 'astrobox'
