@@ -25,7 +25,7 @@
         </section>
         <section class="middle tab-bar-section">
           <span class="top-logo-small show-for-small"><a href="#"><i class="icon-rocket"></i></a></span>
-          <h1 class="title hide-for-small"><a href="#"><img src="/img/{{mfDefinition.variant.logo}}"/></a></h1>
+          <h1 class="title hide-for-small"><a href="#"><img src="/static/img/{{mfDefinition.variant.logo}}"/></a></h1>
           <div id="connection-view">
             <a href="#settings/internet-connection" class="offline" data-title="Not connected to the internet">
               <img src="/img/no-internet-icon.png" />
@@ -80,8 +80,8 @@
             <div id="supplies-view" class="app-view hide"> {%- include 'supplies.jinja2' -%} </div>
             {% if mfDefinition.variant.additional_custom_tasks %}
               <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
-              <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
             {% endif %}
+            <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
             <div id="maintenance-menu-view" class="app-view hide"> {%- include 'maintenance-menu.jinja2' -%} </div>
             <div id="help-view" class="app-view hide"> {%- include 'help.jinja2' -%} </div>
           </div>

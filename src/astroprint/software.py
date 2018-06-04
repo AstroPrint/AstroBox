@@ -505,7 +505,7 @@ class SoftwareManager(object):
 		platforms = {
 			self.data['variant']['id']: self.data['platform']
 		}
-		platforms.update({p['variant']['id']: p['platform'] for p in self.data['additional']})
+		platforms.update({p['variant']['id']: p['platform'] for p in self.data['additional'] if 'platform' in p})
 
 		for rel in releases:
 			try:
@@ -520,7 +520,7 @@ class SoftwareManager(object):
 
 					if data and 'download_url' in data and 'platform' in data and 'variant' in data and 'id' in data['variant']:
 
-						if data['variant']['id'] in platforms and data['platform'] == platforms[data['variant']['id']]:
+						if data['platform'] is None or ( data['variant']['id'] in platforms and data['platform'] == platforms[data['variant']['id']]):
 							releaseInfo.append(data)
 
 						else:
@@ -582,8 +582,9 @@ class SoftwareManager(object):
 	def resetUpdate(self):
 		self._status = 'idle'
 		self._releases = None
-		self._updater.stop()
-		self._updater = None
+		if self._updater:
+			self._updater.stop()
+			self._updater = None
 
 	def restartServer(self):
 		if platformStr == "linux" or platformStr == "linux2":
