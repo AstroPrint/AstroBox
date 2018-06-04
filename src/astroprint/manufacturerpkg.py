@@ -67,9 +67,10 @@ class ManufacturerPkgManager(object):
 				'port': None
 			}
 		}
-		self.settings = settings()
+		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
-		self._loadDefinition( self.settings.get(['folder', 'manufacturerPkg']) or ( '%sAstroBox-Manufacturer' % os.sep ) )
+		self._folder = self._settings.get(['folder', 'manufacturerPkg']) or ( '%sAstroBox-Manufacturer' % os.sep )
+		self._loadDefinition()
 
 	@property
 	def variant(self):
@@ -87,6 +88,13 @@ class ManufacturerPkgManager(object):
 	def links(self):
 		return self.data['links']
 
+	@property
+	def certFilePath(self):
+		if os.path.isfile(os.path.join(self._folder, 'certificate.pem')):
+			return os.path.join(self._folder, 'certificate.pem')
+		else:
+			return os.path.join(os.path.dirname(self._settings._configfile), 'certificate.pem')
+
 	def getString(self, strId, lang):
 		string = self.data['strings'].get(strId)
 		if string:
@@ -94,9 +102,9 @@ class ManufacturerPkgManager(object):
 
 		return None
 
-	def _loadDefinition(self, folder):
-		if os.path.isdir(folder):
-			def_file = os.path.join(folder, 'definition.yaml')
+	def _loadDefinition(self, ):
+		if os.path.isdir(self._folder):
+			def_file = os.path.join(self._folder, 'definition.yaml')
 
 			if os.path.isfile(def_file):
 				try:
