@@ -303,10 +303,16 @@ class SystemService(PluginService):
 					lang = "en"
 					if "language" in data:
 						lang = data['language']
-
-					strings = manPackage.data.get("strings")
-					for s in strings:
-						result[s]= manPackage.getString(s,lang)
+					# Get strings from passed keys
+					if "keys" in data:
+						keys = data["keys"]
+						for k in keys:
+							result[k]= manPackage.getString(k,lang)
+					# Get all the strings if no keys passed
+					else:
+						strings = manPackage.data.get("strings")
+						for s in strings:
+							result[s]= manPackage.getString(s,lang)
 				else:
 					result = manPackage.data.get(data["parameter"])
 		else:
