@@ -489,13 +489,17 @@ var StepConnectPrinter = StepView.extend({
 
 var StepPrinter = StepView.extend({
   el: "#step-printer",
-  template: _.template( $("#step-printer-template").html() ),
+  template: null,
   onShow: function()
   {
     this._checkPrinters()
   },
   render: function(settings)
   {
+    if (!this.template) {
+      this.template = _.template( $("#step-printer-template").html() );
+    }
+
     this.$('form').html(this.template({
       settings: settings
     }));
