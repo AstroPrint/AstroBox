@@ -327,6 +327,7 @@ class SoftwareManager(object):
 				"id": None,
 				"name": 'AstroBox'
 			},
+			"manufacturer_pkg_id": None,
 			"platform": 'pcduino',
 			"additional": []
 		}
@@ -346,8 +347,18 @@ class SoftwareManager(object):
 
 			merge_dict(self.data, config)
 
-			if os.path.isdir(os.path.join(self._infoDir, 'additional')):
-				for f in glob.glob(os.path.join(self._infoDir, 'additional', "*.yaml")):
+			#Check if there's a manufacturer package
+			manufacturerFile = os.path.join(self._infoDir,'manufacturer.yaml')
+			if os.path.isfile(manufacturerFile):
+				with open(manufacturerFile, "r") as f:
+					config = yaml.safe_load(f)
+
+				self.data['additional'].append(config)
+				self.data['manufacturer_pkg_id'] = config['package']['id']
+
+			additionalPath = os.path.join(self._infoDir, 'additional')
+			if os.path.isdir(additionalPath):
+				for f in glob.glob(os.path.join(additionalPath, "*.yaml")):
 					with open(f, "r") as f:
 						config = yaml.safe_load(f)
 
@@ -450,34 +461,27 @@ class SoftwareManager(object):
 			}
 
 			for package in ([self.data] + self.data['additional']):
+				versionData = {
+					'current': [
+						package['version']['major'],
+						package['version']['minor'],
+						package['version']['build']
+					],
+					'channel': self._settings.getInt(['software', 'channel'])
+				}
+
 				if 'variant' in package:
-					r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
-							'current': [
-								package['version']['major'],
-								package['version']['minor'],
-								package['version']['build']
-							],
-							'variant': package['variant']['id'],
-							'platform': package['platform'],
-							'channel': self._settings.getInt(['software', 'channel'])
-						}),
-						auth = self._checkAuth(),
-						headers = self._requestHeaders
-					)
+					versionData['variant'] = package['variant']['id']
+					versionData['platform'] = package['platform']
+					versionData['manufacturer_pkg_id'] = self.data['manufacturer_pkg_id']
 				elif 'package' in package:
-					r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
-							'current': [
-								package['version']['major'],
-								package['version']['minor'],
-								package['version']['build']
-							],
-							'package': package['package']['id'],
-							'variant': self.data['variant']['id'],
-							'channel': self._settings.getInt(['software', 'channel'])
-						}),
-						auth = self._checkAuth(),
-						headers = self._requestHeaders
-					)
+					versionData['variant'] = self.data['variant']['id']
+					versionData['package'] = package['package']['id']
+
+				r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps(versionData),
+					auth = self._checkAuth(),
+					headers = self._requestHeaders
+				)
 
 				if r.status_code != 200:
 					self._logger.error('Error getting software release info: %d.' % r.status_code)
