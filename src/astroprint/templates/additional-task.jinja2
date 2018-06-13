@@ -116,7 +116,7 @@
           <% } %>
 
           {# Next button #}
-          <% if (!isModal) { %>
+          <% if (!isModal && currentStep.next_button) { %>
           <div class="loading-button small-6 large-3 columns">
             <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
             <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
