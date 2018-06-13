@@ -8,6 +8,7 @@ import threading
 import sarge
 import pyudev
 import fnmatch
+import time
 
 from glob import glob
 
@@ -205,7 +206,7 @@ class ExternalDriveManager(threading.Thread):
 			if self._umountPartition(mountPath):
 				ejected = True
 			else:
-				sleep(timeout)
+				time.sleep(timeout)
 
 		if ejected:
 			self._eventManager.fire( Events.EXTERNAL_DRIVE_EJECTED, {
