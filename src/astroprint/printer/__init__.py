@@ -159,6 +159,9 @@ class Printer(object):
 			self._callbacks.remove(callback)
 
 	def connect(self, port=None, baudrate=None):
+		if self.isConnecting():
+			return True
+
 		if port is None:
 			port = self.savedPort
 
@@ -370,6 +373,9 @@ class Printer(object):
 			serialLogger.setLevel(logging.CRITICAL)
 
 		self.resetSerialLogging()
+
+	def isConnecting(self):
+		return self._state == self.STATE_CONNECTING
 
 	def isOperational(self):
 		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
