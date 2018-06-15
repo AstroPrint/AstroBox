@@ -489,7 +489,7 @@ class PrinterS3g(Printer):
 		if sd:
 			raise('Printing from SD card is not supported for the S3G Driver')
 
-		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
+		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect)
 
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:

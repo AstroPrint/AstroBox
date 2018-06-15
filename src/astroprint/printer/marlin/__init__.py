@@ -245,7 +245,7 @@ class PrinterMarlin(Printer):
 
 	def unselectFile(self):
 		if self._comm.unselectFile():
-			return super(PrinterMarlin, self).unselectFile():
+			return super(PrinterMarlin, self).unselectFile()
 		else:
 			return False
 

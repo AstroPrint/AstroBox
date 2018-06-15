@@ -68,7 +68,7 @@ class PrinterVirtual(Printer):
 		if sd:
 			raise('Printing from SD card is not supported for the Virtual Driver')
 
-		return super(PrinterVirtual, self).selectFile(filename, sd, printAfterSelect):
+		return super(PrinterVirtual, self).selectFile(filename, sd, printAfterSelect)
 
 	def startPrint(self):
 		if not super(PrinterVirtual, self).startPrint():
