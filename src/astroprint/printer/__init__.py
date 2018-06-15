@@ -45,8 +45,8 @@ class Printer(object):
 		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
 		self._comm = None
+		self._currentFile = None
 		self._selectedFile = None
-		self._printAfterSelect = False
 		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._printTime = None
@@ -115,6 +115,10 @@ class Printer(object):
 	@property
 	def shuttingDown(self):
 		return self._shutdown
+
+	@property
+	def selectedFile(self):
+		return self._currentFile
 
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
@@ -647,17 +651,45 @@ class Printer(object):
 			self._logger.info("Cannot load file: printer not connected or currently busy")
 			return False
 
-		self._printAfterSelect = printAfterSelect
 		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
+
+		if not os.path.exists(filename) or not os.path.isfile(filename):
+			raise IOError("File %s does not exist" % filename)
+
+		filesize = os.stat(filename).st_size
+
+		eventManager().fire(Events.FILE_SELECTED, {
+			"file": filename,
+			"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL
+		})
+
+		self._setJobData(filename, filesize, sd)
+		self.refreshStateData()
+
+		self._currentFile = {
+			'filename': filename,
+			'size': filesize,
+			'origin': FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
+			'start_time': None,
+			'progress': None,
+			'position': None
+		}
+
+		if printAfterSelect:
+			self.startPrint()
+
 		return True
 
 	def unselectFile(self):
+		self._currentFile = None
+
 		if not self.isConnected() and (self.isBusy() or self.isStreaming()):
 			return False
 
 		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
+		eventManager().fire(Events.FILE_DESELECTED)
 		return True
 
 	# ~~~ State functions ~~~

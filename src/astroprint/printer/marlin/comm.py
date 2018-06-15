@@ -426,11 +426,6 @@ class MachineCom(object):
 			self.sendCommand("M23 %s" % filename)
 		else:
 			self._currentFile = PrintingGcodeFileInformation(filename)
-			eventManager().fire(Events.FILE_SELECTED, {
-				"file": self._currentFile.getFilename(),
-				"origin": self._currentFile.getFileLocation()
-			})
-			self._callback.mcFileSelected(filename, self._currentFile.getFilesize(), False)
 
 		return True
 
@@ -439,9 +434,6 @@ class MachineCom(object):
 			return False
 
 		self._currentFile = None
-		eventManager().fire(Events.FILE_DESELECTED)
-		self._callback.mcFileSelected(None, None, False)
-
 		return True
 
 	def cancelPrint(self):
@@ -1537,9 +1529,6 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcLayerChange(self, layer):
-		pass
-
-	def mcFileSelected(self, filename, filesize, sd):
 		pass
 
 	def mcSdStateChange(self, sdReady):

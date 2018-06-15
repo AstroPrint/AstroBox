@@ -41,7 +41,6 @@ class PrinterS3g(Printer):
 		self._baudrate = None
 		self._errorValue = ''
 		self._botThread = None
-		self._currentFile = None
 		self._printJob = None
 		self._heatingUp = False
 		self._firmwareVersion = None
@@ -487,43 +486,10 @@ class PrinterS3g(Printer):
 				})
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
-			return False
-
 		if sd:
 			raise('Printing from SD card is not supported for the S3G Driver')
 
-		if not os.path.exists(filename) or not os.path.isfile(filename):
-			raise IOError("File %s does not exist" % filename)
-		filesize = os.stat(filename).st_size
-
-		eventManager().fire(Events.FILE_SELECTED, {
-			"file": filename,
-			"origin": FileDestinations.LOCAL
-		})
-
-		self._setJobData(filename, filesize, sd)
-		self.refreshStateData()
-
-		self._currentFile = {
-			'filename': filename,
-			'size': filesize,
-			'origin': FileDestinations.LOCAL,
-			'start_time': None,
-			'progress': None,
-			'position': None
-		}
-
-		if self._printAfterSelect:
-			self.startPrint()
-
-		return True
-
-	def unselectFile(self):
-		self._currentFile = None
-
-		if not super(PrinterS3g, self).unselectFile():
-			return
+		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
 
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:

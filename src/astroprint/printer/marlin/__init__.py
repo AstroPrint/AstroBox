@@ -234,16 +234,20 @@ class PrinterMarlin(Printer):
 			self.command("M140 S%f" % min(value, self._profileManager.data.get('max_bed_temp')))
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not super(PrinterMarlin, self).selectFile(filename, sd, printAfterSelect):
-			return False
+		if self._comm.selectFile(filename, sd) and super(PrinterMarlin, self).selectFile(filename, sd, False):
+			if printAfterSelect:
+				self.startPrint()
 
-		return self._comm.selectFile(filename, sd)
+			return True
+
+		else:
+			return False
 
 	def unselectFile(self):
-		if not super(PrinterMarlin, self).unselectFile():
+		if self._comm.unselectFile():
+			return super(PrinterMarlin, self).unselectFile():
+		else:
 			return False
-
-		return self._comm.unselectFile()
 
 	def startPrint(self):
 		if not super(PrinterMarlin, self).startPrint():
@@ -418,13 +422,6 @@ class PrinterMarlin(Printer):
 	def mcSdFiles(self, files):
 		eventManager().fire(Events.UPDATED_FILES, {"type": "gcode"})
 		self._sdFilelistAvailable.set()
-
-	def mcFileSelected(self, filename, filesize, sd):
-		self._setJobData(filename, filesize, sd)
-		self.refreshStateData()
-
-		if self._printAfterSelect:
-			self.startPrint()
 
 	def mcPrintjobDone(self):
 		super(PrinterMarlin, self).mcPrintjobDone()

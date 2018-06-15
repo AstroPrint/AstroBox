@@ -65,37 +65,10 @@ class PrinterVirtual(Printer):
 
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not super(PrinterVirtual, self).selectFile(filename, sd, printAfterSelect):
-			return False
-
 		if sd:
 			raise('Printing from SD card is not supported for the Virtual Driver')
 
-		if not os.path.exists(filename) or not os.path.isfile(filename):
-			raise IOError("File %s does not exist" % filename)
-		filesize = os.stat(filename).st_size
-
-		eventManager().fire(Events.FILE_SELECTED, {
-			"file": filename,
-			"origin": FileDestinations.LOCAL
-		})
-
-		self._setJobData(filename, filesize, sd)
-		self._stateMonitor.setState({"text": self.getStateString(), "flags": self._getStateFlags()})
-
-		self._currentFile = {
-			'filename': filename,
-			'size': filesize,
-			'origin': FileDestinations.LOCAL,
-			'start_time': None,
-			'progress': None,
-			'position': None
-		}
-
-		if self._printAfterSelect:
-			self.startPrint()
-
-		return True
+		return super(PrinterVirtual, self).selectFile(filename, sd, printAfterSelect):
 
 	def startPrint(self):
 		if not super(PrinterVirtual, self).startPrint():
