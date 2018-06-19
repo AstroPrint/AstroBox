@@ -386,6 +386,7 @@ class PrinterCommsService(CommandPluginInterface):
 
 		oldState = self.printerState
 		self.printerState = PrinterState(newState)
+		self._printerManager._state = newState
 		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.printerState))
 
 		# forward relevant state changes to gcode manager
