@@ -145,14 +145,15 @@ class PrinterMarlin(Printer):
 
 		return False
 
-	def disconnect(self):
+	def doDisconnect(self):
 		"""
 		 Closes the connection to the printer.
 		"""
 		if self._comm is not None:
 			self._comm.close()
 		self._comm = None
-		eventManager().fire(Events.DISCONNECTED)
+
+		return True
 
 	def command(self, command):
 		"""

@@ -62,7 +62,7 @@ class PrinterWithPlugin(Printer):
 	def doConnect(self, port, baudrate):
 		return self._plugin.connect(port, baudrate)
 
-	def disconnect(self):
+	def doDisconnect(self):
 		return self._plugin.disconnect()
 
 	def getFileInfo(self, filename):

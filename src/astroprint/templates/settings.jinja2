@@ -97,9 +97,17 @@
         <% } %>
         <% if (settings.serial.portOptions.length > 0)  { %>
           <div align="center">
-            <div class="loading-button test-connection">
-              <button class="success radius">Test Connection</button>
+            <div class="loading-button connect">
+              <button class="success radius">Connect</button>
               <span class="button disabled radius success loading">Connecting...</span>
+            </div>
+            <div class="loading-button disconnect">
+              <button class="alert radius">Disconnect</button>
+              <span class="button disabled radius alert loading">Disconnecting...</span>
+            </div>
+            <div class="loading-button reconnect">
+              <button class="success radius">Re-connect</button>
+              <span class="button disabled radius success loading">Re-connecting...</span>
             </div>
           </div>
         <% } %>

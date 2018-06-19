@@ -134,14 +134,15 @@ class SystemService(PluginService):
 
 		valid_commands = {
 			"connect": ["autoconnect"],
-			"disconnect": []
+			"disconnect": [],
+			"reconnect": []
 		}
 
 		command = data['command']
 
 		pm = printerManager()
 
-		if command == "connect":
+		if command in ["connect", "reconnect"]:
 			s = settings()
 
 			driver = None
@@ -179,7 +180,10 @@ class SystemService(PluginService):
 
 			s.save()
 
-			pm.connect(port=port, baudrate=baudrate)
+			if command == "connect":
+				pm.connect(port, baudrate)
+			elif command == "reconnect":
+				pm.reConnect(port, baudrate)
 
 		elif command == "disconnect":
 			pm.disconnect()

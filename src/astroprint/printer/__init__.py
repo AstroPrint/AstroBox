@@ -159,8 +159,11 @@ class Printer(object):
 			self._callbacks.remove(callback)
 
 	def connect(self, port=None, baudrate=None):
-		if self.isConnecting():
+		if self.isConnecting() or self.isConnected():
 			return True
+
+		self._state = self.STATE_CONNECTING
+		eventManager().fire(Events.CONNECTING)
 
 		if port is None:
 			port = self.savedPort
@@ -191,7 +194,23 @@ class Printer(object):
 				return True
 
 		self._logger.warn('Unable to open serial port [%s] with baudrate [%s]' % (port, baudrate))
+		self._state = self.STATE_CLOSED
+		eventManager().fire(Events.DISCONNECTED)
 		return False
+
+	def disconnect(self):
+		if not self.isConnected():
+			return True
+
+		if self.doDisconnect():
+			self._state = self.STATE_CLOSED
+			eventManager().fire(Events.DISCONNECTED)
+
+	def reConnect(self, port=None, baudrate=None):
+		if self.isConnecting() or self.isConnected():
+			self.disconnect()
+
+		return self.connect(port, baudrate)
 
 	@property
 	def savedPort(self):
@@ -721,10 +740,10 @@ class Printer(object):
 	def doConnect(self, port=None, baudrate=None):
 		raise NotImplementedError()
 
-	def isConnected(self):
+	def doDisconnect(self):
 		raise NotImplementedError()
 
-	def disconnect(self):
+	def isConnected(self):
 		raise NotImplementedError()
 
 	def isReady(self):

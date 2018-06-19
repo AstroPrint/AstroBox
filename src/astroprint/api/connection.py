@@ -32,7 +32,8 @@ def connectionState():
 def connectionCommand():
 	valid_commands = {
 		"connect": ["autoconnect"],
-		"disconnect": []
+		"disconnect": [],
+		"reconnect": []
 	}
 
 	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
@@ -41,7 +42,7 @@ def connectionCommand():
 
 	pm = printerManager()
 
-	if command == "connect":
+	if command in ["connect", "reconnect"]:
 		s = settings()
 
 		driver = None
@@ -74,7 +75,10 @@ def connectionCommand():
 
 		s.save()
 
-		pm.connect(port=port, baudrate=baudrate)
+		if command == "connect":
+			pm.connect(port, baudrate)
+		elif command == "reconnect":
+			pm.reConnect(port, baudrate)
 
 	elif command == "disconnect":
 		pm.disconnect()

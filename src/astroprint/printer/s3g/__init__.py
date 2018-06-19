@@ -128,8 +128,8 @@ class PrinterS3g(Printer):
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
-		elif self._comm is not None and newState == self.STATE_CONNECTING:
-			eventManager().fire(Events.CONNECTING)
+		#elif self._comm is not None and newState == self.STATE_CONNECTING:
+		#	eventManager().fire(Events.CONNECTING)
 
 		self.refreshStateData()
 
@@ -262,8 +262,6 @@ class PrinterS3g(Printer):
 
 	def doConnect(self, port, baudrate):
 		with self._state_condition:
-			self._changeState(self.STATE_CONNECTING)
-
 			self._errorValue = ''
 			self._port = port
 			self._baudrate = baudrate
@@ -286,7 +284,7 @@ class PrinterS3g(Printer):
 	def isConnected(self):
 		return self._comm and self._comm.is_open()
 
-	def disconnect(self):
+	def doDisconnect(self):
 		with self._state_condition:
 			if self._printJob:
 				self._printJob.cancel()
@@ -305,7 +303,7 @@ class PrinterS3g(Printer):
 
 		self._firmwareVersion = None
 		self._changeState(self.STATE_CLOSED)
-		eventManager().fire(Events.DISCONNECTED)
+		return True
 
 	def serialList(self):
 		from makerbot_driver.MachineDetector import MachineDetector

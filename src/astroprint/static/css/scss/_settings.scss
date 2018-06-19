@@ -80,31 +80,60 @@
       display: none;
       font-size: rem-calc(25);
     }
+  }
 
-    &.connecting {
-      span.connecting {
-        display: inline-block;
-        i {
-          color: $success-color;
-        }
+  &.connecting {
+    span.connecting {
+      display: inline-block;
+      i {
+        color: $success-color;
       }
     }
 
-    &.failed {
-      span.failed {
-        display: inline-block;
-        i {
-          color: $alert-color;
-        }
+    .loading-button {
+      &.connect,
+      &.reconnect {
+        display: none;
+      }
+    }
+  }
+
+  &.failed {
+    span.failed {
+      display: inline-block;
+      i {
+        color: $alert-color;
       }
     }
 
-    &.connected {
-      span.connected {
-        display: inline-block;
-        i {
-          color: $success-color;
-        }
+    .loading-button {
+      &.disconnect,
+      &.reconnect {
+        display: none;
+      }
+    }
+  }
+
+  &.connected {
+    span.connected {
+      display: inline-block;
+      i {
+        color: $success-color;
+      }
+    }
+
+    .loading-button {
+      &.connect {
+        display: none;
+      }
+    }
+  }
+
+  &.closed {
+    .loading-button {
+      &.disconnect,
+      &.reconnect {
+        display: none;
       }
     }
   }

@@ -23,10 +23,17 @@ var PrinterConnectionView = SettingsPage.extend({
   el: '#printer-connection',
   template: null,
   settings: null,
+  events: {
+    'change #settings-baudrate': 'onReconnectClicked',
+    'change #settings-serial-port': 'onReconnectClicked',
+    'click a.retry-ports': 'retryPortsClicked',
+    'click .loading-button.connect button': 'onConnectClicked',
+    'click .loading-button.disconnect button': 'onDisconnectClicked',
+    'click .loading-button.reconnect button': 'onReconnectClicked',
+  },
   initialize: function(params)
   {
     this.listenTo(app.socketData, 'change:printer', this.printerStatusChanged );
-
     SettingsPage.prototype.initialize.call(this, params);
   },
   show: function() {
@@ -66,20 +73,14 @@ var PrinterConnectionView = SettingsPage.extend({
     }));
 
     this.printerStatusChanged(app.socketData, app.socketData.get('printer'));
-
-    this.delegateEvents({
-      'change #settings-baudrate': 'saveConnectionSettings',
-      'change #settings-serial-port': 'saveConnectionSettings',
-      'click a.retry-ports': 'retryPortsClicked',
-      'click .loading-button.test-connection button': 'testConnection'
-    });
+    //this.delegateEvents(this.events);
   },
   retryPortsClicked: function(e)
   {
     e.preventDefault();
     this.getInfo();
   },
-  saveConnectionSettings: function(e) {
+  sendConnect: function(command_data) {
     var connectionData = {};
 
     _.each(this.$('form').serializeArray(), function(e){
@@ -87,13 +88,10 @@ var PrinterConnectionView = SettingsPage.extend({
     });
 
     if (connectionData.port) {
-      this.$('.loading-button.test-connection').addClass('loading');
-      this.$('.connection-status').removeClass('failed connected');
-
       if (app.socketData.get('printer').status != 'connected') {
-        this.$('.connection-status').addClass('connecting');
+        this.setViewStatus('connecting')
       } else {
-        this.$('.connection-status').addClass(app.socketData.get('printer').status);
+        this.setViewStatus(app.socketData.get('printer').status)
       }
 
       $.ajax({
@@ -101,33 +99,65 @@ var PrinterConnectionView = SettingsPage.extend({
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=UTF-8",
-        data: JSON.stringify(_.extend(connectionData, {
-          command: "connect",
-          autoconnect: true,
-          save: true
-        }))
+        data: JSON.stringify(_.extend(connectionData, command_data))
       })
       .fail(_.bind(function(){
-        noty({text: "There was an error testing connection settings.", timeout: 3000});
-        this.$('.connection-status').removeClass('connecting').addClass('failed');
+        noty({text: "There was an error connecting.", timeout: 3000});
+        this.setViewStatus('failed')
       },this ))
-      .always(_.bind(function(){
-        this.$('.loading-button.test-connection').removeClass('loading');
-      }, this))
     }
   },
   printerStatusChanged: function(s, value)
   {
-    this.$('.connection-status').removeClass('connecting failed connected').addClass(value.status);
-
-    if (value.status != 'connecting') {
-      this.$('.loading-button.test-connection').removeClass('loading');
-    }
+    this.setViewStatus(value.status);
   },
-  testConnection: function(e)
+  setViewStatus: function(status)
+  {
+    this.$el.removeClass('connecting failed connected closed').addClass(status);
+  },
+  onConnectClicked: function(e)
   {
     e.preventDefault();
-    this.saveConnectionSettings();
+
+    this.sendConnect({
+      command: "connect",
+      autoconnect: true,
+      save: true
+    });
+  },
+  onDisconnectClicked: function(e)
+  {
+    e.preventDefault();
+
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + "connection",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify({
+        command: "disconnect"
+      })
+    })
+    .done(_.bind(function() {
+      this.setViewStatus('closed');
+    }, this))
+    .fail(_.bind(function(){
+      noty({text: "There was an error disconnecting.", timeout: 3000});
+    },this))
+    .always(_.bind(function(){
+      loadingBtn.removeClass('loading');
+    }, this))
+  },
+  onReconnectClicked: function(e)
+  {
+    e.preventDefault();
+
+    this.sendConnect({
+      command: "reconnect"
+    });
   }
 });
 
