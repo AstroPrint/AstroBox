@@ -72,6 +72,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 				self.changeTemperature(25, 25)
 
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
+		t.daemon = True
 		t.start()
 		return True
 
@@ -113,6 +114,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		self._printJob = None
 		self._heatingUpTimer = threading.Timer(self._vpSettings['heatingUp'], heatupDone)
+		self._heatingUpTimer.daemon = True
 		self._heatingUpTimer.start()
 
 	def disableMotorsAndHeater(self):
@@ -260,6 +262,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 class TempsChanger(threading.Thread):
 	def __init__(self, plugin):
+		self.daemon = True
 		self._stopped = False
 		self._plugin = plugin
 		self._targets = {}
@@ -304,6 +307,7 @@ class TempsChanger(threading.Thread):
 
 class JobSimulator(threading.Thread):
 	def __init__(self, plugin, printerManager, currentFile):
+		self.daemon = True
 		self._pm = printerManager
 		self._plugin = plugin
 		self._file = currentFile
