@@ -262,13 +262,13 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 class TempsChanger(threading.Thread):
 	def __init__(self, plugin):
-		self.daemon = True
 		self._stopped = False
 		self._plugin = plugin
 		self._targets = {}
 		self._actuals = {}
 
 		super(TempsChanger, self).__init__()
+		self.daemon = True
 
 	def run(self):
 		while not self._stopped:
@@ -307,7 +307,6 @@ class TempsChanger(threading.Thread):
 
 class JobSimulator(threading.Thread):
 	def __init__(self, plugin, printerManager, currentFile):
-		self.daemon = True
 		self._pm = printerManager
 		self._plugin = plugin
 		self._file = currentFile
@@ -318,6 +317,7 @@ class JobSimulator(threading.Thread):
 		self._consumedFilament = {0: 0}
 
 		super(JobSimulator, self).__init__()
+		self.daemon = True
 
 	def run(self):
 		self._pausedEvent.set()
