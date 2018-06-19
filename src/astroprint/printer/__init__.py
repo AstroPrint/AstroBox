@@ -199,7 +199,7 @@ class Printer(object):
 		return False
 
 	def disconnect(self):
-		if not self.isConnected():
+		if not self.isConnected() and not self.isConnecting():
 			return True
 
 		if self.doDisconnect():
