@@ -132,10 +132,15 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   onChangePreset : function (e){
     var elem = $(e.target);
-
     if (e.target.value == 'other') {
       elem.addClass('hide');
-      this.$('.other-temp-' + this.tool).removeClass('hide').find('input').focus().select();
+      this.$('.other-temp-' + this.tool).removeClass('hide');
+      //setTimeout fixes#417
+      setTimeout(
+        _.bind( function (){
+          this.$('.other-temp-' + this.tool).find('input').focus();
+        },this)
+      , 0)
     } else {
       if ($(".freq-selector-" + this.tool +" option[value='custom']")){
         $(".freq-selector-" + this.tool +" option[value='custom']").remove();
