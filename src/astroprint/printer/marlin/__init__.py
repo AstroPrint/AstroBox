@@ -133,6 +133,7 @@ class PrinterMarlin(Printer):
 		 Connects to the printer.
 		"""
 		if self._comm:
+			self._logger.warn('Printer was already connected')
 			return True
 
 		if port and baudrate:

@@ -163,7 +163,7 @@ var SocketData = Backbone.Model.extend({
             connectionClass = '';
             printerStatus = '';
 
-            if (flags.state == 4) { //4 -> STATE_CONNECTING
+            if (data.state.state == 4) { //4 -> STATE_CONNECTING
               connectionClass = 'blink-animation';
               printerStatus = 'connecting';
             } else if (flags.closedOrError) {
