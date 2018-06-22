@@ -184,7 +184,7 @@ class MachineCom(object):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._serialLoggerEnabled and self._log('Changing printing state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
+		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):
@@ -695,7 +695,6 @@ class MachineCom(object):
 		self._changeState(self.STATE_CONNECTING)
 
 		if not self._openSerial():
-			self._changeState(self.STATE_ERROR)
 			return
 
 		self._serialLoggerEnabled and self._log("Connected to: %s, starting monitor" % self._serial)

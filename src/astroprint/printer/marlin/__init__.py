@@ -308,10 +308,6 @@ class PrinterMarlin(Printer):
 
 	#~~ state monitoring
 
-	def _setState(self, state):
-		self._state = state
-		self.refreshStateData()
-
 	def _addLog(self, log):
 		self._log.append(log)
 		self._stateMonitor.addLog(log)
@@ -333,9 +329,10 @@ class PrinterMarlin(Printer):
 		 Callback method for the comm object, called if the connection state changes.
 		"""
 		oldState = self._state
+		self._state = state
 
 		# forward relevant state changes to gcode manager
-		if self._comm is not None:
+		if self._comm:
 			if oldState == self._comm.STATE_PRINTING:
 				if self._selectedFile is not None:
 					if state == self._comm.STATE_OPERATIONAL:
@@ -353,7 +350,7 @@ class PrinterMarlin(Printer):
 			elif state == self._comm.STATE_CLOSED:
 				eventManager().fire(Events.DISCONNECTED)
 
-		self._setState(state)
+		self.refreshStateData()
 
 	def mcLayerChange(self, layer):
 		super(PrinterMarlin, self).mcLayerChange(layer)
