@@ -185,6 +185,12 @@ class MachineCom(object):
 		oldState = self.getStateString()
 		self._state = newState
 		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
+
+		if newState == self.STATE_ERROR:
+			# we need to issue the event here becaus the error message is in this class
+			# in case of error mcStateChange will close the comm object
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):
@@ -399,7 +405,6 @@ class MachineCom(object):
 		except:
 			self._errorValue = getExceptionString()
 			self._changeState(self.STATE_ERROR)
-			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 	def startFileTransfer(self, filename, localFilename, remoteFilename):
 		if not self.isOperational() or self.isBusy():
@@ -1034,7 +1039,6 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log(errorMsg)
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 		self._serialLoggerEnabled and self._log("Connection closed, closing down monitor")
 
@@ -1062,7 +1066,6 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log("Failed to autodetect serial port")
 				self._errorValue = 'Failed to autodetect serial port.'
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				return False
 		elif self._port == 'VIRTUAL':
 			from octoprint.util.virtual import VirtualPrinter
@@ -1081,7 +1084,6 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				return False
 		return True
 
@@ -1110,7 +1112,6 @@ class MachineCom(object):
 			elif not self.isError():
 				self._errorValue = line[6:]
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 		else:
 			line_lower = line.lower()
@@ -1204,7 +1205,6 @@ class MachineCom(object):
 					# abort the print, there's nothing we can do to rescue it now
 					self._callback.disableMotorsAndHeater()
 					self._changeState(self.STATE_ERROR)
-					eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 				else:
 					# reset resend delta, we can't do anything about it

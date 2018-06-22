@@ -147,7 +147,7 @@ class PrinterMarlin(Printer):
 		"""
 		 Closes the connection to the printer.
 		"""
-		if self._comm is not None:
+		if self._comm:
 			self._comm.close()
 			self._comm = None
 
@@ -349,6 +349,11 @@ class PrinterMarlin(Printer):
 				eventManager().fire(Events.CONNECTING)
 			elif state == self._comm.STATE_CLOSED:
 				eventManager().fire(Events.DISCONNECTED)
+			elif state == self._comm.STATE_ERROR:
+				# Event has already been fired by comm since it has the error info.
+				# here we close the comm object
+				self._comm.close()
+				self._comm = None
 
 		self.refreshStateData()
 
