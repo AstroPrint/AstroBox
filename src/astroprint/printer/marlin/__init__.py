@@ -355,6 +355,9 @@ class PrinterMarlin(Printer):
 				# here we close the comm object
 				self._comm.close(True)
 				self._comm = None
+			elif state == self._comm.STATE_CLOSED_WITH_ERROR:
+				# It's already closed so we only need to set it null so we can connect again
+				self._comm = None
 
 		self.refreshStateData()
 
