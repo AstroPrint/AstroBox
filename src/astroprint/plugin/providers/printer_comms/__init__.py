@@ -12,9 +12,8 @@ from astroprint.plugin.providers.printer_comms.commands import CommandPluginInte
 
 class PrinterState():
 	STATE_NONE = 0
-	STATE_OPEN_SERIAL = 1
-	STATE_DETECT_SERIAL = 2
-	STATE_DETECT_BAUDRATE = 3
+	#STATE_DETECT_SERIAL = 2
+	#STATE_DETECT_BAUDRATE = 3
 	STATE_CONNECTING = 4
 	STATE_OPERATIONAL = 5
 	STATE_PRINTING = 6
@@ -30,12 +29,10 @@ class PrinterState():
 	def __str__(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:

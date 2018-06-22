@@ -70,12 +70,12 @@ class PrinterS3g(Printer):
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_OPEN_SERIAL:
+		#	return "Opening serial port"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:

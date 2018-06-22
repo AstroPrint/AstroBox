@@ -56,9 +56,9 @@ gcodeToEvent = {
 
 class MachineCom(object):
 	STATE_NONE = 0
-	STATE_OPEN_SERIAL = 1
-	STATE_DETECT_SERIAL = 2
-	STATE_DETECT_BAUDRATE = 3
+	#STATE_OPEN_SERIAL = 1
+	#STATE_DETECT_SERIAL = 2
+	#STATE_DETECT_BAUDRATE = 3
 	STATE_CONNECTING = 4
 	STATE_OPERATIONAL = 5
 	STATE_PRINTING = 6
@@ -204,12 +204,12 @@ class MachineCom(object):
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_OPEN_SERIAL:
+		#	return "Opening serial port"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:
@@ -896,49 +896,49 @@ class MachineCom(object):
 							self.timerCalculator.makeCalcs()
 
 				### Baudrate detection
-				if self._state == self.STATE_DETECT_BAUDRATE:
-					if line == '' or time.time() > timeout:
-						if len(self._baudrateDetectList) < 1:
-							self.close()
-							self._errorValue = "No more baudrates to test, and no suitable baudrate found."
-							self._changeState(self.STATE_ERROR)
-							eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						elif self._baudrateDetectRetry > 0:
-							self._baudrateDetectRetry -= 1
-							self._serial.write('\n')
-							self._serialLoggerEnabled and self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
-							self._sendCommand("M105")
-							self._testingBaudrate = True
-						else:
-							baudrate = self._baudrateDetectList.pop(0)
-							try:
-								self._serial.baudrate = baudrate
-								self._serial.timeout = self._settings.getFloat(["serial", "timeout", "detection"])
-								self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
-								self._baudrateDetectRetry = 5
-								self._baudrateDetectTestOk = 0
-								timeout = getNewTimeout("communication")
-								self._serial.write('\n')
-								self._sendCommand("M105")
-								self._testingBaudrate = True
-							except:
-								self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
-					elif 'ok' in lineLower and 'T:' in line:
-						self._baudrateDetectTestOk += 1
-						if self._baudrateDetectTestOk < 10:
-							self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
-							self._sendCommand("M105")
-						else:
-							self._sendCommand("M999")
-							self._serial.timeout = self._settings.getFloat(["serial", "timeout", "connection"])
-							self._changeState(self.STATE_OPERATIONAL)
-							# if self._sdAvailable:
-							# 	self.refreshSdFiles()
-							# else:
-							# 	self.initSdCard()
-							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
-					else:
-						self._testingBaudrate = False
+				# if self._state == self.STATE_DETECT_BAUDRATE:
+				# 	if line == '' or time.time() > timeout:
+				# 		if len(self._baudrateDetectList) < 1:
+				# 			self.close()
+				# 			self._errorValue = "No more baudrates to test, and no suitable baudrate found."
+				# 			self._changeState(self.STATE_ERROR)
+				# 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+				# 		elif self._baudrateDetectRetry > 0:
+				# 			self._baudrateDetectRetry -= 1
+				# 			self._serial.write('\n')
+				# 			self._serialLoggerEnabled and self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
+				# 			self._sendCommand("M105")
+				# 			self._testingBaudrate = True
+				# 		else:
+				# 			baudrate = self._baudrateDetectList.pop(0)
+				# 			try:
+				# 				self._serial.baudrate = baudrate
+				# 				self._serial.timeout = self._settings.getFloat(["serial", "timeout", "detection"])
+				# 				self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
+				# 				self._baudrateDetectRetry = 5
+				# 				self._baudrateDetectTestOk = 0
+				# 				timeout = getNewTimeout("communication")
+				# 				self._serial.write('\n')
+				# 				self._sendCommand("M105")
+				# 				self._testingBaudrate = True
+				# 			except:
+				# 				self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
+				# 	elif 'ok' in lineLower and 'T:' in line:
+				# 		self._baudrateDetectTestOk += 1
+				# 		if self._baudrateDetectTestOk < 10:
+				# 			self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
+				# 			self._sendCommand("M105")
+				# 		else:
+				# 			self._sendCommand("M999")
+				# 			self._serial.timeout = self._settings.getFloat(["serial", "timeout", "connection"])
+				# 			self._changeState(self.STATE_OPERATIONAL)
+				# 			# if self._sdAvailable:
+				# 			# 	self.refreshSdFiles()
+				# 			# else:
+				# 			# 	self.initSdCard()
+				# 			eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+				# 	else:
+				# 		self._testingBaudrate = False
 
 				### Connection attempt
 				elif self._state == self.STATE_CONNECTING:
@@ -1043,7 +1043,7 @@ class MachineCom(object):
 			from octoprint.util.avr_isp import stk500v2
 			from octoprint.util.avr_isp import ispBase
 
-			self._changeState(self.STATE_DETECT_SERIAL)
+			#self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
 			self._serialLoggerEnabled and self._log("Serial port list: %s" % (str(self._callback.serialList())))
 			for p in self._callback.serialList():
@@ -1067,10 +1067,10 @@ class MachineCom(object):
 		elif self._port == 'VIRTUAL':
 			from octoprint.util.virtual import VirtualPrinter
 
-			self._changeState(self.STATE_OPEN_SERIAL)
+			#self._changeState(self.STATE_OPEN_SERIAL)
 			self._serial = VirtualPrinter()
 		else:
-			self._changeState(self.STATE_OPEN_SERIAL)
+			#self._changeState(self.STATE_OPEN_SERIAL)
 			try:
 				self._serialLoggerEnabled and self._log("Connecting to: %s" % self._port)
 				if self._baudrate == 0:
