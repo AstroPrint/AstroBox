@@ -132,7 +132,7 @@ class PrinterMarlin(Printer):
 		"""
 		 Connects to the printer.
 		"""
-		if self._comm is not None:
+		if self._comm:
 			return True
 
 		if port and baudrate:
@@ -352,8 +352,9 @@ class PrinterMarlin(Printer):
 			elif state == self._comm.STATE_ERROR:
 				# Event has already been fired by comm since it has the error info.
 				# here we close the comm object
-				self._comm.close()
-				self._comm = None
+				if self._comm:
+					self._comm.close(True)
+					self._comm = None
 
 		self.refreshStateData()
 
