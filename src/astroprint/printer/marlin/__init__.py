@@ -353,9 +353,8 @@ class PrinterMarlin(Printer):
 			elif state == self._comm.STATE_ERROR:
 				# Event has already been fired by comm since it has the error info.
 				# here we close the comm object
-				if self._comm:
-					self._comm.close(True)
-					self._comm = None
+				self._comm.close(True)
+				self._comm = None
 
 		self.refreshStateData()
 

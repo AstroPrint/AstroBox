@@ -234,7 +234,7 @@ class MachineCom(object):
 		if self._state == self.STATE_ERROR:
 			return "Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Closed with Error: %s" % (self.getShortErrorString())
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
 		return "?%d?" % (self._state)
