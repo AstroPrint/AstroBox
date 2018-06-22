@@ -946,7 +946,7 @@ class MachineCom(object):
 				# 		self._testingBaudrate = False
 
 				### Connection attempt
-				elif self._state == self.STATE_CONNECTING:
+				if self._state == self.STATE_CONNECTING:
 					if line == "" or "wait" in lineLower:
 						self._sendCommand("M105")
 
