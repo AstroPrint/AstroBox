@@ -39,8 +39,7 @@ def printerManager(driver = None):
 				# driver name to class map. format is (module, classname)
 				classInfo = {
 					'marlin': ('.marlin', 'PrinterMarlin'),
-					's3g': ('.s3g', 'PrinterS3g'),
-					'virtual': ('.virtual', 'PrinterVirtual')
+					's3g': ('.s3g', 'PrinterS3g')
 				}[driver]
 
 			except KeyError:

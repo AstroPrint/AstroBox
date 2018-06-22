@@ -151,7 +151,9 @@ class PrinterMarlin(Printer):
 		"""
 		if self._comm is not None:
 			self._comm.close()
-		self._comm = None
+			self._comm = None
+
+		eventManager().fire(Events.CLOSED)
 
 		return True
 

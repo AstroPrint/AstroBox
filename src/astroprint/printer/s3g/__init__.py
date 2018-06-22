@@ -128,6 +128,8 @@ class PrinterS3g(Printer):
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+		elif self._comm is None and newState == self.STATE_CLOSED:
+			eventManager().fire(Events.CLOSED)
 		#elif self._comm is not None and newState == self.STATE_CONNECTING:
 		#	eventManager().fire(Events.CONNECTING)
 

@@ -202,9 +202,8 @@ class Printer(object):
 		if not self.isConnected() and not self.isConnecting():
 			return True
 
-		if self.doDisconnect():
-			self._state = self.STATE_CLOSED
-			eventManager().fire(Events.DISCONNECTED)
+		self.doDisconnect()
+		# the driver is responsible for issuing the CLOSED event
 
 	def reConnect(self, port=None, baudrate=None):
 		if self.isConnecting() or self.isConnected():

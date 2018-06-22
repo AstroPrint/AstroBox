@@ -60,13 +60,12 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def connect(self, port=None, baudrate=None):
 		self._comm = True
-		self._changePrinterState(PrinterState.STATE_CONNECTING)
 
 		def doConnect():
 			if not self._printerManager.shuttingDown:
-				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
+				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
 				#set initial temps
 				self.changeTemperature(25, 25)
@@ -80,12 +79,14 @@ class VirtualComms(Plugin, PrinterCommsService):
 		if self._comm:
 			self._comm = False
 
+			self._changePrinterState(PrinterState.STATE_CLOSED)
+
 			if self._temperatureChanger:
 				self._temperatureChanger.stop()
 				self._temperatureChanger.join()
 				self._temperatureChanger = None
 
-			self._changePrinterState(PrinterState.STATE_CLOSED)
+		return True
 
 	def startPrint(self):
 		if self._printJob and self._printJob.isAlive():
