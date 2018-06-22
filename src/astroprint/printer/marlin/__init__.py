@@ -337,22 +337,23 @@ class PrinterMarlin(Printer):
 		oldState = self._state
 
 		# forward relevant state changes to gcode manager
-		if self._comm is not None and oldState == self._comm.STATE_PRINTING:
-			if self._selectedFile is not None:
-				if state == self._comm.STATE_OPERATIONAL:
-					self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+		if self._comm is not None:
+			if oldState == self._comm.STATE_PRINTING:
+				if self._selectedFile is not None:
+					if state == self._comm.STATE_OPERATIONAL:
+						self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
 
-				elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
-					self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+					elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
+						self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
 
-			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
-		elif self._comm is not None and state == self._comm.STATE_PRINTING:
-			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+				self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 
-		if state == self._comm.STATE_CONNECTING:
-			eventManager().fire(Events.CONNECTING)
-		elif state == self._comm.STATE_CLOSED:
-			eventManager().fiew(Events.DISCONNECTED)
+			if state == self._comm.STATE_PRINTING:
+				self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+			elif state == self._comm.STATE_CONNECTING:
+				eventManager().fire(Events.CONNECTING)
+			elif state == self._comm.STATE_CLOSED:
+				eventManager().fiew(Events.DISCONNECTED)
 
 		self._setState(state)
 
