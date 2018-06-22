@@ -163,8 +163,6 @@ class MachineCom(object):
 		self.thread.daemon = True
 		self.thread.start()
 
-		self._changeState(self.STATE_CONNECTING)
-
 	def __del__(self):
 		self._logger.debug('Printer Comm removed')
 		self.close()
@@ -693,20 +691,14 @@ class MachineCom(object):
 		self.total_filament = None#total_filament has not got any information
 
 	def _monitor(self):
-		#feedbackControls = self._settings.getFeedbackControls()
-		#pauseTriggers = self._settings.getPauseTriggers()
-		#feedbackErrors = []
-
 		#Open the serial port.
+		self._changeState(self.STATE_CONNECTING)
+
 		if not self._openSerial():
+			self._changeState(self.STATE_ERROR)
 			return
 
 		self._serialLoggerEnabled and self._log("Connected to: %s, starting monitor" % self._serial)
-		if self._baudrate == 0:
-			self._serialLoggerEnabled and self._log("Starting baud rate detection")
-			self._changeState(self.STATE_DETECT_BAUDRATE)
-		else:
-			self._changeState(self.STATE_CONNECTING)
 
 		#Start monitoring the serial port.
 		timeout = getNewTimeout("communication")

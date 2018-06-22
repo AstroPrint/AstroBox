@@ -119,18 +119,19 @@ class PrinterS3g(Printer):
 		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
 
 		# forward relevant state changes to gcode manager
-		if self._comm is not None and oldState == self.STATE_PRINTING:
+		if oldState == self.STATE_PRINTING:
 			#if self._currentFile is not None:
 			#	if state == self.STATE_OPERATIONAL:
 			#		self._fileManager.printSucceeded(self._currentFile["filename"], self._comm.getPrintTime())
 			#	elif state == self.STATE_CLOSED or state == self.STATE_ERROR or state == self.STATE_CLOSED_WITH_ERROR:
 			#		self._fileManager.printFailed(self._currentFile["filename"], self._comm.getPrintTime())
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
-		elif self._comm is not None and newState == self.STATE_PRINTING:
+
+		if newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
-		elif self._comm is None and newState == self.STATE_CLOSED:
+		elif newState == self.STATE_CLOSED:
 			eventManager().fire(Events.DISCONNECTED)
-		elif self._comm is not None and newState == self.STATE_CONNECTING:
+		elif newState == self.STATE_CONNECTING:
 			eventManager().fire(Events.CONNECTING)
 
 		self.refreshStateData()

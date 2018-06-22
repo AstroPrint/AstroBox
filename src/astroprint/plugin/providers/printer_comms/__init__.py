@@ -396,7 +396,7 @@ class PrinterCommsService(CommandPluginInterface):
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
 		elif self.connected and newState == PrinterState.STATE_OPERATIONAL:
 			eventManager().fire(SystemEvent.CONNECTED)
-		elif self._comm is not None and newState == PrinterState.STATE_CONNECTING:
+		elif newState == PrinterState.STATE_CONNECTING:
 			eventManager().fire(SystemEvent.CONNECTING)
 		elif newState == PrinterState.STATE_CLOSED or newState == PrinterState.STATE_ERROR:
 			eventManager().fire(SystemEvent.DISCONNECTED)

@@ -132,12 +132,10 @@ class PrinterMarlin(Printer):
 		"""
 		 Connects to the printer.
 		"""
+		if self._comm is not None:
+			return True
 
 		if port and baudrate:
-
-			if self._comm is not None:
-				self._comm.close()
-
 			import astroprint.printer.marlin.comm as comm
 
 			self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
@@ -353,12 +351,11 @@ class PrinterMarlin(Printer):
 			elif state == self._comm.STATE_CONNECTING:
 				eventManager().fire(Events.CONNECTING)
 			elif state == self._comm.STATE_CLOSED:
-				eventManager().fiew(Events.DISCONNECTED)
+				eventManager().fire(Events.DISCONNECTED)
 
 		self._setState(state)
 
 	def mcLayerChange(self, layer):
-
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
 		try:
