@@ -163,6 +163,8 @@ class MachineCom(object):
 		self.thread.daemon = True
 		self.thread.start()
 
+		self._changeState(self.STATE_CONNECTING)
+
 	def __del__(self):
 		self._logger.debug('Printer Comm removed')
 		self.close()
@@ -184,7 +186,7 @@ class MachineCom(object):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._serialLoggerEnabled and self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
+		self._serialLoggerEnabled and self._log('Changing printing state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):

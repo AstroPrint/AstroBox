@@ -116,7 +116,7 @@ class PrinterS3g(Printer):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._logger.info('Changing monitoring state from [%s] to [%s]' % (oldState, self.getStateString()))
+		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
 
 		# forward relevant state changes to gcode manager
 		if self._comm is not None and oldState == self.STATE_PRINTING:
@@ -129,9 +129,9 @@ class PrinterS3g(Printer):
 		elif self._comm is not None and newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 		elif self._comm is None and newState == self.STATE_CLOSED:
-			eventManager().fire(Events.CLOSED)
-		#elif self._comm is not None and newState == self.STATE_CONNECTING:
-		#	eventManager().fire(Events.CONNECTING)
+			eventManager().fire(Events.DISCONNECTED)
+		elif self._comm is not None and newState == self.STATE_CONNECTING:
+			eventManager().fire(Events.CONNECTING)
 
 		self.refreshStateData()
 
@@ -271,6 +271,7 @@ class PrinterS3g(Printer):
 			ports = self.serialList()
 
 			if self._port in ports:
+				self._changeState(self.STATE_CONNECTING)
 				self._botThread = threading.Thread(target=self._work)
 				self._botThread.daemon = True
 				self._botThread.start()

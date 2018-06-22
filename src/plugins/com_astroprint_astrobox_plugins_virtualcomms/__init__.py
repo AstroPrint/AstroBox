@@ -70,6 +70,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 				#set initial temps
 				self.changeTemperature(25, 25)
 
+		self._changePrinterState(PrinterState.STATE_CONNECTING)
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
 		t.daemon = True
 		t.start()

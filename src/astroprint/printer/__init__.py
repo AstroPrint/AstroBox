@@ -162,9 +162,6 @@ class Printer(object):
 		if self.isConnecting() or self.isConnected():
 			return True
 
-		self._state = self.STATE_CONNECTING
-		eventManager().fire(Events.CONNECTING)
-
 		if port is None:
 			port = self.savedPort
 
@@ -175,7 +172,7 @@ class Printer(object):
 			connectionOptions = self.getConnectionOptions()
 			if port in connectionOptions["ports"] and self.doConnect(port, baudrate):
 				s = settings()
-				self._logger.info('Serial port [%s] opened with baudrate [%s]' % (port, baudrate))
+				self._logger.info('Connected to serial port [%s] with baudrate [%s]' % (port, baudrate))
 				savedPort = s.get(["serial", "port"])
 				savedBaudrate = s.getInt(["serial", "baurate"])
 				needsSave = False

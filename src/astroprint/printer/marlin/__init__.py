@@ -153,8 +153,6 @@ class PrinterMarlin(Printer):
 			self._comm.close()
 			self._comm = None
 
-		eventManager().fire(Events.CLOSED)
-
 		return True
 
 	def command(self, command):
@@ -350,6 +348,11 @@ class PrinterMarlin(Printer):
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self._comm is not None and state == self._comm.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+
+		if state == self._comm.STATE_CONNECTING:
+			eventManager().fire(Events.CONNECTING)
+		elif state == self._comm.STATE_CLOSED:
+			eventManager().fiew(Events.DISCONNECTED)
 
 		self._setState(state)
 
