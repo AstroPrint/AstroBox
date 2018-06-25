@@ -21,7 +21,7 @@ class NetworkService(PluginService):
 
 	def getNetworkStatus(self):
 		nm = NetworkManager()
-		return ('online' if nm.checkOnline() else 'offline')
+		return ('online' if nm.isOnline() else 'offline')
 
 
 	#EVENTS

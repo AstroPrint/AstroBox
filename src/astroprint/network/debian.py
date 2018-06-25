@@ -433,7 +433,11 @@ class DebianNetworkManager(NetworkManagerBase):
 
 				except DBusException as e:
 					if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
-						return {'message': 'Invalid Password'}
+						return {
+							'err_code': 'invalid_psk',
+							'message': 'Invalid Password'
+						}
+
 					else:
 						raise
 

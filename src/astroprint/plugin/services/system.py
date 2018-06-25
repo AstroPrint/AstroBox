@@ -100,9 +100,6 @@ class SystemService(PluginService):
 			}
 		})
 
-		return
-
-
 	def saveConnectionSettings(self,data,sendResponse):
 		port = data['port']
 		baudrate = data['baudrate']
@@ -128,10 +125,8 @@ class SystemService(PluginService):
 			return
 
 		sendResponse('invalid_printer_connection_settings',True)
-		return
 
 	def connectionCommand(self, data, sendResponse):
-
 		valid_commands = {
 			"connect": ["autoconnect"],
 			"disconnect": [],
@@ -189,10 +184,8 @@ class SystemService(PluginService):
 			pm.disconnect()
 
 		sendResponse({'success':'no error'})
-		return
 
 	def getMyIP(self, data, sendResponse):
-
 		addresses = {}
 
 		for ifaceName in interfaces():
@@ -212,7 +205,6 @@ class SystemService(PluginService):
 			return
 
 		sendResponse(None)
-		return
 
 	#profile
 	def printerProfile(self, data, sendMessage):
@@ -227,17 +219,12 @@ class SystemService(PluginService):
 			ppm.save()
 
 			sendMessage({'success': 'no_error'})
-
-			return
-
 		else:
 
 			result = ppm.data.copy()
 			result.update( {"driverChoices": ppm.driverChoices()} )
 
 			sendMessage( result )
-
-			return
 
 	def printingInfo(self, data, sendMessage):
 		pm = printerManager()
@@ -274,8 +261,6 @@ class SystemService(PluginService):
 
 		sendMessage(result)
 
-		return
-
 	def saveTempPreset(self, data, sendMessage):
 		ppm = printerProfileManager()
 
@@ -283,19 +268,14 @@ class SystemService(PluginService):
 			id = ppm.createTempPreset(data['name'], data['nozzle_temp'], data['bed_temp'])
 			sendMessage( id )
 
-		return
-
 	def additionalTasks(self, data ,sendMessage):
 		sendMessage( additionalTasksManager().data )
-		return
 
 	def maintenanceMenu(self, data ,sendMessage):
 		mmenu = maintenanceMenuManager()
 		result = mmenu.data
 
 		sendMessage(result)
-
-		return
 
 	def manufacturerPackage(self, data ,sendMessage):
 		manPackage = manufacturerPkgManager()
@@ -324,31 +304,21 @@ class SystemService(PluginService):
 
 		sendMessage(result)
 
-		return
-
 	def refreshPluggedCamera(self, data, sendMessage):
 		cm = cameraManager()
-
 		sendMessage({"camera_plugged": cm.reScan()})
-
-		return
 
 	def isResolutionSupported(self, size, sendMessage):
 		cm = cameraManager()
-
 		sendMessage({"isResolutionSupported": cm.isResolutionSupported(size)})
-		return
 
 	def networkName(self, newName, sendMessage):
 		nm = networkManager()
 
 		if newName :
-
 				nm.setHostname(newName)
 
 		sendMessage({'name':nm.getHostname()})
-
-		return
 
 	def networkSettings(self, data, sendMessage):
 		nm = networkManager()
@@ -359,8 +329,6 @@ class SystemService(PluginService):
 			'storedWifiNetworks': nm.storedWifiNetworks()
 		})
 
-		return
-
 	def wifiNetworks(self, data, sendMessage):
 		networks = networkManager().getWifiNetworks()
 
@@ -369,22 +337,21 @@ class SystemService(PluginService):
 		else:
 			sendMessage("unable_get_wifi_networks",True)
 
-		return
-
 	def setWifiNetwork(self, data, sendMessage):
 		if 'id' in data and 'password' in data:
 			result = networkManager().setWifiNetwork(data['id'], data['password'])
 
 			if result:
-				sendMessage(result)
-				return
+				if 'err_code' in result:
+					sendMessage(result['err_code'], True)
+				else:
+					sendMessage(result)
 			else:
 				sendMessage('network_not_found',True)
-				return
+
+			return
 
 		sendMessage('incorrect_data',True)
-
-		return
 
 	def deleteStoredWiFiNetwork(self, data, sendMessage):
 		nm = networkManager()
@@ -393,8 +360,6 @@ class SystemService(PluginService):
 			sendMessage({'success': 'no_error'})
 		else:
 			sendMessage("network_not_found",True)
-
-		return
 
 	def cameraSettings(self, data, sendMessage):
 		s = settings()
@@ -440,8 +405,6 @@ class SystemService(PluginService):
 			'structure': cm.settingsStructure()
 		})
 
-		return
-
 	def getAdvancedSoftwareSettings(self, data, sendMessage):
 		s = settings()
 
@@ -455,8 +418,6 @@ class SystemService(PluginService):
 			'serialActivated': s.getBoolean(['serial', 'log']),
 			'sizeLogs': sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
 		})
-
-		return
 
 	def changeApiKeySettings(self, data, sendMessage):
 
@@ -475,9 +436,6 @@ class SystemService(PluginService):
 
 		else:
 			sendMessage('wrong_data_sent_in',True)
-
-		return
-
 
 	def resetFactorySettings(self, data, sendMessage):
 		from astroprint.cloud import astroprintCloud
@@ -544,8 +502,6 @@ class SystemService(PluginService):
 			else:
 				sendMessage("error_rebooting",True)
 
-			return
-
 		except Exception as e:
 			self._logger.error('unsuccessfully factory settings restored', exc_info = True)
 			sendMessage("error_restoring_factory_settings",True)
@@ -560,8 +516,6 @@ class SystemService(PluginService):
 		softwareCheckInterval = 86400 #1 day
 		s = settings()
 		sendResponse(s.get(["software", "lastCheck"]) < ( time.time() - softwareCheckInterval ))
-		return
-
 
 	def checkSoftwareVersion(self,data,sendResponse):
 		softwareInfo = softwareManager.checkSoftwareVersion()
@@ -573,8 +527,6 @@ class SystemService(PluginService):
 			sendResponse(softwareInfo)
 		else:
 			sendResponse("error_checking_update",True)
-
-		return
 
 	def updateSoftwareVersion(self,data,sendResponse):
 		if 'release_ids' in data:
@@ -590,8 +542,6 @@ class SystemService(PluginService):
 		else:
 			sendResponse("error_sending_logs",True)
 
-		return
-
 	def changeSerialLogs(self,data,sendResponse):
 
 		if data and 'active' in data:
@@ -600,26 +550,16 @@ class SystemService(PluginService):
 			s.save()
 
 			printerManager().setSerialDebugLogging(data['active'])
-
 			sendResponse({'success': 'no_error'})
 
 		else:
 			sendResponse("no_data_sent",True)
-
-		return
 
 	def clearLogs(self,data,sendResponse):
 		if softwareManager.clearLogs():
 			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_clear_logs",True)
-
-		return
-
-	'''def getSysmteInfo():
-		sendResponse( softwareManager.systemInfo )
-
-		return'''
 
 	def checkInternet(self,data,sendResponse):
 		nm = networkManager()
@@ -668,16 +608,15 @@ class SystemService(PluginService):
 
 					executeThread = threading.Thread(target=executeCommand, args=(command, logger))
 					executeThread.start()
-					return
 
 				else:
 					logger.warn("Action %s is misconfigured" % action)
 					sendResponse('action_not_configured', True)
-					return
+
+				return
 
 		logger.warn("No suitable action in config for: %s" % action)
 		sendResponse('no_command', True)
-		return
 
 	def getDeviceId(self, data=None, sendResponse=None):
 		boxId = boxrouterManager().boxId

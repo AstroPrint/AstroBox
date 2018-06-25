@@ -15,54 +15,91 @@ class MacDevNetworkManager(NetworkManagerBase):
 		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
 		self._online = False
+		self._storedWiFiNetworks = []
 
 		super(MacDevNetworkManager, self).__init__()
 
 	def startUp(self):
-		offlineTime = 3.0
-		timer = threading.Timer(offlineTime, self._goOnline)
-		timer.daemon = True
-		timer.start()
-
-		self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
+		pass
+		#offlineTime = 3.0
+		#timer = threading.Timer(offlineTime, self._goOnline)
+		#timer.daemon = True
+		#timer.start()
+		#self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
 
 	def getActiveConnections(self):
+		wireless = None
+		wired = None
+
+		'''
+		wired = {
+			'name': 'Wired Test',
+			'ip': '127.0.0.1:5000'
+		}
+		'''
+
+		if self._storedWiFiNetworks:
+			for n in self._storedWiFiNetworks:
+				if n['active']:
+					wireless = {
+						'id': 'localhost',
+						'signal': 80,
+						'name': n['name'],
+						'ip': '127.0.0.1:5000',
+						'secured': True
+					}
+
 		return {
-			'wired': {
-				'id': 'localhost',
-				'signal': None,
-				'name': 'Localhost',
-				'ip': '127.0.0.1:5000',
-				'secured': True
-			},
-			'wireless': None,
+			'wired': wired,
+			'wireless': wireless,
 			'manual': None
 		}
 
 	def storedWifiNetworks(self):
-		return [
-			{'id': '1', 'name': 'Test Connection 1', 'active': True},
-			{'id': '2', 'name': 'Test Connection 2', 'active': False},
-			{'id': '3', 'name': 'Test Connection 3', 'active': False}
-		]
+		return self._storedWiFiNetworks
 
 	def deleteStoredWifiNetwork(self, networkId):
-		return ( networkId in [c['id'] for c in self.storedWifiNetworks()] )
+		for i in range(0, len(self._storedWiFiNetworks)):
+			n = self._storedWiFiNetworks[i]
+			if n['id'] == networkId:
+				if n['active']:
+					self._goOffline()
+
+				del self._storedWiFiNetworks[i]
+				self.logger.info("Network [%s] with id [%s] deleted." % (n['name'], n['id']))
+				return n['id']
 
 	def hasWifi(self):
 		return True
 
 	def getWifiNetworks(self):
 		return [
-				{"id": "80:1F:02:F9:16:1B", "name": "Test Connection 1", "secured": True, "signal": 54, "wep": False},
-				{"id": "80:1F:02:F9:16:1B", "name": "creatorpro", "secured": False, "signal": 54, "wep": False},
-				{"id": "76:DA:38:68:50:E9", "name": "wanhao", "secured": False, "signal": 80, "wep": False},
-				{"id": "74:DA:38:88:51:90", "name": "soniabox", "secured": False, "signal": 59, "wep": False},
-				{"id": "C0:7B:BC:1A:5C:81", "name": "Empresas", "secured": True, "signal": 37, "wep": False},
-				{"id": "C0:7B:BC:1A:5C:80", "name": "CITIC", "secured": True, "signal": 37, "wep": False},
-				{"id": "2C:4D:54:CC:30:F8", "name": "AstroPrintWLAN", "secured": True, "signal": 100, "wep": False},
-				{"id": "C0:7B:BC:1A:5C:82", "name": "InvitadosEmpresas", "secured": False, "signal": 39, "wep": False}]
+			{"id": "80:1F:02:F9:16:1B", "name": "Secured Network", "secured": True, "signal": 80, "wep": False},
+			{"id": "90:1F:02:F9:16:1C", "name": "Open Network", "secured": False, "signal": 78, "wep": False},
+			{"id": "74:DA:38:88:51:90", "name": "WEP Network", "secured": True, "signal": 59, "wep": True},
+			{"id": "C0:7B:BC:1A:5C:81", "name": "Open Failed", "secured": False, "signal": 37, "wep": False}
+		]
 
+	def setWifiNetwork(self, bssid, password):
+		for n in self.getWifiNetworks():
+			if n['id'] == bssid:
+				if n['secured']:
+					if not password:
+						self.logger.info("Missing password for a secured network")
+						return
+					elif password != 'pwd':
+						self.logger.info("Password invalid. Needs to be 'pwd'")
+						return 	{
+							'err_code': 'invalid_psk',
+							'message': 'Invalid Password'
+						}
+
+				else:
+					if n["id"] == 'C0:7B:BC:1A:5C:81':
+						self.logger.info("Open network with NO connection")
+						return
+
+				return self._setActiveWifi(n)
 
 	def isOnline(self):
 		return self._online
@@ -90,3 +127,22 @@ class MacDevNetworkManager(NetworkManagerBase):
 	def _goOnline(self):
 		eventManager.fire(Events.NETWORK_STATUS, 'online')
 		self._online = True
+
+	def _goOffline(self):
+		eventManager.fire(Events.NETWORK_STATUS, 'offline')
+		self._online = False
+
+	def _setActiveWifi(self, network):
+		self.logger.info("Selected WiFi: %s" % network['name'])
+		for n in self._storedWiFiNetworks:
+			n['active'] = False
+
+		self._storedWiFiNetworks.append({
+			'id': network['id'],
+			'name': network['name'],
+			'active': True
+		})
+
+		self._goOnline()
+
+		return network['id']
