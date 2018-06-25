@@ -4,13 +4,14 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 import threading
+import time
 
 from octoprint.server import eventManager
 from octoprint.events import Events
 
-from astroprint.network import NetworkManager as NetworkManagerBase
+from astroprint.network import NetworkManager
 
-class MacDevNetworkManager(NetworkManagerBase):
+class MacDevNetworkManager(NetworkManager):
 	def __init__(self):
 		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
@@ -19,13 +20,12 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 		super(MacDevNetworkManager, self).__init__()
 
-	def startUp(self):
-		pass
-		#offlineTime = 3.0
-		#timer = threading.Timer(offlineTime, self._goOnline)
-		#timer.daemon = True
-		#timer.start()
-		#self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
+	#def startUp(self):
+	#	offlineTime = 3.0
+	#	timer = threading.Timer(offlineTime, self._goOnline)
+	#	timer.daemon = True
+	#	timer.start()
+	#	self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
 
 	def getActiveConnections(self):
 		wireless = None
@@ -89,6 +89,7 @@ class MacDevNetworkManager(NetworkManagerBase):
 						return
 					elif password != 'pwd':
 						self.logger.info("Password invalid. Needs to be 'pwd'")
+						time.sleep(3)
 						return 	{
 							'err_code': 'invalid_psk',
 							'message': 'Invalid Password'
@@ -96,9 +97,11 @@ class MacDevNetworkManager(NetworkManagerBase):
 
 				else:
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
+						time.sleep(3)
 						self.logger.info("Open network with NO connection")
 						return
 
+				time.sleep(2)
 				return self._setActiveWifi(n)
 
 	def isOnline(self):
@@ -125,12 +128,12 @@ class MacDevNetworkManager(NetworkManagerBase):
 		return '127.0.0.1'
 
 	def _goOnline(self):
-		eventManager.fire(Events.NETWORK_STATUS, 'online')
 		self._online = True
+		eventManager.fire(Events.NETWORK_STATUS, 'online')
 
 	def _goOffline(self):
-		eventManager.fire(Events.NETWORK_STATUS, 'offline')
 		self._online = False
+		eventManager.fire(Events.NETWORK_STATUS, 'offline')
 
 	def _setActiveWifi(self, network):
 		self.logger.info("Selected WiFi: %s" % network['name'])
