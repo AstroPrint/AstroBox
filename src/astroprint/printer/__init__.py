@@ -169,28 +169,34 @@ class Printer(object):
 			baudrate = self.savedBaudrate
 
 		if port is not None:
-			connectionOptions = self.getConnectionOptions()
-			if port in connectionOptions["ports"] and self.doConnect(port, baudrate):
-				s = settings()
-				self._logger.info('Connected to serial port [%s] with baudrate [%s]' % (port, baudrate))
-				savedPort = s.get(["serial", "port"])
-				savedBaudrate = s.getInt(["serial", "baurate"])
-				needsSave = False
+			availablePorts = self.getConnectionOptions()["ports"]
+			if port in availablePorts:
+				tryPorts = [port]
+			else:
+				tryPorts = availablePorts.keys()
 
-				if port != savedPort:
-					s.set(["serial", "port"], port)
-					needsSave = True
+			for p in tryPorts:
+				if self.doConnect(p, baudrate):
+					s = settings()
+					self._logger.info('Connected to serial port [%s] with baudrate [%s]' % (p, baudrate))
+					savedPort = s.get(["serial", "port"])
+					savedBaudrate = s.getInt(["serial", "baurate"])
+					needsSave = False
 
-				if baudrate != savedBaudrate:
-					s.set(["serial", "baudrate"], baudrate)
-					needsSave = True
+					if p != savedPort:
+						s.set(["serial", "port"], p)
+						needsSave = True
 
-				if needsSave:
-					s.save()
+					if baudrate != savedBaudrate:
+						s.set(["serial", "baudrate"], baudrate)
+						needsSave = True
 
-				return True
+					if needsSave:
+						s.save()
 
-		self._logger.warn('Unable to open serial port [%s] with baudrate [%s]' % (port, baudrate))
+					return True
+
+		self._logger.warn('Unable to connect to any available port [%s] with baudrate [%s]' % (", ".join(tryPorts), baudrate))
 		self._state = self.STATE_CLOSED
 		eventManager().fire(Events.DISCONNECTED)
 		return False
