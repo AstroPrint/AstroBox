@@ -5,7 +5,7 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 
 from . import PluginService
 from octoprint.events import Events
-from astroprint.network import NetworkManager
+from astroprint.network.manager import networkManager
 
 class NetworkService(PluginService):
 	_validEvents = [
@@ -20,11 +20,10 @@ class NetworkService(PluginService):
 	#REQUESTS
 
 	def getNetworkStatus(self):
-		nm = NetworkManager()
+		nm = networkManager()
 		return ('online' if nm.isOnline() else 'offline')
-
 
 	#EVENTS
 
 	def onNetworkStatusChange(self,event,value):
-		self.publishEvent('network_status_change',('online' if value == 'online' else 'offline'))
+		self.publishEvent('network_status_change', value)
