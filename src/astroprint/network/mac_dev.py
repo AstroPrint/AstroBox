@@ -64,6 +64,7 @@ class MacDevNetworkManager(NetworkManager):
 			if n['id'] == networkId:
 				if n['active']:
 					self._goOffline()
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
 				del self._storedWiFiNetworks[i]
 				self.logger.info("Network [%s] with id [%s] deleted." % (n['name'], n['id']))
@@ -81,6 +82,7 @@ class MacDevNetworkManager(NetworkManager):
 		]
 
 	def setWifiNetwork(self, bssid, password):
+		eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 		for n in self.getWifiNetworks():
 			if n['id'] == bssid:
 				if n['secured']:
@@ -90,6 +92,7 @@ class MacDevNetworkManager(NetworkManager):
 					elif password != 'pwd':
 						self.logger.info("Password invalid. Needs to be 'pwd'")
 						time.sleep(3)
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
 						return 	{
 							'err_code': 'invalid_psk',
 							'message': 'Invalid Password'
@@ -99,9 +102,19 @@ class MacDevNetworkManager(NetworkManager):
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
 						time.sleep(3)
 						self.logger.info("Open network with NO connection")
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_connection"})
 						return
 
 				time.sleep(2)
+				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+					'status': 'connected',
+					'info': {
+						'type': 'wifi',
+						'signal': n['signal'],
+						'name': n['name'],
+						'ip': '127.0.0.1:5000'
+					}
+				})
 				return self._setActiveWifi(n)
 
 	def isAstroprintReachable(self):
