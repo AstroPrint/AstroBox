@@ -137,7 +137,7 @@ class NetworkManagerEvents(threading.Thread):
 		elif state != NetworkManager.NM_STATE_CONNECTING:
 			self._setOnline(False)
 
-	#@idle_add_decorator
+	@idle_add_decorator
 	def propertiesChanged(self, nm, properties, interface, signal):
 		if "ActiveConnections" in properties:
 			#if len(properties['ActiveConnections']) == 0:
@@ -170,7 +170,7 @@ class NetworkManagerEvents(threading.Thread):
 		if "State" in properties and properties["State"] == NetworkManager.NM_STATE_CONNECTED_GLOBAL:
 			self._setOnline(True)
 
-	#@idle_add_decorator
+	@idle_add_decorator
 	def monitorActivatingConnection(self, nm, new_state, old_state, reason, interface, signal):
 		logger.info('Activating State Change %s -> %s' % (NetworkManager.const('device_state', old_state),NetworkManager.const('device_state', new_state)))
 		if self._activatingConnection:
