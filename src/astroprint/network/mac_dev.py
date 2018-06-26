@@ -86,20 +86,26 @@ class MacDevNetworkManager(NetworkManager):
 		for n in self.getWifiNetworks():
 			if n['id'] == bssid:
 				if n['secured']:
-					if not password:
+					if not password or len(password) < 3:
 						self.logger.info("Missing password for a secured network")
-						time.sleep(3)
-						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
-						return
-
-					elif password != 'pwd':
-						self.logger.info("Password invalid. Needs to be 'pwd'")
-						time.sleep(3)
-						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
+						time.sleep(2)
 						return 	{
 							'err_code': 'invalid_psk',
 							'message': 'Invalid Password'
 						}
+
+					elif password != 'pwd':
+						self.logger.info("Password invalid. Needs to be 'pwd'")
+
+						def action():
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
+
+						timer = threading.Timer(3, action)
+						timer.daemon = True
+						timer.start()
+						time.sleep(1)
+
+						return n['id']
 
 				else:
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
