@@ -105,7 +105,7 @@ class MacDevNetworkManager(NetworkManager):
 						timer.start()
 						time.sleep(1)
 
-						return n['id']
+						return {'name': n['name']}
 
 				else:
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
@@ -177,4 +177,4 @@ class MacDevNetworkManager(NetworkManager):
 
 		self._goOnline()
 
-		return network['id']
+		return return {'name': network['name']}

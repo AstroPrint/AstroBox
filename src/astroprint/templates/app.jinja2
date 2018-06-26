@@ -144,7 +144,7 @@
     var LOGGED_USER = {% if user_email -%} "{{user_email}}" {%- else -%} null {%- endif %};
     var app = null;
     var ASTROBOX_NAME = "{{astroboxName}}";
-    var PRODUCT_NAME = "mfDefinition.variant.product_name";
+    var PRODUCT_NAME = "{{mfDefinition.variant.product_name}}";
     var CAMERA_MANAGER = "{{cameraManager}}";
     var WS_TOKEN = "{{ wsToken }}";
     var initial_states = {

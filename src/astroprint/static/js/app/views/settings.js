@@ -907,7 +907,10 @@ var InternetConnectionView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template( $("#internet-connection-settings-page-template").html() )
     }
-
+    this.reloadData();
+  },
+  reloadData: function()
+  {
     if (!this.settings) {
       $.getJSON(API_BASEURL + 'settings/network', null, _.bind(function(data) {
         this.settings = data;
@@ -918,7 +921,8 @@ var InternetConnectionView = SettingsPage.extend({
       });
     }
   },
-  render: function() {
+  render: function()
+  {
     this.$el.html(this.template({
       settings: this.settings
     }));
@@ -943,6 +947,7 @@ var InternetConnectionView = SettingsPage.extend({
           }, 70000); //1 minute
 
           connectionCb = function(connectionInfo){
+            console.log(connectionInfo)
             switch (connectionInfo.status) {
               case 'disconnected':
               case 'connecting':
@@ -952,6 +957,7 @@ var InternetConnectionView = SettingsPage.extend({
               case 'connected':
                 app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
                 noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
+                data.ip = connectionInfo.info.ip
                 this.settings.networks['wireless'] = data;
                 this.render();
                 promise.resolve();
@@ -979,8 +985,7 @@ var InternetConnectionView = SettingsPage.extend({
           app.eventManager.on('astrobox:InternetConnectingStatus', connectionCb, this);
 
         } else if (data.message) {
-          noty({text: data.message, timeout: 3000});
-          promise.reject()
+          promise.reject(data.message)
         }
       }, this))
       .fail(_.bind(function(){
@@ -1027,11 +1032,13 @@ var InternetConnectionView = SettingsPage.extend({
       name: row.find('.name').text(),
       active: row.hasClass('active')
     })
-      .done(function(deleted) {
+      .done(_.bind(function(deleted) {
         if (deleted) {
           row.remove();
+          this.settings = null;
+          this.reloadData();
         }
-      })
+      }, this))
       .fail(function() {
         noty({text: "Unable to Delete Stored Network"});
       });
