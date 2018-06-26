@@ -104,6 +104,12 @@ class MacDevNetworkManager(NetworkManager):
 				time.sleep(2)
 				return self._setActiveWifi(n)
 
+	def isAstroprintReachable(self):
+		return self.isOnline()
+
+	def checkOnline(self):
+		return self.isOnline()
+
 	def isOnline(self):
 		return self._online
 
