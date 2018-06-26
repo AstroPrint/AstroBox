@@ -13,12 +13,23 @@ from astroprint.network.manager import networkManager
 class NetworkService(PluginService):
 	_validEvents = [
 		#watch the state of the connection with astroprint.com: online or offline
-		'network_status_change'
+		'network_status_change',
+		#watch the state the network connection while it's connecting: connecting, connected, failed, disconnected
+		'internet_connecting_status_change'
 	]
 
 	def __init__(self):
 		super(NetworkService, self).__init__()
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self.onNetworkStatusChange)
+		self._eventManager.subscribe(Events.INTERNET_CONNECTING_STATUS, self.onInternetConnectingStatus)
+
+	#EVENTS
+
+	def onNetworkStatusChange(self,event,value):
+		self.publishEvent('network_status_change', value)
+
+	def onInternetConnectingStatus(self, event, value):
+		self.publishEvent('internet_connecting_status_change', value)
 
 	#REQUESTS
 
@@ -114,8 +125,3 @@ class NetworkService(PluginService):
 			sendMessage({'success': 'no_error'})
 		else:
 			sendMessage("network_not_found",True)
-
-	#EVENTS
-
-	def onNetworkStatusChange(self,event,value):
-		self.publishEvent('network_status_change', value)

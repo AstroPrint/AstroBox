@@ -88,7 +88,10 @@ class MacDevNetworkManager(NetworkManager):
 				if n['secured']:
 					if not password:
 						self.logger.info("Missing password for a secured network")
+						time.sleep(3)
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
 						return
+
 					elif password != 'pwd':
 						self.logger.info("Password invalid. Needs to be 'pwd'")
 						time.sleep(3)
@@ -115,6 +118,7 @@ class MacDevNetworkManager(NetworkManager):
 						'ip': '127.0.0.1:5000'
 					}
 				})
+
 				return self._setActiveWifi(n)
 
 	def isAstroprintReachable(self):
