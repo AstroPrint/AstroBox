@@ -14,7 +14,6 @@ from octoprint.settings import settings
 from octoprint.events import Events
 
 from astroprint.printer.manager import printerManager
-from netifaces import interfaces, ifaddresses, AF_INET
 
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
@@ -185,27 +184,6 @@ class SystemService(PluginService):
 
 		sendResponse({'success':'no error'})
 
-	def getMyIP(self, data, sendResponse):
-		addresses = {}
-
-		for ifaceName in interfaces():
-			addrs = [i['addr'] for i in ifaddresses(ifaceName).setdefault(AF_INET, [{'addr':None}] )]
-			addresses[ifaceName] = addrs
-
-		if 'eth0' in addresses and addresses['eth0'][0] is not None:
-			sendResponse(addresses['eth0'])
-			return
-
-		if 'wlan0' in addresses and addresses['wlan0'][0] is not None:
-			sendResponse(addresses['wlan0'])
-			return
-
-		if 'en0' in addresses and addresses['en0'][0] is not None:
-			sendResponse(addresses['en0'])
-			return
-
-		sendResponse(None)
-
 	#profile
 	def printerProfile(self, data, sendMessage):
 
@@ -311,55 +289,6 @@ class SystemService(PluginService):
 	def isResolutionSupported(self, size, sendMessage):
 		cm = cameraManager()
 		sendMessage({"isResolutionSupported": cm.isResolutionSupported(size)})
-
-	def networkName(self, newName, sendMessage):
-		nm = networkManager()
-
-		if newName :
-				nm.setHostname(newName)
-
-		sendMessage({'name':nm.getHostname()})
-
-	def networkSettings(self, data, sendMessage):
-		nm = networkManager()
-
-		sendMessage({
-			'networks': nm.getActiveConnections(),
-			'hasWifi': nm.hasWifi(),
-			'storedWifiNetworks': nm.storedWifiNetworks()
-		})
-
-	def wifiNetworks(self, data, sendMessage):
-		networks = networkManager().getWifiNetworks()
-
-		if networks:
-			sendMessage(networks)
-		else:
-			sendMessage("unable_get_wifi_networks",True)
-
-	def setWifiNetwork(self, data, sendMessage):
-		if 'id' in data and 'password' in data:
-			result = networkManager().setWifiNetwork(data['id'], data['password'])
-
-			if result:
-				if 'err_code' in result:
-					sendMessage(result['err_code'], True)
-				else:
-					sendMessage(result)
-			else:
-				sendMessage('network_not_found',True)
-
-			return
-
-		sendMessage('incorrect_data',True)
-
-	def deleteStoredWiFiNetwork(self, data, sendMessage):
-		nm = networkManager()
-
-		if nm.deleteStoredWifiNetwork(data['id']):
-			sendMessage({'success': 'no_error'})
-		else:
-			sendMessage("network_not_found",True)
 
 	def cameraSettings(self, data, sendMessage):
 		s = settings()
@@ -560,25 +489,6 @@ class SystemService(PluginService):
 			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_clear_logs",True)
-
-	def checkInternet(self,data,sendResponse):
-		nm = networkManager()
-
-		if nm.isAstroprintReachable():
-		#if False:
-			return sendResponse({'connected':True})
-		else:
-			networks = nm.getWifiNetworks()
-
-			if networks:
-				return sendResponse(
-					{
-						'networks':networks,
-						'connected':False
-					}
-				)
-			else:
-				return sendResponse("unable_get_wifi",True)
 
 	def performSystemAction(self,action,sendResponse):
 		available_actions = settings().get(["system", "actions"])
