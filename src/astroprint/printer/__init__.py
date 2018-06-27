@@ -170,6 +170,7 @@ class Printer(object):
 
 		if port is not None:
 			availablePorts = self.getConnectionOptions()["ports"]
+			tryPorts = []
 			if port in availablePorts:
 				tryPorts = [port]
 			else:
