@@ -177,4 +177,4 @@ class MacDevNetworkManager(NetworkManager):
 
 		self._goOnline()
 
-		return return {'name': network['name']}
+		return {'name': network['name']}
