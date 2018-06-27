@@ -74,8 +74,8 @@ class DiscoveryManager(object):
 	# SSDP/UPNP
 
 	def getDiscoveryXmlContents(self):
-		modelName = self.mfDefinition.variant.product_name
-		modelLink = self.mfDefinition.links.product
+		modelName = self.mfDefinition.data['variant']['product_name']
+		modelLink = self.mfDefinition.data['links']['product']
 		modelDescription = "%s running on %s" % (self.softwareMgr.versionString, self.softwareMgr.platform)
 		vendor = "AstroPrint"
 		vendorUrl = "https://www.astroprint.com/"
