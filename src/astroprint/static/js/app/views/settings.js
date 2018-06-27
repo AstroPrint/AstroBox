@@ -947,7 +947,6 @@ var InternetConnectionView = SettingsPage.extend({
           }, 70000); //1 minute
 
           connectionCb = function(connectionInfo){
-            console.log(connectionInfo)
             switch (connectionInfo.status) {
               case 'disconnected':
               case 'connecting':
