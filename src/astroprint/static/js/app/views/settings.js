@@ -989,8 +989,7 @@ var InternetConnectionView = SettingsPage.extend({
         }
       }, this))
       .fail(_.bind(function(){
-        noty({text: "There was an error saving setting.", timeout: 3000});
-        promise.reject();
+        promise.reject("There was an error selecting WiFi.");
       }, this));
 
     return promise;

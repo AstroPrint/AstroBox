@@ -82,7 +82,6 @@ class MacDevNetworkManager(NetworkManager):
 		]
 
 	def setWifiNetwork(self, bssid, password):
-		eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
 		for n in self.getWifiNetworks():
 			if n['id'] == bssid:
 				if n['secured']:
@@ -98,33 +97,32 @@ class MacDevNetworkManager(NetworkManager):
 						self.logger.info("Password invalid. Needs to be 'pwd'")
 
 						def action():
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+							time.sleep(2)
 							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
 
 						timer = threading.Timer(3, action)
 						timer.daemon = True
 						timer.start()
-						time.sleep(1)
 
-						return {'name': n['name']}
+						return {"name": n['name']}
 
 				else:
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
-						time.sleep(3)
 						self.logger.info("Open network with NO connection")
-						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_connection"})
-						return
 
-				time.sleep(2)
-				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-					'status': 'connected',
-					'info': {
-						'type': 'wifi',
-						'signal': n['signal'],
-						'name': n['name'],
-						'ip': '127.0.0.1:5000'
-					}
-				})
+						def action():
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+							time.sleep(2)
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_connection"})
 
+						timer = threading.Timer(3, action)
+						timer.daemon = True
+						timer.start()
+
+						return {"name": n['name']}
+
+				time.sleep(1)
 				return self._setActiveWifi(n)
 
 	def isAstroprintReachable(self):
@@ -175,6 +173,23 @@ class MacDevNetworkManager(NetworkManager):
 			'active': True
 		})
 
-		self._goOnline()
+		def action():
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+			time.sleep(1)
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+				'status': 'connected',
+				'info': {
+					'type': 'wifi',
+					'signal': network['signal'],
+					'name': network['name'],
+					'ip': '127.0.0.1:5000'
+				}
+			})
+
+			self._goOnline()
+
+		timer = threading.Timer(2, action)
+		timer.daemon = True
+		timer.start()
 
 		return {'name': network['name']}
