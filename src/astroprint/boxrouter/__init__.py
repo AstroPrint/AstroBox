@@ -457,6 +457,7 @@ class AstroprintBoxRouter(object):
 			 		'platform': sm.platform,
 			 		'localIpAddress': nm.activeIpAddress,
 			 		'publicKey': self._publicKey,
-			 		'privateKey': self._privateKey
+			 		'privateKey': self._privateKey,
+			 		'mfPackageId': sm.mfPackageId
 			 	}
 			}
