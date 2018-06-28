@@ -25,7 +25,7 @@
         </section>
         <section class="middle tab-bar-section">
           <span class="top-logo-small show-for-small"><a href="#"><i class="icon-rocket"></i></a></span>
-          <h1 class="title hide-for-small"><a href="#"><img src="/img/astrobox_logo_medium.png"/></a></h1>
+          <h1 class="title hide-for-small"><a href="#"><img src="/static/img/{{mfDefinition.variant.logo}}"/></a></h1>
           <div id="connection-view">
             <a href="#settings/internet-connection" class="offline" data-title="Not connected to the internet">
               <img src="/img/no-internet-icon.png" />
@@ -47,10 +47,10 @@
             <li><a class="button small login" data-reveal-id="login-modal"><i class="icon-user"></i> Sign in to AstroPrint</a></li>
           {% endif %}
           <li><a href="#"><i class="icon-th"></i> Dashboard</a></li>
-          {% if variantData['suppliesLink'] %}
-            <li><a href="{{variantData['suppliesLink']}}"><i class="icon-basket"></i> Supplies</a></li>
+          {% if mfDefinition.links.supplies %}
+            <li><a href="{{mfDefinition.links.supplies}}"><i class="icon-basket"></i> Supplies</a></li>
           {% endif %}
-          <li><a href="{{variantData['supportLink']}}"><i class="icon-lifebuoy"></i> Help</a></li>
+          <li><a href="{{mfDefinition.links.support}}"><i class="icon-lifebuoy"></i> Help</a></li>
           {% if user_email %}
             <li><label class="account bold"><i class="icon-user"></i> {{user_email}}</label></li>
             <li><a class="launch-ap" href="#"><i class="icon-rocket"></i> AstroPrint Cloud</a></li>
@@ -78,7 +78,9 @@
             <div id="terminal-view" class="app-view hide"> {%- include 'terminal.jinja2' -%} </div>
             <div id="camera-view" class="app-view hide"> {%- include 'camera.jinja2' -%} </div>
             <div id="supplies-view" class="app-view hide"> {%- include 'supplies.jinja2' -%} </div>
-            <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
+            {% if mfDefinition.variant.additional_custom_tasks %}
+              <div id="additional-tasks-view" class="app-view hide"> {%- include 'additional-tasks.jinja2' -%} </div>
+            {% endif %}
             <div id="additional-task-view" class="app-view hide"> {%- include 'additional-task.jinja2' -%} </div>
             <div id="maintenance-menu-view" class="app-view hide"> {%- include 'maintenance-menu.jinja2' -%} </div>
             <div id="help-view" class="app-view hide"> {%- include 'help.jinja2' -%} </div>
@@ -142,7 +144,7 @@
     var LOGGED_USER = {% if user_email -%} "{{user_email}}" {%- else -%} null {%- endif %};
     var app = null;
     var ASTROBOX_NAME = "{{astroboxName}}";
-    var PRODUCT_NAME = "{{variantData['productName']}}";
+    var PRODUCT_NAME = "{{mfDefinition.variant.product_name}}";
     var CAMERA_MANAGER = "{{cameraManager}}";
     var WS_TOKEN = "{{ wsToken }}";
     var initial_states = {
@@ -164,7 +166,7 @@
     "js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
     "js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js", "js/lib/jquery.localtime.min.js",
     "js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/usbfiles.js", "js/app/models/printerprofile.js","js/app/models/additionaltask.js","js/app/models/maintenancemenu.js",
-    "js/app/widgets/tempsemicircleview.js", "js/app/widgets/semicircleprogress.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js",
+    "js/app/widgets/tempsemicircleview.js", "js/app/widgets/semicircleprogress.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js","js/app/widgets/control-movement.js",
     "js/app/views/home.js", "js/app/views/files.js", "js/app/views/utilities.js", "js/app/views/settings.js", "js/app/views/connection.js",
     "js/app/views/turnoff.js", "js/app/views/reboot.js", "js/app/views/printing.js", "js/app/views/terminal.js", "js/app/views/camera.js", "js/app/views/unreachable.js", "js/app/views/supplies.js", "js/app/views/help.js",
     "js/app/router.js","js/app/views/additional-tasks.js","js/app/views/additional-task.js","js/app/views/maintenance-menu.js",

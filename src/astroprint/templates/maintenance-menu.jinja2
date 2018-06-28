@@ -1,30 +1,32 @@
 <div class="content">
   <div class="row large-collapse">
     <div class="small-12 columns title-heading">
-      <h1 class="bold">Maintenance Menu</h1>
+      <h1 class="bold">{{astroboxName}} · Maintenance Menu</h1>
     </div>
   </div>
 
-  <div class="file-upload-view">
-    <div class="row upload-buttons">
-      <div class="small-12 large-5 medium-centered columns">
-        <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
-          <i class="icon-plus"></i> Upload New Menu ( <span class="extensions">.zip</span> )
-          <input class="file-upload" type="file" name="file" accept=".zip">
-        </span>
-      </div>
-    </div>
-    <div class="row upload-progress" style="display:none">
-      <div class="small-12 large-10 large-centered columns">
-        <div class="progress radius">
-          <div class="meter" style="width: 0%"></div>
-        </div>
-        <div class="progress-message" align="center">
-          <i class="icon-rocket-spinner animate-spin"></i> <span></span>
+  {% if mfDefinition.variant.allow_menu_upload %}
+    <div class="file-upload-view">
+      <div class="row upload-buttons">
+        <div class="small-12 large-5 medium-centered columns">
+          <span class="file-upload-button button success radius expand" style="margin-bottom: 10px">
+            <i class="icon-plus"></i> Upload New Menu ( <span class="extensions">.zip</span> )
+            <input class="file-upload" type="file" name="file" accept=".zip">
+          </span>
         </div>
       </div>
+      <div class="row upload-progress" style="display:none">
+        <div class="small-12 large-10 large-centered columns">
+          <div class="progress radius">
+            <div class="meter" style="width: 0%"></div>
+          </div>
+          <div class="progress-message" align="center">
+            <i class="icon-rocket-spinner animate-spin"></i> <span></span>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  {% endif %}
 
   <div id="menu-list" class="row menu-list-view small-block-grid-1">
     <div id="back-button" style="display: none"> <i class="icon-angle-left"></i></div>

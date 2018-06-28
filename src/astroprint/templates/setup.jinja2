@@ -11,25 +11,25 @@
 <div id="setup-view" class="row">
   <div class="small-12 large-8 large-centered columns" align="center">
     <div id="step-welcome" class="step hide">
-      <h1 class="bold">{{variantData['welcomeMsgHeader']}}<div class="nub"></div></h1>
+      <h1 class="bold">{{mfDefinition.getString('welcome_header','en')}}<div class="nub"></div></h1>
       <div class="content" align="center">
         <img src="/img/setup/step_1_rocket.png" height="104"/>
-        {{variantData['welcomeMsgContent']}}
+        <p>{{mfDefinition.getString('welcome_content','en')}}</p>
         <a class="button success radius expand bold" href="#name">Begin Setup</i></a>
       </div>
     </div>
 
     <div id="step-name" class="step hide">
-      <h1 class="bold">Name Your <span class="light">Astro</span>Box&trade;<div class="nub"></div></h1>
+      <h1 class="bold">Name Your {{mfDefinition.variant.product_name}}<div class="nub"></div></h1>
       <div class="content">
         <img src="/img/setup/step_2_rocket.png" height="104"/>
         <p>
-          If you have more than one {{variantData['productName']}}, be sure to give them different names to prevent conflicts!
+          If you have more than one {{mfDefinition.variant.product_name}}, be sure to give them different names to prevent conflicts!
         </p>
         <div class="settings-state">
           <form align="center">
             <label for="astrobox-name">
-              <b>{{variantData['productName']}} Name:</b>
+              <b>{{mfDefinition.variant.product_name}} Name:</b>
               <input id="astrobox-name" class="radius" type="text" name="name" autocomplete="off"/>
             </label>
             <p>
@@ -37,7 +37,7 @@
             </p>
             <ul class="preview">
               <li><i class="icon-signal"></i> Hotspot WiFi name: <span class="hotspot-name bold"></span></li>
-              <li><i class="icon-link"></i> {{variantData['productName']}} URL: http://<span class="astrobox-url bold"></span>.local</li>
+              <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="astrobox-url bold"></span>.local</li>
             </ul>
             <div class="loading-button expand">
               <a class="button success radius submit-action expand" href="#internet"><small>Next:</small> <b>Internet Setup</b> <i class="icon-right-open"></i></a>
@@ -64,7 +64,7 @@
           <img src="/img/setup/step_4_wifi-box.png" height="107"/>
           <h3 class="bold" align="center">Success!</h3>
           <p>
-            Your {{variantData['productName']}} is now connected to the internet.
+            Your {{mfDefinition.variant.product_name}} is now connected to the internet.
           </p>
           <hr/>
           <div class="row hotspot-off">
@@ -89,7 +89,7 @@
           <h3 class="bold" align="center"></h3>
           <button class="success radius expand">Retry</button>
           <div align="right">
-            <a href="#connect-printer" class="skip-step">Skip internet. Use {{variantData['productName']}} offline <i class="icon-right-open"></i></a>
+            <a href="#connect-printer" class="skip-step">Skip internet. Use {{mfDefinition.variant.product_name}} offline <i class="icon-right-open"></i></a>
           </div>
         </div>
         <div class="settings-state">
@@ -112,7 +112,7 @@
           </div>
           <p class="small">
             <sup>*</sup> Without being connected to the internet, you can only
-            use the {{variantData['productName']}} when you are near it.
+            use the {{mfDefinition.variant.product_name}} when you are near it.
           </p>
         </div>
       </div>
@@ -121,29 +121,33 @@
         <script type="text/template" id="wifi-network-password-modal-template">
           <% if (wifi.wep) { %>
             <h2 class="bold" align="center">WEP Security Deprecated</h2>
-            <p>
-              The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
-            </p>
-            <p>
-              WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
-              and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
-            </p>
-            <div class="row">
+            <div class="modal-body">
+              <p>
+                The <%= wifi.name %> WiFi network seems to be configured to use WEP security.
+              </p>
+              <p>
+                WiFI WEP Security was <a href="https://en.wikipedia.org/wiki/Wired_Equivalent_Privacy" target="_info">deprecated in 2004</a>
+                and is <b>not considered safe</b>, please configure your WiFi network to use WPA or WPA2.
+              </p>
+            </div>
+            <div class="modal-actions row">
               <div class="small-12 medium-6 columns medium-centered">
                 <a class="button secondary radius cancel expand" href="#internet">Close</a>
               </div>
             </div>
           <% } else { %>
             <h2 class="bold" align="center">WiFi Password</h2>
-            <p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
             <form>
-              <input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>"/>
-              <input type="password" class="network-password-field" name="password"/>
-              <label for="show-password">
-                <input type="checkbox" id="show-password"/>
-                Show Password
-              </label>
-              <div class="row">
+              <div class="modal-body">
+                <p align="center">Enter the password for <span class="name bold"><%= wifi.name %></span>.</p>
+                <input type="hidden" class="network-id-field" name="id" value="<%= wifi.id %>"/>
+                <input type="password" class="network-password-field" name="password"/>
+                <label for="show-password">
+                  <input type="checkbox" id="show-password"/>
+                  Show Password
+                </label>
+              </div>
+              <div class="modal-actions row">
                 <div class="small-12 medium-6 columns">
                   <a class="button secondary radius cancel expand" href="#internet">Cancel</a>
                 </div>
@@ -151,11 +155,12 @@
                   <div class="loading-button expand">
                     <input type="submit" class="button radius success connect" value="Connect"/>
                     <span class="loading button success disabled radius">
-                      <i class="icon-rocket-spinner animate-spin"></i> Might be a while. Please be patient...
+                      <i class="icon-rocket-spinner animate-spin"></i> Please be patient...
                     </span>
                   </div>
                 </div>
               </div>
+
             </form>
           <% } %>
         </script>
@@ -215,126 +220,124 @@
             </label>
             <div align="center">
               <div class="loading-button expand">
-                <button class="success radius submit-action expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></button>
-                <span class="button success disabled radius loading expand"><i class="icon-rocket-spinner animate-spin"></i> Logging in...</span>
+                {% if mfDefinition.variant.printer_profile_edit %}
+                  <button class="success radius submit-action expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></button>
+                {% else %}
+                  <button class="success radius submit-action expand" href="#done"><b>Sign In</b></button>
+                {% endif %}
+                <span class="button success disabled radius loading expand"><i class="icon-rocket-spinner animate-spin"></i> Signing in...</span>
               </div>
             </div>
           </form>
           <div align="right">
-            <a href="#connect-printer" class="skip-step">Skip AstroPrint Account <i class="icon-right-open"></i></a>
+            <a href="{% if mfDefinition.variant.printer_profile_edit -%} #connect-printer {%- else -%} #done {%- endif %}" class="skip-step">Skip AstroPrint Account <i class="icon-right-open"></i></a>
           </div>
         </div>
       </div>
     </div>
 
-    <div id="step-connect-printer" class="step hide">
-      <h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
-      <div class="content">
-        <img src="/img/setup/step_6_connect-box.png" height="90"/>
-        <p align="center">
-          Plug your printer's USB in the {{variantData['productName']}} and click continue when done.
-        </p>
-        <a href="#printer" class="button success radius share-button bold expand">Continue</a>
-        <div align="right">
-          <a class="skip-step" href="#share">Skip and Configure Later <i class="icon-right-open"></i></a>
-        </div>
-      </div>
-    </div>
-
-    <div id="step-printer" class="step hide">
-      <h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
-      <div class="content">
-        <img src="/img/setup/step_6.2_connected-box.png" height="76"/>
-        <div class="checking-state" align="center">
-          <i class="icon-rocket-spinner animate-spin"></i>
-          <h3 class="bold" align="center">Checking Printer Settings...</h3>
-        </div>
-        <div class="settings-state">
-          <p>
-            Select your connection settings.
+    {% if mfDefinition.variant.printer_profile_edit %}
+      <div id="step-connect-printer" class="step hide">
+        <h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
+        <div class="content">
+          <img src="/img/setup/step_6_connect-box.png" height="90"/>
+          <p align="center">
+            Plug your printer's USB in the {{mfDefinition.variant.product_name}} and click continue when done.
           </p>
-          <form></form>
+          <a href="#printer" class="button success radius share-button bold expand">Continue</a>
           <div align="right">
-            <a href="#share" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
+            <a class="skip-step" href="#done">Skip and Configure Later <i class="icon-right-open"></i></a>
           </div>
         </div>
       </div>
-      <script type="text/template" id="step-printer-template">
-        <label for="settings-printer-driver" class="bold">
-          Driver
-          <select id="settings-printer-driver" name="driver">
-            <% _.each(settings.driverChoices, function(name, id) { %>
-              <option value="<%= id %>"><%= name %></option>
-            <% }) %>
-          </select>
-        </label>
 
-        <label for="settings-serial-port" class="bold">
-          USB Device
-          <% if (settings.portOptions.length > 0) { %>
-            <% if (settings.portOptions.length > 1) { %>
-              <select id="settings-serial-port" name="port">
-                <% _.each(settings.portOptions, function(e) { %>
-                  <option value="<%= e[0] %>"<%= settings.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
-                <% }) %>
-              </select>
-            <% } else { %>
-              <% var e = settings.portOptions[0] %>
-              <input type="hidden" value="<%= e[0] %>" name="port"/>
-              <p><%= e[1] %></p>
-            <% } %>
-          <% } else { %>
+      <div id="step-printer" class="step hide">
+        <h1 class="bold">Connect Your Printer<div class="nub"></div></h1>
+        <div class="content">
+          <img src="/img/setup/step_6.2_connected-box.png" height="76"/>
+          <div class="checking-state" align="center">
+            <i class="icon-rocket-spinner animate-spin"></i>
+            <h3 class="bold" align="center">Checking Printer Settings...</h3>
+          </div>
+          <div class="settings-state">
             <p>
-            No printer detected. Is your printer plugged in?<br/>
-            <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+              Select your connection settings.
             </p>
-          <% } %>
-        </label>
-        <% if (settings.baudrateOptions.length > 0) { %>
-          <label for="settings-baudrate" class="bold">Baud Rate
-            <% if (settings.baudrateOptions.length > 1) { %>
-              <select id="settings-baudrate" name="baudrate">
-                <% _.each(settings.baudrateOptions, function(e) { %>
-                  <option value="<%= e %>"<%= settings.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
-                <% }) %>
-              </select>
-            <% } else { %>
-              <p><%= settings.baudrateOptions[0] %></p>
-              <input type="hidden" value="<%= settings.baudrate %>"/>
-            <% } %>
-          </label>
-        <% } %>
-        <% if (settings.portOptions.length > 0 ) { %>
-          <div align="center">
-            <div class="loading-button expand">
-              <button class="button success radius submit-action expand bold" href="#share">
-                Connect
-              </button>
-              <span class="button success disabled radius loading expand">
-                <i class="icon-rocket-spinner animate-spin"></i> Connecting...
-              </span>
-              <span class="button alert disabled radius failed expand">
-                <i class="icon-attention"></i> Failed to connect
-              </span>
+            <form></form>
+            <div align="right">
+              <a href="#done" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
             </div>
           </div>
-        <% } %>
-      </script>
-    </div>
+        </div>
+        <script type="text/template" id="step-printer-template">
+          <label for="settings-printer-driver" class="bold">
+            Driver
+            <select id="settings-printer-driver" name="driver">
+              <% _.each(settings.driverChoices, function(name, id) { %>
+                <option value="<%= id %>"><%= name %></option>
+              <% }) %>
+            </select>
+          </label>
 
-    <div id="step-share" class="step hide">
+          <label for="settings-serial-port" class="bold">
+            USB Device
+            <% if (settings.portOptions.length > 0) { %>
+              <% if (settings.portOptions.length > 1) { %>
+                <select id="settings-serial-port" name="port">
+                  <% _.each(settings.portOptions, function(e) { %>
+                    <option value="<%= e[0] %>"<%= settings.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+                  <% }) %>
+                </select>
+              <% } else { %>
+                <% var e = settings.portOptions[0] %>
+                <input type="hidden" value="<%= e[0] %>" name="port"/>
+                <p><%= e[1] %></p>
+              <% } %>
+            <% } else { %>
+              <p>
+              No printer detected. Is your printer plugged in?<br/>
+              <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+              </p>
+            <% } %>
+          </label>
+          <% if (settings.baudrateOptions.length > 0) { %>
+            <label for="settings-baudrate" class="bold">Baud Rate
+              <% if (settings.baudrateOptions.length > 1) { %>
+                <select id="settings-baudrate" name="baudrate">
+                  <% _.each(settings.baudrateOptions, function(e) { %>
+                    <option value="<%= e %>"<%= settings.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+                  <% }) %>
+                </select>
+              <% } else { %>
+                <p><%= settings.baudrateOptions[0] %></p>
+                <input type="hidden" value="<%= settings.baudrate %>"/>
+              <% } %>
+            </label>
+          <% } %>
+          <% if (settings.portOptions.length > 0 ) { %>
+            <div align="center">
+              <div class="loading-button expand">
+                <button class="button success radius submit-action expand bold" href="#done">
+                  Connect
+                </button>
+                <span class="button success disabled radius loading expand">
+                  <i class="icon-rocket-spinner animate-spin"></i> Connecting...
+                </span>
+                <span class="button alert disabled radius failed expand">
+                  <i class="icon-attention"></i> Failed to connect
+                </span>
+              </div>
+            </div>
+          <% } %>
+        </script>
+      </div>
+    {% endif %}
+
+    <div id="step-done" class="step hide">
       <h1 class="bold">You're done!<div class="nub"></div></h1>
       <div class="content">
         <img src="/img/setup/final_step_astroprint_logo.png" height=""/>
-        <p>{{variantData['congratsMsg']}}</p>
-        <div class="row">
-          <div class="small-offset-1 small-5 columns">
-            <button class="radius share-button facebook bold expand"><i class="icon-facebook-squared"></i></button>
-          </div>
-          <div class="small-5 small-pull-1 columns">
-            <button class="radius share-button twitter bold expand"><i class="icon-twitter"></i></button>
-          </div>
-        </div>
+        <p><b>Congratulations!</b> {{mfDefinition.getString('setup_done','en')}}</p>
         <div class="loading-button expand">
           <a class="button radius success bold setup-done expand" href="#">Start Printing <i class="icon-right-open"></i></a>
           <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Launching</span>
@@ -343,7 +346,10 @@
     </div>
   </div>
 </div>
-<div id="version-label">{{version}}</div>
+<div id="version-label">{{version}} &bull; <a href="#" class="shutdown" title="Shutdown"><i class="icon-off"></i></a></div>
+
+<div id="turnoff-view" class="app-view hide" data-fullscreen="1"> {%- include 'turnoff.jinja2' -%} </div>
+
 {% endblock %}
 
 {% block js %}
@@ -352,14 +358,13 @@
     var BASEURL = "{{ url_for('index') }}";
     var API_BASEURL = BASEURL + "api/";
     var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
-    var PRODUCT_NAME = "{{variantData['productName']}}";
+    var PRODUCT_NAME = "{{mfDefinition.variant.product_name}}";
     var WS_TOKEN = "{{ wsToken }}";
-    var shareOptions = {{ variantData['share'] | tojson | safe }}
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
-    "js/setup/setup.js" -%}
+    "js/app/views/turnoff.js", "js/setup/setup.js" -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}
   <script type="text/javascript">

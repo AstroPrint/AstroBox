@@ -31,8 +31,6 @@ class PrinterWithPlugin(Printer):
 
 		pm.addEventListener('ON_PLUGIN_REMOVED', self.onPluginRemoved)
 
-		self._currentFile = None
-
 		super(PrinterWithPlugin, self).__init__()
 
 	def rampdown(self):
@@ -58,36 +56,13 @@ class PrinterWithPlugin(Printer):
 		return self._plugin.allowTerminal
 
 	@property
-	def selectedFile(self):
-		return self._currentFile
-
-	@property
 	def _fileManagerClass(self):
 		return self._plugin.fileManagerClass
 
-	def connect(self, port=None, baudrate=None):
-		if self._plugin.connect(port, baudrate):
-			s = settings()
-			savedPort = s.get(["serial", "port"])
-			savedBaudrate = s.getInt(["serial", "baurate"])
-			needsSave = False
+	def doConnect(self, port, baudrate):
+		return self._plugin.connect(port, baudrate)
 
-			if port != savedPort:
-				s.set(["serial", "port"], port)
-				needsSave = True
-
-			if baudrate != savedBaudrate:
-				s.set(["serial", "baudrate"], baudrate)
-				needsSave = True
-
-			if needsSave:
-				s.save()
-
-			return True
-		else:
-			return False
-
-	def disconnect(self):
+	def doDisconnect(self):
 		return self._plugin.disconnect()
 
 	def getFileInfo(self, filename):
@@ -144,11 +119,11 @@ class PrinterWithPlugin(Printer):
 		}
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
+		if sd and not self._plugin.allowSDCardPrinting:
+			raise('Printing from SD card is not supported on this printer')
+
 		if not super(PrinterWithPlugin, self).selectFile(filename, sd, printAfterSelect):
 			return False
-
-		if sd and not self._plugin.allowSDCardPrinting:
-			raise('Printing from SD card is not supported for the Virtual Driver')
 
 		if not os.path.exists(filename) or not os.path.isfile(filename):
 			raise IOError("File %s does not exist" % filename)
@@ -172,7 +147,7 @@ class PrinterWithPlugin(Printer):
 			'position': None
 		}
 
-		if self._printAfterSelect:
+		if printAfterSelect:
 			self.startPrint()
 
 		return True

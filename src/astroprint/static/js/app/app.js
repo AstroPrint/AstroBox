@@ -74,10 +74,12 @@ var AstroBoxApp = Backbone.View.extend({
   turnOffClicked: function()
   {
     if (!this.turnOffModal) {
-      this.turnOffModal = new TurnoffConfirmationModal();
+      this.turnOffModal = new TurnoffConfirmationModal({router: app.router});
     }
 
-    this.turnOffModal.open();
+    this.turnOffModal.open().fail(_.bind(function(){
+      $('#app').removeClass('hide');
+    },this));
   },
   rebootClicked: function()
   {

@@ -41,7 +41,6 @@ class PrinterS3g(Printer):
 		self._baudrate = None
 		self._errorValue = ''
 		self._botThread = None
-		self._currentFile = None
 		self._printJob = None
 		self._heatingUp = False
 		self._firmwareVersion = None
@@ -71,12 +70,12 @@ class PrinterS3g(Printer):
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_OPEN_SERIAL:
+		#	return "Opening serial port"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:
@@ -95,7 +94,7 @@ class PrinterS3g(Printer):
 		if self._state == self.STATE_ERROR:
 			return "Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Closed with Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
 		return "?%d?" % (self._state)
@@ -117,19 +116,22 @@ class PrinterS3g(Printer):
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._logger.info('Changing monitoring state from [%s] to [%s]' % (oldState, self.getStateString()))
+		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
 
 		# forward relevant state changes to gcode manager
-		if self._comm is not None and oldState == self.STATE_PRINTING:
+		if oldState == self.STATE_PRINTING:
 			#if self._currentFile is not None:
 			#	if state == self.STATE_OPERATIONAL:
 			#		self._fileManager.printSucceeded(self._currentFile["filename"], self._comm.getPrintTime())
 			#	elif state == self.STATE_CLOSED or state == self.STATE_ERROR or state == self.STATE_CLOSED_WITH_ERROR:
 			#		self._fileManager.printFailed(self._currentFile["filename"], self._comm.getPrintTime())
 			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
-		elif self._comm is not None and newState == self.STATE_PRINTING:
+
+		if newState == self.STATE_PRINTING:
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
-		elif self._comm is not None and newState == self.STATE_CONNECTING:
+		elif newState == self.STATE_CLOSED:
+			eventManager().fire(Events.DISCONNECTED)
+		elif newState == self.STATE_CONNECTING:
 			eventManager().fire(Events.CONNECTING)
 
 		self.refreshStateData()
@@ -261,13 +263,8 @@ class PrinterS3g(Printer):
 
 	# ~~~ Printer API ~~~~~
 
-	def connect(self, port= None, baudrate = None):
+	def doConnect(self, port, baudrate):
 		with self._state_condition:
-			self._changeState(self.STATE_CONNECTING)
-
-			if port is None:
-				port = settings().get(["serial", "port"])
-
 			self._errorValue = ''
 			self._port = port
 			self._baudrate = baudrate
@@ -275,20 +272,23 @@ class PrinterS3g(Printer):
 			ports = self.serialList()
 
 			if self._port in ports:
+				self._changeState(self.STATE_CONNECTING)
 				self._botThread = threading.Thread(target=self._work)
 				self._botThread.daemon = True
 				self._botThread.start()
+				return True
 
 			else:
 				self._changeState(self.STATE_ERROR)
 				self._errorValue = "No compatible machine detected in %s" % self._port
 				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				self._logger.warn(self._errorValue)
+				return False
 
 	def isConnected(self):
 		return self._comm and self._comm.is_open()
 
-	def disconnect(self):
+	def doDisconnect(self):
 		with self._state_condition:
 			if self._printJob:
 				self._printJob.cancel()
@@ -307,7 +307,7 @@ class PrinterS3g(Printer):
 
 		self._firmwareVersion = None
 		self._changeState(self.STATE_CLOSED)
-		eventManager().fire(Events.DISCONNECTED)
+		return True
 
 	def serialList(self):
 		from makerbot_driver.MachineDetector import MachineDetector
@@ -488,43 +488,10 @@ class PrinterS3g(Printer):
 				})
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect):
-			return False
-
 		if sd:
 			raise('Printing from SD card is not supported for the S3G Driver')
 
-		if not os.path.exists(filename) or not os.path.isfile(filename):
-			raise IOError("File %s does not exist" % filename)
-		filesize = os.stat(filename).st_size
-
-		eventManager().fire(Events.FILE_SELECTED, {
-			"file": filename,
-			"origin": FileDestinations.LOCAL
-		})
-
-		self._setJobData(filename, filesize, sd)
-		self.refreshStateData()
-
-		self._currentFile = {
-			'filename': filename,
-			'size': filesize,
-			'origin': FileDestinations.LOCAL,
-			'start_time': None,
-			'progress': None,
-			'position': None
-		}
-
-		if self._printAfterSelect:
-			self.startPrint()
-
-		return True
-
-	def unselectFile(self):
-		self._currentFile = None
-
-		if not super(PrinterS3g, self).unselectFile():
-			return
+		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect)
 
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:

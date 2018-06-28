@@ -308,7 +308,8 @@ def getAdvancedSoftwareSettings():
 			"regenerate": s.getBoolean(['api','regenerate'])
 		},
 		serialActivated= s.getBoolean(['serial', 'log']),
-		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)])
+		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)]),
+		updateChannel= s.getInt(['software', 'channel'])
 	)
 
 @api.route("/settings/software/advanced/apikey", methods=["PUT"])
@@ -325,6 +326,21 @@ def changeApiKeySettings():
 		else:
 			s.set(['api', 'key'], UI_API_KEY)
 
+		s.save()
+
+		return jsonify()
+
+	else:
+		return ("Wrong data sent in.", 400)
+
+@api.route("/settings/software/advanced/update-channel", methods=["PUT"])
+@restricted_access
+def changeUpdateChannelSettings():
+	data = request.json
+
+	if data and 'channel' in data:
+		s = settings()
+		s.setInt(['software', 'channel'], data['channel'])
 		s.save()
 
 		return jsonify()
@@ -407,7 +423,7 @@ def checkSoftwareVersion():
 		s.set(["software", "lastCheck"], int(time.time()))
 		s.save()
 
-		return jsonify(softwareInfo);
+		return jsonify(softwareInfo)
 	else:
 		return ("There was an error checking for new software.", 400)
 

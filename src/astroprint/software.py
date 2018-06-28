@@ -327,6 +327,7 @@ class SoftwareManager(object):
 				"id": None,
 				"name": 'AstroBox'
 			},
+			"manufacturer_pkg_id": None,
 			"platform": 'pcduino',
 			"additional": []
 		}
@@ -346,8 +347,18 @@ class SoftwareManager(object):
 
 			merge_dict(self.data, config)
 
-			if os.path.isdir(os.path.join(self._infoDir, 'additional')):
-				for f in glob.glob(os.path.join(self._infoDir, 'additional', "*.yaml")):
+			#Check if there's a manufacturer package
+			manufacturerFile = os.path.join(self._infoDir,'manufacturer.yaml')
+			if os.path.isfile(manufacturerFile):
+				with open(manufacturerFile, "r") as f:
+					config = yaml.safe_load(f)
+
+				self.data['additional'].append(config)
+				self.data['manufacturer_pkg_id'] = config['package']['id']
+
+			additionalPath = os.path.join(self._infoDir, 'additional')
+			if os.path.isdir(additionalPath):
+				for f in glob.glob(os.path.join(additionalPath, "*.yaml")):
 					with open(f, "r") as f:
 						config = yaml.safe_load(f)
 
@@ -450,15 +461,24 @@ class SoftwareManager(object):
 			}
 
 			for package in ([self.data] + self.data['additional']):
-				r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps({
-						'current': [
-							package['version']['major'],
-							package['version']['minor'],
-							package['version']['build']
-						],
-						'variant': package['variant']['id'],
-						'platform': package['platform']
-					}),
+				versionData = {
+					'current': [
+						package['version']['major'],
+						package['version']['minor'],
+						package['version']['build']
+					],
+					'channel': self._settings.getInt(['software', 'channel'])
+				}
+
+				if 'variant' in package:
+					versionData['variant'] = package['variant']['id']
+					versionData['platform'] = package['platform']
+					versionData['manufacturer_pkg_id'] = self.data['manufacturer_pkg_id']
+				elif 'package' in package:
+					versionData['variant'] = self.data['variant']['id']
+					versionData['package'] = package['package']['id']
+
+				r = requests.post('%s/astrobox/software/check' % apiHost, data=json.dumps(versionData),
 					auth = self._checkAuth(),
 					headers = self._requestHeaders
 				)
@@ -468,9 +488,9 @@ class SoftwareManager(object):
 					return None
 				else:
 					packageData = r.json()
-					packageData['name'] = package['variant']['name']
+					packageData['name'] = package['variant']['name'] if 'variant' in package else package['package']['name']
 
-					if packageData and packageData['update_available']:
+					if packageData['update_available']:
 						#check if it's the same one we have installed
 						packageData['is_current'] = packageData['release']['major'] == int(package['version']['major']) and packageData['release']['minor'] == int(package['version']['minor']) and packageData['release']['build'] == package['version']['build']
 						if not packageData['is_current']:
@@ -491,7 +511,7 @@ class SoftwareManager(object):
 		platforms = {
 			self.data['variant']['id']: self.data['platform']
 		}
-		platforms.update({p['variant']['id']: p['platform'] for p in self.data['additional']})
+		platforms.update({p['variant']['id']: p['platform'] for p in self.data['additional'] if 'platform' in p})
 
 		for rel in releases:
 			try:
@@ -506,7 +526,7 @@ class SoftwareManager(object):
 
 					if data and 'download_url' in data and 'platform' in data and 'variant' in data and 'id' in data['variant']:
 
-						if data['variant']['id'] in platforms and data['platform'] == platforms[data['variant']['id']]:
+						if data['platform'] is None or ( data['variant']['id'] in platforms and data['platform'] == platforms[data['variant']['id']]):
 							releaseInfo.append(data)
 
 						else:
@@ -568,8 +588,9 @@ class SoftwareManager(object):
 	def resetUpdate(self):
 		self._status = 'idle'
 		self._releases = None
-		self._updater.stop()
-		self._updater = None
+		if self._updater:
+			self._updater.stop()
+			self._updater = None
 
 	def restartServer(self):
 		if platformStr == "linux" or platformStr == "linux2":
@@ -640,7 +661,7 @@ class SoftwareManager(object):
 			return False
 
 	def clearLogs(self):
-		activeLogFiles = ['astrobox.log', 'serial.log']
+		activeLogFiles = ['astrobox.log', 'serial.log', 'electron.log', 'touch.log']
 
 		logsDir = self._settings.getBaseFolder("logs")
 
@@ -653,8 +674,10 @@ class SoftwareManager(object):
 
 		# then truncate the currently used one
 		for f in activeLogFiles:
-			with open(os.path.join(logsDir,f), 'w'):
-				pass
+			path = os.path.join(logsDir,f)
+			if os.path.isfile(path):
+				with open(path, 'w'):
+					pass
 
 		return True
 

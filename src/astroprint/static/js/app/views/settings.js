@@ -21,12 +21,19 @@ var SettingsPage = Backbone.View.extend({
 
 var PrinterConnectionView = SettingsPage.extend({
   el: '#printer-connection',
-  template: _.template( $("#printer-connection-settings-page-template").html() ),
+  template: null,
   settings: null,
+  events: {
+    'change #settings-baudrate': 'onReconnectClicked',
+    'change #settings-serial-port': 'onReconnectClicked',
+    'click a.retry-ports': 'retryPortsClicked',
+    'click .loading-button.connect button': 'onConnectClicked',
+    'click .loading-button.disconnect button': 'onDisconnectClicked',
+    'click .loading-button.reconnect button': 'onReconnectClicked',
+  },
   initialize: function(params)
   {
     this.listenTo(app.socketData, 'change:printer', this.printerStatusChanged );
-
     SettingsPage.prototype.initialize.call(this, params);
   },
   show: function() {
@@ -57,25 +64,23 @@ var PrinterConnectionView = SettingsPage.extend({
   },
   render: function()
   {
+    if (!this.template) {
+      this.template = _.template( $("#printer-connection-settings-page-template").html() );
+    }
+
     this.$('form').html(this.template({
       settings: this.settings
     }));
 
     this.printerStatusChanged(app.socketData, app.socketData.get('printer'));
-
-    this.delegateEvents({
-      'change #settings-baudrate': 'saveConnectionSettings',
-      'change #settings-serial-port': 'saveConnectionSettings',
-      'click a.retry-ports': 'retryPortsClicked',
-      'click .loading-button.test-connection button': 'testConnection'
-    });
+    //this.delegateEvents(this.events);
   },
   retryPortsClicked: function(e)
   {
     e.preventDefault();
     this.getInfo();
   },
-  saveConnectionSettings: function(e) {
+  sendConnect: function(command_data) {
     var connectionData = {};
 
     _.each(this.$('form').serializeArray(), function(e){
@@ -83,13 +88,10 @@ var PrinterConnectionView = SettingsPage.extend({
     });
 
     if (connectionData.port) {
-      this.$('.loading-button.test-connection').addClass('loading');
-      this.$('.connection-status').removeClass('failed connected');
-
       if (app.socketData.get('printer').status != 'connected') {
-        this.$('.connection-status').addClass('connecting');
+        this.setViewStatus('connecting')
       } else {
-        this.$('.connection-status').addClass(app.socketData.get('printer').status);
+        this.setViewStatus(app.socketData.get('printer').status)
       }
 
       $.ajax({
@@ -97,33 +99,65 @@ var PrinterConnectionView = SettingsPage.extend({
         type: "POST",
         dataType: "json",
         contentType: "application/json; charset=UTF-8",
-        data: JSON.stringify(_.extend(connectionData, {
-          command: "connect",
-          autoconnect: true,
-          save: true
-        }))
+        data: JSON.stringify(_.extend(connectionData, command_data))
       })
       .fail(_.bind(function(){
-        noty({text: "There was an error testing connection settings.", timeout: 3000});
-        this.$('.connection-status').removeClass('connecting').addClass('failed');
+        noty({text: "There was an error connecting.", timeout: 3000});
+        this.setViewStatus('failed')
       },this ))
-      .always(_.bind(function(){
-        this.$('.loading-button.test-connection').removeClass('loading');
-      }, this))
     }
   },
   printerStatusChanged: function(s, value)
   {
-    this.$('.connection-status').removeClass('connecting failed connected').addClass(value.status);
-
-    if (value.status != 'connecting') {
-      this.$('.loading-button.test-connection').removeClass('loading');
-    }
+    this.setViewStatus(value.status);
   },
-  testConnection: function(e)
+  setViewStatus: function(status)
+  {
+    this.$el.removeClass('connecting failed connected closed').addClass(status);
+  },
+  onConnectClicked: function(e)
   {
     e.preventDefault();
-    this.saveConnectionSettings();
+
+    this.sendConnect({
+      command: "connect",
+      autoconnect: true,
+      save: true
+    });
+  },
+  onDisconnectClicked: function(e)
+  {
+    e.preventDefault();
+
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      url: API_BASEURL + "connection",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify({
+        command: "disconnect"
+      })
+    })
+    .done(_.bind(function() {
+      this.setViewStatus('closed');
+    }, this))
+    .fail(_.bind(function(){
+      noty({text: "There was an error disconnecting.", timeout: 3000});
+    },this))
+    .always(_.bind(function(){
+      loadingBtn.removeClass('loading');
+    }, this))
+  },
+  onReconnectClicked: function(e)
+  {
+    e.preventDefault();
+
+    this.sendConnect({
+      command: "reconnect"
+    });
   }
 });
 
@@ -133,7 +167,7 @@ var PrinterConnectionView = SettingsPage.extend({
 
 var PrinterProfileView = SettingsPage.extend({
   el: '#printer-profile',
-  template: _.template( $("#printer-profile-settings-page-template").html() ),
+  template: null,
   settings: null,
   driverChoices: [],
   events: {
@@ -169,6 +203,10 @@ var PrinterProfileView = SettingsPage.extend({
     })
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template( $("#printer-profile-settings-page-template").html() );
+    }
+
     this.$el.html(this.template({
       settings: this.settings.toJSON(),
       driverChoices: this.driverChoices
@@ -610,7 +648,7 @@ var NetworkNameView = SettingsPage.extend({
 
 var CameraVideoStreamView = SettingsPage.extend({
   el: '#video-stream',
-  template: _.template( $("#video-stream-settings-page-template").html() ),
+  template: null,
   settings: null,
   settingsSizeDefault: '640x480',
   cameraName: 'No camera plugged',
@@ -761,6 +799,10 @@ var CameraVideoStreamView = SettingsPage.extend({
       })
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template( $("#video-stream-settings-page-template").html() );
+    }
+
     this.$el.html(this.template({
       settings: this.settings
     }));
@@ -865,7 +907,10 @@ var InternetConnectionView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template( $("#internet-connection-settings-page-template").html() )
     }
-
+    this.reloadData();
+  },
+  reloadData: function()
+  {
     if (!this.settings) {
       $.getJSON(API_BASEURL + 'settings/network', null, _.bind(function(data) {
         this.settings = data;
@@ -876,7 +921,8 @@ var InternetConnectionView = SettingsPage.extend({
       });
     }
   },
-  render: function() {
+  render: function()
+  {
     this.$el.html(this.template({
       settings: this.settings
     }));
@@ -910,6 +956,7 @@ var InternetConnectionView = SettingsPage.extend({
               case 'connected':
                 app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
                 noty({text: "Your "+PRODUCT_NAME+" is now connected to "+data.name+".", type: "success", timeout: 3000});
+                data.ip = connectionInfo.info.ip
                 this.settings.networks['wireless'] = data;
                 this.render();
                 promise.resolve();
@@ -937,13 +984,11 @@ var InternetConnectionView = SettingsPage.extend({
           app.eventManager.on('astrobox:InternetConnectingStatus', connectionCb, this);
 
         } else if (data.message) {
-          noty({text: data.message, timeout: 3000});
-          promise.reject()
+          promise.reject(data.message)
         }
       }, this))
       .fail(_.bind(function(){
-        noty({text: "There was an error saving setting.", timeout: 3000});
-        promise.reject();
+        promise.reject("There was an error selecting WiFi.");
       }, this));
 
     return promise;
@@ -985,11 +1030,13 @@ var InternetConnectionView = SettingsPage.extend({
       name: row.find('.name').text(),
       active: row.hasClass('active')
     })
-      .done(function(deleted) {
+      .done(_.bind(function(deleted) {
         if (deleted) {
           row.remove();
+          this.settings = null;
+          this.reloadData();
         }
-      })
+      }, this))
       .fail(function() {
         noty({text: "Unable to Delete Stored Network"});
       });
@@ -1721,7 +1768,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
   settings: null,
   events: {
     'change #serial-logs': 'serialLogChanged',
-    'change #apikey-regenerate': 'regenerateApiKeyChange'
+    'change #apikey-regenerate': 'regenerateApiKeyChange',
+    'change select.update-channel': 'onUpdateChannelChanged'
   },
   initialize: function(params)
   {
@@ -1751,6 +1799,8 @@ var SoftwareAdvancedView = SettingsPage.extend({
       data: this.settings,
       size_format: app.utils.sizeFormat
     }));
+
+    this.$('select.update-channel').val(this.settings.updateChannel);
   },
   regenerateApiKeyChange: function(e)
   {
@@ -1796,6 +1846,32 @@ var SoftwareAdvancedView = SettingsPage.extend({
       noty({text: "There was an error changing serial logs.", timeout: 3000});
       target.prop('checked', !active);
     });
+  },
+  onUpdateChannelChanged: function(e)
+  {
+    e.preventDefault();
+
+    var select = $(e.currentTarget);
+    var oldValue = this.settings.updateChannel;
+    var newValue = select.val();
+
+    $.ajax({
+      url: '/api/settings/software/advanced/update-channel',
+      method: 'PUT',
+      data: JSON.stringify({
+        'channel': newValue
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+    .done(_.bind(function(){
+      this.settings.updateChannel = newValue;
+    }, this))
+    .fail(_.bind(function(){
+      noty({text: "There was an error changing update channel.", timeout: 3000});
+      this.settings.updateChannel = oldValue;
+      select.val(oldValue);
+    }, this));
   }
 });
 
@@ -1937,8 +2013,15 @@ var SettingsMenu = Backbone.View.extend({
     }
   },
   changeActive: function(page) {
-    var target = this.$el.find('li.'+page);
-    this.$el.find('li.active').removeClass('active');
+    if (!page) {
+      //Get the first available
+      page = _.find(_.keys(this.subviews), _.bind(function(sv) {
+        return this.$('li.'+sv).length > 0;
+      }, this));
+    }
+
+    var target = this.$('li.'+page);
+    this.$('li.active').removeClass('active');
     target.closest('li').addClass('active');
     this.subviews[page].show();
   }

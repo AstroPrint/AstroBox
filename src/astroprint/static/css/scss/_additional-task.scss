@@ -6,13 +6,15 @@
   //background: #333333;
   //position: relative;
   //background: #ffffffab;
-  background:rgba(244, 100, 35, 0.1);
+  background:rgba(233, 233, 233, 0.43);
   border-radius: 4px;
   min-height:75vh;
   position: relative;
   padding-bottom: 15px;
   //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
-
+  .control-container {
+    background: transparent;
+  }
   .temp-target{padding: 0;}
 
   .padding-top{

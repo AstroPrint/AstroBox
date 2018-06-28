@@ -19,12 +19,13 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
+from astroprint.manufacturerpkg import manufacturerPkgManager
 
 class Printer(object):
 	STATE_NONE = 0
-	STATE_OPEN_SERIAL = 1
-	STATE_DETECT_SERIAL = 2
-	STATE_DETECT_BAUDRATE = 3
+	#STATE_OPEN_SERIAL = 1
+	#STATE_DETECT_SERIAL = 2
+	#STATE_DETECT_BAUDRATE = 3
 	STATE_CONNECTING = 4
 	STATE_OPERATIONAL = 5
 	STATE_PRINTING = 6
@@ -44,8 +45,8 @@ class Printer(object):
 		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
 		self._comm = None
+		self._currentFile = None
 		self._selectedFile = None
-		self._printAfterSelect = False
 		self._currentZ = None # This should probably be deprecated
 		self._progress = None
 		self._printTime = None
@@ -103,12 +104,6 @@ class Printer(object):
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
-		#s = settings()
-
-		# don't try to connect when the device hasn't been setup
-		#if not s.getBoolean(['server', 'firstRun']):
-		#	self.connect(s.get(["serial", "port"]), s.get(["serial", "baudrate"]))
-
 	@property
 	def fileManager(self):
 		return self._fileManager
@@ -120,6 +115,10 @@ class Printer(object):
 	@property
 	def shuttingDown(self):
 		return self._shutdown
+
+	@property
+	def selectedFile(self):
+		return self._currentFile
 
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
@@ -158,6 +157,89 @@ class Printer(object):
 	def unregisterCallback(self, callback):
 		if callback in self._callbacks:
 			self._callbacks.remove(callback)
+
+	def connect(self, port=None, baudrate=None):
+		if self.isConnecting() or self.isConnected():
+			return True
+
+		if port is None:
+			port = self.savedPort
+
+		if baudrate is None:
+			baudrate = self.savedBaudrate
+
+		if port is not None:
+			availablePorts = self.getConnectionOptions()["ports"]
+			tryPorts = []
+			if port in availablePorts:
+				tryPorts = [port]
+			else:
+				tryPorts = availablePorts.keys()
+
+			for p in tryPorts:
+				if self.doConnect(p, baudrate):
+					s = settings()
+					self._logger.info('Connected to serial port [%s] with baudrate [%s]' % (p, baudrate))
+					savedPort = s.get(["serial", "port"])
+					savedBaudrate = s.getInt(["serial", "baurate"])
+					needsSave = False
+
+					if p != savedPort:
+						s.set(["serial", "port"], p)
+						needsSave = True
+
+					if baudrate != savedBaudrate:
+						s.set(["serial", "baudrate"], baudrate)
+						needsSave = True
+
+					if needsSave:
+						s.save()
+
+					return True
+
+		self._logger.warn('Unable to connect to any available port [%s] with baudrate [%s]' % (", ".join(tryPorts), baudrate))
+		self._state = self.STATE_CLOSED
+		eventManager().fire(Events.DISCONNECTED)
+		return False
+
+	def disconnect(self):
+		if not self.isConnected() and not self.isConnecting():
+			return True
+
+		self.doDisconnect()
+		# the driver is responsible for issuing the CLOSED event
+
+	def reConnect(self, port=None, baudrate=None):
+		if self.isConnecting() or self.isConnected():
+			self.disconnect()
+
+		return self.connect(port, baudrate)
+
+	@property
+	def savedPort(self):
+		mf = manufacturerPkgManager()
+		port = None
+
+		if mf.variant['printer_profile_edit']:
+			port = settings().get(["serial", "port"])
+
+		if port is None:
+			port = mf.printerConnection['port']
+
+		return port
+
+	@property
+	def savedBaudrate(self):
+		mf = manufacturerPkgManager()
+		baudrate = None
+
+		if mf.variant['printer_profile_edit']:
+			baudrate = settings().getInt(["serial", "baudrate"])
+
+		if baudrate is None:
+			baudrate = mf.printerConnection['baudrate']
+
+		return baudrate
 
 	@property
 	def registeredCallbacks(self):
@@ -313,6 +395,9 @@ class Printer(object):
 			serialLogger.setLevel(logging.CRITICAL)
 
 		self.resetSerialLogging()
+
+	def isConnecting(self):
+		return self._state == self.STATE_CONNECTING
 
 	def isOperational(self):
 		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
@@ -542,6 +627,10 @@ class Printer(object):
 	def jogAmountWithPrinterProfile(self, axis, amount):
 		if axis == 'z':
 			return (-amount if self._profileManager.data.get('invert_z') else amount)
+		elif axis == 'x':
+			return (-amount if self._profileManager.data.get('invert_x') else amount)
+		elif axis == 'y':
+			return (-amount if self._profileManager.data.get('invert_y') else amount)
 
 		return amount
 
@@ -590,17 +679,45 @@ class Printer(object):
 			self._logger.info("Cannot load file: printer not connected or currently busy")
 			return False
 
-		self._printAfterSelect = printAfterSelect
 		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
+
+		if not os.path.exists(filename) or not os.path.isfile(filename):
+			raise IOError("File %s does not exist" % filename)
+
+		filesize = os.stat(filename).st_size
+
+		eventManager().fire(Events.FILE_SELECTED, {
+			"file": filename,
+			"origin": FileDestinations.SDCARD if sd else FileDestinations.LOCAL
+		})
+
+		self._setJobData(filename, filesize, sd)
+		self.refreshStateData()
+
+		self._currentFile = {
+			'filename': filename,
+			'size': filesize,
+			'origin': FileDestinations.SDCARD if sd else FileDestinations.LOCAL,
+			'start_time': None,
+			'progress': None,
+			'position': None
+		}
+
+		if printAfterSelect:
+			self.startPrint()
+
 		return True
 
 	def unselectFile(self):
+		self._currentFile = None
+
 		if not self.isConnected() and (self.isBusy() or self.isStreaming()):
 			return False
 
 		self._setProgressData(0, None, None, None, 1)
 		self._setCurrentZ(None)
+		eventManager().fire(Events.FILE_DESELECTED)
 		return True
 
 	# ~~~ State functions ~~~
@@ -623,13 +740,13 @@ class Printer(object):
 	def baudrateList(self):
 		raise NotImplementedError()
 
-	def connect(self, port=None, baudrate=None):
+	def doConnect(self, port=None, baudrate=None):
+		raise NotImplementedError()
+
+	def doDisconnect(self):
 		raise NotImplementedError()
 
 	def isConnected(self):
-		raise NotImplementedError()
-
-	def disconnect(self):
 		raise NotImplementedError()
 
 	def isReady(self):

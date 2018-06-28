@@ -50,11 +50,19 @@ class NetworkManagerEvents(threading.Thread):
 		self._devicePropertiesListener = None
 		self._monitorActivatingListener = None
 
-	def getActiveConnectionDevice(self):
+	def getActiveConnectionDevice(self, connection=None):
+		if connection:
+			settings = connection.GetSettings()
+			uuid = settings['connection']['uuid']
+
 		connections = NetworkManager.NetworkManager.ActiveConnections
 		for c in connections:
+
+			if connection and not c.Uuid == uuid:
+				continue
+
 			try:
-			  if hasattr(c, 'State') and c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED and c.Default:
+			  if hasattr(c, 'State') and c.State == NetworkManager.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
 					d = c.Devices[0]
 					return d
 			except:
@@ -172,61 +180,64 @@ class NetworkManagerEvents(threading.Thread):
 
 	#@idle_add_decorator
 	def monitorActivatingConnection(self, nm, new_state, old_state, reason, interface, signal):
-		logger.info('Activating State Change %s -> %s' % (NetworkManager.const('device_state', old_state),NetworkManager.const('device_state', new_state)))
-		if self._activatingConnection:
-			if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
-				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
-					self._monitorActivatingListener = None
+		try:
+			logger.info('Activating State Change %s -> %s' % (NetworkManager.const('device_state', old_state),NetworkManager.const('device_state', new_state)))
+			if self._activatingConnection:
+				if new_state == NetworkManager.NM_DEVICE_STATE_ACTIVATED:
+					if self._monitorActivatingListener:
+						NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
+						self._monitorActivatingListener = None
 
-				d = self.getActiveConnectionDevice()
-				if d.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
-					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-						'status': 'connected',
-						'info': {
-							'type': 'ethernet',
-							'ip': self._manager._getIpAddress(d)
-						}
-					})
-				else:
-					ap = d.SpecificDevice().ActiveAccessPoint
-					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
-						'status': 'connected',
-						'info': {
-							'type': 'wifi',
-							'signal': ap.Strength,
-							'name': ap.Ssid,
-							'ip': self._manager._getIpAddress(d)
-						}
-					})
+					d = self.getActiveConnectionDevice(self._activatingConnection)
+					if d.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+							'status': 'connected',
+							'info': {
+								'type': 'ethernet',
+								'ip': self._manager._getIpAddress(d)
+							}
+						})
+					else:
+						ap = d.SpecificDevice().ActiveAccessPoint
+						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+							'status': 'connected',
+							'info': {
+								'type': 'wifi',
+								'signal': ap.Strength,
+								'name': ap.Ssid,
+								'ip': self._manager._getIpAddress(d)
+							}
+						})
 
-				self._activatingConnection = None
-				self._justActivatedConnection = True
-				self._setOnline(True)
+					self._activatingConnection = None
+					self._justActivatedConnection = True
+					self._setOnline(True)
 
-			elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
-				logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )
+				elif new_state in [NetworkManager.NM_DEVICE_STATE_FAILED, NetworkManager.NM_DEVICE_STATE_UNKNOWN]:
+					logger.warn('Connection reached state %s, reason: %s' % (NetworkManager.const('device_state', new_state), NetworkManager.const('device_state_reason', reason) ) )
 
-				#It has reached and end state.
-				self._activatingConnection = None
-				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
-					self._monitorActivatingListener = None
+					#It has reached and end state.
+					self._activatingConnection = None
+					if self._monitorActivatingListener:
+						NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
+						self._monitorActivatingListener = None
 
-				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': NetworkManager.const('device_state_reason', reason)})
 
-			elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
-				if self._monitorActivatingListener:
-					NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
-					self._monitorActivatingListener = None
+				elif new_state == NetworkManager.NM_DEVICE_STATE_DISCONNECTED:
+					if self._monitorActivatingListener:
+						NetworkManager.SignalDispatcher.remove_signal_receiver(self._monitorActivatingListener)
+						self._monitorActivatingListener = None
 
-				eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
-				self._activatingConnection = None
+					self._activatingConnection = None
 
-				#check the global connection status before setting it to false
-				#if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
-				#	self._setOnline(False)
+					#check the global connection status before setting it to false
+					#if NetworkManager.NetworkManager.state() != NetworkManager.NM_STATE_CONNECTED_GLOBAL:
+					#	self._setOnline(False)
+		except Exception, e:
+			logger.error(e, exc_info= True)
 
 	#@idle_add_decorator
 	def activeDeviceConfigChanged(self, nm, properties, interface, signal):
@@ -423,7 +434,25 @@ class DebianNetworkManager(NetworkManagerBase):
 				try:
 					if connection:
 						connection.Update(options)
-						self._nm.NetworkManager.ActivateConnection(connection, wifiDevice, accessPoint)
+						activeConnection = self._nm.NetworkManager.ActivateConnection(connection, wifiDevice, accessPoint)
+
+						try:
+							if connection == activeConnection.Connection and activeConnection.State > 0:
+								return {
+									'name': ssid,
+									'id': accessPoint.HwAddress,
+									'signal': accessPoint.Strength,
+									'ip': None,
+									'secured': password is not None,
+									'wep': False
+								}
+
+						except NetworkManager.ObjectVanished:
+							pass
+
+						### The Connection couldn't be activated. Delete it
+						return None
+
 					else:
 						options['connection'] = {
 							'id': ssid
@@ -431,20 +460,34 @@ class DebianNetworkManager(NetworkManagerBase):
 
 						(connection, activeConnection) = self._nm.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
 
+						try:
+							if connection == activeConnection.Connection and activeConnection.State > 0:
+								return {
+									'name': ssid,
+									'id': accessPoint.HwAddress,
+									'signal': accessPoint.Strength,
+									'ip': None,
+									'secured': password is not None,
+									'wep': False
+								}
+
+						except NetworkManager.ObjectVanished:
+							pass
+
+						### The Connection couldn't be activated. Delete it
+						connection.Delete()
+						return None
+
+
 				except DBusException as e:
 					if e.get_dbus_name() == 'org.freedesktop.NetworkManager.InvalidProperty' and e.get_dbus_message() == 'psk':
-						return {'message': 'Invalid Password'}
+						return {
+							'err_code': 'invalid_psk',
+							'message': 'Invalid Password'
+						}
+
 					else:
 						raise
-
-				return {
-					'name': ssid,
-					'id': accessPoint.HwAddress,
-					'signal': accessPoint.Strength,
-					'ip': self._getIpAddress(wifiDevice),
-					'secured': password is not None,
-					'wep': False
-				}
 
 		return None
 

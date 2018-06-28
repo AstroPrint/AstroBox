@@ -12,9 +12,8 @@ from astroprint.plugin.providers.printer_comms.commands import CommandPluginInte
 
 class PrinterState():
 	STATE_NONE = 0
-	STATE_OPEN_SERIAL = 1
-	STATE_DETECT_SERIAL = 2
-	STATE_DETECT_BAUDRATE = 3
+	#STATE_DETECT_SERIAL = 2
+	#STATE_DETECT_BAUDRATE = 3
 	STATE_CONNECTING = 4
 	STATE_OPERATIONAL = 5
 	STATE_PRINTING = 6
@@ -30,12 +29,10 @@ class PrinterState():
 	def __str__(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:
@@ -49,7 +46,7 @@ class PrinterState():
 		if self._state == self.STATE_ERROR:
 			return "Error"
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error"
+			return "Closed With Error"
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
 		return "?%d?" % (self._state)
@@ -386,6 +383,7 @@ class PrinterCommsService(CommandPluginInterface):
 
 		oldState = self.printerState
 		self.printerState = PrinterState(newState)
+		self._printerManager._state = newState
 		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.printerState))
 
 		# forward relevant state changes to gcode manager
@@ -395,7 +393,7 @@ class PrinterCommsService(CommandPluginInterface):
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
 		elif self.connected and newState == PrinterState.STATE_OPERATIONAL:
 			eventManager().fire(SystemEvent.CONNECTED)
-		elif self._comm is not None and newState == PrinterState.STATE_CONNECTING:
+		elif newState == PrinterState.STATE_CONNECTING:
 			eventManager().fire(SystemEvent.CONNECTING)
 		elif newState == PrinterState.STATE_CLOSED or newState == PrinterState.STATE_ERROR:
 			eventManager().fire(SystemEvent.DISCONNECTED)

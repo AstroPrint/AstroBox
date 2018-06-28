@@ -1,7 +1,7 @@
 <script type="text/template" id="camera-watch-page-template">
 	<div class="row large-collapse">
 		<div class="small-12 columns title-heading">
-			<h1 class="bold">Camera</h1>
+			<h1 class="bold">{{astroboxName}} · Camera</h1>
 		</div>
 	</div>
 <% if(this.cameraAvailable) { %>
@@ -14,7 +14,9 @@
 				<h3 class="bold">Camera error</h3>
 			<% } %>
 			<p><%= this.videoStreamingError %></p>
-			<p><b>Did you plug another camera?</b> Did you selected a correct "Video Format" and resolution in settings?</p><p>Please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button
+      {% if mfDefinition.variant.allow_camera_settings %}
+        <p><b>Did you plug another camera?</b> Did you selected a correct "Video Format" and resolution in settings?</p><p>Please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button
+      {% endif %}
 			</p>
 		</div>
 	<% } else {
@@ -23,8 +25,10 @@
 		<div class="panel text-center radius">
 			<i class="icon-attention"></i>
 			<h3 class="bold">Camera is not supported by Astrobox</h3>
-			<p>Sorry... but your camera is not supported by Astrobox. It is probably the minimal camera resolution is less than 640x480 (minimal resolution supported).</p>
-			<p>Please, replace your camera and <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button</p>
+			<p>It appears that your camera is not supported.</p>
+      {% if mfDefinition.variant.allow_camera_settings %}
+			 <p>Please, connect another camera, <a href="/#settings/video-stream"><b>click here</b></a> and press the <b>"Scan for Cameras"</b> button</p>
+      {% endif %}
 		</div>
 
 		<% } else { %>
@@ -156,8 +160,10 @@
 	<div class="panel text-center radius">
 		<i class="icon-camera"></i>
 		<h3 class="bold">No Camera Detected</h3>
-		<p>Attach a USB camera that supports linux and start monitoring your prints. Take photos, create timelapses, or stream live video. Connect to your AstroPrint.com account and check on your print from anywhere.</p>
-		<p>If you turned on your Astrobox before plugged a camera, please, <a href="/#settings/video-stream"><b>click here</b></a> and press <b>"Scan for Cameras"</b> button</p>
+		<p>Connect a USB camera and start monitoring your prints. Take photos, create timelapses, or stream live video. Connect to your AstroPrint.com account and check on your print from anywhere.</p>
+    {% if mfDefinition.variant.allow_camera_settings %}
+		  <p>If you turned on your Astrobox before plugging the camera, please, <a href="/#settings/video-stream"><b>click here</b></a> and press the <b>"Scan for Cameras"</b> button</p>
+    {% endif %}
 	</div>
 <% } %>
 </script>

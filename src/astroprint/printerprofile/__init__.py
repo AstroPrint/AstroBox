@@ -19,7 +19,10 @@ import shutil
 import uuid
 
 from octoprint.settings import settings
+
 from astroprint.plugin import pluginManager
+from astroprint.util import merge_dict
+from astroprint.manufacturerpkg import manufacturerPkgManager
 
 class PrinterProfileManager(object):
 	def __init__(self):
@@ -38,6 +41,8 @@ class PrinterProfileManager(object):
 			'heated_bed': True,
 			'cancel_gcode': ['G28 X0 Y0'],
 			'invert_z': False,
+			'invert_x': False,
+			'invert_y': False,
 			'temp_presets' : [
 					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
 					'name' : "PLA",
@@ -52,24 +57,32 @@ class PrinterProfileManager(object):
 			]
 		}
 
+		config = None
 		if not os.path.isfile(self._infoFile):
 			factoryFile = "%s/printer-profile.factory" % configDir
-			if os.path.isfile(factoryFile):
-				shutil.copy(factoryFile, self._infoFile)
-			else:
-				open(self._infoFile, 'w').close()
 
-		if self._infoFile:
-			config = None
+			if os.path.isfile(factoryFile):
+				with open(factoryFile, "r") as f:
+					config = yaml.safe_load(f)
+
+			#overlay manufactuer definition of printer profile
+			if not config:
+				config = {}
+
+			mfDefinition = manufacturerPkgManager().printerProfile
+			for k in mfDefinition.keys():
+				v = mfDefinition[k]
+				if v is not None:
+					config[k] = v
+
+			if config:
+				merge_dict(self.data, config)
+
+			self.save()
+
+		else:
 			with open(self._infoFile, "r") as f:
 				config = yaml.safe_load(f)
-
-			def merge_dict(a,b):
-				for key in b:
-					if isinstance(b[key], dict):
-						merge_dict(a[key], b[key])
-					else:
-						a[key] = b[key]
 
 			if config:
 				merge_dict(self.data, config)

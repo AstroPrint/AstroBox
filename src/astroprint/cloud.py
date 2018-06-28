@@ -26,6 +26,7 @@ from hashlib import sha256
 from time import sleep
 
 from requests_toolbelt import MultipartEncoder
+from requests import ConnectionError
 
 from flask import current_app
 from flask_login import login_user, logout_user, current_user
@@ -152,23 +153,34 @@ class AstroPrintCloud(object):
 		online = networkManager().isOnline()
 
 		if online:
-			private_key = self.get_private_key(email, password)
+			try:
+				private_key = self.get_private_key(email, password)
 
-			if private_key:
-				public_key = self.get_public_key(email, private_key)
+				if private_key:
+					public_key = self.get_public_key(email, private_key)
 
-				if public_key:
-					#Let's update the box now:
-					user = userManager.findUser(email)
-					if user:
-						userManager.changeUserPassword(email, password)
-						userManager.changeCloudAccessKeys(email, public_key, private_key)
+					if public_key:
+						#Let's update the box now:
+						user = userManager.findUser(email)
+						if user:
+							userManager.changeUserPassword(email, password)
+							userManager.changeCloudAccessKeys(email, public_key, private_key)
+						else:
+							user = userManager.addUser(email, password, public_key, private_key, True)
+
+						userValidated = True
+
 					else:
-						user = userManager.addUser(email, password, public_key, private_key, True)
+						return False
 
-					userValidated = True
+				else:
+					return False
 
-		else:
+			except ConnectionError as e:
+				self._logger.error('Connection error when trying to validate password: %s' % e)
+
+		# was offline or couldn't reach astroprint.com
+		if not userValidated:
 			user = userManager.findUser(email)
 			userValidated = user and user.check_password(userManager.createPasswordHash(password))
 
@@ -176,7 +188,6 @@ class AstroPrintCloud(object):
 			userId = user.get_id()
 			self.settings.set(["cloudSlicer", "loggedUser"], userId)
 			self.settings.save()
-
 
 		return userValidated
 

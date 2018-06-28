@@ -1,6 +1,6 @@
 <div class="row heading">
 	<div class="small-12 title-heading">
-		<h1 class="bold">File Manager</h1>
+		<h1 class="bold">{{astroboxName}} · File Manager</h1>
 	</div>
 </div>
 
@@ -101,7 +101,7 @@
 					<% if (p.local_filename) { %>
 						<div class="loading-button">
 							<a class="remove idle" href="#">
-								<i class="icon-trash with-separator" title="Remove from {{variantData['productName']}}"></i>
+								<i class="icon-trash with-separator" title="Remove from {{mfDefinition.variant.product_name}}"></i>
 							</a>
 							<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
 						</div>
@@ -110,7 +110,7 @@
 						</a>
 					<% } else { %>
 						<a class="download" href="#">
-							<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
+							<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
 						</a>
 						<a class="print" href="#">
 							<i class="icon-3d-printer" title="Print"></i>
@@ -119,7 +119,7 @@
 				</div>
 				<div class="print-settings">
 					<% if (p.local_only) { %>
-						This file is <b>only</b> stored on this {{variantData['productName']}}
+						This file is <b>only</b> stored on this {{mfDefinition.variant.product_name}}
 					<% } else { %>
 						<a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
 						/
@@ -200,7 +200,7 @@
 				</div>
 			<% } else { %>
 				<a href="#" class="download">
-					<i class="icon-download-cloud" title="Download to {{variantData['productName']}}"></i>
+					<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
 				</a>
 				<div class="download-progress">
 					<a href="#" class="dw-cancel"><i class="icon-cancel-circled" title="Cancel download"></i></a>

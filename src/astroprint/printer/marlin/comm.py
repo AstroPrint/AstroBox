@@ -56,9 +56,9 @@ gcodeToEvent = {
 
 class MachineCom(object):
 	STATE_NONE = 0
-	STATE_OPEN_SERIAL = 1
-	STATE_DETECT_SERIAL = 2
-	STATE_DETECT_BAUDRATE = 3
+	#STATE_OPEN_SERIAL = 1
+	#STATE_DETECT_SERIAL = 2
+	#STATE_DETECT_BAUDRATE = 3
 	STATE_CONNECTING = 4
 	STATE_OPERATIONAL = 5
 	STATE_PRINTING = 6
@@ -74,14 +74,6 @@ class MachineCom(object):
 		self._serialLoggerEnabled = self._serialLogger.isEnabledFor(logging.DEBUG)
 		self._settings = settings()
 
-		if port == None:
-			port = self._settings.get(["serial", "port"])
-		if baudrate == None:
-			settingsBaudrate = self._settings.getInt(["serial", "baudrate"])
-			if settingsBaudrate is None:
-				baudrate = 0
-			else:
-				baudrate = settingsBaudrate
 		if callbackObject == None:
 			callbackObject = MachineComPrintCallback()
 
@@ -189,12 +181,16 @@ class MachineCom(object):
 		# 		self._sdFileList = False
 		# 		self._sdFiles = []
 		# 		self._callback.mcSdFiles([])
-		elif newState == self.STATE_CONNECTING:
-			eventManager().fire(Events.CONNECTING)
 
 		oldState = self.getStateString()
 		self._state = newState
-		self._serialLoggerEnabled and self._log('Changing monitoring state from \'%s\' to \'%s\'' % (oldState, self.getStateString()))
+		self._logger.info('Changing printer state from [%s] to [%s]' % (oldState, self.getStateString()))
+
+		if newState == self.STATE_ERROR:
+			# we need to issue the event here becaus the error message is in this class
+			# in case of error mcStateChange will close the comm object
+			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+
 		self._callback.mcStateChange(newState)
 
 	def _log(self, message):
@@ -214,12 +210,12 @@ class MachineCom(object):
 	def getStateString(self):
 		if self._state == self.STATE_NONE:
 			return "Offline"
-		if self._state == self.STATE_OPEN_SERIAL:
-			return "Opening serial port"
-		if self._state == self.STATE_DETECT_SERIAL:
-			return "Detecting serial port"
-		if self._state == self.STATE_DETECT_BAUDRATE:
-			return "Detecting baudrate"
+		#if self._state == self.STATE_OPEN_SERIAL:
+		#	return "Opening serial port"
+		#if self._state == self.STATE_DETECT_SERIAL:
+		#	return "Detecting serial port"
+		#if self._state == self.STATE_DETECT_BAUDRATE:
+		#	return "Detecting baudrate"
 		if self._state == self.STATE_CONNECTING:
 			return "Connecting"
 		if self._state == self.STATE_OPERATIONAL:
@@ -238,7 +234,7 @@ class MachineCom(object):
 		if self._state == self.STATE_ERROR:
 			return "Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_CLOSED_WITH_ERROR:
-			return "Error: %s" % (self.getShortErrorString())
+			return "Closed with Error: %s" % (self.getShortErrorString())
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
 		return "?%d?" % (self._state)
@@ -409,7 +405,6 @@ class MachineCom(object):
 		except:
 			self._errorValue = getExceptionString()
 			self._changeState(self.STATE_ERROR)
-			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 	def startFileTransfer(self, filename, localFilename, remoteFilename):
 		if not self.isOperational() or self.isBusy():
@@ -434,11 +429,6 @@ class MachineCom(object):
 			self.sendCommand("M23 %s" % filename)
 		else:
 			self._currentFile = PrintingGcodeFileInformation(filename)
-			eventManager().fire(Events.FILE_SELECTED, {
-				"file": self._currentFile.getFilename(),
-				"origin": self._currentFile.getFileLocation()
-			})
-			self._callback.mcFileSelected(filename, self._currentFile.getFilesize(), False)
 
 		return True
 
@@ -447,9 +437,6 @@ class MachineCom(object):
 			return False
 
 		self._currentFile = None
-		eventManager().fire(Events.FILE_DESELECTED)
-		self._callback.mcFileSelected(None, None, False)
-
 		return True
 
 	def cancelPrint(self):
@@ -709,20 +696,13 @@ class MachineCom(object):
 		self.total_filament = None#total_filament has not got any information
 
 	def _monitor(self):
-		#feedbackControls = self._settings.getFeedbackControls()
-		#pauseTriggers = self._settings.getPauseTriggers()
-		#feedbackErrors = []
-
 		#Open the serial port.
+		self._changeState(self.STATE_CONNECTING)
+
 		if not self._openSerial():
 			return
 
 		self._serialLoggerEnabled and self._log("Connected to: %s, starting monitor" % self._serial)
-		if self._baudrate == 0:
-			self._serialLoggerEnabled and self._log("Starting baud rate detection")
-			self._changeState(self.STATE_DETECT_BAUDRATE)
-		else:
-			self._changeState(self.STATE_CONNECTING)
 
 		#Start monitoring the serial port.
 		timeout = getNewTimeout("communication")
@@ -921,52 +901,52 @@ class MachineCom(object):
 							self.timerCalculator.makeCalcs()
 
 				### Baudrate detection
-				if self._state == self.STATE_DETECT_BAUDRATE:
-					if line == '' or time.time() > timeout:
-						if len(self._baudrateDetectList) < 1:
-							self.close()
-							self._errorValue = "No more baudrates to test, and no suitable baudrate found."
-							self._changeState(self.STATE_ERROR)
-							eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
-						elif self._baudrateDetectRetry > 0:
-							self._baudrateDetectRetry -= 1
-							self._serial.write('\n')
-							self._serialLoggerEnabled and self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
-							self._sendCommand("M105")
-							self._testingBaudrate = True
-						else:
-							baudrate = self._baudrateDetectList.pop(0)
-							try:
-								self._serial.baudrate = baudrate
-								self._serial.timeout = self._settings.getFloat(["serial", "timeout", "detection"])
-								self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
-								self._baudrateDetectRetry = 5
-								self._baudrateDetectTestOk = 0
-								timeout = getNewTimeout("communication")
-								self._serial.write('\n')
-								self._sendCommand("M105")
-								self._testingBaudrate = True
-							except:
-								self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
-					elif 'ok' in lineLower and 'T:' in line:
-						self._baudrateDetectTestOk += 1
-						if self._baudrateDetectTestOk < 10:
-							self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
-							self._sendCommand("M105")
-						else:
-							self._sendCommand("M999")
-							self._serial.timeout = self._settings.getFloat(["serial", "timeout", "connection"])
-							self._changeState(self.STATE_OPERATIONAL)
-							# if self._sdAvailable:
-							# 	self.refreshSdFiles()
-							# else:
-							# 	self.initSdCard()
-							eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
-					else:
-						self._testingBaudrate = False
+				# if self._state == self.STATE_DETECT_BAUDRATE:
+				# 	if line == '' or time.time() > timeout:
+				# 		if len(self._baudrateDetectList) < 1:
+				# 			self.close()
+				# 			self._errorValue = "No more baudrates to test, and no suitable baudrate found."
+				# 			self._changeState(self.STATE_ERROR)
+				# 			eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
+				# 		elif self._baudrateDetectRetry > 0:
+				# 			self._baudrateDetectRetry -= 1
+				# 			self._serial.write('\n')
+				# 			self._serialLoggerEnabled and self._log("Baudrate test retry: %d" % (self._baudrateDetectRetry))
+				# 			self._sendCommand("M105")
+				# 			self._testingBaudrate = True
+				# 		else:
+				# 			baudrate = self._baudrateDetectList.pop(0)
+				# 			try:
+				# 				self._serial.baudrate = baudrate
+				# 				self._serial.timeout = self._settings.getFloat(["serial", "timeout", "detection"])
+				# 				self._serialLoggerEnabled and self._log("Trying baudrate: %d" % (baudrate))
+				# 				self._baudrateDetectRetry = 5
+				# 				self._baudrateDetectTestOk = 0
+				# 				timeout = getNewTimeout("communication")
+				# 				self._serial.write('\n')
+				# 				self._sendCommand("M105")
+				# 				self._testingBaudrate = True
+				# 			except:
+				# 				self._serialLoggerEnabled and self._log("Unexpected error while setting baudrate: %d %s" % (baudrate, getExceptionString()))
+				# 	elif 'ok' in lineLower and 'T:' in line:
+				# 		self._baudrateDetectTestOk += 1
+				# 		if self._baudrateDetectTestOk < 10:
+				# 			self._serialLoggerEnabled and self._log("Baudrate test ok: %d" % (self._baudrateDetectTestOk))
+				# 			self._sendCommand("M105")
+				# 		else:
+				# 			self._sendCommand("M999")
+				# 			self._serial.timeout = self._settings.getFloat(["serial", "timeout", "connection"])
+				# 			self._changeState(self.STATE_OPERATIONAL)
+				# 			# if self._sdAvailable:
+				# 			# 	self.refreshSdFiles()
+				# 			# else:
+				# 			# 	self.initSdCard()
+				# 			eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
+				# 	else:
+				# 		self._testingBaudrate = False
 
 				### Connection attempt
-				elif self._state == self.STATE_CONNECTING:
+				if self._state == self.STATE_CONNECTING:
 					if line == "" or "wait" in lineLower:
 						self._sendCommand("M105")
 
@@ -1059,7 +1039,6 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log(errorMsg)
 				self._errorValue = errorMsg
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 		self._serialLoggerEnabled and self._log("Connection closed, closing down monitor")
 
@@ -1068,7 +1047,7 @@ class MachineCom(object):
 			from octoprint.util.avr_isp import stk500v2
 			from octoprint.util.avr_isp import ispBase
 
-			self._changeState(self.STATE_DETECT_SERIAL)
+			#self._changeState(self.STATE_DETECT_SERIAL)
 			programmer = stk500v2.Stk500v2()
 			self._serialLoggerEnabled and self._log("Serial port list: %s" % (str(self._callback.serialList())))
 			for p in self._callback.serialList():
@@ -1087,15 +1066,14 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log("Failed to autodetect serial port")
 				self._errorValue = 'Failed to autodetect serial port.'
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				return False
 		elif self._port == 'VIRTUAL':
 			from octoprint.util.virtual import VirtualPrinter
 
-			self._changeState(self.STATE_OPEN_SERIAL)
+			#self._changeState(self.STATE_OPEN_SERIAL)
 			self._serial = VirtualPrinter()
 		else:
-			self._changeState(self.STATE_OPEN_SERIAL)
+			#self._changeState(self.STATE_OPEN_SERIAL)
 			try:
 				self._serialLoggerEnabled and self._log("Connecting to: %s" % self._port)
 				if self._baudrate == 0:
@@ -1106,7 +1084,6 @@ class MachineCom(object):
 				self._serialLoggerEnabled and self._log("Unexpected error while connecting to serial port: %s %s" % (self._port, getExceptionString()))
 				self._errorValue = "Failed to open serial port, permissions correct?"
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 				return False
 		return True
 
@@ -1135,7 +1112,6 @@ class MachineCom(object):
 			elif not self.isError():
 				self._errorValue = line[6:]
 				self._changeState(self.STATE_ERROR)
-				eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 		else:
 			line_lower = line.lower()
@@ -1229,7 +1205,6 @@ class MachineCom(object):
 					# abort the print, there's nothing we can do to rescue it now
 					self._callback.disableMotorsAndHeater()
 					self._changeState(self.STATE_ERROR)
-					eventManager().fire(Events.ERROR, {"error": self.getErrorString()})
 
 				else:
 					# reset resend delta, we can't do anything about it
@@ -1545,9 +1520,6 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcLayerChange(self, layer):
-		pass
-
-	def mcFileSelected(self, filename, filesize, sd):
 		pass
 
 	def mcSdStateChange(self, sdReady):

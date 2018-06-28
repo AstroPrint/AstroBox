@@ -14,6 +14,8 @@
 		'heated_bed': true,
 		'cancel_gcode': null,
     'invert_z': false,
+    'invert_y': false,
+    'invert_x': false,
     'temp_presets' : [
       { 'id' : "3e0fc9b398234f2f871310c1998aa000",
       'name' : "PLA",

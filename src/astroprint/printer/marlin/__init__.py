@@ -128,27 +128,31 @@ class PrinterMarlin(Printer):
 			ret.insert(0, prev)
 		return ret
 
-	def connect(self, port=None, baudrate=None):
+	def doConnect(self, port, baudrate):
 		"""
-		 Connects to the printer. If port and/or baudrate is provided, uses these settings, otherwise autodetection
-		 will be attempted.
+		 Connects to the printer.
 		"""
+		if self._comm:
+			self._logger.warn('Printer was already connected')
+			return True
 
-		if self._comm is not None:
-			self._comm.close()
+		if port and baudrate:
+			import astroprint.printer.marlin.comm as comm
 
-		import astroprint.printer.marlin.comm as comm
+			self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
+			return True
 
-		self._comm = comm.MachineCom(port, baudrate, callbackObject=self)
+		return False
 
-	def disconnect(self):
+	def doDisconnect(self):
 		"""
 		 Closes the connection to the printer.
 		"""
-		if self._comm is not None:
+		if self._comm:
 			self._comm.close()
-		self._comm = None
-		eventManager().fire(Events.DISCONNECTED)
+			self._comm = None
+
+		return True
 
 	def command(self, command):
 		"""
@@ -230,16 +234,20 @@ class PrinterMarlin(Printer):
 			self.command("M140 S%f" % min(value, self._profileManager.data.get('max_bed_temp')))
 
 	def selectFile(self, filename, sd, printAfterSelect=False):
-		if not super(PrinterMarlin, self).selectFile(filename, sd, printAfterSelect):
-			return False
+		if self._comm.selectFile(filename, sd) and super(PrinterMarlin, self).selectFile(filename, sd, False):
+			if printAfterSelect:
+				self.startPrint()
 
-		return self._comm.selectFile(filename, sd)
+			return True
+
+		else:
+			return False
 
 	def unselectFile(self):
-		if not super(PrinterMarlin, self).unselectFile():
+		if self._comm.unselectFile():
+			return super(PrinterMarlin, self).unselectFile()
+		else:
 			return False
-
-		return self._comm.unselectFile()
 
 	def startPrint(self):
 		if not super(PrinterMarlin, self).startPrint():
@@ -301,10 +309,6 @@ class PrinterMarlin(Printer):
 
 	#~~ state monitoring
 
-	def _setState(self, state):
-		self._state = state
-		self.refreshStateData()
-
 	def _addLog(self, log):
 		self._log.append(log)
 		self._stateMonitor.addLog(log)
@@ -326,24 +330,38 @@ class PrinterMarlin(Printer):
 		 Callback method for the comm object, called if the connection state changes.
 		"""
 		oldState = self._state
+		self._state = state
 
 		# forward relevant state changes to gcode manager
-		if self._comm is not None and oldState == self._comm.STATE_PRINTING:
-			if self._selectedFile is not None:
-				if state == self._comm.STATE_OPERATIONAL:
-					self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+		if self._comm:
+			if oldState == self._comm.STATE_PRINTING:
+				if self._selectedFile is not None:
+					if state == self._comm.STATE_OPERATIONAL:
+						self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
 
-				elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
-					self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
+					elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
+						self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
 
-			self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
-		elif self._comm is not None and state == self._comm.STATE_PRINTING:
-			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+				self._fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 
-		self._setState(state)
+			if state == self._comm.STATE_PRINTING:
+				self._fileManager.pauseAnalysis() # do not analyse gcode while printing
+			elif state == self._comm.STATE_CONNECTING:
+				eventManager().fire(Events.CONNECTING)
+			elif state == self._comm.STATE_CLOSED:
+				eventManager().fire(Events.DISCONNECTED)
+			elif state == self._comm.STATE_ERROR:
+				# Event has already been fired by comm since it has the error info.
+				# here we close the comm object
+				self._comm.close(True)
+				self._comm = None
+			elif state == self._comm.STATE_CLOSED_WITH_ERROR:
+				# It's already closed so we only need to set it null so we can connect again
+				self._comm = None
+
+		self.refreshStateData()
 
 	def mcLayerChange(self, layer):
-
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
 		try:
@@ -414,13 +432,6 @@ class PrinterMarlin(Printer):
 	def mcSdFiles(self, files):
 		eventManager().fire(Events.UPDATED_FILES, {"type": "gcode"})
 		self._sdFilelistAvailable.set()
-
-	def mcFileSelected(self, filename, filesize, sd):
-		self._setJobData(filename, filesize, sd)
-		self.refreshStateData()
-
-		if self._printAfterSelect:
-			self.startPrint()
 
 	def mcPrintjobDone(self):
 		super(PrinterMarlin, self).mcPrintjobDone()
@@ -537,28 +548,36 @@ class PrinterMarlin(Printer):
 		return self._comm.getStateString(), port, baudrate
 
 	def getPrintTime(self):
-		return self._comm.getPrintTime()
+		if self._comm:
+			return self._comm.getPrintTime()
 
 	def getConsumedFilament(self):
-		return self._comm.getConsumedFilament()
+		if self._comm:
+			return self._comm.getConsumedFilament()
 
 	def getTotalConsumedFilament(self):
-		return self._comm.getTotalConsumedFilament()
+		if self._comm:
+			return self._comm.getTotalConsumedFilament()
 
 	def getSelectedTool(self):
-		return self._comm.getSelectedTool()
+		if self._comm:
+			return self._comm.getSelectedTool()
 
 	def getPrintingSpeed(self):
-		return self._comm.getPrintingSpeed()
+		if self._comm:
+			return self._comm.getPrintingSpeed()
 
 	def getPrintingFlow(self):
-		return self._comm.getPrintingFlow()
+		if self._comm:
+			return self._comm.getPrintingFlow()
 
 	def getPrintProgress(self):
-		return self._comm.getPrintProgress()
+		if self._comm:
+			return self._comm.getPrintProgress()
 
 	def getPrintFilepos(self):
-		return self._comm.getPrintFilepos()
+		if self._comm:
+			return self._comm.getPrintFilepos()
 
 	def isReady(self):
 		return self.isOperational() and not self._comm.isStreaming()

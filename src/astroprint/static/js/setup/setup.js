@@ -489,13 +489,17 @@ var StepConnectPrinter = StepView.extend({
 
 var StepPrinter = StepView.extend({
   el: "#step-printer",
-  template: _.template( $("#step-printer-template").html() ),
+  template: null,
   onShow: function()
   {
     this._checkPrinters()
   },
   render: function(settings)
   {
+    if (!this.template) {
+      this.template = _.template( $("#step-printer-template").html() );
+    }
+
     this.$('form').html(this.template({
       settings: settings
     }));
@@ -618,29 +622,15 @@ var StepPrinter = StepView.extend({
 });
 
 /**************
-* Share
+* Done
 ***************/
 
-var StepShare = StepView.extend({
-  el: "#step-share",
+var StepDone = StepView.extend({
+  el: "#step-done",
   constructor: function()
   {
-    this.events["click .share-button.facebook"] = "onFacebookClicked";
-    this.events["click .share-button.twitter"] = "onTwitterClicked";
     this.events["click .setup-done"] = "onSetupDone";
     StepView.apply(this, arguments);
-  },
-  onFacebookClicked: function(e)
-  {
-    e.preventDefault();
-    window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(shareOptions.facebook.link),'facebook','width=740,height=280,left=300,top=300');
-    this.$el.find('a.button.setup-done').show();
-  },
-  onTwitterClicked: function(e)
-  {
-    e.preventDefault();
-    window.open('https://twitter.com/share?url='+encodeURIComponent(shareOptions.twitter.link)+'&text='+encodeURIComponent(shareOptions.twitter.copy),'twitter','width=740,height=280,left=300,top=300');
-    this.$el.find('a.button.setup-done').show();
   },
   onSetupDone: function(e)
   {
@@ -659,6 +649,7 @@ var StepShare = StepView.extend({
 });
 
 var SetupView = Backbone.View.extend({
+  el: "#setup-view",
   steps: null,
   current_step: 'welcome',
   router: null,
@@ -668,6 +659,7 @@ var SetupView = Backbone.View.extend({
   _autoReconnectTrial: 0,
   _autoReconnectTimeouts: [1, 1, 2, 2, 2, 3, 3, 5, 5, 10],
   previousflags: null,
+  turnOffModal: null,
   initialize: function()
   {
     this.steps = {
@@ -677,12 +669,14 @@ var SetupView = Backbone.View.extend({
       'astroprint': new StepAstroprint({'setup_view': this}),
       'connect-printer': new StepConnectPrinter({'setup_view': this}),
       'printer': new StepPrinter({'setup_view': this}),
-      'share': new StepShare({'setup_view': this})
+      'done': new StepDone({'setup_view': this})
     };
 
     this.eventManager = Backbone.Events;
     this.router = new SetupRouter({'setup_view': this});
     this.connect(WS_TOKEN);
+
+    $('#version-label a.shutdown').on('click', _.bind(this.onShutdownClicked, this));
   },
   connect: function(token)
   {
@@ -774,6 +768,19 @@ var SetupView = Backbone.View.extend({
     } else {
       this.router.navigate("", {trigger: true, replace: true});
     }
+  },
+  onShutdownClicked: function(e)
+  {
+    e.preventDefault();
+
+    if (!this.turnOffModal) {
+      this.turnOffModal = new TurnoffConfirmationModal({router: setup_view.router});
+    }
+
+    this.turnOffModal.open().fail(_.bind(function(){
+      this.$el.removeClass('hide');
+      $('#version-label').removeClass('hide');
+    },this));
   }
 });
 
@@ -795,6 +802,14 @@ var SetupRouter = Backbone.Router.extend({
   notFound: function()
   {
     this.navigate("", {trigger: true, replace: true});
+  },
+  selectView: function(view)
+  {
+    this.setup_view.$el.addClass('hide');
+    $('#version-label').addClass('hide');
+    view.$el.removeClass('hide');
+    //At the moment only used for turnoff view
+
   }
 });
 

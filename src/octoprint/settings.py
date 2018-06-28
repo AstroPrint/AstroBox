@@ -26,7 +26,7 @@ def settings(init=False, configfile=None, basedir=None):
 default_settings = {
 	"serial": {
 		"port": None,
-		"baudrate": 250000,
+		"baudrate": None,
 		"autoconnect": True,
 		"log": False,
 		"dsrdtrFlowControl": False,
@@ -84,7 +84,8 @@ default_settings = {
 		"logs": None,
 		"virtualSd": None,
 		"userPlugins": None,
-		'tasks': None
+		"tasks": None,
+		"manufacturerPkg": None
 	},
 	"temperature": {
 		"profiles":
@@ -176,7 +177,8 @@ default_settings = {
 		"infoDir": None,
 		"variantFile": None,
 		"useUnreleased": False,
-		"lastCheck": None
+		"lastCheck": None,
+		"channel": 20 #production
 	},
 	"printerSelected": None,
 	"materialSelected": None,

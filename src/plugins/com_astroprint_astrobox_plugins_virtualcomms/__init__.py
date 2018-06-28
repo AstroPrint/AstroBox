@@ -60,30 +60,34 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def connect(self, port=None, baudrate=None):
 		self._comm = True
-		self._changePrinterState(PrinterState.STATE_CONNECTING)
 
 		def doConnect():
 			if not self._printerManager.shuttingDown:
-				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
+				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
 
 				#set initial temps
 				self.changeTemperature(25, 25)
 
+		self._changePrinterState(PrinterState.STATE_CONNECTING)
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
+		t.daemon = True
 		t.start()
+		return True
 
 	def disconnect(self):
 		if self._comm:
 			self._comm = False
+
+			self._changePrinterState(PrinterState.STATE_CLOSED)
 
 			if self._temperatureChanger:
 				self._temperatureChanger.stop()
 				self._temperatureChanger.join()
 				self._temperatureChanger = None
 
-			self._changePrinterState(PrinterState.STATE_CLOSED)
+		return True
 
 	def startPrint(self):
 		if self._printJob and self._printJob.isAlive():
@@ -112,6 +116,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 		self._printJob = None
 		self._heatingUpTimer = threading.Timer(self._vpSettings['heatingUp'], heatupDone)
+		self._heatingUpTimer.daemon = True
 		self._heatingUpTimer.start()
 
 	def disableMotorsAndHeater(self):
@@ -265,6 +270,7 @@ class TempsChanger(threading.Thread):
 		self._actuals = {}
 
 		super(TempsChanger, self).__init__()
+		self.daemon = True
 
 	def run(self):
 		while not self._stopped:
@@ -313,6 +319,7 @@ class JobSimulator(threading.Thread):
 		self._consumedFilament = {0: 0}
 
 		super(JobSimulator, self).__init__()
+		self.daemon = True
 
 	def run(self):
 		self._pausedEvent.set()

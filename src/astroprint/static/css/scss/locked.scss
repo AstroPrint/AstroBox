@@ -5,11 +5,11 @@
 	"normalize",
 	"fontello",
 	"animations",
-	"common-main",
 	"foundation/settings",
 	"foundation/components/forms",
 	"foundation/components/grid",
 	"foundation/components/buttons",
+  "common-main",
 	"widgets",
 	"noty";
 
@@ -57,7 +57,7 @@ body {
 
 @media #{$medium-up} {
 	.locked-area {
-		font-size: rem-calc(20); 
+		font-size: rem-calc(20);
 
 		img {
 			height: 80px;
