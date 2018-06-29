@@ -103,16 +103,20 @@ class DownloadWorker(threading.Thread):
 					else:
 						self._manager._logger.info('Download completed for %s' % printFileId)
 
+						if item['printFileInfo'] is None:
+							printerManager().fileManager._metadataAnalyzer.addFileToQueue(printFileName)
+
 						fileInfo = {
 							'id': printFileId,
 							'printFileName': printFileName,
-							'info': item['printFileInfo'],
-							'printer': printer,
-							'material': material,
-							'quality': quality,
-							'image': image,
+							'info': item['printFileInfo'] if item['printFileInfo'] is not None else None,
+							'printer': printer if printer['id'] is not None else None,
+							'material': material if material['id'] is not None else None,
+							'quality': quality if quality is not None else None,
+							'image': image if image is not None else None,
 							'created': created
 						}
+
 						em = eventManager()
 
 						if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):

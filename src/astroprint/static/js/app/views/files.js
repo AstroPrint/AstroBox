@@ -710,14 +710,34 @@ var PrintFilesListView = Backbone.View.extend({
   },
   onMetadataAnalysisFinished: function(data)
   {
-    var affected_view = _.find(this.print_file_views, function(v){
+    for (var k in this.print_file_views) {
+       if (this.print_file_views[k].print_file.get('name') == data.file) {
+        this.print_file_views[k].print_file.set('info', data.result);
+        this.print_file_views[k].render();
+        break;
+       }
+    }
+
+    /*for (var i = 0; i < this.file_list.length; i++) {
+      if (this.file_list.models[i].get('name') == data.file) {
+       this.file_list.models[i].set('info', data.result);
+       break;
+      }
+    }*/
+
+   /* var affected_view = _.find(this.print_file_views, function(v){
       return v.print_file.get('name') == data.file;
     });
 
     if (affected_view) {
+      console.log("antes affected_view", affected_view.print_file.attributes);
+      console.log("lista",this.print_file_views[0].print_file.attributes)
       affected_view.print_file.set('info', data.result);
+      console.log("despues affected_view", affected_view.print_file.attributes);
+      console.log("lista",this.print_file_views[0].print_file.attributes)
+
       affected_view.render();
-    }
+    }*/
   },
   onPrinterDriverChanged: function()
   {

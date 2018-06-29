@@ -121,16 +121,18 @@
 					<% if (p.local_only) { %>
 						This file is <b>only</b> stored on this {{mfDefinition.variant.product_name}}
 					<% } else { %>
-						<a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
-						/
-						<a class="success label round"href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %> <i class="icon-link-ext"></i></a>
-						/
-						<% if (p.settings.info_link) { %>
-							<a class="success label round" href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %> <i class="icon-link-ext"></i></a>
-						<% } else { %>
-							<span class="success label round"><%= p.settings.name %></span>
-						<% }
-					} %>
+						<% if (p.printer) { %><a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
+						/<% } %>
+						<% if (p.material) { %><a class="success label round"href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %> <i class="icon-link-ext"></i></a>
+						/<% } %>
+            <% if (p.settings) { %>
+              <% if (p.settings.info_link) { %>
+                <a class="success label round" href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %> <i class="icon-link-ext"></i></a>
+              <% } else { %>
+                <span class="success label round"><%= p.settings.name %></span>
+              <% } %>
+            <% } %>
+				  <% } %>
 				</div>
 				<div class="print-info">
 					<% if (p.info) { %>
