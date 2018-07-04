@@ -168,9 +168,9 @@ class Printer(object):
 		if baudrate is None:
 			baudrate = self.savedBaudrate
 
+		tryPorts = []
 		if port is not None:
 			availablePorts = self.getConnectionOptions()["ports"]
-			tryPorts = []
 			if port in availablePorts:
 				tryPorts = [port]
 			else:
