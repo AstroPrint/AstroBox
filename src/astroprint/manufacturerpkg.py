@@ -28,7 +28,8 @@ class ManufacturerPkgManager(object):
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
 				'change_update_channel': True,
-				'logo': 'astrobox_logo_medium.png',
+				'logo': None,
+				'shutdown_img': None,
 				'product_name': 'AstroBox',
 				'network_name': 'astrobox'
 			},
@@ -38,18 +39,10 @@ class ManufacturerPkgManager(object):
 				'product': 'https://www.astroprint.com/products/p/astrobox'
 			},
 			'strings': {
-				'welcome_header': {
-					'en': 'Welcome to Your AstroBox',
-					'es': 'Bienvenid@ a AstroBox'
-				},
-				'welcome_content': {
-					'en': 'Your support makes AstroPrint a reality! In other words, you are amazing and you are changing the world for the better',
-					'es': '¡Tu contribución hace AstroPrint una realidad! En otras palabras, eres genial y estas cambiando el mundo a mejor'
-				},
-				'setup_done': {
-					'en': 'Your AstroBox is all set up. Now go print something awesome!',
-					'es': 'AstroBox está completamente configurada. ¡Corre a imprimir algo fascinante!'
-				}
+				'welcome_header': None,
+				'welcome_content': None,
+				'setup_done': None,
+				'shutdown_message': None
 			},
 			'printer_profile': {
 				'driver': None,

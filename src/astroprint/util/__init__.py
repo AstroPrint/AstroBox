@@ -4,7 +4,7 @@ from threading import Thread as thread
 
 def merge_dict(a,b):
 	for key in b:
-		if isinstance(b[key], dict):
+		if a[key] is not None and isinstance(b[key], dict):
 			merge_dict(a[key], b[key])
 		else:
 			a[key] = b[key]
