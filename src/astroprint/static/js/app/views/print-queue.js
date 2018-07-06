@@ -1118,15 +1118,12 @@ var PrintLaterContainerView = Backbone.View.extend({
 
   onShow: function()
   {
-    console.log('start listening PrintLaterContainerView');
-
     this.listenTo(app.socketData, 'change:printer', this.operationalChanged);
     this.listenTo(this.printLaterFiles, 'remove', this.remove);
   },
 
   onHide: function()
   {
-    console.log('stop listening PrintLaterContainerView');
     this.stopListening();
   },
 
@@ -1192,7 +1189,6 @@ var PrintLaterContainerView = Backbone.View.extend({
 
   remove: function (PrintFile)
   {
-    console.log('remove');
     var printFileId = PrintFile.get('id');
 
     if (_.has(this.printLaterFile_views, printFileId)) {
@@ -1224,8 +1220,6 @@ var PrintLaterContainerView = Backbone.View.extend({
         this.$el.append(row.render().el);
       }, this);
       $(document).foundation('dropdown', 'reflow');
-    } else {
-      console.log('no print later files');
     }
   },
 
@@ -1455,11 +1449,8 @@ var PrintQueueView = Backbone.View.extend({
 
   updateQueueApp: function() {
     if (!this.waitToSync) {
-      console.log('sync');
       this.boxView.updateQueue();
       this.printLaterView.updateLaterFiles();
-    } else {
-      console.log(' i ll wait!');
     }
   },
 
