@@ -121,16 +121,18 @@
 					<% if (p.local_only) { %>
 						This file is <b>only</b> stored on this {{mfDefinition.variant.product_name}}
 					<% } else { %>
-						<a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
-						/
-						<a class="success label round"href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %> <i class="icon-link-ext"></i></a>
-						/
-						<% if (p.settings.info_link) { %>
-							<a class="success label round" href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %> <i class="icon-link-ext"></i></a>
-						<% } else { %>
-							<span class="success label round"><%= p.settings.name %></span>
-						<% }
-					} %>
+						<% if (p.printer) { %><a class="success label round" href="<%= p.printer.info_link %>" target="_astroprint"><%= p.printer.name %> <i class="icon-link-ext"></i></a>
+						/<% } %>
+						<% if (p.material) { %><a class="success label round"href="<%= p.material.info_link %>" target="_astroprint"><%= p.material.name %> <i class="icon-link-ext"></i></a>
+						/<% } %>
+            <% if (p.settings) { %>
+              <% if (p.settings.info_link) { %>
+                <a class="success label round" href="<%= p.settings.info_link %>" target="_astroprint"><%= p.settings.name %> <i class="icon-link-ext"></i></a>
+              <% } else { %>
+                <span class="success label round"><%= p.settings.name %></span>
+              <% } %>
+            <% } %>
+				  <% } %>
 				</div>
 				<div class="print-info">
 					<% if (p.info) { %>
@@ -149,8 +151,10 @@
 						<% if (p.info.layer_count) { %>
 							<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
 						<% } %>
-					<% } else { %>
-						<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+          <% } else { %>
+            <% if (p.local_filename != null) { %>
+            <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+            <% } %>
 					<% } %>
 				</div>
 			</div>
@@ -181,7 +185,9 @@
             <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %><span> · </span></b>
           <% } %>
         <% } else { %>
+          <% if (p.local_filename != null) { %>
           <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+          <% } %>
         <% } %>
         <% if (p.uploaded_on) { %>
           <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>

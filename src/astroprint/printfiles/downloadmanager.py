@@ -103,6 +103,9 @@ class DownloadWorker(threading.Thread):
 					else:
 						self._manager._logger.info('Download completed for %s' % printFileId)
 
+						if item['printFileInfo'] is None:
+							printerManager().fileManager._metadataAnalyzer.addFileToQueue(printFileName)
+
 						fileInfo = {
 							'id': printFileId,
 							'printFileName': printFileName,
@@ -113,6 +116,7 @@ class DownloadWorker(threading.Thread):
 							'image': image,
 							'created': created
 						}
+
 						em = eventManager()
 
 						if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
