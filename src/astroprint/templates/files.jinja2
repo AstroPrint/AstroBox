@@ -151,8 +151,10 @@
 						<% if (p.info.layer_count) { %>
 							<b>Number of Layers:</b> <span class="hl"><%= p.info.layer_count %></span><br/>
 						<% } %>
-					<% } else { %>
-						<i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+          <% } else { %>
+            <% if (p.local_filename != null) { %>
+            <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+            <% } %>
 					<% } %>
 				</div>
 			</div>
@@ -183,7 +185,9 @@
             <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %><span> · </span></b>
           <% } %>
         <% } else { %>
+          <% if (p.local_filename != null) { %>
           <i class="icon-rocket-spinner animate-spin"></i> Analyzing G-Code
+          <% } %>
         <% } %>
         <% if (p.uploaded_on) { %>
           <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
