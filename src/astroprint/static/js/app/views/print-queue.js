@@ -983,7 +983,7 @@ var BoxContainerView = Backbone.View.extend({
     .fail(function(e){
       console.error(e);
       promise.reject(e);
-      noty({text: "There was an error loading the print queue", timeout: 3000});
+        noty({text: "There was an error loading the print queue", timeout: 3000});
     });
 
     return promise;
@@ -1268,38 +1268,91 @@ var PrintQueueView = Backbone.View.extend({
   printLaterView: null,
   currentTabID: null,
   waitToSync: null,
-
   initialize: function()
   {
-    this.sideMenuView = new SideMenuView(this);
-    this.boxView  = new BoxContainerView({mainView: this});
-    this.printLaterView  = new PrintLaterContainerView({mainView: this});
-
     this.delegateEvents({
       "hide": "onHide",
       "show": "onShow"
     })
   },
 
+  hasQueueAccess: function()
+  {
+    var promise = $.Deferred();
+
+    $.ajaxSetup({
+      headers: null
+    });
+
+    $.ajax({
+      url: "http://api.astroprint.test/v2/accounts/me",
+      method: "GET",
+      contentType: "application/json; charset=UTF-8",
+      headers: {
+        'authorization': 'Bearer ' + access_token
+      }
+    })
+      .done(_.bind(function (user) {
+        // REMOVE FOR TESTING DUE TO WEIRD PLAN IN DEV var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
+        var hasQueueAccess = true;
+        promise.resolve(hasQueueAccess);
+      }, this))
+      .fail(function (e) {
+        console.error(e);
+        promise.reject(e);
+      })
+      .always(function () {
+        $.ajaxSetup({
+          headers: { "X-Api-Key": UI_API_KEY }
+        });
+      });
+
+      return promise;
+  },
+
   onShow: function()
   {
-    this.listenTo(this.boxView, 'sync-app', this.updateQueueApp);
-    this.listenTo(this.printLaterView, 'sync-app', this.updateQueueApp);
+    this.$el.removeClass('data-ready');
+    this.hasQueueAccess()
+    .done(_.bind(function (hasQueueAccess) {
 
-    this.listenTo(this.boxView, 'print-clicked', this.printManagement);
-    this.listenTo(this.printLaterView, 'print-clicked', this.printManagement);
+      if (hasQueueAccess) {
+        if (!this.sideMenuView) {
+          this.sideMenuView = new SideMenuView(this);
+          this.boxView  = new BoxContainerView({mainView: this});
+          this.printLaterView  = new PrintLaterContainerView({mainView: this});
+        }
 
-    this.listenTo(this, 'start-print', this.doPrint)
-    this.boxView.onShow();
-    this.printLaterView.onShow();
+        this.listenTo(this.boxView, 'sync-app', this.updateQueueApp);
+        this.listenTo(this.printLaterView, 'sync-app', this.updateQueueApp);
+
+        this.listenTo(this.boxView, 'print-clicked', this.printManagement);
+        this.listenTo(this.printLaterView, 'print-clicked', this.printManagement);
+
+        this.listenTo(this, 'start-print', this.doPrint)
+        this.boxView.onShow();
+        this.printLaterView.onShow();
+      } else {
+        window.location.replace("https://cloud.astroprint.com/printqueues/info");
+      }
+    }, this))
+
+    .fail(_.bind(function () {
+      noty({ text: "Something went wrong when checking permission to use Queues", timeout: 3000 });
+      window.location.href= "#";
+    }, this))
+    .always(_.bind(function(){
+      setTimeout(_.bind(function () {
+        this.$el.addClass('data-ready');
+      }, this), 500);
+    }, this));
   },
 
   onHide: function ()
   {
     this.stopListening();
-    this.boxView.onHide();
-    this.printLaterView.onHide();
-
+    if (this.boxView) {this.boxView.onHide()}
+    if (this.printLaterView) {this.printLaterView.onHide();}
   },
 
   printManagement: function(params)

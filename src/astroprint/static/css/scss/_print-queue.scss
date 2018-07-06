@@ -5,7 +5,17 @@
         "foundation/components/progress-bars";
 
 #print-queue-view {
-
+  #queue-container {
+    display: none;
+  }
+  &.data-ready {
+    #main-container-loader {
+     display: none;
+    }
+    #queue-container {
+      display: inline-block;
+    }
+  }
   .list-header {
     background: #fdfdfd;
     padding: 15px 0;
@@ -1010,114 +1020,4 @@
     overflow: hidden;
     margin-bottom: 3px;
   }
-}
-
-
-#print-file-info {
-  .modal-content {
-    .photo-container {
-      position: relative;
-      height: 0;
-      padding-top: 100%;
-      overflow: hidden;
-
-      img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        border-radius: $global-radius;
-      }
-    }
-
-    .actions {
-      text-align: center;
-      position: relative;
-      margin: 7px 0;
-
-      a {
-        color: $body-font-color;
-
-        &:hover,
-        &:active {
-          color: $success-color;
-
-          &.remove {
-            color: $alert-color;
-          }
-        }
-
-        &.delete {
-          color: $alert-color;
-        }
-      }
-
-      i {
-        font-size: rem-calc(70);
-        padding: 0 10px;
-
-        &.with-separator {
-          border-right: 2px solid #ccc;
-        }
-      }
-    }
-
-    .print-settings {
-      font-size: rem-calc(16);
-
-      .label {
-        font-size: rem-calc(16);
-        i.icon-link-ext {
-          font-size: rem-calc(10);
-        }
-      }
-    }
-
-    .print-info {
-      margin-top: 20px;
-      line-height: 1.4em;
-      font-size: rem-calc(16);
-
-      .hl {
-        color: $success-color;
-      }
-    }
-  }
-}
-
-.dlg-content{
-
-  button{width: 100%;}
-
-  .close-reveal-modal{
-    font-size: 65px;
-    position: absolute;
-    top: 0;
-    color: $steel;
-  }
-}
-
-#external-removed-warning-dlg {
-  i.icon-attention {
-    color: $alert-color;
-    font-size: 50px;
-  }
-}
-
-@media #{$large-up} {
-  #printer-file-info {
-    max-width: 900px;
-  }
-}
-
-@media #{$small-only} {
-  .list-header{
-
-    .loading-button {
-      width: 100%;
-
-      button{width: 100%;}
-    }
-  }
-
 }
