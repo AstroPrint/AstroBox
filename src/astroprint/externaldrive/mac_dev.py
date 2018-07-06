@@ -43,13 +43,13 @@ class ExternalDriveManager(object):
 	def getFolderContents(self, folder):
 		if 'Test_1/' in folder:
 			return [
-				{"name": "Test_1_1", "icon": "folder"},
-				{"name": "This is a very long gcode file.gcode", "icon": "gcode"}
+				{"name": "/Test_1/Test_1_1", "icon": "folder"},
+				{"name": "/Test_1/This is a very long gcode file.gcode", "icon": "gcode"}
 			]
 
 		elif 'Test_2/' in folder:
 			return [
-				{"name": "Print file.gcode", "icon": "gcode"}
+				{"name": "/Test_2/Print-file.gcode", "icon": "gcode"}
 			]
 
 	def getBaseFolder(self, key):
