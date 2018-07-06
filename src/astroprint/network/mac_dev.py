@@ -64,6 +64,7 @@ class MacDevNetworkManager(NetworkManager):
 			if n['id'] == networkId:
 				if n['active']:
 					self._goOffline()
+					eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'disconnected'})
 
 				del self._storedWiFiNetworks[i]
 				self.logger.info("Network [%s] with id [%s] deleted." % (n['name'], n['id']))
@@ -84,25 +85,51 @@ class MacDevNetworkManager(NetworkManager):
 		for n in self.getWifiNetworks():
 			if n['id'] == bssid:
 				if n['secured']:
-					if not password:
+					if not password or len(password) < 3:
 						self.logger.info("Missing password for a secured network")
-						return
-					elif password != 'pwd':
-						self.logger.info("Password invalid. Needs to be 'pwd'")
-						time.sleep(3)
+						time.sleep(2)
 						return 	{
 							'err_code': 'invalid_psk',
 							'message': 'Invalid Password'
 						}
 
+					elif password != 'pwd':
+						self.logger.info("Password invalid. Needs to be 'pwd'")
+
+						def action():
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+							time.sleep(2)
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_secrets"})
+
+						timer = threading.Timer(3, action)
+						timer.daemon = True
+						timer.start()
+
+						return {"name": n['name']}
+
 				else:
 					if n["id"] == 'C0:7B:BC:1A:5C:81':
-						time.sleep(3)
 						self.logger.info("Open network with NO connection")
-						return
 
-				time.sleep(2)
+						def action():
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+							time.sleep(2)
+							eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'failed', 'reason': "no_connection"})
+
+						timer = threading.Timer(3, action)
+						timer.daemon = True
+						timer.start()
+
+						return {"name": n['name']}
+
+				time.sleep(1)
 				return self._setActiveWifi(n)
+
+	def isAstroprintReachable(self):
+		return self.isOnline()
+
+	def checkOnline(self):
+		return self.isOnline()
 
 	def isOnline(self):
 		return self._online
@@ -146,6 +173,23 @@ class MacDevNetworkManager(NetworkManager):
 			'active': True
 		})
 
-		self._goOnline()
+		def action():
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {'status': 'connecting'})
+			time.sleep(1)
+			eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
+				'status': 'connected',
+				'info': {
+					'type': 'wifi',
+					'signal': network['signal'],
+					'name': network['name'],
+					'ip': '127.0.0.1:5000'
+				}
+			})
 
-		return network['id']
+			self._goOnline()
+
+		timer = threading.Timer(2, action)
+		timer.daemon = True
+		timer.start()
+
+		return {'name': network['name']}

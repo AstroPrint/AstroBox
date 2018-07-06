@@ -390,6 +390,10 @@ class SoftwareManager(object):
 		return self.data['variant']
 
 	@property
+	def mfPackageId(self):
+		return self.data['manufacturer_pkg_id']
+
+	@property
 	def userAgent(self):
 		return "Astrobox; version:%d.%d(%s); variant: %s; platform: [%s]" % (
 			self.data['version']['major'], self.data['version']['minor'], self.data['version']['build'],

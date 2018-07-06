@@ -446,17 +446,23 @@ class AstroprintBoxRouter(object):
 			nm = networkManager()
 			sm = softwareManager()
 
+			authData = {
+				'silentReconnect': self._silentReconnect,
+				'boxId': self.boxId,
+				'variantId': sm.variant['id'],
+				'boxName': nm.getHostname(),
+				'swVersion': VERSION,
+				'platform': sm.platform,
+				'localIpAddress': nm.activeIpAddress,
+				'publicKey': self._publicKey,
+				'privateKey': self._privateKey
+			}
+
+			pkgId = sm.mfPackageId
+			if pkgId:
+				authData['mfPackageId'] = pkgId
+
 			return {
-			 	'type': 'auth',
-			 	'data': {
-			 		'silentReconnect': self._silentReconnect,
-			 		'boxId': self.boxId,
-			 		'variantId': sm.variant['id'],
-			 		'boxName': nm.getHostname(),
-			 		'swVersion': VERSION,
-			 		'platform': sm.platform,
-			 		'localIpAddress': nm.activeIpAddress,
-			 		'publicKey': self._publicKey,
-			 		'privateKey': self._privateKey
-			 	}
+				'type': 'auth',
+				'data': authData
 			}
