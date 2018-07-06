@@ -109,11 +109,11 @@ class DownloadWorker(threading.Thread):
 						fileInfo = {
 							'id': printFileId,
 							'printFileName': printFileName,
-							'info': item['printFileInfo'] if item['printFileInfo'] is not None else None,
-							'printer': printer if printer['id'] is not None else None,
-							'material': material if material['id'] is not None else None,
-							'quality': quality if quality is not None else None,
-							'image': image if image is not None else None,
+							'info': item['printFileInfo'],
+							'printer': printer,
+							'material': material,
+							'quality': quality,
+							'image': image,
 							'created': created
 						}
 

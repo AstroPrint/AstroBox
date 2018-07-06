@@ -275,12 +275,12 @@ class PrintFilesManager(object):
 		self._metadataDirty = True
 		self._metadata[filename] = {
 			"cloud_id": fileInfo["id"],
-			"gcodeAnalysis": fileInfo["info"] if fileInfo["info"] is not None else None,
+			"gcodeAnalysis": fileInfo["info"],
 			"printFileName": fileInfo["printFileName"],
-			"printer": fileInfo["printer"] if fileInfo["printer"] is not None else None,
-			"material": fileInfo["material"] if fileInfo["material"] is not None else None,
-			"quality": fileInfo["quality"] if fileInfo["quality"] is not None else None,
-			"image": fileInfo["image"] if fileInfo["image"] is not None else None,
+			"printer": fileInfo["printer"],
+			"material": fileInfo["material"],
+			"quality": fileInfo["quality"],
+			"image": fileInfo["image"],
 			"created": fileInfo["created"],
 			"prints": {
 				"success": 0,
