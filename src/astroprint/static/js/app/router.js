@@ -7,6 +7,7 @@
 var AppRouter = Backbone.Router.extend({
   homeView: null,
   filesView: null,
+  printQueueView: null,
   utilitiesView: null,
   settingsView: null,
   additionalTasksView: null,
@@ -20,6 +21,7 @@ var AppRouter = Backbone.Router.extend({
   routes: {
     "": "home",
     "files": "files",
+    "print-queue": "printQueue",
     "file-info/:fileId": "fileInfo",
     "utilities": "utilities",
     "printing": "printing",
@@ -71,6 +73,15 @@ var AppRouter = Backbone.Router.extend({
     this.loadFilesView(false);
     this.selectView(this.filesView);
     app.selectQuickNav('files');
+  },
+  printQueue: function()
+  {
+    if (!this.printQueueView) {
+      this.printQueueView = new PrintQueueView();
+    }
+
+    this .selectView(this.printQueueView);
+    app.selectQuickNav('queue');
   },
   fileInfo: function(fileId)
   {

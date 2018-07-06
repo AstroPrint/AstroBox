@@ -1,0 +1,323 @@
+<div class="row heading">
+	<div class="small-12 title-heading">
+		<h1 class="bold">{{astroboxName}} · Print Queue </h1>
+	</div>
+</div>
+{% if (user_email) %}
+<div class="printqueue-menu">
+    <div class="page-heading">
+      <h1 class="bold">
+        <span id="tabHeader">Print Queues</span>
+        <span class="first-loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+      </h1>
+    </div>
+
+    <!--  Side menu -->
+    <div id="user-side-menu-container">
+      <div class="icon-bar vertical three-up data-tab tab">
+        <a class="item" title="Print Queues" data-tab="printQueues" >
+          <i class="icon-inbox" id="printQueues-icon"></i>
+          <label class="bold">Print Queues</label>
+        </a>
+        <a class="item" title="Print Later" data-tab="printLater" >
+          <i data-badge="0" class="icon-clock" id="printLater-icon" ></i>
+          <label class="bold">Print Later</label>
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Box container -->
+    <div id="app-container queues-container">
+      <div id="user-menu-content">
+        <!-- @BOX CONTAINER -->
+        <div class="row box-container loading-status filter-ready" id="box-container">
+          <!-- BOX ROW -->
+          <div class="row clearfix" style="min-height:61px;">
+
+            <!-- Next file area container -->
+            <div class="active-file-area columns small-12 large-7"></div>
+            <div class="background-loading"> <i class="icon-rocket-spinner animate-spin" ></i> </div>
+      <!--       <div class="no-ready-files-banner">
+              <img src="/img/no-readyfiles.svg" alt="No designs"/>
+            </div>
+ -->
+            <div class="columns small-12 large-5 right">
+              <!-- cancel print button -->
+              <div class="cancel-button loading-button columns small-6 medium-4 large-6 end">
+                <button class="secondary small radius cancel-label bold expand">Cancel</button>
+              </div>
+
+              <!-- print button -->
+              <div class="print-button inactive loading-button small-12 large-8 end no-padding columns right">
+                <button class="success small radius print-next bold expand ">Print</button>
+                <span class="success button radius radius bold disabled loading expand"><i class="icon-rocket-spinner animate-spin"></i></span>
+              </div>
+
+              <!-- connect printer -->
+              <div class="connect-printer-button loading-button small-6 medium-8 large-6 columns right no-padding right">
+                <button class="warning small radius connect-label bold expand">Connect printer</button>
+                <span class="warning button radius radius bold loading expand"><i class="icon-rocket-spinner animate-spin"></i>Connecting</span>
+                <span class="alert button radius radius bold inactive disabled failed expand"><i class="icon-attention"></i>Failed to connect</span>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="row clearfix heading-box-queue">
+            <div class="counter-files-box columns small-12 medium-8">
+              <span class="counterNew"></span>
+              <b><span class="ready-counter-label"></span></b>
+              <span class="counterNew">on queue,
+                <b><span class="finished-counter-label"></span></b> finished
+              </span>
+            </div>
+          </div>
+
+          <!-- SHOW SELECTION -->
+          <div class="row shownByContainer">
+              <button class="pending-tab small-6 large-2 large-offset-4 columns is-active">
+                <span class=" bold">Pending (<span class= "ready-counter-label" ></span>) </span>
+              </button>
+            <button class="completed-tab small-6 large-2 end columns success">
+              <span class=" bold">Completed (<span class= "finished-counter-label" ></span>) </span>
+            </button>
+
+            <!-- clear pending button -->
+            <div class="columns small-12 clear-label text-right">
+              <a class="clear-pending-button secondary small expand">Clear All</a>
+            </div>
+
+              <!-- clear finished button -->
+            <div class="columns small-12 clear-label text-right">
+              <a class="clear-finished-button secondary small expand">Clear All</a>
+            </div>
+          </div>
+
+          <!-- No ready files message -->
+          <div class="no-ready-files-container row">
+            <div class="small-12 columns">
+              <h4><b>Whoops!</b></h4>
+              <p>There are no Print Files in the queue</p>
+              <img class="no-files" src="/img/no-files-queue.svg" alt="No designs"/>
+            </div>
+          </div>
+
+          <!-- No finished files message -->
+          <div class="no-finished-files-container row">
+          <div class="small-12 columns">
+            <h4><b>Whoops!</b></h4>
+            <p>There are no Finished Files yet</p>
+            <img class="no-files" src="/img/no-finished-files-queue.svg" alt="No designs"/>
+          </div>
+          </div>
+          <div class="pending-files-box animated fadeIn columns"></div>
+          <div class="finished-files-box animated fadeIn columns"></div>
+        </div>
+
+        <!-- @PRINTLATER-LIST CONTAINER -->
+        <div class="print-later-list" id="print-later-list">
+          <div id="no-printFiles" class="columns" style="display:none">There are no Print Files. Go to Files and click on <b>Print Later</b> to add some.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+{% else %}
+  <div id="login-required-message">You need to be logged in to access to the Print Queue app.</div>
+{% endif %}
+
+<div id="print-file-info" class="reveal-modal xlarge" data-reveal>
+	<div class="dlg-content"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<!-- ACTIVE FILE AREA -->
+<script type="text/template" id="active-file-area-template">
+  <div class="row">
+    <div class="columns text-center small-5 medium-3 large-2">
+      <!-- design image-->
+      <div class="rendered_image" >
+      <% if (pf.design_image) { %>
+        <img class="rendered_image" src="<%= pf.design_image %>"/>
+      <% } else { %>
+        <img class="rendered_image" src="/img/thing-pattern.png"/>
+      <% } %>
+      </div>
+    </div>
+
+    <div class="columns small-7 medium-9 large-10 no-padding">
+      <div class="row">
+        <div class="columns small-12 medium-12 large-7 end">
+          <!-- name -->
+          <div class="name-label-box">
+            <span class="name-label bold"><%= pf.name %></span>
+          </div>
+
+          <!-- printer/material/quality  -->
+          <div class="config">
+            <% if (!pf.localFile) { %>
+            <span class="printer-name"><%= pf.printer_name %></span> / <span class="material-name"><%= pf.filament_name %></span> / <span class="quality"><%= pf.quality %></span>
+            <% } else { %>
+            <span class="printer-name">This file is locally stored, not in cloud.</span>
+            <% } %>
+          </div>
+        </div>
+        <!-- print time -->
+        <div class="columns small-12 medium-12 large-5 end">
+
+          <!-- ready message -->
+          <div class="collapse message-position clearfix">
+            <span class="ready-message label left"><i class="icon-inbox"></i>Next File</span>
+          </div>
+
+          <!-- time -->
+          <spaen class="printTime-label bold">
+            <i class="icon-clock"></i>
+              <span class="hour"><%= pf.printTimeLeft[0] ? pf.printTimeLeft[0] :"--" %></span> :
+              <span class="min"><%= pf.printTimeLeft[1] ? pf.printTimeLeft[1] :"--" %></span> :
+              <span class="sec"><%= pf.printTimeLeft[2] ? pf.printTimeLeft[2] :"--" %></span>
+          </span>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</script>
+
+<!-- PRINTFILE ROW -->
+<script type="text/template" id="print-file-row-template">
+  <% if (!view.parent.printLaterFiles) { %>
+  <div class="columns small-12 medium-2 large-1 text-center">
+    <span class="index-queue"></span>
+    <i class="icon-th  moving-arrow"  title="Move to top"></i>
+    <i class="icon-folder moving-arrow"  title="Up"></i>
+    <i class="icon-move moving-arrow" title="Down"></i>
+  </div>
+  <% } %>
+
+  <div class="columns medium-6 large-6 border-right time-container">
+
+    <% if (pf.design_image) { %>
+    <img class="rendered_image left" src="<%= pf.design_image %>"/>
+    <% } else { %>
+    <img class="rendered_image left" src="/img/noimage.svg"/>
+    <% } %>
+
+    <%= pf.name %>
+    <div class="printer-info" > <%= pf.printer_name %> / <%= pf.filament_name %> / <%= pf.quality %> </div>
+    <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
+    <small>
+      <span class="last-status">
+        <span class="message-printing" >Started printing</span>
+        <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
+        <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
+        <span class="message-finished" ><i class="icon-ok"></i>finished</span>
+        <% if (pf.last_status_time) { %>
+        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
+        <% } %>
+      </span>
+    </small>
+
+    <% if (view.parent.printLaterFiles) { %>
+    <div class="date-added" >
+      <small><i class="icon-calendar"></i>Added
+        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(pf.created+' UTC').toISOString() %></span>
+      </small>
+    </div>
+    <% } %>
+  </div>
+
+  <div class="columns small-offset-2 small-9 medium-offset-1 medium-4 large-offset-0 large-3 text-center">
+    <div class="printer-time">
+      <span class="printTime-label bold">
+        <i class="icon-clock"></i>
+        <span class="hour"><%= print_time ? print_time[0] :"__" %></span> :
+        <span class="min" ><%= print_time ? print_time[1] :"__" %></span> :
+        <span class="sec" ><%= print_time ? print_time[2] :"__" %></span>
+      </span>
+    </div>
+  </div>
+
+  <% if (view.parent.printLaterFiles) { %>
+  <div class="columns medium-offset-1 medium-4 large-offset-0 large-2 text-center print-actions loading-button split">
+    <button class="success radius tiny bold expand print button split"><b>Print Now</b><span class="arrow-drop"  data-dropdown="drop-<%=pf.id%>"></span></button>
+    <span class="success button radius tiny bold loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
+    <br>
+    <ul id="drop-<%=pf.id%>" class="f-dropdown" data-dropdown-content><li><a class="queue">Add to Queue</a></li></ul>
+  </div>
+
+  <div class="columns medium-offset-1 medium-4 large-offset-0 large-2 text-center print-actions single-queue-button">
+    <a class="success radius tiny bold expand queue button"><b>Add to Queue</b></a>
+  </div>
+  <% } %>
+
+  <div class="columns small-3 medium-1 large-1 right text-right hide-for-small-only">
+    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
+  </div>
+
+  <div class="columns small-3 medium-1 large-1 right text-right show-for-small-only delete-file">
+    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
+  </div>
+
+  <div class="columns small-9 medium-4 large-2 text-center">
+    <div class="return-label" title="Return to Queue" style="display:none;">
+        <div class="secondary bold tiny button return-button">
+          <span class="status">Return to Queue</span>
+        </div>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+</script>
+
+<!-- @DELETE QUEUE ELEMENT -->
+<div id="delete-queue-element-dlg" class="reveal-modal medium" data-reveal>
+  <h2 class="bold">Remove Print File from Queue</h2>
+  <div class="reveal-content">Are you sure you want to remove <b>from the queue</b> the Print File  <span class="bold filename"></span>?
+    <div class="button-container row collapse">
+      <div class="columns medium-5 small-12">
+        <button class="radius secondary cancel">Cancel</button>
+      </div>
+      <div class="columns medium-7 small-12 loading-button confirm-button">
+        <button class="alert radius">Remove From Queue</button>
+        <span class="loading button disabled alert radius"><i class="icon-rocket-spinner animate-spin"></i>Removing From Queue...</span>
+        <span class="failed button disabled alert radius"><i class="icon-attention"></i> Failed</span>
+      </div>
+      <div class="clearfix"></div>
+    </div>
+  </div>
+  <a class="close-reveal-modal">&#215;</a>
+</div>
+
+<!--  @CLEAR FINISHED QUEUE -->
+<div id="clear-finished-dlg" class="reveal-modal medium" data-reveal>
+  <h2 class="bold">Clear <span class="bold status-label"></span> files</h2>
+  <div class="reveal-content">
+    <p>Are you sure you want to remove all the <span class="bold status-label"></span> files?</p>
+      <div class="button-container">
+      <button class="radius secondary left cancel">Cancel</button>
+      <div class="loading-button right confirm-button">
+        <button class="alert radius">Clear</button>
+        <span class="loading button disabled alert radius"><i class="icon-rocket-spinner animate-spin"></i>Clearing files...</span>
+        <span class="failed button disabled alert radius"><i class="icon-attention"></i> Failed</span>
+      </div>
+      <div class="clearfix"></div>
+      </div>
+  </div>
+  <a class="close-reveal-modal">&#215;</a>
+</div>
+
+<!-- @PRINT QUEUE ELEMENT-->
+<div id="print-element-dlg" class="reveal-modal medium" data-reveal data-options="close_on_background_click:false">
+  <h2 class="bold"><i class="icon-rocket"></i>Downloading file...</h2>
+    <div class="reveal-content">
+      <span class="row progress-container loading">
+        <div class="progress success">
+          <span class="progress-label bold">20%</span>
+          <span class="meter" style="width:50%" ></span>
+        </div>
+      </span>
+      <a href="#" class="button alert cancel">Cancel</a>
+    </div>
+</div>
+

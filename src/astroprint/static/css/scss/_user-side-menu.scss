@@ -1,0 +1,134 @@
+#page-content {
+	position: relative;
+	background-image: radial-gradient(ellipse at center, $ghost 0%, darken($ghost, 6%) 100%);
+	overflow: hidden;
+	border-top: 1px solid #ececec;
+}
+
+#user-side-menu-container {
+  width:145px;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+}
+
+#user-menu-content {
+	width: 100%;
+	padding-bottom: 20px;
+}
+
+.icon-bar.vertical {
+	background: lighten($oil, 6.8%);
+	border-right: 1px solid $steel;
+  width: 100%;
+
+	a {
+		border-bottom: 1px solid $steel;
+		border-left: 5px solid lighten($oil, 6.8%);
+
+		&:hover {
+			@include color-border();
+			box-shadow: $shadow-inset;
+			background: $oil;
+		}
+
+		&.active {
+			@include color-border();
+			box-shadow: $shadow-inset;
+			background: $oil;
+		}
+
+		i, label {
+			color: #fff;
+		}
+	}
+}
+
+.page-heading {
+	padding: 15px 20px;
+	background-image: url("//d360wfgz11cs0l.cloudfront.net/congruent_outline.png");
+	margin-bottom: 15px;
+
+	h1 {
+		width: 75%;
+		color: white;
+		font-size: rem-calc(35);
+		margin:0;
+		line-height: 1.2em;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+
+		span {
+			color: $success-color;
+		}
+	}
+
+	.round-action {
+		color: white;
+		background: $success-color;
+		border-radius: 40px;
+		width: 40px;
+		height: 40px;
+
+		i {
+			font-size: rem-calc(25);
+			display: block;
+			margin-top: 6px;
+			margin-left: 3px;
+
+			&.icon-edit {
+				margin-left: 5px;
+			}
+		}
+	}
+}
+
+@media #{$small-only} {
+	#user-menu-content {
+		padding-left: 58px;
+		min-height: 340px;
+	}
+
+	.icon-bar.vertical {
+		width: 58px;
+
+		a.item {
+			padding: 10px 13px 10px 5px;
+		}
+
+		label {
+			display: none;
+		}
+	}
+}
+
+@media #{$large-up} {
+	#user-menu-content {
+		padding-left: 145px;
+		min-height: 680px;
+	}
+
+	.page-heading {
+		h1 {
+			font-size: rem-calc(48);
+		}
+
+		.round-action {
+			margin-top: 5px;
+			border-radius: 50px;
+			width: 50px;
+			height: 50px;
+
+			i {
+				font-size: rem-calc(30);
+				margin-top: 6px;
+				margin-left: 4px;
+
+				&.icon-edit {
+					margin-left: 6px;
+				}
+			}
+		}
+	}
+}

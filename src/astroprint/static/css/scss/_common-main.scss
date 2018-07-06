@@ -61,3 +61,22 @@ strong,
     padding: 0px 20px;
   }
 }
+/* Badges used for information */
+.badge {
+  position:relative;
+}
+.badge[data-badge]:after {
+  content:attr(data-badge);
+  position:absolute;
+  top:-3px;
+  left:36px;
+  font-size:.8em;
+  font-weight: bold;
+  background:#F05151;
+  color:white;
+  width:20px;height:20px;
+  text-align:center;
+  line-height:20px;
+  border-radius:50%;
+  font-family: monospace;font-style: normal;
+}
