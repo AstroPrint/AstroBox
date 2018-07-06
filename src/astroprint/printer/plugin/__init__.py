@@ -118,6 +118,10 @@ class PrinterWithPlugin(Printer):
 			"filament": filament,
 		}
 
+	def getSdFiles(self):
+		pass
+		#return self._sdFiles
+
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if sd and not self._plugin.allowSDCardPrinting:
 			raise('Printing from SD card is not supported on this printer')
