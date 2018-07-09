@@ -71,7 +71,7 @@ class ExternalDriveManager(ExternalDriveBase):
 		self._monitor = pyudev.Monitor.from_netlink(context)
 		self._monitor.filter_by(subsystem='block')
 
-		for device in iter(self.monitor.poll, None):
+		for device in iter(self._monitor.poll, None):
 
 			if self.stopThread:
 				self._monitor.stop()
