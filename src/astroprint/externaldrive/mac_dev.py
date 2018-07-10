@@ -32,16 +32,25 @@ class ExternalDriveManager(object):
 		pass
 
 	def getRemovableDrives(self):
-		return []
+		return [
+			{"name": "Test_1", "icon": "usb"},
+			{"name": "Test_2", "icon": "usb"}
+		]
 
 	def getFileBrowsingExtensions(self):
 		return printerManager().fileManager.SUPPORTED_EXTENSIONS
 
 	def getFolderContents(self, folder):
-		return None
+		if 'Test_1/' in folder:
+			return [
+				{"name": "/Test_1/Test_1_1", "icon": "folder"},
+				{"name": "/Test_1/This is a very long gcode file.gcode", "icon": "gcode"}
+			]
 
-	def getDirContents(self, globPattern, icon='folder', extensions=None):
-		return []
+		elif 'Test_2/' in folder:
+			return [
+				{"name": "/Test_2/Print-file.gcode", "icon": "gcode"}
+			]
 
 	def getBaseFolder(self, key):
 		return settings().getBaseFolder(key)

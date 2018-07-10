@@ -538,6 +538,7 @@ var PrintingSpeedControlView = Backbone.View.extend({
 
 var PrintingFlowControlView = Backbone.View.extend({
   el: '.printing-flow-control',
+  presets: [95,90,100,110,115],
   events: {
     'change .printing-flow-amount': 'rateChanged',
     'change .other-printing-flow-amount input': 'onCustomFlowChanged'
@@ -551,7 +552,7 @@ var PrintingFlowControlView = Backbone.View.extend({
 
   setFlowValue: function(value)
   {
-    if (value == 25 || value == 50 || value == 100 || value == 200 ) {
+    if (this.presets.indexOf(value) != -1) {
       this.$('select.printing-flow-amount').val(value).change();
     } else {
       this.$('select.printing-flow-amount').val("other").change();
@@ -589,7 +590,7 @@ var PrintingFlowControlView = Backbone.View.extend({
   onCustomFlowChanged: function(e) {
     var elem = $(e.target);
     var amount = elem.val();
-    if (amount < 25) { amount = 25; } else if (amount > 200) { amount = 200;}
+    if (amount < 50) { amount = 50; } else if (amount > 150) { amount = 150;}
     elem.val(amount);
     this._setPrintFlow(amount);
     $(e.target).blur();

@@ -710,14 +710,13 @@ var PrintFilesListView = Backbone.View.extend({
   },
   onMetadataAnalysisFinished: function(data)
   {
-    var affected_view = _.find(this.print_file_views, function(v){
-      return v.print_file.get('name') == data.file;
+    _.each(this.print_file_views, function(p) {
+      if (p.print_file.get('name') == data.file) {
+        p.print_file.set('info', data.result);
+        p.render();
+        return;
+       }
     });
-
-    if (affected_view) {
-      affected_view.print_file.set('info', data.result);
-      affected_view.render();
-    }
   },
   onPrinterDriverChanged: function()
   {
