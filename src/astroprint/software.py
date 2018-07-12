@@ -716,5 +716,5 @@ class SoftwareManager(object):
 		return None
 
 	def capabilities(self):
-		capabilities = ['remotePrint', 'multiExtruders']
+		capabilities = ['remotePrint', 'multiExtruders','allowPrintFile']
 		return capabilities

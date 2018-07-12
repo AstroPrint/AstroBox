@@ -499,7 +499,7 @@ class PrintFilesManager(object):
 			"success": True
 		}
 
-		if "gcodeAnalysis" not in metadata:
+		if metadata.get('gcodeAnalysis') is None:
 			metadata['gcodeAnalysis'] = {}
 
 		if printTime is not None:
