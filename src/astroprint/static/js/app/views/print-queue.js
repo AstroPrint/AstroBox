@@ -5,7 +5,7 @@
  */
 
 // ONLY FOR TESTING
-var access_token = "";
+const access_token = "";
 
  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // PrintFile
@@ -504,67 +504,36 @@ var PrintFileRowView = Backbone.View.extend({
 
         indexTo = Number(indexFrom + incrementalValue);
         var modelTo = readyCollection.at(indexTo);
-        var posModelTo = modelTo.get('pos');
 
-        // Temporary fix to avoid x-api-key
         $.ajaxSetup({
           headers: null
         });
         $.ajax({
-          url: "http://api.astroprint.test/v2/print-queues/"+modelTo.get('id'),
+          url: "http://api.astroprint.test/v2/print-queues/"+this.printFile.get('id')+"/swap-positions",
           method: "PATCH",
           dataType: "json",
           contentType: "application/json; charset=UTF-8",
-          data: JSON.stringify({"pos": this.printFile.get('pos')}),
+          data: JSON.stringify({"elementqueue_id": modelTo.get('id')}),
           headers: {
             'authorization': 'Bearer ' + access_token
           }
         })
           .done(_.bind(function () {
-            modelTo.set("pos",this.printFile.get('pos'), {silent:  true});
-
-            $.ajax({
-              url: "http://api.astroprint.test/v2/print-queues/"+this.printFile.get('id'),
-              method: "PATCH",
-              dataType: "json",
-              contentType: "application/json; charset=UTF-8",
-              data: JSON.stringify({"pos": posModelTo}),
-              headers: {
-                'authorization': 'Bearer ' + access_token
-              }
-            })
-              .done(_.bind(function () {
-                this.printFile.set("pos",posModelTo, {silent:  true});
-
-                 // Movement Animation
-                if (direction == 'up') { this.$el.addClass('animated slideOutUp'); } else { this.$el.addClass('animated slideOutDown'); }
-                // Stop animation => remove/add
-                setTimeout(_.bind(function () {
-                  this.$el.removeClass('slideOutDown slideOutUp');
-                  readyCollection.remove(this.printFile, { silent: true });
-                  readyCollection.add(this.printFile, { at: indexTo }); // triger change
-                }, this), 300);
-
-              }, this))
-              .fail(function (e) {
-                console.error(e);
-              })
-              .always(function () {
-                $.ajaxSetup({
-                  headers: { "X-Api-Key": UI_API_KEY }
-                });
-              });
-
+            // Movement Animation
+            if (direction == 'up') { this.$el.addClass('animated slideOutUp'); } else { this.$el.addClass('animated slideOutDown'); }
+            setTimeout(_.bind(function () {
+              this.parent.mainView.boxView.trigger("sync-app");
+            }, this), 200);
           }, this))
           .fail(function (e) {
             console.error(e);
           })
-          .always(function () {
+          .always(_.bind(function () {
+            this.parent.mainView.waitToSync = false;
             $.ajaxSetup({
               headers: { "X-Api-Key": UI_API_KEY }
             });
-            this.parent.mainView.waitToSync = false;
-          });
+          }, this));
       } else {
         var previousFileOnTop = readyCollection.first();
         indexTo = Number(readyCollection.indexOf(previousFileOnTop));
