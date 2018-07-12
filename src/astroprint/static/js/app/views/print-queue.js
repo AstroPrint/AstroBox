@@ -555,24 +555,22 @@ var PrintFileRowView = Backbone.View.extend({
 
             // Movement animation
             this.$el.addClass('animated fadeOutUpBig');
-            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig'); }.bind(this));
+            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig');this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal"); }.bind(this));
 
             // After animation => remove/add
             setTimeout(_.bind(function () {
-              readyCollection.remove(this.printFile, { silent: true });
-              readyCollection.add(this.printFile, { at: indexTo }); // triger change
-              this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal");
+              this.parent.mainView.boxView.trigger("sync-app");
             }, this), 200);
           }, this))
           .fail(function (e) {
             console.error(e);
           })
-          .always(function () {
+          .always(_.bind(function () {
             $.ajaxSetup({
               headers: { "X-Api-Key": UI_API_KEY }
             });
             this.parent.mainView.waitToSync = false;
-          });
+          }, this));
 
         /* this.printFile.save({ pos: Number(previousFileOnTop.get('pos')) - 1000 }, {
           patch: true, silent: true, wait: true, url: '/ajax/printqueues/' + this.printFile.get('id'),
@@ -684,7 +682,7 @@ var BoxContainerView = Backbone.View.extend({
   onShow: function()
   {
      // pending files
-     this.listenTo(this.pendingFiles, 'add', this.boxFileAdded);
+     //this.listenTo(this.pendingFiles, 'add', this.boxFileAdded);
      this.listenTo(this.pendingFiles, 'remove', this.boxFileRemoved);
      this.listenTo(this.pendingFiles, 'reset',  function(collection, filesRemoved){this.boxFilesReset("pending", collection, filesRemoved)}.bind(this));
 
