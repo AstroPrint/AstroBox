@@ -139,6 +139,17 @@
   }
 
   .design-list {
+    #files-on-queue {
+      display: none;
+      .counter-queue {
+        background: #6d6d6e;
+        color: #fdfdfd;
+        padding: 2px;
+        border-radius: 2px;
+        font-weight: bolder;
+        box-shadow: none;
+      }
+    }
     .local-loading {
       display: none;
 
@@ -146,6 +157,11 @@
         display: block;
         margin: 15px 0;
         font-size: rem-calc(30);
+      }
+    }
+    &.queued {
+      #files-on-queue {
+        display: inline-block;
       }
     }
   }

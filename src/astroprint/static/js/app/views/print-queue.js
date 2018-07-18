@@ -454,6 +454,11 @@ var PrintFileRowView = Backbone.View.extend({
         noty({text: "File failed to be added to the queue", timeout: 3000});
         console.error(e);
       })
+      .always(function () {
+        $.ajaxSetup({
+          headers: { "X-Api-Key": UI_API_KEY }
+        });
+      });
   },
 
   // Move a file from finished back to queue again as ready
@@ -487,6 +492,11 @@ var PrintFileRowView = Backbone.View.extend({
       .fail(function (e) {
         console.error(e);
       })
+      .always(function () {
+        $.ajaxSetup({
+          headers: { "X-Api-Key": UI_API_KEY }
+        });
+      });
   },
 
   // Move up/down printfile row
