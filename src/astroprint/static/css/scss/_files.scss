@@ -139,6 +139,9 @@
   }
 
   .design-list {
+    .icon-plus {
+      color: #fbaf45;
+    }
     #files-on-queue {
       display: none;
       .counter-queue {
@@ -515,7 +518,9 @@
         border-radius: $global-radius;
       }
     }
-
+    .icon-plus {
+      color: #fbaf45;
+    }
     .actions {
       text-align: center;
       position: relative;
