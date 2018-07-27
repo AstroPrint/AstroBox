@@ -210,7 +210,7 @@
     <% } %>
 
     <%= pf.name %>
-    <div class="printer-info" > <%= pf.printer_name %> / <%= pf.filament_name %> / <%= pf.quality %> </div>
+    <div class="printer-info" > <%= pf.printer_name ? "__" %> / <%= pf.filament_name ? "__" %> / <%= pf.quality ? "__" %> </div>
     <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
     <small>
       <span class="last-status">
