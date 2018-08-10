@@ -351,13 +351,9 @@ class Printer(object):
 			if fileData is not None:
 				gcodeAnalysis = fileData.get('gcodeAnalysis')
 				if gcodeAnalysis:
-					fileDataProps = gcodeAnalysis.keys()
-					if "print_time" in fileDataProps:
-						estimatedPrintTime = gcodeAnalysis["print_time"]
-					if "filament_lenght" in fileDataProps:
-						filament = gcodeAnalysis["filament_length"]
-					if "layer_count" in fileDataProps:
-						layerCount = gcodeAnalysis['layer_count']
+					estimatedPrintTime = gcodeAnalysis.get('print_time')
+					filament = gcodeAnalysis.get('filament_length')
+					layerCount = gcodeAnalysis.get('layer_count')
 
 				renderedImage = fileData.get('image')
 
