@@ -80,8 +80,7 @@ class PrinterWithPlugin(Printer):
 			date = int(os.stat(filename).st_ctime)
 
 			fileData = self._fileManager.getFileData(filename)
-			if fileData is not None and fileData.get("gcodeAnalysis"):
-
+			if fileData is not None and fileData.get("gcodeAnalysis") and fileData["gcodeAnalysis"] is not None:
 				fileDataProps = fileData["gcodeAnalysis"].keys()
 				if "print_time" in fileDataProps:
 					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
