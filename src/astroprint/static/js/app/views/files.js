@@ -847,7 +847,7 @@ var ReplaceFileDialog = Backbone.View.extend({
     if(e) e.preventDefault();
 
     this.$el.foundation('reveal', 'close');
-    this.copyFinishedPromise.reject();
+    this.copyFinishedPromise.reject('replace_canceled');
   },
   onClose: function(){
     this.usbFileView.$('button.copy').removeClass('hide');
@@ -899,7 +899,12 @@ var USBFileView = Backbone.View.extend({
   },
   startPrint: function()
   {
-    var filename = this.usb_file.get('name').split('/').splice(-1,1)[0];
+    var filename = this.usb_file.get('secure_filename')
+    if (!filename) {
+      filename = this.usb_file.get('name')
+    }
+
+    filename = filename.split('/').splice(-1,1)[0];
 
     //We can't use evt because this can come from another source than the row print button
     var loadingBtn = this.$('.loading-button.print');
@@ -931,7 +936,9 @@ var USBFileView = Backbone.View.extend({
     if (evt) evt.preventDefault();
 
     this.tryToCopyFile()
-      .done(_.bind(function(){
+      .done(_.bind(function(filename){
+
+        this.usb_file.set('secure_filename', filename)
 
         var dlg = new EjectBeforePrintDialog();
         var filePath = this.usb_file.get('name');
@@ -943,8 +950,10 @@ var USBFileView = Backbone.View.extend({
         });
 
       },this))
-      .fail(function(){
-        noty({text: "Print can not be starterd. Try it again later", timeout: 3000});
+      .fail(function(err){
+        if (err && err !='replace_canceled') {
+          noty({text: "Print can not be starterd. Try it again later", timeout: 3000});
+        }
       });
   },
   copyToHomeProgressUpdater: function(data){
@@ -962,7 +971,7 @@ var USBFileView = Backbone.View.extend({
     this.$('button.print').addClass('hide')
 
     this.tryToCopyFile()
-      .done(_.bind(function(){
+      .done(_.bind(function(filename){
         this.$('button.copy').removeClass('hide')
         this.$('button.print').removeClass('hide')
       },this))
@@ -982,24 +991,24 @@ var USBFileView = Backbone.View.extend({
     loadingBtn.addClass('loading');
 
     $.ajax({
-        url: '/api/files/copy-to-local',
-        type: "POST",
-        dataType: "json",
-        data:
-          {
-            file: filename,
-            observerId: AP_SESSION_ID
-          }
+      url: '/api/files/copy-to-local',
+      type: "POST",
+      dataType: "json",
+      data:
+        {
+          file: filename,
+          observerId: AP_SESSION_ID
+        }
     })
     .done(_.bind(function(data) {
-      if(!data.response){
+      if(!data.filename){
         var error = data.error
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
         promise.reject();
       } else {
         noty({text: filename.substr(filename.lastIndexOf('/')+1) + " copied to internal storage.",type: 'success',timeout: 3000});
         this.parentView.need_to_be_refreshed = true;
-        promise.resolve();
+        promise.resolve(data.filename);
       }
       loadingBtn.removeClass('loading');
     }, this))
@@ -1088,7 +1097,7 @@ var EjectBeforePrintDialog = Backbone.View.extend({
         }
     })
     .done(_.bind(function(data) {
-      if(data.error){
+      if(data && data.error){
         var error = data.error
         noty({text: "There was an error ejecting drive" + (error ? ': ' + error : ""), timeout: 3000});
       } else {

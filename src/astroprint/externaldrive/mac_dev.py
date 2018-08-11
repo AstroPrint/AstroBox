@@ -3,16 +3,23 @@ __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2018 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
+import os
 
 from astroprint.printer.manager import printerManager
 
 from octoprint.settings import settings
 
+from .base import ExternalDriveBase
+
 #
 # Thread to get some plugged usb drive
 #
-class ExternalDriveManager(object):
+class ExternalDriveManager(ExternalDriveBase):
+	#ROOT_MOUNT_POINT = '/Volumes'
+	ROOT_MOUNT_POINT = '/Users/arroyo/DemoSdCards'
+
 	def __init__(self):
+		super(ExternalDriveManager, self).__init__()
 		self._logger = logging.getLogger(__name__)
 		self._logger.info('Starting Mac ExternalDriveManager')
 
@@ -22,35 +29,5 @@ class ExternalDriveManager(object):
 	def eject(self, mountPath):
 		pass
 
-	def copy(self, src, dst, progressCb, observerId):
-		pass
-
-	def localFileExists(self, filename):
-		pass
-
-	def copyFileToLocal(self, origin, destination, observerId):
-		pass
-
 	def getRemovableDrives(self):
-		return [
-			{"name": "Test_1", "icon": "usb"},
-			{"name": "Test_2", "icon": "usb"}
-		]
-
-	def getFileBrowsingExtensions(self):
-		return printerManager().fileManager.SUPPORTED_EXTENSIONS
-
-	def getFolderContents(self, folder):
-		if 'Test_1/' in folder:
-			return [
-				{"name": "/Test_1/Test_1_1", "icon": "folder"},
-				{"name": "/Test_1/This is a very long gcode file.gcode", "icon": "gcode"}
-			]
-
-		elif 'Test_2/' in folder:
-			return [
-				{"name": "/Test_2/Print-file.gcode", "icon": "gcode"}
-			]
-
-	def getBaseFolder(self, key):
-		return settings().getBaseFolder(key)
+		return self.getDirContents('%s/*' % self.ROOT_MOUNT_POINT, 'usb')

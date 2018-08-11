@@ -235,7 +235,7 @@ def printFileCommand(filename, target):
 	if command == "select":
 		# selects/loads a file
 		printAfterLoading = False
-		if "print" in data.keys() and data["print"]:
+		if data.get('print'):
 			if not printer.isOperational():
 				#We try at least once
 				printer.connect()
@@ -335,4 +335,4 @@ def localFileExists(filename):
 @restricted_access
 def copyFileToLocal():
 	externalDriveMgr = externalDriveManager()
-	return jsonify({'response': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})
+	return jsonify({'filename': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})
