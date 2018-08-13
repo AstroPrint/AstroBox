@@ -180,7 +180,6 @@ class FilesService(PluginService):
 		printer = printerManager()
 
 		# selects/loads a file
-		printAfterLoading = False
 		if not printer.isOperational():
 			#We try at least once
 			printer.connect()
@@ -196,8 +195,6 @@ class FilesService(PluginService):
 				sendResponse('printer_not_responding',True)
 				return
 
-		printAfterLoading = True
-
 		sd = False
 		if fileDestination == FileDestinations.SDCARD:
 			filenameToSelect = fileName
@@ -205,12 +202,16 @@ class FilesService(PluginService):
 		else:
 			filenameToSelect = printer.fileManager.getAbsolutePath(fileName)
 
-		startPrintingStatus = printer.selectFile(filenameToSelect, sd, printAfterLoading)
+		if filenameToSelect:
+			startPrintingStatus = printer.selectFile(filenameToSelect, sd, True)
 
-		if startPrintingStatus:
-			sendResponse({'success':'no error'})
+			if startPrintingStatus:
+				sendResponse({'success':'no error'})
+			else:
+				sendResponse('printer_not_responding',True)
+
 		else:
-			sendResponse('printer_not_responding',True)
+			sendResponse('invalid_filename', True)
 
 	def deletePrintFile(self, data, sendResponse):
 
