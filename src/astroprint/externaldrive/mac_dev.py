@@ -15,8 +15,7 @@ from .base import ExternalDriveBase
 # Thread to get some plugged usb drive
 #
 class ExternalDriveManager(ExternalDriveBase):
-	#ROOT_MOUNT_POINT = '/Volumes'
-	ROOT_MOUNT_POINT = '/Users/arroyo/DemoSdCards'
+	ROOT_MOUNT_POINT = '/Volumes'
 
 	def __init__(self):
 		super(ExternalDriveManager, self).__init__()
