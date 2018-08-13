@@ -7,34 +7,35 @@ import os
 import threading
 import sarge
 import pyudev
-import fnmatch
 import time
 
 from glob import glob
 
-from astroprint.printer.manager import printerManager
+from octoprint.events import Events
 
-from octoprint.events import eventManager, Events
-from octoprint.settings import settings
-
-ROOT_MOUNT_POINT = '/media/astrobox'
+from .base import ExternalDriveBase
 
 #
 # Thread to get some plugged usb drive
 #
-class ExternalDriveManager(threading.Thread):
+class ExternalDriveManager(ExternalDriveBase):
+	ROOT_MOUNT_POINT = '/media/astrobox'
+
 	def __init__(self):
 		super(ExternalDriveManager, self).__init__()
-		self.daemon = True
 		self.stopThread = False
-		self.monitor = None
+		self._monitor = None
+		self._monitorThread = threading.Thread(target=self._monitorLoop)
+		self._monitorThread.daemon = True
 		self._mountPoints = None
 		self._logger = logging.getLogger(__name__)
-		self._eventManager = eventManager()
 		self._logger.info('Starting Linux ExternalDriveManager')
+		self._monitorThread.start()
 
+	def getRemovableDrives(self):
+		return self.getDirContents('%s/*/*' % self.ROOT_MOUNT_POINT, 'usb')
 
-	def run(self):
+	def _monitorLoop(self):
 		context = pyudev.Context()
 
 		#Check the status of the system right now
@@ -56,7 +57,7 @@ class ExternalDriveManager(threading.Thread):
 						self._mountPartition(p.device_node, self._getDeviceMountDirectory(p))
 
 		# 2. Check if there are left over directories with no drives mounted
-		for f in glob('%s/*/*' % ROOT_MOUNT_POINT):
+		for f in glob('%s/*/*' % self.ROOT_MOUNT_POINT):
 			if os.path.isdir(f) and not os.listdir(f):
 				#empty directory found, let's see if it's mounted
 				if not self._isMounted(f):
@@ -67,13 +68,13 @@ class ExternalDriveManager(threading.Thread):
 		self._mountPoints = None # We reset here since we don't need it anymore, it will be re-created on shutdown
 
 		# Start listening for events
-		self.monitor = pyudev.Monitor.from_netlink(context)
-		self.monitor.filter_by(subsystem='block')
+		self._monitor = pyudev.Monitor.from_netlink(context)
+		self._monitor.filter_by(subsystem='block')
 
 		for device in iter(self.monitor.poll, None):
 
 			if self.stopThread:
-				self.monitor.stop()
+				self._monitor.stop()
 				return
 
 			if device.device_type == 'partition':
@@ -101,7 +102,7 @@ class ExternalDriveManager(threading.Thread):
 		name = device.get('ID_FS_LABEL', 'NO NAME')
 		uuid = device.get('ID_FS_UUID')
 		if name and uuid:
-			return os.path.join(ROOT_MOUNT_POINT, uuid, name)
+			return os.path.join(self.ROOT_MOUNT_POINT, uuid, name)
 		else:
 			return None
 
@@ -185,15 +186,11 @@ class ExternalDriveManager(threading.Thread):
 		self._logger.info('Shutting Down Linux ExternalDriveManager')
 
 		#Unmount mounted drives
-		for d in glob('%s/*/*' % ROOT_MOUNT_POINT):
+		for d in glob('%s/*/*' % self.ROOT_MOUNT_POINT):
 			if self._isMounted(d):
 				self._umountPartition(d)
 
 		self.stopThread = True
-
-	def _cleanFileLocation(self, location):
-		locationParsed = location.replace('//','/')
-		return locationParsed
 
 	def eject(self, mountPath):
 
@@ -218,117 +215,3 @@ class ExternalDriveManager(threading.Thread):
 			'result': False,
 			'error': "Unable to eject"
 		}
-
-
-	def copy(self, src, dst, progressCb, observerId):
-			blksize = 1048576 # 1MiB
-			try:
-					s = open(src, 'rb')
-					d = open(dst, 'wb')
-					sizeWritten = 0
-			except (KeyboardInterrupt, Exception) as e:
-					if 's' in locals():
-							s.close()
-					if 'd' in locals():
-							d.close()
-					raise
-			try:
-					total = float(os.stat(src).st_size)
-
-					while sizeWritten <= total:
-							buf = s.read(blksize)
-							bytes_written = d.write(buf)
-
-							progressCb(int((os.stat(dst).st_size / total)*100),dst,observerId)
-
-							sizeWritten += blksize
-
-							if blksize > len(buf) or bytes_written == 0:
-									printerManager().fileManager._metadataAnalyzer.addFileToQueue(dst)
-									progressCb(100,dst,observerId)
-									break
-
-			except (KeyboardInterrupt, Exception) as e:
-					s.close()
-					d.close()
-					raise
-			else:
-					progressCb(100,dst,observerId)
-					s.close()
-					d.close()
-
-	def localFileExists(self, filename):
-		try:
-				s = open(self._cleanFileLocation(self.getBaseFolder('uploads') + '/' + filename), 'rb')
-		except Exception as e:
-				if 's' in locals():
-					s.close()
-
-				return False
-
-		s.close()
-
-		return True
-
-	def _progressCb(self, progress,file,observerId):
-		self._eventManager.fire(
-			Events.COPY_TO_HOME_PROGRESS, {
-				"type": "progress",
-				"file": file,
-				"observerId": observerId,
-				"progress": progress
-			}
-		)
-
-	def copyFileToLocal(self, origin, destination, observerId):
-		try:
-			_origin = self._cleanFileLocation(origin)
-
-			self.copy(_origin,self._cleanFileLocation(destination)+'/'+origin.split('/')[-1:][0],self._progressCb,observerId)
-
-			return True
-
-		except Exception as e:
-			self._logger.error("copy print file to local folder failed", exc_info = True)
-
-			return False
-
-	def getRemovableDrives(self):
-		return self.getDirContents('%s/*/*' % ROOT_MOUNT_POINT, 'usb')
-
-	def getFileBrowsingExtensions(self):
-		return printerManager().fileManager.SUPPORTED_EXTENSIONS
-
-	def getFolderContents(self, folder):
-		try:
-			return self.getDirContents(self._cleanFileLocation(folder))
-
-		except Exception as e:
-			self._logger.error("exploration folders can not be obtained", exc_info = True)
-			return None
-
-	def getBaseFolder(self, key):
-		return self._cleanFileLocation(settings().getBaseFolder(key))
-
-	def getDirContents(self, globPattern, icon='folder', extensions=None):
-		if extensions is None:
-			extensions = self.getFileBrowsingExtensions()
-
-		files = []
-
-		for item in glob(globPattern):
-			if os.path.isdir(item):
-				files.append({
-					'name': item,
-					'icon': icon})
-
-			else:
-				for ext in extensions:
-					if fnmatch.fnmatch(item.lower(), '*.' + ext):
-						files.append({
-							'name': item,
-							'icon': ext
-						})
-						break
-
-		return files

@@ -45,6 +45,7 @@ class GcodeMetadataAnalyzer(MetadataAnalyzer):
 
 	def _analyzeFile(self, filename):
 		path = self._getPathCallback(filename)
+
 		if path is None or not os.path.exists(path):
 			return
 
