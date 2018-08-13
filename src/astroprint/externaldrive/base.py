@@ -42,7 +42,7 @@ class ExternalDriveBase(object):
 						"icon": ext
 					})
 
-		return folders + files
+		return sorted(folders, key=lambda f: f['name'].lower()) + sorted(files, key=lambda f: f['name'].lower())
 
 	def getFolderContents(self, folder):
 		try:
