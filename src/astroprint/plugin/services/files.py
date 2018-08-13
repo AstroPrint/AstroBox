@@ -83,8 +83,9 @@ class FilesService(PluginService):
 
 	def copyFileToLocal(self, data, sendResponse):
 
-		if externalDriveManager().copyFileToLocal(data['origin'],data['destination'],data['observerId']):
-			sendResponse({'success': 'no_error'})
+		copiedFilename = externalDriveManager().copyFileToLocal(data['origin'],data['destination'],data['observerId'])
+		if copiedFilename:
+			sendResponse({'target_filename': copiedFilename})
 		else:
 			sendResponse({'error': 'copy print file to local folder failed' },True)
 
@@ -169,11 +170,11 @@ class FilesService(PluginService):
 			fileName = data['fileName']
 
 		if not fileDestination in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
-			self._logger.error('Unknown file location', exc_info = True)
+			self._logger.error('Unknown file location')
 			sendResponse('unknown_file_location',True)
 
 		if not fileName or not self._verifyFileExists(fileDestination, fileName):
-			self._logger.error('File not found', exc_info = True)
+			self._logger.error('File not found')
 			sendResponse('file_not_found',True)
 
 		printer = printerManager()
@@ -191,7 +192,7 @@ class FilesService(PluginService):
 				time.sleep(1)
 
 			if not printer.isOperational():
-				self._logger.error("The printer is not responding, can't start printing", exc_info = True)
+				self._logger.error("The printer is not responding, can't start printing")
 				sendResponse('printer_not_responding',True)
 				return
 
@@ -222,12 +223,12 @@ class FilesService(PluginService):
 			fileName = data['fileName']
 
 		if not fileDestination in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
-			self._logger.error("Unknown file location", exc_info = True)
+			self._logger.error("Unknown file location")
 			sendResponse('unknown_file_location',True)
 			return
 
 		if not fileName or not self._verifyFileExists(fileDestination, fileName):
-			self._logger.error("File not found", exc_info = True)
+			self._logger.error("File not found")
 			sendResponse('file_not_found',True)
 			return
 
