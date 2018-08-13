@@ -957,7 +957,7 @@ var USBFileView = Backbone.View.extend({
       });
   },
   copyToHomeProgressUpdater: function(data){
-    this.progress = data.progress
+    this.progress = Math.round(data.progress * 10) / 10.0;
 
     this.$('.loading-content').html(_.template( $("#copy-to-home-progress").html() )({
       progress: this.progress
