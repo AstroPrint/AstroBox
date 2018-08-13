@@ -65,60 +65,6 @@ class PrinterWithPlugin(Printer):
 	def doDisconnect(self):
 		return self._plugin.disconnect()
 
-	def getFileInfo(self, filename):
-		estimatedPrintTime = None
-		date = None
-		filament = None
-		layerCount = None
-		cloudId = None
-		renderedImage = None
-		printFileName = None
-
-		if filename:
-			# Use a string for mtime because it could be float and the
-			# javascript needs to exact match
-			date = int(os.stat(filename).st_ctime)
-
-			fileData = self._fileManager.getFileData(filename)
-			if fileData is not None and fileData.get("gcodeAnalysis"):
-
-				fileDataProps = fileData["gcodeAnalysis"].keys()
-				if "print_time" in fileDataProps:
-					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
-				if "filament_lenght" in fileDataProps:
-					filament = fileData["gcodeAnalysis"]["filament_length"]
-				if "layer_count" in fileDataProps:
-					layerCount = fileData["gcodeAnalysis"]['layer_count']
-
-			if fileData is not None and "image" in fileData.keys():
-				renderedImage = fileData["image"]
-
-			cloudId = self._fileManager.getFileCloudId(filename)
-			if cloudId:
-				if self._selectedFile:
-					self._selectedFile['cloudId'] = cloudId
-
-				printFile = astroprintCloud().getPrintFile(cloudId)
-				if printFile:
-					renderedImage = printFile['images']['square']
-
-			if fileData is not None and "printFileName" in fileData.keys():
-				printFileName = fileData["printFileName"]
-
-		return {
-			"file": {
-				"name": os.path.basename(filename) if filename is not None else None,
-				"printFileName": printFileName,
-				"origin": FileDestinations.LOCAL,
-				"date": date,
-				"cloudId": cloudId,
-				"rendered_image": renderedImage
-			},
-			"estimatedPrintTime": estimatedPrintTime,
-			"layerCount": layerCount,
-			"filament": filament,
-		}
-
 	def selectFile(self, filename, sd, printAfterSelect=False):
 		if sd and not self._plugin.allowSDCardPrinting:
 			raise('Printing from SD card is not supported on this printer')

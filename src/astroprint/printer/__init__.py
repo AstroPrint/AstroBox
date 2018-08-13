@@ -348,17 +348,14 @@ class Printer(object):
 			date = int(os.stat(filename).st_ctime)
 
 			fileData = self._fileManager.getFileData(filename)
-			if fileData is not None and "gcodeAnalysis" in fileData.keys():
-				fileDataProps = fileData["gcodeAnalysis"].keys()
-				if "print_time" in fileDataProps:
-					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
-				if "filament_lenght" in fileDataProps:
-					filament = fileData["gcodeAnalysis"]["filament_length"]
-				if "layer_count" in fileDataProps:
-					layerCount = fileData["gcodeAnalysis"]['layer_count']
+			if fileData is not None:
+				gcodeAnalysis = fileData.get('gcodeAnalysis')
+				if gcodeAnalysis:
+					estimatedPrintTime = gcodeAnalysis.get('print_time')
+					filament = gcodeAnalysis.get('filament_length')
+					layerCount = gcodeAnalysis.get('layer_count')
 
-			if fileData is not None and "image" in fileData.keys():
-				renderedImage = fileData["image"]
+				renderedImage = fileData.get('image')
 
 			cloudId = self._fileManager.getFileCloudId(filename)
 			if cloudId:
