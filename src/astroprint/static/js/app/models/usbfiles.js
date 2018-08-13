@@ -8,7 +8,8 @@ var USBFile = Backbone.Model.extend({
   defaults: {
     'name': '',
     'location': '',
-    'image': null
+    'image': null,
+    'size': null
   }
 });
 

@@ -880,7 +880,9 @@ var USBFileView = Backbone.View.extend({
     var usb_file = this.usb_file.toJSON();
 
     this.$el.html(this.template({
-      p: this.usb_file.get('name').split('/').splice(-1,1)[0]
+      name: this.usb_file.get('name').split('/').splice(-1,1)[0],
+      size: this.usb_file.get('size'),
+      size_format: app.utils.sizeFormat
     }));
 
     this.slideName();

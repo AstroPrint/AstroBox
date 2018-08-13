@@ -38,6 +38,7 @@ class ExternalDriveBase(object):
 				if ext in extensions:
 					files.append({
 						"name": item,
+						"size": os.stat(item).st_size,
 						"icon": ext
 					})
 
