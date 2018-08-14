@@ -330,7 +330,6 @@ def eject():
 def localFileExists(filename):
 	return jsonify({'response': externalDriveManager().localFileExists(filename)})
 
-
 @api.route("/files/copy-to-local", methods=["POST"])
 @restricted_access
 def copyFileToLocal():

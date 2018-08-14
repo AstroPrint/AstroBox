@@ -137,7 +137,7 @@ class ExternalDriveManager(ExternalDriveBase):
 				if not os.path.exists(directory):
 					os.makedirs(directory)
 
-				p = sarge.run("mount %s '%s'" % (partition, directory), stderr=sarge.Capture())
+				p = sarge.run("mount -o iocharset=utf8 %s '%s'" % (partition, directory), stderr=sarge.Capture())
 				if p.returncode != 0:
 					returncode = p.returncode
 					stderr_text = p.stderr.text
