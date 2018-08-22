@@ -86,7 +86,7 @@
 </div>
 
 <script type="text/template" id="printfile-info-template">
-  <h2 class="bold"><%= p.printFileName ? p.printFileName : p.name %></h2>
+  <h2 class="bold"><%= p.printFileName ? _.escape(p.printFileName) : _.escape(p.name) %></h2>
 	<div class="modal-content">
 		<div class="row">
 			<% if (p.images.square) { %>
@@ -177,7 +177,7 @@
 	</div>
 	<div class="small-9 medium-8 large-10 columns middle-section">
     <div class="info-container div-container">
-      <h3 class="bold text"> <%= p.name %></h3>
+      <h3 class="bold text"> <%= _.escape(p.name) %></h3>
       <div class="info">
         <%= size_format(p.size) %>
         <% if (p.info) { %>
@@ -318,7 +318,7 @@
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
       <div class="small-10 medium-10 large-11 columns middle-section div-container">
-        <h3 class="bold text"><%= p.name %></h3>
+        <h3 class="bold text"><%= _.escape(p.name) %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
