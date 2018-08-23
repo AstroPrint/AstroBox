@@ -28,6 +28,11 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/accounts/me',{method: 'GET'});
   },
 
+  queue: function()
+  {
+    return this._apiRequest('/devices/'+ BOX_ID + '/print-queue', {method: 'GET'});
+  },
+
   //Private functions
 
   _getAccessToken: function()

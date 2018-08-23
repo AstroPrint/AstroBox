@@ -178,7 +178,8 @@ def index():
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
 			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
-			apApiClientId= s.getString(['cloudSlicer', 'apiClientId'])
+			apApiClientId= s.getString(['cloudSlicer', 'apiClientId']),
+			boxId= boxrouterManager().boxId
 		)
 
 @app.route("/discovery.xml")
