@@ -4,7 +4,11 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-var AstroPrintApi = function() {}
+var AstroPrintApi = function(eventManager) {
+  eventManager.on('astrobox:userLoggedOut', _.bind(function(){
+    this._clearToken();
+  },this));
+}
 
 AstroPrintApi.prototype = {
   EXPIRATION_BUFFER: 10,
