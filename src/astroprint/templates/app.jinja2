@@ -146,6 +146,8 @@
     var ASTROBOX_NAME = "{{astroboxName}}";
     var PRODUCT_NAME = "{{mfDefinition.variant.product_name}}";
     var CAMERA_MANAGER = "{{cameraManager}}";
+    var AP_API_HOST = "{{apApiHost}}";
+    var AP_API_CLIENT_ID = "{{apApiClientId}}";
     var WS_TOKEN = "{{ wsToken }}";
     var initial_states = {
       printing: {% if printing -%} true {%- else -%} false {%- endif %},
@@ -163,7 +165,7 @@
     "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.offcanvas.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.equalizer.js",
     "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/jquery.fileupload.js", "js/lib/jquery.noty.js",
-    "js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js",
+    "js/lib/jquery.noty.top.js", "js/lib/circle-progress.js", "js/app/utils.js", "js/app/astroprint-api.js",
     "js/lib/janus.js", "js/lib/adapter.js", "js/lib/spin.min.js", "js/lib/jquery.localtime.min.js",
     "js/app/models/socketdata.js", "js/app/models/printfiles.js", "js/app/models/usbfiles.js", "js/app/models/printerprofile.js","js/app/models/additionaltask.js","js/app/models/maintenancemenu.js",
     "js/app/widgets/tempsemicircleview.js", "js/app/widgets/semicircleprogress.js", "js/app/widgets/uploader.js", "js/app/widgets/camera-control.js","js/app/widgets/control-movement.js",

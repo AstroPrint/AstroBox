@@ -176,7 +176,9 @@ def index():
 			maintenanceMenu= True,
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey),
-			mfDefinition= manufacturerPkgManager()
+			mfDefinition= manufacturerPkgManager(),
+			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
+			apApiClientId= s.getString(['cloudSlicer', 'apiClientId'])
 		)
 
 @app.route("/discovery.xml")
