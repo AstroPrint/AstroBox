@@ -250,7 +250,10 @@
       <img class="noimage" src="/img/noimage.svg">
     </div>
     <div class="small-9 medium-6 large-8 columns middle-section div-container">
-      <h3 class="bold text"><%= p %></h3>
+      <div class="info-container div-container">
+        <h3 class="bold text"><%= name %></h3>
+        <% if (size) { %><div class="info"><%= size_format(size) %></div><% } %>
+      </div>
     </div>
 
     <div class="small-12 medium-4 large-3 columns right-section">
@@ -358,14 +361,9 @@
 <script type="text/template" id="back-folder-template">
   <div class="row inside">
     <div class="small-12 large-12 columns exploreFolder ">
-      <!--img src="/static/img/file-manager-icon.png" alt="file manager icon"-->
       <i class="icon-back"></i>
       <i class="icon-folder-open-empty"></i>
       <i class="icon-folder-empty"></i>
-      <!--img src="/static/img/folder-icon.svg"-->
     </div>
-    <!--div class="small-8 large-11 columns middle-section">
-      <h3 class="bold">../</h3>
-    </div-->
   </div>
 </script>
