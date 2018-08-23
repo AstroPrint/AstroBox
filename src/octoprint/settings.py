@@ -135,7 +135,8 @@ default_settings = {
 	"cloudSlicer": {
 		"apiHost": "https://api.astroprint.com",
 		"loggedUser": None,
-		"boxrouter": "wss://boxrouter.astroprint.com"
+		"boxrouter": "wss://boxrouter.astroprint.com",
+		"apiClientId": None
 	},
 	"events": {
 		"enabled": False,
