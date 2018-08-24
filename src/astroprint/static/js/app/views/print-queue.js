@@ -411,42 +411,44 @@ var PrintFileRowView = Backbone.View.extend({
     return promise;
   },
 
+  changeQueueElementStatus: function(attributesToChange)
+  {
+    var promise = $.Deferred();
+
+    app.astroprintApi.updateQueueElement(this.printFile.get('id'), attributesToChange)
+      .done(_.bind(function () {
+        promise.resolve();
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject(xhr);
+        noty({ text: "There was an error updating the queue element", timeout: 3000 });
+      }, this))
+
+    return promise;
+  },
+
   // Move a file from finished back to queue again as ready
   returnToQueue: function ()
   {
     var newPos = this._microtime(true);
 
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: "http://api.astroprint.test/v2/print-queues/" + this.printFile.get('id'),
-      method: "PATCH",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: JSON.stringify({ "pos" : newPos, "status" : "ready"}),
-      headers: {
-        'authorization': 'Bearer ' + access_token
-      }
-    })
+    this.changeQueueElementStatus({ "pos": newPos, "status": "ready" })
       .done(_.bind(function () {
         this.printFile.set({
-          "pos" : newPos,
-          "status" : "ready"
+          "pos": newPos,
+          "status": "ready"
         },
-        {silent:  true}
+          { silent: true }
         );
         this.parent.updateQueue();
       }, this))
-      .fail(function (e) {
-        console.error(e);
-      })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        noty({ text: "There was an error updating the queue element", timeout: 3000 });
+      }, this))
   },
 
   // Move up/down printfile row
@@ -1245,7 +1247,8 @@ var PrintQueueView = Backbone.View.extend({
       data: JSON.stringify({ command: "select", print: true })
     })
       .done(_.bind(function () {
-        this.changeQueueElementStatus(queueElementID, "printing");
+        var queueElementView = this.boxView.pendingFiles_views[queueElementID];
+        queueElementView.changeQueueElementStatus({status: "printing"});
       }, this))
       .fail(function (xhr) {
         var error = null;
@@ -1260,24 +1263,6 @@ var PrintQueueView = Backbone.View.extend({
           }
         }, 1000);
       }, this));
-  },
-
-  changeQueueElementStatus: function(elementID, status)
-  {
-    var promise = $.Deferred();
-
-    app.astroprintApi.updateQueueElement(elementID, status)
-      .done(_.bind(function (success) {
-        promise.resolve();
-      }, this))
-
-      .fail(_.bind(function (xhr) {
-        console.error(xhr);
-        promise.reject(xhr);
-        noty({ text: "There was an error updating the queue element", timeout: 3000 });
-      }, this))
-
-      return promise;
   },
 
   isLocalFile: function(localFiles, queueElement)

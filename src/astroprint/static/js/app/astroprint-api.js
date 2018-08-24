@@ -50,21 +50,19 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/print-queues/print-later', {method: 'GET'});
   },
 
-  /*
-    Update status of queue element
+  /* Update status of queue element
     @elementID: ID of queue element
-    @status: printing || finished || pending
+    @data: Attributes to change
   */
-  updateQueueElement: function(elementID, status)
+  updateQueueElement: function(elementID, data)
   {
     return this._apiRequest('/print-queues/'+ elementID, {
       method: 'PATCH',
-      data: JSON.stringify({"status" : status})
+      data: JSON.stringify(data)
     });
   },
 
-  /*
-    Add elemento to the queue
+  /* Add elemento to the queue
     @elementID: ID of queue element
   */
   addElemenToQueue: function(elementID)
@@ -76,8 +74,7 @@ AstroPrintApi.prototype = {
     });
   },
 
-  /*
-    Remove queue element
+  /* Remove queue element
     @elementID: ID of queue element
   */
   removeQueueElement: function(elementID)
@@ -85,8 +82,7 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/print-queues/' + elementID, { method: 'DELETE'});
   },
 
-  /*
-    Remove all queue elements or only those macthing passed status.
+  /* Remove all queue elements or only those macthing passed status.
     @status: pending || finished
   */
   clearQueue: function(status)
