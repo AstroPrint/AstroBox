@@ -80,7 +80,7 @@ var AppRouter = Backbone.Router.extend({
       this.printQueueView = new PrintQueueView();
     }
 
-    this .selectView(this.printQueueView);
+    this.selectView(this.printQueueView);
     app.selectQuickNav('queue');
   },
   fileInfo: function(fileId)
