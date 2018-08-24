@@ -62,6 +62,18 @@ AstroPrintApi.prototype = {
     });
   },
 
+  /* Swap positions between two queue elements
+    @modelA_ID: ID of queue element A
+    @modelB_ID: ID of queue element B
+  */
+  swapQueueElementsPos: function(modelA_ID, modelB_ID)
+  {
+    return this._apiRequest('/print-queues/'+ modelA_ID + "/swap-positions" ,  {
+      method: 'PATCH',
+      data: JSON.stringify({"elementqueue_id": modelB_ID})
+    });
+  },
+
   /* Add elemento to the queue
     @elementID: ID of queue element
   */

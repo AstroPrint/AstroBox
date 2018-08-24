@@ -467,35 +467,21 @@ var PrintFileRowView = Backbone.View.extend({
         indexTo = Number(indexFrom + incrementalValue);
         var modelTo = readyCollection.at(indexTo);
 
-        $.ajaxSetup({
-          headers: null
-        });
-        $.ajax({
-          url: "http://api.astroprint.test/v2/print-queues/"+this.printFile.get('id')+"/swap-positions",
-          method: "PATCH",
-          dataType: "json",
-          contentType: "application/json; charset=UTF-8",
-          data: JSON.stringify({"elementqueue_id": modelTo.get('id')}),
-          headers: {
-            'authorization': 'Bearer ' + access_token
-          }
-        })
+        app.astroprintApi.swapQueueElementsPos(this.printFile.get('id'), modelTo.get('id'))
           .done(_.bind(function () {
             // Movement Animation
             if (direction == 'up') { this.$el.addClass('animated slideOutUp'); } else { this.$el.addClass('animated slideOutDown'); }
+            this.parent.mainView.waitToSync = false;
             setTimeout(_.bind(function () {
               this.parent.mainView.boxView.trigger("sync-app");
             }, this), 200);
           }, this))
-          .fail(function (e) {
-            console.error(e);
-          })
-          .always(_.bind(function () {
+
+          .fail(_.bind(function (xhr) {
+            console.error(xhr);
             this.parent.mainView.waitToSync = false;
-            $.ajaxSetup({
-              headers: { "X-Api-Key": UI_API_KEY }
-            });
-          }, this));
+            noty({ text: "There was an error updating the queue element", timeout: 3000 });
+          }, this))
       } else {
         var previousFileOnTop = readyCollection.first();
         indexTo = Number(readyCollection.indexOf(previousFileOnTop));
