@@ -80,56 +80,29 @@ var DeleteQueueElementDialog = Backbone.View.extend({
     var loadingBtn = this.$('.confirm-button');
     loadingBtn.addClass('loading');
 
-      // Temporary fix to avoid x-api-key
-      $.ajaxSetup({
-        headers: null
-      });
-      $.ajax({
-        url: "http://api.astroprint.test/v2/print-queues/"+this.queueFile.get('id'),
-        method: "DELETE",
-        contentType: "application/x-www-form-urlencoded",
-        headers: {
-          'authorization': 'Bearer '+ access_token
-        }
-      })
-        .done(_.bind(function () {
-          loadingBtn.removeClass('loading');
-          this.$el.foundation('reveal', 'close');
-
-          var collection = this.queueFile.collection;
-
-          if (collection) {
-            collection.remove(this.queueFile)
-          }
-
-        }, this))
-        .fail(function (e) {
-          console.error('Delete operation failed');
-          loadingBtn.removeClass('loading').addClass('failed');
-          setTimeout(function () {
-            loadingBtn.removeClass('failed');
-          }, 2000);
-        })
-        .always(function () {
-          $.ajaxSetup({
-            headers: { "X-Api-Key": UI_API_KEY }
-          });
-        });
-    /* this.printFile.destroy({
-      wait: true,
-      url: '/ajax/printqueues/' + this.printFile.get('id'),
-      success: _.bind(function () {
+    var promise = $.Deferred();
+    app.astroprintApi.removeQueueElement(this.queueFile.get('id'))
+      .done(_.bind(function () {
         loadingBtn.removeClass('loading');
         this.$el.foundation('reveal', 'close');
-      }, this),
-      error: _.bind(function () {
-        console.error('Delete operation failed');
+
+        var collection = this.queueFile.collection;
+
+        if (collection) {
+          collection.remove(this.queueFile)
+        }
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error('Delete operation failed', xhr);
         loadingBtn.removeClass('loading').addClass('failed');
         setTimeout(function () {
-          loadinBtn.removeClass('failed');
+          loadingBtn.removeClass('failed');
         }, 2000);
-      }, this)
-    }); */
+        noty({ text: "There was an error removing the queue element", timeout: 3000 });
+      }, this))
+
+    return promise;
   },
 
   doCancel: function ()
@@ -175,7 +148,7 @@ var ClearQueueDialog = Backbone.View.extend({
   {
     this.$('.confirm-button').addClass('loading');
 
-    this.view.synchronizeQueue()
+    this.view.synchronizeQueue(this.status)
       .done(_.bind(function () {
         this.destroyFiles();
       }, this));
@@ -183,38 +156,30 @@ var ClearQueueDialog = Backbone.View.extend({
 
   destroyFiles: function () {
     var loadingBtn = this.$('.confirm-button');
-
-
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: 'http://api.astroprint.test/v2/devices/b7f3a5af91135619bcb5da0d2d06a244/print-queue',
-      method: 'DELETE',
-      type: 'json',
-      data: JSON.stringify({"status": this.status}),
-      contentType: "multipart/form-data",
-      headers: {
-        'authorization': 'Bearer '+ access_token
-      }
-    })
+    var promise = $.Deferred();
+    app.astroprintApi.clearQueue(this.status)
       .done(_.bind(function () {
-        if (status == "finished") {
+        if (this.status == "finished") {
           this.view.finishedFiles.reset();
         } else {
           this.view.pendingFiles.reset();
         }
         loadingBtn.removeClass('loading');
         this.$el.foundation('reveal', 'close');
+        promise.resolve();
       }, this))
-      .fail(_.bind(function () {
+
+      .fail(_.bind(function (xhr) {
         loadingBtn.removeClass('loading').addClass('failed');
         setTimeout(function () {
           loadingBtn.removeClass('failed');
         }, 2000);
-        console.error('Delete operation failed');
-      }, this));
+        console.error(xhr);
+        promise.reject(xhr);
+        noty({ text: "There was an error clearing the queue", timeout: 3000 });
+      }, this))
+
+    return promise;
   },
 
   doCancel: function ()
@@ -431,34 +396,19 @@ var PrintFileRowView = Backbone.View.extend({
   addToQueue: function (e)
   {
     e.preventDefault();
-    $.ajaxSetup({
-      headers: null
-    });
+    var promise = $.Deferred();
 
-    $.ajax({
-      url: "http://api.astroprint.test/v2/print-queues",
-      method: "POST",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: JSON.stringify({
-        "printfile_id" : this.printFile.get('printfile_id'),
-        "device_id" : "b7f3a5af91135619bcb5da0d2d06a244"}),
-      headers: {
-        'authorization': 'Bearer ' + access_token
-      }
-    })
+    app.astroprintApi.addElemenToQueue(this.printFile.get('printfile_id'))
       .done(_.bind(function () {
         noty({text: "File successfully added to the queue", type: 'success', timeout: 3000});
       }, this))
-      .fail(function (e) {
+
+      .fail(_.bind(function (xhr) {
+        console.error('File failed to be added to the queue', xhr);
         noty({text: "File failed to be added to the queue", timeout: 3000});
-        console.error(e);
-      })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
+      }, this))
+
+    return promise;
   },
 
   // Move a file from finished back to queue again as ready
@@ -948,7 +898,6 @@ var BoxContainerView = Backbone.View.extend({
 
     app.astroprintApi.queue()
       .done(_.bind(function (data) {
-        console.log(data);
         this.box = data;
         if (!data) {
           this.$el.addClass("no-ready-files");
@@ -1094,7 +1043,6 @@ var PrintLaterContainerView = Backbone.View.extend({
   {
     app.astroprintApi.later()
       .done(_.bind(function (laterFiles) {
-        console.log("later files ", laterFiles);
         if (laterFiles) {
           this.printLaterFiles.reset(laterFiles)
         }
@@ -1200,7 +1148,6 @@ var PrintQueueView = Backbone.View.extend({
 
     app.astroprintApi.me()
       .done(function (data) {
-        console.log(data)
         // PRODUCTION: var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
         var hasQueueAccess = true;
         promise.resolve(hasQueueAccess);
@@ -1219,7 +1166,6 @@ var PrintQueueView = Backbone.View.extend({
     this.hasQueueAccess()
     .done(_.bind(function (hasQueueAccess) {
       if (hasQueueAccess) {
-        console.log('QUEUE ACCESS',hasQueueAccess);
         if (!this.sideMenuView) {
           this.sideMenuView = new SideMenuView(this);
           this.boxView  = new BoxContainerView({mainView: this});
@@ -1322,7 +1268,6 @@ var PrintQueueView = Backbone.View.extend({
 
     app.astroprintApi.updateQueueElement(elementID, status)
       .done(_.bind(function (success) {
-        console.log("success ", success);
         promise.resolve();
       }, this))
 

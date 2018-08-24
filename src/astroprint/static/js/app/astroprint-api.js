@@ -32,25 +32,69 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/accounts/me',{method: 'GET'});
   },
 
-  /* QUEUES CALLS */
+  /* =========== QUEUES =========== */
 
+  /*
+    Get queue from device
+  */
   queue: function()
   {
     return this._apiRequest('/devices/'+ BOX_ID + '/print-queue', {method: 'GET'});
   },
 
+  /*
+    Get print files from later list
+  */
   later: function()
   {
     return this._apiRequest('/print-queues/print-later', {method: 'GET'});
   },
 
+  /*
+    Update status of queue element
+    @elementID: ID of queue element
+    @status: printing || finished || pending
+  */
   updateQueueElement: function(elementID, status)
   {
     return this._apiRequest('/print-queues/'+ elementID, {
       method: 'PATCH',
-      data: JSON.stringify({"status" : status}),
-      ContentType: 'application/json; charset=utf-8',
-      dataType: 'json'
+      data: JSON.stringify({"status" : status})
+    });
+  },
+
+  /*
+    Add elemento to the queue
+    @elementID: ID of queue element
+  */
+  addElemenToQueue: function(elementID)
+  {
+    return this._apiRequest('/print-queues', {
+      method: 'POST',
+      data: JSON.stringify({"printfile_id" : elementID, "device_id": BOX_ID}),
+      contentType: 'application/json; charset=utf-8'
+    });
+  },
+
+  /*
+    Remove queue element
+    @elementID: ID of queue element
+  */
+  removeQueueElement: function(elementID)
+  {
+    return this._apiRequest('/print-queues/' + elementID, { method: 'DELETE'});
+  },
+
+  /*
+    Remove all queue elements or only those macthing passed status.
+    @status: pending || finished
+  */
+  clearQueue: function(status)
+  {
+    return this._apiRequest('/devices/' + BOX_ID + '/print-queue', {
+      method: 'DELETE',
+      data: JSON.stringify( {"status" : status} ),
+      contentType: 'multipart/form-data'
     });
   },
 
