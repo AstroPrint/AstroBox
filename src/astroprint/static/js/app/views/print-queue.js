@@ -499,59 +499,28 @@ var PrintFileRowView = Backbone.View.extend({
       } else {
         var previousFileOnTop = readyCollection.first();
         indexTo = Number(readyCollection.indexOf(previousFileOnTop));
-        $.ajaxSetup({
-          headers: null
-        });
-        $.ajax({
-          url: "http://api.astroprint.test/v2/print-queues/"+this.printFile.get('id'),
-          method: "PATCH",
-          dataType: "json",
-          contentType: "application/json; charset=UTF-8",
-          data: JSON.stringify({"pos": Number(previousFileOnTop.get('pos')) - 1000 }),
-          headers: {
-            'authorization': 'Bearer ' + access_token
-          }
-        })
+
+        this.changeQueueElementStatus({ "pos": Number(previousFileOnTop.get('pos')) - 1000 })
           .done(_.bind(function () {
+
             this.printFile.set("pos", Number(previousFileOnTop.get('pos')) - 1000, { silent: true });
 
             // Movement animation
             this.$el.addClass('animated fadeOutUpBig');
-            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig');this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal"); }.bind(this));
+            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig'); this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal"); }.bind(this));
+            this.parent.mainView.waitToSync = false;
 
             // After animation => remove/add
             setTimeout(_.bind(function () {
               this.parent.mainView.boxView.trigger("sync-app");
             }, this), 200);
           }, this))
-          .fail(function (e) {
-            console.error(e);
-          })
-          .always(_.bind(function () {
-            $.ajaxSetup({
-              headers: { "X-Api-Key": UI_API_KEY }
-            });
+
+          .fail(_.bind(function (xhr) {
+            console.error(xhr);
             this.parent.mainView.waitToSync = false;
-          }, this));
-
-        /* this.printFile.save({ pos: Number(previousFileOnTop.get('pos')) - 1000 }, {
-          patch: true, silent: true, wait: true, url: '/ajax/printqueues/' + this.printFile.get('id'),
-          success: _.bind(function (e) {
-            // Movement animation
-            this.$el.addClass('animated fadeOutUpBig');
-            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig'); }.bind(this));
-
-            // After animation => remove/add
-            setTimeout(_.bind(function () {
-              readyCollection.remove(this.printFile, { silent: true });
-              readyCollection.add(this.printFile, { at: indexTo }); // triger change
-              this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal");
-            }, this), 200);
-          }, this),
-          error: _.bind(function (e) {
-            console.error("Error saving new position to file", e);
-          }, this)
-        }); */
+            noty({ text: "There was an error updating the queue element", timeout: 3000 });
+          }, this))
       }
     }
   },
