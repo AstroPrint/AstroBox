@@ -701,13 +701,13 @@ var BoxContainerView = Backbone.View.extend({
      this.listenTo(this.finishedFiles, 'reset',  function(collection, filesRemoved){this.boxFilesReset("finished", collection, filesRemoved)}.bind(this));
 
      this.listenTo(app.socketData, 'change:printer', this.operationalChanged);
-     this.keepQueueUpdated();
   },
 
   onHide: function()
   {
     this.stopListening();
     clearInterval(this.syncInterval);
+    this.syncInterval = null
   },
 
   initialize: function (params) {
@@ -728,7 +728,7 @@ var BoxContainerView = Backbone.View.extend({
     (new ClearQueueDialog()).open({view: this, status : "finished"});
   },
 
-  keepQueueUpdated: function() {
+  startAutoFetch: function() {
     this.syncInterval = setInterval(_.bind(function () {
       this.trigger("sync-app");
     }, this), this.updateFrequency);
@@ -796,6 +796,10 @@ var BoxContainerView = Backbone.View.extend({
         this.updateActiveFileArea();
         this.checkMoveIcons();
         this.updateCounters();
+
+      }
+      if (!this.syncInterval) {
+        this.startAutoFetch()
       }
     }, this));
   },
@@ -942,26 +946,30 @@ var BoxContainerView = Backbone.View.extend({
   {
     var promise = $.Deferred();
 
-    this.loadQueues()
-    .done(_.bind(function(data){
-      this.box = data;
-      if (!data) {
-        this.$el.addClass("no-ready-files");
-        this.$el.addClass("no-finished-files");
-      } else {
-        this.$el.removeClass("no-ready-files");
-        this.$el.removeClass("no-finished-files");
-        if (app.socketData.get('printer').status !== "connected") {
-          this._swapBoxClass('not-ready');
+    app.astroprintApi.queue()
+      .done(_.bind(function (data) {
+        console.log(data);
+        this.box = data;
+        if (!data) {
+          this.$el.addClass("no-ready-files");
+          this.$el.addClass("no-finished-files");
+        } else {
+          this.$el.removeClass("no-ready-files");
+          this.$el.removeClass("no-finished-files");
+          if (app.socketData.get('printer').status !== "connected") {
+            this._swapBoxClass('not-ready');
+          }
         }
-      }
-      promise.resolve(data ? data.queue: null);
-    },this))
-    .fail(function(e){
-      console.error(e);
-      promise.reject(e);
-        noty({text: "There was an error loading the print queue", timeout: 3000});
-    });
+        promise.resolve(data ? data.queue : null);
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        clearInterval(this.syncInterval);
+        this.syncInterval = null
+        console.error(xhr);
+        promise.reject(xhr);
+        noty({ text: "There was an error loading the print queue", timeout: 3000 });
+      }, this))
 
     return promise;
   },
@@ -975,38 +983,6 @@ var BoxContainerView = Backbone.View.extend({
 
     this.$el.find('.ready-counter-label').html(counter.ready);
     this.$el.find('.finished-counter-label').html(counter.finished);
-  },
-
-  loadQueues: function()
-  {
-    var promise = $.Deferred();
-
-    // Temporary fix to avoid x-api-key
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: "http://api.astroprint.test/v2/devices/b7f3a5af91135619bcb5da0d2d06a244/print-queue",
-      method: "GET",
-      contentType: "application/x-www-form-urlencoded",
-      headers: {
-        'authorization': 'Bearer '+ access_token
-      }
-    })
-      .done(_.bind(function (data) {
-        promise.resolve(data);
-      }, this))
-      .fail(function (e) {
-        promise.reject(e);
-      })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
-
-      return promise;
   },
 
   // Called from shownby on change
@@ -1114,54 +1090,25 @@ var PrintLaterContainerView = Backbone.View.extend({
     }
   },
 
-  updateLaterFiles: function() {
-    this.getPrintLaterFiles()
-    .done(_.bind(function (laterFiles) {
-      if (laterFiles) {
-        this.printLaterFiles.reset(laterFiles)
-      }
-    }, this))
-    .fail(function (e) {
-      console.error(e);
-    })
-    .always(_.bind(function () {
-      this.render();
-      this.checkNoLaterFiles();
-    }, this));
-  },
-
-
-  getPrintLaterFiles: function ()
+  updateLaterFiles: function()
   {
-
-    var promise = $.Deferred();
-
-    // Temporary fix to avoid x-api-key
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: "http://api.astroprint.test/v2/print-queues/print-later",
-      method: "GET",
-      contentType: "application/x-www-form-urlencoded",
-      headers: {
-        'authorization': 'Bearer '+ access_token
-      }
-    })
-      .done(_.bind(function (data) {
-        promise.resolve(data);
+    app.astroprintApi.later()
+      .done(_.bind(function (laterFiles) {
+        console.log("later files ", laterFiles);
+        if (laterFiles) {
+          this.printLaterFiles.reset(laterFiles)
+        }
       }, this))
-      .fail(function (e) {
-        promise.reject(e);
-      })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
 
-      return promise;
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject(xhr);
+        noty({ text: "There was an error loading the print later files", timeout: 3000 });
+      }, this))
+      .always(_.bind(function () {
+        this.render();
+        this.checkNoLaterFiles();
+      }, this));
   },
 
   remove: function (PrintFile)
@@ -1352,7 +1299,7 @@ var PrintQueueView = Backbone.View.extend({
       data: JSON.stringify({ command: "select", print: true })
     })
       .done(_.bind(function () {
-        this.changeQueueElementStatus(queueElementID);
+        this.changeQueueElementStatus(queueElementID, "printing");
       }, this))
       .fail(function (xhr) {
         var error = null;
@@ -1369,32 +1316,23 @@ var PrintQueueView = Backbone.View.extend({
       }, this));
   },
 
-  changeQueueElementStatus: function(elementID)
+  changeQueueElementStatus: function(elementID, status)
   {
-    $.ajaxSetup({
-      headers: null
-    });
+    var promise = $.Deferred();
 
-    $.ajax({
-      url: "http://api.astroprint.test/v2/print-queues/" + elementID,
-      method: "PATCH",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: JSON.stringify({"status" : "printing"}),
-      headers: {
-        'authorization': 'Bearer ' + access_token
-      }
-    })
-      .done(_.bind(function () {
+    app.astroprintApi.updateQueueElement(elementID, status)
+      .done(_.bind(function (success) {
+        console.log("success ", success);
+        promise.resolve();
       }, this))
-      .fail(function (e) {
-        console.error(e);
-      })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject(xhr);
+        noty({ text: "There was an error updating the queue element", timeout: 3000 });
+      }, this))
+
+      return promise;
   },
 
   isLocalFile: function(localFiles, queueElement)

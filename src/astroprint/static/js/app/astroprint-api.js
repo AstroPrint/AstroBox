@@ -32,9 +32,26 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/accounts/me',{method: 'GET'});
   },
 
+  /* QUEUES CALLS */
+
   queue: function()
   {
     return this._apiRequest('/devices/'+ BOX_ID + '/print-queue', {method: 'GET'});
+  },
+
+  later: function()
+  {
+    return this._apiRequest('/print-queues/print-later', {method: 'GET'});
+  },
+
+  updateQueueElement: function(elementID, status)
+  {
+    return this._apiRequest('/print-queues/'+ elementID, {
+      method: 'PATCH',
+      data: JSON.stringify({"status" : status}),
+      ContentType: 'application/json; charset=utf-8',
+      dataType: 'json'
+    });
   },
 
   //Private functions
