@@ -4,7 +4,11 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-var AstroPrintApi = function() {}
+var AstroPrintApi = function(eventManager) {
+  eventManager.on('astrobox:userLoggedOut', _.bind(function(){
+    this._clearToken();
+  },this));
+}
 
 AstroPrintApi.prototype = {
   EXPIRATION_BUFFER: 10,
@@ -37,26 +41,32 @@ AstroPrintApi.prototype = {
 
   _getAccessToken: function()
   {
-    var promise = $.Deferred();
-
-    if (this.token) {
-      token = this.token;
-    } else {
-      token = localStorage.getItem('access_token');
-      if (token) {
-        this.token = JSON.parse(token);
-      }
-    }
-
-    if (token) {
-      if (token.expires_at > this._nowInSecs()) {
-        return $.Deferred().resolve(token);
+    if (LOGGED_PUBLIC_KEY) {
+      if (this.token) {
+        token = this.token;
       } else {
-        //time to refresh
-        return this._refreshAccessToken();
+        token = localStorage.getItem('access_token');
+        if (token) {
+          this.token = JSON.parse(token);
+        }
+      }
+
+      if (token && token.user_id == LOGGED_PUBLIC_KEY) {
+        if (token.expires_at > this._nowInSecs()) {
+          return $.Deferred().resolve(token);
+        } else {
+          //time to refresh
+          return this._refreshAccessToken();
+        }
+      } else {
+        return this._getNewAccessToken();
       }
     } else {
-      return this._getNewAccessToken();
+      this._clearToken();
+      return $.Deferred().reject({
+        status: 'no_logged_user',
+        statusText: 'No User is logged'
+      });
     }
   },
 
@@ -107,7 +117,8 @@ AstroPrintApi.prototype = {
     this.token = {
       access_token: token.access_token,
       expires_at: Math.round( this._nowInSecs() + token.expires_in - this.EXPIRATION_BUFFER ),
-      refresh_token: token.refresh_token
+      refresh_token: token.refresh_token,
+      user_id: LOGGED_PUBLIC_KEY
     };
 
     localStorage.setItem('access_token', JSON.stringify(this.token));
