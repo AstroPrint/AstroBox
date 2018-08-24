@@ -1251,32 +1251,17 @@ var PrintQueueView = Backbone.View.extend({
   {
     var promise = $.Deferred();
 
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: "http://api.astroprint.test/v2/accounts/me",
-      method: "GET",
-      contentType: "application/json; charset=UTF-8",
-      headers: {
-        'authorization': 'Bearer ' + access_token
-      }
-    })
-      .done(_.bind(function (user) {
-        // REMOVE FOR TESTING DUE TO WEIRD PLAN IN DEV var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
+    app.astroprintApi.me()
+      .done(function (data) {
+        console.log(data)
+        // PRODUCTION: var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
         var hasQueueAccess = true;
         promise.resolve(hasQueueAccess);
-      }, this))
-      .fail(function (e) {
-        console.error(e);
-        promise.reject(e);
       })
-      .always(function () {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
+      .fail(function (xhr) {
+        console.error(xhr.statusText)
+        promise.reject(xhr.statusText);
+      })
 
       return promise;
   },
@@ -1286,8 +1271,8 @@ var PrintQueueView = Backbone.View.extend({
     this.$el.removeClass('data-ready');
     this.hasQueueAccess()
     .done(_.bind(function (hasQueueAccess) {
-
       if (hasQueueAccess) {
+        console.log('QUEUE ACCESS',hasQueueAccess);
         if (!this.sideMenuView) {
           this.sideMenuView = new SideMenuView(this);
           this.boxView  = new BoxContainerView({mainView: this});
