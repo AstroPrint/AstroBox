@@ -315,37 +315,21 @@ var PrintFileView = Backbone.View.extend({
   },
   doAddToQueue: function()
   {
-    $.ajaxSetup({
-      headers: null
-    });
+    var promise = $.Deferred();
     var loadingBtn = this.$('.loading-button.queue');
-
     loadingBtn.addClass('loading');
-    $.ajax({
-      url: "http://api.astroprint.test/v2/print-queues",
-      method: "POST",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: JSON.stringify({
-        "printfile_id" : this.print_file.get('id'),
-        "device_id" : "b7f3a5af91135619bcb5da0d2d06a244"}),
-      headers: {
-        'authorization': 'Bearer ' + access_tokenFILES
-      }
-    })
+
+    app.astroprintApi.addElemenToQueue(this.print_file.get('id'))
       .done(_.bind(function () {
-        noty({text: "File successfully added to the queue", type: 'success', timeout: 3000});
+        noty({ text: "File successfully added to the queue", type: 'success', timeout: 3000 });
       }, this))
-      .fail(function (e) {
-        noty({text: "File failed to be added to the queue", timeout: 3000});
-        console.error(e);
-      })
-      .always(function () {
-        loadingBtn.removeClass('loading');
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-      });
+
+      .fail(_.bind(function (xhr) {
+        console.error('File failed to be added to the queue', xhr);
+        noty({ text: "File failed to be added to the queue", timeout: 3000 });
+      }, this))
+
+    return promise;
   }
 });
 
@@ -800,69 +784,38 @@ var PrintFilesListView = Backbone.View.extend({
     }
     return promise;
   },
-  hasQueueAccess: function ()
+  hasQueueAccess: function()
   {
     var promise = $.Deferred();
 
-    $.ajaxSetup({
-      headers: null
-    });
-    $.ajax({
-      url: "http://api.astroprint.test/v2/accounts/me",
-      method: "GET",
-      contentType: "application/json; charset=UTF-8",
-      headers: {
-        'authorization': 'Bearer ' + access_tokenFILES
-      }
-    })
-      .done(_.bind(function (user) {
-        // REMOVE FOR TESTING DUE TO WEIRD PLAN IN DEV var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
+    app.astroprintApi.me()
+      .done(function (data) {
+        // PRODUCTION: var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
         var hasQueueAccess = true;
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
         promise.resolve(hasQueueAccess);
-      }, this))
-      .fail(function (e) {
-        console.error(e);
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-        promise.reject(e);
       })
-    return promise;
+      .fail(function (xhr) {
+        console.error(xhr.statusText)
+        promise.reject(xhr.statusText);
+      })
+
+      return promise;
   },
   loadQueue: function()
   {
     var promise = $.Deferred();
 
-    // Temporary fix to avoid x-api-key
-    $.ajaxSetup({
-      headers: null
-    });
-
-    $.ajax({
-      url: "http://api.astroprint.test/v2/devices/b7f3a5af91135619bcb5da0d2d06a244/print-queue",
-      method: "GET",
-      contentType: "application/x-www-form-urlencoded",
-      headers: {
-        'authorization': 'Bearer '+ access_tokenFILES
-      }
-    })
+    app.astroprintApi.queue()
       .done(_.bind(function (data) {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
         promise.resolve(data);
       }, this))
-      .fail(function (e) {
-        $.ajaxSetup({
-          headers: { "X-Api-Key": UI_API_KEY }
-        });
-        promise.reject(e);
-      });
 
-      return promise;
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject(xhr);
+      }, this))
+
+    return promise;
   },
   onFileRemoved: function(print_file)
   {
