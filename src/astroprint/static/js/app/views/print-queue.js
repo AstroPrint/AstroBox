@@ -311,10 +311,6 @@ var SideMenuView = Backbone.View.extend({
     this.$('a').not(activeTab).removeClass('active');
     activeTab.addClass('active');
     this.mainView.manageTabs(activeTab);
-  },
-  onHide: function()
-  {
-    this.mainView = null
   }
 });
 
@@ -1142,9 +1138,8 @@ var PrintQueueView = Backbone.View.extend({
   onHide: function ()
   {
     this.stopListening();
-    if (this.boxView) {this.boxView.onHide(); this.boxView = null}
-    if (this.printLaterView) {this.printLaterView.onHide(); this.printLaterView = null}
-    if (this.sideMenuView) {this.sideMenuView.onHide(); this.sideMenuView = null}
+    if (this.boxView) {this.boxView.onHide()}
+    if (this.printLaterView) {this.printLaterView.onHide()}
   },
 
   printManagement: function(params)
