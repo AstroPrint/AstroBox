@@ -311,6 +311,10 @@ var SideMenuView = Backbone.View.extend({
     this.$('a').not(activeTab).removeClass('active');
     activeTab.addClass('active');
     this.mainView.manageTabs(activeTab);
+  },
+  onHide: function()
+  {
+    this.mainView = null
   }
 });
 
@@ -684,7 +688,6 @@ var BoxContainerView = Backbone.View.extend({
         this.updateActiveFileArea();
         this.checkMoveIcons();
         this.updateCounters();
-
       }
       if (!this.syncInterval) {
         this.startAutoFetch()
@@ -724,7 +727,7 @@ var BoxContainerView = Backbone.View.extend({
     this.pendingFiles_views = {};
 
     var container = this.$('.pending-files-box');
-
+    container.empty();
     this.pendingFiles.each(function (pf) {
       var row = new PrintFileRowView({
         printFile: pf,
@@ -743,6 +746,7 @@ var BoxContainerView = Backbone.View.extend({
     this.finishedFiles_views = {};
 
     var container = this.$('.finished-files-box');
+    container.empty();
 
     this.finishedFiles.each(function (pf) {
       var row = new PrintFileRowView({
@@ -929,14 +933,14 @@ var BoxContainerView = Backbone.View.extend({
     var container = this.$('.pending-files-box');
     container.empty();
 
-      this.pendingFiles.each(function (pf) {
-        var row = new PrintFileRowView({ printFile: pf, parent: this });
-        this.pendingFiles_views[pf.get('id')] = row;
-        this.matchFileToPrinterStatus(row);
-        container.append(row.render().el);
-      }, this);
+    this.pendingFiles.each(function (pf) {
+      var row = new PrintFileRowView({ printFile: pf, parent: this });
+      this.pendingFiles_views[pf.get('id')] = row;
+      this.matchFileToPrinterStatus(row);
+      container.append(row.render().el);
+    }, this);
 
-      this.checkMoveIcons();
+    this.checkMoveIcons();
   }
 });
 
@@ -1138,8 +1142,9 @@ var PrintQueueView = Backbone.View.extend({
   onHide: function ()
   {
     this.stopListening();
-    if (this.boxView) {this.boxView.onHide()}
-    if (this.printLaterView) {this.printLaterView.onHide();}
+    if (this.boxView) {this.boxView.onHide(); this.boxView = null}
+    if (this.printLaterView) {this.printLaterView.onHide(); this.printLaterView = null}
+    if (this.sideMenuView) {this.sideMenuView.onHide(); this.sideMenuView = null}
   },
 
   printManagement: function(params)
