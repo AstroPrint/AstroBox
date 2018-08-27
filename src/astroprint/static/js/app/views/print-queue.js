@@ -4,8 +4,6 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-// ONLY FOR TESTING
-const access_token = "";
 
  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // PrintFile
@@ -14,10 +12,6 @@ const access_token = "";
 var PrintFile = Backbone.Model.extend({
   defaults: {
     name: '',
-  },
-  url: null,
-  initialize: function(box) {
-    this.url = box ? '/ajax/printqueues/'+box.id : "";
   }
 });
 
@@ -27,23 +21,10 @@ var PrintFile = Backbone.Model.extend({
 
 var PrintFiles = Backbone.Collection.extend({
   model: PrintFile,
-  url: null,
-  type: "later",
   initialize: function(models, status)
   {
-    // URL
-    if (status) {
-      this.type = status;
-      this.url  = '/ajax/printqueues/6c5327d28ee1483996d32989dafa316e/printfiles';
-    }
-    // COMPARATOR
-    if (status == "pending") {
-      this.comparator = "pos"
-    } else {
-      this.comparator = function(m){
-        return -Date.parse(m.get('last_status_time')) * 1000;
-      }
-    }
+    this.type = status ? status : 'later'
+    this.comparator = status == "pending" ? "pos" : function(m){ return -Date.parse(m.get('last_status_time')) * 1000; }
   }
 });
 
