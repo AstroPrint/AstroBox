@@ -29,7 +29,8 @@ var AppMenu = Backbone.View.extend({
       url: API_BASEURL + "astroprint",
       type: "DELETE",
       success: function() {
-        location.reload();
+        app.eventManager.trigger('astrobox:userLoggedOut');
+        setTimeout(function(){ location.reload() }, 0);
       },
       complete: function() {
         spinIcon.addClass('hide');
@@ -49,6 +50,7 @@ var AstroBoxApp = Backbone.View.extend({
   unreachableView: null,
   turnOffModal: null,
   printerProfile: null,
+  astroPrintApi: null,
   events: {
     'click button.turn-off, a.turn-off': 'turnOffClicked',
     'click button.reboot': 'rebootClicked',
@@ -64,6 +66,7 @@ var AstroBoxApp = Backbone.View.extend({
     this.printerProfile = new PrinterProfile(initial_printer_profile);
 
     this.eventManager = Backbone.Events;
+    this.astroprintApi = new AstroPrintApi(this.eventManager);
 
     this.socketData.connectionView = this.connectionView;
     this.socketData.connect(WS_TOKEN);

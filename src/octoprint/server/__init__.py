@@ -160,6 +160,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
+			userPublicKey= publicKey,
 			show_bad_shutdown= swm.wasBadShutdown and not swm.badShutdownShown,
 			version= VERSION,
 			commit= swm.commit,
@@ -176,7 +177,10 @@ def index():
 			maintenanceMenu= True,
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey),
-			mfDefinition= manufacturerPkgManager()
+			mfDefinition= manufacturerPkgManager(),
+			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
+			apApiClientId= s.getString(['cloudSlicer', 'apiClientId']),
+			boxId= boxrouterManager().boxId
 		)
 
 @app.route("/discovery.xml")
