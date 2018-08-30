@@ -622,6 +622,145 @@ var StepPrinter = StepView.extend({
 });
 
 /**************
+* Printer Selection
+***************/
+
+var StepPrinterSelection = StepView.extend({
+  el: "#printer-selection",
+  template: null,
+  onShow: function()
+  {
+    this.render();
+    this._checkPrinters()
+  },
+  render: function(settings)
+  {
+    if (!this.template) {
+      this.template = _.template( $("#step-printer-template").html() );
+    }
+
+     this.$('form').html(this.template({
+      settings: null
+    }));
+
+    //Select the proper driver
+    this.$('#settings-printer-driver').val(settings.driver);
+  },
+  onSubmit: function(data)
+  {
+    this._setConnecting(true);
+    $.ajax({
+      url: API_BASEURL + 'setup/printer',
+      method: 'post',
+      data: data,
+      success: _.bind(function() {
+        this.listenTo(setup_view, 'sock-flags', function(flags) {
+          if (flags.operational) {
+            this._setConnecting(false);
+            this.stopListening(setup_view, 'sock-flags');
+            location.href = this.$el.find('.submit-action').attr('href');
+          } else if (flags.error) {
+            this.stopListening(setup_view, 'sock-flags');
+            this._setConnecting(false, true);
+          }
+        }, this);
+      }, this),
+      error: _.bind(function(xhr) {
+        if (xhr.status == 400 || xhr.status == 401) {
+          message = xhr.responseText;
+          noty({text: message, timeout: 3000});
+        }
+        this._setConnecting(false, true);
+      }, this)
+    });
+  },
+  _checkPrinters: function()
+  {
+    this.$el.removeClass('success settings');
+    this.$el.addClass('checking');
+    $.ajax({
+      url: API_BASEURL + 'setup/printer',
+      method: 'GET',
+      success: _.bind(function(data) {
+        this.$el.addClass('settings');
+        if (data.portOptions && (data.baudrateOptions || data.driver == 's3g')) {
+          this.render(data);
+          this.delegateEvents(_.extend(this.events, {
+            'click a.retry-ports': 'retryPortsClicked',
+            'change #settings-printer-driver': 'driverChanged'
+          }));
+        } else {
+          noty({text: "Error reading printer connection settings", timeout: 3000});
+        }
+      }, this),
+      error: _.bind(function(xhr) {
+        this.$el.addClass('settings');
+        if (xhr.status == 400) {
+          message = xhr.responseText;
+        } else {
+          message = "Error reading printer connection settings";
+        }
+        noty({text: message, timeout: 3000});
+
+      }, this),
+      complete: _.bind(function() {
+        this.$el.removeClass('checking');
+      }, this)
+    });
+  },
+  _setConnecting: function(connecting, error)
+  {
+    if (connecting) {
+      this.$('.loading-button').addClass('loading');
+      this.$('.skip-step').hide();
+    } else if (error) {
+      this.$('.loading-button').removeClass('loading').addClass('failed');
+      this.$('.skip-step').hide();
+      setTimeout(_.bind(function(){
+        this.$('.loading-button').removeClass('failed');
+        this.$('.skip-step').show();
+      },this), 3000);
+    } else {
+      this.$('.loading-button').removeClass('loading');
+      this.$('.skip-step').show();
+    }
+  },
+  retryPortsClicked: function(e)
+  {
+    e.preventDefault();
+    this.onShow();
+  },
+  driverChanged: function(e)
+  {
+    this.$el.removeClass('success settings');
+    this.$el.addClass('checking');
+    $.ajax({
+      url: API_BASEURL + 'setup/printer/profile',
+      method: 'POST',
+      data: {
+        driver: $(e.target).val()
+      },
+      success: _.bind(function() {
+        this._checkPrinters();
+      }, this),
+      error: _.bind(function(xhr) {
+        this.$el.addClass('settings');
+        if (xhr.status == 400) {
+          message = xhr.responseText;
+        } else {
+          message = "Error saving printer connection settings";
+        }
+        noty({text: message, timeout: 3000});
+
+      }, this),
+      complete: _.bind(function() {
+        this.$el.removeClass('checking');
+      }, this)
+    });
+  }
+});
+
+/**************
 * Done
 ***************/
 
@@ -666,6 +805,7 @@ var SetupView = Backbone.View.extend({
       'welcome': new StepWelcome({'setup_view': this}),
       'name': new StepName({'setup_view': this}),
       'internet': new StepInternet({'setup_view': this}),
+      'printer-selection': new StepPrinterSelection({'setup_view': this}),
       'astroprint': new StepAstroprint({'setup_view': this}),
       'connect-printer': new StepConnectPrinter({'setup_view': this}),
       'printer': new StepPrinter({'setup_view': this}),

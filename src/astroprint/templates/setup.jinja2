@@ -87,7 +87,11 @@
               </label>
             </div>
           </div>
-          <a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
+          {% if mfDefinition.variant.printer_selection_hidden %}
+            <a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
+          {% else %}
+            <a class="button success radius expand" href="#printer-selection"><small>Next:</small> <b>Printer selection</b> <i class="icon-right-open"></i></a>
+          {% endif %}
         </div>
         <div class="checking-state" align="center">
           <i class="icon-rocket-spinner animate-spin"></i>
@@ -341,6 +345,90 @@
         </script>
       </div>
     {% endif %}
+
+    {% if not mfDefinition.variant.printer_selection_hidden %}
+    <div id="step-printer-selection" class="step hide">
+      <h1 class="bold">Printer Selection<div class="nub"></div></h1>
+      <div class="content">
+        <img src="/img/setup/step_6.2_connected-box.png" height="76"/>
+        <div class="checking-state" align="center">
+          <i class="icon-rocket-spinner animate-spin"></i>
+          <h3 class="bold" align="center">Checking Printer Settings...</h3>
+        </div>
+        <div class="settings-state">
+          <p>
+            Select your connection settings.
+          </p>
+          <form></form>
+          <div align="right">
+            <a href="#done" class="skip-step">Skip Printer Connection <i class="icon-right-open"></i></a>
+          </div>
+        </div>
+      </div>
+      <script type="text/template" id="step-printer-template">
+        <label for="settings-printer-driver" class="bold">
+          Driver
+          <select id="settings-printer-driver" name="driver">
+            <% _.each(settings.driverChoices, function(name, id) { %>
+              <option value="<%= id %>"><%= name %></option>
+            <% }) %>
+          </select>
+        </label>
+
+        <label for="settings-serial-port" class="bold">
+          USB Device
+          <% if (settings.portOptions.length > 0) { %>
+            <% if (settings.portOptions.length > 1) { %>
+              <select id="settings-serial-port" name="port">
+                <% _.each(settings.portOptions, function(e) { %>
+                  <option value="<%= e[0] %>"<%= settings.port == e[0] ? ' selected' : '' %>><%= e[1] %></option>
+                <% }) %>
+              </select>
+            <% } else { %>
+              <% var e = settings.portOptions[0] %>
+              <input type="hidden" value="<%= e[0] %>" name="port"/>
+              <p><%= e[1] %></p>
+            <% } %>
+          <% } else { %>
+            <p>
+            No printer detected. Is your printer plugged in?<br/>
+            <a href="#" class="retry-ports bold">Plug printer and retry &raquo; </a>
+            </p>
+          <% } %>
+        </label>
+        <% if (settings.baudrateOptions.length > 0) { %>
+          <label for="settings-baudrate" class="bold">Baud Rate
+            <% if (settings.baudrateOptions.length > 1) { %>
+              <select id="settings-baudrate" name="baudrate">
+                <% _.each(settings.baudrateOptions, function(e) { %>
+                  <option value="<%= e %>"<%= settings.baudrate == e[0] ? ' selected' : '' %>><%= e %></option>
+                <% }) %>
+              </select>
+            <% } else { %>
+              <p><%= settings.baudrateOptions[0] %></p>
+              <input type="hidden" value="<%= settings.baudrate %>"/>
+            <% } %>
+          </label>
+        <% } %>
+        <% if (settings.portOptions.length > 0 ) { %>
+          <div align="center">
+            <div class="loading-button expand">
+              <button class="button success radius submit-action expand bold" href="#done">
+                Connect
+              </button>
+              <span class="button success disabled radius loading expand">
+                <i class="icon-rocket-spinner animate-spin"></i> Connecting...
+              </span>
+              <span class="button alert disabled radius failed expand">
+                <i class="icon-attention"></i> Failed to connect
+              </span>
+            </div>
+          </div>
+        <% } %>
+      </script>
+    </div>
+    {% endif %}
+
 
     <div id="step-done" class="step hide">
       <h1 class="bold">You're done!<div class="nub"></div></h1>
