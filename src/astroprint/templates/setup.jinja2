@@ -465,11 +465,12 @@
     var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
     var PRODUCT_NAME = "{{product_name}}";
     var WS_TOKEN = "{{ wsToken }}";
+    var AP_API_HOST = "{{apApiHost}}";
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
-    "js/app/views/turnoff.js", "js/setup/setup.js" -%}
+    "js/app/views/turnoff.js", "js/app/astroprint-api.js","js/setup/setup.js"  -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}
   <script type="text/javascript">

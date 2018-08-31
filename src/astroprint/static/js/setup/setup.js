@@ -628,10 +628,17 @@ var StepPrinter = StepView.extend({
 var StepPrinterSelection = StepView.extend({
   el: "#printer-selection",
   template: null,
+  astroprintApi: null,
+  manufacturers: [],
+  printer_models: [],
+  initialize: function ()
+  {
+    this.eventManager = Backbone.Events;
+    this.astroprintApi = new AstroPrintApi(this.eventManager);
+  },
   onShow: function()
   {
-    this.render();
-    this._checkPrinters()
+    this._checkManufacturersAndPrinters()
   },
   render: function(settings)
   {
@@ -674,39 +681,40 @@ var StepPrinterSelection = StepView.extend({
       }, this)
     });
   },
-  _checkPrinters: function()
+  _checkManufacturersAndPrinters: function ()
   {
     this.$el.removeClass('success settings');
     this.$el.addClass('checking');
-    $.ajax({
-      url: API_BASEURL + 'setup/printer',
-      method: 'GET',
-      success: _.bind(function(data) {
-        this.$el.addClass('settings');
-        if (data.portOptions && (data.baudrateOptions || data.driver == 's3g')) {
-          this.render(data);
-          this.delegateEvents(_.extend(this.events, {
-            'click a.retry-ports': 'retryPortsClicked',
-            'change #settings-printer-driver': 'driverChanged'
-          }));
-        } else {
-          noty({text: "Error reading printer connection settings", timeout: 3000});
-        }
-      }, this),
-      error: _.bind(function(xhr) {
-        this.$el.addClass('settings');
-        if (xhr.status == 400) {
-          message = xhr.responseText;
-        } else {
-          message = "Error reading printer connection settings";
-        }
-        noty({text: message, timeout: 3000});
 
-      }, this),
-      complete: _.bind(function() {
-        this.$el.removeClass('checking');
-      }, this)
-    });
+    // Get manufacturers list
+    this.astroprintApi.getManufacturers()
+      .done(_.bind(function (manufacturers) {
+        this.manufacturers = manufacturers;
+        console.log(manufacturers);
+
+        // Now get printer models from first manufacturer
+        this.astroprintApi.getPrinterModels(this.manufacturers[0].id)
+          .done(_.bind(function (printerModels) {
+            this.printer_models = printerModels;
+            this.$el.addClass('settings');
+          }, this))
+
+          .fail(_.bind(function (manufacturers) {
+            this.$el.addClass('settings');
+            console.error("Error getting printer models");
+            noty({ text: "Error getting printer models", timeout: 3000 });
+          }, this))
+
+          .always(_.bind(function () {
+            this.$el.removeClass('checking');
+          }, this))
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        this.$el.addClass('settings');
+        console.error("Error getting manufacturers");
+        noty({ text: "Error getting manufacturers", timeout: 3000 });
+      }, this))
   },
   _setConnecting: function(connecting, error)
   {
