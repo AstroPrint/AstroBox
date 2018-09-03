@@ -54,7 +54,12 @@ AstroPrintApi.prototype = {
     query = format ? query + "&format=" + format : query;
     query = slicer ? query + "&slicer=" + slicer : query;
 
-    return this._apiRequest('/manufacturers'+ manufacturerId + "/models" + query, {method: 'GET'}, true);
+    return this._apiRequest('/manufacturers/'+ manufacturerId + "/models" + query, {method: 'GET'}, true);
+  },
+
+  getModelInfo: function(modelId)
+  {
+    return this._apiRequest('/manufacturers/models/'+ modelId, {method: 'GET'}, true);
   },
 
   //Private functions
