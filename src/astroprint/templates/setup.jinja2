@@ -347,13 +347,13 @@
     {% endif %}
 
     {% if not mfDefinition.variant.printer_selection_hidden %}
-    <div id="step-printer-selection" class="step hide">
+    <div id="step-printer-selection" class="step checking hide">
       <h1 class="bold">Printer Selection<div class="nub"></div></h1>
       <div class="content">
         <img src="https://image.flaticon.com/icons/svg/183/183896.svg"/>
         <div class="checking-state" align="center">
           <i class="icon-rocket-spinner animate-spin"></i>
-          <h3 class="bold" align="center">Checking Printer Settings...</h3>
+          <h3 class="bold" align="center">Loading data...</h3>
         </div>
         <div class="container-printer-selection">
           {% if mfDefinition.printerProfile.printer_model_id %}
@@ -368,7 +368,6 @@
           </div>
           {% endif %}
 
-
           <div class="loading-button expand">
             <button class="radius success radious next"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></button>
             <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i></span>
@@ -381,7 +380,7 @@
 
         <!-- Manufacturers -->
         <label for="manufacturers-picker" class="bold">
-          Manufacturer
+          1. Choose manufacturer
           <select id="manufacturers-picker" name="driver">
             <% _.each(manufacturers, function(m) { %>
               <option value="<%= m.id %>" <%= mSelected == m.id ? ' selected' : '' %>  ><%= m.name %></option>
@@ -391,7 +390,7 @@
 
         <!-- Printers -->
         <label for="printer-model-picker" class="bold">
-          Printer Model
+          2. Pick a Printer
           <select id="printer-model-picker" name="driver">
             <% _.each(printers, function(p) { %>
               <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>

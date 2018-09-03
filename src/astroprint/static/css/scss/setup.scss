@@ -315,6 +315,11 @@ $setup-heading-nub-size: 15px;
       display: inline-block;
     }
   }
+  &.checking {
+    .container-printer-selection {
+      display: none;
+    }
+  }
 }
 
 #step-astroprint {
