@@ -740,13 +740,13 @@ var StepPrinterSelection = StepView.extend({
     this.astroprintApi.getManufacturers()
       .done(_.bind(function (manufacturers) {
         this.manufacturers = manufacturers.data;
-        this.manufacturerSelected = currentPrinterData ? currentPrinterData.manufacturer : this.manufacturers[0]
+        this.manufacturerSelected = currentPrinterData ? currentPrinterData.manufacturer : this.manufacturers[0].id
 
         // Now get printer models from first manufacturer
         this.astroprintApi.getPrinterModels(this.manufacturerSelected)
           .done(_.bind(function (printerModels) {
             this.printer_models = printerModels.data;
-            this.printerSelected = currentPrinterData ? currentPrinterData.printer : this.printer_models[0]
+            this.printerSelected = currentPrinterData ? currentPrinterData.printer : this.printer_models[0].id
             this.$el.addClass('settings');
             if (!MF_DEFINITION) {
               this.$el.addClass('show-printer-selection');
