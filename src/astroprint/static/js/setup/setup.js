@@ -639,6 +639,7 @@ var StepPrinterSelection = StepView.extend({
   manufacturerSelected: null,
   printer_models: [],
   printerSelected: null,
+  printerInfo: null,
   events: {
     'click a.change-printer': 'onChangePrinterClicked',
     'click button.next': 'onNextClicked',
@@ -678,14 +679,13 @@ var StepPrinterSelection = StepView.extend({
   {
     e.preventDefault();
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
-    var attrs = {};
-    attrs['printer_model_id'] = this.printerSelected;
-
     $.ajax({
       url: API_BASEURL + 'printer-profile',
       method: 'PATCH',
       data: JSON.stringify({
-        'printer_model_id': this.printerSelected
+        'printer_model_id': this.printerInfo.id,
+        'heated_bed': this.printerInfo.config.heated_bed,
+        'extruder_count': +this.printerInfo.config.extruder_count
       }),
       contentType: 'application/json',
       dataType: 'json'
@@ -708,8 +708,8 @@ var StepPrinterSelection = StepView.extend({
   onShow: function()
   {
     this._checkCurrentPrinter()
-      .done(_.bind(function (currentPrinterData) {
-        this._checkManufacturersAndPrinters(currentPrinterData);
+      .done(_.bind(function () {
+        this._checkManufacturersAndPrinters();
       }, this))
       .fail(_.bind(function () {
         noty({ text: "There was an error getting current printer.", timeout: 3000 });
@@ -730,7 +730,7 @@ var StepPrinterSelection = StepView.extend({
 
   },
 
-  _checkManufacturersAndPrinters: function (currentPrinterData)
+  _checkManufacturersAndPrinters: function ()
   {
 
     this.$el.removeClass('success settings');
@@ -740,13 +740,13 @@ var StepPrinterSelection = StepView.extend({
     this.astroprintApi.getManufacturers()
       .done(_.bind(function (manufacturers) {
         this.manufacturers = manufacturers.data;
-        this.manufacturerSelected = currentPrinterData ? currentPrinterData.manufacturer : this.manufacturers[0].id
+        this.manufacturerSelected = this.printerInfo ? this.printerInfo.manufacturer_id : this.manufacturers[0].id
 
         // Now get printer models from first manufacturer
         this.astroprintApi.getPrinterModels(this.manufacturerSelected)
           .done(_.bind(function (printerModels) {
             this.printer_models = printerModels.data;
-            this.printerSelected = currentPrinterData ? currentPrinterData.printer : this.printer_models[0].id
+            this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
             this.$el.addClass('settings');
             if (!MF_DEFINITION) {
               this.$el.addClass('show-printer-selection');
@@ -778,9 +778,10 @@ var StepPrinterSelection = StepView.extend({
     if (MF_DEFINITION) {
       this.astroprintApi.getModelInfo(MF_DEFINITION)
       .done(_.bind(function (info) {
+        this.printerInfo = info;
         this.$el.addClass('printer-selected');
         this.$('.current-printer-selected').text(info.name)
-        promise.resolve({printer: info.id, manufacturer: info.manufacturer_id})
+        promise.resolve()
       }, this))
 
       .fail(_.bind(function (xhr) {
