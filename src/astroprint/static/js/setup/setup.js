@@ -683,9 +683,7 @@ var StepPrinterSelection = StepView.extend({
     // Get info from last model selected
     this.astroprintApi.getModelInfo($("#printer-model-picker").val())
       .done(_.bind(function (info) {
-        console.log(info);
         this.printerInfo = info;
-
         var printerObject = {
           "id": this.printerInfo.id,
           "name": this.printerInfo.name
@@ -796,7 +794,6 @@ var StepPrinterSelection = StepView.extend({
     if (MF_DEFINITION) {
       this.astroprintApi.getModelInfo(MF_DEFINITION)
       .done(_.bind(function (info) {
-        console.log(info);
         this.printerInfo = info;
         this.$el.addClass('printer-selected');
         this.$('.current-printer-selected').text(info.name)
