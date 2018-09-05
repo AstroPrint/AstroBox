@@ -679,30 +679,48 @@ var StepPrinterSelection = StepView.extend({
   {
     e.preventDefault();
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
-    $.ajax({
-      url: API_BASEURL + 'printer-profile',
-      method: 'PATCH',
-      data: JSON.stringify({
-        'printer_model_id': this.printerInfo.id,
-        'heated_bed': this.printerInfo.config.heated_bed,
-        'extruder_count': +this.printerInfo.config.extruder_count
-      }),
-      contentType: 'application/json',
-      dataType: 'json'
-    })
-    .done(_.bind(function(){
-      window.location.href = "/#astroprint";
-      }, this))
-      .fail(_.bind(function () {
-        loadingBtn.addClass('failed');
 
-        setTimeout(function () {
-          loadingBtn.removeClass('failed');
-        }, 3000);
+    // Get info from last model selected
+    this.astroprintApi.getModelInfo($("#printer-model-picker").val())
+      .done(_.bind(function (info) {
+        console.log(info);
+        this.printerInfo = info;
+
+        var printerObject = {
+          "id": this.printerInfo.id,
+          "name": this.printerInfo.name
+        }
+        // Update printer profile with selected printer
+        $.ajax({
+          url: API_BASEURL + 'printer-profile',
+          method: 'PATCH',
+          data: JSON.stringify({
+            'printer_model': printerObject,
+            'heated_bed': this.printerInfo.config.heated_bed,
+            'extruder_count': +this.printerInfo.config.extruder_count
+          }),
+          contentType: 'application/json',
+          dataType: 'json'
+        })
+          .done(_.bind(function () {
+            window.location.href = "/#astroprint";
+          }, this))
+          .fail(_.bind(function () {
+            loadingBtn.addClass('failed');
+
+            setTimeout(function () {
+              loadingBtn.removeClass('failed');
+            }, 3000);
+          }, this))
+          .always(function () {
+            loadingBtn.removeClass('loading');
+          });
       }, this))
-      .always(function () {
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
         loadingBtn.removeClass('loading');
-      });
+      }, this))
   },
 
   onShow: function()
@@ -778,6 +796,7 @@ var StepPrinterSelection = StepView.extend({
     if (MF_DEFINITION) {
       this.astroprintApi.getModelInfo(MF_DEFINITION)
       .done(_.bind(function (info) {
+        console.log(info);
         this.printerInfo = info;
         this.$el.addClass('printer-selected');
         this.$('.current-printer-selected').text(info.name)
