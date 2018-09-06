@@ -695,8 +695,7 @@ var StepPrinterSelection = StepView.extend({
           data: JSON.stringify({
             'printer_model': printerObject,
             'heated_bed': this.printerInfo.config.heated_bed,
-            'extruder_count': +this.printerInfo.config.extruder_count
-          }),
+            'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1,
           contentType: 'application/json',
           dataType: 'json'
         })
