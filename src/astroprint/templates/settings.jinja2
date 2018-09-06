@@ -121,6 +121,21 @@
           <div class="row">
             <div class="small-12">
               <form data-abide="ajax">
+                <label for="settings-printer-driver" class="bold">Printer Model</label>
+                <% if (settings.printer_model.name) { %>
+                  <p id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
+                    {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button expand">
+                      <a class="button radius success bold change-printer">Change</a>
+                      <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+                    </div>
+                    {% endif %}
+                  </p>
+                <% } else { %>
+                  <div class="loading-button expand">
+                      <a class="button radius success bold change-printer">Add Printer</a>
+                      <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+                    </div>
+                <% } %>
                 <label for="settings-printer-driver" class="bold">
                   Driver
                   <select id="settings-printer-driver" name="driver">
@@ -1096,5 +1111,48 @@
       </div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
+
+    <div id="printer-selector-modal" class="reveal-modal medium radius" data-reveal align="center">
+      <h2 class="bold">Set Printer Model</h2>
+      <div class="content"></div>
+      <script type="text/template" id="printer-selector-modal-content">
+        <div class="modal-actions row">
+            <div class="small-12 medium-12 columns">
+              <!-- Manufacturers -->
+              <label for="manufacturers-picker" class="bold">
+                1. Choose manufacturer
+                <select id="manufacturers-picker" name="driver">
+                  <% _.each(manufacturers, function(m) { %>
+                    <option value="<%= m.id %>" <%= mSelected == m.id ? ' selected' : '' %>  ><%= m.name %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </div>
+            <div class="small-12 medium-12 columns">
+              <!-- Printers -->
+              <label for="printer-model-picker" class="bold">
+                2. Pick a Printer
+                <select id="printer-model-picker" name="driver">
+                  <% _.each(printers, function(p) { %>
+                    <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </div>
+          </div>
+      </script>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="success radius set-printer">Set</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Setting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+      </div>
   </div>
 </div>

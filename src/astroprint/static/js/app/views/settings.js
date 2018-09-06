@@ -170,11 +170,15 @@ var PrinterProfileView = SettingsPage.extend({
   template: null,
   settings: null,
   driverChoices: [],
+  printerSelectorDlg : null,
+  printerSelectorDlg: null,
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
     "change input[name='heated_bed']": 'heatedBedChanged',
-    "change select[name='driver']": 'driverChanged'
+    "change select[name='driver']": 'driverChanged',
+    "click a.change-printer": 'printerSelectorClicked',
+
   },
   show: function() {
     SettingsPage.prototype.show.apply(this);
@@ -185,6 +189,63 @@ var PrinterProfileView = SettingsPage.extend({
     } else {
       this.render();
     }
+  },
+  printerSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+
+    var currentPrinterID = $('#printer-name').data("id");
+
+    if (currentPrinterID) {
+      var loadingBtn = this.$el.find('.loading-button.check');
+      loadingBtn.addClass('loading');
+
+      app.astroprintApi.getModelInfo(currentPrinterID)
+        .done(_.bind(function (info) {
+
+          var data = {
+            'currentPrinter_id': currentPrinterID,
+            'manufacturer_id': info.manufacturer_id,
+          }
+
+
+          if (!this.printerSelectorDlg) {
+            this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+          }
+          this.printerSelectorDlg.open({printerData: data });
+
+          loadingBtn.removeClass('loading');
+        }, this))
+
+        .fail(_.bind(function (xhr) {
+          console.error(xhr);
+          noty({ text: "Error getting printer information", timeout: 3000 });
+          loadingBtn.removeClass('loading');
+        }, this))
+
+    } else {
+      if (!this.printerSelectorDlg) {
+        this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+      }
+      this.printerSelectorDlg.open()
+    }
+
+  },
+  _checkCurrentPrinter: function(printerID) {
+    var promise = $.Deferred();
+
+      this.astroprintApi.getModelInfo(printerID)
+      .done(_.bind(function (info) {
+        promise.resolve(info)
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject();
+      }, this))
+
+    return promise;
   },
   getInfo: function()
   {
@@ -206,7 +267,7 @@ var PrinterProfileView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template( $("#printer-profile-settings-page-template").html() );
     }
-
+    this.$el.empty();
     this.$el.html(this.template({
       settings: this.settings.toJSON(),
       driverChoices: this.driverChoices
@@ -280,6 +341,143 @@ var PrinterProfileView = SettingsPage.extend({
       }
     });
   }
+});
+
+/* PRINTER SELECTOR MODAL */
+var PrinterSelectorDialog = Backbone.View.extend({
+  el: '#printer-selector-modal',
+  manufacturers: null,
+  manufacturerSelected: null,
+  printer_models: null,
+  printerSelected: null,
+  contentTemplate: null,
+  parentView: null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.set-printer': 'setPrinterClicked',
+    'change select#manufacturers-picker': 'onManufacturersChanged'
+  },
+  initialize: function(params) {
+    this.parentView = params.parent;
+  },
+  open: function(params)
+  {
+    printerData = params.printerData ? params.printerData : null
+
+    this._checkManufacturersAndPrinters(printerData);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  onManufacturersChanged: function (e)
+  {
+    this.manufacturerSelected = $(e.target).val();
+
+    app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+    .done(_.bind(function (printerModels) {
+      this.printer_models = printerModels.data;
+      this.printerSelected = this.printer_models[0].id
+      this.$el.addClass('settings');
+
+      this.render();
+    }, this))
+
+    .fail(_.bind(function (xhr) {
+      this.$el.addClass('settings');
+      console.error("Error getting printer models", xhr);
+      noty({ text: "Error getting printer models", timeout: 3000 });
+    }, this))
+  },
+  setPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+    // Get info from last model selected
+    app.astroprintApi.getModelInfo($("#printer-model-picker").val())
+      .done(_.bind(function (info) {
+        this.printerInfo = info;
+        var printerObject = {
+          "id": this.printerInfo.id,
+          "name": this.printerInfo.name
+        }
+        // Update printer profile with selected printer
+        var attrs = {
+          'printer_model': printerObject,
+          'heated_bed': this.printerInfo.config.heated_bed,
+          'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+        }
+        this.parentView.settings.save(attrs, {
+          patch: true,
+          success: _.bind(function () {
+            noty({ text: "Printer model saved", timeout: 3000, type: "success" });
+            this.parentView.getInfo();
+            loadingBtn.removeClass('loading');
+
+            this.$el.foundation('reveal', 'close');
+          }, this),
+          error: function () {
+            noty({ text: "Failed to save printer model", timeout: 3000 });
+            loadingBtn.removeClass('loading');
+          }
+        });
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        loadingBtn.removeClass('loading');
+      }, this))
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#printer-selector-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+    content.html(this.contentTemplate({
+      manufacturers: this.manufacturers,
+      mSelected: this.manufacturerSelected,
+      printers: this.printer_models,
+      pSelected: this.printerSelected,
+    }));
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  _checkManufacturersAndPrinters: function (printerID, manufacturerID)
+  {
+    var printerID = null;
+    var manufacturerID = null;
+
+    if (printerData){
+      printerID = printerData.printer_id;
+      manufacturerID = printerData.manufacturer_id;
+    }
+    // Get manufacturers list
+    app.astroprintApi.getManufacturers()
+      .done(_.bind(function (manufacturers) {
+        this.manufacturers = manufacturers.data;
+        this.manufacturerSelected = manufacturerID ? manufacturerID : this.manufacturers[0].id
+        // Now get printer models from first manufacturer
+        app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+          .done(_.bind(function (printerModels) {
+            this.printer_models = printerModels.data;
+            this.printerSelected = printerID ? printerID : this.printer_models[0].id
+            this.render();
+          }, this))
+          .fail(_.bind(function (xhr) {
+            console.error("Error getting printer models", xhr);
+            noty({ text: "Error getting printer models", timeout: 3000 });
+          }, this))
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error("Error getting manufacturers");
+        noty({ text: "Error getting manufacturers", timeout: 3000 });
+      }, this))
+  },
 });
 
 /***********************
