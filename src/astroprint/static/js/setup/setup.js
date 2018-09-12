@@ -695,10 +695,11 @@ var StepPrinterSelection = StepView.extend({
           data: JSON.stringify({
             'printer_model': printerObject,
             'heated_bed': this.printerInfo.config.heated_bed,
-            'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1,
+            'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+          }),
           contentType: 'application/json',
           dataType: 'json'
-        })
+        }, this)
           .done(_.bind(function () {
             window.location.href = "/#astroprint";
           }, this))
@@ -713,7 +714,6 @@ var StepPrinterSelection = StepView.extend({
             loadingBtn.removeClass('loading');
           });
       }, this))
-
       .fail(_.bind(function (xhr) {
         console.error(xhr);
         loadingBtn.removeClass('loading');
