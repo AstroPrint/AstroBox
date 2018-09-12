@@ -28,6 +28,7 @@ class ManufacturerPkgManager(object):
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
 				'change_update_channel': True,
+				'change_printer_selected': True,
 				'logo': None,
 				'shutdown_img': None,
 				'product_name': 'AstroBox',
@@ -54,7 +55,10 @@ class ManufacturerPkgManager(object):
 				'invert_z': None,
 				'invert_x': None,
 				'invert_y': None,
-				'temp_presets' : None
+				'temp_presets' : None,
+				'printer_model': {
+					'id': None
+				}
 			},
 			'printer_connection': {
 				'baudrate': None,
