@@ -442,9 +442,11 @@ class AstroprintBoxRouter(object):
 
 		else:
 			from octoprint.server import VERSION
+			from astroprint.printerprofile import printerProfileManager
 
 			nm = networkManager()
 			sm = softwareManager()
+			ppm = printerProfileManager()
 
 			authData = {
 				'silentReconnect': self._silentReconnect,
@@ -455,7 +457,8 @@ class AstroprintBoxRouter(object):
 				'platform': sm.platform,
 				'localIpAddress': nm.activeIpAddress,
 				'publicKey': self._publicKey,
-				'privateKey': self._privateKey
+				'privateKey': self._privateKey,
+				'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model']['id'] else None
 			}
 
 			pkgId = sm.mfPackageId
