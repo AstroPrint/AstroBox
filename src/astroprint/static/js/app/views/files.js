@@ -512,10 +512,7 @@ var PrintFilesListView = Backbone.View.extend({
         if(this.need_to_be_refreshed && selectedStorage == 'local'){
           this.refresh('local');
           this.need_to_be_refreshed = false;
-          console.log('LOCAL');
         } else {
-
-
           if (selectedStorage == 'cloud') {
             var noFilteredViews = []
             var filteredViews = _.filter(this.print_file_views, function(p){
@@ -536,12 +533,8 @@ var PrintFilesListView = Backbone.View.extend({
               return false;
             });
           }
-
-
-          console.log('CLOUD', selectedStorage);
         }
       } else {
-        console.log('selectedStorage WARNING');
         var filteredViews = this.print_file_views;
       }
 
@@ -569,6 +562,10 @@ var PrintFilesListView = Backbone.View.extend({
         this.$('.header-filter').hide();
       } else {
         this.$('.header-filter').show();
+      }
+
+      if (app.printerProfile.get('printer_model').id) {
+        this.$('.printer-name').text(app.printerProfile.get('printer_model').name);
       }
 
       if (filteredViews && !filteredViews.length && noFilteredViews && !noFilteredViews.length || (!filteredViews.length && !noFilteredViews.length)) {
@@ -606,7 +603,6 @@ var PrintFilesListView = Backbone.View.extend({
         loadingArea.addClass('loading');
         syncPromise
           .done(_.bind(function(){
-            console.log( this.file_list);
             this.print_file_views = [];
             this.file_list.each(_.bind(function(print_file, idx) {
               var print_file_view = new PrintFileView({

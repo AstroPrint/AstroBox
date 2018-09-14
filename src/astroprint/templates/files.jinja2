@@ -59,12 +59,14 @@
         <i class="icon-refresh animate-spin"></i>
         Loading files...
       </div>
+      {%- if printer_profile.printer_model.id %}
 			<div class="design-filtered-list">
-        <div class="header-filter" >Matching your Printer</div>
+        <div class="header-filter bold" >Matching your <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b></div>
         <div class="container-files"></div>
       </div>
+      {% endif %}
 			<div class="design-list">
-        <div class="header-filter" >Rest of files</div>
+        <div class="header-filter bold unmatch" >{%- if printer_profile.printer_model.id %} Unmatching your <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
         <div class="container-files"></div>
       </div>
 		</div>

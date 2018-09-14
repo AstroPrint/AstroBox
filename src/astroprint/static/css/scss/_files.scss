@@ -149,7 +149,17 @@
       }
     }
   }
-
+  .header-filter {
+    background: #add;
+    border-radius: 12px 12px 0 0;
+    text-align: center;
+    width: 272px;
+    margin: auto;
+    padding: 3px;
+    &.unmatch {
+      background: #ccc;
+    }
+  }
   .container-files {
     margin-bottom: 55px;
 
