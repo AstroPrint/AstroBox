@@ -347,9 +347,9 @@ var PrintFileRowView = Backbone.View.extend({
     }
 
     ownView.delegateEvents({
-      'click .icon-folder': function () { this.movePrintFile('up'); },
-      'click .icon-move': function () { this.movePrintFile('down'); },
-      'click .icon-th': function () { this.movePrintFile('top'); },
+      'click .icon-angle-left': function () { this.movePrintFile('up'); },
+      'click .icon-angle-right': function () { this.movePrintFile('down'); },
+      'click .icon-step-backward': function () { this.movePrintFile('top'); },
       'click .delete-printFile': 'deletePrintFile',
       'click .print-actions button.print': 'dropdownPrint',
       'click .print-actions a.queue': 'addToQueue',
@@ -473,8 +473,8 @@ var PrintFileRowView = Backbone.View.extend({
             this.printFile.set("pos", Number(previousFileOnTop.get('pos')) - 1000, { silent: true });
 
             // Movement animation
-            this.$el.addClass('animated fadeOutUpBig');
-            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('fadeOutUpBig'); this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal"); }.bind(this));
+            this.$el.addClass('movetop');
+            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () { this.$el.removeClass('movetop'); this.parent.$el.find('.pending-files-box').animate({ scrollTop: 0 }, "normal"); }.bind(this));
             this.parent.mainView.waitToSync = false;
 
             // After animation => remove/add

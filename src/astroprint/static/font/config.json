@@ -569,6 +569,12 @@
       "css": "bookmark",
       "code": 59447,
       "src": "fontawesome"
+    },
+    {
+      "uid": "1e25340c5d25e252264419f11422b5fe",
+      "css": "step-backward",
+      "code": 59448,
+      "src": "elusive"
     }
   ]
 }

@@ -5,6 +5,7 @@
         "foundation/components/progress-bars";
 
 #print-queue-view {
+  letter-spacing: 0.4px;
   #queue-container {
     display: none;
   }
@@ -115,16 +116,44 @@
   }
   .icon-bar.vertical {
     width: 100%;
+    background: transparent;
+    border: 0;
 
     a.item {
       padding: 10px 12px;
       display: block;
-      min-height: 80px;
+      min-height: 85px;
+      background: lighten($iron, 5%);
+      box-shadow: none;
+      border: 0;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transform: scale(0.95);
+
+      i,label{opacity: 0.6; color: $charcoal;}
+
+      > i{
+        font-size: 27px;
+
+        &:after{
+          font-size: .6rem;
+        }
+      }
+
+      &:hover{transform: scale(1);}
+
+      &.active{
+        box-shadow: 2px 2px 9px 0px rgba(0, 0, 0, 0.22);
+        background: $oil;
+        transform: scale(1);
+        i,label{opacity: 1; color: $secondary-color;}
+      }
+
     }
   }
 
   #user-menu-content {
-    padding: 6px 20px 20px 165px;
+    padding: 0 20px 20px 165px;
     min-height: 580px;
     max-width: 1070px;
     width: 100%;
@@ -174,16 +203,36 @@
   }
 
   .print-file-row {
-    background: white;
+    background: $white;
+
     .message-finished, .message-failed, .message-canceled, .message-printing, .last-status {
       display: none;
     }
+
+    i{
+      font-size: 22px;
+      color: $base;
+
+      &.icon-step-backward:before{
+        transform: rotate(90deg);
+      }
+
+      &.icon-angle-left:before{
+        transform: rotate(90deg);
+      }
+
+      &.icon-angle-right:before{
+        transform: rotate(90deg);
+      }
+    }
+
     &:nth-child(even) {
       background: $ghost;
     }
     .discard-button {
       display: inline-block;
       transition: all 0.1s ease-in-out 0s;
+      color: $base;
     }
 
     .discard-button:hover,.discard-button:active {
@@ -213,11 +262,16 @@
     border-left: 7px solid $blue;
     box-shadow:2px 2px 6px 0px #e8e8e8;
     margin-bottom: 20px;
-    padding: 20px 20px 15px 20px;
-    background: white;
-    max-width: 1100px;
+    background: $ghost;
     border-bottom-right-radius:5px;
     z-index: 1;
+    padding-top: 15px;
+
+    .main-buttons{
+      button{
+        max-width: 220px;
+      }
+    }
 
     .progress-container {
       display: none;
@@ -341,11 +395,13 @@
     }
 
     .print-file-row {
-      border-left: 2px solid #c0e7e5;
       position: relative;
       padding: 6px 0px;
       min-height: 46px;
       line-height: 100%;
+
+      .time-container{padding-top: 10px;}
+
        a.delete-printFile{
         color:$oil;
         font-size: 1em;
@@ -365,7 +421,7 @@
           text-overflow: ellipsis;
         }
         .printer-info{
-          color: grey;
+          opacity: 0.6;
         }
       }
 
@@ -381,40 +437,26 @@
       }
 
       .rendered_image {
-        height: 40px;
+        height: 60px;
         @include radius($global-radius);
         overflow: hidden;
         margin-right: 15px;
-        margin-left: 10px;
       }
 
-      .icon-up-open,.icon-down-open {
-        margin-top: 0px;
-        line-height: 130%;
-        font-size: 16px;
-      }
-
-      .icon-step-forward{
-        color: #44b4ac;
-        font-size: 20px;
-        &:before{
-          transform: rotate(-90deg);
-        }
-
-        &:hover{
-          color: lighten(#44b4ac, 20%);
-        }
-      }
-        &:last-child{border-bottom: 0;}
+      &:last-child{border-bottom: 0;}
 
       .index-queue{
         position: absolute;
-        left: 4px;
+        left: 0;
+        z-index: 99;
         top: 0px;
-        font-size: 14px;
-        color: rgba(68, 68, 68, 0.3);
-        height: 40px;
-        padding: 0px 3px;
+        min-width: 20px;
+        border-radius: 100%;
+        color: $blue;
+        font-size: 13px;
+        height: 20px;
+        padding: 0px;
+        @include flex(center,column);
       }
     }
 
@@ -451,6 +493,39 @@
         }
       }
     }
+
+    .movetop{
+      z-index: 9999;
+      transition: all 200ms linear;
+      transform: translateY(-500px); //for not making loop so big, we set default translate
+      box-shadow: -2px 3px 10px 3px rgba(0, 0, 0, 0.25);
+      background: $charcoal !important;
+    }
+
+    $n:10;
+
+    @for $i from 1 to $n {
+      .print-file-row:nth-of-type(#{$i}) {
+        &.movetop{
+          transform: translateY(-90px * ($i - 1)); //more css classes below
+        }
+      }
+    }
+
+    .pending-files-box{
+
+      .print-file-row:first-of-type{
+        color: $ghost;
+        background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
+
+        .icon-step-backward,.icon-angle-left{display: none;}
+
+        .index-queue{color: $white; background: $blue; border-radius: $global-radius;}
+      }
+
+
+    }
+
     .finished-files-box, .pending-files-box {
       display: none;
       -webkit-animation-duration: 0.5s !important;
@@ -465,9 +540,9 @@
     }
     .pending-files-box, .finished-files-box{
       // display: block;
-      max-height: 355px;
+      max-height: 410px;
       overflow-y: scroll;
-      overflow-x: hidden;
+      overflow-x: visible;
       border-bottom: 2px solid #c0e7e5;
       border-right: 2px solid #c0e7e5;
     }
@@ -488,7 +563,6 @@
 
     // Status
     .last-status{
-      padding-left: 60px;
       i{
         padding-right: 1px;
         font-size: 16px;
@@ -551,21 +625,19 @@
 
     // Box statuses
     .shownByContainer {
-        border-left: 2px solid #c0e7e5;
-        border-right: 2px solid #c0e7e5;
-        margin: 0px auto;
+     // background: #3e3e3e;
 
-
-        button {
+        .completed-tab,.pending-tab {
           background: transparent;
           color: $iron;
           height: 38px;
           padding: 0;
           font-size: 0.9rem;
+          margin-bottom: 0;
 
           &.is-active {
-            color: $green;
-            border-bottom: 3px solid $green;
+            color: $charcoal;
+            border-bottom: 3px solid $charcoal;
             position: relative;
             bottom: -2px;
             z-index: 1;
@@ -648,25 +720,6 @@
         &:hover, &:active{color: $green;}
       }
 
-      &.no-ready-files.no-finished-files {
-        .heading-box-queue {
-          cursor: initial;
-        }
-      }
-
-      .heading-box-queue{
-        margin: 5px 0 0 0;
-        border-radius: 2px;
-        padding: 10px 0px;
-        border: 2px solid $green;
-        background: rgba(109, 200, 194, 0.1);
-        color: $green;
-      }
-      &.no-ready-files.no-finished-files {
-        .heading-box-queue {
-          opacity: 0.4;
-        }
-      }
       .background-loading {
         width: 100px;
         display: none;
@@ -731,24 +784,11 @@
       &.filter-finished:not(.no-finished-files) .clear-finished-button {
         display: inline-block;
       }
-      /* END CLEAR BUTTONS */
-
-      .heading-box-queue{
-        box-shadow: none;
-        border: 2px solid whitesmoke;
-        border-bottom: 0px;
-        border: 2px solid #c0e7e5;
-        border-bottom: 0px;
-
-        .icon-plus{display: none;}
-        .icon-minus{display: inline-block;}
-      }
 
   }
 
   //Print later area
   .print-later-list{
-    letter-spacing: 0.4px;
     border-top-right-radius: 15px;
     max-width: 980px;
     .single-queue-button {
@@ -827,16 +867,7 @@
       letter-spacing: 1px;
     }
 
-    .center-v{
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      height: 65px;
-    }
-
-    .printer-info{
-      color: grey;
-    }
+    .printer-info{opacity: 0.6;}
 
     .printer-time{
       color: $green;
@@ -876,8 +907,9 @@
   }
 
   .border-right{
-    border-right: 1px solid #eeeeee;
+    border-right: 1px solid rgba(238, 238, 238, 0.2);
     font-size: rem-calc(14);
+    padding-right: 10px;
   }
   .end{padding-left: 0;}
 
