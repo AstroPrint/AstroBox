@@ -565,7 +565,6 @@ var BoxContainerView = Backbone.View.extend({
   pendingFiles_views: [],
   finishedFiles: null,
   finishedFiles_views: [],
-  activeFile_view: null,
   updateFrequency: 8000,
   syncInterval: null,
   mainView: null,
@@ -681,7 +680,6 @@ var BoxContainerView = Backbone.View.extend({
         this.finishedFiles.reset(_.filter(filesQueues, function(pf){ return pf.status != "ready" && pf.status != "printing" }),{silent: true});
 
         this.insertPrintFiles();
-        this.updateActiveFileArea();
         this.checkMoveIcons();
         this.updateCounters();
       }
@@ -691,22 +689,7 @@ var BoxContainerView = Backbone.View.extend({
     }, this));
   },
 
-  updateActiveFileArea: function ()
-  {
-    // Remove active-file-area
-    if (this.activeFile_view) {
-      this.activeFile_view.remove();
-      delete this.activeFile_view;
-    }
 
-    // Add active-file-area view only if there are pending files
-    if (this.pendingFiles.length > 0) {
-      this.activeFile_view = new ActiveFileAreaRowView({ printFile: this.pendingFiles.first() });
-      this.$('.active-file-area').empty();
-      this.$('.active-file-area').append(this.activeFile_view.render().el);
-    }
-
-  },
 
   printQueue: function(e) {
     e.preventDefault();
@@ -804,8 +787,6 @@ var BoxContainerView = Backbone.View.extend({
         var lastModel = this.pendingFiles.last();
         var viewLast = this.pendingFiles_views[lastModel.get('id')];
         viewLast.$('.icon-down-open').addClass('off');
-
-        this.updateActiveFileArea();
       }
 
       // Case Example: Sent last ready file to print / Remove last ready file
@@ -1233,26 +1214,4 @@ var PrintQueueView = Backbone.View.extend({
     }
   }
 
-});
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// ActiveFileAreaRowView
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-var ActiveFileAreaRowView = Backbone.View.extend({
-  className: 'active-file-area-row row small-collapse',
-  printFile: null,
-  template: _.template($("#active-file-area-template").html()),
-  initialize: function (params)
-  {
-    this.printFile = params.printFile;
-    this.$el.attr('id', this.printFile['id']);
-  },
-
-  render: function ()
-  {
-    var html = this.template({ pf: this.printFile.toJSON()});
-    this.$el.empty();
-    this.$el.html(html);
-    return this;
-  }
 });
