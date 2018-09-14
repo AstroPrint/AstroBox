@@ -5,20 +5,20 @@
   </div>
 
   <!-- QUEUE CONTAINER -->
-  <div id="queue-container">
-    <div class="row heading">
+  <div id="queue-container" class="small-12 columns">
+    <div class="row heading clearfix">
         <div class="small-12 title-heading">
           <h1 class="bold">{{astroboxName}} · Print Queue </h1>
         </div>
       </div>
       {% if (user_email) %}
-      <div class="printqueue-menu">
-          <div class="page-heading">
+      <div class="printqueue-menu row clearfix">
+          <!--div class="page-heading">
             <h1 class="bold">
               <span id="tabHeader">Print Queues</span>
               <span class="first-loading"><i class="icon-rocket-spinner animate-spin"></i></span>
             </h1>
-          </div>
+          </div-->
 
           <!--  Side menu -->
           <div id="user-side-menu-container">
@@ -28,7 +28,7 @@
                 <label class="bold">Print Queues</label>
               </a>
               <a class="item" title="Print Later" data-tab="printLater" >
-                <i data-badge="0" class="icon-clock" id="printLater-icon" ></i>
+                <i data-badge="0" class="icon-bookmark" id="printLater-icon" ></i>
                 <label class="bold">Print Later</label>
               </a>
             </div>
@@ -124,9 +124,9 @@
   <% if (!view.parent.printLaterFiles) { %>
   <div class="columns small-12 medium-2 large-1 text-center">
     <span class="index-queue"></span>
-    <i class="icon-th  moving-arrow"  title="Move to top"></i>
-    <i class="icon-folder moving-arrow"  title="Up"></i>
-    <i class="icon-move moving-arrow" title="Down"></i>
+    <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
+    <i class="icon-right-open moving-arrow"  title="Up"></i>
+    <i class="icon-right-open moving-arrow" title="Down"></i>
   </div>
   <% } %>
 
