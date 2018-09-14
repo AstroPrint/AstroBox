@@ -9,6 +9,12 @@
   #queue-container {
     display: none;
   }
+
+  #main-container-loader {
+    @include flex(center,column);
+    height: 200px;
+    text-align: center;
+   }
   &.data-ready {
     #main-container-loader {
      display: none;
@@ -154,10 +160,6 @@
 
   #user-menu-content {
     padding: 0 20px 20px 165px;
-    min-height: 580px;
-    max-width: 1070px;
-    width: 100%;
-    margin: 0 auto 0 0;
 
     .background-illustration {
       position: absolute;
@@ -452,7 +454,7 @@
         top: 0px;
         min-width: 20px;
         border-radius: 100%;
-        color: $blue;
+        color: $charcoal;
         font-size: 13px;
         height: 20px;
         padding: 0px;
@@ -520,7 +522,7 @@
 
         .icon-step-backward,.icon-angle-left{display: none;}
 
-        .index-queue{color: $white; background: $blue; border-radius: $global-radius;}
+        .index-queue{color: $white;}
       }
 
 

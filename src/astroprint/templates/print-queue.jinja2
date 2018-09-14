@@ -71,12 +71,12 @@
 
                   <!-- clear pending button -->
                   <div class="columns small-12 clear-label text-right">
-                    <a class="clear-pending-button secondary small expand">Clear All</a>
+                    <a class="clear-pending-button secondary small expand bold">Clear All</a>
                   </div>
 
                     <!-- clear finished button -->
                   <div class="columns small-12 clear-label text-right">
-                    <a class="clear-finished-button secondary small expand">Clear All</a>
+                    <a class="clear-finished-button secondary small expand bold">Clear All</a>
                   </div>
                 </div>
 
@@ -102,7 +102,7 @@
               </div>
 
               <!-- @PRINTLATER-LIST CONTAINER -->
-              <div class="print-later-list" id="print-later-list">
+              <div class="print-later-list small-12 columns" id="print-later-list">
                 <div id="no-printFiles" class="columns" style="display:none">There are no Print Files. Go to Files and click on <b>Print Later</b> to add some.</div>
               </div>
             </div>
@@ -118,7 +118,7 @@
 <script type="text/template" id="print-file-row-template">
   <% if (!view.parent.printLaterFiles) { %>
   <div class="columns small-12 medium-2 large-1 text-center">
-    <span class="index-queue"></span>
+    <span class="index-queue bold"></span>
     <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
     <i class="icon-angle-left moving-arrow"  title="Up"></i>
     <i class="icon-angle-right moving-arrow" title="Down"></i>
