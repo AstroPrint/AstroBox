@@ -113,6 +113,12 @@ class PrinterProfileManager(object):
 							raise e
 
 					self.data[k] = self._clean(k, changes[k])
+
+					# Send astrobox event
+					from octoprint.events import eventManager, Events
+
+					eventManager().fire(Events.PRINTERPROFILE_CHANGE, { k: self.data[k]})
+
 			else:
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 
