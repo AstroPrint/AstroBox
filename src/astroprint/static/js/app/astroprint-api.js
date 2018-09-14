@@ -161,7 +161,7 @@ AstroPrintApi.prototype = {
   _apiRequest: function(endpoint, settings, noRequiredAuthentication)
   {
     if (noRequiredAuthentication) {
-      this._doAjaxCall(endpoint, settings);
+      return this._doAjaxCall(endpoint, settings);
     } else {
       return this._getAccessToken()
         .then(_.bind(function (token) {
