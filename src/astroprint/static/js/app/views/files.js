@@ -474,22 +474,24 @@ var PrintFilesListView = Backbone.View.extend({
   },
   render: function()
   {
-    var list = this.$('.design-list-container');
+    var listNoFiltered = this.$('.design-list .container-files');
+    var listFiltered = this.$('.design-filtered-list .container-files');
     var selectedStorage = this.storage_control_view.selected;
 
-    list.empty();
+    listNoFiltered.empty();
+    listFiltered.empty();
 
     if(selectedStorage == 'USB') { //CLICKED IN THE USB TAB
       //CLEAN FILE LIST SHOWED
 
       if (this.usb_file_views.length) {
         _.each(this.usb_file_views, function(p) {
-          list.append(p.$el);
+          listNoFiltered.append(p.$el);
           p.render();
         });
 
         if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView ) {
-          list.append(
+          listNoFiltered.append(
             '<div class="empty panel radius" align="center">'+
             ' <i class="icon-inbox empty-icon"></i>'+
             ' <h3>No Printable files.</h3>'+
@@ -497,7 +499,7 @@ var PrintFilesListView = Backbone.View.extend({
           );
         }
       } else {
-        list.append(
+        listNoFiltered.append(
           '<div class="empty panel radius" align="center">'+
           ' <i class="icon-inbox empty-icon"></i>'+
           ' <h3>No External Drives Connected.</h3>'+
@@ -510,35 +512,71 @@ var PrintFilesListView = Backbone.View.extend({
         if(this.need_to_be_refreshed && selectedStorage == 'local'){
           this.refresh('local');
           this.need_to_be_refreshed = false;
+          console.log('LOCAL');
         } else {
-          var filteredViews = _.filter(this.print_file_views, function(p){
-            if (selectedStorage == 'local') {
-              if (p.print_file.get('local_filename')) {
+
+
+          if (selectedStorage == 'cloud') {
+            var noFilteredViews = []
+            var filteredViews = _.filter(this.print_file_views, function(p){
+              if (!p.print_file.get('local_only') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
+                return true;
+              } else if (!p.print_file.get('local_only')) {
+                noFilteredViews.push(p)
+                return false;
+              }
+              return false
+            });
+          } else {
+            var filteredViews = []
+            var noFilteredViews = _.filter(this.print_file_views, function (p) {
+              if (selectedStorage == 'local' && p.print_file.get('local_filename')) {
                 return true
               }
-            } else if (!p.print_file.get('local_only')) {
-              return true;
-            }
+              return false;
+            });
+          }
 
-            return false;
-          });
+
+          console.log('CLOUD', selectedStorage);
         }
       } else {
+        console.log('selectedStorage WARNING');
         var filteredViews = this.print_file_views;
       }
 
       if (filteredViews && filteredViews.length) {
+        this.$('.design-filtered-list').show();
         _.each(filteredViews, function(p) {
-          list.append(p.$el);
+          listFiltered.append(p.$el);
           p.delegateEvents();
         });
       } else {
-        list.html(
+        this.$('.design-filtered-list').hide();
+      }
+
+      if (noFilteredViews && noFilteredViews.length) {
+        this.$('.design-list').show();
+        _.each(noFilteredViews, function(p) {
+          listNoFiltered.append(p.$el);
+          p.delegateEvents();
+        });
+      } else {
+        this.$('.design-list').hide();
+      }
+
+      if (selectedStorage != "cloud" || !app.printerProfile.get('printer_model').id) {
+        this.$('.header-filter').hide();
+      } else {
+        this.$('.header-filter').show();
+      }
+
+      if (filteredViews && !filteredViews.length && noFilteredViews && !noFilteredViews.length || (!filteredViews.length && !noFilteredViews.length)) {
+        listNoFiltered.html(
           '<div class="empty panel radius" align="center">'+
           ' <i class="icon-inbox empty-icon"></i>'+
           ' <h3>Nothing here yet.</h3>'+
-          '</div>'
-        );
+          '</div>');
       }
     }
   },
@@ -568,6 +606,7 @@ var PrintFilesListView = Backbone.View.extend({
         loadingArea.addClass('loading');
         syncPromise
           .done(_.bind(function(){
+            console.log( this.file_list);
             this.print_file_views = [];
             this.file_list.each(_.bind(function(print_file, idx) {
               var print_file_view = new PrintFileView({
@@ -579,7 +618,7 @@ var PrintFilesListView = Backbone.View.extend({
               this.print_file_views.push( print_file_view );
             }, this));
 
-            this.$('.design-list-container').empty();
+            this.$('.design-list .container-files').empty();
             this.render();
 
             if (_.isFunction(doneCb)) {
