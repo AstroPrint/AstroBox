@@ -474,35 +474,41 @@ var PrintFilesListView = Backbone.View.extend({
   },
   render: function()
   {
-    var listNoFiltered = this.$('.design-list .container-files');
-    var listFiltered = this.$('.design-filtered-list .container-files');
+    var listNoFilteredEl = this.$('.design-list');
+    var listNoFilteredContainer = listNoFilteredEl.find('.container-files');
+
+    var listFilteredEl = this.$('.design-filtered-list');
+    var listFilteredContainer = listFilteredEl.find('.container-files');
+
     var selectedStorage = this.storage_control_view.selected;
 
-    listNoFiltered.empty();
-    listFiltered.empty();
+    listNoFilteredContainer.empty();
+    listFilteredContainer.empty();
 
-    if(selectedStorage == 'USB') { //CLICKED IN THE USB TAB
+    if (selectedStorage == 'USB') { //CLICKED IN THE USB TAB
       //CLEAN FILE LIST SHOWED
+      this.$('.header-filter').hide();
+      listFilteredEl.hide()
 
       if (this.usb_file_views.length) {
-        _.each(this.usb_file_views, function(p) {
-          listNoFiltered.append(p.$el);
+        _.each(this.usb_file_views, function (p) {
+          listNoFilteredContainer.append(p.$el);
           p.render();
         });
 
-        if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView ) {
-          listNoFiltered.append(
-            '<div class="empty panel radius" align="center">'+
-            ' <i class="icon-inbox empty-icon"></i>'+
-            ' <h3>No Printable files.</h3>'+
+        if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView) {
+          listNoFilteredContainer.append(
+            '<div class="empty panel radius" align="center">' +
+            ' <i class="icon-inbox empty-icon"></i>' +
+            ' <h3>No Printable files.</h3>' +
             '</div>'
           );
         }
       } else {
-        listNoFiltered.append(
-          '<div class="empty panel radius" align="center">'+
-          ' <i class="icon-inbox empty-icon"></i>'+
-          ' <h3>No External Drives Connected.</h3>'+
+        listNoFilteredContainer.append(
+          '<div class="empty panel radius" align="center">' +
+          ' <i class="icon-inbox empty-icon"></i>' +
+          ' <h3>No External Drives Connected.</h3>' +
           '</div>'
         );
       }
@@ -514,19 +520,19 @@ var PrintFilesListView = Backbone.View.extend({
           this.need_to_be_refreshed = false;
         } else {
           if (selectedStorage == 'cloud') {
-            var noFilteredViews = []
-            var filteredViews = _.filter(this.print_file_views, function(p){
+            var unmatchedFileViews = []
+            var matchedFileViews = _.filter(this.print_file_views, function(p){
               if (!p.print_file.get('local_only') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
                 return true;
               } else if (!p.print_file.get('local_only')) {
-                noFilteredViews.push(p)
+                unmatchedFileViews.push(p)
                 return false;
               }
               return false
             });
           } else {
-            var filteredViews = []
-            var noFilteredViews = _.filter(this.print_file_views, function (p) {
+            var matchedFileViews = []
+            var unmatchedFileViews = _.filter(this.print_file_views, function (p) {
               if (selectedStorage == 'local' && p.print_file.get('local_filename')) {
                 return true
               }
@@ -535,45 +541,55 @@ var PrintFilesListView = Backbone.View.extend({
           }
         }
       } else {
-        var filteredViews = this.print_file_views;
+        var matchedFileViews = this.print_file_views;
       }
 
-      if (filteredViews && filteredViews.length) {
-        this.$('.design-filtered-list').show();
-        _.each(filteredViews, function(p) {
-          listFiltered.append(p.$el);
+      var matchedFilesFound = false;
+      var unmatchedFilesFound = false;
+      // Matched files
+      if (matchedFileViews && matchedFileViews.length) {
+        listFilteredEl.find('.header-filter').show();
+        listFilteredEl.show();
+        _.each(matchedFileViews, function(p) {
+          listFilteredContainer.append(p.$el);
           p.delegateEvents();
         });
+        matchedFilesFound = true;
       } else {
-        this.$('.design-filtered-list').hide();
+        listFilteredEl.find('.header-filter').hide();
       }
 
-      if (noFilteredViews && noFilteredViews.length) {
-        this.$('.design-list').show();
-        _.each(noFilteredViews, function(p) {
-          listNoFiltered.append(p.$el);
+      // Unmatched files
+      if (unmatchedFileViews && unmatchedFileViews.length) {
+        listNoFilteredEl.find('.header-filter').show();
+        _.each(unmatchedFileViews, function(p) {
+          listNoFilteredContainer.append(p.$el);
           p.delegateEvents();
         });
+        unmatchedFilesFound = true;
       } else {
-        this.$('.design-list').hide();
+        listNoFilteredEl.find('.header-filter').hide();
       }
 
+      // If no cloud tab or no printer model stored, hide headers and filter container
       if (selectedStorage != "cloud" || !app.printerProfile.get('printer_model').id) {
         this.$('.header-filter').hide();
-      } else {
-        this.$('.header-filter').show();
+        listFilteredEl.hide()
       }
 
+      // Update printer model name
       if (app.printerProfile.get('printer_model').id) {
         this.$('.printer-name').text(app.printerProfile.get('printer_model').name);
       }
 
-      if (filteredViews && !filteredViews.length && noFilteredViews && !noFilteredViews.length || (!filteredViews.length && !noFilteredViews.length)) {
-        listNoFiltered.html(
+      // No files => show Empty Template
+      if (!matchedFilesFound && !unmatchedFilesFound) {
+        listNoFilteredContainer.html(
           '<div class="empty panel radius" align="center">'+
           ' <i class="icon-inbox empty-icon"></i>'+
           ' <h3>Nothing here yet.</h3>'+
           '</div>');
+          listNoFilteredEl.find('.header-filter').hide()
       }
     }
   },
