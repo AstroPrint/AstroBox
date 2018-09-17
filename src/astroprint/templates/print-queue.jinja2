@@ -1,7 +1,7 @@
 
   <!-- LOADER CONTAINER -->
-  <div id="main-container-loader" >
-    <p>Loading queues Appp</p> <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+  <div id="main-container-loader">
+    <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span><h4>Loading queues Appp</h4>
   </div>
 
   <!-- QUEUE CONTAINER -->
@@ -15,7 +15,7 @@
       <div class="printqueue-menu row clearfix">
           <!--div class="page-heading">
             <h1 class="bold">
-              <span id="tabHeader">Print Queues</span>
+              <span id="tabHeader">Print Queue</span>
               <span class="first-loading"><i class="icon-rocket-spinner animate-spin"></i></span>
             </h1>
           </div-->
@@ -117,8 +117,8 @@
 <!-- PRINTFILE ROW -->
 <script type="text/template" id="print-file-row-template">
   <% if (!view.parent.printLaterFiles) { %>
-  <div class="columns small-12 medium-2 large-1 text-center">
-    <span class="index-queue bold"></span>
+  <div class="columns small-12 medium-2 large-1 text-right">
+    <span class="index-queue"></span>
     <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
     <i class="icon-angle-left moving-arrow"  title="Up"></i>
     <i class="icon-angle-right moving-arrow" title="Down"></i>
