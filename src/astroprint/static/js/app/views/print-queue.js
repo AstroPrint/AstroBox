@@ -707,7 +707,10 @@ var BoxContainerView = Backbone.View.extend({
 
     var container = this.$('.pending-files-box');
     container.empty();
+    var i = 1;
     this.pendingFiles.each(function (pf) {
+
+      pf.set('queue_index', i)
       var row = new PrintFileRowView({
         printFile: pf,
         parent: this
@@ -716,6 +719,7 @@ var BoxContainerView = Backbone.View.extend({
       this.pendingFiles_views[pf.get('id')] = row;
       this.matchFileToPrinterStatus(row);
       container.append(row.render().el);
+      i++;
     }, this);
 
     // finished
@@ -805,8 +809,8 @@ var BoxContainerView = Backbone.View.extend({
 
   updateIndexQueues: function () {
     var i = 1;
-    this.pendingFiles.each(function (pf, pos) {
-      this.pendingFiles_views[pf.id].$('.index-queue').html(i)
+    this.pendingFiles.each(function (pf) {
+      pf.set('queue_index', i)
       i++;
     }, this);
   },
@@ -910,11 +914,14 @@ var BoxContainerView = Backbone.View.extend({
     var container = this.$('.pending-files-box');
     container.empty();
 
+    var i = 1;
     this.pendingFiles.each(function (pf) {
+      pf.set('queue_index', i)
       var row = new PrintFileRowView({ printFile: pf, parent: this });
       this.pendingFiles_views[pf.get('id')] = row;
       this.matchFileToPrinterStatus(row);
       container.append(row.render().el);
+      i++;
     }, this);
 
     this.checkMoveIcons();

@@ -46,18 +46,7 @@
                     <button class="secondary small radius cancel-label bold expand">Cancel</button>
                   </div>
 
-                  <!-- print button -->
-                  <div class="print-button inactive loading-button small-12 columns">
-                    <button class="success small radius print-next bold expand ">Print</button>
-                    <span class="success button radius radius bold disabled loading expand"><i class="icon-rocket-spinner animate-spin"></i></span>
-                  </div>
 
-                  <!-- connect printer -->
-                  <div class="connect-printer-button loading-button  small-12 columns">
-                    <button class="warning small radius connect-label bold expand">Connect printer</button>
-                    <span class="warning button radius radius bold loading expand"><i class="icon-rocket-spinner animate-spin"></i>Connecting</span>
-                    <span class="alert button radius radius bold inactive disabled failed expand"><i class="icon-attention"></i>Failed to connect</span>
-                  </div>
                 </div>
 
                 <!-- SHOW SELECTION -->
@@ -118,7 +107,7 @@
 <script type="text/template" id="print-file-row-template">
   <% if (!view.parent.printLaterFiles) { %>
   <div class="columns small-12 medium-2 large-1 text-right">
-    <span class="index-queue"></span>
+    <span class="index-queue"><%= pf.queue_index %></span>
     <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
     <i class="icon-angle-left moving-arrow"  title="Up"></i>
     <i class="icon-angle-right moving-arrow" title="Down"></i>
@@ -179,6 +168,22 @@
   <div class="columns medium-offset-1 medium-4 large-offset-0 large-2 text-center print-actions single-queue-button">
     <a class="success radius tiny bold expand queue button"><b>Add to Queue</b></a>
   </div>
+  <% } %>
+  <% if (pf.queue_index == 1) { %>
+
+      <!-- print button -->
+      <div class="print-button inactive loading-button small-3 columns">
+        <button class="success small radius print-next bold expand ">Print</button>
+        <span class="success button radius radius bold disabled loading expand"><i class="icon-rocket-spinner animate-spin"></i></span>
+      </div>
+
+      <!-- connect printer -->
+      <div class="connect-printer-button loading-button  small-3 columns">
+        <button class="warning small radius connect-label bold expand">Connect printer</button>
+        <span class="warning button radius radius bold loading expand"><i class="icon-rocket-spinner animate-spin"></i>Connecting</span>
+        <span class="alert button radius radius bold inactive disabled failed expand"><i class="icon-attention"></i>Failed to connect</span>
+      </div>
+
   <% } %>
 
   <div class="columns small-3 medium-1 large-1 right text-right hide-for-small-only">
