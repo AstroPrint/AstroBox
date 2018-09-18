@@ -1073,9 +1073,8 @@ var PrintQueueView = Backbone.View.extend({
     var promise = $.Deferred();
 
     app.astroprintApi.me()
-      .done(function (data) {
-        // PRODUCTION: var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
-        var hasQueueAccess = true;
+      .done(function (user) {
+        var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
         promise.resolve(hasQueueAccess);
       })
       .fail(function (xhr) {
@@ -1119,7 +1118,7 @@ var PrintQueueView = Backbone.View.extend({
     .always(_.bind(function(){
       setTimeout(_.bind(function () {
         this.$el.addClass('data-ready');
-      }, this), 500);
+      }, this), 2000);
     }, this));
   },
 
