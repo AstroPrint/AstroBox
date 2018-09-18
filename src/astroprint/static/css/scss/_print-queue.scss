@@ -404,6 +404,11 @@
       min-height: 46px;
       line-height: 100%;
 
+      &.animated{
+        box-shadow: -2px 3px 15px 4px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+      }
+
       .time-container{padding-top: 10px;}
 
        a.delete-printFile{
@@ -531,7 +536,7 @@
 
         .icon-step-backward,.icon-angle-left{display: none;}
 
-        .index-queue{color: $white;}
+        .index-queue,i{color: $white; padding-top: 30px}
       }
 
 
@@ -818,7 +823,7 @@
 
       &.animated{
         box-shadow: -2px 3px 15px 4px rgba(0, 0, 0, 0.2);
-        z-index: 9;
+        z-index: 999;
       }
 
       .columns{
