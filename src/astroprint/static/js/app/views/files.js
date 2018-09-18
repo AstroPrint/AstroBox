@@ -3,7 +3,6 @@
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
-const access_tokenFILES = "0827e58f1f623fbce99cabfa49df0b09e101eead";
 
 var PrintFileInfoDialog = Backbone.View.extend({
   el: '#print-file-info',
@@ -423,15 +422,6 @@ var PrintFilesListView = Backbone.View.extend({
   },
   initialize: function(options) {
     this.mainView = options.mainView;
-
-    this.getFilesOnQueue().then()
-      .done(_.bind(function (filesOnQueue) {
-        this.filesOnQueue = filesOnQueue;
-        this.refresh('local', options.syncCompleted);
-        this.info_dialog = new PrintFileInfoDialog({ filesOnQueue: this.filesOnQueue, file_list_view: this });
-        this.usbfile_list = new USBFileCollection();
-      }, this));
-
     this.file_list = new PrintFileCollection();
     this.storage_control_view = new StorageControlView({
       el: this.$('.list-header ul.storage'),
@@ -445,6 +435,18 @@ var PrintFilesListView = Backbone.View.extend({
     app.eventManager.on('astrobox:externalDrivePhisicallyRemoved', this.externalDrivesChanged, this);
 
     this.listenTo(this.file_list, 'remove', this.onFileRemoved);
+
+    this.getFilesOnQueue().then()
+    .done(_.bind(function (filesOnQueue) {
+      this.filesOnQueue = filesOnQueue;
+      this.refresh('local', options.syncCompleted);
+      this.info_dialog = new PrintFileInfoDialog({ filesOnQueue: this.filesOnQueue, file_list_view: this });
+      this.usbfile_list = new USBFileCollection();
+    }, this))
+    .fail(_.bind(function (e) {
+      console.error(e);
+    }, this))
+
   },
   showRemovableDrives: function()
   {
@@ -768,11 +770,11 @@ var PrintFilesListView = Backbone.View.extend({
                 promise.resolve(filesOnQueue)
               }, this))
               .fail(_.bind(function () {
-                noty({ text: "Something went wrong when gett Queue information", timeout: 3000 });
+                noty({ text: "Something went wrong when get Queue information", timeout: 3000 });
                 promise.resolve(0);
               }, this));
           } else {
-            promise.resolve(0);
+            promise.resolve(0); // No queue_allowed, if 0 not showing queue UI
           }
         }, this))
         .fail(_.bind(function () {
@@ -789,9 +791,8 @@ var PrintFilesListView = Backbone.View.extend({
     var promise = $.Deferred();
 
     app.astroprintApi.me()
-      .done(function (data) {
-        // PRODUCTION: var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
-        var hasQueueAccess = true;
+      .done(function (user) {
+        var hasQueueAccess = user.plan ? user.plan.queues_allowed : false;
         promise.resolve(hasQueueAccess);
       })
       .fail(function (xhr) {
