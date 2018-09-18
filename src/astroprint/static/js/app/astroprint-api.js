@@ -29,7 +29,7 @@ AstroPrintApi.prototype = {
 
   me: function()
   {
-    return this._apiRequest('/accounts/me',{method: 'GET'});
+    return this._apiRequest('/accounts/me?plan=true',{method: 'GET'});
   },
 
   /* =========== QUEUES =========== */
