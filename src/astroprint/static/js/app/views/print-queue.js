@@ -437,7 +437,12 @@ var PrintFileRowView = Backbone.View.extend({
   {
     this.parent.mainView.waitToSync = true;
     var readyCollection = this.printFile.collection;
-    var arrowIconClass = (direction != "top") ? ".icon-" + direction + "-open" : ".icon-step-forward";
+    var arrowIconClass;
+    if (direction != "top") {
+      arrowIconClass = direction == "up" ? ".icon-angle-left" : ".icon-angle-right";
+    } else {
+      arrowIconClass = ".icon-step-forward";
+    }
     var indexTo;
 
     if (!this.$(arrowIconClass).hasClass('off')) {
@@ -790,11 +795,11 @@ var BoxContainerView = Backbone.View.extend({
 
         var firstModel = this.pendingFiles.first();
         var viewFirst = this.pendingFiles_views[firstModel.get('id')];
-        viewFirst.$('.icon-up-open, .icon-step-forward').addClass('off');
+        viewFirst.$('.icon-angle-left, .icon-step-forward').addClass('off');
 
         var lastModel = this.pendingFiles.last();
         var viewLast = this.pendingFiles_views[lastModel.get('id')];
-        viewLast.$('.icon-down-open').addClass('off');
+        viewLast.$('.icon-angle-right').addClass('off');
       }
 
       // Case Example: Sent last ready file to print / Remove last ready file
