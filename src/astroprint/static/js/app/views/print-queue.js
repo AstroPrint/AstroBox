@@ -1106,6 +1106,7 @@ var PrintQueueView = Backbone.View.extend({
         this.listenTo(this, 'start-print', this.doPrint)
         this.boxView.onShow();
         this.printLaterView.onShow();
+        this.$el.addClass('data-ready');
       } else {
         window.location.replace("https://cloud.astroprint.com/printqueues/info");
       }
@@ -1114,11 +1115,6 @@ var PrintQueueView = Backbone.View.extend({
     .fail(_.bind(function () {
       noty({ text: "Something went wrong when checking permission to use Queues", timeout: 3000 });
       window.location.href= "#";
-    }, this))
-    .always(_.bind(function(){
-      setTimeout(_.bind(function () {
-        this.$el.addClass('data-ready');
-      }, this), 2000);
     }, this));
   },
 
