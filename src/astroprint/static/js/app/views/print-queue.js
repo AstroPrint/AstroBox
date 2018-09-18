@@ -588,6 +588,10 @@ var BoxContainerView = Backbone.View.extend({
      this.listenTo(this.finishedFiles, 'reset',  function(collection, filesRemoved){this.boxFilesReset("finished", collection, filesRemoved)}.bind(this));
 
      this.listenTo(app.socketData, 'change:printer', this.operationalChanged);
+
+     if (!this.syncInterval) {
+      this.startAutoFetch()
+    }
   },
 
   onHide: function()
