@@ -576,7 +576,6 @@ var BoxContainerView = Backbone.View.extend({
   activeTab: "pending-tab",
   events: {
     'click .print-next': 'printQueue',
-    'click .connect-label': 'connectPrinter',
     'click .clear-pending-button': 'clearPending',
     'click .clear-finished-button': 'clearFinished',
     'click .shownByContainer button': 'printFilesFilterChanged'
