@@ -106,7 +106,7 @@
 <!-- PRINTFILE ROW -->
 <script type="text/template" id="print-file-row-template">
   <% if (!view.parent.printLaterFiles) { %>
-  <div class="columns small-12 medium-2 large-1 text-right">
+  <div class="columns small-3 medium-2 large-1 text-right">
     <span class="index-queue"><%= pf.queue_index %></span>
     <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
     <i class="icon-angle-left moving-arrow"  title="Up"></i>
@@ -114,28 +114,29 @@
   </div>
   <% } %>
 
-  <div class="columns medium-6 large-6 border-right time-container">
+  <div class="columns small-9 medium-10 large-6 border-right time-container">
 
     <% if (pf.design_image) { %>
     <img class="rendered_image left" src="<%= pf.design_image %>"/>
     <% } else { %>
-    <img class="rendered_image left" src="/img/noimage.svg"/>
+    <img class="rendered_image no-image left" src="/img/noimage.svg"/>
     <% } %>
 
-    <%= pf.name %>
-    <div class="printer-info" > <%= pf.printer_name ? pf.printer_name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
-    <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
     <small>
       <span class="last-status">
         <span class="message-printing" >Started printing</span>
         <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
         <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
-        <span class="message-finished" ><i class="icon-ok"></i>finished</span>
+        <span class="message-finished" ><i class="icon-ok-circled"></i>finished</span>
         <% if (pf.last_status_time) { %>
         <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
         <% } %>
       </span>
     </small>
+
+    <%= pf.name %>
+    <div class="printer-info" > <%= pf.printer_name ? pf.printer_name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
+    <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
 
     <% if (view.parent.printLaterFiles) { %>
     <div class="date-added" >
@@ -146,19 +147,17 @@
     <% } %>
   </div>
 
-  <div class="columns small-offset-2 small-9 medium-offset-1 medium-4 large-offset-0 large-2 text-center">
+  <div class="columns small-offset-2 small-6 medium-offset-1 medium-4 large-offset-0 large-2 text-center">
     <div class="printer-time">
       <span class="printTime-label bold">
         <i class="icon-clock"></i>
-        <span class="hour"><%= print_time ? print_time[0] :"__" %></span> :
-        <span class="min" ><%= print_time ? print_time[1] :"__" %></span> :
-        <span class="sec" ><%= print_time ? print_time[2] :"__" %></span>
+        <span class="hour"><%= print_time ? print_time[0]:"__"%></span>:<span class="min" ><%= print_time ? print_time[1]:"__"%></span>:<span class="sec" ><%= print_time ? print_time[2]:"__"%></span>
       </span>
     </div>
   </div>
 
   <% if (view.parent.printLaterFiles) { %>
-  <div class="columns medium-offset-1 medium-4 large-offset-0 large-2 text-center print-actions loading-button split">
+  <div class="columns medium-offset-1 medium-4 large-offset-0 large-3 text-center print-actions loading-button split">
     <button class="success radius tiny bold expand print button split"><b>Print Now</b><span class="arrow-drop"  data-dropdown="drop-<%=pf.id%>"></span></button>
     <span class="success button radius tiny bold loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
     <br>
@@ -172,7 +171,7 @@
   <% if (pf.queue_index == 1) { %>
 
       <!-- print button -->
-      <div class="print-button inactive loading-button small-2 columns">
+      <div class="print-button inactive loading-button small-3 medium-2 columns">
         <button class="success tiny radius print-next bold expand ">Print</button>
         <span class="success button radius radius bold disabled loading expand"><i class="icon-rocket-spinner animate-spin"></i></span>
       </div>
@@ -194,7 +193,7 @@
     <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
   </div>
 
-  <div class="columns small-9 medium-4 large-2 text-center">
+  <div class="columns small-9 medium-4 large-2 text-center center-v">
     <div class="return-label" title="Return to Queue" style="display:none;">
         <div class="secondary bold tiny button return-button">
           <span class="status">Return to Queue</span>

@@ -119,6 +119,7 @@
 
       i, label {
         color: #fff;
+        display: block;
       }
     }
   }
@@ -263,13 +264,12 @@
   // box- container
   #box-container{
     position: relative;
-    border-left: 7px solid $blue;
+    border-left: 7px solid $green;
     box-shadow:2px 2px 6px 0px #e8e8e8;
     margin-bottom: 20px;
     background: $ghost;
-    border-bottom-right-radius:5px;
+    border-top-right-radius:15px;
     z-index: 1;
-    padding-top: 15px;
 
     .main-buttons{
       button{
@@ -281,58 +281,14 @@
       display: none;
     }
 
-    .box-name-label {
-      h3{
-        color: $blue;
-        display: inline-block;
-        position: absolute;
-        font-size: rem-calc(34);
-        top: -45px;
-        left: 0;
-        width: 100%;
-        min-height: 72px;
-
-      }
-
-      .state-buttons{
-        display: inline-block;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-
-        span{
-          height: 12px;
-          width: 12px;
-          display: inline-block;
-          border-radius: 100%;
-          margin-left: 5px;
-        }
-        .offline-label{
-          color: $red;
-
-          span{
-            background: $red;
-            box-shadow: 2px 1px 0 1px rgba(51, 51, 51, 0.25) inset;
-          }
-        }
-
-        .notReady-label{
-          color: $yellow;
-
-          span{
-            background: $yellow;
-            box-shadow: 2px 1px 0 1px rgba(51, 51, 51, 0.25) inset;
-          }
-        }
-      }
-    }
-
     button {
       letter-spacing: 0.5px;
+      margin: 15px auto;
     }
 
     .print-button {
       display: inline-block;
+      @include flex(center,column);
       .loader {
         display: none;
       }
@@ -348,44 +304,6 @@
     .connect-printer-button {
       display: none;
     }
-
-    .ready-message {
-      display: block;
-      color: white;
-      background: $oil;
-      text-transform: uppercase;
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-      padding: 1px 4px;
-      font-size: 10px;
-      margin-left: 8px;
-      margin-bottom: 5px;
-
-      i{
-        font-size: 13px;
-        padding-right: 5px;
-      }
-
-      p{
-        display: inline-block;
-        font-size: 10px;
-        margin-bottom: 0;
-      }
-
-      &:after{
-        content: "";
-        width: 0;
-        height: 0;
-        top: 5px;
-        transform: rotate(-90deg);
-        left: -11px;
-        position: absolute;
-        border-style: solid;
-        border-width: 0px 8px 6px 8px;
-        border-color: transparent transparent $oil transparent;
-      }
-    }
-
 
     .printing-status {
       display: none;
@@ -408,8 +326,6 @@
         box-shadow: -2px 3px 15px 4px rgba(0, 0, 0, 0.2);
         z-index: 999;
       }
-
-      .time-container{padding-top: 10px;}
 
        a.delete-printFile{
         color:$oil;
@@ -440,22 +356,16 @@
         }
       }
 
-      .printer-time{
-        font-size: rem-calc(18px);
-        margin-bottom: 10px;
-
-        .printTime-label{
-          color: $green;
-          margin-bottom: 15px;
-        }
-
-      }
 
       .rendered_image {
         height: 60px;
         @include radius($global-radius);
         overflow: hidden;
         margin-right: 15px;
+
+        &.no-image{
+          background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
+        }
       }
 
       &:last-child{border-bottom: 0;}
@@ -492,23 +402,21 @@
       padding: 13px;
       font-size: rem-calc(14px);
     }
-
     .cancel-label, .notReady-label, .offline-label {
       display: none;
     }
     .finished-files-box {
+      padding-left: 25px;
+
       .canceled-printing,.finished-printing,.failed-printing{
 
-        .small-7{
-          padding-top: 6px;
-          padding-left: 40px;
-          padding-right: 10px;
-        }
         .button {
         border-radius: 20px;
         }
       }
     }
+
+    $n:10; //variable for movetop loop
 
     .movetop{
       z-index: 9999;
@@ -517,8 +425,6 @@
       box-shadow: -2px 3px 10px 3px rgba(0, 0, 0, 0.25);
       background: $charcoal !important;
     }
-
-    $n:10;
 
     @for $i from 1 to $n {
       .print-file-row:nth-of-type(#{$i}) {
@@ -529,6 +435,8 @@
     }
 
     .pending-files-box{
+
+      .time-container{padding-top: 10px;}
 
       .print-file-row:first-of-type{
         color: $ghost;
@@ -577,21 +485,35 @@
 
     // Status
     .last-status{
+      color: $iron;
+
       i{
-        padding-right: 1px;
-        font-size: 16px;
+        padding-right: 2px;
+        font-size: 15px;
       }
-      .icon-cancel-circled{
+      .message-canceled{
         color: $red;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $red;}
       }
-      .icon-attention{
+      .message-failed{
         color: $warning-color;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $warning-color;}
       }
-      .icon-ok{
+      .message-finished{
         color: $primary-color;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $primary-color;}
       }
     }
 
+    .return-button{
+      margin: 15px auto;
+    }
 
     .failed-printing {
       .return-label, .failed-label, .last-status, .message-failed {
@@ -713,8 +635,22 @@
       display: none;
     }
   }
+
+  .printer-time{
+    font-size: rem-calc(16px);
+    height: 73px;
+    letter-spacing: 1px;
+    @include flex(center,column);
+
+    .printTime-label{
+      color: $green;
+    }
+  }
+
   // open and close logic
   .box-container{
+
+
       .shownByContainer, .no-ready-files-container, .no-finished-files-container {
         display: none;
       }
@@ -801,8 +737,13 @@
 
   //Print later area
   .print-later-list{
-    border-top-right-radius: 15px;
+    border-radius: $global-radius;
     max-width: 980px;
+    min-height: 520px;
+    background: $white;
+    padding: 16px 30px;
+    box-shadow: 2px 2px 14px 1px rgba(0, 0, 0, 0.05);
+
     .single-queue-button {
       display: none;
     }
@@ -817,6 +758,7 @@
     .print-file-row{
       padding: 8px 0px;
       background: $white;
+      border-radius: 10px;
       margin-bottom: 4px;
       box-shadow: 1px 1px 1px 1px rgba(51, 51, 51, 0.05);
       position: relative;
@@ -882,14 +824,10 @@
     }
     button{
       letter-spacing: 1px;
+      margin: 15px auto;
     }
 
     .printer-info{opacity: 0.6;}
-
-    .printer-time{
-      color: $green;
-    }
-
 
     a.delete-printFile{
     color:$oil;
@@ -908,19 +846,8 @@
   }
 
   // extras
-  .no-padding{
-    padding: 0;
-  }
-
   .padding-right{
     padding-right: 0.9375rem;
-  }
-
-  .center-v{
-    display: flex;
-    justify-content: center;
-    flex-direction: column;
-    height: 16px;
   }
 
   .border-right{
@@ -932,15 +859,59 @@
 
   small{
     display: block;
-    padding-bottom: 8px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    font-size: 70%;
-    padding-bottom: 0;
+    font-size:75%;
   }
   .rendered_image {
     @include radius($global-radius);
     overflow: hidden;
     margin-bottom: 3px;
   }
+}
+
+
+@media #{$small-only} {
+  #user-side-menu-container{
+    position: relative;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  #user-menu-content {
+    padding: 0 !important;
+  }
+
+  .index-queue {
+    padding-top: 0 !important;
+  }
+
+  #print-queue-view{
+    .printer-time{height: 50px;}
+
+    .icon-bar.vertical a.item{
+      min-height: 50px;
+
+      label{display: inline-block !important;}
+      &.active{}
+    }
+  }
+
+}
+
+
+@media #{$medium-only} {
+  #user-side-menu-container{
+    position: relative;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  #user-menu-content {
+    padding: 0 !important;
+  }
+
+  .index-queue {padding-top: 0 !important;}
+
+  #print-queue-view .printer-time{height: 50px;}
 }
