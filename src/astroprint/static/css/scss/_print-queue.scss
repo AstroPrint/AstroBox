@@ -5,7 +5,7 @@
         "foundation/components/progress-bars";
 
 #print-queue-view {
-  letter-spacing: 0.4px;
+
   #queue-container {
     display: none;
   }
@@ -869,6 +869,10 @@
     overflow: hidden;
     margin-bottom: 3px;
   }
+}
+
+#print-element-dlg{
+
 }
 
 

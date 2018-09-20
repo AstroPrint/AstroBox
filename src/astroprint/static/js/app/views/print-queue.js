@@ -214,9 +214,10 @@ var DownloadElementDialog = Backbone.View.extend({
       url: '/api/astroprint/print-files/' + this.cloudFileID + '/download',
       method: 'DELETE'
     })
-      .fail(function () {
+      .fail(_.bind(function () {
+        this.doClose();
         noty({ text: "Unable to cancel download.", timeout: 3000 });
-      });
+      }, this) )
   },
 
   onDownloadProgress: function(data)
@@ -259,10 +260,11 @@ var DownloadElementDialog = Backbone.View.extend({
   startProccess: function ()
   {
     $.getJSON('/api/astroprint/print-files/'+this.cloudFileID+'/download')
-    .fail(function(){
+    .fail(_.bind(function(e){
+      console.error(e);
       noty({text: "There was an error starting the download.", timeout: 3000});
       this.doClose();
-    });
+    }, this));
   },
 
   onClosed: function ()
