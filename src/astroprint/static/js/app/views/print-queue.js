@@ -1103,6 +1103,8 @@ var PrintQueueView = Backbone.View.extend({
           this.sideMenuView = new SideMenuView(this);
           this.boxView  = new BoxContainerView({mainView: this});
           this.printLaterView  = new PrintLaterContainerView({mainView: this});
+        } else {
+          this.updateQueueApp();
         }
 
         this.listenTo(this.boxView, 'sync-app', this.updateQueueApp);
