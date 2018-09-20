@@ -162,7 +162,7 @@
   }
 
   #user-menu-content {
-    padding: 0 0 20px 165px;
+    padding: 0 0 20px 160px;
 
     .background-illustration {
       position: absolute;
@@ -289,9 +289,16 @@
     .print-button {
       display: inline-block;
       @include flex(center,column);
+
+      span.success{
+        height: 35px;
+        padding: 6px;
+      }
+
       .loader {
         display: none;
       }
+
       &.loading {
         .loader {
           display: inline-block;
@@ -399,8 +406,13 @@
       display: inline-block;
       font-weight: bold;
     }
+
+    span.button.loading{
+      margin: 15px auto;
+      padding: 5px;
+    }
+
     span.button.loading,span.button.inactive {
-      padding: 13px;
       font-size: rem-calc(14px);
     }
     .cancel-label, .notReady-label, .offline-label {
@@ -445,7 +457,13 @@
 
         .icon-step-backward,.icon-angle-left{display: none;}
 
-        .index-queue,i{color: $white; padding-top: 30px}
+        .index-queue,.moving-arrow{color: $white;}
+
+        .icon-rocket-spinner{
+          width: 24px;
+          height: 24px;
+          margin: 0 auto;
+        }
       }
 
 
@@ -758,10 +776,10 @@
     }
     .print-file-row{
       padding: 8px 0px;
-      background: $white;
+      background: $ghost;
       border-radius: 10px;
-      margin-bottom: 4px;
-      box-shadow: 1px 1px 1px 1px rgba(51, 51, 51, 0.05);
+      margin-bottom: 6px;
+      box-shadow: 2px 3px 10px 1px rgba(51, 51, 51, 0.16);
       position: relative;
 
       &.animated{
