@@ -457,11 +457,21 @@ class DebianNetworkManager(NetworkManagerBase):
 						options['connection'] = {
 							'id': ssid
 						}
-
 						(connection, activeConnection) = self._nm.NetworkManager.AddAndActivateConnection(options, wifiDevice, accessPoint)
 
 						try:
 							if connection == activeConnection.Connection and activeConnection.State > 0:
+
+								#remove mac address
+								settings = connection.GetSettings()
+								del settings['802-11-wireless']['mac-address']
+
+								try:
+									connection.Update(settings)
+								except DBusException as e:
+									if e.get_dbus_name() != 'org.freedesktop.DBus.Error.NoReply': #Ignore the NoReply error in this operation
+										raise e
+
 								return {
 									'name': ssid,
 									'id': accessPoint.HwAddress,
