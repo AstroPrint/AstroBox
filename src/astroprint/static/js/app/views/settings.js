@@ -362,7 +362,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
   open: function(params)
   {
-    printerData = params.printerData ? params.printerData : null
+    printerData = params ? params.printerData : null
 
     this._checkManufacturersAndPrinters(printerData);
 
