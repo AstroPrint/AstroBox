@@ -430,7 +430,8 @@ class Server():
 
 		manufacturerPkgManager()
 		ppm = printerProfileManager()
-		pluginManager().loadPlugins()
+		pluginMgr = pluginManager()
+		pluginMgr.loadPlugins()
 
 		eventManager = events.eventManager()
 		printer = printerManager(ppm.data['driver'])
@@ -535,6 +536,10 @@ class Server():
 
 		try:
 			self._ioLoop = IOLoop.instance()
+
+			logger.info("System ready for requests")
+			pluginMgr._fireEvent('ON_SYSTEM_READY')
+
 			self._ioLoop.start()
 
 		except SystemExit:
