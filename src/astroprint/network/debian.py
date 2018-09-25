@@ -198,7 +198,7 @@ class NetworkManagerEvents(threading.Thread):
 							}
 						})
 					else:
-						ap = d.SpecificDevice().ActiveAccessPoint
+						ap = d.ActiveAccessPoint
 						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
 							'status': 'connected',
 							'info': {
@@ -299,14 +299,14 @@ class DebianNetworkManager(NetworkManagerBase):
 
 	def startUp(self):
 		logger.info("Starting communication with Network Manager - version [%s]" % self._nm.NetworkManager.Version )
+
+		#Find out and set the active WiFi Device
+		self._activeWifiDevice = self._getWifiDevice()
 		self._eventListener.start()
 		logger.info('NetworkManagerEvents is listening for signals')
 
 		if not self.settings.getBoolean(['wifi', 'hotspotOnlyOffline']):
 			self.startHotspot()
-
-		#Find out and set the active WiFi Device
-		self._activeWifiDevice = self._getWifiDevice()
 
 	def close(self):
 		self._eventListener.stop()
@@ -325,7 +325,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		networks = {}
 
 		if wifiDevice:
-			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
+			for ap in wifiDevice.GetAccessPoints():
 				try:
 					signal = ap.Strength
 					ssid = ap.Ssid
@@ -360,14 +360,14 @@ class DebianNetworkManager(NetworkManagerBase):
 					if d.DeviceType == self._nm.NM_DEVICE_TYPE_ETHERNET:
 						if not activeConnections['wired']:
 							activeConnections['wired'] = {
-								'id': d.SpecificDevice().HwAddress,
+								'id': d.HwAddress,
 								'ip': self._getIpAddress(d)
 							}
 
 					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
 						if not activeConnections['wireless']:
 
-							ap = d.SpecificDevice().ActiveAccessPoint
+							ap = d.ActiveAccessPoint
 
 							if type(ap) is NetworkManager.AccessPoint:
 								wpaSecured = True if ap.WpaFlags or ap.RsnFlags else False
@@ -399,7 +399,7 @@ class DebianNetworkManager(NetworkManagerBase):
 		if bssid and wifiDevice:
 			accessPoint = None
 
-			for ap in wifiDevice.SpecificDevice().GetAccessPoints():
+			for ap in wifiDevice.GetAccessPoints():
 				if ap.HwAddress == bssid:
 					accessPoint = ap
 					break
@@ -655,12 +655,11 @@ class DebianNetworkManager(NetworkManagerBase):
 # ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
 
 	def _getWifiDevice(self):
-		devices = self._nm.NetworkManager.GetDevices()
 		wifiDevices = []
 
-		for d in devices:
+		for d in self._nm.Device.all():
 			# Return the first MANAGED device that's a WiFi
-			if d.Managed and d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+			if isinstance(d, self._nm.Wireless) and d.Managed:
 				wifiDevices.append(d)
 
 		if wifiDevices:
