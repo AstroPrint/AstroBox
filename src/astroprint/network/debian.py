@@ -189,7 +189,7 @@ class NetworkManagerEvents(threading.Thread):
 						self._monitorActivatingListener = None
 
 					d = self.getActiveConnectionDevice(self._activatingConnection)
-					if d.DeviceType == NetworkManager.NM_DEVICE_TYPE_ETHERNET:
+					if isinstance(d, NetworkManager.Wired):
 						eventManager.fire(Events.INTERNET_CONNECTING_STATUS, {
 							'status': 'connected',
 							'info': {
@@ -357,14 +357,14 @@ class DebianNetworkManager(NetworkManagerBase):
 				if hasattr(c, 'State') and c.State == self._nm.NM_ACTIVE_CONNECTION_STATE_ACTIVATED:
 					d = c.Devices[0]
 
-					if d.DeviceType == self._nm.NM_DEVICE_TYPE_ETHERNET:
+					if isinstance(d, self._nm.Wired):
 						if not activeConnections['wired']:
 							activeConnections['wired'] = {
 								'id': d.HwAddress,
 								'ip': self._getIpAddress(d)
 							}
 
-					elif d.DeviceType == self._nm.NM_DEVICE_TYPE_WIFI:
+					elif isinstance(d, self._nm.Wireless):
 						if not activeConnections['wireless']:
 
 							ap = d.ActiveAccessPoint
