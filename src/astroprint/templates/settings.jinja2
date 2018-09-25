@@ -8,25 +8,25 @@
   <div class="hide-for-small-only medium-5  large-4 columns">
     <div id="settings-side-bar">
       <ul class="side-nav">
-        <li class="heading bold">3D Printer</li>
+        <li class="heading bold"><i class="icon-3d-printer"></i> 3D Printer</li>
         {% if mfDefinition.variant.printer_profile_edit %}
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
-          <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+          <li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
-        <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
+        <li class="temperature-presets"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         {% if mfDefinition.variant.allow_camera_settings %}
-          <li class="heading bold">Camera</li>
+          <li class="heading bold"><i class="icon-camera"></i> Camera</li>
           <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
         {% endif %}
-        <li class="heading bold">Network</li>
+        <li class="heading bold"><i class="icon-signal"></i>Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
-        <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
-        <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
-        <li class="heading bold">Software</li>
+        <li class="internet-connection"><a href="#settings/internet-connection">Internet</a></li>
+        <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
+        <li class="heading bold"><i class="icon-cog"></i>Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
-        <li class="software-license dotted"><a href="#settings/software-license">License</a></li>
-        <li class="software-update dotted"><a href="#settings/software-update">Update</a></li>
-        <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
+        <li class="software-license"><a href="#settings/software-license">License</a></li>
+        <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-advanced"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
   </div>
@@ -118,14 +118,14 @@
       </div>
       <div id="printer-profile" class="settings-page hide">
         <script type="text/template" id="printer-profile-settings-page-template">
-          <div class="row">
+          <div class="row clearfix">
             <div class="small-12">
               <form data-abide="ajax">
                 <label for="settings-printer-driver" class="bold">Printer Model</label>
                 <% if (settings.printer_model.name) { %>
                   <p id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
                     {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button expand">
-                      <a class="button radius success bold change-printer">Change</a>
+                      <a class="button radius small success bold change-printer"><i class="icon-exchange"></i> Change</a>
                       <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
                     </div>
                     {% endif %}
@@ -172,6 +172,18 @@
                   <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
                   <label for="heated-bed"></label>
                 </div>
+                <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                  <label for="max-bed-temp" class="bold">
+                    Max. Bed Temperature
+                  </label>
+                  <div class="row collapse">
+                    <div class="small-9 columns">
+                      <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+                      <small class="error">Invalid Bed Temperature.</small>
+                    </div>
+                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  </div>
+                </div>
                 <label class="bold">
                   Movement
                 </label>
@@ -212,18 +224,6 @@
                       </span>
                       <span class="side-label">Bed Moves</span>
                     </div>
-                  </div>
-                </div>
-                <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-                  <label for="max-bed-temp" class="bold">
-                    Max. Bed Temperature
-                  </label>
-                  <div class="row collapse">
-                    <div class="small-9 columns">
-                      <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-                      <small class="error">Invalid Bed Temperature.</small>
-                    </div>
-                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
                   </div>
                 </div>
                 <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
