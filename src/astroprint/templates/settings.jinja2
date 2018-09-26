@@ -50,6 +50,7 @@
       <script type="text/template" id="printer-connection-settings-page-template">
         <div class="row">
           <div class="small-12">
+          <hr>
             <label class="bold">
               Printer Communications Driver
               <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
@@ -121,21 +122,25 @@
           <div class="row clearfix">
             <div class="small-12">
               <form data-abide="ajax">
-                <label for="settings-printer-driver" class="bold">Printer Model</label>
+
+                <label for="settings-printer-driver" class="bold text-center">Printer Model</label>
                 <% if (settings.printer_model.name) { %>
-                  <p id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
-                    {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button expand">
-                      <a class="button radius small success bold change-printer"><i class="icon-exchange"></i> Change</a>
-                      <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
-                    </div>
-                    {% endif %}
-                  </p>
+                  <div class="text-center">
+                    <h4 id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
+                      {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button  text-center">
+                        <a class="button change-printer icon-button"><i class="icon-exchange"></i><small> Change</small></a>
+                        <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+                      </div>
+                      {% endif %}
+                    </h4>
+                  </div>
                 <% } else { %>
-                  <div class="loading-button expand">
-                      <a class="button radius success bold change-printer">Add Printer</a>
+                  <div class="loading-button expand text-center">
+                      <a class="button radius add-printer change-printer"><i class="icon-plus"></i> Add Printer</a>
                       <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
                     </div>
                 <% } %>
+                 <hr>
                 <label for="settings-printer-driver" class="bold">
                   Driver
                   <select id="settings-printer-driver" name="driver">
@@ -144,46 +149,55 @@
                     <% }) %>
                   </select>
                 </label>
-                <label for="extruder-count" class="bold">
-                  No. of Extruders
-                </label>
-                <select id="extruder-count" name="extruder_count">
-                  <option value='1'>1</option>
-                  <option value='2'>2</option>
-                  <option value='3'>3</option>
-                  <option value='4'>4</option>
-                </select>
-                <div class="input-wrapper">
-                  <label for="max-nozzle-temp" class="bold">
-                    Max. Nozzle Temperature
-                  </label>
-                  <div class="row collapse">
-                    <div class="small-9 columns">
-                      <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-                      <small class="error">Invalid Nozzle Temperature.</small>
+
+                <div class="row clearfix collapse">
+                  <div class="column small-6">
+                  <label for="extruder-count" class="bold">
+                      No. of Extruders
+                    </label>
+                    <select id="extruder-count" name="extruder_count">
+                      <option value='1'>1</option>
+                      <option value='2'>2</option>
+                      <option value='3'>3</option>
+                      <option value='4'>4</option>
+                    </select>
+                  </div>
+
+                  <div class="input-wrapper column small-6">
+                    <label for="max-nozzle-temp" class="bold">
+                      Max. Nozzle Temperature
+                    </label>
+                    <div class="row collapse">
+                      <div class="small-9 columns">
+                        <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+                        <small class="error">Invalid Nozzle Temperature.</small>
+                      </div>
+                      <div class="small-3 columns"><span class="postfix">&deg;C</div>
                     </div>
-                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
                   </div>
                 </div>
-                <label for="heated-bed" class="bold">
-                  Heated Bed
-                </label>
-                <div class="switch radius">
-                  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-                  <label for="heated-bed"></label>
-                </div>
-                <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-                  <label for="max-bed-temp" class="bold">
-                    Max. Bed Temperature
-                  </label>
-                  <div class="row collapse">
-                    <div class="small-9 columns">
-                      <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-                      <small class="error">Invalid Bed Temperature.</small>
+
+                <div class="row clearfix collapse">
+                  <div class="small-6 column">
+                    <label for="heated-bed" class="bold">Heated Bed</label>
+                    <div class="switch radius">
+                      <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+                      <label for="heated-bed"></label>
                     </div>
-                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                  </div>
+
+                  <div class="input-wrapper small-6 column max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                    <label for="max-bed-temp" class="bold">Max. Bed Temperature</label>
+                    <div class="row collapse">
+                      <div class="small-9 columns">
+                        <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+                        <small class="error">Invalid Bed Temperature.</small>
+                      </div>
+                      <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                    </div>
                   </div>
                 </div>
+
                 <label class="bold">
                   Movement
                 </label>
