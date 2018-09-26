@@ -46,7 +46,7 @@ $secondary-bg-image: url('../../../static/images/subtle_zebra_3d.png');
 $tertiary-bg-image: url('../../../static/images/subtle_dots.png');
 
 // border styles
-$basic-border: 1px solid $iron;
+$basic-border: 1px solid lighten($iron,7%);
 $dashed-border: 1px dashed $iron;
 $shadow-inset: inset 0 0 15px rgba(20, 20, 20, 0.5);
 

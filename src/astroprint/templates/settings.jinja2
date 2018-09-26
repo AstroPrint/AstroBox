@@ -141,16 +141,21 @@
                     </div>
                 <% } %>
                  <hr>
-                <label for="settings-printer-driver" class="bold">
-                  Driver
-                  <select id="settings-printer-driver" name="driver">
-                    <% _.each(driverChoices, function(p, k) { %>
-                      <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
-                    <% }) %>
-                  </select>
-                </label>
 
-                <div class="row clearfix collapse">
+                <div class="row clearfix">
+                  <div class="column">
+                    <label for="settings-printer-driver" class="bold">
+                      Driver
+                      <select id="settings-printer-driver" name="driver">
+                        <% _.each(driverChoices, function(p, k) { %>
+                          <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                        <% }) %>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="row clearfix">
                   <div class="column small-6">
                   <label for="extruder-count" class="bold">
                       No. of Extruders
@@ -163,11 +168,19 @@
                     </select>
                   </div>
 
+                  <div class="small-6 column text-center">
+                    <label for="heated-bed" class="bold">Heated Bed</label>
+                    <div class="switch radius danger">
+                      <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+                      <label for="heated-bed"></label>
+                    </div>
+                  </div>
+
                   <div class="input-wrapper column small-6">
-                    <label for="max-nozzle-temp" class="bold">
+                    <label for="max-nozzle-temp" class="bold text-left">
                       Max. Nozzle Temperature
                     </label>
-                    <div class="row collapse">
+                    <div class="row clearfix collapse">
                       <div class="small-9 columns">
                         <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
                         <small class="error">Invalid Nozzle Temperature.</small>
@@ -175,19 +188,9 @@
                       <div class="small-3 columns"><span class="postfix">&deg;C</div>
                     </div>
                   </div>
-                </div>
 
-                <div class="row clearfix collapse">
-                  <div class="small-6 column">
-                    <label for="heated-bed" class="bold">Heated Bed</label>
-                    <div class="switch radius">
-                      <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-                      <label for="heated-bed"></label>
-                    </div>
-                  </div>
-
-                  <div class="input-wrapper small-6 column max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-                    <label for="max-bed-temp" class="bold">Max. Bed Temperature</label>
+                  <div class="input-wrapper text-center small-6 column max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                    <label for="max-bed-temp" class="bold text-left">Max. Bed Temperature</label>
                     <div class="row collapse">
                       <div class="small-9 columns">
                         <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
@@ -198,12 +201,11 @@
                   </div>
                 </div>
 
-                <label class="bold">
-                  Movement
-                </label>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-x-axis"></i> X</div>
-                  <div class="small-8 large-10 columns">
+                <div class="row movement clearfix">
+
+                  <label class="bold column">Movement</label>
+                  <div class="small-4 text-center columns">
+                    <div class="bold"><i class="icon-x-axis"></i> X</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -213,10 +215,9 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
-                </div>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-y-axis"></i> Y</div>
-                  <div class="small-8 large-10 columns">
+
+                  <div class="small-4 text-center columns">
+                    <div class="bold"><i class="icon-y-axis"></i> Y</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -226,10 +227,9 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
-                </div>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-z-axis"></i> Z</div>
-                  <div class="small-8 large-10 columns">
+
+                  <div class="small-4 text-center columns">
+                    <div class="bold"><i class="icon-z-axis"></i> Z</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -239,7 +239,9 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
+
                 </div>
+
                 <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                   <label for="cancel-gcode" class="bold">
                     Cancel GCODE

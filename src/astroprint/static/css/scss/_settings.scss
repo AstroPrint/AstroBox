@@ -1,6 +1,6 @@
 .row.container {
   background: #fff;
-  border: 1px solid #ccc;
+  border: $basic-border;
   @include radius($global-radius);
 }
 
@@ -25,7 +25,7 @@
   padding: 0;
   height: 100%;
   margin: 0;
-  border-right: 1px solid #ccc;
+  border-right: $basic-border;
 
   .side-nav {
     padding-top: 0;
@@ -34,18 +34,18 @@
       margin: 0;
 
       a {
-        padding: 10px 20px 10px 52px;
+        padding: 10px 20px 10px 50px;
         color: $base;
       }
 
       &.heading {
         //background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
         //border-bottom: 1px solid #ccc;
-        border-top: 1px solid #ccc;
-        color: #505050;
-        font-size: rem-calc(18);
-        letter-spacing: 1px;
-        padding: 20px 20px 5px 20px;
+        border-top: $basic-border;
+        color: $charcoal;
+        font-size: rem-calc(19);
+        letter-spacing: 1.5px;
+        padding: 15px 15px 5px 15px;
       }
 
       &.heading:first-child {
@@ -53,8 +53,6 @@
       }
 
       &.active {
-        background-color: #fafafa;
-
         a {
           color: $success-color;
         }
@@ -139,23 +137,46 @@
 #printer-profile {
   .toggle {
     .side-label {
-      position: relative;
-      top: -10px;
-      font-size: rem-calc(12);
+      vertical-align: top;
+      font-size: rem-calc(10);
+      max-width: 34px;
+      line-height: 120%;
+      display: inline-block;
     }
 
     .switch {
-      margin: 0px 10px;
-
       label {
+        margin-bottom: 1rem;
         background: #666;
       }
     }
   }
 
+  input + label[for=heated-bed]{margin-bottom: 1rem;}
+
+  .change-printer{
+    width: auto;
+    max-width: 270px;
+    margin-bottom: 0;
+
+    &.icon-button{
+      padding: 10px;
+      background: transparent;
+
+      i{color:$green; font-size: 22px;}
+    }
+
+    small{letter-spacing: 1px; color:$green;}
+  }
+
   .movement {
+    margin: 20px auto;
+    border-radius: 15px;
+    padding: 10px 0 0 0;
+    background: darken($ghost,2%);
+
     i {
-      font-size: 25px;
+      font-size: rem-calc(30);
       vertical-align: middle;
     }
   }
@@ -520,24 +541,14 @@
 .settings-page {
   padding: 20px;
 
-  .change-printer{
-    width: auto;
-    max-width: 270px;
-    margin-bottom: 0;
-
-    &.icon-button{
-      padding: 10px;
-      background: transparent;
-
-      i{color:$green; font-size: 22px;}
-    }
-
-    small{letter-spacing: 1px; color:$green;}
+  input,select{
+    font-family: $font-family-bold;
   }
 
   label {
     font-size: rem-calc(16);
-    margin-bottom: 4px;
+    margin-bottom: 3px;
+    //font-family: $font-family-normal;
   }
 
   .serial-container {
