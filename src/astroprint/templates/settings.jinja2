@@ -164,7 +164,7 @@
                 </div>
 
                 <div class="row clearfix">
-                  <div class="column small-6">
+                  <div class="column medium-6">
                   <label for="extruder-count" class="bold">
                       No. of Extruders
                     </label>
@@ -176,13 +176,15 @@
                     </select>
                   </div>
 
-                  <div class="small-6 column text-center">
+                  <div class="medium-6 column text-center">
                     <label for="heated-bed" class="bold">Heated Bed</label>
                     <div class="switch radius danger">
                       <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
                       <label for="heated-bed"></label>
                     </div>
                   </div>
+
+                  <div class="clearfix"></div>
 
                   <div class="input-wrapper column small-6">
                     <label for="max-nozzle-temp" class="bold text-left">
@@ -212,7 +214,7 @@
                 <div class="row movement clearfix">
 
                   <label class="bold column">Movement</label>
-                  <div class="small-4 text-center columns">
+                  <div class="medium-4 text-center columns">
                     <div class="bold"><i class="icon-x-axis"></i> X</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
@@ -224,7 +226,7 @@
                     </div>
                   </div>
 
-                  <div class="small-4 text-center columns">
+                  <div class="medium-4 text-center columns">
                     <div class="bold"><i class="icon-y-axis"></i> Y</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
@@ -236,7 +238,7 @@
                     </div>
                   </div>
 
-                  <div class="small-4 text-center columns">
+                  <div class="medium-4 text-center columns">
                     <div class="bold"><i class="icon-z-axis"></i> Z</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
