@@ -227,8 +227,7 @@
 
     .row {
       position: relative;
-      background-color: #fdfdfd;
-      cursor: pointer;
+      background-color: $ghost;
       //padding: 2px 0;
       margin-bottom: 3px;
 
@@ -466,27 +465,22 @@
         background: $ghost;
         //transform: scale(0.95);
       }
-
-      &:hover{
-        background: lighten($primary-color, 36%);
-      }
     }
 
     .empty {
-      color: $ghost;
+      color: $iron;
       font-size: rem-calc(45);
-      box-shadow: inset -2px -2px 2px hsla(0, 0%, 0%, 0.1);
+      box-shadow: inset -4px -6px 12px rgba(0, 0, 0, 0.05);
       border-top: 0;
 
       h3 {
-        color: #ccc;
-        font-size: rem-calc(45);
-        line-height: 1.3em;
+        color: $iron;
+        font-size: rem-calc(20);
+        margin-bottom: 10px;
       }
 
       .empty-icon {
         display: block;
-        margin: 15px 0;
       }
     }
   }
