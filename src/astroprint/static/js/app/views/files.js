@@ -522,7 +522,7 @@ var PrintFilesListView = Backbone.View.extend({
           if (selectedStorage == 'cloud') {
             var unmatchedFileViews = []
             var matchedFileViews = _.filter(this.print_file_views, function(p){
-              if (!p.print_file.get('local_only') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
+              if (!p.print_file.get('local_only') && p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
                 return true;
               } else if (!p.print_file.get('local_only')) {
                 unmatchedFileViews.push(p)
