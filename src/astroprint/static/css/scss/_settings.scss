@@ -30,22 +30,22 @@
   .side-nav {
     padding-top: 0;
     li {
-      font-size: rem-calc(16);
+      font-size: rem-calc(15);
       margin: 0;
 
       a {
-        padding: 10px 20px 10px 50px;
+        padding: 8px 20px 8px 50px;
         color: $base;
       }
 
       &.heading {
         //background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
         //border-bottom: 1px solid #ccc;
-        border-top: $basic-border;
+        //border-top: $basic-border;
         color: $charcoal;
         font-size: rem-calc(19);
         letter-spacing: 1.5px;
-        padding: 15px 15px 5px 15px;
+        padding: 25px 15px 5px 15px;
       }
 
       &.heading:first-child {
@@ -54,6 +54,7 @@
 
       &.active {
         a {
+          font-family: $font-family-bold;
           color: $success-color;
         }
       }
@@ -63,6 +64,7 @@
 
 #printer-connection {
   label {
+    padding: 10px 0;
     p {
       font-family: $body-font-family;
     }
@@ -70,19 +72,42 @@
 
   .connection-status {
     text-align: center;
+    background-size: 100% 5px;
+    box-shadow: inset 5px 5px 0 9px #000000;
+    background: $jet;
+    border-radius: 16px;
+    max-width: 470px;
+    margin: 0 auto;
+
+    .arcade-backg{
+      background: linear-gradient(180deg,transparent 50%,rgba(89, 205, 144, 0.15) 51%);
+      background-size: 100% 5px;
+      border-radius: 16px;
+      min-height:85px;
+      display: flex;
+      justify-content: center;
+      opacity: 1;
+      flex-direction: column;
+      animation: example 500ms infinite linear;
+      letter-spacing: 1.5px;
+      padding-top: 10px;
+    }
+
+    @keyframes example {
+      from {background-size: 100% 5px; opacity: 0.7;}
+      to {background-size: 100% 6px; opacity: 1;}
+  }
 
     span {
       display: none;
-      font-size: rem-calc(25);
+      font-size: rem-calc(20);
     }
   }
 
   &.connecting {
     span.connecting {
       display: inline-block;
-      i {
-        color: $success-color;
-      }
+      color: $success-color;
     }
 
     .loading-button {
@@ -96,9 +121,7 @@
   &.failed {
     span.failed {
       display: inline-block;
-      i {
-        color: $alert-color;
-      }
+      color: #ff604c;
     }
 
     .loading-button {
@@ -112,9 +135,7 @@
   &.connected {
     span.connected {
       display: inline-block;
-      i {
-        color: $success-color;
-      }
+      color: #4dd1b1;
     }
 
     .loading-button {
@@ -135,6 +156,10 @@
 }
 
 #printer-profile {
+
+  .save-profile button{
+    margin-bottom: 0;
+  }
   .toggle {
     .side-label {
       vertical-align: top;
@@ -157,16 +182,17 @@
   .change-printer{
     width: auto;
     max-width: 270px;
-    margin-bottom: 0;
+    margin-bottom: 10px;
+    box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
+
 
     &.icon-button{
       padding: 10px;
       background: transparent;
+      color:$green;
 
-      i{color:$green; font-size: 22px;}
+      i{color:$green; font-size: rem-calc(20);}
     }
-
-    small{letter-spacing: 1px; color:$green;}
   }
 
   .movement {
@@ -227,13 +253,21 @@
   .connection {
     padding: 10px 0;
 
+    .not-connected{
+      color: $alert-color;
+      img{
+        height: 17px;
+        margin-right: 8px;
+      }
+    }
+
     .ip-address {
       font-size: rem-calc(16);
       color: #a5a5a5;
     }
 
     .loading-button {
-      margin-top: 10px;
+      margin-top: 20px;
     }
   }
 
@@ -256,6 +290,7 @@
 
       .action i {
         color: $alert-color;
+        font-size: 28px;
       }
 
       .active i {
@@ -448,6 +483,7 @@
   .installed {
     > .row {
       .name {
+        padding-top: 10px;
         .version {
           font-size: rem-calc(12);
           color: #ccc;
@@ -460,6 +496,7 @@
 
       .icon-trash {
         color: $alert-color;
+        font-size: 28px;
       }
     }
 
@@ -480,9 +517,12 @@
     display: table;
 
     h1 {
-      height: 100px;
+      height: 80px;
       font-size: 30px;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
     }
 
     .certificate-icon {

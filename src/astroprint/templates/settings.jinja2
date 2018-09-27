@@ -7,22 +7,22 @@
 <div class="row collapse container">
   <div class="hide-for-small-only medium-5  large-4 columns">
     <div id="settings-side-bar">
-      <ul class="side-nav">
-        <li class="heading bold"><i class="icon-3d-printer"></i> 3D Printer</li>
+      <ul class="side-nav bold">
+        <li class="heading"><i class="icon-3d-printer"></i> 3D Printer</li>
         {% if mfDefinition.variant.printer_profile_edit %}
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
           <li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
         <li class="temperature-presets"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         {% if mfDefinition.variant.allow_camera_settings %}
-          <li class="heading bold"><i class="icon-camera"></i> Camera</li>
+          <li class="heading"><i class="icon-camera"></i> Camera</li>
           <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
         {% endif %}
-        <li class="heading bold"><i class="icon-signal"></i>Network</li>
+        <li class="heading"><i class="icon-signal"></i>Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection"><a href="#settings/internet-connection">Internet</a></li>
         <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
-        <li class="heading bold"><i class="icon-cog"></i>Software</li>
+        <li class="heading"><i class="icon-cog"></i> Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
         <li class="software-license"><a href="#settings/software-license">License</a></li>
         <li class="software-update"><a href="#settings/software-update">Update</a></li>
@@ -37,8 +37,8 @@
         <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
       </div>
       <div id="printer-connection" class="settings-page">
-        <div class="row connection-status">
-          <div class="small-12">
+        <div class="row connection-status clearfix">
+          <div class="small-12 columns arcade-backg">
             <span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
             <span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
             <span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
@@ -48,15 +48,15 @@
       </div>
 
       <script type="text/template" id="printer-connection-settings-page-template">
-        <div class="row">
-          <div class="small-12">
+        <div class="row clearfix">
+          <div class="small-12 columns text-center">
           <hr>
             <label class="bold">
               Printer Communications Driver
-              <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+              <p><%= settings.driverName %> (<a href="#settings/printer-profile"> <i class="icon-exchange"></i><b>change</b></a>)</p>
             </label>
             <label for="settings-serial-port" class="bold">
-              USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
+              USB Device (<a href="#" class="retry-ports bold"><i class="icon-refresh"></i> Re-scan</a>)
               <% if (settings.serial.portOptions.length > 0) { %>
                 <% if (settings.serial.portOptions.length > 1) { %>
                   <select id="settings-serial-port" name="port">
@@ -99,15 +99,15 @@
         <% if (settings.serial.portOptions.length > 0)  { %>
           <div align="center">
             <div class="loading-button connect">
-              <button class="success radius">Connect</button>
+              <button class="success round">Connect</button>
               <span class="button disabled radius success loading">Connecting...</span>
             </div>
             <div class="loading-button disconnect">
-              <button class="alert radius">Disconnect</button>
+              <button class="alert round">Disconnect</button>
               <span class="button disabled radius alert loading">Disconnecting...</span>
             </div>
             <div class="loading-button reconnect">
-              <button class="success radius">Re-connect</button>
+              <button class="success round">Re-connect</button>
               <span class="button disabled radius success loading">Re-connecting...</span>
             </div>
           </div>
@@ -123,12 +123,21 @@
             <div class="small-12">
               <form data-abide="ajax">
 
+                <div class="clearfix text-right save-profile">
+                  <div class="loading-button right">
+                    <button class="success radius">Save Profile</button>
+                    <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+                  </div>
+                </div>
+
+                <hr>
+
                 <label for="settings-printer-driver" class="bold text-center">Printer Model</label>
                 <% if (settings.printer_model.name) { %>
                   <div class="text-center">
                     <h4 id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
                       {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button  text-center">
-                        <a class="button change-printer icon-button"><i class="icon-exchange"></i><small> Change</small></a>
+                        <a class="button change-printer icon-button"><i class="icon-exchange"></i><b> Change</b></a>
                         <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
                       </div>
                       {% endif %}
@@ -136,11 +145,10 @@
                   </div>
                 <% } else { %>
                   <div class="loading-button expand text-center">
-                      <a class="button radius add-printer change-printer"><i class="icon-plus"></i> Add Printer</a>
+                      <a class="button radius add-printer small change-printer"><i class="icon-plus"></i> Add Printer</a>
                       <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
                     </div>
                 <% } %>
-                 <hr>
 
                 <div class="row clearfix">
                   <div class="column">
@@ -248,11 +256,8 @@
                   </label>
                   <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
                 </div>
-                <hr/>
-                <div class="loading-button">
-                  <button class="success radius">Save Profile</button>
-                  <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-                </div>
+
+
               </form>
             </div>
           </div>
@@ -544,7 +549,7 @@
               <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
             </ul>
             <hr/>
-            <div class="loading-button">
+            <div class="loading-button right">
               <button class="success radius">Save</button>
               <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
             </div>
@@ -557,7 +562,7 @@
       <a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
     </div>
 
-    <div id="internet-connection" class="settings-page hide"></div>
+    <div id="internet-connection" class="settings-page text-center hide"></div>
     <div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
       <h2 class="bold">Select a WiFi Network</h2>
       <div class="modal-content"></div>
@@ -631,7 +636,7 @@
         <div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
       <% } %>
       <% if (settings.hasWifi) { %>
-        <hr/>
+
         <div class="connection">
           <h3 class="bold">Wireless Connection</h3>
           <% if (settings.networks.wireless) { %>
@@ -645,7 +650,7 @@
             Connected to <b><%= settings.networks.wireless.name %></b>.
             <div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
           <% } else { %>
-            Not Connected.
+            <div class="not-connected"><img src="/img/no-internet-icon.png" /> Not Connected.</div>
           <% } %>
           <div class="loading-button list-networks">
             <button class="radius small">Scan WiFi networks</button>
@@ -660,8 +665,8 @@
         <h3 class="bold">Known WiFi Networks</h3>
         <div class="stored-wifis element-list">
           <% _.each(settings.storedWifiNetworks, function(c) { %>
-            <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
-              <div class="columns small-2 large-1 active">
+            <div class="clearfix collapse row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
+              <div class="columns small-2 large-1 text-center active">
                 <i class="icon-exchange" title="Currently Connected"></i>
               </div>
               <div class="columns small-8 large-10 name">
