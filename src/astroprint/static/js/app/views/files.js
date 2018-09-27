@@ -557,6 +557,7 @@ var PrintFilesListView = Backbone.View.extend({
         matchedFilesFound = true;
       } else {
         listFilteredEl.find('.header-filter').hide();
+        listFilteredEl.hide()
       }
 
       // Unmatched files
