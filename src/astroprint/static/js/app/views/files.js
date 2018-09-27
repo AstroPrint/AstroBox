@@ -498,7 +498,7 @@ var PrintFilesListView = Backbone.View.extend({
 
         if (this.usb_file_views.length == 1 && this.usb_file_views[0] instanceof BackFolderView) {
           listNoFilteredContainer.append(
-            '<div class="empty panel radius" align="center">' +
+            '<div class="empty panel row clearfix radius" align="center">' +
             ' <i class="icon-inbox empty-icon"></i>' +
             ' <h3>No Printable files.</h3>' +
             '</div>'
@@ -506,7 +506,7 @@ var PrintFilesListView = Backbone.View.extend({
         }
       } else {
         listNoFilteredContainer.append(
-          '<div class="empty panel radius" align="center">' +
+          '<div class="empty panel row clearfix radius" align="center">' +
           ' <i class="icon-inbox empty-icon"></i>' +
           ' <h3>No External Drives Connected.</h3>' +
           '</div>'
@@ -585,7 +585,7 @@ var PrintFilesListView = Backbone.View.extend({
       // No files => show Empty Template
       if (!matchedFilesFound && !unmatchedFilesFound) {
         listNoFilteredContainer.html(
-          '<div class="empty panel radius" align="center">'+
+          '<div class="empty panel row clearfix radius" align="center">'+
           ' <i class="icon-inbox empty-icon"></i>'+
           ' <h3>Nothing here yet.</h3>'+
           '</div>');
