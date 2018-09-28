@@ -61,12 +61,12 @@
       </div>
       {%- if printer_profile.printer_model.id %}
 			<div class="design-filtered-list">
-        <div class="header-filter bold" >Matching your <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b></div>
+        <div class="header-filter" >Matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b></div>
         <div class="container-files"></div>
       </div>
       {% endif %}
 			<div class="design-list">
-        <div class="header-filter bold unmatch" >{%- if printer_profile.printer_model.id %} Unmatching your <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
+        <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Unmatching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
         <div class="container-files"></div>
       </div>
 		</div>

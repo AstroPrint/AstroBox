@@ -152,18 +152,25 @@
 
   .matching-container{background: $white;}
   .header-filter {
-    display: none;
-    background: #add;
-    border-radius: 12px 12px 0 0;
+    display: inline-block;
+    border-radius: 0px 12px 0 12px;
     text-align: center;
-    width: 272px;
-    padding: 3px;
+    padding: 2px 15px 0 25px;
+    margin-top: 5px;
+    letter-spacing: 1px;
+    font-size: 14px;
+    background: linear-gradient(to right, $blue, #4dd1b1);
+    color: $white;
+    opacity: 0.9;
+    margin-left: -25px;
+
     &.unmatch {
-      background: $iron;
+      background: $charcoal;
+      background: linear-gradient(to right, $orange, $alert-color);
     }
   }
   .container-files {
-    margin-bottom: 55px;
+    margin-bottom: 40px;
 
     .div-container{
       position: relative;
