@@ -1,3 +1,10 @@
+{% block js %}
+  <script type="text/javascript">
+    var initial_states = {
+      userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
+    };
+  </script>
+{% endblock %}
 <div class="row heading">
 	<div class="small-12 title-heading">
 		<h1 class="bold">{{astroboxName}}</h1>
@@ -40,6 +47,13 @@
 				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
 			</a>
 				<h1 class="bold">File Manager</h1>
+    </li>
+    <li>
+			<a id="queue-app"><div class="app-image">
+				<img src="//cloud.astroprint.test/img/print-queues.png" alt="file manager icon"/>
+				<div class="overlay"><div class="contain"><h4 class="bold">Launch</h4></div></div></div>
+			</a>
+				<h1 class="bold">Print Queue</h1>
 		</li>
 		<li>
 			<a href="#utilities"><div class="app-image">

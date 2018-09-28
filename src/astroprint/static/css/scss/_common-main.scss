@@ -8,7 +8,8 @@ body {
 	-moz-user-select: none;
 	-webkit-user-select: none;
 	-ms-user-select:none;
-	user-select:none;
+  user-select:none;
+  letter-spacing: 0.3px;
 
   .can-select {
     -moz-user-select: text;
@@ -28,8 +29,22 @@ strong,
 	position: fixed;
 }
 
+.progress-container{
+  .progress-label{
+    color: $charcoal;
+    letter-spacing: 1px;
+    font-size: 20px;
+  }
+}
+
+.progress{
+  .meter{border-radius: $global-radius;}
+}
+
 .reveal-modal {
   padding: 0;
+
+  .reveal-content{padding: 20px 20px 10px 20px}
 
   h2 {
     width: 100%;
@@ -60,4 +75,23 @@ strong,
   .modal-actions {
     padding: 0px 20px;
   }
+}
+/* Badges used for information */
+.badge {
+  position:relative;
+}
+.badge[data-badge]:after {
+  content:attr(data-badge);
+  position:absolute;
+  top:-3px;
+  left:36px;
+  font-size:.8em;
+  font-weight: bold;
+  background:#F05151;
+  color:white;
+  width:20px;height:20px;
+  text-align:center;
+  line-height:20px;
+  border-radius:50%;
+  font-family: monospace;font-style: normal;
 }

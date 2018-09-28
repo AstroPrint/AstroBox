@@ -1,9 +1,10 @@
-.animate-spin {
+.animate-spin:before {
   -moz-animation: spin 2s infinite linear;
   -o-animation: spin 2s infinite linear;
   -webkit-animation: spin 2s infinite linear;
   animation: spin 2s infinite linear;
   display: inline-block;
+  margin: 0;
 }
 @-moz-keyframes spin {
   0% {
