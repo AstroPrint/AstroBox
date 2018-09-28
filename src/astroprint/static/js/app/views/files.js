@@ -758,7 +758,7 @@ var PrintFilesListView = Backbone.View.extend({
   },
   getFilesOnQueue: function ()
   {
-    let promise = $.Deferred();
+    var promise = $.Deferred();
 
     if (initial_states.userLogged) {
       this.hasQueueAccess()
