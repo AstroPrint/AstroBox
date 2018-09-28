@@ -6,9 +6,14 @@ import socket, urllib2, subprocess
 
 from sys import platform
 
+from octoprint.settings import settings
+
 from astroprint.ro_config import roConfig
 
 class NetworkManager(object):
+def __init__(self):
+		self.settings = settings()
+
 	def isAstroprintReachable(self):
 		try:
 			urllib2.urlopen("%s/check" % roConfig('cloud.apiHost'),timeout=1)
