@@ -4,17 +4,14 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import socket, urllib2, subprocess
 
-from octoprint.settings import settings
-
 from sys import platform
 
-class NetworkManager(object):
-	def __init__(self):
-		self.settings = settings()
+from astroprint.ro_config import roConfig
 
+class NetworkManager(object):
 	def isAstroprintReachable(self):
 		try:
-			urllib2.urlopen("%s/check" % settings().get(['cloudSlicer','apiHost']),timeout=1)
+			urllib2.urlopen("%s/check" % roConfig('cloud.apiHost'),timeout=1)
 			return True
 
 		except urllib2.URLError:

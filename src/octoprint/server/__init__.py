@@ -73,6 +73,7 @@ from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.ro_config import roConfig
 
 UI_API_KEY = None
 VERSION = None
@@ -178,8 +179,8 @@ def index():
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
-			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
-			apApiClientId= s.getString(['cloudSlicer', 'apiClientId']),
+			apApiHost= roConfig('cloud.apiHost'),
+			apApiClientId= roConfig('cloud.apiClientId'),
 			boxId= boxrouterManager().boxId
 		)
 

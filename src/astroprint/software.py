@@ -34,6 +34,7 @@ from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
 from astroprint.boxrouter import boxrouterManager
+from astroprint.ro_config import roConfig
 
 if platformStr != 'darwin':
 	import apt.debfile
@@ -453,9 +454,9 @@ class SoftwareManager(object):
 					return #When we find the first force that's enough
 
 	def checkSoftwareVersion(self):
-		apiHost = self._settings.get(['cloudSlicer','apiHost'])
+		apiHost = roConfig('cloud.apiHost')
 		if not apiHost:
-			self._logger.error('cloudSlicer.apiHost not present in config file.')
+			self._logger.error('cloud.apiHost not present in ro config file.')
 			return None
 
 		try:
@@ -520,7 +521,7 @@ class SoftwareManager(object):
 		for rel in releases:
 			try:
 				r = requests.get(
-					'%s/astrobox/software/release/%s' % (self._settings.get(['cloudSlicer','apiHost']), rel),
+					'%s/astrobox/software/release/%s' % (roConfig('cloud.apiHost'), rel),
 					auth = self._checkAuth(),
 					headers = self._requestHeaders
 				)
@@ -646,7 +647,7 @@ class SoftwareManager(object):
 
 		#send the file to the server
 		r = requests.post(
-			'%s/astrobox/software/logs' % (self._settings.get(['cloudSlicer','apiHost'])),
+			'%s/astrobox/software/logs' % roConfig('cloud.apiHost'),
 			data = { 'ticket': ticketNo, 'message': message, 'boxId': boxId},
 			files = {'file': (zipFilename, zipf)},
 			auth = self._checkAuth(),
