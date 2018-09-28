@@ -11,7 +11,7 @@ from octoprint.settings import settings
 from astroprint.ro_config import roConfig
 
 class NetworkManager(object):
-def __init__(self):
+	def __init__(self):
 		self.settings = settings()
 
 	def isAstroprintReachable(self):
