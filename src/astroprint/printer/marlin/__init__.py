@@ -112,7 +112,7 @@ class PrinterMarlin(Printer):
 			regex = re.compile(r"\/dev\/cu\.usb(?:serial|modem)[\w-]+")
 		elif "linux" in platform:
 			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
-			regex = re.compile(r"\/dev\/tty(?:ACM|USB|)[0-9]+")
+			regex = re.compile(r"\/dev\/tty(?:ACM|USB|AMA)[0-9]+")
 
 		for p in serial.tools.list_ports.comports():
 			if regex.match(p.device) is not None:
