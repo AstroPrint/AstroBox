@@ -572,15 +572,14 @@
 
       a {
         color: $body-font-color;
-
         &:hover,
         &:active {
           color: $success-color;
-
-          &.remove {
-            color: $alert-color;
-          }
         }
+        &.remove {
+          color: $alert-color;
+        }
+
 
         &.delete {
           color: $alert-color;
