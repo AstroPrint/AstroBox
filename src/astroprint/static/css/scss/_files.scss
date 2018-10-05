@@ -332,6 +332,7 @@
         position: relative;
         min-height: 60px;
         color: $steel;
+        text-align: right;
 
         .download-progress,
         .download-failed, .loading button {
@@ -572,15 +573,14 @@
 
       a {
         color: $body-font-color;
-
         &:hover,
         &:active {
           color: $success-color;
-
-          &.remove {
-            color: $alert-color;
-          }
         }
+        &.remove {
+          color: $alert-color;
+        }
+
 
         &.delete {
           color: $alert-color;
