@@ -870,8 +870,7 @@ var FilesView = Backbone.View.extend({
   uploadView: null,
   printFilesListView: null,
   events: {
-    'show': 'onShow',
-    'hide': 'onHide'
+    'show': 'onShow'
   },
 
   onShow: function()
