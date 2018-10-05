@@ -9,7 +9,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
   file_list_view: null,
   template: _.template( $("#printfile-info-template").html() ),
   print_file_view: null,
-  filesOnQueue: null,
+  queueAllowed: false,
   events: {
     'click .actions a.remove': 'onDeleteClicked',
     'click .actions a.print': 'onPrintClicked',
@@ -19,13 +19,13 @@ var PrintFileInfoDialog = Backbone.View.extend({
   initialize: function(params)
   {
     this.file_list_view = params.file_list_view;
-    this.filesOnQueue = params.filesOnQueue;
+    this.queueAllowed = params.queueAllowed;
   },
   render: function()
   {
     this.$el.find('.dlg-content').html(this.template({
       p: this.print_file_view.print_file.toJSON(),
-      filesOnQueue: this.filesOnQueue,
+      queueAllowed: this.queueAllowed,
       time_format: app.utils.timeFormat
     }));
   },
@@ -75,6 +75,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
   onAddToQueueClicked: function(e)
   {
     this.print_file_view.addToQueueClicked(e);
+    this.file_list_view.doSync();
   },
   onPrintClicked: function(e)
   {
@@ -191,7 +192,7 @@ var PrintFileView = Backbone.View.extend({
   list: null,
   printWhenDownloaded: false,
   downloadProgress: null,
-  filesOnQueue: null,
+  queueAllowed: false,
   events: {
     'click .left-section, .middle-section': 'infoClicked',
     'click a.print': 'printClicked',
@@ -203,7 +204,7 @@ var PrintFileView = Backbone.View.extend({
   {
     this.list = options.list;
     this.print_file = options.print_file;
-    this.filesOnQueue = options.filesOnQueue;
+    this.queueAllowed = options.queueAllowed;
   },
   slideName: function () {
     if (!this.$(".div-container").size() || this.$(".div-container").width()<=0) {
@@ -234,7 +235,7 @@ var PrintFileView = Backbone.View.extend({
     this.downloadProgress = null;
     this.$el.html(this.template({
       p: print_file,
-      filesOnQueue: this.filesOnQueue,
+      queueAllowed: this.queueAllowed,
       time_format: app.utils.timeFormat,
       size_format: app.utils.sizeFormat
     }));
@@ -246,7 +247,6 @@ var PrintFileView = Backbone.View.extend({
   infoClicked: function(evt)
   {
     if (evt) evt.preventDefault();
-
     this.list.info_dialog.open(this);
   },
   downloadClicked: function(evt)
@@ -415,7 +415,8 @@ var PrintFilesListView = Backbone.View.extend({
   last_refresh: 0,
   refreshing: false,
   need_to_be_refreshed: false,
-  filesOnQueue: null,
+  filesOnQueue: 0,
+  queueAllowed: false,
   mainView: null,
   events: {
     'click .list-header button.sync': 'onSyncClicked'
@@ -438,9 +439,15 @@ var PrintFilesListView = Backbone.View.extend({
 
     this.getFilesOnQueue().then()
     .done(_.bind(function (filesOnQueue) {
-      this.filesOnQueue = filesOnQueue;
+      if (filesOnQueue != "no_queue_allowed") {
+        this.filesOnQueue = filesOnQueue;
+        this.queueAllowed = true;
+      } else {
+        this.queueAllowed = false;
+      }
+
       this.refresh('local', options.syncCompleted);
-      this.info_dialog = new PrintFileInfoDialog({ filesOnQueue: this.filesOnQueue, file_list_view: this });
+      this.info_dialog = new PrintFileInfoDialog({ queueAllowed: this.queueAllowed, file_list_view: this });
       this.usbfile_list = new USBFileCollection();
     }, this))
     .fail(_.bind(function (e) {
@@ -589,11 +596,11 @@ var PrintFilesListView = Backbone.View.extend({
       }
     }
 
-    if (!this.filesOnQueue) {
+    if (!this.queueAllowed) {
       this.$el.removeClass('queued')
     } else {
       this.$el.addClass('queued')
-      this.$('#files-on-queue span').text(this.filesOnQueue);
+      this.$('#files-on-queue .counter-queue').text(this.filesOnQueue);
     }
   },
   refresh: function(kindOfSync, doneCb)
@@ -623,11 +630,11 @@ var PrintFilesListView = Backbone.View.extend({
         syncPromise
           .done(_.bind(function(){
             this.print_file_views = [];
-            this.file_list.each(_.bind(function(print_file, idx) {
+            this.file_list.each(_.bind(function(print_file) {
               var print_file_view = new PrintFileView({
                 list: this,
                 print_file: print_file,
-                filesOnQueue: this.filesOnQueue,
+                queueAllowed: this.queueAllowed,
                 attributes: {'class': 'row'}
               });
               print_file_view.render();
@@ -739,9 +746,16 @@ var PrintFilesListView = Backbone.View.extend({
   {
     this.getFilesOnQueue().then()
     .done(_.bind(function (filesOnQueue) {
-      this.filesOnQueue = filesOnQueue;
+      if (filesOnQueue != "no_queue_allowed") {
+        this.filesOnQueue = filesOnQueue;
+        this.queueAllowed = true;
+      } else {
+        this.filesOnQueue = 0;
+        this.queueAllowed = false;
+      }
+
       if (this.info_dialog) {
-        this.info_dialog.filesOnQueue = this.filesOnQueue
+        this.info_dialog.queueAllowed = this.queueAllowed
       }
       // Sync
       switch (this.storage_control_view.selected) {
@@ -774,7 +788,7 @@ var PrintFilesListView = Backbone.View.extend({
                 promise.resolve(0);
               }, this));
           } else {
-            promise.resolve(0); // No queue_allowed, if 0 not showing queue UI
+            promise.resolve("no_queue_allowed"); // No queue_allowed, if 0 not showing queue UI
           }
         }, this))
         .fail(_.bind(function () {
@@ -855,6 +869,16 @@ var FilesView = Backbone.View.extend({
   el: '#files-view',
   uploadView: null,
   printFilesListView: null,
+  events: {
+    'show': 'onShow',
+    'hide': 'onHide'
+  },
+
+  onShow: function()
+  {
+    this.printFilesListView.doSync();
+  },
+
   initialize: function(options)
   {
     this.uploadView = new UploadView({
