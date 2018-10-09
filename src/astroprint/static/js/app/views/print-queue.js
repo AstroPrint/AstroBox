@@ -1019,13 +1019,14 @@ var PrintLaterContainerView = Backbone.View.extend({
 
   render: function ()
   {
-    this.$el.empty();
+    var container = this.$el.find('.container');
+    container.empty();
 
     if (this.printLaterFiles.length) {
       this.printLaterFiles.each(function (printFile, pos) {
         var row = new PrintFileRowView({ printFile: printFile, laterContainer: this });
         this.printLaterFile_views[printFile.get('id')] = row;
-        this.$el.append(row.render().el);
+        container.append(row.render().el);
       }, this);
       $(document).foundation('dropdown', 'reflow');
     }
@@ -1033,18 +1034,22 @@ var PrintLaterContainerView = Backbone.View.extend({
 
   checkNoLaterFiles: function ()
   {
-    var animationTime = 1100;
+    var noFilesContainer = this.$('#no-printFiles');
 
-    setTimeout(_.bind(function () {
-      if (this.printLaterFiles.length <= 0) {
-        this.$('#no-printFiles').show();
-        this.$('#no-printFiles').addClass('animated flipInX');
+    if (this.printLaterFiles.length <= 0) {
+      if (noFilesContainer.is(":hidden")) {
+        noFilesContainer.show();
+        noFilesContainer.addClass('animated flipInX');
       }
-    }, this), animationTime);
+    } else {
+      if (noFilesContainer.is(":visible")) {
+        noFilesContainer.hide();
+      }
+    }
 
     setTimeout(_.bind(function () {
-      this.$('#no-printFiles').removeClass('animated flipInX');
-    }, this), animationTime + 1000);
+      noFilesContainer.removeClass('animated flipInX');
+    }, this), 1000);
 
      // update count field
      var countPFilesLater = $('.pFilesCounter');
