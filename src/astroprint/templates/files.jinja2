@@ -120,7 +120,11 @@
 							<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
 						</a>
           <% } %>
-          <% if (!p.local_only && queueAllowed) { %>
+          <% if (p.local_only) { %>
+            <a class="upload-cloud" href="#">
+              <i class="icon-download-cloud" title="Upload"></i>
+            </a>
+          <% } else if (queueAllowed)  { %>
             <a class="queue" href="#">
               <i class="icon-plus" title="Add to Queue"></i>
             </a>
@@ -210,7 +214,11 @@
 	<div class="small-4 medium-2 large-2 columns right-section">
 		<div class="print-file-options">
       <% if (p.local_filename) { %>
-        <% if (!p.local_only && queueAllowed) { %>
+        <% if (p.local_only) { %>
+          <a class="upload-cloud" href="#">
+            <i class="icon-download-cloud" title="Upload"></i>
+          </a>
+        <% } else if (queueAllowed)  { %>
           <div class="loading-button add-to-queue">
             <a href="#" class="queue idle">
               <i class="icon-plus" title="Add to Queue"></i>
@@ -218,7 +226,6 @@
             <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
           </div>
         <% } %>
-
         <div class="loading-button print">
           <a href="#" class="print idle">
             <i class="icon-3d-printer" title="Print"></i>

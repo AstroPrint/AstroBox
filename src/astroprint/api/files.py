@@ -211,6 +211,16 @@ def readPrintFile(target, filename):
 
 	return jsonify(file)
 
+@api.route("/files/gcode/<path:filename>", methods=["GET"])
+def readPrintFileGCODE(filename):
+	import os
+
+	uploadedFilePath = settings().getBaseFolder("uploads")+ "/"+filename
+
+	if os.path.exists(uploadedFilePath):
+		u = open(uploadedFilePath, "r")
+		return jsonify(u.read())
+	return make_response("File Not found", 404)
 
 @api.route("/files/<string:target>/<path:filename>", methods=["POST"])
 @restricted_access

@@ -106,6 +106,23 @@ AstroPrintApi.prototype = {
     });
   },
 
+  /* =========== PRINTFILES =========== */
+
+  /* Upload a local file to the user's account
+    @formData: Form including the File,
+    @query: Include project_id,design_id,printer, material...
+  */
+  uploadPrintfileToCloud: function(formData, query)
+  {
+    return this._apiRequest('/printfiles/' + query, {
+      method: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false
+    });
+  },
+
+
   //Private functions
 
   _getAccessToken: function()

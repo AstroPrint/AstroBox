@@ -14,6 +14,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
     'click .actions a.remove': 'onDeleteClicked',
     'click .actions a.print': 'onPrintClicked',
     'click .actions a.queue': 'onAddToQueueClicked',
+    'click .actions a.upload-cloud': 'onUploadToCloudClicked',
     'click .actions a.download': 'onDownloadClicked'
   },
   initialize: function(params)
@@ -76,6 +77,10 @@ var PrintFileInfoDialog = Backbone.View.extend({
   {
     this.print_file_view.addToQueueClicked(e);
     this.file_list_view.doSync();
+  },
+  onUploadToCloudClicked: function(e)
+  {
+    this.print_file_view.uploadToCloudClicked(e);
   },
   onPrintClicked: function(e)
   {
@@ -197,6 +202,7 @@ var PrintFileView = Backbone.View.extend({
     'click .left-section, .middle-section': 'infoClicked',
     'click a.print': 'printClicked',
     'click a.queue': 'addToQueueClicked',
+    'click a.upload-cloud': 'uploadToCloudClicked',
     'click a.download': 'downloadClicked',
     'click a.dw-cancel': 'cancelDownloadClicked'
   },
@@ -312,6 +318,11 @@ var PrintFileView = Backbone.View.extend({
     evt.preventDefault();
     this.doAddToQueue();
   },
+  uploadToCloudClicked: function(evt)
+  {
+    evt.preventDefault();
+    this.doUploadToCloud(evt);
+  },
   doAddToQueue: function()
   {
     var promise = $.Deferred();
@@ -327,6 +338,55 @@ var PrintFileView = Backbone.View.extend({
         console.error('File failed to be added to the queue', xhr);
         noty({ text: "File failed to be added to the queue", timeout: 3000 });
       }, this))
+
+    return promise;
+  },
+  doUploadToCloud: function(evt)
+  {
+    console.log('doUploadToCloud 2', this.print_file.get('local_filename'));
+    this.getFileInfo();
+  },
+  getFileInfo: function(){
+    var promise = $.Deferred();
+
+    var filename = this.print_file.get('local_filename');
+
+    // 1. Get gcode data from file
+    $.getJSON('/api/files/gcode/'+filename)
+      .success(_.bind(function(data){
+        if (data) {
+          var fileRead = data;
+          formData = new FormData();
+          formData.append('file', new Blob([fileRead], { type: 'application/sla' }), filename);
+
+          // 2. Upload the file to the cloud
+          app.astroprintApi.uploadPrintfileToCloud(formData, "")
+            .done(_.bind(function (f) {
+              console.log('done!');
+              if (f.already_exists) {
+                noty({text: "The file was already in your account", timeout: 3000});
+              }
+            }, this))
+            .fail(_.bind(function (xhr) {
+              console.log("fail", xhr);
+            }, this))
+
+        } else {
+          promise.reject();
+        }
+
+
+
+
+
+
+        promise.resolve(data);
+      },this))
+      .fail(_.bind(function(e){
+        noty({text: "There was an error getting information file. Try it again later.", timeout: 3000});
+        console.log(e);
+        promise.reject();
+      }, this));
 
     return promise;
   }
