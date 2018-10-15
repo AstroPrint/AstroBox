@@ -372,3 +372,90 @@
     </div>
   </div>
 </script>
+
+<div id="printfile-edit-modal" class="reveal-modal medium radius" data-reveal align="center">
+  <h2 class="bold">Print File info</h2>
+  <div class="content"></div>
+  <script type="text/template" id="printfile-edit-modal-content">
+    <div class="modal-actions row">
+        <!-- Projects -->
+        <div class="small-12 medium-12 columns">
+          <label for="projects-picker" class="bold">
+            Save on Project:
+            <select id="projects-picker" name="projects">
+                <option value="null" selected><i>[ / In Root ]</i></option>
+              <% _.each(projects, function(p) { %>
+                <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %>  ><%= p.name %></option>
+              <% }) %>
+            </select>
+          </label>
+        </div>
+
+        <!-- Designs -->
+        <div class="small-12 medium-12 columns">
+          <label for="designs-picker" class="bold">
+            Inside Design:
+            <select id="designs-picker" name="designs">
+                <option value="null" selected><i><%= pSelected != 'null' ? '[ / In Root ]' : '[ No Design Selected ]' %></i></option>
+              <% _.each(designs, function(d) { %>
+                <option value="<%= d.id %>"  ><%= d.name %></option>
+              <% }) %>
+            </select>
+          </label>
+        </div>
+        <hr>
+
+        <!-- Printers -->
+        <div class="small-12 medium-12 large-4 columns">
+          <label for="printers-picker" class="bold">
+            Printer:
+            <select id="printers-picker" name="printers">
+                <option value="null" selected><i>[ Unspecified ]</i></option>
+              <% _.each(printers, function(pr) { %>
+                <option value="<%= pr.id %>" <%= prSelected == pr.id ? ' selected' : '' %>  ><%= pr.name %></option>
+              <% }) %>
+            </select>
+          </label>
+        </div>
+
+        <!-- Materials -->
+        <div class="small-12 medium-12 large-4  columns">
+            <label for="materials-picker" class="bold">
+              Material:
+              <select id="materials-picker" name="materials">
+                  <option value="null" selected><i>[ Unspecified ]</i></option>
+                <% _.each(materials, function(m) { %>
+                  <option value="<%= m.id %>" <%= mSelected == m.id ? ' selected' : '' %>  ><%= m.name %></option>
+                <% }) %>
+              </select>
+            </label>
+          </div>
+
+        <!-- Quality -->
+        <div class="small-12 medium-12 large-4  columns">
+          <label for="settings-picker" class="bold">
+            Quality:
+            <select id="settings-picker" name="settings">
+                <option value="null" selected><i>[ Unspecified ]</i></option>
+                <option value="draft" <%= sSelected == 'draft' ? ' selected' : '' %> ><i>Draft</i></option>
+                <option value="normal" <%= sSelected == 'normal' ? ' selected' : '' %> ><i>Normal</i></option>
+                <option value="best" <%= sSelected == 'best' ? ' selected' : '' %> ><i>Best</i></option>
+                <option value="custom" <%= sSelected == 'custom' ? ' selected' : '' %> ><i>Custom</i></option>
+            </select>
+          </label>
+        </div>
+      </div>
+  </script>
+  <div class="modal-actions row">
+    <div class="small-12 medium-6 columns">
+      <button class="secondary radius expand">Cancel</button>
+    </div>
+    <div class="small-12 medium-6 columns">
+      <div class="loading-button expand">
+        <button class="success radius upload">Upload</button>
+        <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Uploading...</span>
+      </div>
+    </div>
+  </div>
+  <a class="close-reveal-modal">&#215;</a>
+  </div>

@@ -343,52 +343,8 @@ var PrintFileView = Backbone.View.extend({
   },
   doUploadToCloud: function(evt)
   {
-    console.log('doUploadToCloud 2', this.print_file.get('local_filename'));
-    this.getFileInfo();
-  },
-  getFileInfo: function(){
-    var promise = $.Deferred();
-
-    var filename = this.print_file.get('local_filename');
-
-    // 1. Get gcode data from file
-    $.getJSON('/api/files/gcode/'+filename)
-      .success(_.bind(function(data){
-        if (data) {
-          var fileRead = data;
-          formData = new FormData();
-          formData.append('file', new Blob([fileRead], { type: 'application/sla' }), filename);
-
-          // 2. Upload the file to the cloud
-          app.astroprintApi.uploadPrintfileToCloud(formData, "")
-            .done(_.bind(function (f) {
-              console.log('done!');
-              if (f.already_exists) {
-                noty({text: "The file was already in your account", timeout: 3000});
-              }
-            }, this))
-            .fail(_.bind(function (xhr) {
-              console.log("fail", xhr);
-            }, this))
-
-        } else {
-          promise.reject();
-        }
-
-
-
-
-
-
-        promise.resolve(data);
-      },this))
-      .fail(_.bind(function(e){
-        noty({text: "There was an error getting information file. Try it again later.", timeout: 3000});
-        console.log(e);
-        promise.reject();
-      }, this));
-
-    return promise;
+    var printFileDlg = new PrintfileEditDialog({parentView: this, filename: this.print_file.get('local_filename')})
+    printFileDlg.open();
   }
 });
 
@@ -1463,5 +1419,260 @@ var BackFolderView = BrowsingFileView.extend({
     this.parentView.storage_control_view.selected = 'USB';
     this.parentView.storage_control_view.composeLocation('back');
     this.parentView.externalDrivesRefresh();
+  }
+});
+
+
+/* PRINTER SELECTOR MODAL */
+var PrintfileEditDialog = Backbone.View.extend({
+  el: '#printfile-edit-modal',
+
+  filename: null,
+  projects: null,
+  projectSelected: null,
+
+  designs: null,
+  designSelected: null,
+
+  printers: null,
+  printerSelected: null,
+
+  material: null,
+  materialSelected: null,
+
+  settingSelected: null,
+
+  contentTemplate: null,
+  parentView: null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.upload': 'setUploadClicked',
+    'change select#projects-picker': 'onProjectsChanged',
+    'change select#printers-picker': 'onPrintersChanged',
+    'change select#materials-picker': 'onMaterialsChanged',
+    'change select#settings-picker': 'onSettingsChanged',
+    'closed.fndtn.reveal': 'onClose'
+  },
+  initialize: function(params) {
+    this.parentView = params.parentView;
+    this.filename = params.filename;
+  },
+  open: function()
+  {
+    $.when(
+      this._checkProjectsAndDesigns(),
+      this.checkPrinters()
+    )
+    .done(_.bind(function() {
+      this.render()
+    }, this))
+
+    .fail(_.bind(function () {
+
+    }, this));
+
+    this.$el.foundation('reveal', 'open');
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#printfile-edit-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+
+    content.html(this.contentTemplate({
+      projects: this.projects,
+      pSelected: this.projectSelected,
+
+      designs: this.designs,
+      dSelected: this.designSelected,
+
+      printers: this.printers,
+      prSelected: this.printerSelected,
+
+      materials: this.materials,
+      mSelected: this.materialSelected,
+
+      sSelected: this.settingSelected
+    }));
+  },
+  onProjectsChanged: function (e)
+  {
+    this.projectSelected = $(e.target).val();
+    console.log('this.projectSelected', this.projectSelected);
+    app.astroprintApi.designs(this.projectSelected)
+      .done(_.bind(function (designs) {
+        this.designs = designs.data;
+        this.designSelected = this.designs[0].id
+        this.render();
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        this.$el.addClass('settings');
+        console.error("Error getting designs", xhr);
+        noty({ text: "Error getting designs", timeout: 3000 });
+      }, this))
+  },
+  onPrintersChanged: function (e)
+  {
+    this.printerSelected = $(e.target).val();
+    this.updateMaterials()
+  },
+  onMaterialsChanged: function (e)
+  {
+    this.materialSelected = $(e.target).val();
+  },
+  onSettingsChanged: function (e)
+  {
+    this.settingSelected = $(e.target).val();
+  },
+  setUploadClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+
+    loadingBtn.addClass('loading');
+    this.doUploadFile().then()
+    .done(_.bind(function (f) {
+      if (f.already_exists) {
+        noty({ text: "The file was already in your account", timeout: 3000 });
+      } else {
+        noty({ text: "The file was succesfully uploaded to your Cloud account", type: "success", timeout: 3000 });
+      }
+      loadingBtn.removeClass('loading');
+      this.parentView.list.doSync();
+      this.doClose();
+    }, this))
+    .fail(_.bind(function (e) {
+      console.error(e);
+      loadingBtn.removeClass('loading');
+    }, this))
+  },
+  updateMaterials: function ()
+  {
+    if (this.printerSelected != "null") {
+      // Get printerMaterials list
+      app.astroprintApi.printerMaterials(this.printerSelected)
+        .done(_.bind(function (materials) {
+          this.materials = materials.data;
+          this.render();
+        }, this))
+
+        .fail(_.bind(function (xhr) {
+          console.error("Error getting printerMaterials");
+          noty({ text: "Error getting printerMaterials", timeout: 3000 });
+        }, this))
+    } else {
+      this.materials = null;
+      this.render();
+    }
+
+  },
+  checkPrinters: function()
+  {
+    // Get printers list
+    return app.astroprintApi.printers()
+      .done(_.bind(function (printers) {
+        this.printers = printers.data;
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error("Error getting printers");
+        noty({ text: "Error getting printers", timeout: 3000 });
+      }, this))
+  },
+  _checkProjectsAndDesigns: function ()
+  {
+    var promise = $.Deferred();
+
+    // Get projects list
+    app.astroprintApi.projects()
+      .done(_.bind(function (projects) {
+        this.projects = projects.data;
+        // Now get designs
+        app.astroprintApi.designs(this.projectSelected ? this.projectSelected : 'null')
+          .done(_.bind(function (designs) {
+            this.designs = designs.data;
+            promise.resolve()
+          }, this))
+          .fail(_.bind(function (xhr) {
+            console.error("Error getting printer models", xhr);
+            noty({ text: "Error getting printer models", timeout: 3000 });
+            promise.reject()
+          }, this))
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error("Error getting projects");
+        noty({ text: "Error getting projects", timeout: 3000 });
+        promise.reject()
+      }, this))
+
+      return promise;
+  },
+  doUploadFile: function()
+  {
+    var promise = $.Deferred();
+
+    // 1. Get gcode data from file
+    $.getJSON('/api/files/gcode/'+this.filename)
+      .success(_.bind(function(data){
+        if (data) {
+          var fileRead = data;
+          formData = new FormData();
+          formData.append('file', new Blob([fileRead], { type: 'application/sla' }), this.filename);
+          var query = "?"
+          query += (this.projectSelected && !this.designSelected ? "project_id=" + this.projectSelected : "")
+           + (this.designSelected ? "&design_id=" + this.designSelected : "")
+           + (this.printerSelected ? "&printer_id=" + this.printerSelected : "")
+           + (this.materialSelected ? "&filament_id=" + this.materialSelected : "")
+           + (this.settingSelected ? "&quality=" + this.settingSelected : "");
+          // 2. Upload the file to the cloud
+          app.astroprintApi.uploadPrintfileToCloud(formData, query)
+            .done(_.bind(function (f) {
+              var file = f[0]
+              // 3. Update local file with cloud ID
+              $.ajax({
+                url:  "/api/files/local/"+this.filename,
+                type: "PATCH",
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify({"cloud_id": file.print_file_id})
+              })
+                .success(_.bind(function (file) {
+                  promise.resolve(file);
+                }, this))
+                .fail(_.bind(function (e) {
+                  noty({ text: "There was an error uploading the file", timeout: 3000 });
+                  console.error(e)
+                  promise.reject();
+                }, this));
+            }, this))
+            .fail(_.bind(function (xhr) {
+              console.log("fail", xhr);
+              promise.reject(xhr);
+            }, this))
+        } else {
+          promise.reject();
+        }
+
+      },this))
+      .fail(_.bind(function(e){
+        noty({text: "There was an error getting information file. Try it again later.", timeout: 3000});
+        console.log(e);
+        promise.reject();
+      }, this));
+
+    return promise;
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onClose: function()
+  {
+    this.undelegateEvents();
   }
 });
