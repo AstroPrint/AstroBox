@@ -10,7 +10,7 @@ from flask import request, jsonify, make_response, url_for
 
 from octoprint.events import Events
 from octoprint.settings import settings, valid_boolean_trues
-from octoprint.server import eventManager, restricted_access, NO_CONTENT
+from octoprint.server import eventManager, restricted_access, NO_CONTENT, SUCCESS
 from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
@@ -198,6 +198,22 @@ def uploadPrintFile(target):
 	r = make_response(jsonify(files=files, done=done), 201)
 	r.headers["Location"] = location
 	return r
+
+
+@api.route("/files/<string:target>/<path:filename>", methods=["PATCH"])
+@restricted_access
+
+def updateFileMetadata(target, filename):
+	if not _verifyFileExists(target, filename):
+		return make_response("File not found on '%s': %s" % (target, filename), 404)
+
+	attrs = request.json
+	response = printerManager().fileManager._updateMetada(filename, attrs)
+
+	if response is not None:
+		return jsonify(SUCCESS)
+
+	return make_response("Atributes to save not supported", 500)
 
 
 @api.route("/files/<string:target>/<path:filename>", methods=["GET"])

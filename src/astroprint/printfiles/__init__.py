@@ -187,6 +187,21 @@ class PrintFilesManager(object):
 
 		self._loadMetadata()
 
+	def _updateMetada(self, filename, data):
+		fmd = self._metadata.get(filename)
+		if fmd:
+			for keyToChange in data:
+				if keyToChange in fmd or keyToChange == "cloud_id":
+					fmd[keyToChange] = data[keyToChange]
+				else:
+					return None
+		self._metadataDirty = True
+		self._metadata[filename] = fmd
+
+		self._saveMetadata()
+
+		return True
+
 	def _getBasicFilename(self, filename):
 		if filename.startswith(self._uploadFolder):
 			return filename[len(self._uploadFolder + os.path.sep):]
