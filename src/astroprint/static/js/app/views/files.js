@@ -26,6 +26,7 @@ var PrintFileInfoDialog = Backbone.View.extend({
   {
     this.$el.find('.dlg-content').html(this.template({
       p: this.print_file_view.print_file.toJSON(),
+      userLogged: initial_states.userLogged,
       queueAllowed: this.queueAllowed,
       time_format: app.utils.timeFormat
     }));
@@ -241,6 +242,7 @@ var PrintFileView = Backbone.View.extend({
     this.downloadProgress = null;
     this.$el.html(this.template({
       p: print_file,
+      userLogged: initial_states.userLogged,
       queueAllowed: this.queueAllowed,
       time_format: app.utils.timeFormat,
       size_format: app.utils.sizeFormat
