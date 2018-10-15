@@ -106,6 +106,48 @@ AstroPrintApi.prototype = {
     });
   },
 
+  /* =========== PROJECTS =========== */
+
+  /*
+    Get projects from user
+  */
+  projects: function()
+  {
+    return this._apiRequest('/projects', {method: 'GET'});
+  },
+  /* =========== DESIGNS =========== */
+
+  /*
+    Get designs from user
+  */
+  designs: function(projectID)
+  {
+    var query = "";
+    if (projectID) {
+      query = "?project_id="+projectID
+    }
+    return this._apiRequest('/designs/' + query, {method: 'GET'});
+  },
+
+  /* =========== PRINTERS - MATERIALS - SETTINGS =========== */
+
+  /*
+    Get printers from user
+  */
+  printers: function()
+  {
+    return this._apiRequest('/printers', {method: 'GET'});
+  },
+
+  /*
+    Get printers from user
+    @printerID: Printer ID
+  */
+  printerMaterials: function(printerID)
+  {
+    return this._apiRequest('/printers/'+printerID+'/materials', {method: 'GET'});
+  },
+
   /* =========== PRINTFILES =========== */
 
   /* Upload a local file to the user's account
