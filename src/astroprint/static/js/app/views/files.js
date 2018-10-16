@@ -199,6 +199,7 @@ var PrintFileView = Backbone.View.extend({
   printWhenDownloaded: false,
   downloadProgress: null,
   queueAllowed: false,
+  upgradeDlg: null,
   events: {
     'click .left-section, .middle-section': 'infoClicked',
     'click a.print': 'printClicked',
@@ -345,9 +346,45 @@ var PrintFileView = Backbone.View.extend({
   },
   doUploadToCloud: function(evt)
   {
-    var printFileDlg = new PrintfileEditDialog({parentView: this, filename: this.print_file.get('local_filename')})
-    printFileDlg.open();
-  }
+    this.hasEnoughSpace(this.print_file.get('size'))
+      .done(_.bind(function (hasEnoughSpace) {
+        if (hasEnoughSpace) {
+          var printFileDlg = new PrintfileEditDialog({ parentView: this, filename: this.print_file.get('local_filename') })
+          printFileDlg.open();
+        } else {
+          if (!this.upgradeDlg) {
+            this.upgradeDlg = new UpgradeplanDialog();
+          }
+          this.upgradeDlg.open();
+        }
+      }, this))
+      .fail(_.bind(function () {
+        noty({ text: "Error checking user's storage space", timeout: 3000 });
+      }, this))
+
+  },
+  hasEnoughSpace: function(spaceRequired)
+  {
+    var promise = $.Deferred();
+
+    app.astroprintApi.me()
+      .done(function (userData) {
+        var hasEnoughSpace = false;
+        if (Number(userData.storage) < Number(userData.max_storage)) {
+          var freeStorage = Number(userData.max_storage) -Number(userData.storage);
+          if (freeStorage > spaceRequired) {
+            hasEnoughSpace = true;
+          }
+        }
+        promise.resolve(hasEnoughSpace);
+      })
+      .fail(function (xhr) {
+        console.error(xhr.statusText)
+        promise.reject(xhr.statusText);
+      })
+
+      return promise;
+  },
 });
 
 var StorageControlView = Backbone.View.extend({
@@ -1677,3 +1714,37 @@ var PrintfileEditDialog = Backbone.View.extend({
     this.undelegateEvents();
   }
 });
+
+/* UPGRADE PLAN DIALOG */
+var UpgradeplanDialog = Backbone.View.extend({
+  el: '#upgrade-modal',
+  events: {
+    'click .confirm-button': 'onYesClicked',
+    'click button.cancel': 'onNoClicked',
+    'closed.fndtn.reveal': 'onClosed',
+  },
+  open: function()
+  {
+    this.delegateEvents(this.events);
+    this.$el.foundation('reveal', 'open');
+  },
+  close: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onYesClicked: function(e)
+  {
+    e.preventDefault();
+    location.href = "https://cloud.astroprint.com/pricing";
+    this.close();
+  },
+  onNoClicked: function(e)
+  {
+    this.close();
+  },
+  onClosed: function()
+  {
+    this.undelegateEvents();
+  }
+});
+
