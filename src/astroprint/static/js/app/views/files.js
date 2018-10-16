@@ -1503,7 +1503,6 @@ var PrintfileEditDialog = Backbone.View.extend({
   onProjectsChanged: function (e)
   {
     this.projectSelected = $(e.target).val();
-    console.log('this.projectSelected', this.projectSelected);
     app.astroprintApi.designs(this.projectSelected)
       .done(_.bind(function (designs) {
         this.designs = designs.data;
@@ -1653,7 +1652,7 @@ var PrintfileEditDialog = Backbone.View.extend({
                 }, this));
             }, this))
             .fail(_.bind(function (xhr) {
-              console.log("fail", xhr);
+              console.error("fail", xhr);
               promise.reject(xhr);
             }, this))
         } else {
@@ -1663,7 +1662,7 @@ var PrintfileEditDialog = Backbone.View.extend({
       },this))
       .fail(_.bind(function(e){
         noty({text: "There was an error getting information file. Try it again later.", timeout: 3000});
-        console.log(e);
+        console.error(e);
         promise.reject();
       }, this));
 
