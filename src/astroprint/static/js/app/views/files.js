@@ -349,8 +349,15 @@ var PrintFileView = Backbone.View.extend({
     this.hasEnoughSpace(this.print_file.get('size'))
       .done(_.bind(function (hasEnoughSpace) {
         if (hasEnoughSpace) {
-          var printFileDlg = new PrintfileEditDialog({ parentView: this, filename: this.print_file.get('local_filename') })
-          printFileDlg.open();
+          var printFileDlg = new PrintfileEditDialog(
+            {
+              parentView: this,
+              filename: this.print_file.get('local_filename')
+            })
+          printFileDlg.open({
+            close_on_background_click: false,
+            close_on_esc: false
+          });
         } else {
           if (!this.upgradeDlg) {
             this.upgradeDlg = new UpgradeplanDialog();
