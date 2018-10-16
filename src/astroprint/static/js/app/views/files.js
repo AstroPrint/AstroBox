@@ -74,8 +74,12 @@ var PrintFileInfoDialog = Backbone.View.extend({
   },
   onAddToQueueClicked: function(e)
   {
-    this.print_file_view.addToQueueClicked(e);
-    this.file_list_view.doSync();
+    e.preventDefault()
+
+    this.print_file_view.doAddToQueue().then()
+      .done(_.bind(function () {
+        this.file_list_view.doSync();
+      }, this))
   },
   onPrintClicked: function(e)
   {
@@ -310,7 +314,10 @@ var PrintFileView = Backbone.View.extend({
   addToQueueClicked: function(evt)
   {
     evt.preventDefault();
-    this.doAddToQueue();
+    this.doAddToQueue().then()
+      .done(_.bind(function () {
+        this.list.doSync()
+      }, this))
   },
   doAddToQueue: function()
   {
@@ -321,11 +328,13 @@ var PrintFileView = Backbone.View.extend({
     app.astroprintApi.addElemenToQueue(this.print_file.get('id'))
       .done(_.bind(function () {
         noty({ text: "File successfully added to the queue", type: 'success', timeout: 3000 });
+        promise.resolve();
       }, this))
 
       .fail(_.bind(function (xhr) {
         console.error('File failed to be added to the queue', xhr);
         noty({ text: "File failed to be added to the queue", timeout: 3000 });
+        promise.reject();
       }, this))
 
     return promise;
