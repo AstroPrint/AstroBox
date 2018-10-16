@@ -763,6 +763,12 @@
     padding: 16px 30px;
     box-shadow: 2px 2px 14px 1px rgba(0, 0, 0, 0.05);
 
+    #no-printFiles img{
+      max-width: 350px;
+      margin: 10vh auto 15px auto;
+      display: block;
+    }
+
     .single-queue-button {
       display: none;
     }
