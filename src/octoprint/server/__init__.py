@@ -73,6 +73,7 @@ from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.ro_config import roConfig
 
 UI_API_KEY = None
 VERSION = None
@@ -179,8 +180,8 @@ def index():
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
-			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
-			apApiClientId= s.getString(['cloudSlicer', 'apiClientId']),
+			apApiHost= roConfig('cloud.apiHost'),
+			apApiClientId= roConfig('cloud.apiClientId'),
 			boxId= boxrouterManager().boxId
 		)
 
@@ -435,7 +436,8 @@ class Server():
 
 		manufacturerPkgManager()
 		ppm = printerProfileManager()
-		pluginManager().loadPlugins()
+		pluginMgr = pluginManager()
+		pluginMgr.loadPlugins()
 
 		eventManager = events.eventManager()
 		printer = printerManager(ppm.data['driver'])
@@ -540,6 +542,10 @@ class Server():
 
 		try:
 			self._ioLoop = IOLoop.instance()
+
+			logger.info("System ready for requests")
+			pluginMgr._fireEvent('ON_SYSTEM_READY')
+
 			self._ioLoop.start()
 
 		except SystemExit:

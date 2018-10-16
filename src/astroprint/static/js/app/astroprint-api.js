@@ -29,18 +29,22 @@ AstroPrintApi.prototype = {
 
   me: function()
   {
-    return this._apiRequest('/accounts/me',{method: 'GET'});
+    return this._apiRequest('/accounts/me?plan=true',{method: 'GET'});
   },
 
   getAllPrintFiles: function()
   {
-
     var fileFormat = app.printerProfile.get('driver') == "s3g" ? "x3g" : "gcode";
     var query = "?format=" + fileFormat;
 
     return this._apiRequest('/printfiles/' + query, {method: 'GET'});
   },
 
+  /* =========== QUEUES =========== */
+
+  /*
+    Get queue from device
+  */
   queue: function()
   {
     return this._apiRequest('/devices/'+ BOX_ID + '/print-queue', {method: 'GET'});
@@ -69,6 +73,70 @@ AstroPrintApi.prototype = {
   getModelInfo: function(modelId)
   {
     return this._apiRequest('/manufacturers/models/'+ modelId, {method: 'GET'}, true);
+  },
+
+  /*
+    Get print files from later list
+  */
+  later: function()
+  {
+    return this._apiRequest('/print-queues/print-later', {method: 'GET'});
+  },
+
+  /* Update status of queue element
+    @elementID: ID of queue element
+    @data: Attributes to change
+  */
+  updateQueueElement: function(elementID, data)
+  {
+    return this._apiRequest('/print-queues/'+ elementID, {
+      method: 'PATCH',
+      data: JSON.stringify(data)
+    });
+  },
+
+  /* Swap positions between two queue elements
+    @modelA_ID: ID of queue element A
+    @modelB_ID: ID of queue element B
+  */
+  swapQueueElementsPos: function(modelA_ID, modelB_ID)
+  {
+    return this._apiRequest('/print-queues/'+ modelA_ID + "/swap-positions" ,  {
+      method: 'PATCH',
+      data: JSON.stringify({"elementqueue_id": modelB_ID})
+    });
+  },
+
+  /* Add elemento to the queue
+    @elementID: ID of queue element
+  */
+  addElemenToQueue: function(elementID)
+  {
+    return this._apiRequest('/print-queues', {
+      method: 'POST',
+      data: JSON.stringify({"printfile_id" : elementID, "device_id": BOX_ID}),
+      contentType: 'application/json; charset=utf-8'
+    });
+  },
+
+  /* Remove queue element
+    @elementID: ID of queue element
+  */
+  removeQueueElement: function(elementID)
+  {
+    return this._apiRequest('/print-queues/' + elementID, { method: 'DELETE'});
+  },
+
+  /* Remove all queue elements or only those macthing passed status.
+    @status: pending || finished
+  */
+  clearQueue: function(status)
+  {
+    return this._apiRequest('/devices/' + BOX_ID + '/print-queue', {
+      method: 'DELETE',
+      data: JSON.stringify( {"status" : status} ),
+      contentType: 'multipart/form-data'
+    });
   },
 
   //Private functions

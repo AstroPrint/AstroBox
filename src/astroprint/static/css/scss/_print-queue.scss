@@ -1,0 +1,957 @@
+@import
+        "foundation/components/buttons",
+        "foundation/components/split-buttons",
+        "foundation/components/dropdown",
+        "foundation/components/progress-bars";
+
+#print-queue-view {
+
+  #queue-container {
+    display: none;
+  }
+
+  #main-container-loader {
+    @include flex(center,column);
+    padding-top: 30vh;
+    text-align: center;
+    font-size: rem-calc(60);
+    color: $alert-color;
+   }
+  &.data-ready {
+    #main-container-loader {
+     display: none;
+    }
+    #queue-container {
+      display: inline-block;
+      padding: 0;
+    }
+  }
+  .list-header {
+    background: #fdfdfd;
+    padding: 15px 0;
+    border-bottom: 3px dashed rgba(108, 201, 195, 0.15);
+
+    button.sync,span{
+      box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15);
+      background: $steel;
+      margin-bottom: 0;
+
+      &:hover{
+        background: darken($steel, 10%);
+      }
+
+      &:active{
+        transform: scale(0.95);
+        outline: 0;
+      }
+
+      &:focus{outline: 0;}
+    }
+    .loading-button{
+      float: left;
+    }
+    .icon-refresh{
+      display: block !important;
+      margin-bottom: 0;
+      margin: 0 auto;
+      font-size: 20px;
+      width: 28px;
+      height: 20px;
+      margin-bottom: 4px;
+    }
+    h3 {
+      display: inline-block;
+      font-size: rem-calc(20);
+      padding-right: 7px;
+      padding-top: 20px;
+      margin: 0;
+      vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-left: 10px;
+      font-size: 14px;
+      color: $base;
+      float: left;
+    }
+
+
+    .internal{
+      div.no-user{
+        display: none
+      }
+    }
+
+    .cloud{
+      div.no-user{
+        display: none
+      }
+    }
+
+  }
+
+  // main container
+  .printqueue-menu{
+    position: relative;
+     #user-side-menu-container{
+      bottom: auto !important;
+      top: auto !important;
+    }
+  }
+
+  .icon-bar.horizontal {
+    background: lighten($oil, 6.8%);
+    border-right: 1px solid $steel;
+    a {
+      border-bottom: 1px solid $steel;
+      border-left: 5px solid lighten($oil, 6.8%);
+
+      &:hover {
+        @include color-border();
+        box-shadow: $shadow-inset;
+        background: $oil;
+      }
+
+      &.active {
+        @include color-border();
+        box-shadow: $shadow-inset;
+        background: $oil;
+      }
+
+      i, label {
+        color: #fff;
+        display: block;
+      }
+    }
+  }
+  .icon-bar.vertical {
+    width: 100%;
+    background: transparent;
+    border: 0;
+
+    a.item {
+      padding: 10px 12px;
+      display: block;
+      min-height: 85px;
+      background: lighten($iron, 5%);
+      box-shadow: none;
+      border: 0;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      transform: scale(0.95);
+
+      i,label{opacity: 0.6; color: $charcoal;}
+
+      > i{
+        font-size: 27px;
+
+        &:after{
+          font-size: .6rem;
+        }
+      }
+
+      &:hover{transform: scale(1);}
+
+      &.active{
+        box-shadow: 2px 2px 9px 0px rgba(0, 0, 0, 0.22);
+        background: $oil;
+        transform: scale(1);
+        i,label{opacity: 1; color: $secondary-color;}
+      }
+
+    }
+  }
+
+  #user-menu-content {
+    padding: 0 0 20px 160px;
+
+    .background-illustration {
+      position: absolute;
+      bottom: 0;
+      width: 700px;
+      right: -112px;
+      z-index: 0;
+      #need-help {
+        position: absolute;
+        bottom:39px;
+        left: 460px;
+        color: $red;
+        cursor:pointer;
+        z-index: 2;
+      }
+
+      img{
+        opacity: 0.3;
+      }
+    }
+  }
+
+
+  // loading
+  span.first-loading {
+    background: transparent;
+    color: white !important;
+    position: relative;
+    padding: 0;
+    display: none;
+    i {
+      font-size: 27px;
+    }
+  }
+
+  div.first-loading {
+    background: transparent;
+    color: #333333;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .print-file-row {
+    background: $white;
+
+    .message-finished, .message-failed, .message-canceled, .message-printing, .last-status {
+      display: none;
+    }
+
+    i{
+      font-size: 22px;
+      color: $steel;
+
+      &.icon-step-backward:before{
+        transform: rotate(90deg);
+      }
+
+      &.icon-angle-left:before{
+        transform: rotate(90deg);
+      }
+
+      &.icon-angle-right:before{
+        transform: rotate(90deg);
+      }
+    }
+
+    &:nth-child(even) {
+      background: $ghost;
+    }
+    .discard-button {
+      display: inline-block;
+      transition: all 0.1s ease-in-out 0s;
+      color: $base;
+    }
+
+    .discard-button:hover,.discard-button:active {
+      color:$red;
+      -webkit-transform: rotate(90deg);
+      transform: rotate(90deg);
+    }
+
+    -webkit-animation-duration: 0.4s !important;
+    -webkit-animation-delay: 0s !important;
+    -moz-animation-delay: 0s !important;
+    -moz-animation-duration: 0.4s !important;
+    &.animated {
+      z-index: 2;
+    }
+    &.fadeOutUpBig {
+      -webkit-animation-duration: 1.5s !important;
+      -webkit-animation-delay: 0s !important;
+      -moz-animation-delay: 0s !important;
+      -moz-animation-duration: 1.5s !important;
+    }
+  }
+
+  // box- container
+  #box-container{
+    position: relative;
+    border-left: 7px solid $green;
+    box-shadow:2px 2px 6px 0px #e8e8e8;
+    margin-bottom: 20px;
+    background: $ghost;
+    border-top-right-radius:15px;
+    z-index: 1;
+
+    .main-buttons{
+      button{
+        max-width: 220px;
+      }
+    }
+
+    .progress-container {
+      display: none;
+    }
+
+    button {
+      letter-spacing: 0.5px;
+      margin: 15px auto;
+    }
+
+    .print-button {
+      display: inline-block;
+      @include flex(center,column);
+
+      span.success{
+        height: 35px;
+        padding: 6px;
+      }
+
+      .loader {
+        display: none;
+      }
+
+      &.loading {
+        .loader {
+          display: inline-block;
+        }
+        .print-label {
+          display: none;
+        }
+      }
+    }
+    .connect-printer-button {
+      display: none;
+    }
+
+    .printing-status {
+      display: none;
+    }
+    // end
+
+    .counter-files-box .finished-counter-label, .counter-files-box .ready-counter-label {
+      font-weight: bolder;
+      color: $steel;
+      display: inline-block;
+    }
+
+    .print-file-row {
+      position: relative;
+      padding: 6px 0px;
+      min-height: 46px;
+      line-height: 100%;
+
+      &.animated{
+        box-shadow: -2px 3px 15px 4px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+      }
+
+       a.delete-printFile{
+        color:$oil;
+        font-size: 1em;
+
+        &:hover{color:$red;}
+        &:active{color: $red;}
+      }
+      .columns {
+        line-height: 160%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        b,.printer-info{
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .printer-info{
+          opacity: 0.6;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          white-space: normal;
+          line-height: 120%;
+        }
+      }
+
+
+      .rendered_image {
+        height: 60px;
+        @include radius($global-radius);
+        overflow: hidden;
+        margin-right: 15px;
+
+        &.no-image{
+          background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
+          width: 60px;
+        }
+      }
+
+      &:last-child{border-bottom: 0;}
+
+      .index-queue{
+        position: absolute;
+        left: 4px;
+        z-index: 99;
+        top: 0px;
+        min-width: 20px;
+        border-radius: 100%;
+        color: $charcoal;
+        height: 20px;
+        padding: 0px;
+        @include flex(center,column);
+        font-size: rem-calc(20);
+        opacity: 0.7;
+      }
+    }
+
+    .counter-files-box{
+      white-space: nowrap;
+      color: grey;
+      text-transform: uppercase;
+      font-size: 14px;
+      letter-spacing: 1px;
+    }
+
+    .print-label {
+      display: inline-block;
+      font-weight: bold;
+    }
+
+    span.button.loading{
+      margin: 15px auto;
+      padding: 5px;
+    }
+
+    span.button.loading,span.button.inactive {
+      font-size: rem-calc(14px);
+    }
+    .cancel-label, .notReady-label, .offline-label {
+      display: none;
+    }
+    .finished-files-box {
+      padding-left: 25px;
+
+      .canceled-printing,.finished-printing,.failed-printing{
+
+        .button {
+        border-radius: 20px;
+        }
+      }
+    }
+
+    $n:10; //variable for movetop loop
+
+    .movetop{
+      z-index: 9999;
+      transition: all 200ms linear;
+      transform: translateY(-500px); //for not making loop so big, we set default translate
+      box-shadow: -2px 3px 10px 3px rgba(0, 0, 0, 0.25);
+      background: $charcoal !important;
+    }
+
+    @for $i from 1 to $n {
+      .print-file-row:nth-of-type(#{$i}) {
+        &.movetop{
+          transform: translateY(-90px * ($i - 1)); //more css classes below
+        }
+      }
+    }
+
+    .pending-files-box{
+
+      .time-container{padding-top: 10px;}
+
+      .print-file-row:first-of-type{
+        color: $ghost;
+        background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
+
+        .icon-step-backward,.icon-angle-left{display: none;}
+
+        .index-queue,.moving-arrow{color: $white;}
+
+        .icon-rocket-spinner{
+          width: 24px;
+          height: 24px;
+          margin: 0 auto;
+        }
+      }
+
+
+    }
+
+    .finished-files-box, .pending-files-box {
+      display: none;
+      -webkit-animation-duration: 0.5s !important;
+      animation-duration: 0.5s !important;
+    }
+
+    &.filter-finished .finished-files-box {
+      display: block;
+    }
+    &.filter-ready .pending-files-box {
+      display: block;
+    }
+    .pending-files-box, .finished-files-box{
+      // display: block;
+      max-height: 410px;
+      overflow-y: scroll;
+      overflow-x: visible;
+    }
+
+    ::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 8px;
+      background: gainsboro;
+    }
+    ::-webkit-scrollbar-thumb {
+      border-radius: 5px;
+      background-color: rgba(0,0,0,.6);
+    }
+
+    .off {
+      opacity: 0.1;
+    }
+
+    // Status
+    .last-status{
+      color: $iron;
+
+      i{
+        padding-right: 2px;
+        font-size: 15px;
+      }
+      .message-canceled{
+        color: $red;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $red;}
+      }
+      .message-failed{
+        color: $warning-color;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $warning-color;}
+      }
+      .message-finished{
+        color: $primary-color;
+        font-family: $font-family-bold;
+        padding-right: 5px;
+        i{color: $primary-color;}
+      }
+    }
+
+    .return-button{
+      margin: 15px auto;
+    }
+
+    .failed-printing {
+      .return-label, .failed-label, .last-status, .message-failed {
+        display: inline !important;
+      }
+      .moving-arrow,.index-queue {
+        display: none;
+      }
+      .status{
+        i{color: $warning-color;}
+      }
+      b{color: #969696;}
+    }
+    .canceled-printing {
+      .return-label, .canceled-label, .last-status, .message-canceled {
+        display: inline !important;
+      }
+      .moving-arrow,.index-queue {
+        display: none;
+      }
+      .status{
+        i{color: $red;}
+      }
+      b{color: #969696;}
+    }
+
+    .finished-printing {
+      .return-label, .finished-label, .last-status, .message-finished {
+        display: inline !important;
+      }
+      .moving-arrow, .index-queue {
+        display: none;
+      }
+      .status{
+        i{color: #8CD790;}
+      }
+      b{color: #969696;}
+    }
+
+    &.disconnected {
+      .print-button {
+        display: none;
+      }
+    }
+
+    // Box statuses
+    .shownByContainer {
+     // background: #3e3e3e;
+
+        .completed-tab,.pending-tab {
+          background: transparent;
+          color: $iron;
+          height: 38px;
+          padding: 0;
+          font-size: 0.9rem;
+          margin-bottom: 0;
+
+          &.is-active {
+            color: $charcoal;
+            border-bottom: 3px solid $charcoal;
+            position: relative;
+            bottom: -2px;
+            z-index: 1;
+          }
+
+          &.pending-tab {
+            border-right: none;
+            z-index: 1;
+          }
+
+        }
+        button:focus {outline:none;}
+
+
+    }
+
+    &.no-ready-files{
+        border-left: 7px solid $oil;
+
+      h3{
+        color: $oil;
+      }
+    }
+
+    &.not-ready{
+      border-left: 7px solid $yellow;
+
+      h3{
+        color: $yellow;
+      }
+    }
+
+    &.not-ready:not(.disconnected) {
+      .notReady-label {
+        display: inline-block;
+      }
+      .print-button {
+        display: none;
+      }
+      .connect-printer-button {
+        display: inline-block;
+      }
+    }
+    &.disconnected {
+      border-left: 7px solid $red;
+
+      h3{
+        color: $red;
+      }
+
+      .offline-label {
+        display: inline-block;
+      }
+      .notReady-label {
+        display: none;
+      }
+    }
+    &.loading-status {
+      display: none;
+    }
+  }
+
+  .printer-time{
+    font-size: rem-calc(16px);
+    height: 73px;
+    letter-spacing: 1px;
+    @include flex(center,column);
+
+    .printTime-label{
+      color: $green;
+    }
+  }
+
+  // open and close logic
+  .box-container{
+
+
+      .shownByContainer, .no-ready-files-container, .no-finished-files-container {
+        display: none;
+      }
+
+      &.no-ready-files{
+        .no-ready-files-banner {
+          display: inline-block;height: 61px;
+        }
+      }
+
+      .moving-arrow{
+        display: block;
+        cursor: pointer;
+        }
+
+      .moving-arrow{
+        &:hover, &:active{color: $green;}
+      }
+
+      .background-loading {
+        width: 100px;
+        display: none;
+        font-size: 36px;
+        float: left;
+        padding-left: 20px;
+        color: #444444;
+      }
+      .no-ready-files-banner {
+        display: none;
+        margin-left: 16px;
+
+        img{
+          height: 36px;
+        }
+      }
+
+      .shownByContainer {
+        display: block;
+
+      .clear-label:first-of-type{
+        border-top: 2px solid #e6e6e6;
+      }
+
+        .clear-pending-button, .clear-finished-button {
+          color: $red;
+          display: none;
+          margin: 8px;
+        }
+      }
+
+      .no-finished-files-container, .no-ready-files-container {
+        text-align: center;
+        margin: 0;
+        img{
+          max-width: 350px;
+        }
+        h4{
+          margin-top: 20px;
+          color:$red !important;
+        }
+      }
+
+      &.filter-finished.no-finished-files .no-finished-files-container,
+      &.filter-finished .finished-files-box,
+      &.filter-ready.no-ready-files .no-ready-files-container {
+        display: block;
+      }
+      &.filter-pending .pending-files-box{
+        display: block;
+      }
+
+      &.filter-finished:not(.no-ready-files) {
+        display: block;
+      }
+      /* CLEAR BUTTONS */
+      &.filter-ready:not(.no-ready-files) .clear-pending-button {
+        display: inline-block;
+      }
+      &.filter-finished:not(.no-finished-files) .clear-finished-button {
+        display: inline-block;
+      }
+
+  }
+
+  //Print later area
+  .print-later-list{
+    border-radius: $global-radius;
+    max-width: 980px;
+    min-height: 520px;
+    background: $white;
+    padding: 16px 30px;
+    box-shadow: 2px 2px 14px 1px rgba(0, 0, 0, 0.05);
+
+    #no-printFiles img{
+      max-width: 350px;
+      margin: 10vh auto 15px auto;
+      display: block;
+    }
+
+    .single-queue-button {
+      display: none;
+    }
+    &.not-ready {
+      .print-actions.split{
+        display: none;
+      }
+      .print-actions.single-queue-button {
+        display: inline;
+      }
+    }
+    .print-file-row{
+      padding: 8px 0px;
+      background: $ghost;
+      border-radius: 10px;
+      margin-bottom: 6px;
+      box-shadow: 2px 3px 10px 1px rgba(51, 51, 51, 0.16);
+      position: relative;
+
+      &.animated{
+        box-shadow: -2px 3px 15px 4px rgba(0, 0, 0, 0.2);
+        z-index: 999;
+      }
+
+      .columns{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        b{
+          white-space: nowrap;
+        }
+      }
+
+      .print-actions{
+        overflow: visible;
+
+        .f-dropdown.open{
+          left: 0 !important;
+
+          &:before {
+            right: 9px !important;
+            left: initial !important;
+          }
+
+          &:after {
+            right: 8px !important;
+            left: initial !important;
+          }
+        }
+
+      }
+    }
+
+    .rendered_image {
+      float: none;
+      text-align: center;
+      position: relative;
+      width:auto;
+      height: 70px;
+      margin:0 10px;
+      @include radius($global-radius);
+      background: $ghost;
+
+      img {
+        position: relative;
+        width: 100%;
+      }
+
+      i {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        font-size: rem-calc(40);
+        margin: 0 0 0 -10px;
+        color: $iron;
+      }
+    }
+    button{
+      letter-spacing: 1px;
+      margin: 15px auto;
+    }
+
+    .printer-info{opacity: 0.6;}
+
+    a.delete-printFile{
+    color:$oil;
+    font-size: 1em;
+
+    &:hover{color:$red;}
+    &:active{color: $red;}
+  }
+  .print-actions{
+      margin-bottom: 3px;
+
+      &.print{
+        display: block !important;
+      }
+    }
+  }
+
+  // extras
+  .padding-right{
+    padding-right: 0.9375rem;
+  }
+
+  .border-right{
+    border-right: 1px solid rgba(238, 238, 238, 0.2);
+    font-size: rem-calc(14);
+    padding-right: 10px;
+  }
+  .end{padding-left: 0;}
+
+  small{
+    display: block;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size:75%;
+  }
+  .rendered_image {
+    @include radius($global-radius);
+    overflow: hidden;
+    margin-bottom: 3px;
+  }
+}
+
+#print-element-dlg{
+
+}
+
+
+@media (min-width:#{lower-bound($small-range)}) and (max-width:#{upper-bound($medium-range)}){
+  #user-side-menu-container{
+    position: relative;
+    width: 100%;
+    padding: 0 20px;
+  }
+
+  #user-menu-content {
+    padding: 0 !important;
+  }
+
+  .index-queue {
+    padding-top: 0 !important;
+  }
+
+  #print-queue-view{
+    .printer-time{height: 50px;}
+
+    .icon-bar{
+      @include flex(space-around,row);
+      &.vertical{
+        a.item{
+          min-height: 40px;
+          width: 47%;
+          display: inline-block;
+          line-height: 110%;
+
+          i{display: block; font-size: 20px;}
+
+          label{display: inline-block !important;}
+
+          &.active{}
+        }
+      }
+    }
+
+    #box-container .pending-files-box .time-container{padding-top: 30px;}
+
+    .delete-file{
+      position: absolute;
+      top: 4px;
+      right: 0;
+    }
+  }
+
+  .print-file-row{
+
+    .icon-step-backward{padding-top: 25px;}
+
+    i{font-size: 35px !important;}
+  }
+
+}
+
+

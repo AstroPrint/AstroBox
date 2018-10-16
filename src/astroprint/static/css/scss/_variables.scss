@@ -59,3 +59,13 @@ $shadow-inset: inset 0 0 15px rgba(20, 20, 20, 0.5);
         transition: color .35s ease;
     }
 }
+
+@mixin flex($justify,$direction){
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  justify-content: $justify;
+  flex-direction: $direction;
+}

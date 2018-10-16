@@ -563,6 +563,18 @@
       "search": [
         "z-axis"
       ]
+    },
+    {
+      "uid": "f04a5d24e9e659145b966739c4fde82a",
+      "css": "bookmark",
+      "code": 59447,
+      "src": "fontawesome"
+    },
+    {
+      "uid": "1e25340c5d25e252264419f11422b5fe",
+      "css": "step-backward",
+      "code": 59448,
+      "src": "elusive"
     }
   ]
 }

@@ -1,3 +1,10 @@
+{% block js %}
+  <script type="text/javascript">
+    var initial_states = {
+      userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
+    };
+  </script>
+{% endblock %}
 <div class="row heading">
 	<div class="small-12 title-heading">
 		<h1 class="bold">{{astroboxName}} · File Manager</h1>
@@ -50,7 +57,12 @@
 			  <li><a href="#" class="button tiny round bold secondary local">Internal</a></li>
 			  <li><a href="#" class="button tiny round bold secondary cloud">Cloud</a></li>
 			</ul>
-		</div>
+    </div>
+    {%- if user_email  %}
+      <div id="files-on-queue" class="text-right small-12 columns" >
+        <a href="#print-queue"> <div><small class="bold" >Go to Queue</small><i class="icon-inbox"><span class="counter-queue bold"></span></i></div></a>
+      </div>
+    {%- endif %}
 	</div>
 
 	<div class="row">
@@ -114,17 +126,19 @@
 							</a>
 							<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
 						</div>
-						<a class="print" href="#">
-							<i class="icon-3d-printer" title="Print"></i>
-						</a>
 					<% } else { %>
 						<a class="download" href="#">
 							<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
 						</a>
-						<a class="print" href="#">
-							<i class="icon-3d-printer" title="Print"></i>
-						</a>
-					<% } %>
+          <% } %>
+          <% if (!p.local_only && queueAllowed) { %>
+            <a class="queue" href="#">
+              <i class="icon-plus" title="Add to Queue"></i>
+            </a>
+          <% } %>
+          <a class="print" href="#">
+            <i class="icon-3d-printer" title="Print"></i>
+          </a>
 				</div>
 				<div class="print-settings">
 					<% if (p.local_only) { %>
@@ -184,7 +198,7 @@
       </div>
 		<% } %>
 	</div>
-	<div class="small-9 medium-8 large-10 columns middle-section">
+	<div class="small-9 medium-8 large-9 columns middle-section">
     <div class="info-container div-container">
       <h3 class="bold text"> <%= _.escape(p.name) %></h3>
       <div class="info">
@@ -204,15 +218,25 @@
       </div>
     </div>
 	</div>
-	<div class="small-4 medium-2 large-1 columns right-section">
+	<div class="small-4 medium-2 large-2 columns right-section">
 		<div class="print-file-options">
-			<% if (p.local_filename) { %>
-				<div class="loading-button print">
-					<a href="#" class="print idle">
-						<i class="icon-3d-printer" title="Print"></i>
-					</a>
-					<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
-				</div>
+      <% if (p.local_filename) { %>
+        <% if (!p.local_only && queueAllowed) { %>
+          <div class="loading-button add-to-queue">
+            <a href="#" class="queue idle">
+              <i class="icon-plus" title="Add to Queue"></i>
+            </a>
+            <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+          </div>
+        <% } %>
+
+        <div class="loading-button print">
+          <a href="#" class="print idle">
+            <i class="icon-3d-printer" title="Print"></i>
+          </a>
+          <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+        </div>
+
 			<% } else { %>
 				<a href="#" class="download">
 					<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>

@@ -40,6 +40,7 @@ from octoprint.settings import settings
 from astroprint.network.manager import networkManager
 from astroprint.software import softwareManager
 from astroprint.printer.manager import printerManager
+from astroprint.ro_config import roConfig
 
 from .handlers import BoxRouterMessageHandler
 from .systemlistener import SystemListener
@@ -188,7 +189,7 @@ class AstroprintBoxRouter(object):
 		self._eventManager.subscribe(Events.NETWORK_STATUS, self._onNetworkStateChanged)
 		self._eventManager.subscribe(Events.NETWORK_IP_CHANGED, self._onIpChanged)
 
-		self._address = self._settings.get(['cloudSlicer','boxrouter'])
+		self._address = roConfig('cloud.boxrouter')
 
 		self._eventSender = EventSender(self)
 

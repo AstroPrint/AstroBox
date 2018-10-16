@@ -39,6 +39,7 @@ from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles.downloadmanager import downloadManager
+from astroprint.ro_config import roConfig
 
 class AstroPrintCloudException(Exception):
 	pass
@@ -79,13 +80,13 @@ class AstroPrintCloud(object):
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
-		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
+		self.apiHost = roConfig('cloud.apiHost')
 		self._print_file_store = None
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
 
 	def cloud_enabled(self):
-		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
+		return roConfig('cloud.apiHost') and self.hmacAuth
 
 	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager

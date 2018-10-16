@@ -133,10 +133,7 @@ default_settings = {
 		"config": "/default/path/to/your/cura/config.ini"
 	},
 	"cloudSlicer": {
-		"apiHost": "https://api.astroprint.com",
-		"loggedUser": None,
-		"boxrouter": "wss://boxrouter.astroprint.com",
-		"apiClientId": None
+		"loggedUser": None
 	},
 	"events": {
 		"enabled": False,

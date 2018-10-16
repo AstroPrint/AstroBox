@@ -87,7 +87,8 @@ var HomeView = Backbone.View.extend({
   events: {
     'show': 'onShow',
     'click .new-release a.check': 'onReleaseInfoClicked',
-    'click .new-release a.close': 'onCloseReleaseInfoClicked'
+    'click .new-release a.close': 'onCloseReleaseInfoClicked',
+    'click #queue-app': 'onQueueApp'
   },
   initialize: function()
   {
@@ -122,6 +123,16 @@ var HomeView = Backbone.View.extend({
     }
 
     app.router.settingsView.subviews['software-update'].onCheckClicked(e);
+  },
+  onQueueApp: function(e)
+  {
+    e.preventDefault();
+    if (initial_states.userLogged) {
+      location.href = "#print-queue";
+    } else {
+      console.log('logout');
+      $('#login-modal').foundation('reveal', 'open');
+    }
   },
   onCloseReleaseInfoClicked: function(e)
   {
