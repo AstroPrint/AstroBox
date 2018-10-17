@@ -120,7 +120,7 @@ def index():
 			settings= s,
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
-			apApiHost= s.getString(['cloudSlicer', 'apiHost']),
+			apApiHost= roConfig('cloud.apiHost')
 		)
 
 	elif softwareManager.status != 'idle' or softwareManager.forceUpdateInfo:
