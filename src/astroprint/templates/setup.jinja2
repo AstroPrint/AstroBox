@@ -114,7 +114,11 @@
                 <button class="disabled success radius connect expand bold">Connect</button>
               </div>
               <div class="small-12 medium-6 medium-pull-6 columns">
+                {% if mfDefinition.variant.printer_selection_hidden %}
                 <a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                {% else %}
+                <a href="#printer-selection" class="button success radius expand" ><sup>*</sup>Skip</a>
+                {% endif %}
               </div>
               <div class="small-12 columns">
                 <span class="button disabled loading success radius expand">
