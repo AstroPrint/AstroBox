@@ -406,6 +406,17 @@ var PrinterSelectorDialog = Backbone.View.extend({
           'heated_bed': this.printerInfo.config.heated_bed,
           'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
         }
+
+        // Change driver depending printer model chosen
+        if (this.printerInfo.format == 'x3g'){
+          if (this.parentView.settings.get('driver') != 's3g') {
+            attrs['driver'] = 's3g';
+          }
+        } else {
+          if (this.parentView.settings.get('driver') == 's3g') {
+            attrs['driver'] = 'marlin';
+          }
+        }
         this.parentView.settings.save(attrs, {
           patch: true,
           success: _.bind(function () {
