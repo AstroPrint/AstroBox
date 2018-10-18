@@ -688,15 +688,21 @@ var StepPrinterSelection = StepView.extend({
           "id": this.printerInfo.id,
           "name": this.printerInfo.name
         }
+        var attrs = {
+          'printer_model': printerObject,
+          'heated_bed': this.printerInfo.config.heated_bed,
+          'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+        }
+         // Change driver depending printer model chosen
+         if (this.printerInfo.format == 'x3g') {
+          attrs['driver'] = 's3g';
+        }
+
         // Update printer profile with selected printer
         $.ajax({
           url: API_BASEURL + 'printer-profile',
           method: 'PATCH',
-          data: JSON.stringify({
-            'printer_model': printerObject,
-            'heated_bed': this.printerInfo.config.heated_bed,
-            'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
-          }),
+          data: JSON.stringify(attrs),
           contentType: 'application/json',
           dataType: 'json'
         }, this)
