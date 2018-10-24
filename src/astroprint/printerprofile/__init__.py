@@ -43,6 +43,10 @@ class PrinterProfileManager(object):
 			'invert_z': False,
 			'invert_x': False,
 			'invert_y': False,
+			'printer_model': {
+				'id': None,
+				'name': None
+			},
 			'temp_presets' : [
 					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
 					'name' : "PLA",
