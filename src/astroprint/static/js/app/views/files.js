@@ -594,12 +594,17 @@ var PrintFilesListView = Backbone.View.extend({
               return false
             });
           } else {
-            var matchedFileViews = []
-            var unmatchedFileViews = _.filter(this.print_file_views, function (p) {
-              if (selectedStorage == 'local' && p.print_file.get('local_filename')) {
-                return true
+            // here ?
+            var unmatchedFileViews = []
+            var matchedFileViews = _.filter(this.print_file_views, function (p) {
+              if (p.print_file.get('local_filename')) {
+                if (p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
+                  return true;
+                } else {
+                  unmatchedFileViews.push(p)
+                  return false;
+                }
               }
-              return false;
             });
           }
         }
@@ -636,7 +641,7 @@ var PrintFilesListView = Backbone.View.extend({
       }
 
       // If no cloud tab or no printer model stored, hide headers and filter container
-      if (selectedStorage != "cloud" || !app.printerProfile.get('printer_model').id) {
+      if (selectedStorage == "USB" || !app.printerProfile.get('printer_model').id) {
         this.$('.header-filter').hide();
         listFilteredEl.hide()
       }
