@@ -131,24 +131,31 @@
                 </div>
 
                 <hr>
-
-                <label for="settings-printer-driver" class="bold text-center">Printer Model</label>
-                <% if (settings.printer_model.name) { %>
-                  <div class="text-center">
-                    <h4 id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %>
-                      {% if not mfDefinition.variant.printer_selection_hidden %}<div class="loading-button  text-center">
-                        <a class="button change-printer icon-button"><i class="icon-exchange"></i><b> Change</b></a>
-                        <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+                <div class="row clearfix">
+                  <label for="settings-printer-driver" class=" columns small-12 bold text-left">Printer Model</label>
+                  <% if (!settings.printer_model.name) { %>
+                    {% if not mfDefinition.variant.printer_selection_hidden %}
+                    <div class="column small-12">
+                        <a class="button radius add-printer tiny change-printer"><i class="icon-plus"></i> Add Printer</a>
                       </div>
-                      {% endif %}
-                    </h4>
+                    {% endif %}
+                  <% } %>
+                  <div class="column small-8">
+                    <% if (settings.printer_model.name) { %>
+                      <h4 id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %></h4>
+                    <% } %>
                   </div>
-                <% } else { %>
-                  <div class="loading-button expand text-center">
-                      <a class="button radius add-printer small change-printer"><i class="icon-plus"></i> Add Printer</a>
-                      <span class="button disabled success bold expand loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
+                  <% if (settings.printer_model.name) { %>
+                    {% if not mfDefinition.variant.printer_selection_hidden %}
+                    <div class="column small-2">
+                        <a class="button radius tiny right success change-printer"><b>Change</b></a>
+                      </div>
+                    <div class="column small-2">
+                      <a class="button radius tiny right alert unlink-printer"><b>Unlink</b></a>
                     </div>
-                <% } %>
+                    {% endif %}
+                  <% } %>
+                </div>
 
                 <div class="row clearfix">
                   <div class="column">
@@ -1177,5 +1184,22 @@
       </div>
       <a class="close-reveal-modal">&#215;</a>
       </div>
+
+    <div id="unlink-printer-dlg" class="reveal-modal medium" data-reveal>
+      <h2 class="bold">Unlink Printer Profile</h2>
+      <div class="reveal-content text-center">
+        <p>Are your sure you want to unlink <span class="bold printer-name"></b>{{printer}}</span> from your profile?</p>
+          <div class="button-container">
+          <button class="radius secondary left cancel">Cancel</button>
+          <div class="loading-button right unlink-button">
+            <button class="alert radius">Unlink</button>
+            <span class="loading button disabled alert radius"><i class="icon-rocket-spinner animate-spin"></i> Unlinking...</span>
+            <span class="failed button disabled alert radius"><i class="icon-attention"></i> Failed</span>
+          </div>
+          <div class="clearfix"></div>
+          </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
   </div>
 </div>

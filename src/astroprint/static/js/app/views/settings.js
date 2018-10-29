@@ -41,12 +41,12 @@ var PrinterConnectionView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     this.$('a.retry-ports i').addClass('animate-spin');
     $.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
@@ -78,7 +78,7 @@ var PrinterConnectionView = SettingsPage.extend({
   retryPortsClicked: function(e)
   {
     e.preventDefault();
-    this.getInfo();
+    this.getInfoAndRender();
   },
   sendConnect: function(command_data) {
     var connectionData = {};
@@ -178,6 +178,7 @@ var PrinterProfileView = SettingsPage.extend({
     "change input[name='heated_bed']": 'heatedBedChanged',
     "change select[name='driver']": 'driverChanged',
     "click a.change-printer": 'printerSelectorClicked',
+    "click a.unlink-printer": 'unlinkPrinterClicked',
 
   },
   show: function() {
@@ -185,11 +186,12 @@ var PrinterProfileView = SettingsPage.extend({
 
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
+
   printerSelectorClicked: function(e)
   {
     e.preventDefault();
@@ -232,6 +234,13 @@ var PrinterProfileView = SettingsPage.extend({
     }
 
   },
+
+  unlinkPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    console.log(this.settings);
+    (new UnlinkPrinterDialog()).open({settings: this.settings, view: this})
+  },
   _checkCurrentPrinter: function(printerID) {
     var promise = $.Deferred();
 
@@ -247,7 +256,7 @@ var PrinterProfileView = SettingsPage.extend({
 
     return promise;
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
@@ -421,7 +430,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
           patch: true,
           success: _.bind(function () {
             noty({ text: "Printer model saved", timeout: 3000, type: "success" });
-            this.parentView.getInfo();
+            this.parentView.getInfoAndRender();
             loadingBtn.removeClass('loading');
 
             this.$el.foundation('reveal', 'close');
@@ -491,6 +500,70 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
 });
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// UnlinkPrinterDialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var UnlinkPrinterDialog = Backbone.View.extend({
+  el: '#unlink-printer-dlg',
+  settings: null,
+  parentView: null,
+  events: {
+    "click .unlink-button": "doUnlink",
+    "click button.cancel": "doClose",
+    'closed.fndtn.reveal': 'onClosed'
+  },
+  render: function ()
+  {
+    this.$('.printer-name').text(this.settings.get('printer_model').name);
+  },
+  open: function (params)
+  {
+    this.settings = params.settings;
+    this.parentView = params.view;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+
+  doUnlink: function (e)
+  {
+    e.preventDefault()
+    this.$('.unlink-button').addClass('loading');
+    var attrs = {};
+    attrs['printer_model'] = {
+      id: null,
+      name: null
+    }
+
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        this.$('.unlink-button').removeClass('loading');
+        this.parentView.getInfoAndRender();
+       this.doClose()
+
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        this.$('.unlink-button').removeClass('loading');
+      }
+    });
+    // unlink action!!!
+  },
+
+  doClose: function ()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+
+  onClosed: function ()
+  {
+    this.undelegateEvents();
+  }
+});
+
 /***********************
 * Printer - Temperature Presets
 ************************/
@@ -510,12 +583,12 @@ var TemperaturePresetsView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
