@@ -3,6 +3,7 @@ var ControlView = Backbone.View.extend({
   distanceSelected: 10,
   template: _.template( $("#control-template").html() ),
   ignorePrintingStatus: false,
+  onlyBabyStep: false,
   events: {
     // XY AXIS
     'click .btn_x_plus': function(){this.plusTapped('x')},
@@ -24,6 +25,7 @@ var ControlView = Backbone.View.extend({
   {
     this.commandsSender = new CommandsSender();
     this.ignorePrintingStatus = param ? param.ignorePrintingStatus : false;
+    this.onlyBabyStep = param ? param.onlyBabyStep : false;
   },
 
   homeTapped: function(axis)
@@ -67,7 +69,7 @@ var ControlView = Backbone.View.extend({
 
   render: function ()
   {
-    return this.$el.html(this.template({ignorePrintingStatus: this.ignorePrintingStatus}));
+    return this.$el.html(this.template({ignorePrintingStatus: this.ignorePrintingStatus, onlyBabyStep: this.onlyBabyStep}));
   }
 });
 

@@ -105,6 +105,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
     this.$el.empty();
     var params = {};
+    var modalType = this.isModal ? this.modal.type : null;
     if (!this.isModal) {
       params = {currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
     } else {
@@ -113,9 +114,14 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
     this.$el.html(this.template(params));
 
+    var modalType = this.isModal ? this.modal.type : null;
+
     // Add Control view widget
-    if (this.currentStep.type == "control_movement" ||  (this.isModal && this.modal.type == "control_movement")) {
+    if (this.currentStep.type == "control_movement" ||  (modalType == "control_movement")) {
       this.controlView = new ControlView({ignorePrintingStatus: true});
+      this.$el.find('#control-container').append(this.controlView.render());
+    } else if (this.currentStep.type == "babystepping" ||  (modalType == "babystepping")) {
+      this.controlView = new ControlView({ignorePrintingStatus: true, onlyBabyStep: true});
       this.$el.find('#control-container').append(this.controlView.render());
     }
     if (!this.isModal){
