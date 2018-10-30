@@ -89,7 +89,7 @@
 <script type="text/template" id="control-template">
   <div id="controls" class="row clearfix">
     <% if (!ignorePrintingStatus) { %>
-    <div class="no-paused-overlay">
+    <div class="no-paused-overlay controls">
       <i class="icon-3d-printer"></i>
       <b>Pause the print to enable this</b>
     </div>
@@ -142,6 +142,20 @@
         <a class="btn_z_minus control-btn-wrapper">
           <div class="btn">
             <i class="icon-right-open"></i>
+          </div>
+        </a>
+      </div>
+      <div class="small-12 medium-2 columns" id="z-controls">
+        <h5>Z-BabySteps</h5>
+        <a class="btn_babystep_z_plus control-btn-wrapper">
+          <div class="btn">
+            <i class="icon-up-open"></i>
+          </div>
+        </a>
+
+        <a class="btn_babystep_z_minus control-btn-wrapper">
+          <div class="btn">
+            <i class="icon-down-open"></i>
           </div>
         </a>
       </div>

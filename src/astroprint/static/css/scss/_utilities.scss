@@ -244,6 +244,9 @@
       font-size: rem-calc(60);
       display: block;
     }
+    &.controls {
+      width: 80%;
+    }
   }
 
   .heading-box{
