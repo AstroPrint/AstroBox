@@ -108,8 +108,8 @@
 	h5 {
     color: darkgrey;
     font-size: 14px;
-    margin-top: 5px;
-    margin-bottom: 0px;
+    margin-top: 10px;
+    margin-bottom: 4px;
   }
 
   #controls {
@@ -265,6 +265,7 @@ html.no-printer {
   .no-connection-overlay {
     display: block;
     position: absolute;
+    top: 0;
     height: 100%;
     width: 100%;
     background: rgba(0,0,0,0.7);
