@@ -210,6 +210,7 @@
 
   .no-connection-overlay {
     display: none;
+    top: 0;
 
     html.no-printer & {
       display: block;
@@ -265,7 +266,7 @@
 
 html.no-printer {
   .no-connection-overlay {
-    display: block;
+    @include flex(center,column);
     position: absolute;
     top: 0;
     height: 100%;
