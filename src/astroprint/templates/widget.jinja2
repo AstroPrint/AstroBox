@@ -94,7 +94,7 @@
       <b>Pause the print to enable this</b>
     </div>
     <% } %>
-    <div class="blur-effect">
+
       <% if (onlyBabyStep) { %>
         <div class="small-12 columns medium-offset-0" id="xy-controls" align="center">
           <div class="small-12 columns" id="z-controls">
@@ -112,7 +112,7 @@
           </div>
         </div>
       <% } else { %>
-        <div class="small-12 medium-7 columns medium-offset-0" id="xy-controls" align="center">
+        <div class="small-12 medium-7 blur-effect columns medium-offset-0" id="xy-controls" align="center">
           <h5>Horizontal (XY)</h5>
           <div class="control_bg_xy" align="center">
             <div class="bed-mesh">
@@ -144,7 +144,7 @@
             </div>
           </div>
         </div>
-        <div class="small-12 medium-2 columns" id="z-controls">
+        <div class="small-12 medium-2 blur-effect columns" id="z-controls">
           <h5>Vertical (Z)</h5>
           <a class="btn_z_plus control-btn-wrapper">
             <div class="btn">
@@ -176,7 +176,7 @@
             </div>
           </a>
         </div>
-        <div class="small-12 columns" id="distance-control">
+        <div class="small-12 columns blur-effect" id="distance-control">
           <center>
             <h5>Set movement distance</h5>
             <ul class="button-group radius">
@@ -195,7 +195,7 @@
             </ul>
           </center>
         </div>
-      </div>
+
     <% } %>
   </div>
 </script>

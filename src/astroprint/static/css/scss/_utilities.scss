@@ -194,10 +194,10 @@
   }
   &.print-active {
     .no-paused-overlay {
-      display: inline-block;
+      @include flex(center,column);
     }
     .blur-effect {
-      filter:blur(4px);
+      filter:blur(3px);
     }
 
     .resume-container {
@@ -224,7 +224,7 @@
       padding: 5px;
 
       i {
-        font-size: rem-calc(80);
+        font-size: rem-calc(70);
         display: block;
       }
     }
@@ -234,14 +234,16 @@
     position: absolute;
     height: 99%;
     width: 100%;
-    background: rgba(0, 0, 0, 0.36);
-    color: white;
+    //background: rgba(0, 0, 0, 0.36);
+    background: rgba(236, 236, 236, 0.6);
+    color: $oil;
     text-align: center;
     font-size: rem-calc(25);
     border-radius: 3px;
     z-index: 1;
+
     i {
-      font-size: rem-calc(60);
+      font-size: rem-calc(50);
       display: block;
     }
     &.controls {
@@ -274,6 +276,8 @@ html.no-printer {
     font-size: rem-calc(30);
     border-radius: 3px;
     padding: 5px;
+    top: 0;
+    z-index: 99;
 
     i {
       font-size: rem-calc(80);
