@@ -112,11 +112,15 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
 
     this.$el.html(this.template(params));
+    var modalType = this.isModal ? this.modal.type : null;
 
     // Add Control view widget
-    if (this.currentStep.type == "control_movement" ||  (this.isModal && this.modal.type == "control_movement")) {
+    if (this.currentStep.type == "control_movement" || (modalType == "control_movement")) {
       this.controlView = new ControlView({ignorePrintingStatus: true});
       this.$el.find('#control-container').append(this.controlView.render());
+    } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
+      this.gcodeTerminalView = new GcodeWidgetView();
+      this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
     }
     if (!this.isModal){
       this.currentStepManagement()
@@ -132,6 +136,14 @@ var AdditionalTaskAppView = Backbone.View.extend({
     if (this.customTempView) {
       this.customTempView.stopListening();
     }
+    this.stopListeningComm();
+  },
+  stopListeningComm: function ()
+  {
+    $.ajax({
+      url: API_BASEURL + 'printer/comm/listen',
+      method: 'DELETE'
+    });
   },
   closeClicked: function (e)
   {
@@ -199,6 +211,8 @@ var AdditionalTaskAppView = Backbone.View.extend({
     } else if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
       this.checkForCommandsAndMove(direction);
+    } else if (this.currentStep.type == "gcode_terminal") {
+      this.stopListeningComm();
     } else {
       this.checkForCommandsAndMove(direction);
     }
@@ -250,6 +264,8 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
+    } else if (this.currentStep.type == "gcode_terminal") {
+      this.stopListeningComm();
     }
     var stepToGoData = this._getStepByID(ID);
 

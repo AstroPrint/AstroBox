@@ -169,24 +169,27 @@
 </script>
 
 <script type="text/template" id="gcode-terminal-template" >
-  <div class="output-container"></div>
-  <form>
-    <div class="row collapse">
-      <div class="small-8 large-9 columns">
-        <input type="text" name="gcode" placeholder="Enter your GCODE" autocomplete="off"/>
-      </div>
-      <div class="small-2 columns">
-        <div class="loading-button expand">
-          <button class="success tiny send bold">Send</button>
-          <span class="button success tiny disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Sending</span>
-          <span class="button alert tiny disabled failed"><i class="icon-attention"></i> Failed</span>
+  <div id="gcode-widget" >
+    <div class="output-container"></div>
+    <form>
+      <div class="row collapse">
+        <div class="small-8 large-9 columns">
+          <input type="text" name="gcode" placeholder="Enter your GCODE" autocomplete="off"/>
+        </div>
+        <div class="small-2 columns">
+          <div class="loading-button expand">
+            <button class="success tiny send bold">Send</button>
+            <span class="button success tiny disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Sending</span>
+            <span class="button alert tiny disabled failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+        <div class="small-2 large-1 columns">
+          <div class="clear-button">
+            <button class="secondary tiny clear bold">Clear</button>
+          </div>
         </div>
       </div>
-      <div class="small-2 large-1 columns">
-        <div class="clear-button">
-          <button class="secondary tiny clear bold">Clear</button>
-        </div>
-      </div>
-    </div>
-  </form>
+    </form>
+  </div>
+
 </script>

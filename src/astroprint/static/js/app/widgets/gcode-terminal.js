@@ -18,7 +18,17 @@ var GcodeWidgetView = Backbone.View.extend({
         this.add(data.direction, data.data);
       }
     }, this));
+    this.startListening();
   },
+
+  startListening: function ()
+  {
+    $.ajax({
+      url: API_BASEURL + 'printer/comm/listen',
+      method: 'POST'
+    });
+  },
+
   render: function ()
   {
     return this.$el.html(this.template());
@@ -76,26 +86,10 @@ var GcodeWidgetView = Backbone.View.extend({
         .always(function(){
           loadingBtn.removeClass('loading');
           sendField.val('');
-          console.log('always');
         });
     }
 
     return false;
-  },
-  onShow: function()
-  {
-    this.$('input').focus();
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/listen',
-      method: 'POST'
-    })
-  },
-  onHide: function()
-  {
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/listen',
-      method: 'DELETE'
-    });
   },
   onDismissAlert: function(e)
   {
