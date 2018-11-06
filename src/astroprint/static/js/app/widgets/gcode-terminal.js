@@ -33,6 +33,11 @@ var GcodeWidgetView = Backbone.View.extend({
   {
     return this.$el.html(this.template());
   },
+
+  addGcodeToInput: function (gcode)
+  {
+    this.$('input').val(gcode)
+  },
   add: function(type, text, failed)
   {
     switch(type) {
