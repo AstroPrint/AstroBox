@@ -97,7 +97,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.$el.attr('id', this.additionalTaskApp.get('id'));
   },
-  render: function ()
+  render: function (data)
   {
     if (!this.template) {
       this.template = _.template($("#additional-task-app-template").html());
@@ -121,6 +121,9 @@ var AdditionalTaskAppView = Backbone.View.extend({
     } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
       this.gcodeTerminalView = new GcodeWidgetView();
       this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
+      if (data) {
+        this.gcodeTerminalView.addGcodeToInput(data)
+      }
     }
     if (!this.isModal){
       this.currentStepManagement()
@@ -249,18 +252,28 @@ var AdditionalTaskAppView = Backbone.View.extend({
   doAction: function()
   {
     var actions = this.isModal ? this.modal.actions.commands : this.currentStep.actions.commands;
-    if (actions && Array.isArray(actions)) {
-      // Multiple actions
-      if (actions[0] !== null && typeof actions[0] === 'object') {
-        new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
-      // Single action
-      } else {
-        this.sendCommands("action");
+
+    if (actions) {
+      if (Array.isArray(actions)) {
+        // Multiple actions
+        if (actions[0] !== null && typeof actions[0] === 'object') {
+          new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
+        // Single action
+        } else {
+          this.sendCommands("action");
+        }
+      // Link to a special modal with params
+      } else if (typeof actions == "object") {
+        var params = actions.parameters && Array.isArray(actions.parameters) ? actions.parameters[0] : ""
+        var linkID = actions.linkID ? actions.linkID : ""
+        if (linkID) {
+          this.linkTo(linkID, params);
+        }
       }
     }
   },
 
-  linkTo: function(ID)
+  linkTo: function(ID, params)
   {
     if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
@@ -280,7 +293,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
         this.isModal = true;
       }
     }
-    this.render()
+    this.render(params)
   },
 
   repeatClicked: function (e)
