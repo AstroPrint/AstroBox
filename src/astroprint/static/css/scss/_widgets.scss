@@ -1,3 +1,4 @@
+@import "variables";
 .loading-button {
   display: inline-block;
 
@@ -239,12 +240,16 @@
 // GCODE TERMINAL
 #gcode-widget {
 
+  .arcade-screen{
+    background: linear-gradient(180deg,transparent 50%,rgba(89, 217, 132, 0.08) 51%);background-size: 100% 5px;
+  }
+
   input[name='gcode'] {
     text-transform: uppercase;
   }
 
   .output-container {
-    background: $jet;
+    background-color: $jet;
     height: 500px;
     overflow: scroll;
     margin: 20px 0 10px 0;

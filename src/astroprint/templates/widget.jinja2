@@ -170,7 +170,11 @@
 
 <script type="text/template" id="gcode-terminal-template" >
   <div id="gcode-widget" >
-    <div class="output-container"></div>
+    <div class="output-container">
+    	<div class="alert-box warning terminal">
+        <i class="icon-attention"> </i> The GCode Terminal is for advanced users. If you are not familiar with GCODE it is possible to send unwanted commands and cause damage to your 3D printer. Use caution if you're new to using the terminal. - <a class ="bold" href="#">Hide Warning Message</a>
+      </div>
+    </div>
     <form>
       <div class="row collapse">
         <div class="small-8 large-9 columns">
