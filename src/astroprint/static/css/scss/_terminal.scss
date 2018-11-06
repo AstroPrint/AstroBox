@@ -3,10 +3,9 @@
     margin-bottom: 0;
   }
 
-  .terminal.warning {
+  .terminal.alert {
     margin: 20px 0 0;
-    border: 1px solid $alert-color;
-    background: #f9dede;
-    color: #222;
+
+    a{color: $white;}
   }
 }

@@ -11,7 +11,14 @@
   min-height:75vh;
   position: relative;
   padding-bottom: 15px;
-  //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+
+
+.arcade-screen{
+  //background: #003d56;
+  background: linear-gradient(180deg,transparent 50%,rgba(89, 217, 132, 0.08) 51%);
+  background-size: 100% 5px;
+}
+
   .control-container {
     background: transparent;
   }

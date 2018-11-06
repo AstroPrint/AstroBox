@@ -244,28 +244,29 @@
   }
 
   .output-container {
-    background: #fafafa;
+    background: $jet;
     height: 500px;
     overflow: scroll;
-    margin: 20px 0 0;
+    margin: 20px 0 10px 0;
     padding: 10px 0;
     border: 1px solid #ccc;
     user-select: text;
     @include radius($global-radius $global-radius 0 0);
+    border-radius: 20px;
+    border: 10px solid #0c0c0c;
 
     div {
-        border-bottom: 1px solid #f2f2f2;
+        border-bottom: 1px solid $oil;
         padding-left: 10px;
         text-indent: -5px;
     }
 
     .sent {
-      color: lighten(#92278f, 25%);
-      background: #fdfdfd;
-      border-left: 10px solid $secondary-color;
+      color: saturate($violet2, 25%);
+      border-left: 10px solid saturate($violet2, 25%);
 
       i {
-        color: lighten(#92278f, 30%);
+        color: saturate($violet2, 25%);
         user-select: none;
       }
 
@@ -282,12 +283,10 @@
     }
 
     .received {
-      color: #505050;
-      border-left: 10px solid #ccc;
+      color: saturate(#4dd1b1, 25%);
+      border-left: 10px solid saturate(#4dd1b1, 25%);
 
-      i {
-          color: #00bff3;
-      }
+      i {color: saturate(#4dd1b1, 25%);}
     }
   }
 
