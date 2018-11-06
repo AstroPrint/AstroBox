@@ -11,7 +11,7 @@ var GcodeWidgetView = Backbone.View.extend({
     'click .alert-box.warning a': 'onDismissAlert'
   },
 
-  initialize: function()
+  initialize: function(editBlocked)
   {
     app.eventManager.on("astrobox:commsData", _.bind(function(data) {
       if ( !(data.direction == 'r' && _.contains(this.ignoreReceived, data.data)) ) {
@@ -19,6 +19,7 @@ var GcodeWidgetView = Backbone.View.extend({
       }
     }, this));
     this.startListening();
+    this.editBlocked = editBlocked;
   },
 
   startListening: function ()
@@ -31,7 +32,7 @@ var GcodeWidgetView = Backbone.View.extend({
 
   render: function ()
   {
-    return this.$el.html(this.template());
+    return this.$el.html(this.template({editBlocked: this.editBlocked}));
   },
 
   addGcodeToInput: function (gcode)
