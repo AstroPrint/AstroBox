@@ -85,8 +85,6 @@ var GcodeWidgetView = Backbone.View.extend({
       })
         .fail(_.bind(function(){
           loadingBtn.addClass('failed');
-          this.outputView.add('s', command, true);
-
           setTimeout(function(){
             loadingBtn.removeClass('failed');
           }, 3000);
