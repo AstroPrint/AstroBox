@@ -193,13 +193,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   backClicked: function (e)
   {
     e.preventDefault();
-    if (!this.isModal) {
-      this.checkStepType("back");
-    } else {
-      this.isModal = false;
-      this.modal = null;
-      this.render();
-    }
+    this.checkStepType("back");
   },
 
   checkStepType: function(direction)
@@ -233,7 +227,10 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
     loadingBtn.addClass("loading");
-    if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
+
+    var currentScreen = this.isModal ? this.modal : this.currentStep;
+
+    if ( direction == "next" && currentScreen.next_button.commands || direction == "back" && currentScreen.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
           loadingBtn.removeClass('loading');
@@ -319,8 +316,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   goBackStep: function()
   {
-    this.currentIndexStep--;
-    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    if (this.isModal) {
+      this.isModal = false;
+      this.modal = null;
+    } else {
+      this.currentIndexStep--;
+      this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep - 1]
+    }
     this.render();
   },
 
@@ -362,7 +364,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
           arrayCommands = this.modal.back_button.commands;
         }
       }
-
     }
 
     var currentCommand = arrayCommands[commandsIndex];
