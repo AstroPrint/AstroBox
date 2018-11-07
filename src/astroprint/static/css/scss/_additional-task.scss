@@ -12,6 +12,14 @@
   position: relative;
   padding-bottom: 15px;
 
+  #gcode-widget{
+    padding: 0 16px;
+    .output-container{
+      margin-top: 0;
+      height: 45vh;
+    }
+  }
+
   .control-container {
     background: transparent;
   }
