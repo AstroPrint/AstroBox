@@ -114,15 +114,23 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.$el.html(this.template(params));
     var modalType = this.isModal ? this.modal.type : null;
 
-    // Add Control view widget
+    /* Add Control view widget
+       ignorePrintingStatus: It will show the control screen even printing.
+    */
     if (this.currentStep.type == "control_movement" || (modalType == "control_movement")) {
       this.controlView = new ControlView({ignorePrintingStatus: true});
       this.$el.find('#control-container').append(this.controlView.render());
+
+    /* Gcode terminal with two params:
+       editBlocked: To disable the input to send gcode.
+       gcode: Set the gcode text to send.
+    */
     } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
-      this.gcodeTerminalView = new GcodeWidgetView();
+      var editBlocked = data ? data['edit_blocked'] : false
+      this.gcodeTerminalView = new GcodeWidgetView({editBlocked: editBlocked});
       this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
-      if (data) {
-        this.gcodeTerminalView.addGcodeToInput(data)
+      if (data && data.gcode) {
+        this.gcodeTerminalView.addGcodeToInput(data.gcode)
       }
     }
     if (!this.isModal){
@@ -264,7 +272,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
         }
       // Link to a special modal with params
       } else if (typeof actions == "object") {
-        var params = actions.parameters && Array.isArray(actions.parameters) ? actions.parameters[0] : ""
+        var params = actions.parameters ? actions.parameters : ""
         var linkID = actions.linkID ? actions.linkID : ""
         if (linkID) {
           this.linkTo(linkID, params);
