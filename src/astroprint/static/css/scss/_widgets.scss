@@ -246,11 +246,25 @@
   .arcade-screen{
     background: linear-gradient(180deg,transparent 50%,rgba(89, 217, 132, 0.08) 51%);
     background-size: 100% 5px;
-    animation: example 500ms infinite linear;
+    animation: lines 1s ease-out infinite;
+
+    @keyframes lines {
+      0% {
+         background-position:0px 0px;
+      }
+      100% {
+         background-position:0px 25px;
+      }
+   }
+
   }
 
   input[name='gcode'] {
-    text-transform: uppercase;
+    border: 2px solid grey;
+    border-radius: 5px 0 0 5px;
+    letter-spacing: 2px;
+    text-transform: initial;
+    height: 45px;
   }
 
   .output-container {
@@ -259,12 +273,11 @@
     overflow: scroll;
     margin: 20px 0 10px 0;
     padding:0 0 10px 0;
-    border: 1px solid #ccc;
     user-select: text;
-    @include radius($global-radius $global-radius 0 0);
     border-radius: 20px;
     border: 10px solid darken($jet, 15%);
     background-blend-mode: hard-light;
+    position: relative;
 
     .alert-box{
       background: transparent;
@@ -273,11 +286,23 @@
       font-size: 15px;
       line-height: 130%;
       border: 0;
+      animation: giggle 200ms ease infinite;
+
+      @keyframes giggle {
+        0%, 100% {
+           opacity: 1;
+        }
+        50% {
+           opacity: 0.84;
+        }
+     }
     }
 
     div {
-        padding-left: 5px;
+        padding-left: 10px;
         margin-bottom: 2px;
+        text-indent: -5px;
+        line-height: 140%;
     }
 
     .sent {
@@ -303,14 +328,9 @@
 
     .received {
       color: saturate(#4dd1b1, 25%);
-      border-left: 10px solid saturate(#4dd1b1, 25%);
+      border-left: 8px solid saturate(#4dd1b1, 25%);
 
       i {color: saturate(#4dd1b1, 25%);}
     }
-  }
-
-  button, .button {
-    height: 37px;
-    width: 100%;
   }
 }

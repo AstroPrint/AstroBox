@@ -151,7 +151,7 @@
 .no-connection-overlay {
   display: none;
   html.no-printer & {
-    display: block;
+    @include flex(center, column);
     position: absolute;
     height: 100%;
     width: 100%;
