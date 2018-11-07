@@ -121,12 +121,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
       this.controlView = new ControlView({ignorePrintingStatus: true});
       this.$el.find('#control-container').append(this.controlView.render());
 
-      /* Gcode terminal with two params:
+    /* Gcode terminal with two params:
        editBlocked: To disable the input to send gcode.
        gcode: Set the gcode text to send.
     */
     } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
-      this.gcodeTerminalView = new GcodeWidgetView({editBlocked: data['edit_blocked']});
+      var editBlocked = data ? data['edit_blocked'] : false
+      this.gcodeTerminalView = new GcodeWidgetView({editBlocked: editBlocked});
       this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
       if (data && data.gcode) {
         this.gcodeTerminalView.addGcodeToInput(data.gcode)
