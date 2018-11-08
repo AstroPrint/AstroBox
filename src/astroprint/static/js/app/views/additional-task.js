@@ -379,29 +379,42 @@ var AdditionalTaskAppView = Backbone.View.extend({
         return promise;
       }
     }
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/send',
-      method: 'POST',
-      data: {
-        command: currentCommand
-      }
-    })
-      .success(_.bind(function () {
-        if (arrayCommands[commandsIndex + 1]) {
-          this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
-        } else {
-          promise.resolve();
-          if (linkID) {
-            this.linkTo(linkID);
-          }
+    // Send gcode only if it's not a linkID
+    if (!currentCommand.startsWith("@")) {
+      $.ajax({
+        url: API_BASEURL + 'printer/comm/send',
+        method: 'POST',
+        data: {
+          command: currentCommand
         }
-      }, this))
+      })
+        .success(_.bind(function () {
+          if (arrayCommands[commandsIndex + 1]) {
+            this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+          } else {
+            promise.resolve();
+            if (linkID) {
+              this.linkTo(linkID);
+            }
+          }
+        }, this))
 
-      .fail(_.bind(function () {
-        promise.reject()
-      }, this))
+        .fail(_.bind(function () {
+          promise.reject()
+        }, this))
+      return promise;
+    } else {
+      if (arrayCommands[commandsIndex + 1]) {
+        this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+      } else {
+        promise.resolve();
+        if (linkID) {
+          this.linkTo(linkID);
+        }
+      }
+    }
 
-    return promise;
+    return promise
   },
 
   _sendChangeToolCommand: function(tool)
