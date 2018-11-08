@@ -121,6 +121,14 @@ var AdditionalTaskAppView = Backbone.View.extend({
       this.controlView = new ControlView({ignorePrintingStatus: true});
       this.$el.find('#control-container').append(this.controlView.render());
 
+    /* BabyStep-z:
+       ignorePrintingStatus: It will show the control screen even printing.
+       onlyBabyStep: Isolate the babystep controls.
+    */
+    } else if (this.currentStep.type == "babystepping" ||  (modalType == "babystepping")) {
+        this.controlView = new ControlView({ignorePrintingStatus: true, onlyBabyStep: true});
+        this.$el.find('#control-container').append(this.controlView.render());
+
     /* Gcode terminal with two params:
        editBlocked: To disable the input to send gcode.
        gcode: Set the gcode text to send.

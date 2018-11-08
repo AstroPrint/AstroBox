@@ -77,7 +77,7 @@
             </select>
             <i class="icon-play"></i>
           </div>
-        <% } else if (currentStep.type == "control_movement") { %>
+        <% } else if (currentStep.type == "control_movement" || currentStep.type == "babystepping") { %>
           <div id="control-container" class="columns-small-12 text-center "></div>
         <% } else if (currentStep.type == "gcode_terminal") { %>
           <div id="gcode-terminal-container" class="columns-small-12 text-center "></div>
