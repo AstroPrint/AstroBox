@@ -199,3 +199,36 @@
     <% } %>
   </div>
 </script>
+
+<script type="text/template" id="gcode-terminal-template" >
+  <div id="gcode-widget" >
+    <div class="output-container arcade-screen text-left">
+    	<div class="alert-box warning terminal">
+        <i class="icon-attention"> </i> The GCode Terminal is for advanced users. If you are not familiar with GCODE it is possible to send unwanted commands and cause damage to your 3D printer. Use caution if you're new to using the terminal. - <a class ="bold" href="#">Hide Warning Message</a>
+      </div>
+    </div>
+    <form>
+      <div class="row collapse">
+        <div class="small-8 large-9 columns">
+          <input type="text" name="gcode"
+          <% if (editBlocked) { %>
+            disabled
+          <% } %>  placeholder="Enter your GCODE" autocomplete="off"/>
+        </div>
+        <div class="small-2 columns">
+          <div class="loading-button expand">
+            <button class="success small expand send bold">Send</button>
+            <span class="button success small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Sending</span>
+            <span class="button alert small expand failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+        <div class="small-2 large-1 columns">
+          <div class="clear-button">
+            <button class="secondary small expand clear bold">Clear</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+</script>

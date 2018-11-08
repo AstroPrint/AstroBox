@@ -221,6 +221,7 @@ class PrinterStateConnection(SockJSConnection):
 			'direction': direction,
 			'data': data
 		})
+		self._eventManager.fire(Events.COMMS_CHANGE, {'direction': direction,'data': data})
 
 	def sendEvent(self, type, payload=None):
 		self._emit("event", {"type": type, "payload": payload})
