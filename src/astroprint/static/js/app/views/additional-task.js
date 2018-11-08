@@ -105,7 +105,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
     this.$el.empty();
     var params = {};
-    var modalType = this.isModal ? this.modal.type : null;
     if (!this.isModal) {
       params = {currentStep: this.currentStep, currentIndexStep: this.currentIndexStep, additionalTaskApp: this.additionalTaskApp.toJSON(), isModal: this.isModal }
     } else {
