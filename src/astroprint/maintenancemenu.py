@@ -84,7 +84,7 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "babystepping",
 					'type' : "utility"
-				}
+				},
 				{
 					'id' : "gcode_terminal",
 					'type' : "utility",
