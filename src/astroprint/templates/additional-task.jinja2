@@ -79,6 +79,8 @@
           </div>
         <% } else if (currentStep.type == "control_movement") { %>
           <div id="control-container" class="columns-small-12 text-center "></div>
+        <% } else if (currentStep.type == "gcode_terminal") { %>
+          <div id="gcode-terminal-container" class="columns-small-12 text-center "></div>
       <% } else { %>
            {# Additional Task Media #}
           <div id="img-app" class="columns-small-12 text-center">

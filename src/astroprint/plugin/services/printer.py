@@ -23,7 +23,9 @@ class PrinterService(PluginService):
 		#watch the printing progress. Returns Object containing [completion, currentLayer, filamentConsumed, filepos, printTime, printTimeLeft]
 		'printing_progress_changed',
 		#watch the current printing state
-		'printing_state_changed'
+		'printing_state_changed',
+		#watch the printer comms
+		'printer_comms_changed'
 	]
 
 	def __init__(self):
@@ -36,6 +38,8 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
 		self._eventManager.subscribe(Events.PRINTINGSPEED_CHANGE, self._onPrintingSpeedChange)
 		self._eventManager.subscribe(Events.PRINTINGFLOW_CHANGE, self._onPrintingFlowChange)
+
+		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterCommsChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -166,6 +170,36 @@ class PrinterService(PluginService):
 			callback({'success': 'no_error'})
 		else:
 			callback("Command is missing", True)
+
+	def startCommBroadcasting(self, data ,callback):
+
+		pm = printerManager()
+
+		if not pm.allowTerminal:
+			callback("Driver does not support terminal access", True)
+
+		pm.broadcastTraffic += 1
+
+		#Stop doing temperature reports
+		pm.doIdleTempReports = False
+
+		callback({'success': 'no_error'})
+
+	def stopCommBroadcasting(self, data ,callback):
+
+		pm = printerManager()
+
+		if not pm.allowTerminal:
+			callback("Driver does not support terminal access", True)
+
+		#Protect against negative values
+		pm.broadcastTraffic = max(0, pm.broadcastTraffic - 1)
+
+		if pm.broadcastTraffic == 0:
+			#Restore temperature reports
+			pm.doIdleTempReports = True
+
+		callback({'success': 'no_error'})
 
 	##Printer connection
 
@@ -375,6 +409,9 @@ class PrinterService(PluginService):
 
 	def _onPrintingSpeedChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"speed": value})
+
+	def _onPrinterCommsChange(self,event,value):
+		self.publishEvent('printer_comms_changed', value)
 
 	def _onPrintingFlowChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"flow": value})
