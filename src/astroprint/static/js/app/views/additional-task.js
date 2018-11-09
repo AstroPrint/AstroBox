@@ -136,6 +136,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
       var editBlocked = data ? data['edit_blocked'] : false
       this.gcodeTerminalView = new GcodeWidgetView({editBlocked: editBlocked});
+      this.gcodeTerminalView.startListening();
       this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
       if (data && data.gcode) {
         this.gcodeTerminalView.addGcodeToInput(data.gcode)
@@ -159,10 +160,9 @@ var AdditionalTaskAppView = Backbone.View.extend({
   },
   stopListeningComm: function ()
   {
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/listen',
-      method: 'DELETE'
-    });
+    if (this.gcodeTerminalView) {
+      this.gcodeTerminalView.stopListening();
+    }
   },
   closeClicked: function (e)
   {

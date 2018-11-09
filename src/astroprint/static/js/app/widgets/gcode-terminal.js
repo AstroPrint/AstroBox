@@ -6,8 +6,6 @@ var GcodeWidgetView = Backbone.View.extend({
   editBlocked: false,
   events: {
     'submit form': 'onSend',
-    'show': 'onShow',
-    'hide': 'onHide',
     'click button.clear': 'onClear',
     'click .alert-box.warning a': 'onDismissAlert'
   },
@@ -19,7 +17,6 @@ var GcodeWidgetView = Backbone.View.extend({
         this.add(data.direction, data.data);
       }
     }, this));
-    this.startListening();
 
     this.editBlocked = param ? param.editBlocked: false ;
   },
@@ -29,6 +26,14 @@ var GcodeWidgetView = Backbone.View.extend({
     $.ajax({
       url: API_BASEURL + 'printer/comm/listen',
       method: 'POST'
+    });
+  },
+
+  stopListening: function ()
+  {
+    $.ajax({
+      url: API_BASEURL + 'printer/comm/listen',
+      method: 'DELETE'
     });
   },
 
