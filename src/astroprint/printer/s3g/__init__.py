@@ -369,6 +369,9 @@ class PrinterS3g(Printer):
 
 					self._comm.queue_extended_point_classic(position, 500)
 
+	def babystepping(self, amount):
+		raise NotImplementedError()
+
 	def fan(self, tool, speed):
 		if self._comm:
 			with self._state_condition:

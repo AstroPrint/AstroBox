@@ -3,7 +3,8 @@ var TerminalView = Backbone.View.extend({
   outputView: null,
   gcodeTerminalView: null,
   events: {
-    'hide': 'onHide'
+    'hide': 'onHide',
+    'show': 'onShow',
   },
   initialize: function()
   {
@@ -12,9 +13,10 @@ var TerminalView = Backbone.View.extend({
   },
   onHide: function()
   {
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/listen',
-      method: 'DELETE'
-    });
+    this.gcodeTerminalView.stopListening();
   },
+  onShow: function()
+  {
+    this.gcodeTerminalView.startListening();
+  }
 });

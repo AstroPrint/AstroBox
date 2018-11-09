@@ -51,11 +51,11 @@ var ControlView = Backbone.View.extend({
 
   babyStepPlusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("Z0.25");
+    this.commandsSender.sendBabyStepCommand("0.25");
   },
   babyStepMinusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("Z-0.25");
+    this.commandsSender.sendBabyStepCommand("-0.25");
   },
 
   selectDistance: function (e)
@@ -108,19 +108,19 @@ var CommandsSender = Backbone.View.extend({
       data: JSON.stringify(data)
     });
   },
-  sendBabyStepCommand: function(direction)
+  sendBabyStepCommand: function(amount)
   {
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/send',
-      method: 'POST',
-      data: {
-        command: "M290 " + direction
-      }
-    })
-      .success(_.bind(function () {console.log('SENDED');}, this))
+    var data = {
+      "command": "babystepping"
+    }
+    data['amount'] = +amount
 
-      .fail(_.bind(function (e) {
-        console.error('Babystepping not sended:' + direction, e)
-      }, this))
+    $.ajax({
+      url: API_BASEURL + "printer/printhead",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
   }
 });

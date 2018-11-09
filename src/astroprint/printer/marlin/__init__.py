@@ -184,6 +184,9 @@ class PrinterMarlin(Printer):
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
 
+	def babystepping(self, amount):
+		self.command("M290 Z%s" % self.babysteppingWithPrinterProfile(amount))
+
 	def setPrintingSpeed(self, amount):
 		try:
 			self.command("M220 S%s" % amount)

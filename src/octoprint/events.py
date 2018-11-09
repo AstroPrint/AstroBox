@@ -70,7 +70,7 @@ class Events(object):
 	TOOL_CHANGE = "ToolChange"
 	PRINTINGSPEED_CHANGE = "PrintingSpeedChange"
 	PRINTINGFLOW_CHANGE = "PrintingFlowChange"
-	COMMS_CHANGE = "PrinterCommsChange"
+	COMMS_CHANGE = "PrinterCommsChanged"
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"
