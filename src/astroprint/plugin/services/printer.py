@@ -119,7 +119,6 @@ class PrinterService(PluginService):
 
 		callback({'success': 'no_error'})
 
-
 	def printerHomeCommand(self,axes,callback):
 		pm = printerManager()
 
@@ -135,6 +134,25 @@ class PrinterService(PluginService):
 			pm.home('z')
 
 		callback({'success': 'no_error'})
+
+	def printerBabysteppingCommand(self, amount, callback):
+		pm = printerManager()
+
+		if not pm.isOperational():
+			# do not try baystepping when we don't have a connection
+				callback('Printer is not operational', 409)
+		if amount:
+			if not isinstance(amount, (int, long, float)):
+				callback("Not a number for amount: %r" % (amount), True)
+			validated_values = {}
+			validated_values['amount'] = amount
+
+			# execute the babystepping command
+			pm.babystepping(validated_values['amount'])
+
+			callback({'success': 'no_error'})
+		else:
+			callback('No amount provided', True)
 
 	def printerPrintingSpeed(self, data, callback):
 		pm = printerManager()
