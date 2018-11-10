@@ -32,8 +32,8 @@ class ManufacturerPkgManager(object):
 				'shutdown_img': None,
 				'product_name': 'AstroBox',
 				'network_name': 'astrobox',
-				'supported_languages': None #None will use all available
 			},
+			'supported_languages': None, #None will use all available
 			'links': {
 				'support': '#help',
 				'supplies': '#supplies',
