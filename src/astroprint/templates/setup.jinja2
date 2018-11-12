@@ -102,7 +102,7 @@
           <h3 class="bold" align="center"></h3>
           <button class="success radius expand">Retry</button>
           <div align="right">
-            <a href="#connect-printer" class="skip-step">Skip internet. Use {{product_name}} offline <i class="icon-right-open"></i></a>
+            <a href="{% if mfDefinition.variant.printer_profile_edit -%} #connect-printer {%- else -%} #done {%- endif %}" class="skip-step">Skip internet. Use {{product_name}} offline <i class="icon-right-open"></i></a>
           </div>
         </div>
         <div class="settings-state">
@@ -115,9 +115,13 @@
               </div>
               <div class="small-12 medium-6 medium-pull-6 columns">
                 {% if mfDefinition.variant.printer_selection_hidden %}
-                <a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                  {% if mfDefinition.variant.printer_profile_edit %}
+                    <a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                  {% else %}
+                    <a href="#done" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                  {% endif %}
                 {% else %}
-                <a href="#printer-selection" class="button success radius expand" ><sup>*</sup>Skip</a>
+                  <a href="#printer-selection" class="button success radius expand" ><sup>*</sup>Skip</a>
                 {% endif %}
               </div>
               <div class="small-12 columns">
@@ -219,7 +223,11 @@
             <span class="email"></span>
             (<a class="logout" href="#">Logout</a>)
           </h4>
+          {% if mfDefinition.variant.printer_profile_edit %}
           <a class="button success radius expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></a>
+          {% else %}
+          <a class="button success radius expand" href="#done"><small>Next:</small> <b>Finish!</b> <i class="icon-right-open"></i></a>
+          {% endif %}
         </div>
         <div class="settings-state">
           <img src="/img/setup/step_5_rocket-launch.png" height="93"/>
