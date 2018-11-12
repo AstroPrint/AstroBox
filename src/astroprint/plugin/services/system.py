@@ -193,6 +193,9 @@ class SystemService(PluginService):
 			if 'driverChoices' in data:
 				del data['driverChoices']
 
+			if 'allowTerminal' in data:
+				del data['allowTerminal']
+
 			ppm.set(data)
 			ppm.save()
 
