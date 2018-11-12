@@ -68,7 +68,7 @@ class ManufacturerPkgManager(object):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
 		self._folder = self._settings.get(['folder', 'manufacturerPkg']) or ( '%sAstroBox-Manufacturer' % os.sep )
-		self.data['_custom_languages_folder'] = os.path.join(self._folder, 'touch', 'i18n')
+		self.data['_custom_languages_folder'] = os.path.join(self._folder, 'i18n')
 		self._loadDefinition()
 
 	@property
