@@ -281,43 +281,59 @@ var PrintFileView = Backbone.View.extend({
     var filename = this.print_file.get('local_filename');
 
     if (filename) {
-      //We can't use evt because this can come from another source than the row print button
-      var loadingBtn = this.$('.loading-button.print');
-
-      loadingBtn.addClass('loading');
-      $.ajax({
-          url: '/api/files/local/'+filename,
-          type: "POST",
-          dataType: "json",
-          contentType: "application/json; charset=UTF-8",
-          data: JSON.stringify({command: "select", print: true})
-      })
-      .done(_.bind(function() {
-        setTimeout(function(){
-          loadingBtn.removeClass('loading');
-        },2000);
-      }, this))
-      .fail(function(xhr) {
-        var error = null;
-        if (xhr.status == 409) {
-          error = xhr.responseText;
+      if (this.$el.parent().parent().hasClass('design-filtered-list')) {
+        this.doPrint();
+      } else {
+        if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
+          this.doPrint();
+        } else {
+          (new noPrintDialog()).open({printFilePrinterName: this.print_file.get('printer')['name']})
         }
-        noty({text: error ? error : "There was an error starting the print", timeout: 3000});
-        loadingBtn.removeClass('loading');
-      })
+      }
     } else {
       //We need to download and print
       this.printWhenDownloaded = true;
       this.downloadClicked();
     }
   },
+  doPrint: function()
+  {
+    //We can't use evt because this can come from another source than the row print button
+    var loadingBtn = this.$('.loading-button.print');
+    loadingBtn.addClass('loading');
+    $.ajax({
+        url: '/api/files/local/'+filename,
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=UTF-8",
+        data: JSON.stringify({command: "select", print: true})
+    })
+    .done(_.bind(function() {
+      setTimeout(function(){
+        loadingBtn.removeClass('loading');
+      },2000);
+    }, this))
+    .fail(function(xhr) {
+      var error = null;
+      if (xhr.status == 409) {
+        error = xhr.responseText;
+      }
+      noty({text: error ? error : "There was an error starting the print", timeout: 3000});
+      loadingBtn.removeClass('loading');
+    })
+  },
   addToQueueClicked: function(evt)
   {
     evt.preventDefault();
-    this.doAddToQueue().then()
-      .done(_.bind(function () {
-        this.list.doSync()
-      }, this))
+
+    if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
+      this.doAddToQueue().then()
+        .done(_.bind(function () {
+          this.list.doSync()
+        }, this))
+    } else {
+      (new noPrintDialog()).open({ printFilePrinterName: this.print_file.get('printer')['name'] })
+    }
   },
   doAddToQueue: function()
   {
@@ -1064,6 +1080,39 @@ var ReplaceFileDialog = Backbone.View.extend({
     this.usbFileView = null;
     this.filename = null;;
     this.copyFinishedPromise = null;
+  }
+});
+
+var noPrintDialog = Backbone.View.extend({
+  el: '#no-print-dlg',
+  printFilePrinterName: null,
+  template: _.template( $("#no-print-template").html() ),
+  events: {
+    'closed.fndtn.reveal': 'onClose',
+    'click button.cancel': 'onCancelClicked'
+  },
+  render: function()
+  {
+    this.$('.dlg-content').html(this.template({
+      printFilePrinterName: this.printFilePrinterName
+    }));
+  },
+  open: function(options)
+  {
+    this.printFilePrinterName = options.printFilePrinterName;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+  onCancelClicked: function(e)
+  {
+    e.preventDefault()
+    this.$el.foundation('reveal', 'close');
+  },
+  onClose: function(){
+    this.$('.dlg-content').empty();
+    this.undelegateEvents();
+    this.printFilePrinterName = null;
   }
 });
 
