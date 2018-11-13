@@ -171,7 +171,6 @@ var PrinterProfileView = SettingsPage.extend({
   settings: null,
   driverChoices: [],
   printerSelectorDlg : null,
-  printerSelectorDlg: null,
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
@@ -400,7 +399,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
   {
     e.preventDefault();
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
-
+    loadingBtn.addClass('loading');
     // Get info from last model selected
     app.astroprintApi.getModelInfo($("#printer-model-picker").val())
       .done(_.bind(function (info) {
@@ -431,9 +430,8 @@ var PrinterSelectorDialog = Backbone.View.extend({
           success: _.bind(function () {
             noty({ text: "Printer model saved", timeout: 3000, type: "success" });
             this.parentView.getInfoAndRender();
-            loadingBtn.removeClass('loading');
-
             this.$el.foundation('reveal', 'close');
+            loadingBtn.removeClass('loading');
           }, this),
           error: function () {
             noty({ text: "Failed to save printer model", timeout: 3000 });
