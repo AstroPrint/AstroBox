@@ -281,11 +281,11 @@ var PrintFileView = Backbone.View.extend({
     var filename = this.print_file.get('local_filename');
 
     if (filename) {
-      if (this.$el.parent().parent().hasClass('design-filtered-list')) {
+      if ( !app.printerProfile.get('printer_model').id || this.$el.parent().parent().hasClass('design-filtered-list')) {
         this.doPrint();
       } else {
         if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
-          this.doPrint();
+          this.doPrint(filename);
         } else {
           (new noPrintDialog()).open({printFilePrinterName: this.print_file.get('printer')['name']})
         }
@@ -296,7 +296,7 @@ var PrintFileView = Backbone.View.extend({
       this.downloadClicked();
     }
   },
-  doPrint: function()
+  doPrint: function(filename)
   {
     //We can't use evt because this can come from another source than the row print button
     var loadingBtn = this.$('.loading-button.print');
@@ -326,7 +326,7 @@ var PrintFileView = Backbone.View.extend({
   {
     evt.preventDefault();
 
-    if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
+    if (!app.printerProfile.get('printer_model').id || !this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
       this.doAddToQueue().then()
         .done(_.bind(function () {
           this.list.doSync()
@@ -470,7 +470,6 @@ var PrintFilesListView = Backbone.View.extend({
       } else {
         this.queueAllowed = false;
       }
-
       this.refresh('local', options.syncCompleted);
       this.info_dialog = new PrintFileInfoDialog({ queueAllowed: this.queueAllowed, file_list_view: this });
       this.usbfile_list = new USBFileCollection();
@@ -729,8 +728,9 @@ var PrintFilesListView = Backbone.View.extend({
             if (_.isFunction(doneCb)) {
               doneCb(true);
             }
-
             loadingArea.removeClass('loading');
+            this.$('.local-loading').removeClass('loading');
+
             this.refreshing = false;
           }, this))
           .fail(_.bind(function(){
@@ -826,6 +826,7 @@ var PrintFilesListView = Backbone.View.extend({
   },
   doSync: function()
   {
+    this.$('.local-loading').addClass("loading");
     this.getFilesOnQueue().then()
     .done(_.bind(function (filesOnQueue) {
       if (filesOnQueue != "no_queue_allowed") {
@@ -835,7 +836,6 @@ var PrintFilesListView = Backbone.View.extend({
         this.filesOnQueue = 0;
         this.queueAllowed = false;
       }
-
       if (this.info_dialog) {
         this.info_dialog.queueAllowed = this.queueAllowed
       }

@@ -189,6 +189,9 @@
         display: block;
         margin: 15px 0;
         font-size: rem-calc(30);
+        + #files-container {
+          display: none;
+        }
       }
     }
     &.queued {
