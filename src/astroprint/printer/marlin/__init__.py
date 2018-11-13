@@ -92,6 +92,8 @@ class PrinterMarlin(Printer):
 	#~~ callback from gcode received
 
 	def doTrafficBroadcast(self, direction, content):
+		eventManager().fire(Events.COMMS_CHANGE, {'direction': direction,'data': content})
+
 		for callback in self._callbacks:
 			try: callback.sendCommsData(direction, content)
 			except: pass
@@ -183,6 +185,9 @@ class PrinterMarlin(Printer):
 
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
+
+	def babystepping(self, amount):
+		self.command("M290 Z%s" % self.babysteppingWithPrinterProfile(amount))
 
 	def setPrintingSpeed(self, amount):
 		try:

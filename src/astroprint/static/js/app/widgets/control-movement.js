@@ -3,6 +3,7 @@ var ControlView = Backbone.View.extend({
   distanceSelected: 10,
   template: _.template( $("#control-template").html() ),
   ignorePrintingStatus: false,
+  onlyBabyStep: false,
   events: {
     // XY AXIS
     'click .btn_x_plus': function(){this.plusTapped('x')},
@@ -14,12 +15,17 @@ var ControlView = Backbone.View.extend({
     'click .btn_z_plus': function(){this.plusTapped('z')},
     'click .btn_z_minus': function(){this.minusTapped('z')},
     'click .btn_home_z': function(){this.homeTapped('z')},
+    // Babysteppping
+    'click .btn_babystep_z_plus': function(){this.babyStepPlusTapped()},
+    'click .btn_babystep_z_minus': function(){this.babyStepMinusTapped()},
+
     'click button': 'selectDistance'
   },
   initialize: function (param)
   {
     this.commandsSender = new CommandsSender();
     this.ignorePrintingStatus = param ? param.ignorePrintingStatus : false;
+    this.onlyBabyStep = param ? param.onlyBabyStep : false;
   },
 
   homeTapped: function(axis)
@@ -43,6 +49,15 @@ var ControlView = Backbone.View.extend({
     this.commandsSender.sendJogCommand(axis, -1, this.distanceSelected);
   },
 
+  babyStepPlusTapped: function ()
+  {
+    this.commandsSender.sendBabyStepCommand("0.25");
+  },
+  babyStepMinusTapped: function ()
+  {
+    this.commandsSender.sendBabyStepCommand("-0.25");
+  },
+
   selectDistance: function (e)
   {
     var el = $(e.currentTarget);
@@ -54,7 +69,7 @@ var ControlView = Backbone.View.extend({
 
   render: function ()
   {
-    return this.$el.html(this.template({ignorePrintingStatus: this.ignorePrintingStatus}));
+    return this.$el.html(this.template({ignorePrintingStatus: this.ignorePrintingStatus, onlyBabyStep: this.onlyBabyStep}));
   }
 });
 
@@ -84,6 +99,21 @@ var CommandsSender = Backbone.View.extend({
       "command": "home",
       "axes": axis
     }
+
+    $.ajax({
+      url: API_BASEURL + "printer/printhead",
+      type: "POST",
+      dataType: "json",
+      contentType: "application/json; charset=UTF-8",
+      data: JSON.stringify(data)
+    });
+  },
+  sendBabyStepCommand: function(amount)
+  {
+    var data = {
+      "command": "babystepping"
+    }
+    data['amount'] = +amount
 
     $.ajax({
       url: API_BASEURL + "printer/printhead",

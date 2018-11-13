@@ -279,15 +279,16 @@ def getPrinterFlowCommand():
 def printerPrintheadCommand():
 	pm = printerManager()
 
-	if not pm.isOperational() or pm.isPrinting():
+	valid_commands = {
+		"jog": [],
+		"home": ["axes"],
+		"babystepping": []
+	}
+	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
+	if not pm.isOperational() or command != "babystepping" and pm.isPrinting():
 		# do not jog when a print job is running or we don't have a connection
 		return make_response("Printer is not operational or currently printing", 409)
 
-	valid_commands = {
-		"jog": [],
-		"home": ["axes"]
-	}
-	command, data, response = util.getJsonCommandFromRequest(request, valid_commands)
 	if response is not None:
 		return response
 
@@ -318,6 +319,20 @@ def printerPrintheadCommand():
 
 		# execute the home command
 		pm.home(validated_values)
+
+	##~~ babystepping command
+	elif command == "babystepping":
+		if "amount" in data:
+			value = data['amount']
+
+			if not isinstance(value, (int, long, float)):
+				return make_response("Not a number for amount: %r" % (value), 400)
+
+			validated_values = {}
+			validated_values['amount'] = value
+
+			# execute the babystepping command
+			pm.babystepping(validated_values['amount'])
 
 	return NO_CONTENT
 

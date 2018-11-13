@@ -80,6 +80,15 @@ class MaintenanceMenuManager(object):
 				{
 					'id' : "printing_flow",
 					'type' : "utility"
+				},
+				{
+					'id' : "babystepping",
+					'type' : "utility"
+				},
+				{
+					'id' : "gcode_terminal",
+					'type' : "utility",
+					'hiddenOnPrinting': True
 				}
 			]
 
