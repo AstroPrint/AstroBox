@@ -58,11 +58,7 @@ class PrinterProfileManager(object):
 					'bed_temp' : 80}
 			],
 			'last_presets_used' : [
-			],
-			'printer_model': {
-				'id' : None,
-				'name' : None
-			}
+			]
 		}
 
 		config = None

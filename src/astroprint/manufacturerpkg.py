@@ -56,10 +56,7 @@ class ManufacturerPkgManager(object):
 				'invert_z': None,
 				'invert_x': None,
 				'invert_y': None,
-				'temp_presets' : None,
-				'printer_model': {
-					'id': None
-				}
+				'temp_presets' : None
 			},
 			'printer_connection': {
 				'baudrate': None,
