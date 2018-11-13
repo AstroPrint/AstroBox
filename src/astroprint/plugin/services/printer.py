@@ -16,6 +16,8 @@ class PrinterService(PluginService):
 	_validEvents = [
 		#watch the printer's status. Returns and Object with a state and a value
 		'printer_state_changed',
+		#watch the printer's profile. Returns and Object with a state and a value
+		'printer_profile_changed',
 		#watch the timelapse selected for photos capture while printing. Return the frequence value.
 		'print_capture_info_changed',
 		#watch the temperature changes. Return object containing [tool0: actual, target - bed: actual, target]
@@ -38,6 +40,7 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.TOOL_CHANGE, self._onToolChange)
 		self._eventManager.subscribe(Events.PRINTINGSPEED_CHANGE, self._onPrintingSpeedChange)
 		self._eventManager.subscribe(Events.PRINTINGFLOW_CHANGE, self._onPrintingFlowChange)
+		self._eventManager.subscribe(Events.PRINTERPROFILE_CHANGE, self._onPrintingProfileChange)
 
 		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterCommsChange)
 
@@ -436,6 +439,9 @@ class PrinterService(PluginService):
 
 	def _onHeatingUp(self,event,value):
 		self.publishEvent('printer_state_changed', {"heatingUp": value})
+
+	def _onPrintingProfileChange(self,event,data):
+		self.publishEvent('printer_profile_changed', data)
 
 	def _onTemperatureChanged(self,event,value):
 		self.publishEvent('temperature_changed', value)

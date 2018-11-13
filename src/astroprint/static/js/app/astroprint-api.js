@@ -32,6 +32,14 @@ AstroPrintApi.prototype = {
     return this._apiRequest('/accounts/me?plan=true',{method: 'GET'});
   },
 
+  getAllPrintFiles: function()
+  {
+    var fileFormat = app.printerProfile.get('driver') == "s3g" ? "x3g" : "gcode";
+    var query = "?format=" + fileFormat;
+
+    return this._apiRequest('/printfiles/' + query, {method: 'GET'});
+  },
+
   /* =========== QUEUES =========== */
 
   /*
@@ -40,6 +48,31 @@ AstroPrintApi.prototype = {
   queue: function()
   {
     return this._apiRequest('/devices/'+ BOX_ID + '/print-queue', {method: 'GET'});
+  },
+
+   ////////////////// MANUFACTURERS //////////////////////
+
+  getManufacturers: function(format, slicer)
+  {
+    var query = format || slicer ? "/?" : "";
+    query = format ? query + "&format=" + format : query;
+    query = slicer ? query + "&slicer=" + slicer : query;
+
+    return this._apiRequest('/manufacturers'+ query, {method: 'GET'}, true);
+  },
+
+  getPrinterModels: function(manufacturerId, format, slicer)
+  {
+    var query = format || slicer ? "/?" : "";
+    query = format ? query + "&format=" + format : query;
+    query = slicer ? query + "&slicer=" + slicer : query;
+
+    return this._apiRequest('/manufacturers/'+ manufacturerId + "/models" + query, {method: 'GET'}, true);
+  },
+
+  getModelInfo: function(modelId)
+  {
+    return this._apiRequest('/manufacturers/models/'+ modelId, {method: 'GET'}, true);
   },
 
   /*
@@ -193,35 +226,43 @@ AstroPrintApi.prototype = {
     localStorage.setItem('access_token', JSON.stringify(this.token));
   },
 
-  _apiRequest: function(endpoint, settings)
+  _apiRequest: function(endpoint, settings, noRequiredAuthentication)
   {
-    return this._getAccessToken()
-      .then(function(token) {
-        //This header needs setup by default using $.ajaxSetip needs to be removed for AP requests
-        delete $.ajaxSettings.headers['X-Api-Key'];
+    if (noRequiredAuthentication) {
+      return this._doAjaxCall(endpoint, settings);
+    } else {
+      return this._getAccessToken()
+        .then(_.bind(function (token) {
+          return this._doAjaxCall(endpoint, settings, token)
+        }, this));
+    }
+  },
 
-        return $.ajax(_.extend(settings, {
-          url: AP_API_HOST + '/v2' + endpoint,
-          headers: {
-            Authorization: 'Bearer '+ token.access_token
-          },
-          cache: true,
-          beforeSend: function(xhr, settings) {
-            //Se need to set the header back for other AstroBox API requests
-            $.ajaxSettings.headers['X-Api-Key'] = UI_API_KEY;
-          }
-        })).then(
-          null,
-          _.bind(function(err) {
-            if (err.status == 401) {
-              // This is bad, so we need to remove all tokens
-              this._clearToken();
-            }
-
-            return err;
-          }, this)
-        )
-    });
+  _doAjaxCall: function(endpoint, settings, token) {
+    //This header needs setup by default using $.ajaxSetip needs to be removed for AP requests
+    delete $.ajaxSettings.headers['X-Api-Key'];
+    var bearerHeader;
+    if (token) {
+      bearerHeader = {Authorization: 'Bearer '+ token.access_token}
+    }
+    return $.ajax(_.extend(settings, {
+      url: AP_API_HOST + '/v2' + endpoint,
+      headers: bearerHeader ? bearerHeader : null,
+      cache: true,
+      beforeSend: function(xhr, settings) {
+        //Se need to set the header back for other AstroBox API requests
+        $.ajaxSettings.headers['X-Api-Key'] = UI_API_KEY;
+      }
+    })).then(
+      null,
+      _.bind(function(err) {
+        if (err.status == 401) {
+          // This is bad, so we need to remove all tokens
+          this._clearToken();
+        }
+        return err;
+      }, this)
+    )
   },
 
   _clearToken: function()

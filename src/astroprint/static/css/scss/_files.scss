@@ -1,7 +1,7 @@
 #files-view {
   .list-header {
     background: #fdfdfd;
-    padding: 15px 0;
+    padding: 10px 0;
     border-bottom: 3px dashed rgba(108, 201, 195, 0.15);
 
     button.sync,span{
@@ -104,8 +104,8 @@
       letter-spacing: 1px;
       box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
       -moz-box-shadow: inset 0 -5px 0 0px rgba(0, 0, 0, 0.15);
-      margin-top: 15px;
-      margin-bottom: 0;
+      margin-top: 10px;
+      margin-bottom: 0 !important;
 
       span{color: rgba(253, 253, 253, 0.7);}
 
@@ -189,6 +189,9 @@
         display: block;
         margin: 15px 0;
         font-size: rem-calc(30);
+        + #files-container {
+          display: none;
+        }
       }
     }
     &.queued {
@@ -213,8 +216,27 @@
     }
   }
 
-  .design-list-container {
-    margin-bottom: 55px;
+  .matching-container{background: $white;}
+  .header-filter {
+    display: inline-block;
+    border-radius: 0px 12px 0 12px;
+    text-align: center;
+    padding: 2px 15px 0 25px;
+    margin-top: 5px;
+    letter-spacing: 1px;
+    font-size: 14px;
+    background: linear-gradient(to right, $blue, #4dd1b1);
+    color: $white;
+    opacity: 0.9;
+    margin-left: -25px;
+
+    &.unmatch {
+      background: $charcoal;
+      background: linear-gradient(to right, $orange, $alert-color);
+    }
+  }
+  .container-files {
+    margin-bottom: 20px;
 
     .div-container{
       position: relative;
@@ -280,8 +302,7 @@
 
     .row {
       position: relative;
-      background-color: #fdfdfd;
-      cursor: pointer;
+      background-color: $ghost;
       //padding: 2px 0;
       margin-bottom: 3px;
 
@@ -520,27 +541,22 @@
         background: $ghost;
         //transform: scale(0.95);
       }
-
-      &:hover{
-        background: lighten($primary-color, 36%);
-      }
     }
 
     .empty {
-      color: $ghost;
+      color: $iron;
       font-size: rem-calc(45);
-      box-shadow: inset -2px -2px 2px hsla(0, 0%, 0%, 0.1);
+      box-shadow: inset -4px -6px 12px rgba(0, 0, 0, 0.05);
       border-top: 0;
 
       h3 {
-        color: #ccc;
-        font-size: rem-calc(45);
-        line-height: 1.3em;
+        color: $iron;
+        font-size: rem-calc(20);
+        margin-bottom: 10px;
       }
 
       .empty-icon {
         display: block;
-        margin: 15px 0;
       }
     }
   }

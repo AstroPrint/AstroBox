@@ -87,7 +87,11 @@
               </label>
             </div>
           </div>
-          <a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
+          {% if mfDefinition.variant.printer_selection_hidden %}
+            <a class="button success radius expand" href="#astroprint"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></a>
+          {% else %}
+            <a class="button success radius expand" href="#printer-selection"><small>Next:</small> <b>Printer selection</b> <i class="icon-right-open"></i></a>
+          {% endif %}
         </div>
         <div class="checking-state" align="center">
           <i class="icon-rocket-spinner animate-spin"></i>
@@ -98,7 +102,7 @@
           <h3 class="bold" align="center"></h3>
           <button class="success radius expand">Retry</button>
           <div align="right">
-            <a href="#connect-printer" class="skip-step">Skip internet. Use {{product_name}} offline <i class="icon-right-open"></i></a>
+            <a href="{% if mfDefinition.variant.printer_profile_edit -%} #connect-printer {%- else -%} #done {%- endif %}" class="skip-step">Skip internet. Use {{product_name}} offline <i class="icon-right-open"></i></a>
           </div>
         </div>
         <div class="settings-state">
@@ -110,7 +114,15 @@
                 <button class="disabled success radius connect expand bold">Connect</button>
               </div>
               <div class="small-12 medium-6 medium-pull-6 columns">
-                <a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                {% if mfDefinition.variant.printer_selection_hidden %}
+                  {% if mfDefinition.variant.printer_profile_edit %}
+                    <a href="#connect-printer" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                  {% else %}
+                    <a href="#done" class="button secondary radius expand bold"><sup>*</sup>Skip</a>
+                  {% endif %}
+                {% else %}
+                  <a href="#printer-selection" class="button success radius expand" ><sup>*</sup>Skip</a>
+                {% endif %}
               </div>
               <div class="small-12 columns">
                 <span class="button disabled loading success radius expand">
@@ -211,7 +223,11 @@
             <span class="email"></span>
             (<a class="logout" href="#">Logout</a>)
           </h4>
+          {% if mfDefinition.variant.printer_profile_edit %}
           <a class="button success radius expand" href="#connect-printer"><small>Next:</small> <b>Printer Connection</b> <i class="icon-right-open"></i></a>
+          {% else %}
+          <a class="button success radius expand" href="#done"><small>Next:</small> <b>Finish!</b> <i class="icon-right-open"></i></a>
+          {% endif %}
         </div>
         <div class="settings-state">
           <img src="/img/setup/step_5_rocket-launch.png" height="93"/>
@@ -342,6 +358,62 @@
       </div>
     {% endif %}
 
+    {% if not mfDefinition.variant.printer_selection_hidden %}
+    <div id="step-printer-selection" class="step checking hide">
+      <h1 class="bold">Printer Selection<div class="nub"></div></h1>
+      <div class="content">
+        <img src="/img/setup/chooseprinter.png" height=""/>
+        <div class="checking-state" align="center">
+          <i class="icon-rocket-spinner animate-spin"></i>
+          <h3 class="bold" align="center">Loading data...</h3>
+        </div>
+        <div class="container-printer-selection">
+          {% if mfDefinition.printerProfile and mfDefinition.printerProfile.printer_model and mfDefinition.printerProfile.printer_model.id %}
+          <p class="printer-selected-message" >Current selected printer: <b><span class="current-printer-selected"></span></b></p>
+          {% endif %}
+          <a class="button radius warning bold change-printer expand">Change it</a>
+
+          <div id="picker-container" ></div>
+          {% if not mfDefinition.printerProfile or not mfDefinition.printerProfile.printer_model or not mfDefinition.printerProfile.printer_model.id %}
+          <div align="right">
+            <a href="#astroprint" class="skip-step">Skip Printer Selection <i class="icon-right-open"></i></a>
+          </div>
+          {% endif %}
+
+          <div class="loading-button expand">
+            <button class="radius success radious next"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+            <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+
+        </div>
+      </div>
+      <script type="text/template" id="step-printer-selection-template">
+
+        <!-- Manufacturers -->
+        <label for="manufacturers-picker" class="bold">
+          1. Choose manufacturer
+          <select id="manufacturers-picker" name="driver">
+            <% _.each(manufacturers, function(m) { %>
+              <option value="<%= m.id %>" <%= mSelected == m.id ? ' selected' : '' %>  ><%= m.name %></option>
+            <% }) %>
+          </select>
+        </label>
+
+        <!-- Printers -->
+        <label for="printer-model-picker" class="bold">
+          2. Pick a Printer
+          <select id="printer-model-picker" name="driver">
+            <% _.each(printers, function(p) { %>
+              <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>
+            <% }) %>
+          </select>
+        </label>
+      </script>
+    </div>
+    {% endif %}
+
+
     <div id="step-done" class="step hide">
       <h1 class="bold">You're done!<div class="nub"></div></h1>
       <div class="content">
@@ -377,11 +449,13 @@
     var SOCKJS_URI = window.location.protocol.slice(0, -1) + "://" + (window.document ? window.document.domain : window.location.hostname) + ":" + window.location.port + "/sockjs";
     var PRODUCT_NAME = "{{product_name}}";
     var WS_TOKEN = "{{ wsToken }}";
+    var AP_API_HOST = "{{apApiHost}}";
+    var MF_DEFINITION = "{{ mfDefinition.printerProfile.printer_model.id or '' }}";
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js", "js/lib/sockjs.js",
-    "js/app/views/turnoff.js", "js/setup/setup.js" -%}
+    "js/app/views/turnoff.js", "js/app/astroprint-api.js","js/setup/setup.js"  -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}
   <script type="text/javascript">

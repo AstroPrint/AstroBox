@@ -28,6 +28,7 @@ class ManufacturerPkgManager(object):
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
 				'change_update_channel': True,
+				'change_printer_selected': True,
 				'logo': None,
 				'shutdown_img': None,
 				'product_name': 'AstroBox',

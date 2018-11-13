@@ -119,7 +119,8 @@ def index():
 			checkSoftware= swm.shouldCheckForNew,
 			settings= s,
 			wsToken= create_ws_token(publicKey),
-			mfDefinition= manufacturerPkgManager()
+			mfDefinition= manufacturerPkgManager(),
+			apApiHost= roConfig('cloud.apiHost')
 		)
 
 	elif softwareManager.status != 'idle' or softwareManager.forceUpdateInfo:

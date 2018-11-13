@@ -41,12 +41,12 @@ var PrinterConnectionView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     this.$('a.retry-ports i').addClass('animate-spin');
     $.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
@@ -78,7 +78,7 @@ var PrinterConnectionView = SettingsPage.extend({
   retryPortsClicked: function(e)
   {
     e.preventDefault();
-    this.getInfo();
+    this.getInfoAndRender();
   },
   sendConnect: function(command_data) {
     var connectionData = {};
@@ -170,23 +170,92 @@ var PrinterProfileView = SettingsPage.extend({
   template: null,
   settings: null,
   driverChoices: [],
+  printerSelectorDlg : null,
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
     "change input[name='heated_bed']": 'heatedBedChanged',
-    "change select[name='driver']": 'driverChanged'
+    "change select[name='driver']": 'driverChanged',
+    "click a.change-printer": 'printerSelectorClicked',
+    "click a.unlink-printer": 'unlinkPrinterClicked',
+
   },
   show: function() {
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+
+  printerSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+
+    var currentPrinterID = $('#printer-name').data("id");
+
+    if (currentPrinterID) {
+      var loadingBtn = this.$el.find('.loading-button.check');
+      loadingBtn.addClass('loading');
+
+      app.astroprintApi.getModelInfo(currentPrinterID)
+        .done(_.bind(function (info) {
+
+          var data = {
+            'currentPrinter_id': currentPrinterID,
+            'manufacturer_id': info.manufacturer_id,
+          }
+
+
+          if (!this.printerSelectorDlg) {
+            this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+          }
+          this.printerSelectorDlg.open({printerData: data });
+
+          loadingBtn.removeClass('loading');
+        }, this))
+
+        .fail(_.bind(function (xhr) {
+          console.error(xhr);
+          noty({ text: "Error getting printer information", timeout: 3000 });
+          loadingBtn.removeClass('loading');
+        }, this))
+
+    } else {
+      if (!this.printerSelectorDlg) {
+        this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+      }
+      this.printerSelectorDlg.open()
+    }
+
+  },
+
+  unlinkPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    console.log(this.settings);
+    (new UnlinkPrinterDialog()).open({settings: this.settings, view: this})
+  },
+  _checkCurrentPrinter: function(printerID) {
+    var promise = $.Deferred();
+
+      this.astroprintApi.getModelInfo(printerID)
+      .done(_.bind(function (info) {
+        promise.resolve(info)
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject();
+      }, this))
+
+    return promise;
+  },
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
@@ -206,7 +275,7 @@ var PrinterProfileView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template( $("#printer-profile-settings-page-template").html() );
     }
-
+    this.$el.empty();
     this.$el.html(this.template({
       settings: this.settings.toJSON(),
       driverChoices: this.driverChoices
@@ -282,6 +351,217 @@ var PrinterProfileView = SettingsPage.extend({
   }
 });
 
+/* PRINTER SELECTOR MODAL */
+var PrinterSelectorDialog = Backbone.View.extend({
+  el: '#printer-selector-modal',
+  manufacturers: null,
+  manufacturerSelected: null,
+  printer_models: null,
+  printerSelected: null,
+  contentTemplate: null,
+  parentView: null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.set-printer': 'setPrinterClicked',
+    'change select#manufacturers-picker': 'onManufacturersChanged'
+  },
+  initialize: function(params) {
+    this.parentView = params.parent;
+  },
+  open: function(params)
+  {
+    printerData = params ? params.printerData : null
+
+    this._checkManufacturersAndPrinters(printerData);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  onManufacturersChanged: function (e)
+  {
+    this.manufacturerSelected = $(e.target).val();
+
+    app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+    .done(_.bind(function (printerModels) {
+      this.printer_models = printerModels.data;
+      this.printerSelected = this.printer_models[0].id
+      this.$el.addClass('settings');
+
+      this.render();
+    }, this))
+
+    .fail(_.bind(function (xhr) {
+      this.$el.addClass('settings');
+      console.error("Error getting printer models", xhr);
+      noty({ text: "Error getting printer models", timeout: 3000 });
+    }, this))
+  },
+  setPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+    // Get info from last model selected
+    app.astroprintApi.getModelInfo($("#printer-model-picker").val())
+      .done(_.bind(function (info) {
+        this.printerInfo = info;
+        var printerObject = {
+          "id": this.printerInfo.id,
+          "name": this.printerInfo.name
+        }
+        // Update printer profile with selected printer
+        var attrs = {
+          'printer_model': printerObject,
+          'heated_bed': this.printerInfo.config.heated_bed,
+          'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+        }
+
+        // Change driver depending printer model chosen
+        if (this.printerInfo.format == 'x3g'){
+          if (this.parentView.settings.get('driver') != 's3g') {
+            attrs['driver'] = 's3g';
+          }
+        } else {
+          if (this.parentView.settings.get('driver') == 's3g') {
+            attrs['driver'] = 'marlin';
+          }
+        }
+        this.parentView.settings.save(attrs, {
+          patch: true,
+          success: _.bind(function () {
+            noty({ text: "Printer model saved", timeout: 3000, type: "success" });
+            this.parentView.getInfoAndRender();
+            this.$el.foundation('reveal', 'close');
+            loadingBtn.removeClass('loading');
+          }, this),
+          error: function () {
+            noty({ text: "Failed to save printer model", timeout: 3000 });
+            loadingBtn.removeClass('loading');
+          }
+        });
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        loadingBtn.removeClass('loading');
+      }, this))
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#printer-selector-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+    content.html(this.contentTemplate({
+      manufacturers: this.manufacturers,
+      mSelected: this.manufacturerSelected,
+      printers: this.printer_models,
+      pSelected: this.printerSelected,
+    }));
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  _checkManufacturersAndPrinters: function (printerID, manufacturerID)
+  {
+    var printerID = null;
+    var manufacturerID = null;
+
+    if (printerData){
+      printerID = printerData.printer_id;
+      manufacturerID = printerData.manufacturer_id;
+    }
+    // Get manufacturers list
+    app.astroprintApi.getManufacturers()
+      .done(_.bind(function (manufacturers) {
+        this.manufacturers = manufacturers.data;
+        this.manufacturerSelected = manufacturerID ? manufacturerID : this.manufacturers[0].id
+        // Now get printer models from first manufacturer
+        app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+          .done(_.bind(function (printerModels) {
+            this.printer_models = printerModels.data;
+            this.printerSelected = printerID ? printerID : this.printer_models[0].id
+            this.render();
+          }, this))
+          .fail(_.bind(function (xhr) {
+            console.error("Error getting printer models", xhr);
+            noty({ text: "Error getting printer models", timeout: 3000 });
+          }, this))
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error("Error getting manufacturers");
+        noty({ text: "Error getting manufacturers", timeout: 3000 });
+      }, this))
+  },
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// UnlinkPrinterDialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var UnlinkPrinterDialog = Backbone.View.extend({
+  el: '#unlink-printer-dlg',
+  settings: null,
+  parentView: null,
+  events: {
+    "click .unlink-button": "doUnlink",
+    "click button.cancel": "doClose",
+    'closed.fndtn.reveal': 'onClosed'
+  },
+  render: function ()
+  {
+    this.$('.printer-name').text(this.settings.get('printer_model').name);
+  },
+  open: function (params)
+  {
+    this.settings = params.settings;
+    this.parentView = params.view;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+
+  doUnlink: function (e)
+  {
+    e.preventDefault()
+    this.$('.unlink-button').addClass('loading');
+    var attrs = {};
+    attrs['printer_model'] = {
+      id: null,
+      name: null
+    }
+
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        this.$('.unlink-button').removeClass('loading');
+        this.parentView.getInfoAndRender();
+       this.doClose()
+
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        this.$('.unlink-button').removeClass('loading');
+      }
+    });
+    // unlink action!!!
+  },
+
+  doClose: function ()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+
+  onClosed: function ()
+  {
+    this.undelegateEvents();
+  }
+});
+
 /***********************
 * Printer - Temperature Presets
 ************************/
@@ -301,12 +581,12 @@ var TemperaturePresetsView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
