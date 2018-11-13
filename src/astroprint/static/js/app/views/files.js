@@ -282,7 +282,7 @@ var PrintFileView = Backbone.View.extend({
 
     if (filename) {
       if ( !app.printerProfile.get('printer_model').id || this.$el.parent().parent().hasClass('design-filtered-list')) {
-        this.doPrint();
+        this.doPrint(filename);
       } else {
         if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
           this.doPrint(filename);
@@ -1094,7 +1094,8 @@ var noPrintDialog = Backbone.View.extend({
   render: function()
   {
     this.$('.dlg-content').html(this.template({
-      printFilePrinterName: this.printFilePrinterName
+      printFilePrinterName: this.printFilePrinterName,
+      astroboxPrinterName: app.printerProfile.get('printer_model').name
     }));
   },
   open: function(options)
