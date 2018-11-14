@@ -1665,8 +1665,11 @@ var PrintfileEditDialog = Backbone.View.extend({
     this.projectSelected = $(e.target).val();
     app.astroprintApi.designs(this.projectSelected)
       .done(_.bind(function (designs) {
-        this.designs = designs.data;
-        this.designSelected = this.designs[0].id
+        if (designs.data.length) {
+          this.designs = designs.data;
+          this.designSelected = this.designs[0].id
+        }
+
         this.render();
       }, this))
 
