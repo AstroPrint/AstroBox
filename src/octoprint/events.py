@@ -25,6 +25,7 @@ class Events(object):
 	CONNECTING = "Connecting"
 	DISCONNECTED = "Disconnected"
 	HEATING_UP = "HeatingUp"
+	PRINTERPROFILE_CHANGE = "PrinterProfileChange"
 
 	# temperature updates
 	TEMPERATURE_CHANGE = "TemperatureChange"
@@ -70,6 +71,7 @@ class Events(object):
 	TOOL_CHANGE = "ToolChange"
 	PRINTINGSPEED_CHANGE = "PrintingSpeedChange"
 	PRINTINGFLOW_CHANGE = "PrintingFlowChange"
+	COMMS_CHANGE = "PrinterCommsChanged"
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"

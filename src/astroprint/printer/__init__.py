@@ -631,6 +631,9 @@ class Printer(object):
 
 		return amount
 
+	def babysteppingWithPrinterProfile(self, amount):
+		return (-amount if self._profileManager.data.get('invert_z') else amount)
+
 	#~~~ Data processing functions ~~~
 
 	def _addTemperatureData(self, temp, bedTemp):
@@ -789,6 +792,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def home(self, axes):
+		raise NotImplementedError()
+
+	def babystepping(self, amount):
 		raise NotImplementedError()
 
 	def fan(self, tool, speed):

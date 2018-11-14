@@ -188,10 +188,13 @@ class SystemService(PluginService):
 	def printerProfile(self, data, sendMessage):
 
 		ppm = printerProfileManager()
-
+		pm = printerManager()
 		if data:
 			if 'driverChoices' in data:
 				del data['driverChoices']
+
+			if 'allowTerminal' in data:
+				del data['allowTerminal']
 
 			ppm.set(data)
 			ppm.save()
@@ -200,6 +203,8 @@ class SystemService(PluginService):
 		else:
 
 			result = ppm.data.copy()
+
+			result.update( {"allowTerminal": pm.allowTerminal} )
 			result.update( {"driverChoices": ppm.driverChoices()} )
 
 			sendMessage( result )

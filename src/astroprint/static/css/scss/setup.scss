@@ -294,6 +294,34 @@ $setup-heading-nub-size: 15px;
 	}
 }
 
+#step-printer-selection {
+  img {
+    height: 100px;
+  }
+  .printer-selected-message, #picker-container {
+    display: none;
+  }
+
+  &.printer-selected {
+    .printer-selected-message {
+      display: inline-block;
+    }
+  }
+  &.show-printer-selection {
+    a.change-printer, .printer-selected-message {
+      display: none;
+    }
+    #picker-container {
+      display: inline-block;
+    }
+  }
+  &.checking {
+    .container-printer-selection {
+      display: none;
+    }
+  }
+}
+
 #step-astroprint {
 	form {
 		margin-top: 35px;

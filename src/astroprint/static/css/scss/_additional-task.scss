@@ -11,7 +11,15 @@
   min-height:75vh;
   position: relative;
   padding-bottom: 15px;
-  //box-shadow: 1px 1px 3px 1px rgba(0, 0, 0, 0.05);
+
+  #gcode-widget{
+    padding: 0 16px;
+    .output-container{
+      margin-top: 0;
+      height: 45vh;
+    }
+  }
+
   .control-container {
     background: transparent;
   }

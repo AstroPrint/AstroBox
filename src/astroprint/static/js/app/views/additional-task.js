@@ -97,7 +97,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
     this.$el.attr('id', this.additionalTaskApp.get('id'));
   },
-  render: function ()
+  render: function (data)
   {
     if (!this.template) {
       this.template = _.template($("#additional-task-app-template").html());
@@ -112,11 +112,35 @@ var AdditionalTaskAppView = Backbone.View.extend({
     }
 
     this.$el.html(this.template(params));
+    var modalType = this.isModal ? this.modal.type : null;
 
-    // Add Control view widget
-    if (this.currentStep.type == "control_movement" ||  (this.isModal && this.modal.type == "control_movement")) {
+    /* Add Control view widget
+       ignorePrintingStatus: It will show the control screen even printing.
+    */
+    if (this.currentStep.type == "control_movement" || (modalType == "control_movement")) {
       this.controlView = new ControlView({ignorePrintingStatus: true});
       this.$el.find('#control-container').append(this.controlView.render());
+
+    /* BabyStep-z:
+       ignorePrintingStatus: It will show the control screen even printing.
+       onlyBabyStep: Isolate the babystep controls.
+    */
+    } else if (this.currentStep.type == "babystepping" ||  (modalType == "babystepping")) {
+        this.controlView = new ControlView({ignorePrintingStatus: true, onlyBabyStep: true});
+        this.$el.find('#control-container').append(this.controlView.render());
+
+    /* Gcode terminal with two params:
+       editBlocked: To disable the input to send gcode.
+       gcode: Set the gcode text to send.
+    */
+    } else if (this.currentStep.type == "gcode_terminal" || (modalType == "gcode_terminal")) {
+      var editBlocked = data ? data['edit_blocked'] : false
+      this.gcodeTerminalView = new GcodeWidgetView({editBlocked: editBlocked});
+      this.gcodeTerminalView.startListening();
+      this.$el.find('#gcode-terminal-container').append(this.gcodeTerminalView.render());
+      if (data && data.gcode) {
+        this.gcodeTerminalView.addGcodeToInput(data.gcode)
+      }
     }
     if (!this.isModal){
       this.currentStepManagement()
@@ -132,6 +156,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
     if (this.customTempView) {
       this.customTempView.stopListening();
     }
+    this.stopListeningComm();
+  },
+  stopListeningComm: function ()
+  {
+    if (this.gcodeTerminalView) {
+      this.gcodeTerminalView.stopListening();
+    }
   },
   closeClicked: function (e)
   {
@@ -141,7 +172,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   doClose: function()
   {
-    window.history.back();
+    location.href = "#additional-tasks";
   },
 
   currentStepManagement: function()
@@ -170,13 +201,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
   backClicked: function (e)
   {
     e.preventDefault();
-    if (!this.isModal) {
-      this.checkStepType("back");
-    } else {
-      this.isModal = false;
-      this.modal = null;
-      this.render();
-    }
+    this.checkStepType("back");
   },
 
   checkStepType: function(direction)
@@ -199,6 +224,8 @@ var AdditionalTaskAppView = Backbone.View.extend({
     } else if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
       this.checkForCommandsAndMove(direction);
+    } else if (this.currentStep.type == "gcode_terminal") {
+      this.stopListeningComm();
     } else {
       this.checkForCommandsAndMove(direction);
     }
@@ -208,7 +235,10 @@ var AdditionalTaskAppView = Backbone.View.extend({
   {
     var loadingBtn = this.$('button.next').closest('.loading-button');
     loadingBtn.addClass("loading");
-    if ( direction == "next" && this.currentStep.next_button.commands || direction == "back" && this.currentStep.back_button.commands) {
+
+    var currentScreen = this.isModal ? this.modal : this.currentStep;
+
+    if ( direction == "next" && currentScreen.next_button.commands || direction == "back" && currentScreen.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
           loadingBtn.removeClass('loading');
@@ -235,21 +265,33 @@ var AdditionalTaskAppView = Backbone.View.extend({
   doAction: function()
   {
     var actions = this.isModal ? this.modal.actions.commands : this.currentStep.actions.commands;
-    if (actions && Array.isArray(actions)) {
-      // Multiple actions
-      if (actions[0] !== null && typeof actions[0] === 'object') {
-        new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
-      // Single action
-      } else {
-        this.sendCommands("action");
+
+    if (actions) {
+      if (Array.isArray(actions)) {
+        // Multiple actions
+        if (actions[0] !== null && typeof actions[0] === 'object') {
+          new MultipleActionsDialog({actions: actions, title: this.currentStep.actions.name.en, stepView: this }).open();
+        // Single action
+        } else {
+          this.sendCommands("action");
+        }
+      // Link to a special modal with params
+      } else if (typeof actions == "object") {
+        var params = actions.parameters ? actions.parameters : ""
+        var linkID = actions.linkID ? actions.linkID : ""
+        if (linkID) {
+          this.linkTo(linkID, params);
+        }
       }
     }
   },
 
-  linkTo: function(ID)
+  linkTo: function(ID, params)
   {
     if (this.currentStep.type == "set_temperature") {
       this.customTempView.stopListening();
+    } else if (this.currentStep.type == "gcode_terminal") {
+      this.stopListeningComm();
     }
     var stepToGoData = this._getStepByID(ID);
 
@@ -264,7 +306,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
         this.isModal = true;
       }
     }
-    this.render()
+    this.render(params)
   },
 
   repeatClicked: function (e)
@@ -282,8 +324,13 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
   goBackStep: function()
   {
-    this.currentIndexStep--;
-    this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep-1]
+    if (this.isModal) {
+      this.isModal = false;
+      this.modal = null;
+    } else {
+      this.currentIndexStep--;
+      this.currentStep = this.additionalTaskApp.get('steps')[this.currentIndexStep - 1]
+    }
     this.render();
   },
 
@@ -325,7 +372,6 @@ var AdditionalTaskAppView = Backbone.View.extend({
           arrayCommands = this.modal.back_button.commands;
         }
       }
-
     }
 
     var currentCommand = arrayCommands[commandsIndex];
@@ -341,29 +387,42 @@ var AdditionalTaskAppView = Backbone.View.extend({
         return promise;
       }
     }
-    $.ajax({
-      url: API_BASEURL + 'printer/comm/send',
-      method: 'POST',
-      data: {
-        command: currentCommand
-      }
-    })
-      .success(_.bind(function () {
-        if (arrayCommands[commandsIndex + 1]) {
-          this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
-        } else {
-          promise.resolve();
-          if (linkID) {
-            this.linkTo(linkID);
-          }
+    // Send gcode only if it's not a linkID
+    if (!currentCommand.startsWith("@")) {
+      $.ajax({
+        url: API_BASEURL + 'printer/comm/send',
+        method: 'POST',
+        data: {
+          command: currentCommand
         }
-      }, this))
+      })
+        .success(_.bind(function () {
+          if (arrayCommands[commandsIndex + 1]) {
+            this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+          } else {
+            promise.resolve();
+            if (linkID) {
+              this.linkTo(linkID);
+            }
+          }
+        }, this))
 
-      .fail(_.bind(function () {
-        promise.reject()
-      }, this))
+        .fail(_.bind(function () {
+          promise.reject()
+        }, this))
+      return promise;
+    } else {
+      if (arrayCommands[commandsIndex + 1]) {
+        this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+      } else {
+        promise.resolve();
+        if (linkID) {
+          this.linkTo(linkID);
+        }
+      }
+    }
 
-    return promise;
+    return promise
   },
 
   _sendChangeToolCommand: function(tool)

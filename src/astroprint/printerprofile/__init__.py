@@ -43,6 +43,10 @@ class PrinterProfileManager(object):
 			'invert_z': False,
 			'invert_x': False,
 			'invert_y': False,
+			'printer_model': {
+				'id': None,
+				'name': None
+			},
 			'temp_presets' : [
 					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
 					'name' : "PLA",
@@ -109,6 +113,12 @@ class PrinterProfileManager(object):
 							raise e
 
 					self.data[k] = self._clean(k, changes[k])
+
+					# Send astrobox event
+					from octoprint.events import eventManager, Events
+
+					eventManager().fire(Events.PRINTERPROFILE_CHANGE, { k: self.data[k]})
+
 			else:
 				self._logger.error("trying to set unkonwn printer profile field %s to %s" % (k, str(changes[k])))
 

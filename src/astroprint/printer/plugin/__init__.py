@@ -157,6 +157,9 @@ class PrinterWithPlugin(Printer):
 	def home(self, axes):
 		self._plugin.home(axes)
 
+	def babystepping(self, amount):
+		self._plugin.babystepping(self.babysteppingWithPrinterProfile(amount))
+
 	def setPrintingSpeed(self, amount):
 		self._plugin.setPrintingSpeed(amount)
 

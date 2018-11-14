@@ -66,12 +66,24 @@
 	</div>
 
 	<div class="row">
-		<div class="small-12 columns">
+		<div class="small-12 columns matching-container">
       <div class="local-loading" align="center">
         <i class="icon-refresh animate-spin"></i>
         Loading files...
       </div>
-			<div class="design-list-container"></div>
+      <div id="files-container">
+        {%- if printer_profile.printer_model.id %}
+        <div class="design-filtered-list">
+          <div class="header-filter" >Matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b></div>
+          <div class="container-files"></div>
+        </div>
+        {% endif %}
+        <div class="design-list">
+          <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Unmatching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
+          <div class="container-files"></div>
+        </div>
+      </div>
+
 		</div>
 	</div>
 </div>
@@ -289,6 +301,27 @@
 	<div class="dlg-content"></div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
+
+<div id="no-print-dlg" class="reveal-modal xlarge" data-reveal>
+	<div class="dlg-content"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<script type="text/template" id="no-print-template">
+  <h2 class="bold">Unmatching Printer</h2>
+  <div class="modal-content" align="center">
+    <p>Your printer model profile does not match the Printfile printer.</p>
+    <p>Printfile printer model: <b><%=printFilePrinterName%></b></p>
+    <p>AstroBox printer model: <b><%=astroboxPrinterName%></b></p>
+  </div>
+  <div class="row">
+    <div class="loading-button close columns small-offset-4 small-4">
+      <button href="#" class="radius secondary cancel">
+        Cancel
+      </button>
+    </div>
+  </div>
+</script>
 
 <script type="text/template" id="local-file-exists-template">
     <h2 class="bold">File is already in internal storage</h2>

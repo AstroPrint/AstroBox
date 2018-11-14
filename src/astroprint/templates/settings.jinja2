@@ -7,26 +7,26 @@
 <div class="row collapse container">
   <div class="hide-for-small-only medium-5  large-4 columns">
     <div id="settings-side-bar">
-      <ul class="side-nav">
-        <li class="heading bold">3D Printer</li>
+      <ul class="side-nav bold">
+        <li class="heading"><i class="icon-3d-printer"></i> 3D Printer</li>
         {% if mfDefinition.variant.printer_profile_edit %}
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
-          <li class="printer-profile dotted"><a href="#settings/printer-profile">Profile</a></li>
+          <li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
-        <li class="temperature-presets dotted"><a href="#settings/temperature-presets">Temperature Presets</a></li>
+        <li class="temperature-presets"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         {% if mfDefinition.variant.allow_camera_settings %}
-          <li class="heading bold">Camera</li>
+          <li class="heading"><i class="icon-camera"></i> Camera</li>
           <li class="video-stream"><a href="#settings/video-stream">Image/Video</a></li>
         {% endif %}
-        <li class="heading bold">Network</li>
+        <li class="heading"><i class="icon-signal"></i>Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
-        <li class="internet-connection dotted"><a href="#settings/internet-connection">Internet</a></li>
-        <li class="wifi-hotspot dotted"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
-        <li class="heading bold">Software</li>
+        <li class="internet-connection"><a href="#settings/internet-connection">Internet</a></li>
+        <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
+        <li class="heading"><i class="icon-cog"></i> Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
-        <li class="software-license dotted"><a href="#settings/software-license">License</a></li>
-        <li class="software-update dotted"><a href="#settings/software-update">Update</a></li>
-        <li class="software-advanced dotted"><a href="#settings/software-advanced">Advanced</a></li>
+        <li class="software-license"><a href="#settings/software-license">License</a></li>
+        <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-advanced"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
   </div>
@@ -37,8 +37,8 @@
         <a href="#settings/printer-connection"><h1 class="bold" align="center">3D Printer Connection</h1></a>
       </div>
       <div id="printer-connection" class="settings-page">
-        <div class="row connection-status">
-          <div class="small-12">
+        <div class="row connection-status clearfix">
+          <div class="small-12 columns arcade-backg">
             <span class="connecting"><i class="icon-rocket-spinner animate-spin"></i> Connecting...</span>
             <span class="failed"><i class="icon-attention"></i> No connection to printer.</span>
             <span class="connected"><i class="icon-3d-printer"></i> Connected to printer.</span>
@@ -48,14 +48,15 @@
       </div>
 
       <script type="text/template" id="printer-connection-settings-page-template">
-        <div class="row">
-          <div class="small-12">
+        <div class="row clearfix">
+          <div class="small-12 columns text-center">
+          <hr>
             <label class="bold">
               Printer Communications Driver
-              <p><%= settings.driverName %> (<a href="#settings/printer-profile">change</a>)</p>
+              <p><%= settings.driverName %> (<a href="#settings/printer-profile"> <i class="icon-exchange"></i><b>change</b></a>)</p>
             </label>
             <label for="settings-serial-port" class="bold">
-              USB Device <small>(<a href="#" class="retry-ports"><i class="icon-refresh"></i> Re-scan</a>)</small>
+              USB Device (<a href="#" class="retry-ports bold"><i class="icon-refresh"></i> Re-scan</a>)
               <% if (settings.serial.portOptions.length > 0) { %>
                 <% if (settings.serial.portOptions.length > 1) { %>
                   <select id="settings-serial-port" name="port">
@@ -98,15 +99,15 @@
         <% if (settings.serial.portOptions.length > 0)  { %>
           <div align="center">
             <div class="loading-button connect">
-              <button class="success radius">Connect</button>
+              <button class="success round">Connect</button>
               <span class="button disabled radius success loading">Connecting...</span>
             </div>
             <div class="loading-button disconnect">
-              <button class="alert radius">Disconnect</button>
+              <button class="alert round">Disconnect</button>
               <span class="button disabled radius alert loading">Disconnecting...</span>
             </div>
             <div class="loading-button reconnect">
-              <button class="success radius">Re-connect</button>
+              <button class="success round">Re-connect</button>
               <span class="button disabled radius success loading">Re-connecting...</span>
             </div>
           </div>
@@ -118,51 +119,110 @@
       </div>
       <div id="printer-profile" class="settings-page hide">
         <script type="text/template" id="printer-profile-settings-page-template">
-          <div class="row">
+          <div class="row clearfix">
             <div class="small-12">
               <form data-abide="ajax">
-                <label for="settings-printer-driver" class="bold">
-                  Driver
-                  <select id="settings-printer-driver" name="driver">
-                    <% _.each(driverChoices, function(p, k) { %>
-                      <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
-                    <% }) %>
-                  </select>
-                </label>
-                <label for="extruder-count" class="bold">
-                  No. of Extruders
-                </label>
-                <select id="extruder-count" name="extruder_count">
-                  <option value='1'>1</option>
-                  <option value='2'>2</option>
-                  <option value='3'>3</option>
-                  <option value='4'>4</option>
-                </select>
-                <div class="input-wrapper">
-                  <label for="max-nozzle-temp" class="bold">
-                    Max. Nozzle Temperature
-                  </label>
-                  <div class="row collapse">
-                    <div class="small-9 columns">
-                      <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
-                      <small class="error">Invalid Nozzle Temperature.</small>
-                    </div>
-                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
+
+                <div class="clearfix text-right save-profile">
+                  <div class="loading-button right">
+                    <button class="success radius">Save Profile</button>
+                    <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
                   </div>
                 </div>
-                <label for="heated-bed" class="bold">
-                  Heated Bed
-                </label>
-                <div class="switch radius">
-                  <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
-                  <label for="heated-bed"></label>
+
+                <hr>
+                <div class="row clearfix">
+                  <label for="settings-printer-driver" class=" columns small-12 bold text-left">Printer Model</label>
+                  <% if (!settings.printer_model.name) { %>
+                    {% if not mfDefinition.variant.printer_selection_hidden %}
+                    <div class="column small-12">
+                        <a class="button radius add-printer tiny change-printer"><i class="icon-plus"></i> Add Printer</a>
+                      </div>
+                    {% endif %}
+                  <% } %>
+                  <div class="column small-8">
+                    <% if (settings.printer_model.name) { %>
+                      <h4 id="printer-name" data-id="<%= settings.printer_model.id %>"><%= settings.printer_model.name %></h4>
+                    <% } %>
+                  </div>
+                  <% if (settings.printer_model.name) { %>
+                    {% if not mfDefinition.variant.printer_selection_hidden %}
+                    <div class="column small-2">
+                        <a class="button radius tiny right success change-printer"><b>Change</b></a>
+                      </div>
+                    <div class="column small-2">
+                      <a class="button radius tiny right alert unlink-printer"><b>Unlink</b></a>
+                    </div>
+                    {% endif %}
+                  <% } %>
                 </div>
-                <label class="bold">
-                  Movement
-                </label>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-x-axis"></i> X</div>
-                  <div class="small-8 large-10 columns">
+
+                <div class="row clearfix">
+                  <div class="column">
+                    <label for="settings-printer-driver" class="bold">
+                      Driver
+                      <select id="settings-printer-driver" name="driver">
+                        <% _.each(driverChoices, function(p, k) { %>
+                          <option value="<%= k %>" <%= settings.driver == k ? 'selected' : '' %>><%= p.name %></option>
+                        <% }) %>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+
+                <div class="row clearfix">
+                  <div class="column medium-6">
+                  <label for="extruder-count" class="bold">
+                      No. of Extruders
+                    </label>
+                    <select id="extruder-count" name="extruder_count">
+                      <option value='1'>1</option>
+                      <option value='2'>2</option>
+                      <option value='3'>3</option>
+                      <option value='4'>4</option>
+                    </select>
+                  </div>
+
+                  <div class="medium-6 column text-center">
+                    <label for="heated-bed" class="bold">Heated Bed</label>
+                    <div class="switch radius danger">
+                      <input id="heated-bed" name="heated_bed" type="checkbox" <% if (settings.heated_bed) { %> value="yes" checked<% } %>>
+                      <label for="heated-bed"></label>
+                    </div>
+                  </div>
+
+                  <div class="clearfix"></div>
+
+                  <div class="input-wrapper column small-6">
+                    <label for="max-nozzle-temp" class="bold text-left">
+                      Max. Nozzle Temperature
+                    </label>
+                    <div class="row clearfix collapse">
+                      <div class="small-9 columns">
+                        <input id="max-nozzle-temp" name="max_nozzle_temp" type="text" value="<%= settings.max_nozzle_temp %>" required pattern="integer"/>
+                        <small class="error">Invalid Nozzle Temperature.</small>
+                      </div>
+                      <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                    </div>
+                  </div>
+
+                  <div class="input-wrapper text-center small-6 column max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
+                    <label for="max-bed-temp" class="bold text-left">Max. Bed Temperature</label>
+                    <div class="row collapse">
+                      <div class="small-9 columns">
+                        <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
+                        <small class="error">Invalid Bed Temperature.</small>
+                      </div>
+                      <div class="small-3 columns"><span class="postfix">&deg;C</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row movement clearfix">
+
+                  <label class="bold column">Movement</label>
+                  <div class="medium-4 text-center columns">
+                    <div class="bold"><i class="icon-x-axis"></i> X</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -172,10 +232,9 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
-                </div>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-y-axis"></i> Y</div>
-                  <div class="small-8 large-10 columns">
+
+                  <div class="medium-4 text-center columns">
+                    <div class="bold"><i class="icon-y-axis"></i> Y</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -185,10 +244,9 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
-                </div>
-                <div class="row movement">
-                  <div class="small-4 large-2 columns bold"><i class="icon-z-axis"></i> Z</div>
-                  <div class="small-8 large-10 columns">
+
+                  <div class="medium-4 text-center columns">
+                    <div class="bold"><i class="icon-z-axis"></i> Z</div>
                     <div class="toggle">
                       <span class="side-label">Head Moves</span>
                       <span class="switch radius">
@@ -198,30 +256,17 @@
                       <span class="side-label">Bed Moves</span>
                     </div>
                   </div>
+
                 </div>
-                <div class="input-wrapper max_bed_temp<% if (!settings.heated_bed) { %> hide<% } %>">
-                  <label for="max-bed-temp" class="bold">
-                    Max. Bed Temperature
-                  </label>
-                  <div class="row collapse">
-                    <div class="small-9 columns">
-                      <input id="max-bed-temp" name="max_bed_temp" type="text" value="<%= settings.max_bed_temp %>" required pattern="integer"/>
-                      <small class="error">Invalid Bed Temperature.</small>
-                    </div>
-                    <div class="small-3 columns"><span class="postfix">&deg;C</div>
-                  </div>
-                </div>
+
                 <div class="input-wrapper cancel-gcode<% if (!driverChoices[settings.driver].properties.customCancelCommands) { %> hide<% } %>">
                   <label for="cancel-gcode" class="bold">
                     Cancel GCODE
                   </label>
                   <textarea id="cancel-gcode" name="cancel_gcode" placeholder="G28 X Y"><%= settings.cancel_gcode.join('\n') %></textarea>
                 </div>
-                <hr/>
-                <div class="loading-button">
-                  <button class="success radius">Save Profile</button>
-                  <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
-                </div>
+
+
               </form>
             </div>
           </div>
@@ -513,7 +558,7 @@
               <li><i class="icon-link"></i> {{mfDefinition.variant.product_name}} URL: http://<span class="network-name bold"><%= settings.name %></span>.local</li>
             </ul>
             <hr/>
-            <div class="loading-button">
+            <div class="loading-button right">
               <button class="success radius">Save</button>
               <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
             </div>
@@ -526,7 +571,7 @@
       <a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
     </div>
 
-    <div id="internet-connection" class="settings-page hide"></div>
+    <div id="internet-connection" class="settings-page text-center hide"></div>
     <div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
       <h2 class="bold">Select a WiFi Network</h2>
       <div class="modal-content"></div>
@@ -600,7 +645,7 @@
         <div class="ip-address">IP Address: <b><%= settings.networks.manual.ip %></b></div>
       <% } %>
       <% if (settings.hasWifi) { %>
-        <hr/>
+
         <div class="connection">
           <h3 class="bold">Wireless Connection</h3>
           <% if (settings.networks.wireless) { %>
@@ -614,7 +659,7 @@
             Connected to <b><%= settings.networks.wireless.name %></b>.
             <div class="ip-address">IP Address: <b><%= settings.networks.wireless.ip || '- -'  %></b></div>
           <% } else { %>
-            Not Connected.
+            <div class="not-connected"><img src="/img/no-internet-icon.png" /> Not Connected.</div>
           <% } %>
           <div class="loading-button list-networks">
             <button class="radius small">Scan WiFi networks</button>
@@ -629,8 +674,8 @@
         <h3 class="bold">Known WiFi Networks</h3>
         <div class="stored-wifis element-list">
           <% _.each(settings.storedWifiNetworks, function(c) { %>
-            <div class="row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
-              <div class="columns small-2 large-1 active">
+            <div class="clearfix collapse row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
+              <div class="columns small-2 large-1 text-center active">
                 <i class="icon-exchange" title="Currently Connected"></i>
               </div>
               <div class="columns small-8 large-10 name">
@@ -1093,6 +1138,66 @@
             <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
           </div>
         </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div id="printer-selector-modal" class="reveal-modal medium radius" data-reveal align="center">
+      <h2 class="bold">Set Printer Model</h2>
+      <div class="content"></div>
+      <script type="text/template" id="printer-selector-modal-content">
+        <div class="modal-actions row">
+            <div class="small-12 medium-12 columns">
+              <!-- Manufacturers -->
+              <label for="manufacturers-picker" class="bold">
+                1. Choose manufacturer
+                <select id="manufacturers-picker" name="driver">
+                  <% _.each(manufacturers, function(m) { %>
+                    <option value="<%= m.id %>" <%= mSelected == m.id ? ' selected' : '' %>  ><%= m.name %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </div>
+            <div class="small-12 medium-12 columns">
+              <!-- Printers -->
+              <label for="printer-model-picker" class="bold">
+                2. Pick a Printer
+                <select id="printer-model-picker" name="driver">
+                  <% _.each(printers, function(p) { %>
+                    <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>
+                  <% }) %>
+                </select>
+              </label>
+            </div>
+          </div>
+      </script>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="success radius set-printer">Set</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Setting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+      </div>
+
+    <div id="unlink-printer-dlg" class="reveal-modal medium" data-reveal>
+      <h2 class="bold">Unlink Printer Profile</h2>
+      <div class="reveal-content text-center">
+        <p>Are your sure you want to unlink <span class="bold printer-name"></b>{{printer}}</span> from your profile?</p>
+          <div class="button-container">
+          <button class="radius secondary left cancel">Cancel</button>
+          <div class="loading-button right unlink-button">
+            <button class="alert radius">Unlink</button>
+            <span class="loading button disabled alert radius"><i class="icon-rocket-spinner animate-spin"></i> Unlinking...</span>
+            <span class="failed button disabled alert radius"><i class="icon-attention"></i> Failed</span>
+          </div>
+          <div class="clearfix"></div>
+          </div>
       </div>
       <a class="close-reveal-modal">&#215;</a>
     </div>
