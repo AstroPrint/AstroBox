@@ -78,7 +78,9 @@ class PrinterProfileManager(object):
 				v = mfDefinition[k]
 				if v is not None:
 					config[k] = v
-
+					if k == "temp_presets":
+						for preset in v:
+							preset['id'] = uuid.uuid4().hex
 			if config:
 				merge_dict(self.data, config)
 
