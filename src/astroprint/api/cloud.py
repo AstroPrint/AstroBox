@@ -208,6 +208,85 @@ def design_download(print_file_id):
 
 	return abort(400)
 
+@api.route("/astroprint/print-files/<string:print_file_id>/upload", methods=["POST"])
+@restricted_access
+def design_upload(print_file_id):
+	if current_user is None or not current_user.is_authenticated or not current_user.publicKey:
+		abort(401)
+
+	em = eventManager()
+
+	def progressCb(progress):
+		em.fire(
+			Events.CLOUD_UPLOAD, {
+				"type": "progress",
+				"id": print_file_id,
+				"progress": progress
+			}
+		)
+
+	def successCb(destFile, fileInfo):
+		if fileInfo is True:
+			#This means the files was already on the cloud
+			em.fire(
+				Events.CLOUD_UPLOAD, {
+					"type": "success",
+					"id": print_file_id
+				}
+			)
+
+	def errorCb(destFile, error):
+		if error == 'cancelled':
+			em.fire(
+					Events.CLOUD_UPLOAD,
+					{
+						"type": "cancelled",
+						"id": print_file_id
+					}
+				)
+		else:
+			em.fire(
+				Events.CLOUD_UPLOAD,
+				{
+					"type": "error",
+					"id": print_file_id,
+					"reason": error
+				}
+			)
+
+	if print_file_id:
+		uploadedFilePath = settings().getBaseFolder("uploads") + "/" + print_file_id
+
+		if os.path.exists(uploadedFilePath):
+			u = open(uploadedFilePath, "r")
+			filedata = jsonify(u.read())
+
+			data = request.json
+
+			#get attrs
+			attrs = {}
+			if 'projectId' in data:
+				attrs['project_id'] = data['projectId']
+			if 'designId' in data:
+				attrs['design_id'] = data['designId']
+			if 'printerId' in data:
+				attrs['printer_id'] = data['printerId']
+			if 'materialId' in data:
+				attrs['filament_id'] = data['materialId']
+			if 'qualityId' in data:
+				attrs['quality'] = data['qualityId']
+
+			if astroprintCloud().upload_print_file(filedata, attrs, progressCb, successCb, errorCb):
+				return jsonify(SUCCESS)
+
+		return abort(400)
+	else:
+		return abort(400)
+
+
+
+	#return abort(400)
+
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["DELETE"])
 @restricted_access
 def cancel_design_download(print_file_id):

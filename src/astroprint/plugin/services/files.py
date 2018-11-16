@@ -6,10 +6,8 @@ __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the A
 import os
 import shutil
 import time
+import json
 from . import PluginService
-
-from flask_login import current_user
-from flask import jsonify
 
 import octoprint.util as util
 from octoprint.events import eventManager, Events
@@ -263,6 +261,20 @@ class FilesService(PluginService):
 		self.publishEvent('file_deleted','deleted')
 
 		sendResponse({'success':'no error'})
+
+	def readPrintFileGCODE(self, data, sendResponse):
+		if "filename" in data:
+			filename = data['filename']
+			uploadedFilePath = settings().getBaseFolder("uploads")+ "/"+filename
+
+			if os.path.exists(uploadedFilePath):
+				u = open(uploadedFilePath, "r")
+				print json.loads(u.read())
+				sendResponse( {'filedata':jsonify(u.read())} )
+				return
+			sendResponse('File not found',True)
+		else:
+			sendResponse('No filename provided',True)
 
 
 	def downloadPrintFile(self,printFileId,sendResponse):

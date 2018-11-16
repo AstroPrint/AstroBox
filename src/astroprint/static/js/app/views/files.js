@@ -1698,7 +1698,7 @@ var PrintfileEditDialog = Backbone.View.extend({
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
 
     loadingBtn.addClass('loading');
-    this.doUploadFile().then()
+    this.newDoUploadFile().then()
     .done(_.bind(function (f) {
       if (f.already_exists) {
         noty({ text: "The file was already in your account", timeout: 3000 });
@@ -1775,6 +1775,36 @@ var PrintfileEditDialog = Backbone.View.extend({
       }, this))
 
       return promise;
+  },
+  newDoUploadFile: function()
+  {
+    var promise = $.Deferred();
+
+    $.ajax({
+      url:  "api/astroprint/print-files/" + this.filename + "/upload",
+      type: "POST",
+      data: {
+        projectId: "123",
+        designId: "987"
+      }
+    })
+    .done(function(data){
+     console.log("datata",data);
+     promise.resolve(data);
+    })
+    .fail(_.bind(function(xhr){
+      promise.reject();
+      if (xhr.status != 0) {
+        if (xhr.status == 503) {
+          errorContainer.text('AstroPrint.com can\'t be reached').show();
+        } else {
+          errorContainer.text('Invalid Email/Password').show();
+        }
+        this.button.removeClass('loading');
+      }
+    }, this));
+
+    return promise;
   },
   doUploadFile: function()
   {
