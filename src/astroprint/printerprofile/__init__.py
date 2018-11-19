@@ -73,10 +73,21 @@ class PrinterProfileManager(object):
 				if k == "temp_presets":
 					for preset in v:
 						preset['id'] = uuid.uuid4().hex
-		if config:
+						preset['manufacturer'] = True
+
+		# If manufacturer pkg contains temp presets, keep custom user
+		if "temp_presets" in config:
+			if os.path.isfile(self._infoFile):
+				with open(self._infoFile, "r") as infoF:
+					userconfig = yaml.safe_load(infoF)
+					if userconfig["temp_presets"]:
+						for k in userconfig["temp_presets"]:
+							if "manufacturer" not in k:
+								config['temp_presets'].append(k)
+
 			merge_dict(self.data, config)
 			manufacturerPkgManager().removeKeyFromFile("printer_profile") #consume editable key once is used
-			self.save()
+		self.save()
 
 		if not os.path.isfile(self._infoFile):
 			factoryFile = "%s/printer-profile.factory" % configDir
