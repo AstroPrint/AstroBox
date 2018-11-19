@@ -24,6 +24,7 @@ class ManufacturerPkgManager(object):
 		self.data = {
 			'variant': {
 				'printer_profile_edit': True,
+				'temperature_presets_edit': True,
 				'allow_camera_settings': True,
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
