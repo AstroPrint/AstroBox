@@ -121,3 +121,19 @@ class ManufacturerPkgManager(object):
 				return
 
 		self._logger.info('No Manufacturer Package present')
+
+	def removeKeyFromFile(self, keyname):
+		if os.path.isdir(self._folder):
+			def_file = os.path.join(self._folder, 'definition.yaml')
+			if os.path.isfile(def_file):
+				try:
+					with open(def_file, "r") as f:
+						filePartiallyConsumed = yaml.safe_load(f)
+						del filePartiallyConsumed[keyname]
+						try:
+							with open(def_file, "wb") as infoFile:
+								yaml.safe_dump(filePartiallyConsumed, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
+						except:
+							self._logger.error("There was an error loading %s:" % def_file, exc_info= True)
+				except:
+					self._logger.error("There was an error loading %s:" % def_file, exc_info= True)
