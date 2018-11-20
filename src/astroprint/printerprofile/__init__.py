@@ -60,34 +60,7 @@ class PrinterProfileManager(object):
 			'last_presets_used' : [
 			]
 		}
-
-		#overlay manufactuer definition of printer profile
-		config = {}
-
-		mfDefinition = manufacturerPkgManager().printerProfile
-
-		for k in mfDefinition.keys():
-			v = mfDefinition[k]
-			if v is not None:
-				config[k] = v
-				if k == "temp_presets":
-					for preset in v:
-						preset['id'] = uuid.uuid4().hex
-						preset['manufacturer'] = True
-
-		# If manufacturer pkg contains temp presets, keep custom user
-		if "temp_presets" in config:
-			if os.path.isfile(self._infoFile):
-				with open(self._infoFile, "r") as infoF:
-					userconfig = yaml.safe_load(infoF)
-					if userconfig["temp_presets"]:
-						for k in userconfig["temp_presets"]:
-							if "manufacturer" not in k:
-								config['temp_presets'].append(k)
-
-			merge_dict(self.data, config)
-			manufacturerPkgManager().removeKeyFromFile("printer_profile") #consume editable key once is used
-		self.save()
+		config = None
 
 		if not os.path.isfile(self._infoFile):
 			factoryFile = "%s/printer-profile.factory" % configDir
@@ -95,6 +68,24 @@ class PrinterProfileManager(object):
 			if os.path.isfile(factoryFile):
 				with open(factoryFile, "r") as f:
 					config = yaml.safe_load(f)
+
+			#overlay manufactuer definition of printer profile
+			if not config:
+				config = {}
+
+			mfDefinition = manufacturerPkgManager().printerProfile
+			for k in mfDefinition.keys():
+				v = mfDefinition[k]
+				if v is not None:
+					config[k] = v
+					if k == "temp_presets":
+						for preset in v:
+							preset['id'] = uuid.uuid4().hex
+							preset['manufacturer'] = True
+			if config:
+				merge_dict(self.data, config)
+
+			self.save()
 
 		else:
 			with open(self._infoFile, "r") as f:
