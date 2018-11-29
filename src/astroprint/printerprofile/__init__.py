@@ -47,16 +47,18 @@ class PrinterProfileManager(object):
 				'id': None,
 				'name': None
 			},
-			'temp_presets' : [
-					{ 'id' : "3e0fc9b398234f2f871310c1998aa000",
+			'temp_presets' : {
+				'3e0fc9b398234f2f871310c1998aa000': {
 					'name' : "PLA",
 					'nozzle_temp' : 220,
-					'bed_temp' : 40},
-				 	{'id' : "2cc9df599f3e4292b379913f4940c000s",
-					'name': "ABS",
-					'nozzle_temp': 230,
-					'bed_temp' : 80}
-			],
+					'bed_temp' : 40
+				},
+				'2cc9df599f3e4292b379913f4940c000': {
+					'name' : "ABS",
+					'nozzle_temp' : 230,
+					'bed_temp' : 80
+				},
+			},
 			'last_presets_used' : [
 			]
 		}
@@ -69,19 +71,9 @@ class PrinterProfileManager(object):
 				with open(factoryFile, "r") as f:
 					config = yaml.safe_load(f)
 
-			#overlay manufactuer definition of printer profile
 			if not config:
 				config = {}
 
-			mfDefinition = manufacturerPkgManager().printerProfile
-			for k in mfDefinition.keys():
-				v = mfDefinition[k]
-				if v is not None:
-					config[k] = v
-					if k == "temp_presets":
-						for preset in v:
-							preset['id'] = uuid.uuid4().hex
-							preset['manufacturer'] = True
 			if config:
 				merge_dict(self.data, config)
 
@@ -93,6 +85,31 @@ class PrinterProfileManager(object):
 
 			if config:
 				merge_dict(self.data, config)
+
+		# update with manufacturer definition
+		mfDefinition = manufacturerPkgManager().printerProfile
+		mfConfig = {}
+		for k in mfDefinition.keys():
+			v = mfDefinition[k]
+			if v is not None:
+				mfConfig[k] = v
+				if k == "temp_presets":
+					for mfPresetID in v.keys():
+						p = mfConfig[k][mfPresetID]
+
+						# Add new attribute object with correct format
+						mfConfig[k][uuid.uuid4().hex] = {
+							"manufacturer_id": mfPresetID,
+							"name": p['name'],
+							"bed_temp": p['bed_temp'],
+							"nozzle_temp": p['nozzle_temp'],
+						}
+
+						del mfConfig[k][mfPresetID]
+
+		if mfConfig:
+			merge_dict(self.data, mfConfig)
+		#self.save()
 
 	def save(self):
 		with open(self._infoFile, "wb") as infoFile:
