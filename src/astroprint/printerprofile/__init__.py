@@ -182,10 +182,10 @@ class PrinterProfileManager(object):
 
 	def createTempPreset(self, name, nozzle_temp, bed_temp):
 		id = uuid.uuid4().hex
-		temp_update = { 'id' : id, 'name' : name, 'nozzle_temp' : int(nozzle_temp), 'bed_temp' : int(bed_temp)}
+		temp_update = { 'name' : name, 'nozzle_temp' : int(nozzle_temp), 'bed_temp' : int(bed_temp)}
 
 		changes = self.data.copy()
-		changes['temp_presets'].append(temp_update)
+		changes['temp_presets'][uuid.uuid4().hex] = temp_update
 		self.set(changes)
 		self.save()
 
