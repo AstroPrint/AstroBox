@@ -87,27 +87,53 @@ class PrinterProfileManager(object):
 				merge_dict(self.data, config)
 
 		# update with manufacturer definition
-		mfDefinition = manufacturerPkgManager().printerProfile
+		mfDefProfile = manufacturerPkgManager().printerProfile
+		mfDefVariant = manufacturerPkgManager().variant
+
 		mfConfig = {}
-		for k in mfDefinition.keys():
-			v = mfDefinition[k]
+		for k in mfDefProfile.keys():
+			v = mfDefProfile[k]
 			if v is not None:
 				mfConfig[k] = v
 				if k == "temp_presets":
 					for mfPresetID in v.keys():
 						p = mfConfig[k][mfPresetID]
 
-						# Add new attribute object with correct format
-						mfConfig[k][uuid.uuid4().hex] = {
-							"manufacturer_id": mfPresetID,
-							"name": p['name'],
-							"bed_temp": p['bed_temp'],
-							"nozzle_temp": p['nozzle_temp'],
-						}
-
-						del mfConfig[k][mfPresetID]
-
+						if self.data[k] is not None:
+							dKey = self._checkPresetExisted(k, mfPresetID)
+							if dKey:
+								# if manufacturer updates its preset and user it's not allowed to edit => REPLACE
+								if mfPresetID and mfDefVariant['temperature_presets_edit'] is False:
+									mfConfig[k][dKey] = {
+										"manufacturer_id": mfPresetID,
+										"name": p['name'],
+										"bed_temp": p['bed_temp'],
+										"nozzle_temp": p['nozzle_temp'],
+									}
+									del mfConfig[k][mfPresetID]
+								# if manfufacturer updates its preset and user it's allowed to edit => IGNORE UPDATE
+								else:
+									del mfConfig[k][mfPresetID]
+							else:
+								# Add new attribute object with correct format
+								mfConfig[k][uuid.uuid4().hex] = {
+									"manufacturer_id": mfPresetID,
+									"name": p['name'],
+									"bed_temp": p['bed_temp'],
+									"nozzle_temp": p['nozzle_temp'],
+								}
+								del mfConfig[k][mfPresetID]
+						else:
+							mfConfig[k][uuid.uuid4().hex] = {
+								"manufacturer_id": mfPresetID,
+								"name": p['name'],
+								"bed_temp": p['bed_temp'],
+								"nozzle_temp": p['nozzle_temp'],
+							}
+							del mfConfig[k][mfPresetID]
 		if mfConfig:
+			if "temp_presets" in mfConfig.keys():
+				self._removeDefaultTempPresets()
 			merge_dict(self.data, mfConfig)
 		#self.save()
 
@@ -172,3 +198,15 @@ class PrinterProfileManager(object):
 			return bool(value)
 		else:
 			return value
+
+	def _checkPresetExisted(self, key, presetID):
+		for dkey in self.data[key].keys():
+			if "manufacturer_id" in self.data[key][dkey]:
+				if self.data[key][dkey]['manufacturer_id'] == presetID:
+					return dkey
+
+	def _removeDefaultTempPresets(self):
+		if "3e0fc9b398234f2f871310c1998aa000" in self.data['temp_presets']:
+			del self.data['temp_presets']['3e0fc9b398234f2f871310c1998aa000']
+		if "2cc9df599f3e4292b379913f4940c000" in self.data['temp_presets']:
+			del self.data['temp_presets']['2cc9df599f3e4292b379913f4940c000']
