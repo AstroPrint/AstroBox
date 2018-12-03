@@ -359,7 +359,7 @@ var TempSemiCircleView = Backbone.View.extend({
     var profile = app.printerProfile.toJSON();
     var saveNewTemps = true;
 
-    let keyTool;
+    var keyTool;
     if (this.last_preset.tool == "bed") {
       keyTool = "bed"
     } else {
