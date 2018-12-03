@@ -43,7 +43,12 @@ var TempSemiCircleView = Backbone.View.extend({
       } else {
         last_preset = this.temp_presets[last_temp.id]
       }
-      last_preset['id'] = last_temp.id
+      if (last_preset) {
+        last_preset['id'] = last_temp.id
+      } else {
+        last_preset = profile.temp_presets[[Object.keys(profile.temp_presets)[0]]];
+        last_preset['id'] = Object.keys(profile.temp_presets)[0]
+      }
     } else {
       last_preset = profile.temp_presets[[Object.keys(profile.temp_presets)[0]]];
       last_preset['id'] = Object.keys(profile.temp_presets)[0]
