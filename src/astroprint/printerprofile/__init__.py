@@ -59,8 +59,7 @@ class PrinterProfileManager(object):
 					'bed_temp' : 80
 				},
 			},
-			'last_presets_used' : [
-			]
+			'last_presets_used' : {}
 		}
 		config = None
 
@@ -135,7 +134,7 @@ class PrinterProfileManager(object):
 			if "temp_presets" in mfConfig.keys():
 				self._removeDefaultTempPresets()
 			merge_dict(self.data, mfConfig)
-		#self.save()
+		self.save()
 
 	def save(self):
 		with open(self._infoFile, "wb") as infoFile:
@@ -185,7 +184,7 @@ class PrinterProfileManager(object):
 		temp_update = { 'name' : name, 'nozzle_temp' : int(nozzle_temp), 'bed_temp' : int(bed_temp)}
 
 		changes = self.data.copy()
-		changes['temp_presets'][uuid.uuid4().hex] = temp_update
+		changes['temp_presets'][id] = temp_update
 		self.set(changes)
 		self.save()
 
