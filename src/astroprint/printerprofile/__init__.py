@@ -33,6 +33,7 @@ class PrinterProfileManager(object):
 		self._infoFile = "%s/printer-profile.yaml" % configDir
 		self._logger = logging.getLogger(__name__)
 		self.data = {
+			'last_definition_version': None,
 			'driver': "marlin",
 			'plugin': None,
 			'extruder_count': 1,
@@ -85,36 +86,47 @@ class PrinterProfileManager(object):
 			if config:
 				merge_dict(self.data, config)
 
-		# update with manufacturer definition
+		# check manufacturer definition update
+		version = manufacturerPkgManager().version
 		mfDefProfile = manufacturerPkgManager().printerProfile
-		mfDefVariant = manufacturerPkgManager().variant
-
 		mfConfig = {}
-		for k in mfDefProfile.keys():
-			v = mfDefProfile[k]
-			if v is not None:
-				mfConfig[k] = v
-				if k == "temp_presets":
-					for mfPresetID in v.keys():
-						p = mfConfig[k][mfPresetID]
+		if version != self.data['last_definition_version']:
+			self._logger.info("A New update for manufacturer package has been found: %s" % (version))
 
-						if self.data[k] is not None:
-							dKey = self._checkPresetExisted(k, mfPresetID)
-							if dKey:
-								# if manufacturer updates its preset and user it's not allowed to edit => REPLACE
-								if mfPresetID and mfDefVariant['temperature_presets_edit'] is False:
-									mfConfig[k][dKey] = {
+			mfDefVariant = manufacturerPkgManager().variant
+			for k in mfDefProfile.keys():
+				v = mfDefProfile[k]
+				if v is not None:
+					mfConfig[k] = v
+					if k == "temp_presets":
+						for mfPresetID in v.keys():
+							p = mfConfig[k][mfPresetID]
+
+							if self.data[k] is not None:
+								dKey = self._checkPresetExisted(k, mfPresetID)
+								if dKey:
+									# if manufacturer updates its preset and user it's not allowed to edit => REPLACE
+									if mfPresetID and mfDefVariant['temperature_presets_edit'] is False:
+										mfConfig[k][dKey] = {
+											"manufacturer_id": mfPresetID,
+											"name": p['name'],
+											"bed_temp": p['bed_temp'],
+											"nozzle_temp": p['nozzle_temp'],
+										}
+										del mfConfig[k][mfPresetID]
+									# if manfufacturer updates its preset and user it's allowed to edit => IGNORE UPDATE
+									else:
+										del mfConfig[k][mfPresetID]
+								else:
+									# Add new attribute object with correct format
+									mfConfig[k][uuid.uuid4().hex] = {
 										"manufacturer_id": mfPresetID,
 										"name": p['name'],
 										"bed_temp": p['bed_temp'],
 										"nozzle_temp": p['nozzle_temp'],
 									}
 									del mfConfig[k][mfPresetID]
-								# if manfufacturer updates its preset and user it's allowed to edit => IGNORE UPDATE
-								else:
-									del mfConfig[k][mfPresetID]
 							else:
-								# Add new attribute object with correct format
 								mfConfig[k][uuid.uuid4().hex] = {
 									"manufacturer_id": mfPresetID,
 									"name": p['name'],
@@ -122,14 +134,9 @@ class PrinterProfileManager(object):
 									"nozzle_temp": p['nozzle_temp'],
 								}
 								del mfConfig[k][mfPresetID]
-						else:
-							mfConfig[k][uuid.uuid4().hex] = {
-								"manufacturer_id": mfPresetID,
-								"name": p['name'],
-								"bed_temp": p['bed_temp'],
-								"nozzle_temp": p['nozzle_temp'],
-							}
-							del mfConfig[k][mfPresetID]
+			# update version number
+			self.data['last_definition_version'] = version
+
 		if mfConfig:
 			if "temp_presets" in mfConfig.keys():
 				self._removeDefaultTempPresets()
