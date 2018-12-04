@@ -82,6 +82,11 @@ class PrinterProfileManager(object):
 		else:
 			with open(self._infoFile, "r") as f:
 				config = yaml.safe_load(f)
+				# remove old array formats
+				if 'temp_presets' in config and isinstance(config['temp_presets'], list) == True:
+					del config['temp_presets']
+				if 'last_presets_used'in config and isinstance(config['last_presets_used'], list) == True:
+					del config['last_presets_used']
 
 			if config:
 				merge_dict(self.data, config)
