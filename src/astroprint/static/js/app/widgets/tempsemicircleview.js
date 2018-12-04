@@ -363,7 +363,8 @@ var TempSemiCircleView = Backbone.View.extend({
     if (this.last_preset.tool == "bed") {
       keyTool = "bed"
     } else {
-      keyTool = "tool" + this.last_preset.tool
+      var toolId = (this.last_preset.tool || this.last_preset.tool == 0) ? this.last_preset.tool : 0
+      keyTool = "tool" + toolId
     }
     if (profile.last_presets_used[keyTool]) {
       if (profile.last_presets_used[keyTool].id == this.last_preset.id) {
