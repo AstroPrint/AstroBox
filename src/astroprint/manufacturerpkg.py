@@ -22,7 +22,7 @@ from astroprint.util import merge_dict
 class ManufacturerPkgManager(object):
 	def __init__(self):
 		self.data = {
-			'version': "2b0fc9b398234f2f871310c1998aa001",
+			'version': None,
 			'variant': {
 				'printer_profile_edit': True,
 				'temperature_presets_edit': True,
