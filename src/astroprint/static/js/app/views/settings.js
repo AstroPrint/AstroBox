@@ -178,7 +178,8 @@ var PrinterProfileView = SettingsPage.extend({
     "change select[name='driver']": 'driverChanged',
     "click a.change-printer": 'printerSelectorClicked',
     "click a.unlink-printer": 'unlinkPrinterClicked',
-
+    "click a.change-filament": 'filamentSelectorClicked',
+    "click a.unlink-filament": 'unlinkFilamentClicked',
   },
   show: function() {
     SettingsPage.prototype.show.apply(this);
@@ -234,11 +235,49 @@ var PrinterProfileView = SettingsPage.extend({
 
   },
 
+  filamentSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+    var data = {
+      'name': $('#filament-name').data("name"),
+      'color': $('#filament-name').data("color"),
+    }
+
+    console.log(data)
+
+    if (!this.filamentSelectorDlg) {
+      this.filamentSelectorDlg = new FilamentSelectorDialog({parent: this});
+    }
+    this.filamentSelectorDlg.open(data);
+
+  },
   unlinkPrinterClicked: function(e)
   {
     e.preventDefault();
     console.log(this.settings);
     (new UnlinkPrinterDialog()).open({settings: this.settings, view: this})
+  },
+  _checkCurrentPrinter: function(printerID) {
+    var promise = $.Deferred();
+
+      this.astroprintApi.getModelInfo(printerID)
+      .done(_.bind(function (info) {
+        promise.resolve(info)
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject();
+      }, this))
+
+    return promise;
+  },
+  unlinkFilamentClicked: function(e)
+  {
+    e.preventDefault();
+    console.log(this.settings);
+    (new UnlinkFilamentDialog()).open({settings: this.settings, view: this})
   },
   _checkCurrentPrinter: function(printerID) {
     var promise = $.Deferred();
@@ -498,6 +537,123 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
 });
 
+/* FILAMENT SELECTOR MODAL */
+var FilamentSelectorDialog = Backbone.View.extend({
+  el: '#filament-selector-modal',
+  name: null,
+  color: null,
+  parentView: null,
+  colors :  [
+    "#FFFFFF", //WHITE
+    "#C0C0C0", //SILVER
+    "#808080", //GRAY
+    "#FF0000", //BLACK
+    "#212121", //RED
+    "#800000", //MAROON
+    "#FFFF00", //YELLOW
+    "#808000", //OLIVE
+    "#00FF00", //LIME
+    "#008000", //GREEN
+    "#00FFFF", //AQUA
+    "#008080", //TEA
+    "#0000FF", //BLUE
+    "#000080", //NAVY
+    "#FF00FF", //FUCHSIA
+    "#800080" //PURPLE
+  ],
+  events: {
+    'click button.secondary': 'doClose',
+    "valid.fndtn.abide form": 'setFilamentClicked',
+    'change select#manufacturers-picker': 'onManufacturersChanged'
+  },
+  initialize: function(params) {
+    this.parentView = params.parent;
+  },
+  open: function(params)
+  {
+
+    this.name = params.name
+    this.color = params.color
+    this.render()
+
+    this.$el.foundation('reveal', 'open');
+  },
+  setFilamentClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+    // Get info from last model selected
+    var attrs = { "filament" : {
+      "name": $("#filament_name").val(),
+      "color": $("#filament_color").val() ? $("#filament_color").val() : "#FFFFFF"
+      }
+    }
+    console.log(attrs)
+    this.parentView.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function () {
+        noty({ text: "Filament info saved", timeout: 3000, type: "success" });
+        this.parentView.getInfoAndRender();
+        this.$el.foundation('reveal', 'close');
+        loadingBtn.removeClass('loading');
+      }, this),
+      error: function () {
+        noty({ text: "Failed to save filament info", timeout: 3000 });
+        loadingBtn.removeClass('loading');
+      }
+    });
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#filament-selector-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+    content.html(this.contentTemplate({
+      name: this.name,
+      color: this.color,
+    }));
+
+      $("#filament_color").paletteColorPicker({
+        // Color in { key: value } format
+        colors: this.colors,
+        // Add custom class to the picker
+        custom_class: 'double',
+        // Force the position of picker's bubble
+        position: 'upside', // default -> 'upside'
+        // Where is inserted the color picker's button, related to the input
+        insert: 'after', // default -> 'before'
+        // Don't add clear_btn
+        clear_btn: 'last', // null -> without clear button, default -> 'first'
+        // Timeout for the picker's fade out in ms
+        timeout: 3000, // default -> 2000
+        // Forces closin all bubbles that are open before opening the current one
+        close_all_but_this: false, // default is false
+        // Sets the input's background color to the selected one on click
+        // seems that some users find this useful ;)
+        set_background: false, // default is false
+
+        // Events
+        // Callback on bubbl show
+        onbeforeshow_callback: function( what ) {
+          console.log(what);
+        },
+
+        // Callback on change value
+        onchange_callback: function( clicked_color ) {
+          $(".palette-color-picker-button" ).removeClass('active').find('.palette-color-picker-bubble').fadeOut();
+        }
+      });
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+});
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // UnlinkPrinterDialog
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -556,6 +712,66 @@ var UnlinkPrinterDialog = Backbone.View.extend({
     this.$el.foundation('reveal', 'close');
   },
 
+  onClosed: function ()
+  {
+    this.undelegateEvents();
+  }
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// UnlinkFilamentDialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var UnlinkFilamentDialog = Backbone.View.extend({
+  el: '#unlink-filament-dlg',
+  settings: null,
+  parentView: null,
+  events: {
+    "click .unlink-button": "doUnlink",
+    "click button.cancel": "doClose",
+    'closed.fndtn.reveal': 'onClosed'
+  },
+  render: function ()
+  {
+    this.$('.filament-name').text(this.settings.get('filament').name);
+  },
+  open: function (params)
+  {
+    this.settings = params.settings;
+    this.parentView = params.view;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+  doUnlink: function (e)
+  {
+    e.preventDefault()
+    this.$('.unlink-button').addClass('loading');
+    var attrs = {};
+    attrs['filament'] = {
+      name: null,
+      color: null
+    }
+
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        this.$('.unlink-button').removeClass('loading');
+        this.parentView.getInfoAndRender();
+       this.doClose()
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        this.$('.unlink-button').removeClass('loading');
+      }
+    });
+    // unlink action!!!
+  },
+  doClose: function ()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
   onClosed: function ()
   {
     this.undelegateEvents();

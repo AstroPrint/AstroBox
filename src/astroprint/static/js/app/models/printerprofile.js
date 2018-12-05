@@ -16,6 +16,14 @@
     'invert_z': false,
     'invert_y': false,
     'invert_x': false,
+    'printer_model': {
+      'id': null,
+      'name': null
+    },
+    'filament': {
+      'color': null,
+      'name': null
+    },
     'temp_presets' : [
       { 'id' : "3e0fc9b398234f2f871310c1998aa000",
       'name' : "PLA",

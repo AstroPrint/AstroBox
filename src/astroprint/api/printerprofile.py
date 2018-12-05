@@ -17,7 +17,6 @@ def printer_profile_patch():
 
 	if request.method == "PATCH":
 		changes = request.json
-
 		ppm.set(changes)
 		ppm.save()
 
