@@ -402,7 +402,7 @@
         <!-- Printers -->
         <label for="printer-model-picker" class="bold">
           2. Pick a Printer
-          <select id="printer-model-picker" name="driver">
+          <select id="printer-model-picker" name="driver" <%= mSelected == 0 ? ' disabled' : '' %> >
             <% _.each(printers, function(p) { %>
               <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>
             <% }) %>

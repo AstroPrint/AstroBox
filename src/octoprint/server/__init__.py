@@ -120,7 +120,7 @@ def index():
 			settings= s,
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
-			printerProfileId= None,
+			printerProfileId= printerProfileManager().data['printer_model']['id'] if printerProfileManager().data['printer_model'] else None,
 			apApiHost= roConfig('cloud.apiHost')
 		)
 
