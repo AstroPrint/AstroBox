@@ -370,15 +370,14 @@
         <div class="container-printer-selection">
           {% if printerProfileId  %}
           <p class="printer-selected-message" >Current selected printer: <b><span class="current-printer-selected"></span></b></p>
-          {% endif %}
           <a class="button radius warning bold change-printer expand">Change it</a>
+          {% else %}
+          <a class="button radius warning bold change-printer expand">Add Printer</a>
+          {% endif %}
+
 
           <div id="picker-container" ></div>
-          {% if not printerProfileId  %}
-          <div align="right">
-            <a href="#astroprint" class="skip-step">Skip Printer Selection <i class="icon-right-open"></i></a>
-          </div>
-          {% endif %}
+
 
           <div class="loading-button expand">
             <button class="radius success radious next"><small>Next:</small> <b>AstroPrint Account</b> <i class="icon-right-open"></i></button>
@@ -409,6 +408,12 @@
             <% }) %>
           </select>
         </label>
+
+        {% if not printerProfileId  %}
+        <div align="right">
+          <a href="#astroprint" class="skip-step">Skip Printer Selection <i class="icon-right-open"></i></a>
+        </div>
+        {% endif %}
       </script>
     </div>
     {% endif %}
@@ -451,7 +456,7 @@
     var WS_TOKEN = "{{ wsToken }}";
     var AP_API_HOST = "{{apApiHost}}";
     var MF_DEFINITION = "{{ mfDefinition }}";
-    var PRINTER_PROFILE_ID = "{{ printerProfileId }}"
+    var printerProfileId = "{{ printerProfileId if printerProfileId }}"
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.abide.js", "js/lib/foundation/foundation.reveal.js",
