@@ -923,13 +923,8 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
     loadingBtn.addClass('loading');
 
-    for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
-      var obj = this.parent.settings.attributes.temp_presets[i];
-      if(obj.id == this.id) {
-        this.parent.settings.attributes.temp_presets.splice(i, 1);
-        break
-      }
-    }
+    delete this.parent.settings.attributes.temp_presets[this.id]
+
     attr = {}
     attr.temp_presets = this.parent.settings.attributes.temp_presets
     this.parent.settings.save(attr, {
@@ -948,7 +943,7 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
       }
     });
 
-    if (this.parent.settings.attributes.temp_presets.length > 1){
+    if (Object.keys(this.parent.settings.attributes.temp_presets).length > 1){
       this.promise.resolve(true);
     } else {
       this.parent.render();
@@ -970,13 +965,7 @@ var EditPresetsDialog = Backbone.View.extend({
   },
   open: function(info) {
     if(info) {
-      for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
-        var obj = this.parent.settings.attributes.temp_presets[i];
-        if(obj.id == info.id) {
-          this.preset = obj
-          break
-        }
-      }
+      this.preset = this.parent.settings.attributes.temp_presets[info.id];
       this.render();
       $('#temperature-preset-name').val(this.preset.name)
       $('#preset-bed-temp').val(this.preset.bed_temp)
@@ -1015,7 +1004,7 @@ var EditPresetsDialog = Backbone.View.extend({
       var temp_preset = { 'name' : name, 'bed_temp': bed , 'nozzle_temp' :nozzle }
       $.post(API_BASEURL + 'temperature-preset', temp_preset, _.bind(function(data) {
         temp_preset.id = data.id
-        this.parent.settings.attributes.temp_presets.push(temp_preset)
+        this.parent.settings.attributes.temp_presets[temp_preset.id] = temp_preset
         form.reset();
         this.parent.render()
         noty({text: "Temperature Preset saved.", timeout: 3000, type:"success"});
