@@ -796,8 +796,8 @@ var StepPrinterSelection = StepView.extend({
   _checkCurrentPrinter: function() {
     var promise = $.Deferred();
 
-    if (MF_DEFINITION) {
-      this.astroprintApi.getModelInfo(MF_DEFINITION)
+    if (PRINTER_PROFILE_ID) {
+      this.astroprintApi.getModelInfo(PRINTER_PROFILE_ID)
       .done(_.bind(function (info) {
         this.printerInfo = info;
         this.$el.addClass('printer-selected');
