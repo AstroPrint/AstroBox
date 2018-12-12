@@ -654,20 +654,7 @@ var StepPrinterSelection = StepView.extend({
   {
     this.manufacturerSelected = $(e.target).val();
 
-    this.astroprintApi.getPrinterModels(this.manufacturerSelected)
-    .done(_.bind(function (printerModels) {
-      this.printer_models = printerModels.data;
-      this.printerSelected = this.printer_models[0].id
-      this.$el.addClass('settings');
-
-      this.render();
-    }, this))
-
-    .fail(_.bind(function (xhr) {
-      this.$el.addClass('settings');
-      console.error("Error getting printer models", xhr);
-      noty({ text: "Error getting printer models", timeout: 3000 });
-    }, this))
+    this.updatePrinter();
   },
   onChangePrinterClicked: function(e)
   {
@@ -680,50 +667,54 @@ var StepPrinterSelection = StepView.extend({
     e.preventDefault();
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
 
-    // Get info from last model selected
-    this.astroprintApi.getModelInfo($("#printer-model-picker").val())
-      .done(_.bind(function (info) {
-        this.printerInfo = info;
-        var printerObject = {
-          "id": this.printerInfo.id,
-          "name": this.printerInfo.name
-        }
-        var attrs = {
-          'printer_model': printerObject,
-          'heated_bed': this.printerInfo.config.heated_bed,
-          'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
-        }
-         // Change driver depending printer model chosen
-         if (this.printerInfo.format == 'x3g') {
-          attrs['driver'] = 's3g';
-        }
+    if ( this.manufacturerSelected && this.manufacturerSelected != 0) {
+      // Get info from last model selected
+      this.astroprintApi.getModelInfo($("#printer-model-picker").val())
+        .done(_.bind(function (info) {
+          this.printerInfo = info;
+          var printerObject = {
+            "id": this.printerInfo.id,
+            "name": this.printerInfo.name
+          }
+          var attrs = {
+            'printer_model': printerObject,
+            'heated_bed': this.printerInfo.config.heated_bed,
+            'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+          }
+          // Change driver depending printer model chosen
+          if (this.printerInfo.format == 'x3g') {
+            attrs['driver'] = 's3g';
+          }
 
-        // Update printer profile with selected printer
-        $.ajax({
-          url: API_BASEURL + 'printer-profile',
-          method: 'PATCH',
-          data: JSON.stringify(attrs),
-          contentType: 'application/json',
-          dataType: 'json'
-        }, this)
-          .done(_.bind(function () {
-            window.location.href = "/#astroprint";
-          }, this))
-          .fail(_.bind(function () {
-            loadingBtn.addClass('failed');
+          // Update printer profile with selected printer
+          $.ajax({
+            url: API_BASEURL + 'printer-profile',
+            method: 'PATCH',
+            data: JSON.stringify(attrs),
+            contentType: 'application/json',
+            dataType: 'json'
+          }, this)
+            .done(_.bind(function () {
+              window.location.href = "/#astroprint";
+            }, this))
+            .fail(_.bind(function () {
+              loadingBtn.addClass('failed');
 
-            setTimeout(function () {
-              loadingBtn.removeClass('failed');
-            }, 3000);
-          }, this))
-          .always(function () {
-            loadingBtn.removeClass('loading');
-          });
-      }, this))
-      .fail(_.bind(function (xhr) {
-        console.error(xhr);
-        loadingBtn.removeClass('loading');
-      }, this))
+              setTimeout(function () {
+                loadingBtn.removeClass('failed');
+              }, 3000);
+            }, this))
+            .always(function () {
+              loadingBtn.removeClass('loading');
+            });
+        }, this))
+        .fail(_.bind(function (xhr) {
+          console.error(xhr);
+          loadingBtn.removeClass('loading');
+        }, this))
+    } else {
+      window.location.href = "/#astroprint";
+    }
   },
 
   onShow: function()
@@ -761,29 +752,12 @@ var StepPrinterSelection = StepView.extend({
     this.astroprintApi.getManufacturers()
       .done(_.bind(function (manufacturers) {
         this.manufacturers = manufacturers.data;
+        this.manufacturers.unshift({id : 0, name: "Select manufacturer"})
         this.manufacturerSelected = this.printerInfo ? this.printerInfo.manufacturer_id : this.manufacturers[0].id
 
         // Now get printer models from first manufacturer
-        this.astroprintApi.getPrinterModels(this.manufacturerSelected)
-          .done(_.bind(function (printerModels) {
-            this.printer_models = printerModels.data;
-            this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
-            this.$el.addClass('settings');
-            if (!MF_DEFINITION) {
-              this.$el.addClass('show-printer-selection');
-            }
-            this.render();
-          }, this))
+        this.updatePrinter();
 
-          .fail(_.bind(function (xhr) {
-            this.$el.addClass('settings');
-            console.error("Error getting printer models", xhr);
-            noty({ text: "Error getting printer models", timeout: 3000 });
-          }, this))
-
-          .always(_.bind(function () {
-            this.$el.removeClass('checking');
-          }, this))
       }, this))
 
       .fail(_.bind(function (xhr) {
@@ -792,12 +766,46 @@ var StepPrinterSelection = StepView.extend({
         noty({ text: "Error getting manufacturers", timeout: 3000 });
       }, this))
   },
+  updatePrinter: function ()
+  {
+    if (this.manufacturerSelected && this.manufacturerSelected != 0) {
+      this.astroprintApi.getPrinterModels(this.manufacturerSelected)
+        .done(_.bind(function (printerModels) {
+          this.printer_models = printerModels.data;
+          this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
+          this.$el.addClass('settings');
+          if (!printerProfileId) {
+            this.$el.addClass('show-printer-selection');
+          }
+          this.render();
+        }, this))
+
+        .fail(_.bind(function (xhr) {
+          this.$el.addClass('settings');
+          console.error("Error getting printer models", xhr);
+          noty({ text: "Error getting printer models", timeout: 3000 });
+        }, this))
+
+        .always(_.bind(function () {
+          this.$el.removeClass('checking');
+        }, this))
+    } else {
+      this.$el.removeClass('checking');
+      if (!printerProfileId) {
+        this.$el.addClass('show-printer-selection');
+      }
+
+      this.printerSelected = 0
+      this.printer_models = []
+      this.render();
+    }
+  },
 
   _checkCurrentPrinter: function() {
     var promise = $.Deferred();
 
-    if (MF_DEFINITION) {
-      this.astroprintApi.getModelInfo(MF_DEFINITION)
+    if (printerProfileId) {
+      this.astroprintApi.getModelInfo(printerProfileId)
       .done(_.bind(function (info) {
         this.printerInfo = info;
         this.$el.addClass('printer-selected');
