@@ -177,9 +177,7 @@ var PrinterProfileView = SettingsPage.extend({
     "change input[name='heated_bed']": 'heatedBedChanged',
     "change select[name='driver']": 'driverChanged',
     "click a.change-printer": 'printerSelectorClicked',
-    "click a.unlink-printer": 'unlinkPrinterClicked',
-    "click a.change-filament": 'filamentSelectorClicked',
-    "click a.unlink-filament": 'unlinkFilamentClicked',
+    "click a.unlink-printer": 'unlinkPrinterClicked'
   },
   show: function() {
     SettingsPage.prototype.show.apply(this);
@@ -234,24 +232,6 @@ var PrinterProfileView = SettingsPage.extend({
     }
 
   },
-
-  filamentSelectorClicked: function(e)
-  {
-    e.preventDefault();
-
-    var data = {
-      'name': $('#filament-name').data("name"),
-      'color': $('#filament-name').data("color"),
-    }
-
-    console.log(data)
-
-    if (!this.filamentSelectorDlg) {
-      this.filamentSelectorDlg = new FilamentSelectorDialog({parent: this});
-    }
-    this.filamentSelectorDlg.open(data);
-
-  },
   unlinkPrinterClicked: function(e)
   {
     e.preventDefault();
@@ -272,12 +252,6 @@ var PrinterProfileView = SettingsPage.extend({
       }, this))
 
     return promise;
-  },
-  unlinkFilamentClicked: function(e)
-  {
-    e.preventDefault();
-    console.log(this.settings);
-    (new UnlinkFilamentDialog()).open({settings: this.settings, view: this})
   },
   _checkCurrentPrinter: function(printerID) {
     var promise = $.Deferred();
@@ -388,6 +362,81 @@ var PrinterProfileView = SettingsPage.extend({
       }
     });
   }
+});
+
+/***********************
+* Filament
+************************/
+
+var FilamentView = SettingsPage.extend({
+  el: '#printer-profile',
+  template: null,
+  settings: null,
+  driverChoices: [],
+  printerSelectorDlg : null,
+  events: {
+    "click a.change-filament": 'filamentSelectorClicked',
+    "click a.unlink-filament": 'unlinkFilamentClicked',
+  },
+  show: function() {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.settings) {
+      this.settings = app.printerProfile;
+    }
+    this.render();
+  },
+
+  filamentSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+    var data = {
+      'name': $('#filament-name').data("name"),
+      'color': $('#filament-name').data("color"),
+    }
+
+    console.log(data)
+
+    if (!this.filamentSelectorDlg) {
+      this.filamentSelectorDlg = new FilamentSelectorDialog({parent: this});
+    }
+    this.filamentSelectorDlg.open(data);
+
+  },
+  getInfoAndRender: function()
+  {
+    $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
+      if (data) {
+        this.driverChoices = data.driverChoices;
+        delete data.driverChoices;
+        this.settings.set(data.profile);
+        this.render(); // This removes the animate-spin from the link
+      } else {
+        noty({text: "No Profile found.", timeout: 3000});
+      }
+    }, this))
+    .fail(function() {
+      noty({text: "There was an error getting printer profile.", timeout: 3000});
+    })
+  },
+  unlinkFilamentClicked: function(e)
+  {
+    e.preventDefault();
+    console.log(this.settings);
+    (new UnlinkFilamentDialog()).open({settings: this.settings, view: this})
+  },
+  render: function() {
+    if (!this.template) {
+      this.template = _.template( $("#filament-info-page-template").html() );
+    }
+    this.$el.empty();
+    this.$el.html(this.template({
+      settings: this.settings.toJSON(),
+    }));
+
+    this.$el.foundation('abide');
+  },
 });
 
 /* PRINTER SELECTOR MODAL */
@@ -572,6 +621,9 @@ var FilamentSelectorDialog = Backbone.View.extend({
     this.render()
 
     this.$el.foundation('reveal', 'open');
+    if(!this.colors.includes(this.color)){
+      $('.palette-color-picker-button').css("background", this.color)
+    }
   },
   setFilamentClicked: function(e)
   {
@@ -2515,6 +2567,7 @@ var SettingsView = Backbone.View.extend({
     this.subviews = {
       'printer-connection': new PrinterConnectionView({parent: this}),
       'printer-profile': new PrinterProfileView({parent: this}),
+      'filament-info': new FilamentView({parent: this}),
       'temperature-presets': new TemperaturePresetsView({parent: this}),
       'network-name': new NetworkNameView({parent: this}),
       'internet-connection': new InternetConnectionView({parent: this}),

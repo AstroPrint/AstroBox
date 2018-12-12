@@ -13,6 +13,7 @@
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
           <li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
+        <li class="info"><a href="#settings/filament-info">Filament Info</a></li>
         <li class="temperature-presets"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         {% if mfDefinition.variant.allow_camera_settings %}
           <li class="heading"><i class="icon-camera"></i> Camera</li>
@@ -158,26 +159,6 @@
                 </div>
 
                 <div class="row clearfix">
-                  <label class=" columns small-12 bold text-left">Filament Info</label>
-                  <% if (!settings.filament.name) { %>
-                    <div class="column small-12">
-                      <a class="button radius add-filament tiny change-filament"><i class="icon-plus"></i> Add filament information</a>
-                    </div>
-                  <% } %>
-                  <% if (settings.filament.name) { %>
-                    <div class="column small-8">
-                      <h4 style="background-color:<%= settings.filament.color%>" id="filament-name" data-name="<%= settings.filament.name%>" data-color="<%= settings.filament.color%>"><%= settings.filament.name %></h4>
-                    </div>
-                    <div class="column small-2">
-                      <a class="button radius tiny right success change-filament"><b>Change</b></a>
-                    </div>
-                    <div class="column small-2">
-                      <a class="button radius tiny right alert unlink-filament"><b>Unlink</b></a>
-                    </div>
-                  <% } %>
-                </div>
-
-                <div class="row clearfix">
                   <div class="column">
                     <label for="settings-printer-driver" class="bold">
                       Driver
@@ -293,6 +274,34 @@
         </script>
       </div>
     {% endif %}
+
+    <div id="filament-info" class="settings-page hide">
+      <script type="text/template" id="filament-info-page-template">
+        <div class="row clearfix">
+          <div class="small-12">
+              <div class="row clearfix">
+                <label class=" columns small-12 bold text-left">Filament Info</label>
+                <% if (!settings.filament.name) { %>
+                  <div class="column small-12">
+                    <a class="button radius add-filament tiny change-filament"><i class="icon-plus"></i> Add filament information</a>
+                  </div>
+                <% } %>
+                <% if (settings.filament.name) { %>
+                  <div class="column small-8">
+                    <h4 style="background-color:<%= settings.filament.color%>" id="filament-name" data-name="<%= settings.filament.name%>" data-color="<%= settings.filament.color%>"><%= settings.filament.name %></h4>
+                  </div>
+                  <div class="column small-2">
+                    <a class="button radius tiny right success change-filament"><b>Change</b></a>
+                  </div>
+                  <div class="column small-2">
+                    <a class="button radius tiny right alert unlink-filament"><b>Unlink</b></a>
+                  </div>
+                <% } %>
+              </div>
+          </div>
+        </div>
+      </script>
+    </div>
 
     <div class="show-for-small zebra temperature-presets">
       <a href="#settings/temperature-presets"><h1 class="bold" align="center">Temperature Presets</h1></a>
