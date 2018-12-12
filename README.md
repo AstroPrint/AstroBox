@@ -71,4 +71,15 @@ The AstroBox Software comes with a handy virtual printer so that you can test wi
   printJob: 10.0
 </pre>
 
+Setting up development network driver
+--------
+
+If you'd like the astrobox not to automatically connect to a network do the following:
+
+* Edit or create, the `mac-dev-network.yaml` file in your settings directory (by default `[AstroBox Directory]/local`). Change or add the line:
+<pre>
+  autoConnect: False
+</pre>
+
 * Restart AstroBox any time you make changes to these files
+
