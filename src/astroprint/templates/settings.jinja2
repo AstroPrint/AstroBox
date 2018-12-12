@@ -1223,12 +1223,13 @@
               <label for="filament_name" class="bold">
                 Filament Name
               </label>
-              <input id="filament_name" name="filament_name" type="text" value="<%= name %>" required pattern="hostname" autocomplete="off"/>
+              <input id="filament_name" name="filament_name" type="text" value="<%= name %>" pattern autocomplete="off"/>
               <small class="error">Please provide a valid name</small>
             </div>
             <div>
-                <input id="filament_color" type="text" name="filament_color" value="<%= color %>" class="hidden" style="visibility: hidden"/>
-                <span class="palette-color-picker-label" onclick="$('.palette-color-picker-button').trigger( 'click' )">Filament Color</span>
+              <input id="filament_color" type="text" name="filament_color" value="<%= color %>" pattern="colorCode" autocomplete="off/>
+              <span class="palette-color-picker-label" onclick="$('.palette-color-picker-button').trigger( 'click' )">Filament Color</span>
+              <small class="error">Please provide a valid color code</small>
             </div>
           </script>
           <div class="content">

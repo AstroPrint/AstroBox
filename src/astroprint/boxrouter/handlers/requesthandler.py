@@ -8,6 +8,7 @@ import threading
 import weakref
 import base64
 import json
+import re
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -184,6 +185,29 @@ class RequestHandler(object):
 			})
 			return
 
+		done(None)
+
+	def set_filament(self, data, clientId, done):
+
+		filament = {}
+		filament['filament'] = {}
+
+		if data['filament'] and data['filament']['name'] and data['filament']['color']:
+			filament['filament']['name'] = data['filament']['name']
+			#Better to make sure that are getting right color codes
+			if re.search(r'^#(?:[0-9a-fA-F]{3}){1,2}$', data['filament']['color']):
+				filament['filament']['color'] = data['filament']['color']
+			else:
+				done({
+					'error': True,
+					'message': 'Invalid color code'
+				})
+
+		else:
+			filament['filament']['name'] = None
+			filament['filament']['color'] = None
+
+		printerProfileManager().set(filament)
 		done(None)
 
 	def _handleCommandGroup(self, handlerClass, data, clientId, done):

@@ -555,11 +555,6 @@ var FilamentSelectorDialog = Backbone.View.extend({
     "#00FF00", //LIME
     "#008000", //GREEN
     "#00FFFF", //AQUA
-    "#008080", //TEA
-    "#0000FF", //BLUE
-    "#000080", //NAVY
-    "#FF00FF", //FUCHSIA
-    "#800080" //PURPLE
   ],
   events: {
     'click button.secondary': 'doClose',
@@ -589,7 +584,6 @@ var FilamentSelectorDialog = Backbone.View.extend({
       "color": $("#filament_color").val() ? $("#filament_color").val() : "#FFFFFF"
       }
     }
-    console.log(attrs)
     this.parentView.settings.save(attrs, {
       patch: true,
       success: _.bind(function () {
@@ -627,7 +621,7 @@ var FilamentSelectorDialog = Backbone.View.extend({
         // Where is inserted the color picker's button, related to the input
         insert: 'after', // default -> 'before'
         // Don't add clear_btn
-        clear_btn: 'last', // null -> without clear button, default -> 'first'
+        clear_btn: null, // null -> without clear button, default -> 'first'
         // Timeout for the picker's fade out in ms
         timeout: 3000, // default -> 2000
         // Forces closin all bubbles that are open before opening the current one
