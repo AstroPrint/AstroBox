@@ -1,7 +1,7 @@
 # coding=utf-8
 __author__ = "AstroPrint Product Team <product@astroprint.com> based on work done by Gina Häußge"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
-__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016-2018 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import uuid
 import json
@@ -56,7 +56,6 @@ from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
 import octoprint.events as events
-#import octoprint.timelapse
 
 import astroprint.users as users
 
