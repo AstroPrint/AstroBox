@@ -203,7 +203,7 @@ def design_download(print_file_id):
 		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
 
-	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
+	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb) is True:
 		return jsonify(SUCCESS)
 
 	return abort(400)

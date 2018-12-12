@@ -428,6 +428,7 @@ class AstroPrintCloud(object):
 		progressCb(1)
 
 		destFile = None
+		destFilename = None
 		printFileName = None
 		printer = None
 		material = None
@@ -439,12 +440,16 @@ class AstroPrintCloud(object):
 			progressCb(2)
 
 			if "filename" in data:
-				destFile = fileManager.getAbsolutePath(data['filename'], mustExist=False)
+				destFilename = data['filename']
 				printFileName = data["printFileName"]
 
 			else:
-				destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
-				printFileName = data["name"]
+				destFilename = printFileName = data['name']
+
+			destFilename, destFileExt = os.path.splitext(destFilename)
+
+			if destFileExt[1:].lower() not in fileManager.SUPPORTED_EXTENSIONS:
+				return {"id": "wrong_file_type", "message": "The print file format is not compatible with the configured printer"}
 
 			if "printer" in data:
 				printer = data['printer']
@@ -457,7 +462,7 @@ class AstroPrintCloud(object):
 			if "created" in data:
 				created = data['created']
 
-			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
+			destFile = fileManager.getAbsolutePath(destFilename + destFileExt, mustExist=False)
 
 			if destFile:
 				def onSuccess(pf, error):
@@ -484,7 +489,7 @@ class AstroPrintCloud(object):
 
 		else:
 			errorCb(destFile, 'Unable to download file')
-			return False
+			return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
 
 
 	def getPrintFile(self, cloudId):
