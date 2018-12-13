@@ -22,8 +22,10 @@ from astroprint.util import merge_dict
 class ManufacturerPkgManager(object):
 	def __init__(self):
 		self.data = {
+			'version': None,
 			'variant': {
 				'printer_profile_edit': True,
+				'temperature_presets_edit': True,
 				'allow_camera_settings': True,
 				'additional_custom_tasks': True,
 				'allow_menu_upload': True,
@@ -33,6 +35,7 @@ class ManufacturerPkgManager(object):
 				'shutdown_img': None,
 				'product_name': 'AstroBox',
 				'network_name': 'astrobox',
+				'video_watermark': None #None - Use the default astroprint one, False - don't use any, String - Use this filename
 			},
 			'supported_languages': None, #None will use all available
 			'links': {
@@ -62,7 +65,7 @@ class ManufacturerPkgManager(object):
 				'baudrate': None,
 				'port': None
 			},
-			#Internal fields (Should not be defined in definition.yaml)
+			#Internal fields (Should not be defined in the manufacturer's definition.yaml)
 			'_custom_languages_folder': None, #Absolute folder where the custom language files can be found. Calculated as self._folder/touch/i18n/
 
 		}
@@ -75,6 +78,14 @@ class ManufacturerPkgManager(object):
 	@property
 	def variant(self):
 		return self.data['variant']
+
+	@property
+	def video_watermark(self):
+		return self.data['variant']['video_watermark']
+
+	@property
+	def version(self):
+		return self.data['version']
 
 	@property
 	def printerProfile(self):

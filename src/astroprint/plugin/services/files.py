@@ -326,7 +326,7 @@ class FilesService(PluginService):
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
 
-		if astroprintCloud().download_print_file(printFileId, progressCb, successCb, errorCb):
+		if astroprintCloud().download_print_file(printFileId, progressCb, successCb, errorCb) is True:
 			sendResponse({'success':'no error'})
 			return
 
