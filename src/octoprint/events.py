@@ -75,7 +75,6 @@ class Events(object):
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"
-	CONVEYOR = "Conveyor"
 	EJECT = "Eject"
 	E_STOP = "EStop"
 	LAYER_CHANGE = "LayerChange"

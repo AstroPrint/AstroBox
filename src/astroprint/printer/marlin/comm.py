@@ -34,9 +34,6 @@ gcodeToEvent = {
 	# part cooler
 	"M245": Events.COOLING,
 
-	# part conveyor
-	"M240": Events.CONVEYOR,
-
 	# part ejector
 	"M40": Events.EJECT,
 
@@ -1474,6 +1471,10 @@ class MachineCom(object):
 	# In Marlin G91 and G90 also change the relative nature of extrusion
 	_gcode_G90 = _gcode_M82 #Set Absolute
 	_gcode_G91 = _gcode_M83 #Set Relative
+
+	def _gcode_M240(self, cmd): #take photo
+		self._logger.debug("M240 detected. We should take a photo")
+		return None
 
 	#The following are internal commands to ensure an orderly pause and shutdown sequence
 
