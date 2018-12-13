@@ -369,7 +369,7 @@ var PrinterProfileView = SettingsPage.extend({
 ************************/
 
 var FilamentView = SettingsPage.extend({
-  el: '#printer-profile',
+  el: '#filament-info',
   template: null,
   settings: null,
   driverChoices: [],
