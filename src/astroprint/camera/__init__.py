@@ -291,20 +291,21 @@ class CameraManager(object):
 				'last_photo': None
 			}
 
-			if freq == 'layer':
-				# send first pic and subscribe to layer change events
-				self.addPhotoToTimelapse(timelapseId)
-				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
+			if freq != 'gcode:'
+				if freq == 'layer':
+					# send first pic and subscribe to layer change events
+					self.addPhotoToTimelapse(timelapseId)
+					self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
 
-			else:
-				try:
-					freq = float(freq)
-				except ValueError:
-					return 'invalid_frequency'
+				else:
+					try:
+						freq = float(freq)
+					except ValueError:
+						return 'invalid_frequency'
 
-				self.timelapseInfo['freq'] = freq
-				self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
-				self.timelapseWorker.start()
+					self.timelapseInfo['freq'] = freq
+					self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
+					self.timelapseWorker.start()
 
 			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 
