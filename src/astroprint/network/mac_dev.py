@@ -5,9 +5,12 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import threading
 import time
+import os
 
 from octoprint.server import eventManager
 from octoprint.events import Events
+from octoprint.settings import settings
+
 
 from astroprint.network import NetworkManager
 
@@ -17,6 +20,14 @@ class MacDevNetworkManager(NetworkManager):
 		self.logger = logging.getLogger(__name__)
 		self._online = False
 		self._storedWiFiNetworks = []
+		self._config = {
+			"autoConnect" : True
+		}
+
+		self._loadDevConfig()
+
+		if self._config['autoConnect']:
+			self._setActiveWifi(self.getWifiNetworks()[0])
 
 		super(MacDevNetworkManager, self).__init__()
 
@@ -193,3 +204,23 @@ class MacDevNetworkManager(NetworkManager):
 		timer.start()
 
 		return {'name': network['name']}
+
+	def _loadDevConfig(self):
+		settings_file = "%s/mac-dev-network.yaml" % settings().getConfigFolder()
+
+		if os.path.isfile(settings_file):
+			import yaml
+
+			config = None
+			with open(settings_file, "r") as f:
+				config = yaml.safe_load(f)
+
+			if config:
+				def merge_dict(a,b):
+					for key in b:
+						if isinstance(b[key], dict):
+							merge_dict(a[key], b[key])
+						else:
+							a[key] = b[key]
+
+				merge_dict(self._config, config)

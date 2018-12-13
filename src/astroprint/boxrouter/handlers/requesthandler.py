@@ -164,10 +164,12 @@ class RequestHandler(object):
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
 
-		if not astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
+		res = astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb)
+		if res is not True :
 			done({
 				'error': True,
-				'message': 'Unable to start download process'
+				'message': res['message'],
+				'id': res['id']
 			})
 			return
 

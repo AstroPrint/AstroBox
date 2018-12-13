@@ -6,6 +6,8 @@ from gi.repository import Gst
 
 from .base_video_src import VideoSrcBinBase
 
+from astroprint.manufacturerpkg import manufacturerPkgManager
+
 #
 # Base class for V4L2 Based Video sources
 #
@@ -48,20 +50,31 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 			self.__videoSourceCaps.link(self.__videoflipElement)
 			lastLink = self.__videoflipElement
 
-		logoHeight = round(height * self.LOGO_HEIGHT_PERCENT)
-		logoWidth = round(logoHeight / self.LOGO_ASPECT_RATIO)
+		mfWatermark = manufacturerPkgManager().video_watermark
 
-		# ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
-		self.__videoLogoElement = Gst.ElementFactory.make('gdkpixbufoverlay', 'logo_overlay')
-		self.__videoLogoElement.set_property('location', '/AstroBox/src/astroprint/static/img/astroprint_logo.png')
-		self.__videoLogoElement.set_property('overlay-width', logoWidth)
-		self.__videoLogoElement.set_property('overlay-height', logoHeight)
-		self.__videoLogoElement.set_property('offset-x', width - ( logoWidth + 10 ) )
-		self.__videoLogoElement.set_property('offset-y', height - ( logoHeight + 5 ) )
+		if mfWatermark is False: #There is no watermark
+			return lastLink
 
-		self._bin.add(self.__videoLogoElement)
+		else: # We need to setup a watermark
+			logoHeight = round(height * self.LOGO_HEIGHT_PERCENT)
+			logoWidth = round(logoHeight / self.LOGO_ASPECT_RATIO)
 
-		lastLink.link(self.__videoLogoElement)
+			# ASTROPRINT'S LOGO FROM DOWN RIGHT CORNER
+			self.__videoLogoElement = Gst.ElementFactory.make('gdkpixbufoverlay', 'logo_overlay')
+
+			if mfWatermark is None: # Use AstroPrint's default
+				self.__videoLogoElement.set_property('location', '/AstroBox/src/astroprint/static/img/astroprint_logo.png')
+			else:
+				self.__videoLogoElement.set_property('location', '/AstroBox/src/astroprint/static/img/variant/%s' % mfWatermark)
+
+			self.__videoLogoElement.set_property('overlay-width', logoWidth)
+			self.__videoLogoElement.set_property('overlay-height', logoHeight)
+			self.__videoLogoElement.set_property('offset-x', width - ( logoWidth + 10 ) )
+			self.__videoLogoElement.set_property('offset-y', height - ( logoHeight + 5 ) )
+
+			self._bin.add(self.__videoLogoElement)
+
+			lastLink.link(self.__videoLogoElement)
 
 		return self.__videoLogoElement
 
