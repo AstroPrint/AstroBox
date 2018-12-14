@@ -1473,7 +1473,7 @@ class MachineCom(object):
 	_gcode_G91 = _gcode_M83 #Set Relative
 
 	def _gcode_M240(self, cmd): #take photo
-		self._logger.debug("M240 detected. We should take a photo")
+		self.callback.mcPhotoCommand()
 		return None
 
 	#The following are internal commands to ensure an orderly pause and shutdown sequence
@@ -1515,6 +1515,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcZChange(self, newZ):
+		pass
+
+	def mcPhotoCommand(self):
 		pass
 
 	def mcToolChange(self, newTool, oldTool):
