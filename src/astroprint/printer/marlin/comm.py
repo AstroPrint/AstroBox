@@ -34,9 +34,6 @@ gcodeToEvent = {
 	# part cooler
 	"M245": Events.COOLING,
 
-	# part conveyor
-	"M240": Events.CONVEYOR,
-
 	# part ejector
 	"M40": Events.EJECT,
 
@@ -1475,6 +1472,14 @@ class MachineCom(object):
 	_gcode_G90 = _gcode_M82 #Set Absolute
 	_gcode_G91 = _gcode_M83 #Set Relative
 
+	def _gcode_M240(self, cmd): #take photo
+		self._callback.mcPhotoCommand()
+
+		if self.isPrinting:
+			self._sendNextFileCommand()
+
+		return None
+
 	#The following are internal commands to ensure an orderly pause and shutdown sequence
 
 	def _apCommand_CANCEL(self, cmd):
@@ -1514,6 +1519,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcZChange(self, newZ):
+		pass
+
+	def mcPhotoCommand(self):
 		pass
 
 	def mcToolChange(self, newTool, oldTool):
