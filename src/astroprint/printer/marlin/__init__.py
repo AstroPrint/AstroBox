@@ -600,6 +600,9 @@ class PrinterMarlin(Printer):
 	def isPaused(self):
 		return (bool) (self._comm and self._comm.isPaused())
 
+	def isSdReady(self):
+		return (bool) (self._comm and self._comm.isSdReady())
+
 	def setPause(self, paused):
 		if self._comm:
 			self._comm.setPause(paused)

@@ -417,6 +417,9 @@ class Printer(object):
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
 
+	def isSdReady(self):
+		return False
+
 	#This should probably be deprecated
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ

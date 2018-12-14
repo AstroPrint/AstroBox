@@ -324,34 +324,34 @@ class MachineCom(object):
 
 	def close(self, isError = False):
 		if not self.isClosed():
-		if self._serial is not None:
-			try:
-				self._serial.close()
-			except OSError as e:
-				#log it but continue
-				self._logger.error('Error closing serial port: %s' % e)
+			if self._serial is not None:
+				try:
+					self._serial.close()
+				except OSError as e:
+					#log it but continue
+					self._logger.error('Error closing serial port: %s' % e)
 
-			if isError:
-				self._changeState(self.STATE_CLOSED_WITH_ERROR)
-			else:
-				self._changeState(self.STATE_CLOSED)
+				if isError:
+					self._changeState(self.STATE_CLOSED_WITH_ERROR)
+				else:
+					self._changeState(self.STATE_CLOSED)
 
-		self._serial = None
+			self._serial = None
 
-		# if self._settings.get(["feature", "sdSupport"]):
-		# 	self._sdFileList = []
+			# if self._settings.get(["feature", "sdSupport"]):
+			# 	self._sdFileList = []
 
-		if self.isPrinting() or self.isPaused():
-			payload = None
-			if self._currentFile is not None:
-				payload = {
-					"file": self._currentFile.getFilename(),
-					"filename": os.path.basename(self._currentFile.getFilename()),
-					"origin": self._currentFile.getFileLocation()
-				}
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			if self.isPrinting() or self.isPaused():
+				payload = None
+				if self._currentFile is not None:
+					payload = {
+						"file": self._currentFile.getFilename(),
+						"filename": os.path.basename(self._currentFile.getFilename()),
+						"origin": self._currentFile.getFileLocation()
+					}
+				eventManager().fire(Events.PRINT_FAILED, payload)
 
-		eventManager().fire(Events.DISCONNECTED)
+			eventManager().fire(Events.DISCONNECTED)
 
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
