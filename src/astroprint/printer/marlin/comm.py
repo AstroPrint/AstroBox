@@ -244,6 +244,9 @@ class MachineCom(object):
 	def getErrorString(self):
 		return self._errorValue
 
+	def isClosed(self):
+		return self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
+
 	def isClosedOrError(self):
 		return self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
 
@@ -320,6 +323,7 @@ class MachineCom(object):
 	##~~ external interface
 
 	def close(self, isError = False):
+		if not self.isClosed():
 		if self._serial is not None:
 			try:
 				self._serial.close()
