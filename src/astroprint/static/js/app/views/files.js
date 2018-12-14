@@ -932,7 +932,7 @@ var PrintFilesListView = Backbone.View.extend({
   onMetadataAnalysisFinished: function(data)
   {
     _.each(this.print_file_views, function(p) {
-      if (p.print_file.get('name') == data.file) {
+      if (p.print_file.get('local_filename') == data.file) {
         p.print_file.set('info', data.result);
         p.render();
         return;
