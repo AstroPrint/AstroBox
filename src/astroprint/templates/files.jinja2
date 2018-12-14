@@ -79,7 +79,7 @@
         </div>
         {% endif %}
         <div class="design-list">
-          <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Unmatching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
+          <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Not matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
           <div class="container-files"></div>
         </div>
       </div>
@@ -297,7 +297,7 @@
 </div>
 
 <script type="text/template" id="no-print-template">
-  <h2 class="bold">Unmatching Printer</h2>
+  <h2 class="bold">Not matching Printer</h2>
   <div class="modal-content" align="center">
     <p>Your printer model profile does not match the Printfile printer.</p>
     <p>Printfile printer model: <b><%=printFilePrinterName%></b></p>

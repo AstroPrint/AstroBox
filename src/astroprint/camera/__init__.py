@@ -294,7 +294,7 @@ class CameraManager(object):
 				'last_photo': None
 			}
 
-			if freq != 'gcode:'
+			if freq != 'gcode':
 				if freq == 'layer':
 					# send first pic and subscribe to layer change events
 					self.addPhotoToTimelapse(timelapseId)
