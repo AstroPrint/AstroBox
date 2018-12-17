@@ -752,7 +752,7 @@ class MachineCom(object):
 				# 		continue
 
 				##~~ Temperature processing
-				if ' T:' in line or line.startswith('T:'):
+				if ' T:' in line or line.startswith('T:') or ' T0:' in line:
 					self._processTemperatures(line)
 					self._callback.mcTempUpdate(self._temp, self._bedTemp)
 
