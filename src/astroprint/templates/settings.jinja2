@@ -277,29 +277,34 @@
 
     <div id="filament-info" class="settings-page hide">
       <script type="text/template" id="filament-info-page-template">
-        <div class="row clearfix">
-          <div class="small-12">
+
               <div class="row clearfix">
-                <label class=" columns small-12 bold text-left">Filament Info</label>
+                <label class=" columns small-12 bold text-center">Filament Info</label>
                 <% if (!settings.filament.name) { %>
-                  <div class="column small-12">
+                  <div class="column small-12 text-center">
+                    <i class="icon-filament"></i>
+                  </div>
+                  <div class="column small-12 text-center">
                     <a class="button radius add-filament tiny change-filament"><i class="icon-plus"></i> Add filament information</a>
                   </div>
                 <% } %>
                 <% if (settings.filament.name) { %>
-                  <div class="column small-8">
-                    <h4 style="background-color:<%= settings.filament.color%>" id="filament-name" data-name="<%= settings.filament.name%>" data-color="<%= settings.filament.color%>"><%= settings.filament.name %></h4>
+                  <div class="column small-12 text-center">
+                    <i class="icon-filament" style="color:<%= settings.filament.color%>"></i>
                   </div>
-                  <div class="column small-2">
-                    <a class="button radius tiny right success change-filament"><b>Change</b></a>
+                  <div class="column small-12 text-center">
+                    <h4 id="filament-name" data-name="<%= settings.filament.name%>" data-color="<%= settings.filament.color%>"><%= settings.filament.name %></h4>
                   </div>
-                  <div class="column small-2">
-                    <a class="button radius tiny right alert unlink-filament"><b>Unlink</b></a>
+                  <div class="column small-6 text-right">
+                    <a class="button radius tiny alert unlink-filament"><b>Unlink info</b></a>
                   </div>
+                  <div class="column small-6 text-left">
+                    <a class="button radius tiny dark change-filament"><b><i class="icon-pencil"></i> Edit</b></a>
+                  </div>
+
                 <% } %>
               </div>
-          </div>
-        </div>
+
       </script>
     </div>
 

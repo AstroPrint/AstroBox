@@ -593,17 +593,18 @@ var FilamentSelectorDialog = Backbone.View.extend({
   color: null,
   parentView: null,
   colors :  [
-    "#FFFFFF", //WHITE
-    "#C0C0C0", //SILVER
-    "#808080", //GRAY
-    "#FF0000", //BLACK
-    "#212121", //RED
-    "#800000", //MAROON
-    "#FFFF00", //YELLOW
-    "#808000", //OLIVE
-    "#00FF00", //LIME
-    "#008000", //GREEN
-    "#00FFFF", //AQUA
+    "#f05251", //RED
+    "#FF872B", //ORANGE
+    "#f9d35a", //YELLOW
+    "#59cd90", //GREEN
+    "#00bef5", //BLUE
+    "#435FEF", //DARKBLUE
+    "#A25ADD", //PURPLE
+    "#EF7587", //PINK OR CORAL
+    "#FAFAFA", //WHITE
+    "#889192", //SILVER
+    "#BA915D", //BROWN
+    "#333333",  //BLACK
   ],
   events: {
     'click button.secondary': 'doClose',
