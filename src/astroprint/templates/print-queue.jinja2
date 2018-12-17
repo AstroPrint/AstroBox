@@ -149,6 +149,19 @@
       </small>
     </div>
     <% } %>
+    <% for(var i = 0; i < pf.tag_list.length; i++) { %>
+      <span class="edit-tag tag bold" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
+    <% } %>
+    <div>
+      <!-- Cristi aqui se necesitan los iconos de notes -->
+      <span class="notes open-notes" >
+        <% if (pf.notes) { %>
+        <i class="icon-doc-text" title="See notes"></i>
+        <% } else { %>
+        <i class="icon-doc" title="Add notes"></i>
+        <% } %>
+      </span>
+    </div>
   </div>
 
   <div class="columns small-offset-2 small-6 medium-offset-1 medium-4 large-offset-0 large-2 text-center">
