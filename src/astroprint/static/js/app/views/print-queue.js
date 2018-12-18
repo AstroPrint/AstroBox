@@ -381,7 +381,7 @@ var PrintFileRowView = Backbone.View.extend({
     e.preventDefault();
     var promise = $.Deferred();
 
-    app.astroprintApi.addElemenToQueue(this.printFile.get('printfile_id'))
+    app.astroprintApi.addElemenToQueue(this.printFile.get('printfile_id'), this.printFile.get('id'))
       .done(_.bind(function () {
         noty({text: "File successfully added to the queue", type: 'success', timeout: 3000});
       }, this))
