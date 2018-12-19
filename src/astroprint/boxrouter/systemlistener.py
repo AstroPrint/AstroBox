@@ -74,9 +74,6 @@ class SystemListener(object):
 
 	def _filamentChanged(self, event, payload):
 		router = self._weakRefBoxRouter()
-		print "SEND FILAMENT UPDATE"
-		print event
-		print payload
 		if router:
 			router.broadcastEvent('filament_update', payload)
 
