@@ -66,8 +66,9 @@ class PrinterMarlin(Printer):
 	def rampdown(self):
 		if self._comm:
 			self._comm.close()
-			self._comm.thread.join()
-			self._comm = None
+			if self._comm: #There are cases where another thread has put this to None
+				self._comm.thread.join()
+				self._comm = None
 
 		super(PrinterMarlin, self).rampdown()
 
@@ -598,6 +599,9 @@ class PrinterMarlin(Printer):
 
 	def isPaused(self):
 		return (bool) (self._comm and self._comm.isPaused())
+
+	def isSdReady(self):
+		return (bool) (self._comm and self._comm.isSdReady())
 
 	def setPause(self, paused):
 		if self._comm:

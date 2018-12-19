@@ -352,7 +352,6 @@ class PrintFilesManager(object):
 		if not util.isAllowedFile(filename.lower(), set(self.SUPPORTED_EXTENSIONS)):
 			return None
 
-		# TODO: detect which type of file and add in the extra folder portion
 		secure = os.path.join(self._uploadFolder, secure_filename(self._getBasicFilename(filename)))
 
 		if mustExist and (not os.path.exists(secure) or not os.path.isfile(secure)):

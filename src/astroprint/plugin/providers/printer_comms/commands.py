@@ -216,8 +216,11 @@ class CommandPluginInterface(object):
 	def onCurrentPositionRequested(self):
 		pass
 
-
-
+	#
+	# Called when a command was detected that requests a photo to be taken
+	#
+	def onPhotoCaptureRequested(self):
+		pass
 
 
 
