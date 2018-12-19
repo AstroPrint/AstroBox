@@ -466,7 +466,50 @@
         }
       }
 
+      .notes{
+        font-size: 20px;
+        cursor: pointer;
+        margin-top: 10px;
+      }
 
+      .tags{
+        display: block;
+
+        .edit-tag {
+          cursor: pointer;
+          box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.15);
+          @include radius($global-radius);
+          padding: 1px 5px;
+          font-size: 11px;
+          color: rgb(121, 121, 121);
+          line-height: 130%;
+          float: left;
+          margin: 0 4px 4px 0;
+        }
+
+        .open-notes {
+          cursor: pointer;
+
+          &:hover {
+            color: grey;
+          }
+        }
+      }
+
+      input#show, input#hide {
+        display:none;
+    }
+
+    span#content {
+        display:none;
+    }
+    input#show:checked ~ span#content {
+      display:block;
+    }
+
+    input#hide:checked ~ span#content {
+        display:none;
+    }
     }
 
     .finished-files-box, .pending-files-box {

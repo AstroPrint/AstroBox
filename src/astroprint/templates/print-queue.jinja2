@@ -149,9 +149,11 @@
       </small>
     </div>
     <% } %>
-    <% for(var i = 0; i < pf.tag_list.length; i++) { %>
-      <span class="edit-tag tag bold" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
-    <% } %>
+    <div class="tags clearfix">
+      <% for(var i = 0; i < pf.tag_list.length; i++) { %>
+        <span class="edit-tag tag bold" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
+      <% } %>
+    </div>
     <div>
       <!-- Cristi aqui se necesitan los iconos de notes -->
       <span class="notes open-notes" >
