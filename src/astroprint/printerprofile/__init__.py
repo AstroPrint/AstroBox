@@ -177,7 +177,8 @@ class PrinterProfileManager(object):
 
 					# Send astrobox event
 					from octoprint.events import eventManager, Events
-
+					if k == 'filament':
+						eventManager().fire(Events.FILAMENT_CHANGE, { k: self.data[k]})
 					eventManager().fire(Events.PRINTERPROFILE_CHANGE, { k: self.data[k]})
 
 			else:

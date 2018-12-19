@@ -14,6 +14,7 @@ class SystemListener(object):
 		#register for print_capture events
 		em.subscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
 		em.subscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
+		em.subscribe(Events.FILAMENT_CHANGE, self._filamentChanged)
 
 	def cleanup(self):
 		em = eventManager()
@@ -70,6 +71,14 @@ class SystemListener(object):
 
 	def sendFeedbackCommandOutput(self, name, output):
 		pass
+
+	def _filamentChanged(self, event, payload):
+		router = self._weakRefBoxRouter()
+		print "SEND FILAMENT UPDATE"
+		print event
+		print payload
+		if router:
+			router.broadcastEvent('filament_update', payload)
 
 	## Additional Event listeners
 

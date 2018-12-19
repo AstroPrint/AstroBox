@@ -36,6 +36,7 @@ class RequestHandler(object):
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
 			'camera': printer.isCameraConnected(),
+			'filament' : printerProfileManager().data['filament'],
 			'printCapture': cm.timelapseInfo,
 			'profile': printerProfileManager().data,
 			'remotePrint': True,
