@@ -58,7 +58,7 @@ var GcodeWidgetView = Backbone.View.extend({
       break;
     }
     this.$('.output-container').append(text);
-    this.$('.output-container').scrollTop(this.$el[0].scrollHeight);
+    this.$('.output-container').scrollTop(this.$('.output-container')[0].scrollHeight);
   },
   clear: function()
   {
