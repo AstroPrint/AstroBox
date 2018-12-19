@@ -601,7 +601,7 @@ var FilamentSelectorDialog = Backbone.View.extend({
     "#435FEF", //DARKBLUE
     "#A25ADD", //PURPLE
     "#EF7587", //PINK OR CORAL
-    "#FAFAFA", //WHITE
+    "#f7f7f7", //WHITE
     "#889192", //SILVER
     "#BA915D", //BROWN
     "#333333",  //BLACK
