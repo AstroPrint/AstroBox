@@ -417,6 +417,9 @@ class Printer(object):
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
 
+	def isSdReady(self):
+		return False
+
 	#This should probably be deprecated
 	def _setCurrentZ(self, currentZ):
 		self._currentZ = currentZ
@@ -521,7 +524,7 @@ class Printer(object):
 		self.setPause(not wasPaused)
 
 		cm = cameraManager()
-		if cm.is_timelapse_active():
+		if cm.is_timed_timelapse_active():
 			if wasPaused:
 				cm.resume_timelapse()
 			else:
@@ -557,6 +560,14 @@ class Printer(object):
 			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
 
 		self._setCurrentZ(newZ)
+
+	def mcPhotoCommand(self):
+		cm = cameraManager()
+
+		if not cm.is_timelapse_active():
+			cm.start_timelapse('gcode')
+
+		cm.addPhotoToActiveTimelapse()
 
 	def mcToolChange(self, newTool, oldTool):
 		self._stateMonitor.setCurrentTool(newTool)

@@ -513,7 +513,7 @@ var PrintFilesListView = Backbone.View.extend({
     var path = this.storage_control_view.exploringLocation;
 
     this.$('.loading-button.sync').addClass('loading');
-    this.usbfile_list.syncLocation(path)
+    return this.usbfile_list.syncLocation(path)
       .done(_.bind(function(){
         this.usb_file_views = [];
 
@@ -708,7 +708,7 @@ var PrintFilesListView = Backbone.View.extend({
         }
 
         loadingArea.addClass('loading');
-        syncPromise
+        return syncPromise
           .done(_.bind(function(){
             this.print_file_views = [];
             this.file_list.each(_.bind(function(print_file) {
@@ -729,7 +729,6 @@ var PrintFilesListView = Backbone.View.extend({
               doneCb(true);
             }
             loadingArea.removeClass('loading');
-            this.$('.local-loading').removeClass('loading');
 
             this.refreshing = false;
           }, this))
@@ -826,30 +825,33 @@ var PrintFilesListView = Backbone.View.extend({
   },
   doSync: function()
   {
-    this.$('.local-loading').addClass("loading");
+    var loadingArea = this.$('.local-loading');
+    loadingArea.addClass("loading");
     this.getFilesOnQueue().then()
-    .done(_.bind(function (filesOnQueue) {
-      if (filesOnQueue != "no_queue_allowed") {
-        this.filesOnQueue = filesOnQueue;
-        this.queueAllowed = true;
-      } else {
-        this.filesOnQueue = 0;
-        this.queueAllowed = false;
-      }
-      if (this.info_dialog) {
-        this.info_dialog.queueAllowed = this.queueAllowed
-      }
-      // Sync
-      switch (this.storage_control_view.selected) {
-        case 'USB':
-          this.externalDrivesRefresh();
-          break;
+      .done(_.bind(function (filesOnQueue) {
+        if (filesOnQueue != "no_queue_allowed") {
+          this.filesOnQueue = filesOnQueue;
+          this.queueAllowed = true;
+        } else {
+          this.filesOnQueue = 0;
+          this.queueAllowed = false;
+        }
 
-        case 'cloud':
-        case 'local':
-          this.refresh('cloud');
-      }
-    }, this));
+        if (this.info_dialog) {
+          this.info_dialog.queueAllowed = this.queueAllowed
+        }
+
+        // Sync
+        switch (this.storage_control_view.selected) {
+          case 'USB':
+            this.externalDrivesRefresh().always(function(){loadingArea.removeClass("loading")});
+            break;
+
+          case 'cloud':
+          case 'local':
+            this.refresh('cloud').always(function(){loadingArea.removeClass("loading")});
+        }
+      }, this));
 
   },
   getFilesOnQueue: function ()
@@ -932,7 +934,7 @@ var PrintFilesListView = Backbone.View.extend({
   onMetadataAnalysisFinished: function(data)
   {
     _.each(this.print_file_views, function(p) {
-      if (p.print_file.get('name') == data.file) {
+      if (p.print_file.get('local_filename') == data.file) {
         p.print_file.set('info', data.result);
         p.render();
         return;

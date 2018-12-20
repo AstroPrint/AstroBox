@@ -104,7 +104,7 @@ class DownloadWorker(threading.Thread):
 						self._manager._logger.info('Download completed for %s' % printFileId)
 
 						if item['printFileInfo'] is None:
-							printerManager().fileManager._metadataAnalyzer.addFileToQueue(printFileName)
+							printerManager().fileManager._metadataAnalyzer.addFileToQueue(destFile)
 
 						fileInfo = {
 							'id': printFileId,

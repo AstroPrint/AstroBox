@@ -578,3 +578,6 @@ class PrinterCommsService(CommandPluginInterface):
 		if self._printingFlow != amount:
 			self._printingFlow = amount
 			self.reportPrintingFlowChange(amount)
+
+	def onPhotoCaptureRequested(self):
+		self._printerManager.mcPhotoCommand()
