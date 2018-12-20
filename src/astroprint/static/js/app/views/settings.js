@@ -609,7 +609,8 @@ var FilamentSelectorDialog = Backbone.View.extend({
   events: {
     'click button.secondary': 'doClose',
     "valid.fndtn.abide form": 'setFilamentClicked',
-    'change select#manufacturers-picker': 'onManufacturersChanged'
+    'change select#manufacturers-picker': 'onManufacturersChanged',
+    'click .paletecolor' : "colorClicker"
   },
   initialize: function(params) {
     this.parentView = params.parent;
@@ -662,38 +663,13 @@ var FilamentSelectorDialog = Backbone.View.extend({
     content.html(this.contentTemplate({
       name: this.name,
       color: this.color,
+      colors : this.colors
     }));
-
-      $("#filament_color").paletteColorPicker({
-        // Color in { key: value } format
-        colors: this.colors,
-        // Add custom class to the picker
-        custom_class: 'double',
-        // Force the position of picker's bubble
-        position: 'upside', // default -> 'upside'
-        // Where is inserted the color picker's button, related to the input
-        insert: 'after', // default -> 'before'
-        // Don't add clear_btn
-        clear_btn: null, // null -> without clear button, default -> 'first'
-        // Timeout for the picker's fade out in ms
-        timeout: 3000, // default -> 2000
-        // Forces closin all bubbles that are open before opening the current one
-        close_all_but_this: false, // default is false
-        // Sets the input's background color to the selected one on click
-        // seems that some users find this useful ;)
-        set_background: false, // default is false
-
-        // Events
-        // Callback on bubbl show
-        onbeforeshow_callback: function( what ) {
-          console.log(what);
-        },
-
-        // Callback on change value
-        onchange_callback: function( clicked_color ) {
-          $(".palette-color-picker-button" ).removeClass('active').find('.palette-color-picker-bubble').fadeOut();
-        }
-      });
+  },
+  colorClicker : function(e)
+  {
+    this.color=$(e.currentTarget).data('color')
+    this.render();
   },
   doClose: function()
   {

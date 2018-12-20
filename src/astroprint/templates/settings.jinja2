@@ -1241,9 +1241,13 @@
               <small class="error">Please provide a valid name</small>
             </div>
             <div>
-              <input id="filament_color" type="text" name="filament_color" value="<%= color %>" pattern="colorCode" required autocomplete="off"/>
-              <span class="palette-color-picker-label" onclick="$('.palette-color-picker-button').trigger( 'click' )">Filament Color</span>
-              <small class="error">Please provide a valid color code</small>
+              <% _.each(colors, function(color) { %>
+                <div data-color="<%=color%>" class="paletecolor" style="background-color:<%=color%>">colorcito</div>
+              <% }) %>
+              <div>
+                <input id="filament_color" type="color" name="filament_color" value="<%= color %>" pattern="colorCode" required autocomplete="off"/>
+                <small class="error">Please provide a valid color code</small>
+              </div>
             </div>
           </script>
           <div class="content">
