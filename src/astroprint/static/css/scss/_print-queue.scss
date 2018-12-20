@@ -2,7 +2,8 @@
         "foundation/components/buttons",
         "foundation/components/split-buttons",
         "foundation/components/dropdown",
-        "foundation/components/progress-bars";
+        "foundation/components/progress-bars",
+        "foundation/components/tooltips";
 
 #print-queue-view {
 
@@ -344,28 +345,6 @@
         z-index: 999;
       }
 
-      .tags{
-        display: block;
-
-        .edit-tag {
-          @include radius($global-radius);
-          padding: 0px 5px;
-          font-size: 11px;
-          color: rgb(121, 121, 121);
-          line-height: 130%;
-          float: left;
-          margin: 0 4px 4px 0;
-        }
-
-        .open-notes {
-          cursor: pointer;
-
-          &:hover {
-            color: grey;
-          }
-        }
-      }
-
        a.delete-printFile{
         color:$oil;
         font-size: 1em;
@@ -481,7 +460,6 @@
 
     .notes{
       font-size: 20px;
-      cursor: pointer;
       //padding: 0 10px 10px 10px;
       display: inline-block;
       height: 73px;
@@ -717,6 +695,30 @@
       display: none;
     }
   }
+
+  .tags{
+    display: block;
+
+  .edit-tag {
+    @include radius($global-radius);
+    padding: 0px 5px;
+    font-size: 11px;
+    color: rgb(121, 121, 121);
+    line-height: 130%;
+    float: left;
+    margin: 0 4px 4px 0;
+  }
+
+}
+.open-notes {
+  cursor: help;
+  &:hover {
+    i {
+    color: #71c4c6;
+    font-size: 26px;
+    }
+  }
+}
 
   .printer-time{
     font-size: rem-calc(16px);

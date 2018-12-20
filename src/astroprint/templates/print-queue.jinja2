@@ -169,11 +169,13 @@
       <div class="notes columns small-3 right">
         <span class="open-notes">
           <% if (pf.notes) { %>
-          <i class="icon-doc-text" title="See notes"></i>
-          <% } else { %>
-          <i class="icon-doc" title="Add notes"></i>
+          <span data-tooltip aria-haspopup="true" title="<%=pf.notes%>">
+            <i class="icon-doc-text"></i>
+          </span>
           <% } %>
         </span>
+
+
       </div>
     </div>
   </div>

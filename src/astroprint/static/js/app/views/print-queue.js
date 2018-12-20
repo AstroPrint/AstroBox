@@ -752,6 +752,7 @@ var BoxContainerView = Backbone.View.extend({
       container.append(row.render().el);
     }, this);
     $(document).foundation('dropdown', 'reflow');
+    $(document).foundation('tooltip', 'reflow');
   },
 
   // Apply style per printfile row
