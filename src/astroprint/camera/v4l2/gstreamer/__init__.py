@@ -197,7 +197,7 @@ class GStreamerManager(V4L2Manager):
 				{'value': '1', 'label': 'Rotate 90 degrees to the right'},
 				{'value': '3', 'label': 'Rotate 90 degrees to the left'},
 				{'value': '4', 'label': 'Flip horizontally'},
-				{'value': '5', 'label': 'Flip vertically'}
+				{'value': '2', 'label': 'Flip vertically'}
 
 			]
 		}

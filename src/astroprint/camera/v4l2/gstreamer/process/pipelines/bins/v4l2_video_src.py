@@ -33,12 +33,13 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 
 		self.__videoSourceElement.link(self.__videoSourceCaps)
 
-		lastLink = self.__videoSourceCaps
-
 		width, height = self._size
 
 		#check if we need to rotate the video
-		if self._rotation != 0:
+		if self._rotation == 0:
+			lastLink = self.__videoSourceCaps
+
+		else:
 			if self._rotation in [1,3]:
 				#dimentions are flipped
 				height, width = self._size
@@ -48,6 +49,7 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 
 			self._bin.add(self.__videoflipElement)
 			self.__videoSourceCaps.link(self.__videoflipElement)
+
 			lastLink = self.__videoflipElement
 
 		mfWatermark = manufacturerPkgManager().video_watermark
