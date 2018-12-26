@@ -561,7 +561,7 @@ class AstroPrintCloud(object):
 					if r.status_code == 400:
 						self._logger.error("Bad updateBoxrouterData request (400). Response: %s" % r.text)
 					if r.status_code == 404:
-						self._logger.error("Reques updateBoxrouterData not found (404). Response: %s" % r.text)
+						self._logger.error("Request updateBoxrouterData not found (404). Response: %s" % r.text)
 			except Exception as e:
 				self._logger.error("Failed to send updateBoxrouterData request: %s" % e)
 		return False
