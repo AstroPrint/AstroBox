@@ -1250,7 +1250,7 @@
               <small class="error">Please provide a valid color code</small>
             </div>
 
-            <div class="columns small-12 text-left">
+            <div class="columns small-12 text-center">
               <% _.each(colors, function(color) { %>
                 <div data-color="<%=color%>" class="paletecolor" style="background-color:<%=color%>"></div>
               <% }) %>
@@ -1260,11 +1260,11 @@
           <div class="content clearfix">
           </div>
           <div class="small-6 columns">
-            <button class="secondary radius expand">Cancel</button>
+            <button class="secondary radius small expand">Cancel</button>
           </div>
           <div class="small-6 columns loading-button right">
-            <button class="success expand radius">Save</button>
-            <span class="loading button expand radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+            <button class="success small expand radius">Save</button>
+            <span class="loading button small expand radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
           </div>
         </form>
       <a class="close-reveal-modal">&#215;</a>

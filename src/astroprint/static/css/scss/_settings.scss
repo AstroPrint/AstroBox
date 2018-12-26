@@ -224,6 +224,8 @@
 }
 
 #filament-selector-modal{
+  @include reveal-modal-base(false,  320px); //this sets max-width: 320px
+
   .content{padding: 12px;}
   .more-colors{
     position: relative;
@@ -269,7 +271,7 @@
     border-radius: $global-radius;
     box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
     cursor: pointer;
-    margin:6px 9px 6px 0;
+    margin:6px;
 
     &:hover{opacity: 0.85;}
     &:active{
