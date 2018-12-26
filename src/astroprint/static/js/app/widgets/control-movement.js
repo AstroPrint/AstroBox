@@ -51,11 +51,11 @@ var ControlView = Backbone.View.extend({
 
   babyStepPlusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("0.25");
+    this.commandsSender.sendBabyStepCommand("0.005");
   },
   babyStepMinusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("-0.25");
+    this.commandsSender.sendBabyStepCommand("-0.005");
   },
 
   selectDistance: function (e)
