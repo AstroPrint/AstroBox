@@ -1233,31 +1233,38 @@
       <h2 class="bold">Set Filament info</h2>
           <form data-abide="ajax">
           <script type="text/template" id="filament-selector-modal-content">
-            <div class="input-wrapper">
-              <label for="filament_name" class="bold">
-                Filament Name
-              </label>
-              <input class="radius" id="filament_name" name="filament_name" type="text" value="<%= name %>" pattern required autocomplete="off"/>
-              <small class="error">Please provide a valid name</small>
-            </div>
-            <div>
-              <% _.each(colors, function(color) { %>
-                <div data-color="<%=color%>" class="paletecolor" style="background-color:<%=color%>">colorcito</div>
-              <% }) %>
-              <div>
-                <input id="filament_color" type="color" name="filament_color" value="<%= color %>" pattern="colorCode" required autocomplete="off"/>
-                <small class="error">Please provide a valid color code</small>
+
+            <div class="columns small-8">
+              <div class="input-wrapper">
+                <label for="filament_name" class="text-left">
+                  Filament Name
+                </label>
+                <input class="radius" id="filament_name" name="filament_name" type="text" value="<%= name %>" pattern required autocomplete="off"/>
+                <small class="error">Please provide a valid name</small>
               </div>
             </div>
+
+            <div class="columns small-4 more-colors">
+              <input id="filament_color" type="color" name="filament_color" value="<%= color %>" pattern="colorCode" required autocomplete="off"/>
+              <i class="icon-pencil"></i>
+              <small class="error">Please provide a valid color code</small>
+            </div>
+
+            <div class="columns small-12 text-left">
+              <% _.each(colors, function(color) { %>
+                <div data-color="<%=color%>" class="paletecolor" style="background-color:<%=color%>"></div>
+              <% }) %>
+            </div>
+
           </script>
-          <div class="content">
+          <div class="content clearfix">
           </div>
-          <div class="small-12 medium-6 columns">
+          <div class="small-6 columns">
             <button class="secondary radius expand">Cancel</button>
           </div>
-          <div class="loading-button right">
-            <button class="success radius">Save</button>
-            <span class="loading button radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+          <div class="small-6 columns loading-button right">
+            <button class="success expand radius">Save</button>
+            <span class="loading button expand radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
           </div>
         </form>
       <a class="close-reveal-modal">&#215;</a>

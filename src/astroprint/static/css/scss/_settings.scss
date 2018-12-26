@@ -206,12 +206,12 @@
     font-size: 80px;
     position: relative;
     top: 8px;
-    margin: 20px auto 0 auto;
+    margin: 10px auto 0 auto;
     display: block;
     text-shadow: 2px 1px 3px rgba(80, 80, 80, 0.7);
   }
 
-  #filament-name{margin-bottom: 25px;}
+  #filament-name{margin-bottom: 20px;}
 
   .button{
     min-width: 110px;
@@ -221,7 +221,62 @@
       background: #505050;
     }
   }
+}
 
+#filament-selector-modal{
+  .content{padding: 12px;}
+  .more-colors{
+    position: relative;
+    display: inline-block;
+    margin-top: 20px;
+    cursor: pointer;
+    padding-left: 0;
+
+    &:hover{opacity: 0.8;}
+
+    #filament_color{
+      padding: 0;
+      border: 0;
+      margin: 0;
+      box-shadow: none;
+      border-radius: $global-radius;
+      display: inline-block;
+      vertical-align: middle;
+      width: 100%;
+      height: 42px;
+    }
+
+    i{
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 22px;
+      border: 1px solid;
+      padding: 4px 1px;
+      color: #898989;
+      border-radius: $global-radius;
+      position: absolute;
+      top: 4px;
+      background: white;
+      right: 11px;
+      height: 34px;
+      pointer-events: none;
+    }
+  }
+  .paletecolor{
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: $global-radius;
+    box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    margin:6px 9px 6px 0;
+
+    &:hover{opacity: 0.85;}
+    &:active{
+      opacity: 1;
+      transform: scale(0.92);
+    }
+  }
 }
 
 #wifi-network-list-modal {
