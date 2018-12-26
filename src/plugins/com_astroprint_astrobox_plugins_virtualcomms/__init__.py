@@ -170,6 +170,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def sendCommand(self, command):
 		self._logger.info('Command Sent - %s', command)
 
+	def babystepping(self, amount):
+		self._logger.info('Babystepping - Amount - %s', amount)
+
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)
 		if self._temperatureChanger:
