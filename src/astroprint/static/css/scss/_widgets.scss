@@ -266,17 +266,6 @@
   .arcade-screen{
     background: linear-gradient(180deg,transparent 50%,rgba(89, 217, 132, 0.08) 51%);
     background-size: 100% 5px;
-    animation: lines 1s ease-out infinite;
-
-    @keyframes lines {
-      0% {
-         background-position:0px 0px;
-      }
-      100% {
-         background-position:0px 25px;
-      }
-   }
-
   }
 
   input[name='gcode'] {
@@ -306,16 +295,6 @@
       font-size: 15px;
       line-height: 130%;
       border: 0;
-      animation: giggle 200ms ease infinite;
-
-      @keyframes giggle {
-        0%, 100% {
-           opacity: 1;
-        }
-        50% {
-           opacity: 0.84;
-        }
-     }
     }
 
     div {
