@@ -31,13 +31,6 @@ class MacDevNetworkManager(NetworkManager):
 
 		super(MacDevNetworkManager, self).__init__()
 
-	#def startUp(self):
-	#	offlineTime = 3.0
-	#	timer = threading.Timer(offlineTime, self._goOnline)
-	#	timer.daemon = True
-	#	timer.start()
-	#	self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
-
 	def getActiveConnections(self):
 		wireless = None
 		wired = None
