@@ -459,7 +459,8 @@ class AstroprintBoxRouter(object):
 				'localIpAddress': nm.activeIpAddress,
 				'publicKey': self._publicKey,
 				'privateKey': self._privateKey,
-				'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model']['id'] else None
+				'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model']['id'] else None,
+				'filament': ppm.data['filament'] if ppm.data['filament'] else None
 			}
 
 			pkgId = sm.mfPackageId

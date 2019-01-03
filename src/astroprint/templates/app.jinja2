@@ -188,7 +188,8 @@
       offcanvas: { close_on_click: true },
       abide: {
         patterns: {
-          hostname: /^[A-Za-z0-9\-]+$/
+          hostname: /^[A-Za-z0-9\-]+$/,
+          colorCode : /^((0x){0,1}|#{0,1})([0-9A-Fa-f]{8}|[0-9A-Fa-f]{6})$/
         }
       }
     });
