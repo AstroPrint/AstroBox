@@ -218,7 +218,7 @@
       display: none;
     }
 
-    i{
+    i:not(.icon-rocket-spinner){
       font-size: 22px;
       color: $steel;
 
@@ -826,9 +826,7 @@
     border-radius: $global-radius;
     max-width: 980px;
     min-height: 520px;
-    background: $white;
-    padding: 16px 30px;
-    box-shadow: 2px 2px 14px 1px rgba(0, 0, 0, 0.05);
+    padding: 0 30px;
 
     #no-printFiles img{
       max-width: 350px;
@@ -891,14 +889,15 @@
     }
 
     .rendered_image {
-      float: none;
-      text-align: center;
-      position: relative;
-      width:auto;
-      height: 70px;
-      margin:0 10px;
+      height: 60px;
       @include radius($global-radius);
-      background: $ghost;
+      overflow: hidden;
+      margin: 6px 12px;
+
+      &.no-image{
+        background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
+        width: 60px;
+      }
 
       img {
         position: relative;
@@ -1014,8 +1013,6 @@
   .print-file-row{
 
     .icon-step-backward{padding-top: 25px;}
-
-    i{font-size: 35px !important;}
   }
 
 }
