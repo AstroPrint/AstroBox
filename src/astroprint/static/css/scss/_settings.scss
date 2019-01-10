@@ -85,8 +85,7 @@
       background-size: 100% 5px;
       border-radius: 16px;
       min-height:85px;
-      opacity: 1;
-      @include flex(center,column);
+      @include flex(center, column);
       letter-spacing: 1.5px;
       padding-top: 10px;
     }

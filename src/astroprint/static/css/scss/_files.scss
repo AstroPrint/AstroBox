@@ -355,6 +355,8 @@
         color: $steel;
         text-align: right;
 
+        >.print{padding-left: 0;}
+
         .download-progress,
         .download-failed, .loading button {
           display: none;
@@ -490,7 +492,7 @@
 
         h3{
           font-size: rem-calc(17);
-          color: $success-color;
+          color: $primary-color;
           margin: 0;
           display: block;
           position: absolute;
@@ -528,12 +530,12 @@
       }
 
       .right-section {
-        font-size: rem-calc(42);
+        font-size: rem-calc(38);
         text-align: center;
         padding-left: 0;
 
         a {
-          color: $success-color;
+          color: $primary-color;
         }
       }
 

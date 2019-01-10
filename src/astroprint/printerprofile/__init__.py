@@ -23,6 +23,7 @@ from octoprint.settings import settings
 from astroprint.plugin import pluginManager
 from astroprint.util import merge_dict
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
 
 class PrinterProfileManager(object):
 	def __init__(self):
@@ -172,7 +173,11 @@ class PrinterProfileManager(object):
 							#revent to previous driver
 							printerManager(self.data['driver'])
 							raise e
-
+					elif k == 'printer_model':
+						data = {
+							"printerModel": changes[k]
+						}
+						astroprintCloud().updateBoxrouterData(data)
 					self.data[k] = self._clean(k, changes[k])
 
 					# Send astrobox event
