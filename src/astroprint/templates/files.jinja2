@@ -221,11 +221,11 @@
       </div>
     </div>
 	</div>
-	<div class="small-4 medium-2 large-2 columns right-section">
-		<div class="print-file-options">
+	<div class="small-12 medium-12 large-2 columns right-section">
+		<div class="print-file-options clearfix">
       <% if (p.local_filename) { %>
         <% if (!p.local_only && queueAllowed) { %>
-          <div class="loading-button add-to-queue">
+          <div class="loading-button add-to-queue columns small-9 medium-10 large-6">
             <a href="#" class="queue idle">
               <i class="icon-plus" title="Add to Queue"></i>
             </a>
@@ -233,11 +233,11 @@
           </div>
         <% } %>
 
-        <div class="loading-button print">
+        <div class="loading-button print columns small-3 medium-2 large-6">
           <a href="#" class="print idle">
             <i class="icon-3d-printer" title="Print"></i>
           </a>
-          <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+          <span class="loading text-center"><i class="icon-rocket-spinner animate-spin"></i></span>
         </div>
 
 			<% } else { %>
