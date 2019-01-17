@@ -211,6 +211,7 @@ class RequestHandler(object):
 			filament['filament']['color'] = None
 
 		printerProfileManager().set(filament)
+		printerProfileManager().save()
 		done(None)
 
 	def _handleCommandGroup(self, handlerClass, data, clientId, done):
