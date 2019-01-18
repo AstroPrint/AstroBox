@@ -153,12 +153,14 @@ class FilesService(PluginService):
 		return files
 
 	def _verifyFileExists(self,origin, filename):
+		import re
+		filenameScaped = re.sub(r"\s+", '_', filename)
 		if origin == FileDestinations.SDCARD:
 			availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 		else:
 			availableFiles = printerManager().fileManager.getAllFilenames()
 
-		return filename in availableFiles
+		return filenameScaped in availableFiles
 
 	def printFile(self, data, sendResponse):
 		fileDestination = fileName = None
