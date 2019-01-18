@@ -16,6 +16,7 @@ from octoprint.server.api import api
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.externaldrive import externalDriveManager
+from werkzeug.utils import secure_filename
 
 #~~ GCODE file handling
 
@@ -78,15 +79,14 @@ def _getFileList(origin):
 
 
 def _verifyFileExists(origin, filename):
-	import re
-	filenameScaped = re.sub(r"\s+", '_', filename)
+	filename = secure_filename(filename)
 
 	if origin == FileDestinations.SDCARD:
 		availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 	else:
 		availableFiles = printerManager().fileManager.getAllFilenames()
 
-	return filenameScaped in availableFiles
+	return filename in availableFiles
 
 
 @api.route("/files/<string:target>", methods=["POST"])

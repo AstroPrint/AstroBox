@@ -21,6 +21,7 @@ from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.externaldrive import externalDriveManager
+from werkzeug.utils import secure_filename
 
 class FilesService(PluginService):
 	_validEvents = [
@@ -153,14 +154,14 @@ class FilesService(PluginService):
 		return files
 
 	def _verifyFileExists(self,origin, filename):
-		import re
-		filenameScaped = re.sub(r"\s+", '_', filename)
+		filename = secure_filename(filename)
+
 		if origin == FileDestinations.SDCARD:
 			availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 		else:
 			availableFiles = printerManager().fileManager.getAllFilenames()
 
-		return filenameScaped in availableFiles
+		return filename in availableFiles
 
 	def printFile(self, data, sendResponse):
 		fileDestination = fileName = None
