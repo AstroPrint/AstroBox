@@ -13,6 +13,7 @@
           <li class="active printer-connection"><a href="#settings/printer-connection">Connection</a></li>
           <li class="printer-profile"><a href="#settings/printer-profile">Profile</a></li>
         {% endif %}
+        <li class="info"><a href="#settings/filament-info">Filament Info</a></li>
         <li class="temperature-presets"><a href="#settings/temperature-presets">Temperature Presets</a></li>
         {% if mfDefinition.variant.allow_camera_settings %}
           <li class="heading"><i class="icon-camera"></i> Camera</li>
@@ -132,7 +133,7 @@
 
                 <hr>
                 <div class="row clearfix">
-                  <label for="settings-printer-driver" class=" columns small-12 bold text-left">Printer Model</label>
+                  <label class=" columns small-12 bold text-left">Printer Model</label>
                   <% if (!settings.printer_model.name) { %>
                     {% if not mfDefinition.variant.printer_selection_hidden %}
                     <div class="column small-12">
@@ -273,6 +274,39 @@
         </script>
       </div>
     {% endif %}
+
+    <div id="filament-info" class="settings-page hide">
+      <script type="text/template" id="filament-info-page-template">
+
+              <div class="row clearfix">
+                <label class=" columns small-12 bold text-center">Filament Info</label>
+                <% if (!settings.filament.name) { %>
+                  <div class="column small-12 text-center">
+                    <i class="icon-filament"></i>
+                  </div>
+                  <div class="column small-12 text-center">
+                    <a class="button radius add-filament tiny change-filament"><i class="icon-plus"></i> Add filament information</a>
+                  </div>
+                <% } %>
+                <% if (settings.filament.name) { %>
+                  <div class="column small-12 text-center">
+                    <i class="icon-filament" style="color:<%= settings.filament.color%>"></i>
+                  </div>
+                  <div class="column small-12 text-center">
+                    <h4 id="filament-name" data-name="<%= settings.filament.name%>" data-color="<%= settings.filament.color%>"><%= settings.filament.name %></h4>
+                  </div>
+                  <div class="column small-6 text-right">
+                    <a class="button radius tiny alert unlink-filament"><b>Unlink info</b></a>
+                  </div>
+                  <div class="column small-6 text-left">
+                    <a class="button radius tiny dark change-filament"><b><i class="icon-pencil"></i> Edit</b></a>
+                  </div>
+
+                <% } %>
+              </div>
+
+      </script>
+    </div>
 
     <div class="show-for-small zebra temperature-presets">
       <a href="#settings/temperature-presets"><h1 class="bold" align="center">Temperature Presets</h1></a>
@@ -1195,10 +1229,68 @@
       <a class="close-reveal-modal">&#215;</a>
       </div>
 
+    <div id="filament-selector-modal" class="reveal-modal tiny radius" data-reveal align="center">
+      <h2 class="bold">Set Filament info</h2>
+          <form data-abide="ajax">
+          <script type="text/template" id="filament-selector-modal-content">
+
+            <div class="columns small-8">
+              <div class="input-wrapper">
+                <label for="filament_name" class="text-left">
+                  Filament Name
+                </label>
+                <input class="radius" id="filament_name" name="filament_name" type="text" value="<%= name %>" pattern required autocomplete="off"/>
+                <small class="error">Please provide a valid name</small>
+              </div>
+            </div>
+
+            <div class="columns small-4 more-colors">
+              <input id="filament_color" type="color" name="filament_color" value="<%= color %>" pattern="colorCode" required autocomplete="off"/>
+              <i class="icon-pencil"></i>
+              <small class="error">Please provide a valid color code</small>
+            </div>
+
+            <div class="columns small-12 text-center">
+              <% _.each(colors, function(color) { %>
+                <div data-color="<%=color%>" class="paletecolor" style="background-color:<%=color%>"></div>
+              <% }) %>
+            </div>
+
+          </script>
+          <div class="content clearfix">
+          </div>
+          <div class="small-6 columns">
+            <button class="secondary bold radius small expand">Cancel</button>
+          </div>
+          <div class="small-6 columns loading-button right">
+            <button class="success small bold expand radius">Save</button>
+            <span class="loading button small bold expand radius success disabled"><i class="icon-rocket-spinner animate-spin"></i> Saving...</span>
+          </div>
+        </form>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
     <div id="unlink-printer-dlg" class="reveal-modal medium" data-reveal>
       <h2 class="bold">Unlink Printer Profile</h2>
       <div class="reveal-content text-center">
         <p>Are your sure you want to unlink <span class="bold printer-name"></b>{{printer}}</span> from your profile?</p>
+          <div class="button-container">
+          <button class="radius secondary left cancel">Cancel</button>
+          <div class="loading-button right unlink-button">
+            <button class="alert radius">Unlink</button>
+            <span class="loading button disabled alert radius"><i class="icon-rocket-spinner animate-spin"></i> Unlinking...</span>
+            <span class="failed button disabled alert radius"><i class="icon-attention"></i> Failed</span>
+          </div>
+          <div class="clearfix"></div>
+          </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div id="unlink-filament-dlg" class="reveal-modal medium" data-reveal>
+      <h2 class="bold">Unlink Filament Info</h2>
+      <div class="reveal-content text-center">
+        <p>Are your sure you want to unlink <span class="bold filament-name"></b>{{filament}}</span>?</p>
           <div class="button-container">
           <button class="radius secondary left cancel">Cancel</button>
           <div class="loading-button right unlink-button">

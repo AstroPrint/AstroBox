@@ -23,6 +23,7 @@ from octoprint.settings import settings
 from astroprint.plugin import pluginManager
 from astroprint.util import merge_dict
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
 
 class PrinterProfileManager(object):
 	def __init__(self):
@@ -46,6 +47,10 @@ class PrinterProfileManager(object):
 			'invert_y': False,
 			'printer_model': {
 				'id': None,
+				'name': None
+			},
+			'filament': {
+				'color': None,
 				'name': None
 			},
 			'temp_presets' : {
@@ -168,12 +173,17 @@ class PrinterProfileManager(object):
 							#revent to previous driver
 							printerManager(self.data['driver'])
 							raise e
-
+					elif k == 'printer_model':
+						data = {
+							"printerModel": changes[k]
+						}
+						astroprintCloud().updateBoxrouterData(data)
 					self.data[k] = self._clean(k, changes[k])
 
 					# Send astrobox event
 					from octoprint.events import eventManager, Events
-
+					if k == 'filament':
+						eventManager().fire(Events.FILAMENT_CHANGE, { k: self.data[k]})
 					eventManager().fire(Events.PRINTERPROFILE_CHANGE, { k: self.data[k]})
 
 			else:

@@ -546,6 +546,25 @@ class AstroPrintCloud(object):
 				"error": "unable_to_create"
 			}
 
+	def updateBoxrouterData(self, data):
+		if self.cloud_enabled():
+			try:
+				if data:
+					r = requests.put("%s/astrobox/%s/update-boxrouter-data" % (self.apiHost, boxrouterManager().boxId),
+						data=json.dumps(data),
+						auth=self.hmacAuth,
+						headers={'Content-Type': 'application/json'}
+					)
+
+					if r.status_code == 200:
+						return r.json()
+					if r.status_code == 400:
+						self._logger.error("Bad updateBoxrouterData request (400). Response: %s" % r.text)
+					if r.status_code == 404:
+						self._logger.error("Request updateBoxrouterData not found (404). Response: %s" % r.text)
+			except Exception as e:
+				self._logger.error("Failed to send updateBoxrouterData request: %s" % e)
+		return False
 
 	def uploadImageFile(self, print_id, imageBuf):
 		try:
