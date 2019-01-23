@@ -70,6 +70,7 @@ class PrinterService(PluginService):
 	def getStatus(self):
 		printer = printerManager()
 		cm = cameraManager()
+		ppm = printerProfileManager()
 
 		fileName = None
 
