@@ -70,6 +70,7 @@ class PrinterService(PluginService):
 	def getStatus(self):
 		printer = printerManager()
 		cm = cameraManager()
+		ppm = printerProfileManager()
 
 		fileName = None
 
@@ -82,7 +83,8 @@ class PrinterService(PluginService):
 				'name': networkManager().getHostname(),
 				'printing': printer.isPrinting(),
 				'fileName': fileName,
-				'printerModel': None,
+				'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model'] else None,
+				'filament' : ppm.data['filament'],
 				'material': None,
 				'operational': printer.isOperational(),
 				'paused': printer.isPaused(),

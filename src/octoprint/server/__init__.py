@@ -106,6 +106,7 @@ def index():
 
 	if (s.getBoolean(["server", "firstRun"])):
 		swm = swManager()
+		ppm = printerProfileManager()
 
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
@@ -119,7 +120,7 @@ def index():
 			settings= s,
 			wsToken= create_ws_token(publicKey),
 			mfDefinition= manufacturerPkgManager(),
-			printerProfileId= printerProfileManager().data['printer_model']['id'] if printerProfileManager().data['printer_model'] else None,
+			printerProfileId= ppm.data['printer_model']['id'] if ppm.data['printer_model'] else None,
 			apApiHost= roConfig('cloud.apiHost')
 		)
 
@@ -228,6 +229,7 @@ def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
 	softwareManager = swManager()
+	ppm = printerProfileManager()
 
 	fileName = None
 
@@ -241,7 +243,8 @@ def getStatus():
 			'name': networkManager().getHostname(),
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
-			'printerModel': None,
+			'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model'] else None,
+			'filament' : ppm.data['filament'],
 			'material': None,
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
