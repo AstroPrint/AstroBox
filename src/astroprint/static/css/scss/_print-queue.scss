@@ -214,6 +214,17 @@
   .print-file-row {
     background: $white;
 
+    .notes{
+      font-size: 20px;
+      display: inline-block;
+      height: 73px;
+      letter-spacing: 1px;
+      padding: 0;
+      @include flex(space-around,column);
+    }
+
+    .date-added .icon-calendar{font-size: 15px;}
+
     .message-finished, .message-failed, .message-canceled, .message-printing, .last-status {
       display: none;
     }
@@ -292,7 +303,7 @@
 
     .button {
       letter-spacing: 0.5px;
-      margin: 15px 0 15px auto;
+      margin: 15px auto;
       max-width: 120px;
       float: right;
     }
@@ -370,16 +381,12 @@
           -webkit-box-orient: vertical;
           overflow: hidden;
           white-space: normal;
-          margin-bottom: 3px;
         }
       }
 
-
       .rendered_image {
-        height: 60px;
         @include radius($global-radius);
         overflow: hidden;
-        margin-right: 15px;
 
         &.no-image{
           background: linear-gradient(to bottom, #3e3e3e 10%, #6e6e6f 70%);
@@ -458,19 +465,13 @@
       }
     }
 
-    .notes{
-      font-size: 20px;
-      //padding: 0 10px 10px 10px;
-      display: inline-block;
-      height: 73px;
-      letter-spacing: 1px;
-      padding: 0;
-      @include flex(space-around,column);
-    }
-
     .pending-files-box{
 
-      .time-container{padding-top: 10px;}
+      .time-container{
+        padding-top: 10px;
+
+        .no-padding-right{padding-right: 0;}
+      }
 
       .print-file-row:first-of-type{
         color: $ghost;
@@ -478,7 +479,7 @@
 
         .icon-step-backward,.icon-angle-left{display: none;}
 
-        .index-queue,.moving-arrow{color: $white;}
+        .index-queue,.moving-arrow{color: $white; text-align: center;}
 
         .icon-rocket-spinner{
           width: 24px;
@@ -486,7 +487,7 @@
           margin: 0 auto;
         }
 
-        .icon-angle-right{margin-top: 40px;}
+        .icon-angle-right{margin-top: 30px;}
       }
 
       input#show, input#hide {
@@ -697,7 +698,12 @@
   }
 
   .tags{
-    display: block;
+    display: inline-block;
+
+    .flex-container{
+      @include flex(flex-start,row);
+      flex-wrap: wrap;
+    }
 
   .edit-tag {
     @include radius($global-radius);
@@ -705,7 +711,6 @@
     font-size: 11px;
     color: rgb(121, 121, 121);
     line-height: 130%;
-    float: left;
     margin: 0 4px 4px 0;
   }
 
@@ -889,7 +894,6 @@
     }
 
     .rendered_image {
-      height: 60px;
       @include radius($global-radius);
       overflow: hidden;
       margin: 6px 12px;
@@ -916,9 +920,12 @@
     button{
       letter-spacing: 1px;
       margin: 15px auto;
+      padding-left: 12px;
     }
 
-    .printer-info{opacity: 0.6;}
+    .printer-info{opacity: 0.6; white-space: normal;}
+
+    .date-added{white-space: normal;}
 
     a.delete-printFile{
     color:$oil;
@@ -1001,7 +1008,7 @@
       }
     }
 
-    #box-container .pending-files-box .time-container{padding-top: 30px;}
+    #box-container .pending-files-box .time-container{padding-top: 20px;}
 
     .delete-file{
       position: absolute;

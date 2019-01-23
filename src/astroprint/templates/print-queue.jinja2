@@ -118,45 +118,58 @@
   </div>
   <% } %>
 
-  <div class="columns small-9 medium-10 large-6 border-right time-container">
+  <div class="columns small-3 medium-1 large-1 right text-right show-for-small-only delete-file">
+    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
+  </div>
 
-    <% if (pf.design_image) { %>
-    <img class="rendered_image left" src="<%= pf.design_image %>"/>
-    <% } else { %>
-    <img class="rendered_image no-image left" src="/img/noimage.svg"/>
-    <% } %>
+  <div class="columns small-12 medium-10 large-6 border-right time-container">
 
-    <small>
-      <span class="last-status">
-        <span class="message-printing" >Started printing</span>
-        <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
-        <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
-        <span class="message-finished" ><i class="icon-ok-circled"></i>finished</span>
-        <% if (pf.last_status_time) { %>
-        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
+    <div class="row clearfix">
+      <div class="columns small-4 medium-3 large-2 no-padding-r">
+        <% if (pf.design_image) { %>
+        <img class="rendered_image left" src="<%= pf.design_image %>"/>
+        <% } else { %>
+        <img class="rendered_image no-image left" src="/img/noimage.svg"/>
         <% } %>
-      </span>
-    </small>
+      </div>
 
-    <%= pf.name %>
-    <div class="printer-info" > <%= pf.printer.name ? pf.printer.name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
-    <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
+      <div class="columns small-8 medium-9 large-10">
+        <small>
+          <span class="last-status">
+            <span class="message-printing" >Started printing</span>
+            <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
+            <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
+            <span class="message-finished" ><i class="icon-ok-circled"></i>finished</span>
+            <% if (pf.last_status_time) { %>
+            <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
+            <% } %>
+          </span>
+        </small>
 
-    <% if (view.parent.printLaterFiles) { %>
-    <div class="date-added" >
-      <small><i class="icon-calendar"></i>Added
-        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(pf.created+' UTC').toISOString() %></span>
-      </small>
-    </div>
-    <% } %>
-    <div class="tags clearfix">
-      <% for(var i = 0; i < pf.tag_list.length; i++) { %>
-        <span class="edit-tag tag" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
-      <% } %>
+        <%= pf.name %>
+        <div class="printer-info" > <%= pf.printer.name ? pf.printer.name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
+        <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
+
+        <% if (view.parent.printLaterFiles) { %>
+        <div class="date-added" >
+          <small><i class="icon-calendar"></i>Added
+            <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(pf.created+' UTC').toISOString() %></span>
+          </small>
+        </div>
+        <% } %>
+        <div class="tags clearfix">
+          <div class="flex-container">
+          <% for(var i = 0; i < pf.tag_list.length; i++) { %>
+            <span class="edit-tag tag" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
+          <% } %>
+          </div>
+        </div>
+
+      </div>
     </div>
   </div>
 
-  <div class="columns small-offset-2 small-9 medium-offset-1 medium-4 large-offset-0 large-2 text-center">
+  <div class="columns small-offset-2 small-9 medium-offset-1 medium-4 large-offset-0 large-3 text-center">
     <div class="row clearfix">
 
       <div class="printer-time columns small-9">
@@ -167,7 +180,7 @@
       </div>
 
       <div class="notes columns small-3 right">
-        <span class="open-notes">
+        <span class="open-notes text-left">
           <% if (pf.notes) { %>
           <span data-tooltip aria-haspopup="true" title="<%=pf.notes%>">
             <i class="icon-doc-text"></i>
@@ -181,7 +194,7 @@
   </div>
 
   <% if (view.parent.printLaterFiles) { %>
-  <div class="columns small-offset-4 small-7 medium-offset-1 medium-4 large-offset-0 large-3 xlarge-2  text-center print-actions loading-button split">
+  <div class="columns small-offset-4 small-7 medium-offset-1 medium-4 large-offset-0 large-2 xlarge-1  text-center print-actions loading-button split">
     <button class="success radius tiny bold expand print button split"><b>Print Now</b><span class="arrow-drop"  data-dropdown="drop-<%=pf.id%>"></span></button>
     <span class="success button radius tiny bold loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
     <br>
@@ -210,10 +223,6 @@
   <% } %>
 
   <div class="columns small-3 medium-1 large-1 right text-right hide-for-small-only">
-    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
-  </div>
-
-  <div class="columns small-3 medium-1 large-1 right text-right show-for-small-only delete-file">
     <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
   </div>
 
