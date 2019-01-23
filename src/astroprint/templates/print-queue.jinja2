@@ -110,7 +110,7 @@
 <!-- PRINTFILE ROW -->
 <script type="text/template" id="print-file-row-template">
   <% if (!view.parent.printLaterFiles) { %>
-  <div class="columns small-3 medium-2 large-1 text-right">
+  <div class="columns small-3 medium-1 large-1 text-right">
     <span class="index-queue"><%= pf.queue_index %></span>
     <i class="icon-step-backward moving-arrow"  title="Move to top"></i>
     <i class="icon-angle-left moving-arrow"  title="Up"></i>
@@ -118,50 +118,83 @@
   </div>
   <% } %>
 
-  <div class="columns small-9 medium-10 large-6 border-right time-container">
-
-    <% if (pf.design_image) { %>
-    <img class="rendered_image left" src="<%= pf.design_image %>"/>
-    <% } else { %>
-    <img class="rendered_image no-image left" src="/img/noimage.svg"/>
-    <% } %>
-
-    <small>
-      <span class="last-status">
-        <span class="message-printing" >Started printing</span>
-        <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
-        <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
-        <span class="message-finished" ><i class="icon-ok-circled"></i>finished</span>
-        <% if (pf.last_status_time) { %>
-        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
-        <% } %>
-      </span>
-    </small>
-
-    <%= pf.name %>
-    <div class="printer-info" > <%= pf.printer_name ? pf.printer_name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
-    <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
-
-    <% if (view.parent.printLaterFiles) { %>
-    <div class="date-added" >
-      <small><i class="icon-calendar"></i>Added
-        <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(pf.created+' UTC').toISOString() %></span>
-      </small>
-    </div>
-    <% } %>
+  <div class="columns small-3 medium-1 large-1 right text-right show-for-small-only delete-file">
+    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
   </div>
 
-  <div class="columns small-offset-2 small-6 medium-offset-1 medium-4 large-offset-0 large-2 text-center">
-    <div class="printer-time">
-      <span class="printTime-label bold">
-        <i class="icon-clock"></i>
-        <span class="hour"><%= print_time ? print_time[0]:"__"%></span>:<span class="min" ><%= print_time ? print_time[1]:"__"%></span>:<span class="sec" ><%= print_time ? print_time[2]:"__"%></span>
-      </span>
+  <div class="columns small-12 medium-10 large-6 border-right time-container">
+
+    <div class="row clearfix">
+      <div class="columns small-4 medium-3 large-2 no-padding-r">
+        <% if (pf.design_image) { %>
+        <img class="rendered_image left" src="<%= pf.design_image %>"/>
+        <% } else { %>
+        <img class="rendered_image no-image left" src="/img/noimage.svg"/>
+        <% } %>
+      </div>
+
+      <div class="columns small-8 medium-9 large-10">
+        <small>
+          <span class="last-status">
+            <span class="message-printing" >Started printing</span>
+            <span class="message-canceled" ><i class="icon-cancel-circled"></i>Canceled</span>
+            <span class="message-failed" ><i class="icon-attention"></i>Failed</span>
+            <span class="message-finished" ><i class="icon-ok-circled"></i>finished</span>
+            <% if (pf.last_status_time) { %>
+            <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)" ><%= new Date(pf.last_status_time+' UTC').toISOString() %></span>
+            <% } %>
+          </span>
+        </small>
+
+        <%= pf.name %>
+        <div class="printer-info" > <%= pf.printer.name ? pf.printer.name : "__" %> / <%= pf.filament_name ? pf.filament_name : "__" %> / <%= pf.quality ? pf.quality : "__" %> </div>
+        <% if (pf.info) { var print_time = view._formatTime(pf.info.print_time)  } %>
+
+        <% if (view.parent.printLaterFiles) { %>
+        <div class="date-added" >
+          <small><i class="icon-calendar"></i>Added
+            <span class="time-status" data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(pf.created+' UTC').toISOString() %></span>
+          </small>
+        </div>
+        <% } %>
+        <div class="tags clearfix">
+          <div class="flex-container">
+          <% for(var i = 0; i < pf.tag_list.length; i++) { %>
+            <span class="edit-tag tag" data-id="<%= pf.tag_list[i].id %>" data-name="<%= pf.tag_list[i].name %>" data-color="<%= pf.tag_list[i].color %>" style="background-color:<%= pf.tag_list[i].color %>; color:<%= pf.tag_list[i].text_color %>;" ><%= pf.tag_list[i].name %></span>
+          <% } %>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="columns small-offset-2 small-9 medium-offset-1 medium-4 large-offset-0 large-3 text-center">
+    <div class="row clearfix">
+
+      <div class="printer-time columns small-9">
+        <span class="printTime-label bold">
+          <i class="icon-clock"></i>
+          <span class="hour"><%= print_time ? print_time[0]:"__"%></span>:<span class="min" ><%= print_time ? print_time[1]:"__"%></span>:<span class="sec" ><%= print_time ? print_time[2]:"__"%></span>
+        </span>
+      </div>
+
+      <div class="notes columns small-3 right">
+        <span class="open-notes text-left">
+          <% if (pf.notes) { %>
+          <span data-tooltip aria-haspopup="true" title="<%=pf.notes%>">
+            <i class="icon-doc-text"></i>
+          </span>
+          <% } %>
+        </span>
+
+
+      </div>
     </div>
   </div>
 
   <% if (view.parent.printLaterFiles) { %>
-  <div class="columns medium-offset-1 medium-4 large-offset-0 large-3 text-center print-actions loading-button split">
+  <div class="columns small-offset-4 small-7 medium-offset-1 medium-4 large-offset-0 large-2 xlarge-1  text-center print-actions loading-button split">
     <button class="success radius tiny bold expand print button split"><b>Print Now</b><span class="arrow-drop"  data-dropdown="drop-<%=pf.id%>"></span></button>
     <span class="success button radius tiny bold loading disabled"><i class="icon-rocket-spinner animate-spin"></i></span>
     <br>
@@ -175,14 +208,14 @@
   <% if (pf.queue_index == 1) { %>
 
       <!-- print button -->
-      <div class="print-button inactive loading-button small-3 medium-2 columns">
-        <button class="success tiny radius print-next bold expand ">Print</button>
+      <div class="print-button inactive loading-button small-11 medium-3 large-2 columns">
+        <button class="success tiny radius print-next bold expand button">Print</button>
         <span class="success button tiny radius bold disabled loading expand"><i class="icon-rocket-spinner animate-spin"></i></span>
       </div>
 
       <!-- connect printer -->
-      <div class="connect-printer-button loading-button  small-2 columns">
-        <button class="alert disabled tiny radius connect-label bold expand">Printer Disconnected</button>
+      <div class="connect-printer-button loading-button  small-10 columns">
+        <button class="alert button disabled tiny radius connect-label bold expand">Printer Disconnected</button>
         <span class="warning button radius radius bold loading expand"><i class="icon-rocket-spinner animate-spin"></i>Connecting</span>
         <span class="alert button radius radius bold inactive disabled failed expand"><i class="icon-attention"></i>Failed to connect</span>
       </div>
@@ -193,11 +226,8 @@
     <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
   </div>
 
-  <div class="columns small-3 medium-1 large-1 right text-right show-for-small-only delete-file">
-    <a href="#" class="delete-printFile padding-right" title="Discard"><span class="discard-button">&#10540;</span></a>
-  </div>
+  <div class="columns small-12 medium-4 large-3 text-center">
 
-  <div class="columns small-9 medium-4 large-2 text-center center-v">
     <div class="return-label" title="Return to Queue" style="display:none;">
         <div class="secondary bold tiny button return-button">
           <span class="status">Return to Queue</span>
@@ -210,7 +240,7 @@
 <!-- @DELETE QUEUE ELEMENT -->
 <div id="delete-queue-element-dlg" class="reveal-modal medium" data-reveal>
   <h2 class="bold">Remove Print File from Queue</h2>
-  <div class="reveal-content">Are you sure you want to remove <b>from the queue</b> the Print File  <span class="bold filename"></span>?
+  <div class="reveal-content"><p>Are you sure you want to remove <b>from the queue</b> the Print File  <span class="bold filename"></span>?</p>
     <div class="button-container row collapse">
       <div class="columns medium-5 small-12">
         <button class="radius secondary cancel">Cancel</button>

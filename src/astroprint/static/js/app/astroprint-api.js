@@ -110,11 +110,15 @@ AstroPrintApi.prototype = {
   /* Add elemento to the queue
     @elementID: ID of queue element
   */
-  addElemenToQueue: function(elementID)
+  addElemenToQueue: function(printfileId, elementId)
   {
+    var data = { "printfile_id": printfileId, "device_id": BOX_ID };
+    if (elementId) {
+      data['queue_later_id'] = elementId;
+    }
     return this._apiRequest('/print-queues', {
       method: 'POST',
-      data: JSON.stringify({"printfile_id" : elementID, "device_id": BOX_ID}),
+      data: JSON.stringify(data),
       contentType: 'application/json; charset=utf-8'
     });
   },
