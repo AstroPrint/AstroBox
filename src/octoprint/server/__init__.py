@@ -241,7 +241,7 @@ def getStatus():
 			'name': networkManager().getHostname(),
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
-			'printerModel': printerProfileManager().data['printer_model']['id'] if printerProfileManager().data['printer_model'] else None,
+			'printerModel': printerProfileManager().data['printer_model'] if printerProfileManager().data['printer_model'] else None,
 			'filament' : printerProfileManager().data['filament'],
 			'material': None,
 			'operational': printer.isOperational(),
