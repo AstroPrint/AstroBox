@@ -243,7 +243,7 @@ def getStatus():
 			'name': networkManager().getHostname(),
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
-			'printerModel': ppm.data['printer_model']['id'] if ppm.data['printer_model'] else None,
+			'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,
 			'filament' : ppm.data['filament'],
 			'material': None,
 			'operational': printer.isOperational(),
