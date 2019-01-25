@@ -131,6 +131,7 @@ var TempSemiCircleView = Backbone.View.extend({
       }
 
       this.target = temps.target;
+      this.lastSent = this.target
       this.actual = temps.current;
       this.setTemps(temps.current, temps.target);
     }
