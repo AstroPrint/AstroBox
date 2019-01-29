@@ -11,7 +11,6 @@ from astroprint.printerprofile import printerProfileManager
 
 
 @api.route('/printer-profile', methods=['PATCH', 'GET'])
-@restricted_access
 def printer_profile_patch():
 	ppm = printerProfileManager()
 
