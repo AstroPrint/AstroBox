@@ -154,15 +154,28 @@ class AdditionalTasksManager(object):
 					break
 
 			tasksDir = settings().getBaseFolder('tasks')
+			taskPath = os.path.join(tasksDir, "%s.yaml" % tId)
 
-			#remove definition file
-			os.remove(os.path.join(tasksDir, "%s.yaml" % tId))
+			# Check if task file exists => remove it
+			if os.path.exists(taskPath) and os.path.isfile(taskPath):
+				os.remove(taskPath)
+				self._logger.info("Task [%s] Removed" % tId)
+
+				#remove asset dir
+				taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
+				if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
+					shutil.rmtree((taskAssetsDir), True, self._logger.info("Unable to remove assets dir from [%s]" % tId))
+
+				return {'removed': tId}
+
+			# No task file found, check for assets dir anyway to clean
+			self._logger.info("File [%s.yaml] not found, remove from view." % tId)
 			#remove asset dir
-			shutil.rmtree( os.path.join(os.path.dirname(os.path.realpath(__file__)),'static','img','variant', tId) )
-
-			self._logger.info("Task [%s] Removed" % tId)
+			taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
+			if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
+				self._logger.info("Found old assets dir from [%s.yaml], removing..." % tId)
+				shutil.rmtree((taskAssetsDir), True, self._logger.info("Unable to remove assets dir from [%s]" % tId))
 
 			return {'removed': tId}
-
 		else:
 			return {'error': 'not_found'}
