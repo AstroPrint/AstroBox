@@ -29,6 +29,7 @@ var PrinterConnectionView = SettingsPage.extend({
     'click a.retry-ports': 'retryPortsClicked',
     'click .loading-button.connect button': 'onConnectClicked',
     'click .loading-button.disconnect button': 'onDisconnectClicked',
+    'click .loading-button.cancel button': 'onDisconnectClicked',
     'click .loading-button.reconnect button': 'onReconnectClicked',
   },
   initialize: function(params)
