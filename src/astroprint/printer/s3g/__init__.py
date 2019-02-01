@@ -131,6 +131,8 @@ class PrinterS3g(Printer):
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 		elif newState == self.STATE_CLOSED:
 			eventManager().fire(Events.DISCONNECTED)
+		elif newState == self.STATE_ERROR:
+			eventManager().fire(Events.DISCONNECTED)
 		elif newState == self.STATE_CONNECTING:
 			eventManager().fire(Events.CONNECTING)
 
