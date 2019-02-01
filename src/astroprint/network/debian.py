@@ -362,7 +362,7 @@ class DebianNetworkManager(NetworkManagerBase):
 							activeConnections['wired'] = {
 								'id': d.HwAddress,
 								'ip': self._getIpAddress(d),
-								'mac': '--'
+								'mac': self._getMacAddress(d)
 							}
 
 					elif isinstance(d, self._nm.Wireless):
@@ -379,7 +379,7 @@ class DebianNetworkManager(NetworkManagerBase):
 									'signal': ap.Strength,
 									'name': ap.Ssid,
 									'ip': self._getIpAddress(d),
-									'mac': '--',
+									'mac': self._getMacAddress(d),
 									'secured': wpaSecured or wepSecured,
 									'wep': wepSecured
 								}
@@ -697,6 +697,14 @@ class DebianNetworkManager(NetworkManagerBase):
 				else:
 					return device.Ip4Config.AddressData[0]['address']
 
+		except AttributeError:
+			pass
+
+		return None
+
+	def _getMacAddress(self, device):
+		try:
+			return device.HwAddress
 		except AttributeError:
 			pass
 
