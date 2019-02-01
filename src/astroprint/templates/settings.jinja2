@@ -685,14 +685,14 @@
           <h3 class="bold">Wired Connection</h3>
           <i class="icon-exchange"></i> Connected.
           <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wired.ip %></b></div>
-          <div class="mac-address">Mac Address: <b class="selectable"><%= settings.networks.wired.mac %></b></div>
+          <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wired.mac %></b></div>
         <% } %>
       </div>
       <% if (settings.networks.manual) { %>
         <h3 class="bold">Manually Configured</h3>
         <div>Interface: <b><%= settings.networks.manual.interface %></b></div>
         <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.manual.ip %></b></div>
-        <div class="mac-address">Mac Address: <b class="selectable"><%= settings.networks.manual.mac %></b></div>
+        <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.manual.mac %></b></div>
       <% } %>
       <% if (settings.hasWifi) { %>
 
@@ -708,7 +708,7 @@
             <% } %>
             Connected to <b><%= settings.networks.wireless.name %></b>.
             <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wireless.ip || '- -'  %></b></div>
-            <div class="mac-address">Mac Address: <b class="selectable"><%= settings.networks.wireless.mac || '- -' %></b></div>
+            <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wireless.mac || '- -' %></b></div>
           <% } else { %>
             <div class="not-connected"><img src="/img/no-internet-icon.png" /> Not Connected.</div>
           <% } %>
