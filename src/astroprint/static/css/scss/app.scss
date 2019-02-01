@@ -30,6 +30,10 @@ body, html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
+.selectable {
+  user-select: text;
+}
+
 .tab-bar {
   .tab-bar-section.middle {
     text-align: left;

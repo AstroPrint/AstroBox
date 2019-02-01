@@ -28,6 +28,7 @@ class ManualNetworkManager(NetworkManagerBase):
 			'wireless': None,
 			'manual': {
 				'ip': self._ipAddress,
+				'mac': '--',
 				'interface': 'Not Available'
 			}
 		}

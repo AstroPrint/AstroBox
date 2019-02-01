@@ -337,7 +337,8 @@
       }
     }
 
-    .ip-address {
+    .ip-address,
+    .mac-address {
       font-size: rem-calc(16);
       color: #a5a5a5;
     }

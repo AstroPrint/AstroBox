@@ -38,7 +38,8 @@ class MacDevNetworkManager(NetworkManager):
 		'''
 		wired = {
 			'name': 'Wired Test',
-			'ip': '127.0.0.1:5000'
+			'ip': '127.0.0.1:5000',
+			'mac': 'wi:re:d2:34:56:78:90',
 		}
 		'''
 
@@ -50,6 +51,7 @@ class MacDevNetworkManager(NetworkManager):
 						'signal': 80,
 						'name': n['name'],
 						'ip': '127.0.0.1:5000',
+						'mac': 'wi:fi:12:34:56:78:90',
 						'secured': True
 					}
 
