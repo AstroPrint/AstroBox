@@ -739,6 +739,18 @@
           <% }) %>
         </div>
       <% } %>
+      <% if (settings.networkDeviceInfo) { %>
+        <hr/>
+        <h3 class="bold">Network Devices</h3>
+        <div class="element-list">
+          <% _.each(settings.networkDeviceInfo, function(d) { %>
+            Device: <%= d.id %> (<%= d.type %>)
+            Mac: <%= d.mac %>
+            <% if (d.connected) { %> <i class="icon-exchange"></i> <% } %>
+            <br>
+          <% }) %>
+        </div>
+      <% } %>
     </script>
 
     <div id="delete-stored-wifi-modal" class="reveal-modal medium radius" data-reveal>

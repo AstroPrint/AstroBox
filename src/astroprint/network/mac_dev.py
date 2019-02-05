@@ -35,13 +35,11 @@ class MacDevNetworkManager(NetworkManager):
 		wireless = None
 		wired = None
 
-		'''
 		wired = {
 			'name': 'Wired Test',
 			'ip': '127.0.0.1:5000',
 			'mac': 'wi:re:d2:34:56:78:90',
 		}
-		'''
 
 		if self._storedWiFiNetworks:
 			for n in self._storedWiFiNetworks:
@@ -159,6 +157,23 @@ class MacDevNetworkManager(NetworkManager):
 	@property
 	def activeIpAddress(self):
 		return '127.0.0.1'
+
+	@property
+	def networkDeviceInfo(self):
+		return [
+			{
+				'id': 'eth0',
+				'mac': 'wi:re:d2:34:56:78:90',
+				'type': 'wired',
+				'connected': True
+			},
+			{
+				'id': 'wlan0',
+				'mac': 'wi:fi:12:34:56:78:90',
+				'type': 'wifi',
+				'connected': False
+			}
+		]
 
 	def _goOnline(self):
 		self._online = True
