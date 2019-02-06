@@ -1,7 +1,7 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns="http://www.w3.org/2000/svg">
-<metadata>Copyright (C) 2018 by original authors @ fontello.com</metadata>
+<metadata>Copyright (C) 2019 by original authors @ fontello.com</metadata>
 <defs>
 <font id="fontello" horiz-adv-x="1000" >
 <font-face font-family="fontello" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
@@ -135,6 +135,8 @@
 <glyph glyph-name="doc-text" unicode="&#xe839;" d="M963 100c0 1 0 2 0 2v614c0 18-15 33-33 33h-204v66c0 18-15 33-33 33-18 0-33-15-33-33v-66h-323v66c0 18-15 33-34 33s-33-15-33-33v-66h-200c-18 0-33-15-33-33v-829c0-18 15-33 33-33h630c4 0 9 1 12 2 4 2 8 4 11 7l229 215c3 3 6 6 7 10 1 1 1 2 2 3 1 3 1 6 2 9z m-859 582h166v-33c0-18 15-33 33-33s34 15 34 33v33h323v-33c0-18 15-33 33-33 18 0 33 15 33 33v33h170v-546h-196c-18 0-33-15-33-34v-181h-563v761z m630-613h111l-111-104v104z m-476 446c0 18 15 33 33 33h418c18 0 33-15 33-33s-15-33-33-33h-418c-18 0-33 15-33 33z m0-133c0 19 15 34 33 34h418c18 0 33-15 33-34s-15-33-33-33h-418c-18 0-33 15-33 33z m33-166c-18 0-33 15-33 33 0 19 15 34 33 34h418c18 0 33-15 33-34 0-18-15-33-33-33h-418z" horiz-adv-x="1000" />
 
 <glyph glyph-name="doc" unicode="&#xe83a;" d="M963 100c0 1 0 2 0 2v614c0 18-15 33-33 33h-204v66c0 18-15 33-33 33-18 0-33-15-33-33v-66h-323v66c0 18-15 33-34 33s-33-15-33-33v-66h-200c-18 0-33-15-33-33v-829c0-18 15-33 33-33h630c4 0 9 1 12 2 4 2 8 4 11 7l229 215c3 3 6 6 7 10 1 1 1 2 2 3 1 3 1 6 2 9z m-859 582h166v-33c0-18 15-33 33-33s34 15 34 33v33h323v-33c0-18 15-33 33-33 18 0 33 15 33 33v33h170v-546h-196c-18 0-33-15-33-34v-181h-563v761z m630-613h111l-111-104v104z" horiz-adv-x="1000" />
+
+<glyph glyph-name="ethernet" unicode="&#xe83b;" d="M46 783v-867h914v867h-914z m839-792h-764v716h763l1-716 0 0z m-537 70h310v133h133v443h-576v-443h133v-133z m-58 208v293h52v-114h76v114h47v-114h75v114h48v-114h75v114h52v-293h-133v-133h-159v133h-133v0z" horiz-adv-x="1000" />
 
 <glyph glyph-name="resize-full" unicode="&#xe84d;" d="M784 111l127 128 0-336-335 0 128 130-128 127 79 79z m-431 686l-129-127 128-127-80-80-126 128-128-129 0 335 335 0z m0-637l-129-127 129-130-335 0 0 336 128-128 128 128z m558 637l0-335-127 129-128-128-79 80 127 127-128 127 335 0z" horiz-adv-x="928" />
 

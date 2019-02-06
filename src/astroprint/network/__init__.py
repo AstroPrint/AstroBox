@@ -97,3 +97,12 @@ class NetworkManager(object):
 	@property
 	def activeIpAddress(self):
 		return None
+
+
+	# Returns information about the network devices present
+	# in the box
+	#
+	# [ { id, mac, type (wifi, wired), connected }, ..]
+	@property
+	def networkDeviceInfo(self):
+		return None

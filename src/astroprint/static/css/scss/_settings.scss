@@ -11,13 +11,23 @@
 
 #settings-view {
   .element-list {
+    color: $base;
     > .row {
-      padding: 5px 0;
+      padding: 2px 0;
+      background: lighten($iron, 14%);
 
       &:nth-child(odd) {
-        background: #fafafa;
+        background: $ghost;
       }
     }
+
+    .inactive{
+      color: $base;
+
+      +.device-info,+.device-info +.device-info{color: $base;}
+    }
+
+    img.wifi.not-connected{filter: grayscale(100%);}
   }
 }
 
@@ -294,6 +304,11 @@
     }
 
     td {
+
+      img{width: 22px; margin: 0 4px;}
+
+      i{vertical-align: middle;}
+
       &.network-name {
         overflow: hidden;
         white-space: nowrap;
@@ -322,12 +337,41 @@
 }
 
 #internet-connection {
+  h3{
+    font-size: 20px;
+  }
+
+  h5{
+    margin: 15px auto 5px;
+  }
+
   i {
     color: $success-color;
   }
 
+  .icon-ethernet{
+    font-style: normal;
+
+    &::before{font-size: 21px;}
+  }
+
+  img.wifi{
+    height: 23px;
+    margin:0 4px;
+    vertical-align: top;
+  }
+
+  .device-info{
+    font-size: rem-calc(15);
+    color: $charcoal;
+    letter-spacing: 1px;
+    padding-left: 36px;
+  }
+
   .connection {
     padding: 10px 0;
+
+    .connected{color: $success-color;}
 
     .not-connected{
       color: $alert-color;
@@ -338,12 +382,10 @@
     }
 
     .ip-address {
-      font-size: rem-calc(16);
-      color: #a5a5a5;
-    }
-
-    .loading-button {
-      margin-top: 20px;
+      font-size: rem-calc(15);
+      color: $charcoal;
+      letter-spacing: 1px;
+      padding-left: 33px;
     }
   }
 
@@ -357,12 +399,18 @@
   }
 
   .stored-wifis {
+    padding: 16px;
     > .row {
       .name {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-top: 10px;
       }
+
+      img{margin-top: 10px;}
+
+      .action{padding: 0;}
 
       .action i {
         color: $alert-color;
@@ -513,7 +561,7 @@
     border: 1px solid #ccc;
     @include radius($global-radius);
 
-    h3 {
+    h3{
       text-align: left;
       font-size: 15px;
     }
@@ -572,7 +620,7 @@
 
       .icon-trash {
         color: $alert-color;
-        font-size: 28px;
+        font-size: 26px;
       }
     }
 

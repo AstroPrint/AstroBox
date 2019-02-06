@@ -654,6 +654,29 @@ class DebianNetworkManager(NetworkManagerBase):
 	def activeIpAddress(self):
 		return self._eventListener._currentIpv4Address
 
+	@property
+	def networkDeviceInfo(self):
+		devices = []
+
+		for d in self._nm.Device.all():
+			if d.Managed:
+				di = {
+					'id': d.Interface,
+					'mac': self._getMacAddress(d),
+					'type': None,
+					'connected': hasattr(d, 'State') and d.State == NetworkManager.NM_DEVICE_STATE_ACTIVATED
+				}
+
+				if isinstance(d, self._nm.Wireless):
+					di['type'] = 'wifi'
+
+				elif isinstance(d, self._nm.Wired):
+					di['type'] = 'wired'
+
+				devices.append(di)
+
+		return devices
+
 # ~~~~~~~~~~~~ Private Functions ~~~~~~~~~~~~~~~
 
 	def _getWifiDevice(self):

@@ -89,6 +89,7 @@ def getNetworkSettings():
 
 	return jsonify({
 		'networks': nm.getActiveConnections(),
+		'networkDeviceInfo': nm.networkDeviceInfo,
 		'hasWifi': nm.hasWifi(),
 		'storedWifiNetworks': nm.storedWifiNetworks()
 	})
