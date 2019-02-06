@@ -756,13 +756,20 @@
         <h3 class="bold">Network Devices</h3>
         <div class="element-list">
           <% _.each(settings.networkDeviceInfo, function(d) { %>
-            <% if (d.connected) { %>
-              <i class="icon-ethernet bold"> Connected</i>
+            <% if (d.type == 'wired') { %>
+              <% if (d.connected) { %>
+                <i class="icon-ethernet bold"> <%= d.id %> ( Connected )</i>
+              <% } else { %>
+                <i class="icon-ethernet bold inactive"> <%= d.id %> </i>
+              <% } %>
             <% } else { %>
-              <i class="icon-ethernet bold inactive"></i>
+              <% if (d.connected) { %>
+                <img class="wifi" src="static/img/icon-signal-high.svg"> <%= d.id %> ( Connected )
+              <% } else { %>
+                <img class="wifi" src="static/img/icon-signal-high.svg"> <%= d.id %>
+              <% } %>
             <% } %>
-              <div class="device-info"><%= d.id %> (<%= d.type %>)</div>
-              <div class="device-info">Mac: <%= d.mac %></div>
+            <div class="device-info">Mac Address: <span class="selectable"><%= d.mac %></span></div>
             <br>
           <% }) %>
         </div>
