@@ -11,6 +11,7 @@
 
 #settings-view {
   .element-list {
+    color: $base;
     > .row {
       padding: 2px 0;
       background: lighten($iron, 14%);
@@ -25,6 +26,8 @@
 
       +.device-info,+.device-info +.device-info{color: $base;}
     }
+
+    img.wifi.not-connected{filter: grayscale(100%);}
   }
 }
 
@@ -349,7 +352,7 @@
 
   img.wifi{
     height: 23px;
-    margin:0 7px;
+    margin:0 4px;
     vertical-align: top;
   }
 
@@ -357,7 +360,7 @@
     font-size: rem-calc(15);
     color: $charcoal;
     letter-spacing: 1px;
-    padding-left: 33px;
+    padding-left: 36px;
   }
 
   .connection {

@@ -683,7 +683,7 @@
       <div class="connection">
         <% if (settings.networks.wired) { %>
           <h3 class="bold">Wired Connection</h3>
-          <i class="icon-ethernet bold"> Connected.</i>
+          <i class="icon-ethernet"> Connected.</i>
           <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wired.ip %></b></div>
           <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wired.mac %></b></div>
         <% } %>
@@ -758,15 +758,15 @@
           <% _.each(settings.networkDeviceInfo, function(d) { %>
             <% if (d.type == 'wired') { %>
               <% if (d.connected) { %>
-                <i class="icon-ethernet bold"> <%= d.id %> ( Connected )</i>
+                <i class="icon-ethernet"> <b><%= d.id %></b> (Connected)</i>
               <% } else { %>
                 <i class="icon-ethernet bold inactive"> <%= d.id %> </i>
               <% } %>
             <% } else { %>
               <% if (d.connected) { %>
-                <img class="wifi" src="static/img/icon-signal-high.svg"> <%= d.id %> ( Connected )
+                <img class="wifi" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b> (Connected)
               <% } else { %>
-                <img class="wifi" src="static/img/icon-signal-high.svg"> <%= d.id %>
+                <img class="wifi not-connected" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b>
               <% } %>
             <% } %>
             <div class="device-info">Mac Address: <span class="selectable"><%= d.mac %></span></div>
