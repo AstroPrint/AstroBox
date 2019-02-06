@@ -701,14 +701,14 @@
           <h3 class="bold">Wireless Connection</h3>
 
           <div class="row clearfix collapse">
-            <div class="loading-button list-networks right small-4 columns">
+            <div class="loading-button list-networks right small-12 medium-4 columns">
               <button class="radius small">Scan WiFi networks</button>
               <span class="loading button disabled radius small">
                 <i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
               </span>
             </div>
 
-            <div class="small-8 columns">
+            <div class="small-12 medium-8 columns">
               <% if (settings.networks.wireless) { %>
                 <% if (settings.networks.wireless.signal < 33) { %>
                   <div class="connected">
@@ -810,11 +810,11 @@
         <tr>
           <td>
             <% if (n.signal < 33) { %>
-              <i class="icon-wifi-signal-low"></i>
+              <img class="wifi" src="static/img/icon-signal-low.svg">
             <% } else if (n.signal > 33 && n.signal < 66) { %>
-              <i class="icon-wifi-signal-med"></i>
+              <img class="wifi" src="static/img/icon-signal-med.svg">
             <% } else { %>
-              <i class="icon-wifi-signal-high"></i>
+              <img class="wifi" src="static/img/icon-signal-high.svg">
             <% } %>
             <% if (n.secured) { %><i class="icon-lock"></i><% } %>
           </td>

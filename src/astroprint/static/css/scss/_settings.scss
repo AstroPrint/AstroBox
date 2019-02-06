@@ -304,6 +304,11 @@
     }
 
     td {
+
+      img{width: 22px; margin: 0 4px;}
+
+      i{vertical-align: middle;}
+
       &.network-name {
         overflow: hidden;
         white-space: nowrap;
