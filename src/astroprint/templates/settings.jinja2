@@ -619,7 +619,7 @@
       <a href="#settings/internet-connection"><h1 class="bold" align="center">Internet Connection</h1></a>
     </div>
 
-    <div id="internet-connection" class="settings-page text-center hide"></div>
+    <div id="internet-connection" class="settings-page hide"></div>
     <div id="wifi-network-list-modal" class="reveal-modal medium radius" data-reveal align="center">
       <h2 class="bold">Select a WiFi Network</h2>
       <div class="modal-content"></div>
@@ -683,11 +683,12 @@
       <div class="connection">
         <% if (settings.networks.wired) { %>
           <h3 class="bold">Wired Connection</h3>
-          <i class="icon-exchange"></i> Connected.
+          <i class="icon-ethernet bold"> Connected.</i>
           <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wired.ip %></b></div>
           <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wired.mac %></b></div>
         <% } %>
       </div>
+      <hr/>
       <% if (settings.networks.manual) { %>
         <h3 class="bold">Manually Configured</h3>
         <div>Interface: <b><%= settings.networks.manual.interface %></b></div>
@@ -698,36 +699,47 @@
 
         <div class="connection">
           <h3 class="bold">Wireless Connection</h3>
-          <% if (settings.networks.wireless) { %>
-            <% if (settings.networks.wireless.signal < 33) { %>
-              <i class="icon-wifi-signal-low"></i>
-            <% } else if (settings.networks.wireless.signal > 33 && settings.networks.wireless.signal < 66) { %>
-              <i class="icon-wifi-signal-med"></i>
-            <% } else { %>
-              <i class="icon-wifi-signal-high"></i>
-            <% } %>
-            Connected to <b><%= settings.networks.wireless.name %></b>.
-            <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wireless.ip || '- -'  %></b></div>
-            <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wireless.mac || '- -' %></b></div>
-          <% } else { %>
-            <div class="not-connected"><img src="/img/no-internet-icon.png" /> Not Connected.</div>
-          <% } %>
-          <div class="loading-button list-networks">
-            <button class="radius small">Scan WiFi networks</button>
-            <span class="loading button disabled radius small">
-              <i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
-            </span>
+
+          <div class="row clearfix collapse">
+            <div class="loading-button list-networks right small-4 columns">
+              <button class="radius small">Scan WiFi networks</button>
+              <span class="loading button disabled radius small">
+                <i class="icon-rocket-spinner animate-spin"></i> Looking for Networks...
+              </span>
+            </div>
+
+            <div class="small-8 columns">
+              <% if (settings.networks.wireless) { %>
+                <% if (settings.networks.wireless.signal < 33) { %>
+                  <div class="connected">
+                    <img class="wifi" src="static/img/icon-signal-low.svg">Connected to <b><%= settings.networks.wireless.name %></b>.
+                  </div>
+                <% } else if (settings.networks.wireless.signal > 33 && settings.networks.wireless.signal < 66) { %>
+                  <div class="connected">
+                    <img class="wifi" src="static/img/icon-signal-med.svg">Connected to <b><%= settings.networks.wireless.name %></b>.</i>
+                  </div>
+                <% } else { %>
+                  <div class="connected">
+                    <img class="wifi" src="static/img/icon-signal-high.svg">Connected to <b><%= settings.networks.wireless.name %></b>.</i>
+                  </div>
+                <% } %>
+                <div class="ip-address">IP Address: <b class="selectable"><%= settings.networks.wireless.ip || '- -'  %></b></div>
+                <div class="ip-address">Mac Address: <b class="selectable"><%= settings.networks.wireless.mac || '- -' %></b></div>
+              <% } else { %>
+                <div class="not-connected bold"><img src="/img/no-internet-icon.png" /> Not Connected.</div>
+              <% } %>
+            </div>
           </div>
+
         </div>
       <% } %>
       <% if (settings.storedWifiNetworks.length > 0) { %>
-        <hr/>
-        <h3 class="bold">Known WiFi Networks</h3>
         <div class="stored-wifis element-list">
+          <h5>Known WiFi Networks</h5>
           <% _.each(settings.storedWifiNetworks, function(c) { %>
-            <div class="clearfix collapse row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
+            <div class="clearfix row<%= c.active ? ' active' : '' %>" data-id="<%= c.id %>">
               <div class="columns small-2 large-1 text-center active">
-                <i class="icon-exchange" title="Currently Connected"></i>
+                <img class="wifi" src="static/img/icon-signal-high.svg">
               </div>
               <div class="columns small-8 large-10 name">
                 <%= c.name %>
@@ -744,9 +756,13 @@
         <h3 class="bold">Network Devices</h3>
         <div class="element-list">
           <% _.each(settings.networkDeviceInfo, function(d) { %>
-            Device: <%= d.id %> (<%= d.type %>)
-            Mac: <%= d.mac %>
-            <% if (d.connected) { %> <i class="icon-exchange"></i> <% } %>
+            <% if (d.connected) { %>
+              <i class="icon-ethernet bold"> Connected</i>
+            <% } else { %>
+              <i class="icon-ethernet bold inactive"></i>
+            <% } %>
+              <div class="device-info"><%= d.id %> (<%= d.type %>)</div>
+              <div class="device-info">Mac: <%= d.mac %></div>
             <br>
           <% }) %>
         </div>
