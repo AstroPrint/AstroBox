@@ -21,13 +21,15 @@
       }
     }
 
+    .connected{color: $success-color;}
+
     .inactive{
       color: $base;
 
       +.device-info,+.device-info +.device-info{color: $base;}
     }
 
-    img.wifi.not-connected{filter: grayscale(100%);}
+    img.wifi.inactive{filter: grayscale(100%);}
   }
 }
 
@@ -363,7 +365,6 @@
 
   .device-info{
     font-size: rem-calc(15);
-    color: $charcoal;
     letter-spacing: 1px;
     padding-left: 36px;
   }

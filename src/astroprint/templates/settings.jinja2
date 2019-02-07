@@ -764,9 +764,11 @@
               <% } %>
             <% } else { %>
               <% if (d.connected) { %>
-                <img class="wifi" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b> (Connected)
+                <div class="connected">
+                  <img class="wifi" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b> (Connected)
+                </div>
               <% } else { %>
-                <img class="wifi not-connected" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b>
+                <img class="wifi inactive" src="static/img/icon-signal-high.svg"> <b><%= d.id %></b>
               <% } %>
             <% } %>
             <div class="device-info">Mac Address: <span class="selectable"><%= d.mac %></span></div>
