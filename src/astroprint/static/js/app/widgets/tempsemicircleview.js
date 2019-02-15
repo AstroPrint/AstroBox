@@ -10,7 +10,7 @@ var TempSemiCircleView = Backbone.View.extend({
   tool : null,
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
-  enableOff: true,
+  enableCool: true,
   hideBed: false,
   events: {
     'click button.temp-off': 'turnOff',
@@ -34,6 +34,7 @@ var TempSemiCircleView = Backbone.View.extend({
 
     var profile = app.printerProfile.toJSON();
     var tool = params.tool;
+    var numberOfPresets = Object.keys(profile.temp_presets).length
     this.temp_presets = profile.temp_presets;
     last_preset = null
     last_temp = lastTemp(tool, profile.last_presets_used)
@@ -54,7 +55,7 @@ var TempSemiCircleView = Backbone.View.extend({
       last_preset['id'] = Object.keys(profile.temp_presets)[0]
     }
 
-    this.enableOff = params.enableOff;
+    this.enableCool = params.enableCool;
     this.hideBed = params.hideBed;
     this.last_preset = last_preset;
 
@@ -69,8 +70,7 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.attr('id', 'bed');
     }
     this.$el.attr('align', 'center');
-
-    if (params.preHeat) {
+    if (numberOfPresets == 1 && params.preHeat) {
       this.turnOn();
     }
   },
@@ -89,7 +89,7 @@ var TempSemiCircleView = Backbone.View.extend({
       }
     }
 
-    this.enableTurnOff(this.enableOff);
+    this.enableTurnOff(this.enableCool);
     this.checkHideBed(this.hideBed);
     if (this.last_preset && this.last_preset.id == "custom"){
       setTimeout( _.bind(function() {
@@ -228,18 +228,15 @@ var TempSemiCircleView = Backbone.View.extend({
     } else {
       maxValue = app.printerProfile.get('max_nozzle_temp');
     }
+    value = value < 0 ? 0 : value;
 
-    if (value < 0) {
-      value = 0;
-    } else if (value > maxValue) {
-      value = maxValue;
-    }
-
-    if (value != this.lastSent && !isNaN(value) ) {
-      var loadingBtn = this.$('.temp-on');
-      loadingBtn.addClass('loading');
-      this._sendToolCommand('target', this.el.id, value);
-      this._saveLastTemp()
+    if (value <= maxValue) {
+      if (value != this.lastSent && !isNaN(value)) {
+        var loadingBtn = this.$('.temp-on');
+        loadingBtn.addClass('loading');
+        this._sendToolCommand('target', this.el.id, value);
+        this._saveLastTemp()
+      }
     }
   },
   setTemps: function(actual, target)

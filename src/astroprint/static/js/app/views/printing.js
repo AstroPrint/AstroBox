@@ -427,7 +427,7 @@ el: '#printing-view',
 
     //extruders
     for (var i = 0; i < this.extruders_count; i++) {
-      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: false});
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableCool: false});
 
       this.semiCircleTemp_views[i] = semiCircleTemp;
 
@@ -452,7 +452,7 @@ el: '#printing-view',
       this.$el.find('#bed-container').addClass('no-bed');
     }
 
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: false});
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableCool: false});
     this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
     this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 
