@@ -41,7 +41,7 @@ var TempView = Backbone.View.extend({
 
 
     for (var i = 0; i < this.extruders_count; i++) {
-      semiCircleTemp = new TempSemiCircleView({'tool': i, enableOff: true});
+      semiCircleTemp = new TempSemiCircleView({'tool': i, enableCool: true});
       this.semiCircleTemp_views[i] = semiCircleTemp;
       this.$el.find('#slider').append(this.semiCircleTemp_views[i].render().el);
 
@@ -65,7 +65,7 @@ var TempView = Backbone.View.extend({
     } else {
       this.$el.find('#bed-container').addClass('no-bed');
     }
-    semiCircleTemp = new TempSemiCircleView({'tool': null, enableOff: true});
+    semiCircleTemp = new TempSemiCircleView({'tool': null, enableCool: true});
     this.semiCircleTemp_views[this.extruders_count] = semiCircleTemp;
     this.$el.find('.bed').append(this.semiCircleTemp_views[this.extruders_count].render().el);
 

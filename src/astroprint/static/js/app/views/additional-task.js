@@ -496,7 +496,7 @@ var CustomTempView = Backbone.View.extend({
     this.$el.find('#slider').empty();
     this.$el.find('.bed').empty();
 
-    this.semiCircleTempView = new TempSemiCircleView({'tool': this.currentExtruder, enableOff: false, hideBed: true, preHeat: true});
+    this.semiCircleTempView = new TempSemiCircleView({'tool': this.currentExtruder, enableCool: false, hideBed: true, preHeat: true});
 
     this.$el.find('#slider').append(this.semiCircleTempView.render().el);
 
@@ -532,7 +532,8 @@ var CustomTempView = Backbone.View.extend({
 
   updateTemps: function(temp_values)
   {
-    var temps = { 'current': temp_values.extruders[this.currentExtruder].current, 'target': temp_values.extruders[this.currentExtruder].target };
+    var currentExtruderTemps = temp_values.extruders[this.currentExtruder];
+    var temps = { 'current': currentExtruderTemps.current, 'target': currentExtruderTemps.target };
 
     (this.semiCircleTempView).updateValues(temps);
 
@@ -552,7 +553,7 @@ var CustomTempView = Backbone.View.extend({
       fill: { gradient: ['#60D2E5', '#E8A13A', '#F02E19'] }
     });
 
-    if (temp_values.extruders[this.currentExtruder].current >= temp_values.extruders[this.currentExtruder].target ) {
+    if (currentExtruderTemps.target != 0 && currentExtruderTemps.current >= currentExtruderTemps.target ) {
       var loadingBtn = $('button.next').closest('.loading-button');
       loadingBtn.removeClass('inactive');
     }
