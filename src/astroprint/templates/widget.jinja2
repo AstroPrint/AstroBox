@@ -164,6 +164,13 @@
         </div>
         <div class="small-12 medium-3 columns" id="z-controls">
           <h5>Z-BabySteps</h5>
+          <select class="babystep-amount bold" id="babystep-control">
+            <option value="0.005">0.005</option>
+            <option value="0.05">0.05</option>
+            <option value="0.1">0.1</option>
+            <option value="0.25">0.25</option>
+          </select>
+
           <a class="btn_babystep_z_plus control-btn-wrapper">
             <div class="btn">
               <i class="icon-right-open"></i>
@@ -176,7 +183,7 @@
             </div>
           </a>
         </div>
-        <div class="small-6 columns blur-effect" id="distance-control">
+        <div class="small-12 columns blur-effect" id="distance-control">
           <center>
             <h5>Set movement distance</h5>
             <ul class="button-group radius">
@@ -195,26 +202,6 @@
             </ul>
           </center>
         </div>
-        <div class="small-6 columns blur-effect" id="babystep-control">
-          <center>
-            <h5>Set babystep amount</h5>
-            <ul class="button-group radius">
-              <li>
-                <button class="tiny bold success secondary" data-value="0.005">0.005</button>
-              </li>
-              <li>
-                <button class="tiny bold secondary" data-value="0.05">0.05</button>
-              </li>
-              <li>
-                <button class="tiny bold secondary" data-value="0.1">0.1</button>
-              </li>
-              <li>
-                <button class="tiny bold secondary" data-value="0.25">0.25</button>
-              </li>
-            </ul>
-          </center>
-        </div>
-
     <% } %>
   </div>
 </script>

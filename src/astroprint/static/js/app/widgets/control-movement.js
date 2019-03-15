@@ -21,7 +21,7 @@ var ControlView = Backbone.View.extend({
     'click .btn_babystep_z_minus': function(){this.babyStepMinusTapped()},
 
     'click #distance-control button': 'selectDistance',
-    'click #babystep-control button': 'selectBabystepAmount',
+    'change #babystep-control': 'selectBabystepAmount',
   },
   initialize: function (param)
   {
@@ -72,12 +72,7 @@ var ControlView = Backbone.View.extend({
   },
   selectBabystepAmount: function (e) {
     var el = $(e.currentTarget);
-    var buttonGroup = $(el).parent().parent()
-
-    buttonGroup.find('.success').removeClass('success').addClass('secondary');
-    el.addClass('success').removeClass('secondary');
-
-    this.babystepAmountSelected = el.attr('data-value');
+    this.babystepAmountSelected = el.val()
   },
 
   render: function ()
