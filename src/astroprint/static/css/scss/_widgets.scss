@@ -227,7 +227,7 @@
       transform: rotate(90deg);
     }
 
-    &.btn_babystep_z_plus{margin-top: 30px;}
+    &.btn_babystep_z_plus{margin-top: 10px;}
 
     &.btn_babystep_z_plus, &.btn_babystep_z_minus{
       height: 32px;
@@ -241,6 +241,9 @@
 
     &.btn_babystep_z_minus{margin-top: 18px;}
   }
+}
+select.babystep-amount {
+  width: 80px;
 }
 
 #distance-control {
