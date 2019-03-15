@@ -1108,7 +1108,8 @@ class MachineCom(object):
 				or 'no line number with checksum' in line_lower \
 				or 'no checksum with line number' in line_lower \
 				or 'format error' in line_lower \
-				or 'missing checksum' in line_lower:
+				or 'missing checksum' in line_lower \
+				or 'failed to enable bed leveling' in line_lower:
 				pass
 			elif not self.isError():
 				self._errorValue = line[6:]
