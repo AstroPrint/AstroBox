@@ -1,6 +1,7 @@
 var ControlView = Backbone.View.extend({
   commandsSender: null,
   distanceSelected: 10,
+  babystepAmountSelected: 0.005,
   template: _.template( $("#control-template").html() ),
   ignorePrintingStatus: false,
   onlyBabyStep: false,
@@ -19,7 +20,8 @@ var ControlView = Backbone.View.extend({
     'click .btn_babystep_z_plus': function(){this.babyStepPlusTapped()},
     'click .btn_babystep_z_minus': function(){this.babyStepMinusTapped()},
 
-    'click button': 'selectDistance'
+    'click #distance-control button': 'selectDistance',
+    'click #babystep-control button': 'selectBabystepAmount',
   },
   initialize: function (param)
   {
@@ -51,20 +53,31 @@ var ControlView = Backbone.View.extend({
 
   babyStepPlusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("0.005");
+    this.commandsSender.sendBabyStepCommand(this.babystepAmountSelected);
   },
   babyStepMinusTapped: function ()
   {
-    this.commandsSender.sendBabyStepCommand("-0.005");
+    this.commandsSender.sendBabyStepCommand("-" + this.babystepAmountSelected);
   },
 
   selectDistance: function (e)
   {
     var el = $(e.currentTarget);
-    this.$el.find('.success').removeClass('success').addClass('secondary');
+    var buttonGroup = $(el).parent().parent()
+
+    buttonGroup.find('.success').removeClass('success').addClass('secondary');
     el.addClass('success').removeClass('secondary');
 
     this.distanceSelected = el.attr('data-value');
+  },
+  selectBabystepAmount: function (e) {
+    var el = $(e.currentTarget);
+    var buttonGroup = $(el).parent().parent()
+
+    buttonGroup.find('.success').removeClass('success').addClass('secondary');
+    el.addClass('success').removeClass('secondary');
+
+    this.babystepAmountSelected = el.attr('data-value');
   },
 
   render: function ()
