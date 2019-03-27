@@ -278,7 +278,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
       // Link to a special modal with params
       } else if (typeof actions == "object") {
         var params = actions.parameters ? actions.parameters : ""
-        var linkID = actions.linkID ? actions.linkID : ""
+        var linkID = actions.link_id ? actions.link_id : ""
         if (linkID) {
           this.linkTo(linkID, params);
         }
