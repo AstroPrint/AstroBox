@@ -1,8 +1,14 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global HomeView, PrintQueueView, FilesView, UtilitiesView, PrintingView,
+          SettingsView, MaintenanceMenuView, AdditionalTasksView, AdditionalTaskView,
+          TerminalView, CameraView, SuppliesView, HelpView */
+
+/* exported AppRouter */
 
 var AppRouter = Backbone.Router.extend({
   homeView: null,
@@ -12,7 +18,7 @@ var AppRouter = Backbone.Router.extend({
   settingsView: null,
   additionalTasksView: null,
   additionalTaskView: null,
-  maintenanceMenu: null,
+  maintenanceMenuView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -40,8 +46,8 @@ var AppRouter = Backbone.Router.extend({
   execute: function(callback, args)
   {
     if (callback) {
-      is_paused = app.socketData.get('paused');
-      is_printing = app.socketData.get('printing');
+      var is_paused = app.socketData.get('paused');
+      var is_printing = app.socketData.get('printing');
 
       if (is_printing || is_paused) {
         app.setPrinting();

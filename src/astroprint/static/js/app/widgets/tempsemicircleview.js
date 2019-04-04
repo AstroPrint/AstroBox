@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported TempSemiCircleView */
+
 var TempSemiCircleView = Backbone.View.extend({
   className: 'semi-circle-temps',
   type: null,
@@ -36,8 +46,8 @@ var TempSemiCircleView = Backbone.View.extend({
     var tool = params.tool;
     var numberOfPresets = Object.keys(profile.temp_presets).length
     this.temp_presets = profile.temp_presets;
-    last_preset = null
-    last_temp = lastTemp(tool, profile.last_presets_used)
+    var last_preset = null
+    var last_temp = lastTemp(tool, profile.last_presets_used)
     if (last_temp) {
       if (last_temp.id == "custom") {
         last_preset = last_temp
@@ -114,12 +124,6 @@ var TempSemiCircleView = Backbone.View.extend({
         }
       } else {
         this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 );
-      }
-
-      var now = new Date().getTime();
-
-      if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
-        target = this.lastSent;
       }
 
       if (isNaN(temps.current)) {
@@ -383,7 +387,7 @@ var TempSemiCircleView = Backbone.View.extend({
         }
       }
 
-      attrs = { "last_presets_used": profile.last_presets_used}
+      var attrs = { "last_presets_used": profile.last_presets_used}
       app.printerProfile.save(attrs, {
         patch: true,
         success: _.bind(function () { }, this),

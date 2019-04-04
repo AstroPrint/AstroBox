@@ -1,8 +1,12 @@
 /*
- *  (c) 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported loginModal */
 
 var LoginModal = Backbone.View.extend({
   el: '#login-modal',

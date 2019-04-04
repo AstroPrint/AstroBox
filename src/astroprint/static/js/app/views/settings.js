@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported SettingsView */
 
 var SettingsPage = Backbone.View.extend({
   parent: null,
@@ -236,23 +240,7 @@ var PrinterProfileView = SettingsPage.extend({
   unlinkPrinterClicked: function(e)
   {
     e.preventDefault();
-    console.log(this.settings);
     (new UnlinkPrinterDialog()).open({settings: this.settings, view: this})
-  },
-  _checkCurrentPrinter: function(printerID) {
-    var promise = $.Deferred();
-
-      this.astroprintApi.getModelInfo(printerID)
-      .done(_.bind(function (info) {
-        promise.resolve(info)
-      }, this))
-
-      .fail(_.bind(function (xhr) {
-        console.error(xhr);
-        promise.reject();
-      }, this))
-
-    return promise;
   },
   _checkCurrentPrinter: function(printerID) {
     var promise = $.Deferred();
@@ -312,7 +300,6 @@ var PrinterProfileView = SettingsPage.extend({
   driverChanged: function(e)
   {
     var target = $(e.currentTarget);
-    var wrapper = this.$('.input-wrapper.cancel-gcode');
 
     this.settings.set('driver', target.val());
     this.render();
@@ -338,7 +325,7 @@ var PrinterProfileView = SettingsPage.extend({
 
     form.find('input, select, textarea').each(function(idx, elem) {
       var value = null;
-      var elem = $(elem);
+      elem = $(elem);
 
       if (elem.is('input[type="radio"], input[type="checkbox"]')) {
         value = elem.is(':checked');
@@ -397,8 +384,6 @@ var FilamentView = SettingsPage.extend({
       'color': $('#filament-name').data("color"),
     }
 
-    console.log(data)
-
     if (!this.filamentSelectorDlg) {
       this.filamentSelectorDlg = new FilamentSelectorDialog({parent: this});
     }
@@ -424,7 +409,6 @@ var FilamentView = SettingsPage.extend({
   unlinkFilamentClicked: function(e)
   {
     e.preventDefault();
-    console.log(this.settings);
     (new UnlinkFilamentDialog()).open({settings: this.settings, view: this})
   },
   render: function() {
@@ -459,7 +443,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
   open: function(params)
   {
-    printerData = params ? params.printerData : null
+    var printerData = params ? params.printerData : null
 
     this._checkManufacturersAndPrinters(printerData);
 
@@ -555,13 +539,13 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
   _checkManufacturersAndPrinters: function (printerID, manufacturerID)
   {
-    var printerID = null;
-    var manufacturerID = null;
+    /*printerID = null;
+    manufacturerID = null;
 
     if (printerData){
       printerID = printerData.printer_id;
       manufacturerID = printerData.manufacturer_id;
-    }
+    }*/
     // Get manufacturers list
     app.astroprintApi.getManufacturers()
       .done(_.bind(function (manufacturers) {
@@ -580,7 +564,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
           }, this))
       }, this))
 
-      .fail(_.bind(function (xhr) {
+      .fail(_.bind(function () {
         console.error("Error getting manufacturers");
         noty({ text: "Error getting manufacturers", timeout: 3000 });
       }, this))
@@ -888,8 +872,8 @@ var TemperaturePresetsView = SettingsPage.extend({
     this.editPresetsDialog.open({
       id: row.data('id'),
     })
-  },
-  updateTemperaturePresets: function(e)
+  }/*,
+  updateTemperaturePresets: function()
   {
     this.settings.save(attrs, {
       patch: true,
@@ -907,7 +891,7 @@ var TemperaturePresetsView = SettingsPage.extend({
         loadingBtn.removeClass('loading');
       }
     });
-  }
+  }*/
 });
 
 var DeleteTemperaturePresetsDialog = Backbone.View.extend({
@@ -949,7 +933,7 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
 
     delete this.parent.settings.attributes.temp_presets[this.id]
 
-    attr = {}
+    var attr = {}
     attr.temp_presets = this.parent.settings.attributes.temp_presets
     this.parent.settings.save(attr, {
       patch: true,
@@ -1018,7 +1002,7 @@ var EditPresetsDialog = Backbone.View.extend({
     this.$el.foundation('abide');
 
   },
-  validForm: function(e)
+  validForm: function()
   {
     var form = document.getElementById("preset-form");
     var name = $('#temperature-preset-name').val()
@@ -1034,7 +1018,7 @@ var EditPresetsDialog = Backbone.View.extend({
         noty({text: "Temperature Preset saved.", timeout: 3000, type:"success"});
         this.$el.foundation('reveal', 'close');
       }, this))
-      .fail( _.bind(function(data) {
+      .fail( _.bind(function() {
         noty({text: "There was an error saving temperature preset.", timeout: 3000});
       }));
     } else {
@@ -1042,7 +1026,7 @@ var EditPresetsDialog = Backbone.View.extend({
       this.preset.bed_temp = bed;
       this.preset.nozzle_temp = nozzle;
 
-      attr = {}
+      var attr = {}
       attr.temp_presets = this.parent.settings.attributes.temp_presets
       this.parent.settings.save(attr, {
         patch: true,
@@ -1056,7 +1040,6 @@ var EditPresetsDialog = Backbone.View.extend({
         }, this),
         error: function() {
           noty({text: "Failed to modify Temperature Preset", timeout: 3000});
-          loadingBtn.removeClass('loading');
         }
       });
     }
@@ -1124,7 +1107,7 @@ var NetworkNameView = SettingsPage.extend({
     loadingBtn.addClass('loading');
 
     form.find('input').each(function(idx, elem) {
-      var elem = $(elem);
+      elem = $(elem);
       attrs[elem.attr('name')] = elem.val();
     });
 
@@ -1167,7 +1150,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     "change #video-stream-encoding": "changeEncoding",
     "change #video-stream-source": "changeSource"
   },
-  show: function(previousCameraName) {
+  show: function() {
 
     var form = this.$('form');
     var loadingBtn = form.find('.loading-button');
@@ -1259,7 +1242,7 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.render();
     }
   },
-  changeSource: function(e){
+  changeSource: function(){
     if(this.$('#video-stream-source option:selected').val() == 'raspicam'){
       this.$('#video-stream-encoding').prop('value', 'h264');
       this.$('#video-stream-encoding').prop('disabled', 'disabled');
@@ -1268,7 +1251,7 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.$('#video-stream-encoding').prop('disabled', '');
     }
   },
-  changeEncoding: function(e){
+  changeEncoding: function(){
 
     if(!this.settings){
 
@@ -1342,7 +1325,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 
     form.find('input, select, textarea').each(function(idx, elem) {
       var value = null;
-      var elem = $(elem);
+      elem = $(elem);
 
       if (elem.is('input[type="radio"], input[type="checkbox"]')) {
         value = elem.is(':checked');
@@ -1403,7 +1386,7 @@ var InternetConnectionView = SettingsPage.extend({
     'click .loading-button.list-networks button': 'listNetworksClicked',
     'click .stored-wifis .row .action': 'onDeleteNetworkClicked'
   },
-  initialize: function(params) {
+  initialize: function() {
     SettingsPage.prototype.initialize.apply(this, arguments);
 
     this.networksDlg = new WiFiNetworksDialog({parent: this});
@@ -1474,6 +1457,7 @@ var InternetConnectionView = SettingsPage.extend({
 
               case 'failed':
                 app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
+                var message = null
                 if (connectionInfo.reason == 'no_secrets') {
                   message = "Invalid password for "+data.name+".";
                 } else {
@@ -1783,7 +1767,7 @@ var WifiHotspotView = SettingsPage.extend({
     $.ajax({
       url: API_BASEURL + "settings/network/hotspot",
       type: "POST",
-      success: _.bind(function(data, code, xhr) {
+      success: _.bind(function(/*data, code, xhr*/) {
         noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
         this.settings.hotspot.active = true;
         this.render();
@@ -1804,7 +1788,7 @@ var WifiHotspotView = SettingsPage.extend({
     $.ajax({
       url: API_BASEURL + "settings/network/hotspot",
       type: "DELETE",
-      success: _.bind(function(data, code, xhr) {
+      success: _.bind(function(/*data, code, xhr*/) {
         noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
         this.settings.hotspot.active = false;
         this.render();
@@ -1852,9 +1836,8 @@ var SoftwarePluginsView = SettingsPage.extend({
   },
   pluginsInfo: null,
   uploader: null,
-  template: null,
   deleteDlg: null,
-  initialize: function(opts)
+  initialize: function()
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.uploader = new PluginUploader({
@@ -1965,6 +1948,7 @@ var PluginUploader = FileUploadBase.extend({
 
       case 'incompatible_plugin':
         message = 'The API version used by the plugin is not compatible.';
+      break;
 
       case 'already_installed':
         message = "The Plugin is already installed. Please remove old version first.";
@@ -2170,7 +2154,7 @@ var SoftwareUpdateView = SettingsPage.extend({
         });
     }
   },
-  onCheckClicked: function(e)
+  onCheckClicked: function()
   {
     var loadingBtn = this.$el.find('.loading-button.check');
     loadingBtn.addClass('loading');
@@ -2280,7 +2264,7 @@ var SoftwareAdvancedView = SettingsPage.extend({
     'change #apikey-regenerate': 'regenerateApiKeyChange',
     'change select.update-channel': 'onUpdateChannelChanged'
   },
-  initialize: function(params)
+  initialize: function()
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.resetConfirmDialog = new ResetConfirmDialog();

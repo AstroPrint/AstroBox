@@ -1,8 +1,13 @@
 /*
- *  (c) 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global SemiCircleProgress, TempSemiCircleView, ControlView */
+
+/* exported UtilitiesView */
+
 var TempView = Backbone.View.extend({
   className: 'control-temps small-12 columns',
   el: '#temp-control-template',
@@ -77,7 +82,7 @@ var TempView = Backbone.View.extend({
 
     this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
 
-    for (var i = 0; i <= this.extruders_count; i++) {
+    for (i = 0; i <= this.extruders_count; i++) {
       this._setCircleProgress(i);
     }
 
@@ -110,7 +115,7 @@ var TempView = Backbone.View.extend({
       }
 
     }
-    for (var i = 0; i <= this.extruders_count; i++) {
+    for (i = 0; i <= this.extruders_count; i++) {
       this._setCircleProgress(i);
     }
   },
@@ -132,6 +137,7 @@ var TempView = Backbone.View.extend({
 
       for (var i = 0; i < semiCircleCount; i++) {
         if (i != this.extruders_count) {
+          var temps = null
           if (_.has(socketTemps, 'extruders')) {
             temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
           } else {

@@ -1,8 +1,13 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global app:writable, SocketData, Utils, AppRouter, ConnectionView, PrinterProfile, AstroPrintApi,
+          TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal */
+
+/* exported navigatorPrevent */
 
 $.ajaxSetup({
   type: 'POST',

@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported FileUploadCombined */
+
 var FileUploadBase = Backbone.View.extend({
   events: {
     'fileuploadadd': 'onFileAdded',
@@ -101,7 +111,7 @@ var FileUploadBase = Backbone.View.extend({
   {
     this.failed(data.jqXHR.responseText ? data.jqXHR.responseText : null);
   },
-  onUploadAlways: function(e, data)
+  onUploadAlways: function(/*e, data*/)
   {
     this.always();
   },
@@ -110,10 +120,10 @@ var FileUploadBase = Backbone.View.extend({
     this.success(data);
   },
   //Override these
-  started: function(data){},
-  progress: function(progress){},
-  failed: function(error){},
-  success: function(fileInfo){},
+  started: function(/*data*/){},
+  progress: function(/*progress*/){},
+  failed: function(/*error*/){},
+  success: function(/*fileInfo*/){},
   always: function(){}
 });
 
@@ -147,7 +157,7 @@ var FileUploadCombined = FileUploadBase.extend({
       var fileExt = fileName.substr( (fileName.lastIndexOf('.') +1) ).toLowerCase();
 
       //Let's find out what type of file this is
-      this.currentFileType = _.findKey(this.fileTypes, function(v, k) {
+      this.currentFileType = _.findKey(this.fileTypes, function(v) {
         return (_.find(v, function(ext) {
           return ext == fileExt;
         }) != undefined);
@@ -218,10 +228,11 @@ var FileUploadCombined = FileUploadBase.extend({
 
         var hasFilesView = app.router.loadFilesView(false);
 
+        var promise = null
         if ( hasFilesView === true) {
-          var promise = app.router.filesView.refreshPrintFiles()
+          promise = app.router.filesView.refreshPrintFiles()
         } else {
-          var promise = hasFilesView; //in this case it returns a promise
+          promise = hasFilesView; //in this case it returns a promise
         }
 
         promise
@@ -246,7 +257,7 @@ var FileUploadCombined = FileUploadBase.extend({
 
   //Override These
   onPrintFileUploaded: function() {},
-  onError: function(type, error) {}
+  onError: function(/*type, error*/) {}
 });
 
 var DesignUploadWarningDialog = Backbone.View.extend({
@@ -269,7 +280,7 @@ var DesignUploadWarningDialog = Backbone.View.extend({
     this.promise = $.Deferred();
     return this.promise;
   },
-  onModalClose: function(e)
+  onModalClose: function()
   {
     if (this.promise.state() == 'pending') {
       this.promise.resolve(false);
@@ -277,16 +288,16 @@ var DesignUploadWarningDialog = Backbone.View.extend({
 
     this.promise = null;
   },
-  onLoginClicked: function(e)
+  onLoginClicked: function()
   {
     this.promise.resolve(false);
     $('#login-modal').foundation('reveal', 'open');
   },
-  onCancelClicked: function(e)
+  onCancelClicked: function()
   {
     this.$el.foundation('reveal', 'close');
   },
-  onContinueClicked: function(e)
+  onContinueClicked: function()
   {
     this.promise.resolve(true);
     this.$el.foundation('reveal', 'close');

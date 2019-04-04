@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global  SettingsView */
+
+/* exported HomeView */
 
 var FileUploadDashboard = FileUploadCombined.extend({
   container: null,
@@ -99,7 +103,7 @@ var HomeView = Backbone.View.extend({
     this.listenTo(app.printerProfile, 'change:driver', this.onDriverChanged);
     this.onDriverChanged(app.printerProfile, app.printerProfile.get('driver'));
 
-    this.listenTo(app.socketData, 'new_sw_release', _.bind(function(data){
+    this.listenTo(app.socketData, 'new_sw_release', _.bind(function(){
       this.$('.new-release').removeClass('hide');
     }, this));
   },
@@ -130,7 +134,6 @@ var HomeView = Backbone.View.extend({
     if (initial_states.userLogged) {
       location.href = "#print-queue";
     } else {
-      console.log('logout');
       $('#login-modal').foundation('reveal', 'open');
     }
   },

@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* globals UI_API_KEY:writable, AP_SESSION_ID:writable */
+
+/* exported SocketData */
 
 window.AP_SESSION_ID = null;
 
@@ -110,7 +114,7 @@ var SocketData = Backbone.Model.extend({
     if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
       var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
 
-      console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
+      console.warn("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
 
       this._nextReconnectAttempt = setTimeout(_.bind(this.reconnect, this), timeout * 1000);
       this._autoReconnectTrial++;
@@ -160,8 +164,8 @@ var SocketData = Backbone.Model.extend({
 
           if (data.state && data.state.text != this.currentState) {
             this.currentState = data.state.text;
-            connectionClass = '';
-            printerStatus = '';
+            var connectionClass = '';
+            var printerStatus = '';
 
             if (data.state.state == 4) { //4 -> STATE_CONNECTING
               connectionClass = 'blink-animation';
@@ -260,7 +264,7 @@ var SocketData = Backbone.Model.extend({
                 break;
 
                 default:
-                  console.log('astroprintStatus unkonwn event: '+payload);
+                  console.warn('astroprintStatus unkonwn event: '+payload);
               }
               this.set('astroprint', { status: payload });
             break;

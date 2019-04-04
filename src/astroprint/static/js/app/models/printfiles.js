@@ -4,6 +4,8 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* exported PrintFileCollection */
+
 var PrintFile = Backbone.Model.extend({
   defaults: {
     'name': '',

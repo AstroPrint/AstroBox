@@ -4,6 +4,10 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* global PrintFileCollection, USBFileCollection */
+
+/* exported FilesView */
+
 var PrintFileInfoDialog = Backbone.View.extend({
   el: '#print-file-info',
   file_list_view: null,
@@ -43,7 +47,6 @@ var PrintFileInfoDialog = Backbone.View.extend({
 
     if (print_file) {
       var filename = print_file.get('local_filename');
-      var id = print_file.get('id');
       var loadingBtn = $(e.currentTarget).closest('.loading-button');
 
       loadingBtn.addClass('loading');
@@ -326,7 +329,7 @@ var PrintFileView = Backbone.View.extend({
   {
     evt.preventDefault();
 
-    if (!app.printerProfile.get('printer_model').id || !this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
+    if (!app.printerProfile.get('printer_model').id || !this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
       this.doAddToQueue().then()
         .done(_.bind(function () {
           this.list.doSync()
@@ -526,11 +529,12 @@ var PrintFilesListView = Backbone.View.extend({
           this.usb_file_views.push(backView);
         }
 
-        this.usbfile_list.each(_.bind(function(file, idx) {
+        this.usbfile_list.each(_.bind(function(file/*, idx*/) {
+          var usb_file_view = null
           if(this.usbfile_list.extensionMatched(file.get('name'))) {
-            var usb_file_view = new USBFileView(file, this);
+            usb_file_view = new USBFileView(file, this);
           } else {
-            var usb_file_view = new BrowsingFileView(
+            usb_file_view = new BrowsingFileView(
               {
                 parentView: this,
                 file: file
@@ -597,9 +601,11 @@ var PrintFilesListView = Backbone.View.extend({
           this.refresh('local');
           this.need_to_be_refreshed = false;
         } else {
+          var unmatchedFileViews = null;
+          var matchedFileViews = null;
           if (selectedStorage == 'cloud') {
-            var unmatchedFileViews = []
-            var matchedFileViews = _.filter(this.print_file_views, function(p){
+            unmatchedFileViews = [];
+            matchedFileViews = _.filter(this.print_file_views, function(p){
               if (!p.print_file.get('local_only') && p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
                 return true;
               } else if (!p.print_file.get('local_only')) {
@@ -610,8 +616,8 @@ var PrintFilesListView = Backbone.View.extend({
             });
           } else {
             // here ?
-            var unmatchedFileViews = []
-            var matchedFileViews = _.filter(this.print_file_views, function (p) {
+            unmatchedFileViews = []
+            matchedFileViews = _.filter(this.print_file_views, function (p) {
               if (p.print_file.get('local_filename')) {
                 if (p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
                   return true;
@@ -624,7 +630,7 @@ var PrintFilesListView = Backbone.View.extend({
           }
         }
       } else {
-        var matchedFileViews = this.print_file_views;
+        matchedFileViews = this.print_file_views;
       }
 
       var matchedFilesFound = false;
@@ -656,7 +662,7 @@ var PrintFilesListView = Backbone.View.extend({
       }
 
       // If no cloud tab or no printer model stored, hide headers and filter container
-      if (selectedStorage == "USB" || !app.printerProfile.get('printer_model').id) {
+      if (selectedStorage == "USB" || !app.printerProfile.get('printer_model').id) {
         this.$('.header-filter').hide();
         listFilteredEl.hide()
       }
@@ -693,18 +699,19 @@ var PrintFilesListView = Backbone.View.extend({
 
       if ( !this.refreshing ) {
         this.refreshing = true;
+        var loadingArea = null;
+        var syncPromise = null;
 
         switch(kindOfSync){
           case 'cloud':
-            var loadingArea = this.$('.loading-button.sync');
-            var syncPromise = this.file_list.syncCloud();
+            loadingArea = this.$('.loading-button.sync');
+            syncPromise = this.file_list.syncCloud();
           break;
 
           case 'local':
-            var loadingArea = this.$('.local-loading');
-            var syncPromise = this.file_list.fetch();
+            loadingArea = this.$('.local-loading');
+            syncPromise = this.file_list.fetch();
           break;
-
         }
 
         loadingArea.addClass('loading');
@@ -864,7 +871,7 @@ var PrintFilesListView = Backbone.View.extend({
           if (hasQueueAccess) {
             this.loadQueue()
               .done(_.bind(function (data) {
-                filesOnQueue = data ? data.ready_counter : 0;
+                var filesOnQueue = data ? data.ready_counter : 0;
                 promise.resolve(filesOnQueue)
               }, this))
               .fail(_.bind(function () {
@@ -1024,7 +1031,7 @@ var ExternalRemovedWarningDlg = Backbone.View.extend({
   events: {
     "click button.close": "onCloseClicked"
   },
-  open: function(options)
+  open: function()
   {
     this.$el.foundation('reveal', 'open');
   },
@@ -1080,7 +1087,7 @@ var ReplaceFileDialog = Backbone.View.extend({
     this.$('.dlg-content').empty();
     this.undelegateEvents();
     this.usbFileView = null;
-    this.filename = null;;
+    this.filename = null;
     this.copyFinishedPromise = null;
   }
 });
@@ -1136,8 +1143,6 @@ var USBFileView = Backbone.View.extend({
   },
   render: function()
   {
-    var usb_file = this.usb_file.toJSON();
-
     this.$el.html(this.template({
       name: this.usb_file.get('name').split('/').splice(-1,1)[0],
       size: this.usb_file.get('size'),
@@ -1232,7 +1237,7 @@ var USBFileView = Backbone.View.extend({
     this.$('button.print').addClass('hide')
 
     this.tryToCopyFile()
-      .done(_.bind(function(filename){
+      .done(_.bind(function(){
         this.$('button.copy').removeClass('hide')
         this.$('button.print').removeClass('hide')
       },this))
@@ -1263,7 +1268,6 @@ var USBFileView = Backbone.View.extend({
     })
     .done(_.bind(function(data) {
       if(!data.filename){
-        var error = data.error
         noty({text: "There was an error copying file...Try it again later", timeout: 3000});
         promise.reject();
       } else {
@@ -1273,8 +1277,7 @@ var USBFileView = Backbone.View.extend({
       }
       loadingBtn.removeClass('loading');
     }, this))
-    .fail(_.bind(function(xhr) {
-      var error = data.error
+    .fail(_.bind(function() {
       noty({text: "There was an error copying file...Try it again later", timeout: 3000});
       promise.reject();
     },this))

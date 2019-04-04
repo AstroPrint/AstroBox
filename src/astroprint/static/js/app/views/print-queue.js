@@ -4,6 +4,10 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* global */
+
+/* exported PrintQueueView */
+
 
  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // PrintFile
@@ -56,7 +60,7 @@ var DeleteQueueElementDialog = Backbone.View.extend({
     this.$el.foundation('reveal', 'open');
   },
 
-  doDelete: function (e)
+  doDelete: function ()
   {
     var loadingBtn = this.$('.confirm-button');
     loadingBtn.addClass('loading');
@@ -125,7 +129,7 @@ var ClearQueueDialog = Backbone.View.extend({
     this.$el.foundation('reveal', 'open');
   },
 
-  doDelete: function (e)
+  doDelete: function ()
   {
     this.$('.confirm-button').addClass('loading');
 
@@ -531,7 +535,7 @@ var PrintFileRowView = Backbone.View.extend({
 
     var pFileClasses = ["finished-printing", "failed-printing"];
     // Remove special file clases
-    for (var i = 0; i < pFileClasses.length; i++) {
+    for (i = 0; i < pFileClasses.length; i++) {
       this.$el.removeClass(pFileClasses[i]);
     }
   },
@@ -738,7 +742,7 @@ var BoxContainerView = Backbone.View.extend({
     });
     this.finishedFiles_views = {};
 
-    var container = this.$('.finished-files-box');
+    container = this.$('.finished-files-box');
     container.empty();
 
     this.finishedFiles.each(function (pf) {
@@ -762,7 +766,7 @@ var BoxContainerView = Backbone.View.extend({
 
     // If the printFile appear as printing, check printer
     if (printFileModel.get('status') == "printing") {
-      if (!app.socketData.get('printing') &&  !app.socketData.get('paused')) {
+      if (!app.socketData.get('printing') && !app.socketData.get('paused')) {
         printFileModel.save({ status: "failed" }, {
           patch: true, wait: true,
           success: _.bind(function () {
@@ -987,7 +991,6 @@ var PrintLaterContainerView = Backbone.View.extend({
 
       .fail(_.bind(function (xhr) {
         console.error(xhr);
-        promise.reject(xhr);
         noty({ text: "There was an error loading the print later files", timeout: 3000 });
       }, this))
       .always(_.bind(function () {
@@ -1024,7 +1027,7 @@ var PrintLaterContainerView = Backbone.View.extend({
     container.empty();
 
     if (this.printLaterFiles.length) {
-      this.printLaterFiles.each(function (printFile, pos) {
+      this.printLaterFiles.each(function (printFile) {
         var row = new PrintFileRowView({ printFile: printFile, laterContainer: this });
         this.printLaterFile_views[printFile.get('id')] = row;
         container.append(row.render().el);
@@ -1223,7 +1226,7 @@ var PrintQueueView = Backbone.View.extend({
 
   manageTabs: function(tab)
   {
-    currentTabID = tab.attr('data-tab');
+    var currentTabID = tab.attr('data-tab');
 
     if (currentTabID == "printQueues") {
       $('#print-later-list').hide();

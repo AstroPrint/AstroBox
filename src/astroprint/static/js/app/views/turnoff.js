@@ -4,6 +4,10 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* global */
+
+/* exported TurnoffConfirmationModal */
+
 var TurnoffConfirmationModal = Backbone.View.extend({
   el: '#turnoff-modal',
   turnoffView: null,

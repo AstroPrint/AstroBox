@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global UI_API_KEY: writable, AstroPrintApi, TurnoffConfirmationModal, printerProfileId */
+
+/* exported  */
 
 $.ajaxSetup({
     type: 'POST',
@@ -26,7 +30,7 @@ var StepView = Backbone.View.extend({
   },
   onHide: function() {},
   onShow: function() {},
-  onSubmit: function(data) {},
+  onSubmit: function(/*data*/) {},
   _onSubmit: function(e)
   {
     e.preventDefault();
@@ -122,6 +126,7 @@ var StepName = StepView.extend({
           location.href = this.$el.find('.submit-action').attr('href');
         }, this),
         error: function(xhr) {
+          var message = null
           if (xhr.status == 400) {
             message = xhr.responseText;
           } else {
@@ -447,6 +452,7 @@ var StepAstroprint = StepView.extend({
         location.href = this.$('.submit-action').attr('href');
       }, this),
       error: _.bind(function(xhr) {
+        var message = null
         if (xhr.status == 400 || xhr.status == 401 || xhr.status == 503) {
           message = xhr.responseText;
         } else {
@@ -470,7 +476,7 @@ var StepAstroprint = StepView.extend({
         this.$el.removeClass('success');
         this.$el.addClass('settings');
       }, this),
-      error: _.bind(function(xhr) {
+      error: _.bind(function() {
         noty({text: "Error logging you out", timeout: 3000});
       }, this)
     });
@@ -533,6 +539,7 @@ var StepPrinter = StepView.extend({
         }, this);
       }, this),
       error: _.bind(function(xhr) {
+        var message = null
         if (xhr.status == 400 || xhr.status == 401) {
           message = xhr.responseText;
           noty({text: message, timeout: 3000});
@@ -562,6 +569,7 @@ var StepPrinter = StepView.extend({
       }, this),
       error: _.bind(function(xhr) {
         this.$el.addClass('settings');
+        var message = null
         if (xhr.status == 400) {
           message = xhr.responseText;
         } else {
@@ -612,6 +620,7 @@ var StepPrinter = StepView.extend({
       }, this),
       error: _.bind(function(xhr) {
         this.$el.addClass('settings');
+        var message = null
         if (xhr.status == 400) {
           message = xhr.responseText;
         } else {
@@ -744,7 +753,6 @@ var StepPrinterSelection = StepView.extend({
 
   _checkManufacturersAndPrinters: function ()
   {
-
     this.$el.removeClass('success settings');
     this.$el.addClass('checking');
 
@@ -760,7 +768,7 @@ var StepPrinterSelection = StepView.extend({
 
       }, this))
 
-      .fail(_.bind(function (xhr) {
+      .fail(_.bind(function () {
         this.$el.addClass('settings');
         console.error("Error getting manufacturers");
         noty({ text: "Error getting manufacturers", timeout: 3000 });
@@ -940,7 +948,6 @@ var SetupView = Backbone.View.extend({
 
         case "event": {
           var type = data["type"];
-          var payload = data["payload"];
 
           if (type == 'InternetConnectingStatus') {
             this.eventManager.trigger('astrobox:InternetConnectingStatus', data["payload"]);

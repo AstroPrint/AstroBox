@@ -1,8 +1,12 @@
 /*
- *  (c) 2018 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global BOX_ID, LOGGED_PUBLIC_KEY, AP_API_HOST, AP_API_CLIENT_ID  */
+
+/* exported  */
 
 var AstroPrintApi = function(eventManager) {
   eventManager.on('astrobox:userLoggedOut', _.bind(function(){
@@ -148,6 +152,7 @@ AstroPrintApi.prototype = {
   _getAccessToken: function()
   {
     if (LOGGED_PUBLIC_KEY) {
+      var token = null
       if (this.token) {
         token = this.token;
       } else {
@@ -212,7 +217,7 @@ AstroPrintApi.prototype = {
         this._saveToken(token);
         return this.token;
       }, this),
-      _.bind(function(err){
+      _.bind(function(){
         return this._getNewAccessToken();
       }, this)
     )
@@ -253,7 +258,7 @@ AstroPrintApi.prototype = {
       url: AP_API_HOST + '/v2' + endpoint,
       headers: bearerHeader ? bearerHeader : null,
       cache: true,
-      beforeSend: function(xhr, settings) {
+      beforeSend: function(/*xhr, settings*/) {
         //Se need to set the header back for other AstroBox API requests
         $.ajaxSettings.headers['X-Api-Key'] = UI_API_KEY;
       }

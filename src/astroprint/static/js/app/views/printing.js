@@ -1,8 +1,13 @@
 /*
- *  (c) 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global CameraViewBase, SemiCircleProgress, TempSemiCircleView */
+
+/* exported PrintingView */
+
 var PhotoView = CameraViewBase.extend({
   el: "#printing-view .camera-view",
   template: _.template( this.$("#photo-printing-template").html()),
@@ -213,7 +218,6 @@ var PhotoView = CameraViewBase.extend({
   refreshPhoto: function(e)
   {
     var loadingBtn = $(e.target).closest('.loading-button');
-    var printing_progress = this.parent.printing_progress;
 
     loadingBtn.addClass('loading');
 
@@ -229,7 +233,7 @@ var PhotoView = CameraViewBase.extend({
         $(this).attr('src', null);
       });
 
-      img.attr('src', '/camera/snapshot?apikey='+UI_API_KEY+'&text='+encodeURIComponent(text)+'&seq='+this.photoSeq++);
+      img.attr('src', '/camera/snapshot?apikey='+UI_API_KEY+/*'&text='+encodeURIComponent(text)+*/'&seq='+this.photoSeq++);
     }
   },
   timelapseFreqChanged: function(e)
@@ -262,7 +266,7 @@ var PhotoView = CameraViewBase.extend({
       this.stopStreaming();
     }
   },
-  fullScreenClicked: function(e)
+  fullScreenClicked: function()
   {
     var fullscreenContainer = this.$el;
 
@@ -320,7 +324,7 @@ var PhotoView = CameraViewBase.extend({
     var sec_num = parseInt(seconds, 10); // don't forget the second param
     var hours   = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+    seconds = sec_num - (hours * 3600) - (minutes * 60);
 
     if (hours   < 10) {hours   = "0"+hours;}
     if (minutes < 10) {minutes = "0"+minutes;}
@@ -464,7 +468,7 @@ el: '#printing-view',
 
     this.semiCircleTemp_views[this.extruders_count].setTemps(temps.current, temps.target);
 
-    for (var i = 0; i <= this.extruders_count; i++) {
+    for (i = 0; i <= this.extruders_count; i++) {
       this._setCircleProgress(i);
     }
   },
@@ -521,7 +525,7 @@ el: '#printing-view',
     var sec_num = parseInt(seconds, 10); // don't forget the second param
     var hours   = Math.floor(sec_num / 3600);
     var minutes = Math.floor((sec_num - (hours * 3600)) / 60);
-    var seconds = sec_num - (hours * 3600) - (minutes * 60);
+    seconds = sec_num - (hours * 3600) - (minutes * 60);
 
     if (hours   < 10) {hours   = "0"+hours;}
     if (minutes < 10) {minutes = "0"+minutes;}
@@ -536,6 +540,7 @@ el: '#printing-view',
 
     for (var i = 0; i < semiCircleCount; i++) {
       if (i != this.extruders_count) {
+        var temps = null
         if (_.has(socketTemps, 'extruders')) {
           temps = {current: socketTemps.extruders[i].current, target: socketTemps.extruders[i].target};
         } else {
@@ -572,7 +577,7 @@ el: '#printing-view',
   {
     this.photoView.onPrintingHide();
   },
-  stopPrint: function(e)
+  stopPrint: function()
   {
     if (!this.cancelDialog) {
       this.cancelDialog = new CancelPrintDialog({parent: this});
@@ -634,7 +639,7 @@ el: '#printing-view',
   currentToolChanged: function(extruderId) {
     if (extruderId != null) {
       this.setCurrentSelectedSliders(extruderId);
-      if (this.extruders_count > 2) { this.scrollSlider(extruderId) };
+      if (this.extruders_count > 2) { this.scrollSlider(extruderId) }
       this.checkedArrows(extruderId);
     }
   },

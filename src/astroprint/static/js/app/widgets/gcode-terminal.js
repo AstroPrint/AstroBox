@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported GcodeWidgetView */
+
 var GcodeWidgetView = Backbone.View.extend({
   template: _.template( $("#gcode-terminal-template").html() ),
   outputView: null,

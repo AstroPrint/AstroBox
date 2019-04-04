@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported UnreachableView */
 
 var UnreachableView = Backbone.View.extend({
 	el: '#unreachable-view',
@@ -13,13 +17,13 @@ var UnreachableView = Backbone.View.extend({
 	{
 		this.listenTo(app.socketData, 'change:box_reachable', this.onReachableChanged);
 	},
-	hide: function() 
+	hide: function()
 	{
 		this.$el.addClass('hide');
 		this.$('.loading-button').removeClass('loading');
 		$('#app').removeClass('hide');
 	},
-	onCheckClicked: function(e) 
+	onCheckClicked: function(e)
 	{
 		e.preventDefault();
 		app.socketData.reconnect();

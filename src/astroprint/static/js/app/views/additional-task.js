@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global AdditionalTaskView, AdditionalTask, ControlView, GcodeWidgetView, SemiCircleProgress, TempSemiCircleView */
+
+/* exported AdditionalTaskView */
+
 var AdditionalTaskView = Backbone.View.extend({
   el: '#additional-task-view',
   additionalTaskContainerView: null,
@@ -28,7 +38,7 @@ var AdditionalTaskContainerView = Backbone.View.extend({
       this.render();
     } else {
       this.getSequence(additionalTaskSequenceID).then(
-        _.bind(function(success) {
+        _.bind(function() {
           this.render();
         }, this),
         _.bind(function(error) {
@@ -125,7 +135,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
        ignorePrintingStatus: It will show the control screen even printing.
        onlyBabyStep: Isolate the babystep controls.
     */
-    } else if (this.currentStep.type == "babystepping" ||  (modalType == "babystepping")) {
+    } else if (this.currentStep.type == "babystepping" || (modalType == "babystepping")) {
         this.controlView = new ControlView({ignorePrintingStatus: true, onlyBabyStep: true});
         this.$el.find('#control-container').append(this.controlView.render());
 
@@ -238,7 +248,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
 
     var currentScreen = this.isModal ? this.modal : this.currentStep;
 
-    if ( direction == "next" && currentScreen.next_button.commands || direction == "back" && currentScreen.back_button.commands) {
+    if ( direction == "next" && currentScreen.next_button.commands || direction == "back" && currentScreen.back_button.commands) {
       this.sendCommands(direction)
         .done(_.bind(function() {
           loadingBtn.removeClass('loading');
@@ -351,9 +361,9 @@ var AdditionalTaskAppView = Backbone.View.extend({
   sendCommands: function (type, arrayCommands, linkID, commandsIndex, promise )
   {
 
-    if (!commandsIndex) { var commandsIndex = 0;}
+    if (!commandsIndex) { commandsIndex = 0;}
 
-    if (!promise) { var promise = $.Deferred();}
+    if (!promise) { promise = $.Deferred();}
 
     if (!arrayCommands) {
       arrayCommands = [];
@@ -446,7 +456,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     var steps = this.additionalTaskApp.get('steps');
     var result = null;
 
-    for (i = 0; i < steps.length; i++) {
+    for (var i = 0; i < steps.length; i++) {
       if (steps[i].id == ID) {
         result = {"step" : steps[i],"index": i};
       }
@@ -459,7 +469,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
     var modal = this.additionalTaskApp.get('modals');
     var result = null;
 
-    for (i = 0; i < modal.length; i++) {
+    for (var i = 0; i < modal.length; i++) {
       if (modal[i].id == ID) {
         result = modal[i];
       }
@@ -477,7 +487,6 @@ var CustomTempView = Backbone.View.extend({
   initialize: function()
   {
     new SemiCircleProgress();
-    var profile = app.printerProfile.toJSON();
     if (app.socketData.get('tool') >= 0) {
       this.currentExtruder = app.socketData.get('tool');
     }

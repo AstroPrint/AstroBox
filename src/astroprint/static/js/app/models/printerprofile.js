@@ -1,11 +1,13 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* exported PrinterProfile */
+
  var PrinterProfile = Backbone.Model.extend({
- 	url: API_BASEURL + "printer-profile",
+  url: API_BASEURL + "printer-profile",
 	defaults: {
 		'id': 'profile',
 		'extruder_count': 1,
