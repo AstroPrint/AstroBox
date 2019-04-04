@@ -75,7 +75,6 @@
 	.app-image img{
       max-height:40px;
       border-radius: 3px;
-      background-color: rgba(51, 51, 51, 0.15);
   }
 
   .task-row a.launch {
@@ -84,9 +83,9 @@
     flex-direction: row;
     position: relative;
     padding: 12px;
-    background: background-color: rgb(230, 230, 230);
+    background: rgb(230, 230, 230);
     border-radius: $global-radius;
-    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.18);
 
     h1{
       display: flex;
