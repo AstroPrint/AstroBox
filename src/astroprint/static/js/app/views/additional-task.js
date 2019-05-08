@@ -505,7 +505,7 @@ var CustomTempView = Backbone.View.extend({
     this.$el.find('#slider').empty();
     this.$el.find('.bed').empty();
 
-    this.semiCircleTempView = new TempSemiCircleView({'tool': this.currentExtruder, enableCool: false, hideBed: true, preHeat: true});
+    this.semiCircleTempView = new TempSemiCircleView({ 'tool': this.currentExtruder, hideBed: true});
 
     this.$el.find('#slider').append(this.semiCircleTempView.render().el);
 
