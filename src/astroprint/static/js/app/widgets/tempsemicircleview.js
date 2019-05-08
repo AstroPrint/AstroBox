@@ -65,8 +65,12 @@ var TempSemiCircleView = Backbone.View.extend({
       last_preset['id'] = Object.keys(profile.temp_presets)[0]
     }
 
-    this.enableCool = params.enableCool;
-    this.hideBed = params.hideBed;
+    if (params.enableCool) {
+      this.enableCool = params.enableCool
+    }
+    if (params.hideBed) {
+      this.hideBed = params.hideBed
+    }
     this.last_preset = last_preset;
 
     if (tool != null) {
