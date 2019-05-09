@@ -774,7 +774,7 @@ var StepPrinterSelection = StepView.extend({
   updatePrinter: function ()
   {
     if (this.manufacturerSelected && this.manufacturerSelected != 0) {
-      $.getJSON(API_BASEURL + 'astroprint/printer-models/' + this.manufacturerSelected)
+      $.getJSON(API_BASEURL + 'astroprint/manufacturers/' + this.manufacturerSelected + '/models')
         .done(_.bind(function (r) {
           this.printer_models = r.printer_models.data;
           this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
@@ -808,18 +808,20 @@ var StepPrinterSelection = StepView.extend({
     var promise = $.Deferred();
 
     if (printerProfileId) {
-      this.astroprintApi.getModelInfo(printerProfileId)
-      .done(_.bind(function (info) {
-        this.printerInfo = info;
-        this.$el.addClass('printer-selected');
-        this.$('.current-printer-selected').text(info.name)
-        promise.resolve()
-      }, this))
-
-      .fail(_.bind(function (xhr) {
-        console.error(xhr);
-        promise.reject();
-      }, this))
+      $.getJSON(API_BASEURL + 'astroprint/manufacturers/models/' + printerProfileId)
+        .done(_.bind(function (r) {
+          this.printerInfo = r.printer_model;
+          this.$el.addClass('printer-selected');
+          this.$('.current-printer-selected').text(this.printerInfo.name)
+          promise.resolve()
+        }, this))
+        .fail(_.bind(function (e) {
+          console.error(e);
+          promise.reject();
+        }, this))
+        .always(_.bind(function () {
+          this.$el.removeClass('checking');
+        }, this))
     } else {
       return promise.resolve()
     }
