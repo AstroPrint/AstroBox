@@ -756,18 +756,15 @@ var StepPrinterSelection = StepView.extend({
     this.$el.removeClass('success settings');
     this.$el.addClass('checking');
 
-    // Get manufacturers list
-    this.astroprintApi.getManufacturers()
-      .done(_.bind(function (manufacturers) {
-        this.manufacturers = manufacturers.data;
-        this.manufacturers.unshift({id : 0, name: "Select manufacturer"})
+    $.getJSON(API_BASEURL + 'astroprint/manufacturers')
+      .done(_.bind(function (r) {
+        this.manufacturers = r.manufacturers.data;
+        this.manufacturers.unshift({ id: 0, name: "Select manufacturer" })
         this.manufacturerSelected = this.printerInfo ? this.printerInfo.manufacturer_id : this.manufacturers[0].id
 
         // Now get printer models from first manufacturer
         this.updatePrinter();
-
       }, this))
-
       .fail(_.bind(function (e) {
         this.$el.addClass('settings');
         console.error("Error getting manufacturers", e);

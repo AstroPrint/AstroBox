@@ -491,6 +491,17 @@ class AstroPrintCloud(object):
 			errorCb(destFile, 'Unable to download file')
 			return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
 
+	def manufacturers(self):
+		try:
+			r = requests.get( "%s/v2/manufacturers" % (self.apiHost), auth=self.hmacAuth )
+			data = r.json()
+		except:
+			data = None
+
+		if data:
+			return json.dumps({'manufacturers': data})
+		else:
+			return { 'error': 'invalid_data'}
 
 	def getPrintFile(self, cloudId):
 		if not self._print_file_store:
