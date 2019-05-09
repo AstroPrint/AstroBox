@@ -774,9 +774,9 @@ var StepPrinterSelection = StepView.extend({
   updatePrinter: function ()
   {
     if (this.manufacturerSelected && this.manufacturerSelected != 0) {
-      this.astroprintApi.getPrinterModels(this.manufacturerSelected)
-        .done(_.bind(function (printerModels) {
-          this.printer_models = printerModels.data;
+      $.getJSON(API_BASEURL + 'astroprint/printer-models/' + this.manufacturerSelected)
+        .done(_.bind(function (r) {
+          this.printer_models = r.printer_models.data;
           this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
           this.$el.addClass('settings');
           if (!printerProfileId) {
@@ -784,13 +784,11 @@ var StepPrinterSelection = StepView.extend({
           }
           this.render();
         }, this))
-
-        .fail(_.bind(function (xhr) {
+        .fail(_.bind(function (e) {
           this.$el.addClass('settings');
-          console.error("Error getting printer models", xhr);
+          console.error("Error getting printer models", e);
           noty({ text: "Error getting printer models", timeout: 3000 });
         }, this))
-
         .always(_.bind(function () {
           this.$el.removeClass('checking');
         }, this))

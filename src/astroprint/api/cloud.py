@@ -160,6 +160,12 @@ def manufacturers():
 
 	return json.dumps(manufacturers)
 
+@api.route("/astroprint/printer-models/<string:manufacturer_id>", methods=["GET"])
+def printerModels(manufacturer_id):
+	printerModels = json.loads(astroprintCloud().printerModels(manufacturer_id))
+
+	return json.dumps(printerModels)
+
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
 def design_download(print_file_id):
