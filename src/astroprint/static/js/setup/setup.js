@@ -768,9 +768,9 @@ var StepPrinterSelection = StepView.extend({
 
       }, this))
 
-      .fail(_.bind(function () {
+      .fail(_.bind(function (e) {
         this.$el.addClass('settings');
-        console.error("Error getting manufacturers");
+        console.error("Error getting manufacturers", e);
         noty({ text: "Error getting manufacturers", timeout: 3000 });
       }, this))
   },
