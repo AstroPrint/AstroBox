@@ -125,9 +125,25 @@ class PrinterProfileManager(object):
 											"nozzle_temp": p['nozzle_temp'],
 										}
 										del mfConfig[k][mfPresetID]
-									# if manfufacturer updates its preset and user it's allowed to edit => IGNORE UPDATE
+
+									# if manfufacturer updates its preset and user it's allowed to edit => check if different ID. This way is user has edited a preset, and manufacturer update it after using same ID, it wont be overwritten but ignored it.
 									else:
-										del mfConfig[k][mfPresetID]
+										matchedId = ""
+										for i in self.data['temp_presets']:
+											if "manufacturer_id" in self.data['temp_presets'][i]:
+												if self.data['temp_presets'][i]['manufacturer_id'] == mfPresetID:
+													matchedId = mfPresetID
+
+										if not matchedId:
+											mfConfig[k][dKey] = {
+												"manufacturer_id": mfPresetID,
+												"name": p['name'],
+												"bed_temp": p['bed_temp'],
+												"nozzle_temp": p['nozzle_temp'],
+											}
+										else:
+											del mfConfig[k][mfPresetID]
+
 								else:
 									# Add new attribute object with correct format
 									mfConfig[k][uuid.uuid4().hex] = {
@@ -148,8 +164,8 @@ class PrinterProfileManager(object):
 			# update version number
 			self.data['last_definition_version'] = version
 
-		if mfConfig:
-			if "temp_presets" in mfConfig.keys():
+		if version or mfConfig:
+			if "temp_presets" in mfConfig.keys() or version:
 				self._removeDefaultTempPresets()
 			merge_dict(self.data, mfConfig)
 		self.save()
