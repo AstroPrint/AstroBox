@@ -209,6 +209,46 @@ class SystemService(PluginService):
 
 			sendMessage( result )
 
+	def manufacturers(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		try:
+			manufacturers = json.loads(astroprintCloud().manufacturers())
+			sendMessage( manufacturers )
+		except Exception as e:
+			self._logger.error('There was an error getting manufacturers', exc_info = True)
+			sendMessage("error_getting_manufacturers",True)
+
+	def printerModelInfo(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		if "printer_model_id" in data:
+			try:
+				printerModel = json.loads(astroprintCloud().printerModel(data['printer_model_id']))
+				sendMessage( printerModel )
+
+			except Exception as e:
+				self._logger.error('There was an error getting Printer model info', exc_info = True)
+				sendMessage("error_getting_printer_info",True)
+		else:
+			sendMessage("invalid_params",True)
+
+	def printerModels(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		if "manufacturer_id" in data:
+			try:
+				printerModels = json.loads(astroprintCloud().printerModels(data['manufacturer_id']))
+				sendMessage( printerModels )
+			except Exception as e:
+				self._logger.error('There was and error getting printer models', exc_info = True)
+				sendMessage("error_getting_printer_models",True)
+		else:
+			sendMessage("invalid_params",True)
+
 	def printingInfo(self, data, sendMessage):
 		pm = printerManager()
 		result = {}
