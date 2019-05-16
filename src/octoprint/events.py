@@ -19,7 +19,8 @@ _instance = None
 class Events(object):
 	# application startup
 	STARTUP = "Startup"
-
+	# system shutdown
+	SHUTTING_DOWN = "ShuttingDown"
 	# printer status
 	CONNECTED = "Connected"
 	CONNECTING = "Connecting"
