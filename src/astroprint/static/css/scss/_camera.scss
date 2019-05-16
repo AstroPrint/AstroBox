@@ -179,12 +179,33 @@
 
     div.nowebrtc {
       display: block;
-      font-size: rem-calc(30);
+      font-size: rem-calc(20);
       line-height: 1.3;
       background: $secondary-color;
       border: none;
       margin-bottom: 0;
       @include radius($global-radius $global-radius 0 0);
+
+      b {
+        user-select: all !important;
+        cursor: pointer !important;
+      }
+      ol {
+        text-align: left;
+      }
+      .micro-link {
+        font-size: 13px;
+        color: #353c46;
+        padding: 3px;
+        background: #d0cfcf;
+        border-radius: 9px;
+      }
+      .text-to-copy {
+        background: transparent;
+        border: 1px dashed #353c4696;
+        border-radius: 0;
+        padding: 1px;
+      }
 
       .browser-links {
         margin-top: rem-calc(15);
