@@ -41,8 +41,10 @@
 								<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
 							</div>
 							<div class="small-12 large-8 columns text-center small-centered">
-								<b>Oops!</b>, You are using <%= navigator.sayswho %>.
+                <b>Oops!</b>, You are using <%= navigator.sayswho %>.
+                {# Using Chrome #}
                 <% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
+                  {# Chrome v74 or up #}
                   <% if ( navigator.sayswho.replace( /^\D+/g, '') >= 74 ) { %>
                     Due to its new Security restrictions:
                     <ol class="small-9 column small-centered">
@@ -53,14 +55,20 @@
                       <li>Relaunch Chrome.</li>
                     </ol>
                     <p>* This is a temporary solution while we work on it ;)</p>
+                  {# Chrome up to v73 #}
                   <% } else { %>
 	                This browser can only stream video in VP8
-									encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
+                  encoding. <br>You can change the video enconding <a href="http://<%= window.location.hostname%>/#settings/video-stream">here</a>
+                  <br>Select VP8 instead of H264.
+                  You also can download
                   <% } %>
+                {# Not using Chrome #}
 								<% } else { %>
 									 Looks like Streaming Video is incompatible with your browser. Download
                   one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
-								<ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
+                <% } %>
+
+                <ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
 									<li>
 										<a href="https://www.google.com/chrome/" class="bold" target="_blank">
 											<img src="static/img/chrome-icon.png"/><br>
@@ -80,7 +88,6 @@
 										</a>
 									</li>
 								</ul>
-								<% } %>
 
 
 							</div>
