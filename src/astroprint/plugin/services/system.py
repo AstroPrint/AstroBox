@@ -31,10 +31,14 @@ class SystemService(PluginService):
 	def __init__(self):
 		super(SystemService, self).__init__()
 		self._eventManager.subscribe(Events.SOFTWARE_UPDATE, self._onSoftwareUpdate)
+		self._eventManager.subscribe(Events.SHUTTING_DOWN, self._onShutdown)
 
 	#EVENT
 	def _onSoftwareUpdate(self,event,value):
 		self.publishEvent('software_update', value)
+
+	def _onShutdown(self,event,value):
+		self.publishEvent('shutting_down', value)
 
 	#REQUESTS
 
