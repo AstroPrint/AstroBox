@@ -179,11 +179,13 @@ def performSystemAction():
 					logger.info("Performing command: %s" % command)
 
 					def executeCommand(command, logger):
-						time.sleep(0.5) #add a small delay to make sure the response is sent
-
+						timeSleeping = 0.5
 						#if shutdown send message to plugin
 						if command == "reboot" or command == "shutdown":
 							eventManager().fire(Events.SHUTTING_DOWN, {'status': command})
+							timeSleeping = 1
+						time.sleep(timeSleeping) #add a small delay to make sure the response is sent
+
 						try:
 							p = sarge.run(command, stderr=sarge.Capture())
 							if p.returncode != 0:
