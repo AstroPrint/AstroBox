@@ -167,7 +167,6 @@ def apiVersion():
 #@restricted_access
 #@admin_permission.require(403)
 def performSystemAction():
-	print "perormSystemAction"
 	if "action" in request.values.keys():
 		action = request.values["action"]
 		available_actions = s().get(["system", "actions"])
@@ -181,11 +180,9 @@ def performSystemAction():
 
 					def executeCommand(command, logger):
 						timeSleeping = 0.5
-						print "executeCommand"
 						#if shutdown send message to plugin
-						if command == "reboot" or command == "shutdown":
-							print command
-							eventManager().fire(Events.SHUTTING_DOWN, {'status': command})
+						if action == "reboot" or action == "shutdown":
+							eventManager().fire(Events.SHUTTING_DOWN, {'status': action})
 							timeSleeping = 1
 						time.sleep(timeSleeping) #add a small delay to make sure the response is sent
 
