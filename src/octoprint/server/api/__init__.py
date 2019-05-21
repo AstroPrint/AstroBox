@@ -192,7 +192,7 @@ def performSystemAction():
 								returncode = p.returncode
 								stderr_text = p.stderr.text
 								logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
-								if command == "reboot" or command == "shutdown":
+								if action == "reboot" or action == "shutdown":
 									eventManager().fire(Events.SHUTTING_DOWN, {'status': None})
 							else:
 								logger.info("Command executed sucessfully")
