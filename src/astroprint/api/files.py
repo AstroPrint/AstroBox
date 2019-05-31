@@ -16,6 +16,7 @@ from octoprint.server.api import api
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.externaldrive import externalDriveManager
+from werkzeug.utils import secure_filename
 
 #~~ GCODE file handling
 
@@ -78,6 +79,8 @@ def _getFileList(origin):
 
 
 def _verifyFileExists(origin, filename):
+	filename = secure_filename(filename)
+
 	if origin == FileDestinations.SDCARD:
 		availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 	else:
@@ -235,7 +238,7 @@ def printFileCommand(filename, target):
 	if command == "select":
 		# selects/loads a file
 		printAfterLoading = False
-		if "print" in data.keys() and data["print"]:
+		if data.get('print'):
 			if not printer.isOperational():
 				#We try at least once
 				printer.connect()
@@ -330,9 +333,8 @@ def eject():
 def localFileExists(filename):
 	return jsonify({'response': externalDriveManager().localFileExists(filename)})
 
-
 @api.route("/files/copy-to-local", methods=["POST"])
 @restricted_access
 def copyFileToLocal():
 	externalDriveMgr = externalDriveManager()
-	return jsonify({'response': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})
+	return jsonify({'filename': externalDriveMgr.copyFileToLocal(request.values.get('file'),externalDriveMgr.getBaseFolder('uploads'),request.values.get('observerId'))})

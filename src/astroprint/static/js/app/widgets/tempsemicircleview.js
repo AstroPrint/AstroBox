@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported TempSemiCircleView */
+
 var TempSemiCircleView = Backbone.View.extend({
   className: 'semi-circle-temps',
   type: null,
@@ -10,7 +20,7 @@ var TempSemiCircleView = Backbone.View.extend({
   tool : null,
   waitAfterSent: 2000, //During this time, ignore incoming target sets
   template: _.template( $("#semi-circle-template").html() ),
-  enableOff: true,
+  enableCool: true,
   hideBed: false,
   events: {
     'click button.temp-off': 'turnOff',
@@ -22,35 +32,45 @@ var TempSemiCircleView = Backbone.View.extend({
   initialize: function(params)
   {
     // Get last preset
-    var lastTemp = function (tool, last_presets_used) {
-      if (tool === null) {
+    var lastTemp = function (toolId, last_presets_used) {
+      var tool;
+      if (toolId === null) {
         tool = "bed";
+      } else {
+        tool = "tool" + toolId
       }
-
-      return _.find(last_presets_used, function(last_preset) {
-        return tool == last_preset.tool
-      })
+      return last_presets_used[tool]
     }
 
     var profile = app.printerProfile.toJSON();
     var tool = params.tool;
+    var numberOfPresets = Object.keys(profile.temp_presets).length
     this.temp_presets = profile.temp_presets;
-    last_preset = null
-    last_temp = lastTemp(tool, profile.last_presets_used)
+    var last_preset = null
+    var last_temp = lastTemp(tool, profile.last_presets_used)
     if (last_temp) {
       if (last_temp.id == "custom") {
         last_preset = last_temp
       } else {
-        last_preset = _.find(this.temp_presets, function(temp_preset) {
-          return temp_preset.id == last_temp.id
-        });
+        last_preset = this.temp_presets[last_temp.id]
+      }
+      if (last_preset) {
+        last_preset['id'] = last_temp.id
+      } else {
+        last_preset = profile.temp_presets[[Object.keys(profile.temp_presets)[0]]];
+        last_preset['id'] = Object.keys(profile.temp_presets)[0]
       }
     } else {
-      last_preset = profile.temp_presets[0];
+      last_preset = profile.temp_presets[[Object.keys(profile.temp_presets)[0]]];
+      last_preset['id'] = Object.keys(profile.temp_presets)[0]
     }
 
-    this.enableOff = params.enableOff;
-    this.hideBed = params.hideBed;
+    if (params.enableCool) {
+      this.enableCool = params.enableCool
+    }
+    if (params.hideBed) {
+      this.hideBed = params.hideBed
+    }
     this.last_preset = last_preset;
 
     if (tool != null) {
@@ -64,8 +84,7 @@ var TempSemiCircleView = Backbone.View.extend({
       this.$el.attr('id', 'bed');
     }
     this.$el.attr('align', 'center');
-
-    if (params.preHeat) {
+    if (numberOfPresets == 1 && params.preHeat) {
       this.turnOn();
     }
   },
@@ -84,7 +103,7 @@ var TempSemiCircleView = Backbone.View.extend({
       }
     }
 
-    this.enableTurnOff(this.enableOff);
+    this.enableTurnOff(this.enableCool);
     this.checkHideBed(this.hideBed);
     if (this.last_preset && this.last_preset.id == "custom"){
       setTimeout( _.bind(function() {
@@ -111,12 +130,6 @@ var TempSemiCircleView = Backbone.View.extend({
         this.$(".progress-temp-circle").circleProgress('value', Math.round((temps.current / app.printerProfile.get('max_nozzle_temp')) * 100) / 100 );
       }
 
-      var now = new Date().getTime();
-
-      if (this.lastSent !== null && this.lastSentTimestamp > (now - this.waitAfterSent) ) {
-        target = this.lastSent;
-      }
-
       if (isNaN(temps.current)) {
         temps.current = null;
       }
@@ -126,6 +139,7 @@ var TempSemiCircleView = Backbone.View.extend({
       }
 
       this.target = temps.target;
+      this.lastSent = this.target
       this.actual = temps.current;
       this.setTemps(temps.current, temps.target);
     }
@@ -222,18 +236,15 @@ var TempSemiCircleView = Backbone.View.extend({
     } else {
       maxValue = app.printerProfile.get('max_nozzle_temp');
     }
+    value = value < 0 ? 0 : value;
 
-    if (value < 0) {
-      value = 0;
-    } else if (value > maxValue) {
-      value = maxValue;
-    }
-
-    if (value != this.lastSent && !isNaN(value) ) {
-      var loadingBtn = this.$('.temp-on');
-      loadingBtn.addClass('loading');
-      this._sendToolCommand('target', this.el.id, value);
-      this._saveLastTemp()
+    if (value <= maxValue) {
+      if (value != this.lastSent && !isNaN(value)) {
+        var loadingBtn = this.$('.temp-on');
+        loadingBtn.addClass('loading');
+        this._sendToolCommand('target', this.el.id, value);
+        this._saveLastTemp()
+      }
     }
   },
   setTemps: function(actual, target)
@@ -341,9 +352,7 @@ var TempSemiCircleView = Backbone.View.extend({
   },
   _getPresetTemperature: function (id)
   {
-    var preset = _.find(this.temp_presets, function(temp_preset) {
-      return temp_preset.id == id
-    });
+    var preset = this.temp_presets[id]
 
     if (preset) {
       return this.tool == "bed" ? preset.bed_temp : preset.nozzle_temp
@@ -354,26 +363,43 @@ var TempSemiCircleView = Backbone.View.extend({
   _saveLastTemp: function()
   {
     var profile = app.printerProfile.toJSON();
-    var newTempSaved = true;
-    for (var i in profile.last_presets_used) {
-      if (profile.last_presets_used[i].tool == this.tool) {
-        profile.last_presets_used[i] = this.last_preset;
-        newTempSaved = false
-        break;
+    var saveNewTemps = true;
+
+    var keyTool;
+    if (this.last_preset.tool == "bed") {
+      keyTool = "bed"
+    } else {
+      var toolId = (this.last_preset.tool || this.last_preset.tool == 0) ? this.last_preset.tool : 0
+      keyTool = "tool" + toolId
+    }
+    if (profile.last_presets_used[keyTool]) {
+      if (profile.last_presets_used[keyTool].id == this.last_preset.id) {
+        saveNewTemps = false
       }
     }
-    if (newTempSaved){
-      profile.last_presets_used.push(this.last_preset)
-    }
-    attrs= {}
-    attrs.last_presets_used = profile.last_presets_used
-    app.printerProfile.save(attrs, {
-      patch: true,
-      success: _.bind(function() {}, this),
-      error: function() {
-        console.error("error savind last temp")
+
+
+    if (saveNewTemps){
+      if (this.last_preset.value) {
+        profile.last_presets_used[keyTool] = {
+          "id": "custom",
+          "value": this.last_preset.value
+        }
+      } else {
+        profile.last_presets_used[keyTool] = {
+          "id": this.last_preset.id,
+        }
       }
-    });
+
+      var attrs = { "last_presets_used": profile.last_presets_used}
+      app.printerProfile.save(attrs, {
+        patch: true,
+        success: _.bind(function () { }, this),
+        error: function () {
+          console.error("error savind last temp")
+        }
+      });
+    }
 
 
   },

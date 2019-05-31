@@ -76,7 +76,7 @@ class TimelapseWorker(threading.Thread):
 		lastUpload = 0
 		self._resumeFromPause.set()
 		while not self._stopExecution:
-			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId, async=False):
+			if (time.time() - lastUpload) >= self.timelapseFreq and self._cm.addPhotoToTimelapse(self.timelapseId, False):
 				lastUpload = time.time()
 
 			time.sleep(1)
@@ -261,6 +261,9 @@ class CameraManager(object):
 			waitForPhoto.wait(7.0) # wait 7.0 secs for the capture of the photo and the upload, otherwise fail
 			return responseCont[0]
 
+	def addPhotoToActiveTimelapse(self, async= True):
+		if self.timelapseInfo:
+			self.addPhotoToTimelapse(self.timelapseInfo['id'], async)
 
 	def start_timelapse(self, freq):
 		if not self.isCameraConnected():
@@ -291,20 +294,21 @@ class CameraManager(object):
 				'last_photo': None
 			}
 
-			if freq == 'layer':
-				# send first pic and subscribe to layer change events
-				self.addPhotoToTimelapse(timelapseId)
-				self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
+			if freq != 'gcode':
+				if freq == 'layer':
+					# send first pic and subscribe to layer change events
+					self.addPhotoToTimelapse(timelapseId)
+					self._eventManager.subscribe(Events.LAYER_CHANGE, self._onLayerChange)
 
-			else:
-				try:
-					freq = float(freq)
-				except ValueError:
-					return 'invalid_frequency'
+				else:
+					try:
+						freq = float(freq)
+					except ValueError:
+						return 'invalid_frequency'
 
-				self.timelapseInfo['freq'] = freq
-				self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
-				self.timelapseWorker.start()
+					self.timelapseInfo['freq'] = freq
+					self.timelapseWorker = TimelapseWorker(self, timelapseId, freq)
+					self.timelapseWorker.start()
 
 			self._eventManager.fire(Events.CAPTURE_INFO_CHANGED, self.timelapseInfo)
 
@@ -385,8 +389,11 @@ class CameraManager(object):
 
 		return False
 
-	def is_timelapse_active(self):
+	def is_timed_timelapse_active(self):
 		return self.timelapseWorker is not None
+
+	def is_timelapse_active(self):
+		return self.timelapseInfo is not None
 
 	def settingsChanged(self, cameraSettings):
 		self._settings = cameraSettings
@@ -529,5 +536,4 @@ class CameraManager(object):
 	## private functions
 
 	def _onLayerChange(self, event, payload):
-		if self.timelapseInfo:
-			self.addPhotoToTimelapse(self.timelapseInfo['id'])
+		self.addPhotoToActiveTimelapse()

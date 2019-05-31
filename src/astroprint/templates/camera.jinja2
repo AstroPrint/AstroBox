@@ -40,38 +40,56 @@
 							<div class="large-3 large-centered columns show-for-large-up">
 								<img class="sadmonkey" src="static/img/sadmonkey-2.png"/>
 							</div>
-							<div class="small-12 columns text-center">
-								<b>Oops!</b>, You are using <%= navigator.sayswho %>.
-								<% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
-									This browser can only stream video in VP8
-									encoding. You can change the video settings in Dashboard -> settings -> CAMERA: Image/Video -> Video Streaming Encoding, selecting VP8 instead of H264; You also can download
+							<div class="small-12 large-8 columns text-center small-centered">
+                <b>Oops!</b>, You are using <%= navigator.sayswho %>.
+                {# Using Chrome #}
+                <% if (navigator.sayswho.indexOf('Chrome') != -1) { %>
+                  {# Chrome v74 or up #}
+                  <% if ( navigator.sayswho.replace( /^\D+/g, '') >= 74 ) { %>
+                    Due to its new Security restrictions:
+                    <ol class="small-9 column small-centered">
+                      <li>
+                        <span>Go to: <b class="micro-link">chrome://flags/#unsafely-treat-insecure-origin-as-secure</b>.</span>
+                      </li>
+                      <li>Copy <b class="micro-link text-to-copy">http://<%= window.location.hostname  %></b> into the text area.</li>
+                      <li>Relaunch Chrome.</li>
+                    </ol>
+                    <p>* This is a temporary solution while we work on it ;)</p>
+                  {# Chrome up to v73 #}
+                  <% } else { %>
+	                This browser can only stream video in VP8
+                  encoding. <br>You can change the video enconding <a href="http://<%= window.location.hostname%>/#settings/video-stream">here</a>
+                  <br>Select VP8 instead of H264.
+                  You also can download
+                  <% } %>
+                {# Not using Chrome #}
 								<% } else { %>
-
 									 Looks like Streaming Video is incompatible with your browser. Download
+                  one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
+                <% } %>
 
-								<% } %>
-
-								 one of these great browsers and you'll be monitoring your 3D Printer with streaming video in no time!
-								<ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
+                <ul class="small-block-grid-1 medium-block-grid-3 large-block-grid-3 browser-links">
 									<li>
 										<a href="https://www.google.com/chrome/" class="bold" target="_blank">
 											<img src="static/img/chrome-icon.png"/><br>
-											<b>Chrome</b><br><b>only VP8 enconding</b><br>
+											<b>Chrome</b>
 										</a>
 									</li>
 									<li>
 										<a href="https://www.mozilla.org/en-US/firefox/new/" class="bold" target="_blank">
 											<img src="static/img/firefox-icon.png"/><br>
-											<b>Firefox</b><br><b>H264 and VP8 enconding</b><br>
+											<b>Firefox</b>
 										</a>
 									</li>
 									<li>
-										<a href="http://www.opera.com/" class="bold" target="_blank">
-											<img src="static/img/opera-icon.png"/><br>
-											<b>Opera</b><br><b>only VP8 enconding</b><br>
+										<a href="https://www.apple.com/safari/" class="bold" target="_blank">
+											<img src="static/img/safari-icon.png"/><br>
+											<b>Safari</b>
 										</a>
 									</li>
 								</ul>
+
+
 							</div>
 						</div>
 						<div class="row error alert-box radius">

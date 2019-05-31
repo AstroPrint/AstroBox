@@ -5,9 +5,12 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 import logging
 import threading
 import time
+import os
 
 from octoprint.server import eventManager
 from octoprint.events import Events
+from octoprint.settings import settings
+
 
 from astroprint.network import NetworkManager
 
@@ -17,26 +20,26 @@ class MacDevNetworkManager(NetworkManager):
 		self.logger = logging.getLogger(__name__)
 		self._online = False
 		self._storedWiFiNetworks = []
+		self._config = {
+			"autoConnect" : True
+		}
+
+		self._loadDevConfig()
+
+		if self._config['autoConnect']:
+			self._setActiveWifi(self.getWifiNetworks()[0])
 
 		super(MacDevNetworkManager, self).__init__()
-
-	#def startUp(self):
-	#	offlineTime = 3.0
-	#	timer = threading.Timer(offlineTime, self._goOnline)
-	#	timer.daemon = True
-	#	timer.start()
-	#	self.logger.info('Mac Dev Network Manager initialized. Simulating %d secs to go online' % offlineTime)
 
 	def getActiveConnections(self):
 		wireless = None
 		wired = None
 
-		'''
 		wired = {
 			'name': 'Wired Test',
-			'ip': '127.0.0.1:5000'
+			'ip': '127.0.0.1:5000',
+			'mac': 'wi:re:d2:34:56:78:90',
 		}
-		'''
 
 		if self._storedWiFiNetworks:
 			for n in self._storedWiFiNetworks:
@@ -46,6 +49,7 @@ class MacDevNetworkManager(NetworkManager):
 						'signal': 80,
 						'name': n['name'],
 						'ip': '127.0.0.1:5000',
+						'mac': 'wi:fi:12:34:56:78:90',
 						'secured': True
 					}
 
@@ -154,6 +158,23 @@ class MacDevNetworkManager(NetworkManager):
 	def activeIpAddress(self):
 		return '127.0.0.1'
 
+	@property
+	def networkDeviceInfo(self):
+		return [
+			{
+				'id': 'eth0',
+				'mac': 'wi:re:d2:34:56:78:90',
+				'type': 'wired',
+				'connected': True
+			},
+			{
+				'id': 'wlan0',
+				'mac': 'wi:fi:12:34:56:78:90',
+				'type': 'wifi',
+				'connected': False
+			}
+		]
+
 	def _goOnline(self):
 		self._online = True
 		eventManager.fire(Events.NETWORK_STATUS, 'online')
@@ -193,3 +214,23 @@ class MacDevNetworkManager(NetworkManager):
 		timer.start()
 
 		return {'name': network['name']}
+
+	def _loadDevConfig(self):
+		settings_file = "%s/mac-dev-network.yaml" % settings().getConfigFolder()
+
+		if os.path.isfile(settings_file):
+			import yaml
+
+			config = None
+			with open(settings_file, "r") as f:
+				config = yaml.safe_load(f)
+
+			if config:
+				def merge_dict(a,b):
+					for key in b:
+						if isinstance(b[key], dict):
+							merge_dict(a[key], b[key])
+						else:
+							a[key] = b[key]
+
+				merge_dict(self._config, config)

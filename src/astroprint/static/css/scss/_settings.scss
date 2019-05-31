@@ -1,6 +1,7 @@
+
 .row.container {
   background: #fff;
-  border: 1px solid #ccc;
+  border: $basic-border;
   @include radius($global-radius);
 }
 
@@ -10,13 +11,25 @@
 
 #settings-view {
   .element-list {
+    color: $base;
     > .row {
-      padding: 5px 0;
+      padding: 2px 0;
+      background: lighten($iron, 14%);
 
       &:nth-child(odd) {
-        background: #fafafa;
+        background: $ghost;
       }
     }
+
+    .connected{color: $success-color;}
+
+    .inactive{
+      color: $base;
+
+      +.device-info,+.device-info +.device-info{color: $base;}
+    }
+
+    img.wifi.inactive{filter: grayscale(100%);}
   }
 }
 
@@ -25,30 +38,27 @@
   padding: 0;
   height: 100%;
   margin: 0;
-  border-right: 1px solid #ccc;
+  border-right: $basic-border;
 
   .side-nav {
     padding-top: 0;
     li {
-      padding: 10px 20px;
-      font-size: rem-calc(22);
+      font-size: rem-calc(15);
       margin: 0;
 
-      &.dotted {
-        border-top: 1px dotted #e2e2e2;
-      }
-
       a {
-        color: $success-color;
-                padding: 0 10px;
+        padding: 8px 20px 8px 50px;
+        color: $base;
       }
 
       &.heading {
-        background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
-        border-bottom: 1px solid #ccc;
-        border-top: 1px solid #ccc;
-        color: #505050;
-        font-size: rem-calc(30);
+        //background: url("/img/subtle_zebra_3d.png") 0 0 repeat;
+        //border-bottom: 1px solid #ccc;
+        //border-top: $basic-border;
+        color: $charcoal;
+        font-size: rem-calc(19);
+        letter-spacing: 1.5px;
+        padding: 25px 15px 5px 15px;
       }
 
       &.heading:first-child {
@@ -56,10 +66,9 @@
       }
 
       &.active {
-        background-color: #fafafa;
-
         a {
-          font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
+          font-family: $font-family-bold;
+          color: $success-color;
         }
       }
     }
@@ -68,6 +77,7 @@
 
 #printer-connection {
   label {
+    padding: 10px 0;
     p {
       font-family: $body-font-family;
     }
@@ -75,24 +85,39 @@
 
   .connection-status {
     text-align: center;
+    background-size: 100% 5px;
+    box-shadow: inset 5px 5px 0 9px #000000;
+    background: $jet;
+    border-radius: 16px;
+    max-width: 470px;
+    margin: 40px auto 0 auto;
+
+    .arcade-backg{
+      background: linear-gradient(180deg,transparent 50%,rgba(89, 205, 144, 0.15) 51%);
+      background-size: 100% 5px;
+      border-radius: 16px;
+      min-height:85px;
+      @include flex(center, column);
+      letter-spacing: 1.5px;
+      padding-top: 10px;
+    }
 
     span {
       display: none;
-      font-size: rem-calc(25);
+      font-size: rem-calc(20);
     }
   }
 
   &.connecting {
     span.connecting {
       display: inline-block;
-      i {
-        color: $success-color;
-      }
+      color: $success-color;
     }
 
     .loading-button {
       &.connect,
-      &.reconnect {
+      &.reconnect,
+      &.disconnect {
         display: none;
       }
     }
@@ -101,14 +126,13 @@
   &.failed {
     span.failed {
       display: inline-block;
-      i {
-        color: $alert-color;
-      }
+      color: #ff604c;
     }
 
     .loading-button {
       &.disconnect,
-      &.reconnect {
+      &.reconnect,
+      &.cancel {
         display: none;
       }
     }
@@ -117,13 +141,12 @@
   &.connected {
     span.connected {
       display: inline-block;
-      i {
-        color: $success-color;
-      }
+      color: #4dd1b1;
     }
 
     .loading-button {
-      &.connect {
+      &.connect,
+      &.cancel {
         display: none;
       }
     }
@@ -132,7 +155,8 @@
   &.closed {
     .loading-button {
       &.disconnect,
-      &.reconnect {
+      &.reconnect,
+      &.cancel {
         display: none;
       }
     }
@@ -140,26 +164,134 @@
 }
 
 #printer-profile {
+
+  .save-profile .loading-button > button{
+    margin-bottom: 0;
+    box-shadow: inset 0px -6px rgba(0, 0, 0, 0.08);
+  }
   .toggle {
     .side-label {
-      position: relative;
-      top: -10px;
-      font-size: rem-calc(12);
+      vertical-align: top;
+      font-size: rem-calc(10);
+      max-width: 34px;
+      line-height: 120%;
+      display: inline-block;
     }
 
     .switch {
-      margin: 0px 10px;
-
       label {
+        margin-bottom: 1rem;
         background: #666;
       }
     }
   }
 
+  input + label[for=heated-bed]{margin-bottom: 1rem;}
+
+  .change-printer{
+    width: auto;
+    max-width: 270px;
+    margin-bottom: 10px;
+
+    &.icon-button{
+      padding: 10px;
+      background: transparent;
+      color:$green;
+      box-shadow: none;
+
+      i{color:$green; font-size: rem-calc(20);}
+    }
+  }
+
   .movement {
+    margin: 20px auto;
+    border-radius: 15px;
+    padding: 10px 0 0 0;
+    background: darken($ghost,2%);
+
     i {
-      font-size: 25px;
+      font-size: rem-calc(30);
       vertical-align: middle;
+    }
+  }
+}
+
+#filament-info{
+  .icon-filament:before{
+    font-size: 80px;
+    position: relative;
+    top: 8px;
+    margin: 10px auto 0 auto;
+    display: block;
+    text-shadow: 2px 1px 4px rgb(0, 0, 0);
+  }
+
+  #filament-name{margin-bottom: 20px;}
+
+  .button{
+    min-width: 110px;
+    letter-spacing: 1px;
+
+    &.dark{
+      background: #505050;
+    }
+  }
+}
+
+#filament-selector-modal{
+  @include reveal-modal-base(false,  320px); //this sets max-width: 320px
+
+  .content{padding: 12px;}
+  .more-colors{
+    position: relative;
+    display: inline-block;
+    margin-top: 20px;
+    cursor: pointer;
+    padding-left: 0;
+
+    &:hover{opacity: 0.8;}
+
+    #filament_color{
+      padding: 0;
+      border: 0;
+      margin: 0;
+      box-shadow: none;
+      border-radius: $global-radius;
+      display: inline-block;
+      vertical-align: middle;
+      width: 100%;
+      height: 42px;
+    }
+
+    i{
+      display: inline-block;
+      vertical-align: middle;
+      font-size: 22px;
+      border: 1px solid;
+      padding: 4px 1px;
+      color: #898989;
+      border-radius: $global-radius;
+      position: absolute;
+      top: 4px;
+      background: white;
+      right: 11px;
+      height: 34px;
+      pointer-events: none;
+    }
+  }
+  .paletecolor{
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: $global-radius;
+    box-shadow: 1px 1px 10px 1px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    margin:6px;
+
+    &:hover{opacity: 0.85;}
+    &:active{
+      opacity: 1;
+      transform: scale(0.92);
     }
   }
 }
@@ -174,6 +306,11 @@
     }
 
     td {
+
+      img{width: 22px; margin: 0 4px;}
+
+      i{vertical-align: middle;}
+
       &.network-name {
         overflow: hidden;
         white-space: nowrap;
@@ -202,20 +339,54 @@
 }
 
 #internet-connection {
+  h3{
+    font-size: 20px;
+  }
+
+  h5{
+    margin: 15px auto 5px;
+  }
+
   i {
     color: $success-color;
+  }
+
+  .icon-ethernet{
+    font-style: normal;
+
+    &::before{font-size: 21px;}
+  }
+
+  img.wifi{
+    height: 23px;
+    margin:0 4px;
+    vertical-align: top;
+  }
+
+  .device-info{
+    font-size: rem-calc(15);
+    letter-spacing: 1px;
+    padding-left: 36px;
   }
 
   .connection {
     padding: 10px 0;
 
-    .ip-address {
-      font-size: rem-calc(16);
-      color: #a5a5a5;
+    .connected{color: $success-color;}
+
+    .not-connected{
+      color: $alert-color;
+      img{
+        height: 17px;
+        margin-right: 8px;
+      }
     }
 
-    .loading-button {
-      margin-top: 10px;
+    .ip-address {
+      font-size: rem-calc(15);
+      color: $charcoal;
+      letter-spacing: 1px;
+      padding-left: 33px;
     }
   }
 
@@ -229,15 +400,22 @@
   }
 
   .stored-wifis {
+    padding: 16px;
     > .row {
       .name {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        padding-top: 10px;
       }
+
+      img{margin-top: 10px;}
+
+      .action{padding: 0;}
 
       .action i {
         color: $alert-color;
+        font-size: 28px;
       }
 
       .active i {
@@ -284,10 +462,6 @@
 }
 
 #video-stream {
-
-    label {
-        margin-bottom: 10px;
-    }
 
     button, .button {
         margin-bottom: 0;
@@ -388,7 +562,7 @@
     border: 1px solid #ccc;
     @include radius($global-radius);
 
-    h3 {
+    h3{
       text-align: left;
       font-size: 15px;
     }
@@ -434,6 +608,7 @@
   .installed {
     > .row {
       .name {
+        padding-top: 10px;
         .version {
           font-size: rem-calc(12);
           color: #ccc;
@@ -446,6 +621,7 @@
 
       .icon-trash {
         color: $alert-color;
+        font-size: 26px;
       }
     }
 
@@ -466,9 +642,12 @@
     display: table;
 
     h1 {
-      height: 100px;
+      height: 80px;
       font-size: 30px;
       text-align: center;
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
     }
 
     .certificate-icon {
@@ -487,12 +666,12 @@
       }
 
       i {
-        font-size: 100px;
-        color: #ddd;
+        font-size: 60px;
+        color: lighten($iron, 8%);
 
         &.ok, &.nok {
           display: none;
-          font-size: 30px;
+          font-size: 26px;
         }
 
         &.ok {
@@ -528,7 +707,9 @@
   padding: 20px;
 
   label {
-    font-size: rem-calc(22);
+    font-size: rem-calc(16);
+    margin-bottom: 3px;
+    //font-family: $font-family-normal;
   }
 
   .serial-container {

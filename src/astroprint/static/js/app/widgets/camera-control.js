@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global Janus */
+
+/* exported CameraViewBase */
+
 var CameraControlView = Backbone.View.extend({
   cameraMode: 'video',//['video','photo']
   state: null,
@@ -48,7 +58,7 @@ var CameraControlView = Backbone.View.extend({
                   this.render();
                 }
             },this))
-            .fail(_.bind(function(response){
+            .fail(_.bind(function(){
               this.cameraAvailable = false;
               noty({text: "Unable to communicate with the camera.", timeout: 3000});
               this.stopStreaming();
@@ -60,7 +70,7 @@ var CameraControlView = Backbone.View.extend({
             this.render();
           }
         },this))
-        .fail(_.bind(function(response){
+        .fail(_.bind(function(){
           this.cameraAvailable = false;
           noty({text: "Unable to communicate with the camera.", timeout: 3000});
           this.stopStreaming();
@@ -133,7 +143,7 @@ var CameraControlView = Backbone.View.extend({
   {
     var promise = $.Deferred();
 
-    photoCont = this.getPhotoContainer();
+    var photoCont = this.getPhotoContainer();
 
     photoCont.attr('src', '/camera/snapshot?apikey='+UI_API_KEY+'&timestamp=' + (Date.now() / 1000));
 
@@ -201,7 +211,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
       contentType: 'application/json',
       type: 'json'
     })
-      .done(_.bind(function(r){
+      .done(_.bind(function(){
         this.streaming = true;
         var videoCont = this.getVideoContainer();
         videoCont.attr('src', '/webcam/?action=stream&time='+new Date().getTime());
@@ -213,7 +223,7 @@ var CameraControlViewMJPEG = CameraControlView.extend({
           promise.resolve();
         },this));
 
-        videoCont.on('error', _.bind(function(e) {
+        videoCont.on('error', _.bind(function() {
           videoCont.off('error');
           this.videoStreamingError = 'Error while playing video';
           this.render();
@@ -341,9 +351,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
       this.initJanus();
 
       // Initialize the library (all console debuggers enabled)
-      Janus.init({debug: false, callback: function() {
-        console.log('Janus Initialized')
-      }});
+      Janus.init({debug: false});
     }
     this.render();
   },
@@ -366,7 +374,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
       contentType: "application/json; charset=UTF-8",
       data: ''
     })
-    .done(_.bind(function(isJanusRunning){
+    .done(_.bind(function(){
       if(!videoCont.is(':visible')) {
         // Create session
         var janus = new Janus({
@@ -389,12 +397,10 @@ var CameraControlViewWebRTC = CameraControlView.extend({
               noty({text: "Unable to start WebRTC session.", timeout: 3000});
               this.setState('error');
             }, this))
-            .done(_.bind(function(response) {
+            .done(_.bind(function() {
               this.streaming = true;
 
-              var streamingPlugIn = null;
               var selectedStream = this.settings.encoding == 'h264' ? 1 : 2;
-              var sizeVideo = this.settings.size;
 
               //Attach to streaming plugin
               janus.attach({
@@ -403,7 +409,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
                   this.streamingPlugIn = pluginHandle;
 
                   this.streamingPlugIn.oncleanup = _.bind(function(){
-                    var body =
                     this.streamingPlugIn.send({
                       message: { "request": "destroy", "id": pluginHandle.session.getSessionId() },
                       success: _.bind(function() {
@@ -507,7 +512,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
                   var isPlaying = false;
 
-                  onPlay = _.bind(function () {
+                  var onPlay = _.bind(function () {
                     this.setState('streaming');
                     isPlaying = true;
                     this.activateWindowHideListener();
@@ -537,7 +542,6 @@ var CameraControlViewWebRTC = CameraControlView.extend({
                 console.error(error);
                 noty({text: "Unable to start the WebRTC session.", timeout: 3000});
                 //This is a fatal error. The application can't recover. We should probably show an error state in the app.
-                streamingState = 'stopped';
                 this.setState('error');
               }
 
@@ -549,7 +553,7 @@ var CameraControlViewWebRTC = CameraControlView.extend({
 
       promise.resolve(); //We didn't start it but it wasn't visible anyway
     },this))
-    .fail(_.bind(function(error){
+    .fail(_.bind(function(){
       noty({text: "Unable to start the WebRTC system.", timeout: 3000});
       this.initJanus();
       promise.resolve();

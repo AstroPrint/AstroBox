@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import socket
 import logging
+import uuid
 
 from octoprint.settings import settings
 
@@ -28,6 +29,7 @@ class ManualNetworkManager(NetworkManagerBase):
 			'wireless': None,
 			'manual': {
 				'ip': self._ipAddress,
+				'mac': 'Not Available',
 				'interface': 'Not Available'
 			}
 		}

@@ -348,17 +348,14 @@ class Printer(object):
 			date = int(os.stat(filename).st_ctime)
 
 			fileData = self._fileManager.getFileData(filename)
-			if fileData is not None and "gcodeAnalysis" in fileData.keys():
-				fileDataProps = fileData["gcodeAnalysis"].keys()
-				if "print_time" in fileDataProps:
-					estimatedPrintTime = fileData["gcodeAnalysis"]["print_time"]
-				if "filament_lenght" in fileDataProps:
-					filament = fileData["gcodeAnalysis"]["filament_length"]
-				if "layer_count" in fileDataProps:
-					layerCount = fileData["gcodeAnalysis"]['layer_count']
+			if fileData is not None:
+				gcodeAnalysis = fileData.get('gcodeAnalysis')
+				if gcodeAnalysis:
+					estimatedPrintTime = gcodeAnalysis.get('print_time')
+					filament = gcodeAnalysis.get('filament_length')
+					layerCount = gcodeAnalysis.get('layer_count')
 
-			if fileData is not None and "image" in fileData.keys():
-				renderedImage = fileData["image"]
+				renderedImage = fileData.get('image')
 
 			cloudId = self._fileManager.getFileCloudId(filename)
 			if cloudId:
@@ -419,6 +416,9 @@ class Printer(object):
 
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
+
+	def isSdReady(self):
+		return False
 
 	#This should probably be deprecated
 	def _setCurrentZ(self, currentZ):
@@ -524,7 +524,7 @@ class Printer(object):
 		self.setPause(not wasPaused)
 
 		cm = cameraManager()
-		if cm.is_timelapse_active():
+		if cm.is_timed_timelapse_active():
 			if wasPaused:
 				cm.resume_timelapse()
 			else:
@@ -560,6 +560,14 @@ class Printer(object):
 			eventManager().fire(Events.Z_CHANGE, {"new": newZ, "old": oldZ})
 
 		self._setCurrentZ(newZ)
+
+	def mcPhotoCommand(self):
+		cm = cameraManager()
+
+		if not cm.is_timelapse_active():
+			cm.start_timelapse('gcode')
+
+		cm.addPhotoToActiveTimelapse()
 
 	def mcToolChange(self, newTool, oldTool):
 		self._stateMonitor.setCurrentTool(newTool)
@@ -633,6 +641,9 @@ class Printer(object):
 			return (-amount if self._profileManager.data.get('invert_y') else amount)
 
 		return amount
+
+	def babysteppingWithPrinterProfile(self, amount):
+		return (-amount if self._profileManager.data.get('invert_z') else amount)
 
 	#~~~ Data processing functions ~~~
 
@@ -792,6 +803,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def home(self, axes):
+		raise NotImplementedError()
+
+	def babystepping(self, amount):
 		raise NotImplementedError()
 
 	def fan(self, tool, speed):

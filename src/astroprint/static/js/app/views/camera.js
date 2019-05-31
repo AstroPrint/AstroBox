@@ -1,12 +1,22 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global  CameraViewBase */
+
+/* exported CameraView */
+
 var CameraView = CameraViewBase.extend({
   el: '#camera-view',
   template: _.template( $("#camera-watch-page-template").html() ),
   serverUrl: null,
   events: {
-	   'hide':'onHide',
-     'show':'onShow',
-     'click .buttons .columns button': 'onCameraBtnClicked',
-     "change #camera-mode-camera": 'cameraModeChanged'
+    'hide':'onHide',
+    'show':'onShow',
+    'click .buttons .columns button': 'onCameraBtnClicked',
+    "change #camera-mode-camera": 'cameraModeChanged'
   },
   manageVideoStreamingEvent: function(value)
   {

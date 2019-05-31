@@ -72,8 +72,9 @@
   }
 
 
-	.app-image {
-    img{max-height:40px;}
+	.app-image img{
+      max-height:40px;
+      border-radius: 3px;
   }
 
   .task-row a.launch {
@@ -82,9 +83,9 @@
     flex-direction: row;
     position: relative;
     padding: 12px;
-    background: white;
+    background: rgb(230, 230, 230);
     border-radius: $global-radius;
-    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+    box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.18);
 
     h1{
       display: flex;
@@ -151,7 +152,7 @@
 .no-connection-overlay {
   display: none;
   html.no-printer & {
-    display: block;
+    @include flex(center, column);
     position: absolute;
     height: 100%;
     width: 100%;

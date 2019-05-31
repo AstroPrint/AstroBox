@@ -21,6 +21,7 @@ from astroprint.printer.manager import printerManager
 from astroprint.printfiles import FileDestinations
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.externaldrive import externalDriveManager
+from werkzeug.utils import secure_filename
 
 class FilesService(PluginService):
 	_validEvents = [
@@ -83,8 +84,9 @@ class FilesService(PluginService):
 
 	def copyFileToLocal(self, data, sendResponse):
 
-		if externalDriveManager().copyFileToLocal(data['origin'],data['destination'],data['observerId']):
-			sendResponse({'success': 'no_error'})
+		copiedFilename = externalDriveManager().copyFileToLocal(data['origin'],data['destination'],data['observerId'])
+		if copiedFilename:
+			sendResponse({'target_filename': copiedFilename})
 		else:
 			sendResponse({'error': 'copy print file to local folder failed' },True)
 
@@ -152,6 +154,8 @@ class FilesService(PluginService):
 		return files
 
 	def _verifyFileExists(self,origin, filename):
+		filename = secure_filename(filename)
+
 		if origin == FileDestinations.SDCARD:
 			availableFiles = map(lambda x: x[0], printerManager().getSdFiles())
 		else:
@@ -169,17 +173,16 @@ class FilesService(PluginService):
 			fileName = data['fileName']
 
 		if not fileDestination in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
-			self._logger.error('Unknown file location', exc_info = True)
+			self._logger.error('Unknown file location')
 			sendResponse('unknown_file_location',True)
 
 		if not fileName or not self._verifyFileExists(fileDestination, fileName):
-			self._logger.error('File not found', exc_info = True)
+			self._logger.error('File not found')
 			sendResponse('file_not_found',True)
 
 		printer = printerManager()
 
 		# selects/loads a file
-		printAfterLoading = False
 		if not printer.isOperational():
 			#We try at least once
 			printer.connect()
@@ -191,11 +194,9 @@ class FilesService(PluginService):
 				time.sleep(1)
 
 			if not printer.isOperational():
-				self._logger.error("The printer is not responding, can't start printing", exc_info = True)
+				self._logger.error("The printer is not responding, can't start printing")
 				sendResponse('printer_not_responding',True)
 				return
-
-		printAfterLoading = True
 
 		sd = False
 		if fileDestination == FileDestinations.SDCARD:
@@ -204,12 +205,16 @@ class FilesService(PluginService):
 		else:
 			filenameToSelect = printer.fileManager.getAbsolutePath(fileName)
 
-		startPrintingStatus = printer.selectFile(filenameToSelect, sd, printAfterLoading)
+		if filenameToSelect:
+			startPrintingStatus = printer.selectFile(filenameToSelect, sd, True)
 
-		if startPrintingStatus:
-			sendResponse({'success':'no error'})
+			if startPrintingStatus:
+				sendResponse({'success':'no error'})
+			else:
+				sendResponse('printer_not_responding',True)
+
 		else:
-			sendResponse('printer_not_responding',True)
+			sendResponse('invalid_filename', True)
 
 	def deletePrintFile(self, data, sendResponse):
 
@@ -222,12 +227,12 @@ class FilesService(PluginService):
 			fileName = data['fileName']
 
 		if not fileDestination in [FileDestinations.LOCAL, FileDestinations.SDCARD]:
-			self._logger.error("Unknown file location", exc_info = True)
+			self._logger.error("Unknown file location")
 			sendResponse('unknown_file_location',True)
 			return
 
 		if not fileName or not self._verifyFileExists(fileDestination, fileName):
-			self._logger.error("File not found", exc_info = True)
+			self._logger.error("File not found")
 			sendResponse('file_not_found',True)
 			return
 
@@ -324,7 +329,7 @@ class FilesService(PluginService):
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
 
-		if astroprintCloud().download_print_file(printFileId, progressCb, successCb, errorCb):
+		if astroprintCloud().download_print_file(printFileId, progressCb, successCb, errorCb) is True:
 			sendResponse({'success':'no error'})
 			return
 

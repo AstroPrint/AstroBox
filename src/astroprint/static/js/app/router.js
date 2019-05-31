@@ -1,17 +1,24 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* global HomeView, PrintQueueView, FilesView, UtilitiesView, PrintingView,
+          SettingsView, MaintenanceMenuView, AdditionalTasksView, AdditionalTaskView,
+          TerminalView, CameraView, SuppliesView, HelpView */
+
+/* exported AppRouter */
+
 var AppRouter = Backbone.Router.extend({
   homeView: null,
   filesView: null,
+  printQueueView: null,
   utilitiesView: null,
   settingsView: null,
   additionalTasksView: null,
   additionalTaskView: null,
-  maintenanceMenu: null,
+  maintenanceMenuView: null,
   printingView: null,
   terminalView: null,
   cameraView: null,
@@ -20,6 +27,7 @@ var AppRouter = Backbone.Router.extend({
   routes: {
     "": "home",
     "files": "files",
+    "print-queue": "printQueue",
     "file-info/:fileId": "fileInfo",
     "utilities": "utilities",
     "printing": "printing",
@@ -38,8 +46,8 @@ var AppRouter = Backbone.Router.extend({
   execute: function(callback, args)
   {
     if (callback) {
-      is_paused = app.socketData.get('paused');
-      is_printing = app.socketData.get('printing');
+      var is_paused = app.socketData.get('paused');
+      var is_printing = app.socketData.get('printing');
 
       if (is_printing || is_paused) {
         app.setPrinting();
@@ -71,6 +79,15 @@ var AppRouter = Backbone.Router.extend({
     this.loadFilesView(false);
     this.selectView(this.filesView);
     app.selectQuickNav('files');
+  },
+  printQueue: function()
+  {
+    if (!this.printQueueView) {
+      this.printQueueView = new PrintQueueView();
+    }
+
+    this.selectView(this.printQueueView);
+    app.selectQuickNav('queue');
   },
   fileInfo: function(fileId)
   {

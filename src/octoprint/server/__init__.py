@@ -1,7 +1,7 @@
 # coding=utf-8
 __author__ = "AstroPrint Product Team <product@astroprint.com> based on work done by Gina Häußge"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
-__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016-2018 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import uuid
 import json
@@ -56,7 +56,6 @@ from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
 import octoprint.events as events
-#import octoprint.timelapse
 
 import astroprint.users as users
 
@@ -73,6 +72,7 @@ from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
 from astroprint.externaldrive import externalDriveManager
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.ro_config import roConfig
 
 UI_API_KEY = None
 VERSION = None
@@ -106,6 +106,7 @@ def index():
 
 	if (s.getBoolean(["server", "firstRun"])):
 		swm = swManager()
+		ppm = printerProfileManager()
 
 		# we need to get the user to sign into their AstroPrint account
 		return render_template(
@@ -118,7 +119,9 @@ def index():
 			checkSoftware= swm.shouldCheckForNew,
 			settings= s,
 			wsToken= create_ws_token(publicKey),
-			mfDefinition= manufacturerPkgManager()
+			mfDefinition= manufacturerPkgManager(),
+			printerProfileId= ppm.data['printer_model']['id'] if ppm.data['printer_model'] else None,
+			apApiHost= roConfig('cloud.apiHost')
 		)
 
 	elif softwareManager.status != 'idle' or softwareManager.forceUpdateInfo:
@@ -160,6 +163,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
+			userPublicKey= publicKey,
 			show_bad_shutdown= swm.wasBadShutdown and not swm.badShutdownShown,
 			version= VERSION,
 			commit= swm.commit,
@@ -176,7 +180,10 @@ def index():
 			maintenanceMenu= True,
 			cameraManager= cm.name,
 			wsToken= create_ws_token(publicKey),
-			mfDefinition= manufacturerPkgManager()
+			mfDefinition= manufacturerPkgManager(),
+			apApiHost= roConfig('cloud.apiHost'),
+			apApiClientId= roConfig('cloud.apiClientId'),
+			boxId= boxrouterManager().boxId
 		)
 
 @app.route("/discovery.xml")
@@ -222,6 +229,7 @@ def getStatus():
 	printer = printerManager()
 	cm = cameraManager()
 	softwareManager = swManager()
+	ppm = printerProfileManager()
 
 	fileName = None
 
@@ -235,7 +243,8 @@ def getStatus():
 			'name': networkManager().getHostname(),
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
-			'printerModel': None,
+			'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,
+			'filament' : ppm.data['filament'],
 			'material': None,
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
@@ -430,7 +439,8 @@ class Server():
 
 		manufacturerPkgManager()
 		ppm = printerProfileManager()
-		pluginManager().loadPlugins()
+		pluginMgr = pluginManager()
+		pluginMgr.loadPlugins()
 
 		eventManager = events.eventManager()
 		printer = printerManager(ppm.data['driver'])
@@ -535,6 +545,10 @@ class Server():
 
 		try:
 			self._ioLoop = IOLoop.instance()
+
+			logger.info("System ready for requests")
+			pluginMgr._fireEvent('ON_SYSTEM_READY')
+
 			self._ioLoop.start()
 
 		except SystemExit:

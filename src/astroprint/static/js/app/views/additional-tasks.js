@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global  AdditionalTaskCollection, AdditionalTask */
+
+/* exported AdditionalTasksView */
+
 var AdditionalTasksView = Backbone.View.extend({
   el: '#additional-tasks-view',
   additionalTasksListView: null,
@@ -152,6 +162,7 @@ var TaskUploader = FileUploadBase.extend({
 
       case 'incompatible_task':
         message = 'The API version used by the task is not compatible.';
+      break;
 
       case 'already_installed':
         message = "The Task is already installed. Please remove old version first.";
@@ -250,7 +261,7 @@ var DeleteTaskDialog = Backbone.View.extend({
       dataType: 'json',
       data: JSON.stringify({id: this.id})
     })
-      .done(_.bind(function(data){
+      .done(_.bind(function(){
         this.parent.refreshTaskList();
         this.doClose();
       }, this))

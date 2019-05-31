@@ -1,8 +1,18 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported lockedView */
+
 $.ajaxSetup({
   cache: false
 });
 
-LoginForm = Backbone.View.extend({
+var LoginForm = Backbone.View.extend({
   el: '#login-form',
   events: {
     'submit': 'onSubmit'
@@ -45,7 +55,7 @@ LoginForm = Backbone.View.extend({
   }
 });
 
-LockedView = Backbone.View.extend({
+var LockedView = Backbone.View.extend({
   form: null,
   initialize: function()
   {
@@ -65,4 +75,4 @@ LockedView = Backbone.View.extend({
   }
 });
 
-var lockedVide = new LockedView();
+var lockedView = new LockedView();

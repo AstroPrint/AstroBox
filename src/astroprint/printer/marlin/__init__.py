@@ -66,8 +66,9 @@ class PrinterMarlin(Printer):
 	def rampdown(self):
 		if self._comm:
 			self._comm.close()
-			self._comm.thread.join()
-			self._comm = None
+			if self._comm: #There are cases where another thread has put this to None
+				self._comm.thread.join()
+				self._comm = None
 
 		super(PrinterMarlin, self).rampdown()
 
@@ -92,6 +93,8 @@ class PrinterMarlin(Printer):
 	#~~ callback from gcode received
 
 	def doTrafficBroadcast(self, direction, content):
+		eventManager().fire(Events.COMMS_CHANGE, {'direction': direction,'data': content})
+
 		for callback in self._callbacks:
 			try: callback.sendCommsData(direction, content)
 			except: pass
@@ -112,7 +115,7 @@ class PrinterMarlin(Printer):
 			regex = re.compile(r"\/dev\/cu\.usb(?:serial|modem)[\w-]+")
 		elif "linux" in platform:
 			#https://rfc1149.net/blog/2013/03/05/what-is-the-difference-between-devttyusbx-and-devttyacmx/
-			regex = re.compile(r"\/dev\/tty(?:ACM|USB|)[0-9]+")
+			regex = re.compile(r"\/dev\/tty(?:ACM|USB)[0-9]+")
 
 		for p in serial.tools.list_ports.comports():
 			if regex.match(p.device) is not None:
@@ -183,6 +186,9 @@ class PrinterMarlin(Printer):
 
 	def home(self, axes):
 		self.commands(["G91", "G28 %s" % " ".join(map(lambda x: "%s0" % x.upper(), axes)), "G90"])
+
+	def babystepping(self, amount):
+		self.command("M290 Z%s" % self.babysteppingWithPrinterProfile(amount))
 
 	def setPrintingSpeed(self, amount):
 		try:
@@ -593,6 +599,9 @@ class PrinterMarlin(Printer):
 
 	def isPaused(self):
 		return (bool) (self._comm and self._comm.isPaused())
+
+	def isSdReady(self):
+		return (bool) (self._comm and self._comm.isSdReady())
 
 	def setPause(self, paused):
 		if self._comm:

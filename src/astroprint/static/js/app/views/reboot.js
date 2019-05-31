@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported RebootConfirmationModal */
 
 var RebootConfirmationModal = Backbone.View.extend({
 	el: '#reboot-modal',
@@ -11,7 +15,7 @@ var RebootConfirmationModal = Backbone.View.extend({
 		'click button.alert': 'onConfirm',
 		'click button.secondary': 'close'
 	},
-	onConfirm: function() 
+	onConfirm: function()
 	{
 		this.$el.foundation('reveal', 'close');
 		if (!this.rebootView) {
@@ -42,8 +46,8 @@ var RebootView = Backbone.View.extend({
 				}, this), 3000);
             }, this),
             error: _.bind(function() {
-            	this.$el.find('.icon-refresh').removeClass('animate-spin');
-            	noty({text: "There was an error starting reboot sequence.", timeout: 5000});
+              this.$el.find('.icon-refresh').removeClass('animate-spin');
+              noty({text: "There was an error starting reboot sequence.", timeout: 5000});
             }, this)
         });
 	}

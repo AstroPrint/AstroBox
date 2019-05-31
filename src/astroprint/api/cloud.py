@@ -154,6 +154,24 @@ def designs():
 
 	return json.dumps(files)
 
+@api.route("/astroprint/manufacturers/", methods=["GET"])
+def manufacturers():
+	manufacturers = json.loads(astroprintCloud().manufacturers())
+
+	return json.dumps(manufacturers)
+
+@api.route("/astroprint/manufacturers/<string:manufacturer_id>/models", methods=["GET"])
+def printerModels(manufacturer_id):
+	printerModels = json.loads(astroprintCloud().printerModels(manufacturer_id))
+
+	return json.dumps(printerModels)
+
+@api.route("/astroprint/manufacturers/models/<string:model_id>", methods=["GET"])
+def printerModel(model_id):
+	printerModel = json.loads(astroprintCloud().printerModel(model_id))
+
+	return json.dumps(printerModel)
+
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access
 def design_download(print_file_id):
@@ -203,7 +221,7 @@ def design_download(print_file_id):
 		if destFile and os.path.exists(destFile):
 			os.remove(destFile)
 
-	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb):
+	if astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb) is True:
 		return jsonify(SUCCESS)
 
 	return abort(400)

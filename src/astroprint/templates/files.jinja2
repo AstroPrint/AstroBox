@@ -1,3 +1,10 @@
+{% block js %}
+  <script type="text/javascript">
+    var initial_states = {
+      userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
+    };
+  </script>
+{% endblock %}
 <div class="row heading">
 	<div class="small-12 title-heading">
 		<h1 class="bold">{{astroboxName}} · File Manager</h1>
@@ -50,16 +57,33 @@
 			  <li><a href="#" class="button tiny round bold secondary local">Internal</a></li>
 			  <li><a href="#" class="button tiny round bold secondary cloud">Cloud</a></li>
 			</ul>
-		</div>
+    </div>
+    {%- if user_email  %}
+      <div id="files-on-queue" class="text-right small-12 columns" >
+        <a href="#print-queue"> <div><small class="bold" >Go to Queue</small><i class="icon-inbox"><span class="counter-queue bold"></span></i></div></a>
+      </div>
+    {%- endif %}
 	</div>
 
 	<div class="row">
-		<div class="small-12 columns">
+		<div class="small-12 columns matching-container">
       <div class="local-loading" align="center">
         <i class="icon-refresh animate-spin"></i>
         Loading files...
       </div>
-			<div class="design-list-container"></div>
+      <div id="files-container">
+        {%- if printer_profile.printer_model.id %}
+        <div class="design-filtered-list">
+          <div class="header-filter" >Matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b></div>
+          <div class="container-files"></div>
+        </div>
+        {% endif %}
+        <div class="design-list">
+          <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Not matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
+          <div class="container-files"></div>
+        </div>
+      </div>
+
 		</div>
 	</div>
 </div>
@@ -86,7 +110,7 @@
 </div>
 
 <script type="text/template" id="printfile-info-template">
-  <h2 class="bold"><%= p.printFileName ? p.printFileName : p.name %></h2>
+  <h2 class="bold"><%= p.printFileName ? _.escape(p.printFileName) : _.escape(p.name) %></h2>
 	<div class="modal-content">
 		<div class="row">
 			<% if (p.images.square) { %>
@@ -105,17 +129,19 @@
 							</a>
 							<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
 						</div>
-						<a class="print" href="#">
-							<i class="icon-3d-printer" title="Print"></i>
-						</a>
 					<% } else { %>
 						<a class="download" href="#">
 							<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
 						</a>
-						<a class="print" href="#">
-							<i class="icon-3d-printer" title="Print"></i>
-						</a>
-					<% } %>
+          <% } %>
+          <% if (!p.local_only && queueAllowed) { %>
+            <a class="queue" href="#">
+              <i class="icon-plus" title="Add to Queue"></i>
+            </a>
+          <% } %>
+          <a class="print" href="#">
+            <i class="icon-3d-printer" title="Print"></i>
+          </a>
 				</div>
 				<div class="print-settings">
 					<% if (p.local_only) { %>
@@ -175,14 +201,14 @@
       </div>
 		<% } %>
 	</div>
-	<div class="small-9 medium-8 large-10 columns middle-section">
+	<div class="small-9 medium-8 large-9 columns middle-section">
     <div class="info-container div-container">
-      <h3 class="bold text"> <%= p.name %></h3>
+      <h3 class="bold text"> <%= _.escape(p.name) %></h3>
       <div class="info">
         <%= size_format(p.size) %>
         <% if (p.info) { %>
           <% if (p.info.print_time) { %>
-            <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %><span> · </span></b>
+            <b><span>·</span><i class="icon-stopwatch" title="Print Time"></i> <%= time_format(p.info.print_time) %></b>
           <% } %>
         <% } else { %>
           <% if (p.local_filename != null) { %>
@@ -190,20 +216,30 @@
           <% } %>
         <% } %>
         <% if (p.uploaded_on) { %>
-          <i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
+          <b><span> ·</span></b><i class="icon-calendar" title="Time Added"></i> <span data-localtime-format="d MMM, yyyy (h:mm a)"><%= new Date(p.uploaded_on * 1000).toISOString() %></span>
         <% } %>
       </div>
     </div>
 	</div>
-	<div class="small-4 medium-2 large-1 columns right-section">
-		<div class="print-file-options">
-			<% if (p.local_filename) { %>
-				<div class="loading-button print">
-					<a href="#" class="print idle">
-						<i class="icon-3d-printer" title="Print"></i>
-					</a>
-					<span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
-				</div>
+	<div class="small-12 medium-12 large-2 columns right-section">
+		<div class="print-file-options clearfix">
+      <% if (p.local_filename) { %>
+        <% if (!p.local_only && queueAllowed) { %>
+          <div class="loading-button add-to-queue columns small-9 medium-10 large-6">
+            <a href="#" class="queue idle">
+              <i class="icon-plus" title="Add to Queue"></i>
+            </a>
+            <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
+          </div>
+        <% } %>
+
+        <div class="loading-button print columns small-3 medium-2 large-6">
+          <a href="#" class="print idle">
+            <i class="icon-3d-printer" title="Print"></i>
+          </a>
+          <span class="loading text-center"><i class="icon-rocket-spinner animate-spin"></i></span>
+        </div>
+
 			<% } else { %>
 				<a href="#" class="download">
 					<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
@@ -226,7 +262,10 @@
       <img class="noimage" src="/img/noimage.svg">
     </div>
     <div class="small-9 medium-6 large-8 columns middle-section div-container">
-      <h3 class="bold text"><%= p %></h3>
+      <div class="info-container div-container">
+        <h3 class="bold text"><%= name %></h3>
+        <% if (size) { %><div class="info"><%= size_format(size) %></div><% } %>
+      </div>
     </div>
 
     <div class="small-12 medium-4 large-3 columns right-section">
@@ -251,6 +290,27 @@
 	<div class="dlg-content"></div>
 	<a class="close-reveal-modal">&#215;</a>
 </div>
+
+<div id="no-print-dlg" class="reveal-modal xlarge" data-reveal>
+	<div class="dlg-content"></div>
+	<a class="close-reveal-modal">&#215;</a>
+</div>
+
+<script type="text/template" id="no-print-template">
+  <h2 class="bold">Not matching Printer</h2>
+  <div class="modal-content" align="center">
+    <p>Your printer model profile does not match the Printfile printer.</p>
+    <p>Printfile printer model: <b><%=printFilePrinterName%></b></p>
+    <p>AstroBox printer model: <b><%=astroboxPrinterName%></b></p>
+  </div>
+  <div class="row">
+    <div class="loading-button close columns small-offset-4 small-4">
+      <button href="#" class="radius secondary cancel">
+        Cancel
+      </button>
+    </div>
+  </div>
+</script>
 
 <script type="text/template" id="local-file-exists-template">
     <h2 class="bold">File is already in internal storage</h2>
@@ -315,7 +375,7 @@
         <img src="/static/img/<%= p.icon %>-icon.svg" alt="<%= p.icon %> icon">
       </div>
       <div class="small-10 medium-10 large-11 columns middle-section div-container">
-        <h3 class="bold text"><%= p.name %></h3>
+        <h3 class="bold text"><%= _.escape(p.name) %></h3>
       </div>
     </div>
     <% if (p.icon == 'usb'){ %>
@@ -334,14 +394,9 @@
 <script type="text/template" id="back-folder-template">
   <div class="row inside">
     <div class="small-12 large-12 columns exploreFolder ">
-      <!--img src="/static/img/file-manager-icon.png" alt="file manager icon"-->
       <i class="icon-back"></i>
       <i class="icon-folder-open-empty"></i>
       <i class="icon-folder-empty"></i>
-      <!--img src="/static/img/folder-icon.svg"-->
     </div>
-    <!--div class="small-8 large-11 columns middle-section">
-      <h3 class="bold">../</h3>
-    </div-->
   </div>
 </script>

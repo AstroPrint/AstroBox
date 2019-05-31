@@ -1,3 +1,4 @@
+@import "variables";
 .loading-button {
   display: inline-block;
 
@@ -76,7 +77,13 @@
 }
 // CONTROL MOVEMENT WIDGET
 #xy-controls,
-#z-controls  {
+#z-controls{
+
+  h5{
+    color: $steel;
+    font-family: 'nexa_boldregular';
+  }
+
   .control-btn-wrapper {
     width: 56px;
     height: 56px;
@@ -102,7 +109,7 @@
       width: 100%;
       height: 100%;
       border-radius: 8px;
-      font-size: 35px;
+      font-size: 33px;
       color: white;
       pointer-events: none;
 
@@ -117,7 +124,7 @@
 	.control_bg_xy {
 		position: relative;
     perspective: 500px;
-    perspective-origin: 50% 50%;
+    perspective-origin: 50% 60%;
     width: 100%;
     height: 200px;
     width: 200px;
@@ -196,14 +203,14 @@
   .control-btn-wrapper {
     position: relative;
     margin-bottom: 0;
-    height: 50px;
+    height: 45px;
 
     .btn {
-      padding: 5px 0 0 0;
+      padding: 3px 0 0 0;
     }
 
     &.btn_home_z {
-      margin: 20px auto;
+      margin: 18px auto;
       height: 33px;
       width: 50px;
 
@@ -212,18 +219,35 @@
       }
     }
 
-    &.btn_z_plus i:before{
+    &.btn_z_plus i:before, &.btn_babystep_z_plus i:before{
       transform: rotate(-90deg);
     }
 
-    &.btn_z_minus i:before {
+    &.btn_z_minus i:before, &.btn_babystep_z_minus i:before{
       transform: rotate(90deg);
     }
+
+    &.btn_babystep_z_plus{margin-top: 10px;}
+
+    &.btn_babystep_z_plus, &.btn_babystep_z_minus{
+      height: 32px;
+      width: 72px;
+
+      .btn{
+        font-size: 19px;
+        padding-top: 5px;
+      }
+    }
+
+    &.btn_babystep_z_minus{margin-top: 18px;}
   }
+}
+select.babystep-amount {
+  width: 80px;
 }
 
 #distance-control {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
   padding: 0;
 
 	ul {
@@ -234,4 +258,81 @@
 			font-size: rem-calc(18);
 		}
 	}
+}
+
+// GCODE TERMINAL
+#gcode-widget {
+  @keyframes example {
+    from {background-size: 100% 5px; opacity: 0.7;}
+    to {background-size: 100% 6px; opacity: 1;}
+  }
+  .arcade-screen{
+    background: linear-gradient(180deg,transparent 50%,rgba(89, 217, 132, 0.08) 51%);
+    background-size: 100% 5px;
+  }
+
+  input[name='gcode'] {
+    border: 2px solid grey;
+    border-radius: 5px 0 0 5px;
+    letter-spacing: 2px;
+    text-transform: initial;
+    height: 45px;
+  }
+
+  .output-container {
+    background-color: $jet;
+    height: 500px;
+    overflow: scroll;
+    margin: 20px 0 10px 0;
+    padding:0 0 10px 0;
+    user-select: text;
+    border-radius: 20px;
+    border: 10px solid darken($jet, 15%);
+    background-blend-mode: hard-light;
+    position: relative;
+
+    .alert-box{
+      background: transparent;
+      padding-left: 15px;
+      color: $warning-color;
+      font-size: 15px;
+      line-height: 130%;
+      border: 0;
+    }
+
+    div {
+        padding-left: 10px;
+        margin-bottom: 2px;
+        text-indent: -5px;
+        line-height: 140%;
+    }
+
+    .sent {
+      color: saturate($violet2, 25%);
+      border-left: 8px solid saturate($violet2, 25%);
+
+      i {
+        color: saturate($violet2, 25%);
+        user-select: none;
+      }
+
+      &.failed {
+        color: $alert-color;
+        i {
+          color: $alert-color;
+        }
+
+        border-left: 8px solid $alert-color;
+        background: lighten($alert-color, 35%);
+        border-bottom: 1px solid $alert-color;
+      }
+    }
+
+    .received {
+      color: saturate(#4dd1b1, 25%);
+      border-left: 8px solid saturate(#4dd1b1, 25%);
+
+      i {color: saturate(#4dd1b1, 25%);}
+    }
+  }
 }

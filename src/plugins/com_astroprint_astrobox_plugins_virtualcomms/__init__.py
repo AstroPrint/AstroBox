@@ -16,7 +16,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 	def initPrinterCommsService(self, printerManager):
 		super(VirtualComms, self).initPrinterCommsService(printerManager)
 
-		seettings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
+		settings_file = "%s/virtual-printer-settings.yaml" % self.settingsDir
 		self._previousSelectedTool = 0
 		self._currentSelectedTool = 0
 		self.printingSpeed = 100
@@ -27,21 +27,21 @@ class VirtualComms(Plugin, PrinterCommsService):
 			'printJob': 10.0
 		}
 
-		if os.path.isfile(seettings_file):
+		if os.path.isfile(settings_file):
 			import yaml
 
 			config = None
-			with open(seettings_file, "r") as f:
+			with open(settings_file, "r") as f:
 				config = yaml.safe_load(f)
 
-			def merge_dict(a,b):
-				for key in b:
-					if isinstance(b[key], dict):
-						merge_dict(a[key], b[key])
-					else:
-						a[key] = b[key]
-
 			if config:
+				def merge_dict(a,b):
+					for key in b:
+						if isinstance(b[key], dict):
+							merge_dict(a[key], b[key])
+						else:
+							a[key] = b[key]
+
 				merge_dict(self._vpSettings, config)
 
 		self._printing = False
@@ -169,6 +169,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def sendCommand(self, command):
 		self._logger.info('Command Sent - %s', command)
+
+	def babystepping(self, amount):
+		self._logger.info('Babystepping - Amount - %s', amount)
 
 	def setTemperature(self, type, value):
 		self._logger.info('Temperature - Type: %s, Value: %s', type, value)

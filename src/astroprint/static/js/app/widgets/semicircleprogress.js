@@ -1,5 +1,15 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global */
+
+/* exported SemiCircleProgress */
+
 var SemiCircleProgress = Backbone.View.extend({
-    initialize: function() 
+    initialize: function()
     {
         /* Change default circle for semi circle*/
         // Arc layout

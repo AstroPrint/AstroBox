@@ -39,6 +39,7 @@ from astroprint.software import softwareManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles.downloadmanager import downloadManager
+from astroprint.ro_config import roConfig
 
 class AstroPrintCloudException(Exception):
 	pass
@@ -79,13 +80,13 @@ class AstroPrintCloud(object):
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
-		self.apiHost = self.settings.get(['cloudSlicer', 'apiHost'])
+		self.apiHost = roConfig('cloud.apiHost')
 		self._print_file_store = None
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
 
 	def cloud_enabled(self):
-		return settings().get(['cloudSlicer', 'apiHost']) and self.hmacAuth
+		return roConfig('cloud.apiHost') and self.hmacAuth
 
 	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
@@ -427,6 +428,7 @@ class AstroPrintCloud(object):
 		progressCb(1)
 
 		destFile = None
+		destFilename = None
 		printFileName = None
 		printer = None
 		material = None
@@ -438,12 +440,16 @@ class AstroPrintCloud(object):
 			progressCb(2)
 
 			if "filename" in data:
-				destFile = fileManager.getAbsolutePath(data['filename'], mustExist=False)
+				destFilename = data['filename']
 				printFileName = data["printFileName"]
 
 			else:
-				destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
-				printFileName = data["name"]
+				destFilename = printFileName = data['name']
+
+			destFilename, destFileExt = os.path.splitext(destFilename)
+
+			if destFileExt[1:].lower() not in fileManager.SUPPORTED_EXTENSIONS:
+				return {"id": "wrong_file_type", "message": "The print file format is not compatible with the configured printer"}
 
 			if "printer" in data:
 				printer = data['printer']
@@ -456,7 +462,7 @@ class AstroPrintCloud(object):
 			if "created" in data:
 				created = data['created']
 
-			destFile = fileManager.getAbsolutePath(data['name'], mustExist=False)
+			destFile = fileManager.getAbsolutePath(destFilename + destFileExt, mustExist=False)
 
 			if destFile:
 				def onSuccess(pf, error):
@@ -483,9 +489,43 @@ class AstroPrintCloud(object):
 
 		else:
 			errorCb(destFile, 'Unable to download file')
-			return False
+			return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
 
+	def manufacturers(self):
+		try:
+			r = requests.get( "%s/v2/manufacturers" % (self.apiHost), auth=self.hmacAuth )
+			data = r.json()
+		except:
+			data = None
 
+		if data:
+			return json.dumps({'manufacturers': data})
+		else:
+			return { 'error': 'invalid_data'}
+
+	def printerModels(self, manufacturer_id):
+		try:
+			r = requests.get( "%s/v2/manufacturers/%s/models" % (self.apiHost, manufacturer_id), auth=self.hmacAuth )
+			data = r.json()
+		except:
+			data = None
+
+		if data:
+			return json.dumps({'printer_models': data})
+		else:
+			return { 'error': 'invalid_data'}
+
+	def printerModel(self, model_id):
+		try:
+			r = requests.get( "%s/v2/manufacturers/models/%s" % (self.apiHost, model_id), auth=self.hmacAuth )
+			data = r.json()
+		except:
+			data = None
+
+		if data:
+			return json.dumps({'printer_model': data})
+		else:
+			return { 'error': 'invalid_data'}
 	def getPrintFile(self, cloudId):
 		if not self._print_file_store:
 			self._sync_print_file_store()
@@ -540,6 +580,25 @@ class AstroPrintCloud(object):
 				"error": "unable_to_create"
 			}
 
+	def updateBoxrouterData(self, data):
+		if self.cloud_enabled():
+			try:
+				if data:
+					r = requests.put("%s/astrobox/%s/update-boxrouter-data" % (self.apiHost, boxrouterManager().boxId),
+						data=json.dumps(data),
+						auth=self.hmacAuth,
+						headers={'Content-Type': 'application/json'}
+					)
+
+					if r.status_code == 200:
+						return r.json()
+					if r.status_code == 400:
+						self._logger.error("Bad updateBoxrouterData request (400). Response: %s" % r.text)
+					if r.status_code == 404:
+						self._logger.error("Request updateBoxrouterData not found (404). Response: %s" % r.text)
+			except Exception as e:
+				self._logger.error("Failed to send updateBoxrouterData request: %s" % e)
+		return False
 
 	def uploadImageFile(self, print_id, imageBuf):
 		try:

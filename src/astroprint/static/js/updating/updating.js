@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global updateInfo, UI_API_KEY: writable, RELEASE_IDS */
+
+/* exported view */
 
 $.ajaxSetup({
   cache: false,
@@ -65,7 +69,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
 
     if (this._autoReconnectTrial < this._autoReconnectTimeouts.length) {
       var timeout = this._autoReconnectTimeouts[this._autoReconnectTrial];
-      console.log("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
+      console.warn("Reconnect trial #" + this._autoReconnectTrial + ", waiting " + timeout + "s");
       setTimeout(_.bind(this.reconnect, this), timeout * 1000);
       this._autoReconnectTrial++;
     } else {
@@ -97,7 +101,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
           var payload = data["payload"];
 
           if (type == 'SoftwareUpdateEvent') {
-            var payload = data["payload"];
+            payload = data["payload"];
 
             if (payload.completed) {
               if (payload.success) {
@@ -138,7 +142,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         location.href="/#settings/software-update";
         location.reload();
       },
-      error: function(xhr) {
+      error: function() {
         loadingBtn.removeClass('loading').addClass('failed');
         setTimeout(function(){
           loadingBtn.removeClass('failed');
@@ -165,7 +169,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
         this.updateState('updating');
         loadingBtn.removeClass('loading');
       }, this),
-      error: _.bind(function(xhr) {
+      error: _.bind(function() {
         loadingBtn.removeClass('loading').addClass('failed');
         setTimeout(function(){
           loadingBtn.removeClass('failed');
@@ -192,7 +196,7 @@ var SoftwareUpdateProgress = Backbone.View.extend({
           location.reload();
         }, 9000);
       }, this),
-      error: function(xhr) {
+      error: function() {
         loadingBtn.removeClass('loading').addClass('failed');
         setTimeout(function(){
           loadingBtn.removeClass('failed');

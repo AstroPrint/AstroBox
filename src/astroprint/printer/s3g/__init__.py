@@ -131,6 +131,8 @@ class PrinterS3g(Printer):
 			self._fileManager.pauseAnalysis() # do not analyse gcode while printing
 		elif newState == self.STATE_CLOSED:
 			eventManager().fire(Events.DISCONNECTED)
+		elif newState == self.STATE_ERROR:
+			eventManager().fire(Events.DISCONNECTED)
 		elif newState == self.STATE_CONNECTING:
 			eventManager().fire(Events.CONNECTING)
 
@@ -368,6 +370,9 @@ class PrinterS3g(Printer):
 						position[2] += steps
 
 					self._comm.queue_extended_point_classic(position, 500)
+
+	def babystepping(self, amount):
+		raise NotImplementedError()
 
 	def fan(self, tool, speed):
 		if self._comm:

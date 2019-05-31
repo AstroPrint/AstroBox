@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported SettingsView */
 
 var SettingsPage = Backbone.View.extend({
   parent: null,
@@ -29,6 +33,7 @@ var PrinterConnectionView = SettingsPage.extend({
     'click a.retry-ports': 'retryPortsClicked',
     'click .loading-button.connect button': 'onConnectClicked',
     'click .loading-button.disconnect button': 'onDisconnectClicked',
+    'click .loading-button.cancel button': 'onDisconnectClicked',
     'click .loading-button.reconnect button': 'onReconnectClicked',
   },
   initialize: function(params)
@@ -41,12 +46,12 @@ var PrinterConnectionView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     this.$('a.retry-ports i').addClass('animate-spin');
     $.getJSON(API_BASEURL + 'settings/printer', null, _.bind(function(data) {
@@ -78,7 +83,7 @@ var PrinterConnectionView = SettingsPage.extend({
   retryPortsClicked: function(e)
   {
     e.preventDefault();
-    this.getInfo();
+    this.getInfoAndRender();
   },
   sendConnect: function(command_data) {
     var connectionData = {};
@@ -170,23 +175,89 @@ var PrinterProfileView = SettingsPage.extend({
   template: null,
   settings: null,
   driverChoices: [],
+  printerSelectorDlg : null,
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
     "change input[name='heated_bed']": 'heatedBedChanged',
-    "change select[name='driver']": 'driverChanged'
+    "change select[name='driver']": 'driverChanged',
+    "click a.change-printer": 'printerSelectorClicked',
+    "click a.unlink-printer": 'unlinkPrinterClicked'
   },
   show: function() {
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+
+  printerSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+
+    var currentPrinterID = $('#printer-name').data("id");
+
+    if (currentPrinterID) {
+      var loadingBtn = this.$el.find('.loading-button.check');
+      loadingBtn.addClass('loading');
+
+      app.astroprintApi.getModelInfo(currentPrinterID)
+        .done(_.bind(function (info) {
+
+          var data = {
+            'currentPrinter_id': currentPrinterID,
+            'manufacturer_id': info.manufacturer_id,
+          }
+
+
+          if (!this.printerSelectorDlg) {
+            this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+          }
+          this.printerSelectorDlg.open({printerData: data });
+
+          loadingBtn.removeClass('loading');
+        }, this))
+
+        .fail(_.bind(function (xhr) {
+          console.error(xhr);
+          noty({ text: "Error getting printer information", timeout: 3000 });
+          loadingBtn.removeClass('loading');
+        }, this))
+
+    } else {
+      if (!this.printerSelectorDlg) {
+        this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});
+      }
+      this.printerSelectorDlg.open()
+    }
+
+  },
+  unlinkPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    (new UnlinkPrinterDialog()).open({settings: this.settings, view: this})
+  },
+  _checkCurrentPrinter: function(printerID) {
+    var promise = $.Deferred();
+
+      this.astroprintApi.getModelInfo(printerID)
+      .done(_.bind(function (info) {
+        promise.resolve(info)
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        promise.reject();
+      }, this))
+
+    return promise;
+  },
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
@@ -206,7 +277,7 @@ var PrinterProfileView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template( $("#printer-profile-settings-page-template").html() );
     }
-
+    this.$el.empty();
     this.$el.html(this.template({
       settings: this.settings.toJSON(),
       driverChoices: this.driverChoices
@@ -229,7 +300,6 @@ var PrinterProfileView = SettingsPage.extend({
   driverChanged: function(e)
   {
     var target = $(e.currentTarget);
-    var wrapper = this.$('.input-wrapper.cancel-gcode');
 
     this.settings.set('driver', target.val());
     this.render();
@@ -255,7 +325,7 @@ var PrinterProfileView = SettingsPage.extend({
 
     form.find('input, select, textarea').each(function(idx, elem) {
       var value = null;
-      var elem = $(elem);
+      elem = $(elem);
 
       if (elem.is('input[type="radio"], input[type="checkbox"]')) {
         value = elem.is(':checked');
@@ -283,6 +353,440 @@ var PrinterProfileView = SettingsPage.extend({
 });
 
 /***********************
+* Filament
+************************/
+
+var FilamentView = SettingsPage.extend({
+  el: '#filament-info',
+  template: null,
+  settings: null,
+  driverChoices: [],
+  printerSelectorDlg : null,
+  events: {
+    "click a.change-filament": 'filamentSelectorClicked',
+    "click a.unlink-filament": 'unlinkFilamentClicked',
+  },
+  show: function() {
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.settings) {
+      this.settings = app.printerProfile;
+    }
+    this.render();
+  },
+
+  filamentSelectorClicked: function(e)
+  {
+    e.preventDefault();
+
+    var data = {
+      'name': $('#filament-name').data("name"),
+      'color': $('#filament-name').data("color"),
+    }
+
+    if (!this.filamentSelectorDlg) {
+      this.filamentSelectorDlg = new FilamentSelectorDialog({parent: this});
+    }
+    this.filamentSelectorDlg.open(data);
+
+  },
+  getInfoAndRender: function()
+  {
+    $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
+      if (data) {
+        this.driverChoices = data.driverChoices;
+        delete data.driverChoices;
+        this.settings.set(data.profile);
+        this.render(); // This removes the animate-spin from the link
+      } else {
+        noty({text: "No Profile found.", timeout: 3000});
+      }
+    }, this))
+    .fail(function() {
+      noty({text: "There was an error getting printer profile.", timeout: 3000});
+    })
+  },
+  unlinkFilamentClicked: function(e)
+  {
+    e.preventDefault();
+    (new UnlinkFilamentDialog()).open({settings: this.settings, view: this})
+  },
+  render: function() {
+    if (!this.template) {
+      this.template = _.template( $("#filament-info-page-template").html() );
+    }
+    this.$el.empty();
+    this.$el.html(this.template({
+      settings: this.settings.toJSON(),
+    }));
+
+    this.$el.foundation('abide');
+  },
+});
+
+/* PRINTER SELECTOR MODAL */
+var PrinterSelectorDialog = Backbone.View.extend({
+  el: '#printer-selector-modal',
+  manufacturers: null,
+  manufacturerSelected: null,
+  printer_models: null,
+  printerSelected: null,
+  contentTemplate: null,
+  parentView: null,
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.set-printer': 'setPrinterClicked',
+    'change select#manufacturers-picker': 'onManufacturersChanged'
+  },
+  initialize: function(params) {
+    this.parentView = params.parent;
+  },
+  open: function(params)
+  {
+    var printerData = params ? params.printerData : null
+
+    this._checkManufacturersAndPrinters(printerData);
+
+    this.$el.foundation('reveal', 'open');
+  },
+  onManufacturersChanged: function (e)
+  {
+    this.manufacturerSelected = $(e.target).val();
+
+    app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+    .done(_.bind(function (printerModels) {
+      this.printer_models = printerModels.data;
+      this.printerSelected = this.printer_models[0].id
+      this.$el.addClass('settings');
+
+      this.render();
+    }, this))
+
+    .fail(_.bind(function (xhr) {
+      this.$el.addClass('settings');
+      console.error("Error getting printer models", xhr);
+      noty({ text: "Error getting printer models", timeout: 3000 });
+    }, this))
+  },
+  setPrinterClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+    // Get info from last model selected
+    app.astroprintApi.getModelInfo($("#printer-model-picker").val())
+      .done(_.bind(function (info) {
+        this.printerInfo = info;
+        var printerObject = {
+          "id": this.printerInfo.id,
+          "name": this.printerInfo.name
+        }
+        // Update printer profile with selected printer
+        var attrs = {
+          'printer_model': printerObject,
+          'heated_bed': this.printerInfo.config.heated_bed,
+          'extruder_count': this.printerInfo.config.extruder_count ? +this.printerInfo.config.extruder_count : 1
+        }
+
+        // Change driver depending printer model chosen
+        if (this.printerInfo.format == 'x3g'){
+          if (this.parentView.settings.get('driver') != 's3g') {
+            attrs['driver'] = 's3g';
+          }
+        } else {
+          if (this.parentView.settings.get('driver') == 's3g') {
+            attrs['driver'] = 'marlin';
+          }
+        }
+        this.parentView.settings.save(attrs, {
+          patch: true,
+          success: _.bind(function () {
+            noty({ text: "Printer model saved", timeout: 3000, type: "success" });
+            this.parentView.getInfoAndRender();
+            this.$el.foundation('reveal', 'close');
+            loadingBtn.removeClass('loading');
+          }, this),
+          error: function () {
+            noty({ text: "Failed to save printer model", timeout: 3000 });
+            loadingBtn.removeClass('loading');
+          }
+        });
+      }, this))
+
+      .fail(_.bind(function (xhr) {
+        console.error(xhr);
+        loadingBtn.removeClass('loading');
+      }, this))
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#printer-selector-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+    content.html(this.contentTemplate({
+      manufacturers: this.manufacturers,
+      mSelected: this.manufacturerSelected,
+      printers: this.printer_models,
+      pSelected: this.printerSelected,
+    }));
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  _checkManufacturersAndPrinters: function (printerID, manufacturerID)
+  {
+    /*printerID = null;
+    manufacturerID = null;
+
+    if (printerData){
+      printerID = printerData.printer_id;
+      manufacturerID = printerData.manufacturer_id;
+    }*/
+    // Get manufacturers list
+    app.astroprintApi.getManufacturers()
+      .done(_.bind(function (manufacturers) {
+        this.manufacturers = manufacturers.data;
+        this.manufacturerSelected = manufacturerID ? manufacturerID : this.manufacturers[0].id
+        // Now get printer models from first manufacturer
+        app.astroprintApi.getPrinterModels(this.manufacturerSelected)
+          .done(_.bind(function (printerModels) {
+            this.printer_models = printerModels.data;
+            this.printerSelected = printerID ? printerID : this.printer_models[0].id
+            this.render();
+          }, this))
+          .fail(_.bind(function (xhr) {
+            console.error("Error getting printer models", xhr);
+            noty({ text: "Error getting printer models", timeout: 3000 });
+          }, this))
+      }, this))
+
+      .fail(_.bind(function () {
+        console.error("Error getting manufacturers");
+        noty({ text: "Error getting manufacturers", timeout: 3000 });
+      }, this))
+  },
+});
+
+/* FILAMENT SELECTOR MODAL */
+var FilamentSelectorDialog = Backbone.View.extend({
+  el: '#filament-selector-modal',
+  name: null,
+  color: null,
+  parentView: null,
+  colors :  [
+    "#f05251", //RED
+    "#FF872B", //ORANGE
+    "#f9d35a", //YELLOW
+    "#59cd90", //GREEN
+    "#00bef5", //BLUE
+    "#435FEF", //DARKBLUE
+    "#A25ADD", //PURPLE
+    "#EF7587", //PINK OR CORAL
+    "#f7f7f7", //WHITE
+    "#889192", //SILVER
+    "#BA915D", //BROWN
+    "#333333",  //BLACK
+  ],
+  events: {
+    'click button.secondary': 'doClose',
+    "valid.fndtn.abide form": 'setFilamentClicked',
+    'change select#manufacturers-picker': 'onManufacturersChanged',
+    'click .paletecolor' : "colorClicker"
+  },
+  initialize: function(params) {
+    this.parentView = params.parent;
+  },
+  open: function(params)
+  {
+
+    this.name = params.name
+    this.color = params.color
+    this.render()
+
+    this.$el.foundation('reveal', 'open');
+    if(!this.colors.includes(this.color)){
+      $('.palette-color-picker-button').css("background", this.color)
+    }
+  },
+  setFilamentClicked: function(e)
+  {
+    e.preventDefault();
+    var loadingBtn = $(e.currentTarget).closest('.loading-button');
+    loadingBtn.addClass('loading');
+    // Get info from last model selected
+    var attrs = { "filament" : {
+      "name": $("#filament_name").val(),
+      "color": $("#filament_color").val() ? $("#filament_color").val() : "#FFFFFF"
+      }
+    }
+    this.parentView.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function () {
+        noty({ text: "Filament info saved", timeout: 3000, type: "success" });
+        this.parentView.getInfoAndRender();
+        this.$el.foundation('reveal', 'close');
+        loadingBtn.removeClass('loading');
+      }, this),
+      error: function () {
+        noty({ text: "Failed to save filament info", timeout: 3000 });
+        loadingBtn.removeClass('loading');
+      }
+    });
+  },
+  render: function()
+  {
+    if (!this.contentTemplate) {
+      this.contentTemplate = _.template( $("#filament-selector-modal-content").text() )
+    }
+
+    var content = this.$el.find('.content');
+    content.empty();
+    content.html(this.contentTemplate({
+      name: this.name,
+      color: this.color,
+      colors : this.colors
+    }));
+  },
+  colorClicker : function(e)
+  {
+    this.color=$(e.currentTarget).data('color')
+    this.render();
+  },
+  doClose: function()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// UnlinkPrinterDialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var UnlinkPrinterDialog = Backbone.View.extend({
+  el: '#unlink-printer-dlg',
+  settings: null,
+  parentView: null,
+  events: {
+    "click .unlink-button": "doUnlink",
+    "click button.cancel": "doClose",
+    'closed.fndtn.reveal': 'onClosed'
+  },
+  render: function ()
+  {
+    this.$('.printer-name').text(this.settings.get('printer_model').name);
+  },
+  open: function (params)
+  {
+    this.settings = params.settings;
+    this.parentView = params.view;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+
+  doUnlink: function (e)
+  {
+    e.preventDefault()
+    this.$('.unlink-button').addClass('loading');
+    var attrs = {};
+    attrs['printer_model'] = {
+      id: null,
+      name: null
+    }
+
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        this.$('.unlink-button').removeClass('loading');
+        this.parentView.getInfoAndRender();
+       this.doClose()
+
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        this.$('.unlink-button').removeClass('loading');
+      }
+    });
+    // unlink action!!!
+  },
+
+  doClose: function ()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+
+  onClosed: function ()
+  {
+    this.undelegateEvents();
+  }
+});
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// UnlinkFilamentDialog
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+var UnlinkFilamentDialog = Backbone.View.extend({
+  el: '#unlink-filament-dlg',
+  settings: null,
+  parentView: null,
+  events: {
+    "click .unlink-button": "doUnlink",
+    "click button.cancel": "doClose",
+    'closed.fndtn.reveal': 'onClosed'
+  },
+  render: function ()
+  {
+    this.$('.filament-name').text(this.settings.get('filament').name);
+  },
+  open: function (params)
+  {
+    this.settings = params.settings;
+    this.parentView = params.view;
+
+    this.render();
+    this.$el.foundation('reveal', 'open');
+  },
+  doUnlink: function (e)
+  {
+    e.preventDefault()
+    this.$('.unlink-button').addClass('loading');
+    var attrs = {};
+    attrs['filament'] = {
+      name: null,
+      color: null
+    }
+
+    this.settings.save(attrs, {
+      patch: true,
+      success: _.bind(function() {
+        noty({text: "Profile changes saved", timeout: 3000, type:"success"});
+        this.$('.unlink-button').removeClass('loading');
+        this.parentView.getInfoAndRender();
+       this.doClose()
+      }, this),
+      error: function() {
+        noty({text: "Failed to save printer profile changes", timeout: 3000});
+        this.$('.unlink-button').removeClass('loading');
+      }
+    });
+    // unlink action!!!
+  },
+  doClose: function ()
+  {
+    this.$el.foundation('reveal', 'close');
+  },
+  onClosed: function ()
+  {
+    this.undelegateEvents();
+  }
+});
+
+/***********************
 * Printer - Temperature Presets
 ************************/
 
@@ -301,12 +805,12 @@ var TemperaturePresetsView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
     if (!this.settings) {
       this.settings = app.printerProfile;
-      this.getInfo();
+      this.getInfoAndRender();
     } else {
       this.render();
     }
   },
-  getInfo: function()
+  getInfoAndRender: function()
   {
     $.getJSON(API_BASEURL + 'printer-profile', null, _.bind(function(data) {
       if (data) {
@@ -368,8 +872,8 @@ var TemperaturePresetsView = SettingsPage.extend({
     this.editPresetsDialog.open({
       id: row.data('id'),
     })
-  },
-  updateTemperaturePresets: function(e)
+  }/*,
+  updateTemperaturePresets: function()
   {
     this.settings.save(attrs, {
       patch: true,
@@ -387,7 +891,7 @@ var TemperaturePresetsView = SettingsPage.extend({
         loadingBtn.removeClass('loading');
       }
     });
-  }
+  }*/
 });
 
 var DeleteTemperaturePresetsDialog = Backbone.View.extend({
@@ -427,14 +931,9 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
     var loadingBtn = $(e.currentTarget).closest('.loading-button');
     loadingBtn.addClass('loading');
 
-    for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
-      var obj = this.parent.settings.attributes.temp_presets[i];
-      if(obj.id == this.id) {
-        this.parent.settings.attributes.temp_presets.splice(i, 1);
-        break
-      }
-    }
-    attr = {}
+    delete this.parent.settings.attributes.temp_presets[this.id]
+
+    var attr = {}
     attr.temp_presets = this.parent.settings.attributes.temp_presets
     this.parent.settings.save(attr, {
       patch: true,
@@ -452,7 +951,7 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
       }
     });
 
-    if (this.parent.settings.attributes.temp_presets.length > 1){
+    if (Object.keys(this.parent.settings.attributes.temp_presets).length > 1){
       this.promise.resolve(true);
     } else {
       this.parent.render();
@@ -474,13 +973,7 @@ var EditPresetsDialog = Backbone.View.extend({
   },
   open: function(info) {
     if(info) {
-      for(var i = 0; i < this.parent.settings.attributes.temp_presets.length; i++) {
-        var obj = this.parent.settings.attributes.temp_presets[i];
-        if(obj.id == info.id) {
-          this.preset = obj
-          break
-        }
-      }
+      this.preset = this.parent.settings.attributes.temp_presets[info.id];
       this.render();
       $('#temperature-preset-name').val(this.preset.name)
       $('#preset-bed-temp').val(this.preset.bed_temp)
@@ -509,7 +1002,7 @@ var EditPresetsDialog = Backbone.View.extend({
     this.$el.foundation('abide');
 
   },
-  validForm: function(e)
+  validForm: function()
   {
     var form = document.getElementById("preset-form");
     var name = $('#temperature-preset-name').val()
@@ -519,13 +1012,13 @@ var EditPresetsDialog = Backbone.View.extend({
       var temp_preset = { 'name' : name, 'bed_temp': bed , 'nozzle_temp' :nozzle }
       $.post(API_BASEURL + 'temperature-preset', temp_preset, _.bind(function(data) {
         temp_preset.id = data.id
-        this.parent.settings.attributes.temp_presets.push(temp_preset)
+        this.parent.settings.attributes.temp_presets[temp_preset.id] = temp_preset
         form.reset();
         this.parent.render()
         noty({text: "Temperature Preset saved.", timeout: 3000, type:"success"});
         this.$el.foundation('reveal', 'close');
       }, this))
-      .fail( _.bind(function(data) {
+      .fail( _.bind(function() {
         noty({text: "There was an error saving temperature preset.", timeout: 3000});
       }));
     } else {
@@ -533,7 +1026,7 @@ var EditPresetsDialog = Backbone.View.extend({
       this.preset.bed_temp = bed;
       this.preset.nozzle_temp = nozzle;
 
-      attr = {}
+      var attr = {}
       attr.temp_presets = this.parent.settings.attributes.temp_presets
       this.parent.settings.save(attr, {
         patch: true,
@@ -547,7 +1040,6 @@ var EditPresetsDialog = Backbone.View.extend({
         }, this),
         error: function() {
           noty({text: "Failed to modify Temperature Preset", timeout: 3000});
-          loadingBtn.removeClass('loading');
         }
       });
     }
@@ -615,7 +1107,7 @@ var NetworkNameView = SettingsPage.extend({
     loadingBtn.addClass('loading');
 
     form.find('input').each(function(idx, elem) {
-      var elem = $(elem);
+      elem = $(elem);
       attrs[elem.attr('name')] = elem.val();
     });
 
@@ -658,7 +1150,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     "change #video-stream-encoding": "changeEncoding",
     "change #video-stream-source": "changeSource"
   },
-  show: function(previousCameraName) {
+  show: function() {
 
     var form = this.$('form');
     var loadingBtn = form.find('.loading-button');
@@ -750,7 +1242,7 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.render();
     }
   },
-  changeSource: function(e){
+  changeSource: function(){
     if(this.$('#video-stream-source option:selected').val() == 'raspicam'){
       this.$('#video-stream-encoding').prop('value', 'h264');
       this.$('#video-stream-encoding').prop('disabled', 'disabled');
@@ -759,7 +1251,7 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.$('#video-stream-encoding').prop('disabled', '');
     }
   },
-  changeEncoding: function(e){
+  changeEncoding: function(){
 
     if(!this.settings){
 
@@ -833,7 +1325,7 @@ var CameraVideoStreamView = SettingsPage.extend({
 
     form.find('input, select, textarea').each(function(idx, elem) {
       var value = null;
-      var elem = $(elem);
+      elem = $(elem);
 
       if (elem.is('input[type="radio"], input[type="checkbox"]')) {
         value = elem.is(':checked');
@@ -894,7 +1386,7 @@ var InternetConnectionView = SettingsPage.extend({
     'click .loading-button.list-networks button': 'listNetworksClicked',
     'click .stored-wifis .row .action': 'onDeleteNetworkClicked'
   },
-  initialize: function(params) {
+  initialize: function() {
     SettingsPage.prototype.initialize.apply(this, arguments);
 
     this.networksDlg = new WiFiNetworksDialog({parent: this});
@@ -965,6 +1457,7 @@ var InternetConnectionView = SettingsPage.extend({
 
               case 'failed':
                 app.eventManager.off('astrobox:InternetConnectingStatus', connectionCb, this);
+                var message = null
                 if (connectionInfo.reason == 'no_secrets') {
                   message = "Invalid password for "+data.name+".";
                 } else {
@@ -1274,7 +1767,7 @@ var WifiHotspotView = SettingsPage.extend({
     $.ajax({
       url: API_BASEURL + "settings/network/hotspot",
       type: "POST",
-      success: _.bind(function(data, code, xhr) {
+      success: _.bind(function(/*data, code, xhr*/) {
         noty({text: 'Your '+PRODUCT_NAME+' has created a hotspot. Connect to <b>'+this.settings.hotspot.name+'</b>.', type: 'success', timeout:3000});
         this.settings.hotspot.active = true;
         this.render();
@@ -1295,7 +1788,7 @@ var WifiHotspotView = SettingsPage.extend({
     $.ajax({
       url: API_BASEURL + "settings/network/hotspot",
       type: "DELETE",
-      success: _.bind(function(data, code, xhr) {
+      success: _.bind(function(/*data, code, xhr*/) {
         noty({text: 'The hotspot has been stopped', type: 'success', timeout:3000});
         this.settings.hotspot.active = false;
         this.render();
@@ -1343,9 +1836,8 @@ var SoftwarePluginsView = SettingsPage.extend({
   },
   pluginsInfo: null,
   uploader: null,
-  template: null,
   deleteDlg: null,
-  initialize: function(opts)
+  initialize: function()
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.uploader = new PluginUploader({
@@ -1456,6 +1948,7 @@ var PluginUploader = FileUploadBase.extend({
 
       case 'incompatible_plugin':
         message = 'The API version used by the plugin is not compatible.';
+      break;
 
       case 'already_installed':
         message = "The Plugin is already installed. Please remove old version first.";
@@ -1661,7 +2154,7 @@ var SoftwareUpdateView = SettingsPage.extend({
         });
     }
   },
-  onCheckClicked: function(e)
+  onCheckClicked: function()
   {
     var loadingBtn = this.$el.find('.loading-button.check');
     loadingBtn.addClass('loading');
@@ -1771,7 +2264,7 @@ var SoftwareAdvancedView = SettingsPage.extend({
     'change #apikey-regenerate': 'regenerateApiKeyChange',
     'change select.update-channel': 'onUpdateChannelChanged'
   },
-  initialize: function(params)
+  initialize: function()
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.resetConfirmDialog = new ResetConfirmDialog();
@@ -2036,6 +2529,7 @@ var SettingsView = Backbone.View.extend({
     this.subviews = {
       'printer-connection': new PrinterConnectionView({parent: this}),
       'printer-profile': new PrinterProfileView({parent: this}),
+      'filament-info': new FilamentView({parent: this}),
       'temperature-presets': new TemperaturePresetsView({parent: this}),
       'network-name': new NetworkNameView({parent: this}),
       'internet-connection': new InternetConnectionView({parent: this}),

@@ -1,3 +1,13 @@
+/*
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *
+ *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
+ */
+
+/* global MaintenanceMenuCollection, MaintenanceMenu */
+
+/* exported MaintenanceMenuView */
+
 var MaintenanceMenuView = Backbone.View.extend({
   el: '#maintenance-menu-view',
   maintenanceMenuListView: null,
@@ -62,7 +72,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
       this.refreshMaintenanceMenuList(targetSubmenu);
     }
   },
-  onBackClicked: function(e)
+  onBackClicked: function()
   {
     --this.deepIndex;
     // We recover the parent stored collection and we remove it once we use it.
@@ -239,6 +249,7 @@ var MenuUploader = FileUploadBase.extend({
 
       case 'incompatible_menu':
         message = 'The API version used by the menu is not compatible.';
+      break;
 
       case 'already_installed':
         message = "The Menu is already installed. Please remove old version first.";

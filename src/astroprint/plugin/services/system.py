@@ -31,10 +31,14 @@ class SystemService(PluginService):
 	def __init__(self):
 		super(SystemService, self).__init__()
 		self._eventManager.subscribe(Events.SOFTWARE_UPDATE, self._onSoftwareUpdate)
+		self._eventManager.subscribe(Events.SHUTTING_DOWN, self._onShutdown)
 
 	#EVENT
 	def _onSoftwareUpdate(self,event,value):
 		self.publishEvent('software_update', value)
+
+	def _onShutdown(self,event,value):
+		self.publishEvent('shutting_down', value)
 
 	#REQUESTS
 
@@ -188,10 +192,13 @@ class SystemService(PluginService):
 	def printerProfile(self, data, sendMessage):
 
 		ppm = printerProfileManager()
-
+		pm = printerManager()
 		if data:
 			if 'driverChoices' in data:
 				del data['driverChoices']
+
+			if 'allowTerminal' in data:
+				del data['allowTerminal']
 
 			ppm.set(data)
 			ppm.save()
@@ -200,9 +207,51 @@ class SystemService(PluginService):
 		else:
 
 			result = ppm.data.copy()
+
+			result.update( {"allowTerminal": pm.allowTerminal} )
 			result.update( {"driverChoices": ppm.driverChoices()} )
 
 			sendMessage( result )
+
+	def manufacturers(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		try:
+			manufacturers = json.loads(astroprintCloud().manufacturers())
+			sendMessage( manufacturers )
+		except Exception as e:
+			self._logger.error('There was an error getting manufacturers', exc_info = True)
+			sendMessage("error_getting_manufacturers",True)
+
+	def printerModelInfo(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		if "printer_model_id" in data:
+			try:
+				printerModel = json.loads(astroprintCloud().printerModel(data['printer_model_id']))
+				sendMessage( printerModel )
+
+			except Exception as e:
+				self._logger.error('There was an error getting Printer model info', exc_info = True)
+				sendMessage("error_getting_printer_info",True)
+		else:
+			sendMessage("invalid_params",True)
+
+	def printerModels(self, data, sendMessage):
+		from astroprint.cloud import astroprintCloud
+		import json
+
+		if "manufacturer_id" in data:
+			try:
+				printerModels = json.loads(astroprintCloud().printerModels(data['manufacturer_id']))
+				sendMessage( printerModels )
+			except Exception as e:
+				self._logger.error('There was and error getting printer models', exc_info = True)
+				sendMessage("error_getting_printer_models",True)
+		else:
+			sendMessage("invalid_params",True)
 
 	def printingInfo(self, data, sendMessage):
 		pm = printerManager()

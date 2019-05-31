@@ -19,12 +19,15 @@ _instance = None
 class Events(object):
 	# application startup
 	STARTUP = "Startup"
-
+	# system shutdown
+	SHUTTING_DOWN = "ShuttingDown"
 	# printer status
 	CONNECTED = "Connected"
 	CONNECTING = "Connecting"
 	DISCONNECTED = "Disconnected"
 	HEATING_UP = "HeatingUp"
+	PRINTERPROFILE_CHANGE = "PrinterProfileChange"
+	FILAMENT_CHANGE = "filamentChange"
 
 	# temperature updates
 	TEMPERATURE_CHANGE = "TemperatureChange"
@@ -70,10 +73,10 @@ class Events(object):
 	TOOL_CHANGE = "ToolChange"
 	PRINTINGSPEED_CHANGE = "PrintingSpeedChange"
 	PRINTINGFLOW_CHANGE = "PrintingFlowChange"
+	COMMS_CHANGE = "PrinterCommsChanged"
 	WAITING = "Waiting"
 	COOLING = "Cooling"
 	ALERT = "Alert"
-	CONVEYOR = "Conveyor"
 	EJECT = "Eject"
 	E_STOP = "EStop"
 	LAYER_CHANGE = "LayerChange"

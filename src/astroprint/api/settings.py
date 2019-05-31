@@ -19,6 +19,10 @@ from astroprint.printerprofile import printerProfileManager
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
 
+@api.route("/settings", methods=['GET'])
+def handleSettings():
+	return jsonify()
+
 @api.route("/settings/printer", methods=["GET", "POST"])
 def handlePrinterSettings():
 	s = settings()
@@ -85,6 +89,7 @@ def getNetworkSettings():
 
 	return jsonify({
 		'networks': nm.getActiveConnections(),
+		'networkDeviceInfo': nm.networkDeviceInfo,
 		'hasWifi': nm.hasWifi(),
 		'storedWifiNetworks': nm.storedWifiNetworks()
 	})

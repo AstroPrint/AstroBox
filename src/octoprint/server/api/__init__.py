@@ -18,7 +18,7 @@ import octoprint.util as util
 import octoprint.server
 from octoprint.server import restricted_access, admin_permission, NO_CONTENT, UI_API_KEY, OK
 from octoprint.settings import settings as s, valid_boolean_trues
-
+from octoprint.events import eventManager, Events
 #import astroprint.users
 
 #~~ init api blueprint, including sub modules
@@ -179,18 +179,28 @@ def performSystemAction():
 					logger.info("Performing command: %s" % command)
 
 					def executeCommand(command, logger):
-						time.sleep(0.5) #add a small delay to make sure the response is sent
+						timeSleeping = 0.5
+						#if shutdown send message to plugin
+						if action == "reboot" or action == "shutdown":
+							eventManager().fire(Events.SHUTTING_DOWN, {'status': action})
+							timeSleeping = 1
+						time.sleep(timeSleeping) #add a small delay to make sure the response is sent
+
 						try:
 							p = sarge.run(command, stderr=sarge.Capture())
 							if p.returncode != 0:
 								returncode = p.returncode
 								stderr_text = p.stderr.text
 								logger.warn("Command failed with return code %i: %s" % (returncode, stderr_text))
+								if action == "reboot" or action == "shutdown":
+									eventManager().fire(Events.SHUTTING_DOWN, {'status': None})
 							else:
 								logger.info("Command executed sucessfully")
 
 						except Exception, e:
 							logger.warn("Command failed: %s" % e)
+							if command == "reboot" or command == "shutdown":
+								eventManager().fire(Events.SHUTTING_DOWN, {'status': None})
 
 					executeThread = threading.Thread(target=executeCommand, args=(command, logger))
 					executeThread.start()

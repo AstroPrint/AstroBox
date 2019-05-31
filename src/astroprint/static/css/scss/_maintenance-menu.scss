@@ -107,8 +107,8 @@
         position: relative;
         border-radius: $global-radius;
         cursor: pointer;
-        background: $white;
-        box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.1);
+        background: rgb(230, 230, 230);
+        box-shadow: 1px 1px 3px 0px rgba(0, 0, 0, 0.18);
 
         &:active{transform: scale(1);}
 

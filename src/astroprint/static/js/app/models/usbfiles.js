@@ -4,11 +4,14 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
+/* exported USBFileCollection */
+
 var USBFile = Backbone.Model.extend({
   defaults: {
     'name': '',
     'location': '',
-    'image': null
+    'image': null,
+    'size': null
   }
 });
 

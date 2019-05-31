@@ -91,6 +91,7 @@ class NetworkService(PluginService):
 		sendMessage({
 			'networks': nm.getActiveConnections(),
 			'hasWifi': nm.hasWifi(),
+			'networkDeviceInfo': nm.networkDeviceInfo,
 			'storedWifiNetworks': nm.storedWifiNetworks()
 		})
 

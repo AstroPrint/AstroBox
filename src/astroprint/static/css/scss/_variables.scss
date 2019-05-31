@@ -12,7 +12,7 @@ $jet         : #222222;
 $primary-color: #6dc8c2; //green
 $secondary-color: #e2e2e2;
 $alert-color: #f05251;  //red
-$success-color: $primary-color; //green
+$success-color: #4dd1b1;
 $warning-color: #fbaf45; //yellow
 $info-color: $iron;
 
@@ -46,7 +46,7 @@ $secondary-bg-image: url('../../../static/images/subtle_zebra_3d.png');
 $tertiary-bg-image: url('../../../static/images/subtle_dots.png');
 
 // border styles
-$basic-border: 1px solid $iron;
+$basic-border: 1px solid lighten($iron,7%);
 $dashed-border: 1px dashed $iron;
 $shadow-inset: inset 0 0 15px rgba(20, 20, 20, 0.5);
 
@@ -58,4 +58,14 @@ $shadow-inset: inset 0 0 15px rgba(20, 20, 20, 0.5);
         -moz-transition: color .35s ease;
         transition: color .35s ease;
     }
+}
+
+@mixin flex($justify,$direction){
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  justify-content: $justify;
+  flex-direction: $direction;
 }

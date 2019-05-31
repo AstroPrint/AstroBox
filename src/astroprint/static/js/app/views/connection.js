@@ -1,8 +1,12 @@
 /*
- *  (c) Daniel Arroyo. 3DaGoGo, Inc. (daniel@astroprint.com)
+ *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
+
+/* global */
+
+/* exported ConnectionView */
 
 var ConnectionView = Backbone.View.extend({
   el: '#connection-view',
@@ -97,7 +101,7 @@ var ConnectionView = Backbone.View.extend({
       dataType: "json",
       contentType: "application/json; charset=UTF-8",
       data: JSON.stringify({"command": "disconnect"}),
-      success: function(response) {
+      success: function() {
         self.$el.removeClass('connected');
       }
     });
@@ -208,7 +212,7 @@ var ConnectionView = Backbone.View.extend({
           url: API_BASEURL + "boxrouter",
           method: "POST",
           dataType: "json",
-          complete: function(response) {
+          complete: function() {
             icon.removeClass('blink-animation');
           }
         });
@@ -260,7 +264,7 @@ var ConnectionView = Backbone.View.extend({
 
     this.tooltip.find('.pip').css('border-color', 'transparent transparent '+target.css('color')+' transparent');
   },
-  onMouseOut: function(e)
+  onMouseOut: function()
   {
     this.tooltip.addClass('hide');
     this.tooltip.find('.text').html('');

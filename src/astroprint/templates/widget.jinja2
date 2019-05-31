@@ -19,8 +19,8 @@
               <div class="select-container">
                 <div class="dots">...</div>
                 <select class="freq-selector-<%= tool %>" align="center">
-                  <% _.each( temp_presets, function( temp_preset ){ %>
-                    <option value="<%= temp_preset.id %>" <% if ( last_preset && temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
+                  <% _.each( temp_presets, function( temp_preset, key ){ %>
+                    <option value="<%= key %>" <% if ( last_preset && temp_preset.id == last_preset.id){ %> selected <% } %> ><a><b><%= temp_preset.name%> - </b><% if (tool == "bed"){ %> <%= temp_preset.bed_temp %> <% } else { %> <%= temp_preset.nozzle_temp %> <%} %>º</a></li>
                   <% }); %>
                   <option value="other"><a>Other...</a></li>
                 </select>
@@ -89,81 +89,158 @@
 <script type="text/template" id="control-template">
   <div id="controls" class="row clearfix">
     <% if (!ignorePrintingStatus) { %>
-    <div class="no-paused-overlay">
+    <div class="no-paused-overlay controls">
       <i class="icon-3d-printer"></i>
       <b>Pause the print to enable this</b>
     </div>
     <% } %>
-    <div class="blur-effect">
-      <div class="small-12 medium-8 columns medium-offset-0" id="xy-controls" align="center">
-        <h5>Horizontal (XY)</h5>
-        <div class="control_bg_xy" align="center">
-          <div class="bed-mesh">
-            <a class="btn_y_plus control-btn-wrapper">
+
+      <% if (onlyBabyStep) { %>
+        <div class="small-12 columns medium-offset-0" id="xy-controls" align="center">
+          <div class="small-12 columns" id="z-controls">
+            <h5>Z-BabySteps</h5>
+            <select class="babystep-amount bold" id="babystep-control">
+              <option value="0.005">0.005</option>
+              <option value="0.05">0.05</option>
+              <option value="0.1">0.1</option>
+              <option value="0.25">0.25</option>
+            </select>
+            <a class="btn_babystep_z_plus control-btn-wrapper">
               <div class="btn">
                 <i class="icon-right-open"></i>
               </div>
             </a>
-            <a class="btn_x_minus control-btn-wrapper">
-              <div class="btn">
-                <i class="icon-right-open"></i>
-              </div>
-            </a>
-            <a class="btn_home_xy control-btn-wrapper">
-              <div class="btn">
-                <i class="icon-home"></i>
-              </div>
-            </a>
-            <a class="btn_x_plus control-btn-wrapper">
-              <div class="btn">
-                <i class="icon-right-open"></i>
-              </div>
-            </a>
-            <a class="btn_y_minus control-btn-wrapper">
+            <a class="btn_babystep_z_minus control-btn-wrapper">
               <div class="btn">
                 <i class="icon-right-open"></i>
               </div>
             </a>
           </div>
         </div>
-      </div>
-      <div class="small-12 medium-2 columns" id="z-controls">
-        <h5>Vertical (Z)</h5>
-        <a class="btn_z_plus control-btn-wrapper">
-          <div class="btn">
-            <i class="icon-right-open"></i>
+      <% } else { %>
+        <div class="small-12 medium-7 blur-effect columns medium-offset-0" id="xy-controls" align="center">
+          <h5>Horizontal (XY)</h5>
+          <div class="control_bg_xy" align="center">
+            <div class="bed-mesh">
+              <a class="btn_y_plus control-btn-wrapper">
+                <div class="btn">
+                  <i class="icon-right-open"></i>
+                </div>
+              </a>
+              <a class="btn_x_minus control-btn-wrapper">
+                <div class="btn">
+                  <i class="icon-right-open"></i>
+                </div>
+              </a>
+              <a class="btn_home_xy control-btn-wrapper">
+                <div class="btn">
+                  <i class="icon-home"></i>
+                </div>
+              </a>
+              <a class="btn_x_plus control-btn-wrapper">
+                <div class="btn">
+                  <i class="icon-right-open"></i>
+                </div>
+              </a>
+              <a class="btn_y_minus control-btn-wrapper">
+                <div class="btn">
+                  <i class="icon-right-open"></i>
+                </div>
+              </a>
+            </div>
           </div>
-        </a>
-        <a class="btn_home_z control-btn-wrapper">
-          <div class="btn">
-            <i class="icon-home"></i>
-          </div>
-        </a>
-        <a class="btn_z_minus control-btn-wrapper">
-          <div class="btn">
-            <i class="icon-right-open"></i>
-          </div>
-        </a>
-      </div>
-      <div class="small-12 columns" id="distance-control">
-        <center>
-          <h5>Set movement distance</h5>
-          <ul class="button-group radius">
-            <li>
-              <button class="tiny bold secondary" data-value="0.1">0.1</button>
-            </li>
-            <li>
-              <button class="tiny bold secondary" data-value="1">1</button>
-            </li>
-            <li>
-              <button class="tiny bold success" data-value="10">10</button>
-            </li>
-            <li>
-              <button class="tiny bold secondary" data-value="100">100</button>
-            </li>
-          </ul>
-        </center>
+        </div>
+        <div class="small-12 medium-2 blur-effect columns" id="z-controls">
+          <h5>Vertical (Z)</h5>
+          <a class="btn_z_plus control-btn-wrapper">
+            <div class="btn">
+              <i class="icon-right-open"></i>
+            </div>
+          </a>
+          <a class="btn_home_z control-btn-wrapper">
+            <div class="btn">
+              <i class="icon-home"></i>
+            </div>
+          </a>
+          <a class="btn_z_minus control-btn-wrapper">
+            <div class="btn">
+              <i class="icon-right-open"></i>
+            </div>
+          </a>
+        </div>
+        <div class="small-12 medium-3 columns" id="z-controls">
+          <h5>Z-BabySteps</h5>
+          <select class="babystep-amount bold" id="babystep-control">
+            <option value="0.005">0.005</option>
+            <option value="0.05">0.05</option>
+            <option value="0.1">0.1</option>
+            <option value="0.25">0.25</option>
+          </select>
+
+          <a class="btn_babystep_z_plus control-btn-wrapper">
+            <div class="btn">
+              <i class="icon-right-open"></i>
+            </div>
+          </a>
+
+          <a class="btn_babystep_z_minus control-btn-wrapper">
+            <div class="btn">
+              <i class="icon-right-open"></i>
+            </div>
+          </a>
+        </div>
+        <div class="small-12 columns blur-effect" id="distance-control">
+          <center>
+            <h5>Set movement distance</h5>
+            <ul class="button-group radius">
+              <li>
+                <button class="tiny bold secondary" data-value="0.1">0.1</button>
+              </li>
+              <li>
+                <button class="tiny bold secondary" data-value="1">1</button>
+              </li>
+              <li>
+                <button class="tiny bold success" data-value="10">10</button>
+              </li>
+              <li>
+                <button class="tiny bold secondary" data-value="100">100</button>
+              </li>
+            </ul>
+          </center>
+        </div>
+    <% } %>
+  </div>
+</script>
+
+<script type="text/template" id="gcode-terminal-template" >
+  <div id="gcode-widget" >
+    <div class="output-container arcade-screen text-left">
+    	<div class="alert-box warning terminal">
+        <i class="icon-attention"> </i> The GCode Terminal is for advanced users. If you are not familiar with GCODE it is possible to send unwanted commands and cause damage to your 3D printer. Use caution if you're new to using the terminal. - <a class ="bold" href="#">Hide Warning Message</a>
       </div>
     </div>
+    <form>
+      <div class="row collapse">
+        <div class="small-8 large-9 columns">
+          <input type="text" name="gcode"
+          <% if (editBlocked) { %>
+            disabled
+          <% } %>  placeholder="Enter your GCODE" autocomplete="off"/>
+        </div>
+        <div class="small-2 columns">
+          <div class="loading-button expand">
+            <button class="success small expand send bold">Send</button>
+            <span class="button success small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Sending</span>
+            <span class="button alert small expand failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+        <div class="small-2 large-1 columns">
+          <div class="clear-button">
+            <button class="secondary small expand clear bold">Clear</button>
+          </div>
+        </div>
+      </div>
+    </form>
   </div>
+
 </script>

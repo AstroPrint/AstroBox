@@ -77,8 +77,10 @@
             </select>
             <i class="icon-play"></i>
           </div>
-        <% } else if (currentStep.type == "control_movement") { %>
+        <% } else if (currentStep.type == "control_movement" || currentStep.type == "babystepping") { %>
           <div id="control-container" class="columns-small-12 text-center "></div>
+        <% } else if (currentStep.type == "gcode_terminal") { %>
+          <div id="gcode-terminal-container" class="columns-small-12 text-center "></div>
       <% } else { %>
            {# Additional Task Media #}
           <div id="img-app" class="columns-small-12 text-center">
@@ -121,10 +123,7 @@
             <button class="small expand radius next bold"><%= currentStep.next_button.name.en %></button>
             <span class="button small expand disabled loading"><i class="icon-rocket-spinner animate-spin"></i> Loading</span>
             <span class="button alert small expand disabled failed"><i class="icon-attention"></i> Failed</span>
-            <span class="button secondary small expand radius disabled inactive">
-              <i class="icon-rocket-spinner animate-spin"></i>
-              <%= currentStep.next_button.name.en %>
-            </span>
+            <span class="button secondary small expand radius disabled inactive"><%= currentStep.next_button.name.en %></span>
           </div>
           <% } %>
         </div>

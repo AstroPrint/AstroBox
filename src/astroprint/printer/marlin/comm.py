@@ -34,9 +34,6 @@ gcodeToEvent = {
 	# part cooler
 	"M245": Events.COOLING,
 
-	# part conveyor
-	"M240": Events.CONVEYOR,
-
 	# part ejector
 	"M40": Events.EJECT,
 
@@ -247,6 +244,9 @@ class MachineCom(object):
 	def getErrorString(self):
 		return self._errorValue
 
+	def isClosed(self):
+		return self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
+
 	def isClosedOrError(self):
 		return self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
 
@@ -323,34 +323,35 @@ class MachineCom(object):
 	##~~ external interface
 
 	def close(self, isError = False):
-		if self._serial is not None:
-			try:
-				self._serial.close()
-			except OSError as e:
-				#log it but continue
-				self._logger.error('Error closing serial port: %s' % e)
+		if not self.isClosed():
+			if self._serial is not None:
+				try:
+					self._serial.close()
+				except OSError as e:
+					#log it but continue
+					self._logger.error('Error closing serial port: %s' % e)
 
-			if isError:
-				self._changeState(self.STATE_CLOSED_WITH_ERROR)
-			else:
-				self._changeState(self.STATE_CLOSED)
+				if isError:
+					self._changeState(self.STATE_CLOSED_WITH_ERROR)
+				else:
+					self._changeState(self.STATE_CLOSED)
 
-		self._serial = None
+			self._serial = None
 
-		# if self._settings.get(["feature", "sdSupport"]):
-		# 	self._sdFileList = []
+			# if self._settings.get(["feature", "sdSupport"]):
+			# 	self._sdFileList = []
 
-		if self.isPrinting() or self.isPaused():
-			payload = None
-			if self._currentFile is not None:
-				payload = {
-					"file": self._currentFile.getFilename(),
-					"filename": os.path.basename(self._currentFile.getFilename()),
-					"origin": self._currentFile.getFileLocation()
-				}
-			eventManager().fire(Events.PRINT_FAILED, payload)
+			if self.isPrinting() or self.isPaused():
+				payload = None
+				if self._currentFile is not None:
+					payload = {
+						"file": self._currentFile.getFilename(),
+						"filename": os.path.basename(self._currentFile.getFilename()),
+						"origin": self._currentFile.getFileLocation()
+					}
+				eventManager().fire(Events.PRINT_FAILED, payload)
 
-		eventManager().fire(Events.DISCONNECTED)
+			eventManager().fire(Events.DISCONNECTED)
 
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
@@ -751,7 +752,7 @@ class MachineCom(object):
 				# 		continue
 
 				##~~ Temperature processing
-				if ' T:' in line or line.startswith('T:'):
+				if ' T:' in line or line.startswith('T:') or ' T0:' in line:
 					self._processTemperatures(line)
 					self._callback.mcTempUpdate(self._temp, self._bedTemp)
 
@@ -1107,7 +1108,8 @@ class MachineCom(object):
 				or 'no line number with checksum' in line_lower \
 				or 'no checksum with line number' in line_lower \
 				or 'format error' in line_lower \
-				or 'missing checksum' in line_lower:
+				or 'missing checksum' in line_lower \
+				or 'failed to enable bed leveling' in line_lower:
 				pass
 			elif not self.isError():
 				self._errorValue = line[6:]
@@ -1475,6 +1477,14 @@ class MachineCom(object):
 	_gcode_G90 = _gcode_M82 #Set Absolute
 	_gcode_G91 = _gcode_M83 #Set Relative
 
+	def _gcode_M240(self, cmd): #take photo
+		self._callback.mcPhotoCommand()
+
+		if self.isPrinting:
+			self._sendNextFileCommand()
+
+		return None
+
 	#The following are internal commands to ensure an orderly pause and shutdown sequence
 
 	def _apCommand_CANCEL(self, cmd):
@@ -1514,6 +1524,9 @@ class MachineComPrintCallback(object):
 		pass
 
 	def mcZChange(self, newZ):
+		pass
+
+	def mcPhotoCommand(self):
 		pass
 
 	def mcToolChange(self, newTool, oldTool):

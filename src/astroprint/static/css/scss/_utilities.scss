@@ -108,8 +108,8 @@
 	h5 {
     color: darkgrey;
     font-size: 14px;
-    margin-top: 5px;
-    margin-bottom: 0px;
+    margin-top: 10px;
+    margin-bottom: 4px;
   }
 
   #controls {
@@ -123,8 +123,13 @@
 
 	&.print-paused, &.print-active {
 		.printing-activity {
-			display: block;
-			margin-top: 10px;
+      display: block;
+      margin-bottom: 0;
+      height: 97px;
+      background: $oil;
+      padding-right: 5px;
+
+      button{margin: 5px auto;}
 
 			.filename {
 				font-size: rem-calc(17);
@@ -159,16 +164,15 @@
       background-color: rgba(240, 82, 81, 0.2);
       position: relative;
       text-align: left;
-      height: 15px;
-      margin-top: 45px;
-      margin-bottom: -10px;
+      height: 12px;
+      margin-top: 36px;
+      border: 0;
 
       .filename {
         position: absolute;
         top: -22px;
         left: 2px;
-        color: rgba(0, 0, 0, 0.3);
-        font-size: rem-calc(14);
+        color: $base;
         overflow-x: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -179,7 +183,7 @@
         position: absolute;
         right: 0;
         top: -45px;
-        font-size: rem-calc(36);
+        font-size: rem-calc(32);
         color: $green;
       }
     }
@@ -194,10 +198,10 @@
   }
   &.print-active {
     .no-paused-overlay {
-      display: inline-block;
+      @include flex(center,column);
     }
     .blur-effect {
-      filter:blur(4px);
+      filter:blur(3px);
     }
 
     .resume-container {
@@ -210,6 +214,7 @@
 
   .no-connection-overlay {
     display: none;
+    top: 0;
 
     html.no-printer & {
       display: block;
@@ -224,7 +229,7 @@
       padding: 5px;
 
       i {
-        font-size: rem-calc(80);
+        font-size: rem-calc(70);
         display: block;
       }
     }
@@ -234,15 +239,20 @@
     position: absolute;
     height: 99%;
     width: 100%;
-    background: rgba(0, 0, 0, 0.36);
-    color: white;
+    //background: rgba(0, 0, 0, 0.36);
+    background: rgba(236, 236, 236, 0.6);
+    color: $oil;
     text-align: center;
     font-size: rem-calc(25);
     border-radius: 3px;
     z-index: 1;
+
     i {
-      font-size: rem-calc(60);
+      font-size: rem-calc(50);
       display: block;
+    }
+    &.controls {
+      width: 80%;
     }
   }
 
@@ -260,8 +270,9 @@
 
 html.no-printer {
   .no-connection-overlay {
-    display: block;
+    @include flex(center,column);
     position: absolute;
+    top: 0;
     height: 100%;
     width: 100%;
     background: rgba(0,0,0,0.7);
@@ -270,6 +281,8 @@ html.no-printer {
     font-size: rem-calc(30);
     border-radius: 3px;
     padding: 5px;
+    top: 0;
+    z-index: 99;
 
     i {
       font-size: rem-calc(80);
