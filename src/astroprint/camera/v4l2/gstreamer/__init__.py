@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 import time
+import uuid
 
 from threading import Event, Condition
 
@@ -29,6 +30,9 @@ class GStreamerManager(V4L2Manager):
 		self._logger = logging.getLogger(__name__)
 
 		super(GStreamerManager, self).__init__()
+
+		self.localFrames = [] # Local video photos
+		self._localPeersPhotos = {}
 
 	@property
 	def _gstreamerProcessRunning(self):
@@ -88,6 +92,89 @@ class GStreamerManager(V4L2Manager):
 
 		return False
 
+
+	def getNumberOfLocalPeers(self):
+		self._logger.info('getNumberOfLocalPeers')
+		return len(self._localPeersPhotos)
+
+	def removeLocalPeer(self,id):
+		self._logger.info('removeLocalPeer')
+		del self._localPeersPhotos[id]
+
+		if len(self._localPeersPhotos) <= 0:
+			pass#stop local video
+
+		return len(self._localPeersPhotos)
+
+	def addLocalPeerReq(self):
+		self._logger.info('addLocalPeerReq')
+
+		id = uuid.uuid4().hex
+
+		self._logger.info('addLocalPeerReq')
+		self._localPeersPhotos[id] = []
+
+		if len(self._localPeersPhotos) == 1:
+			self.start_local_video_stream()
+
+		return id
+
+	def getFrame(self,id):
+		self._logger.info('getFrame')
+		self._logger.info(len(self._localPeersPhotos[id]))
+
+		if len(self._localPeersPhotos[id]) > 0:
+			frame = self._localPeersPhotos[id].pop(0)
+			return frame
+
+		return None
+
+	def _onFrameTakenCallback(self,photoData):
+
+		self._logger.info('PHOTODATA RECEIVED')
+
+		if photoData:
+			self._logger.info('PHOTODATA RETURNED')
+
+			for p in self._localPeersPhotos:
+				self._localPeersPhotos[p].append(photoData)
+
+			self._logger.info('22')
+			self._logger.info('33')
+
+	def start_local_video_stream(self):
+		self._logger.info('start_local_video_stream')
+
+		if self._cameraInactivity:#?
+			self._cameraInactivity.lastActivity = time.time()#?
+
+		if not self._gstreamerProcessRunning:
+			self._logger.info('1')
+			self._logger.info('--------- open_camera')
+			if not self.open_camera():
+				return
+
+			self._logger.info('open_camera ---------')
+			self._logger.info('3')
+			self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
+
+			return
+
+		self._logger.info('CAMERA OPENED')
+		self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
+		return
+
+	def _doStopLocalVideoStream(self, doneCallback= None):
+		if not self._gstreamerProcessRunning or not self.isVideoStreaming():
+			if doneCallback:
+				doneCallback(True)
+
+		else:
+			result = self._apPipeline.stopVideo()
+
+			if doneCallback:
+				doneCallback(result)
+
 	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():
 			if doneCallback:
@@ -140,7 +227,6 @@ class GStreamerManager(V4L2Manager):
 		done(None)
 
 	def shutdown(self):
-		self._logger.info('Shutting Down GstreamerManager')
 		self._freeApPipeline()
 		self._haltCamera()
 		webRtcManager().shutdown()
@@ -162,8 +248,29 @@ class GStreamerManager(V4L2Manager):
 		else:
 			return False
 
+	def isLocalVideoStreaming(self):
+		return self.isVideoStreaming()# and self._apPipeline.isLocalVideoPlaying()
+
 	def startLocalVideoSession(self, sessionId):
+		'''self.open_camera()s
+		if self._apPipeline:
+			if len(self._localClients) == 0:
+				self._apPipeline.startVideo()
+
+			self._localClients.append(sessionId)
+			return True'''
+
+		#ANOTHER SOLUTION
+		'''if webRtcManager().startLocalSession(sessionId):
+
+			webRtcManager().startLocalVideoStream()
+
+			return True
+
+		return False'''
+
 		return webRtcManager().startLocalSession(sessionId)
+
 
 	def closeLocalVideoSession(self, sessionId):
 		return webRtcManager().closeLocalSession(sessionId)

@@ -19,6 +19,7 @@ from threading import Event, Thread, Condition, Lock
 from gi.repository import Gst
 
 from .bins.photo_capture import PhotoCaptureBin
+from .bins.img_video_enc import ImgVideoEncBin
 from .util import waitToReachState
 
 #
@@ -43,16 +44,21 @@ class GstBasePipeline(object):
 		#pipeline control
 		self._currentPipelineState = None
 		self._pipelineStateCondition = Condition()
-		self._photoBinAttachDetachLock = Lock() #Make sure attach and detach operation wait for each other to complete
+		## Make sure attach and detach operation wait for each other to complete ##
+		self._photoBinAttachDetachLock = Lock()
+		self._localVideoBinAttachDetachLock = Lock()
+		###########################################################################
 
 		self._pipeline = Gst.Pipeline()
 
 		self._videoSrcBin = self._getVideoSrcBin(self._pipeline, device, size, rotation)
 		self._videoEncBin = self._getVideoEncBin(size, rotation)
 		self._photoCaptureBin = PhotoCaptureBin(self._onNoMorePhotos)
+		self._localVideoBin = ImgVideoEncBin(size, rotation, self._onStopPhotoSeq)
 
 		self._pipeline.add(self._videoEncBin.bin)
 		self._pipeline.add(self._photoCaptureBin.bin)
+		self._pipeline.add(self._localVideoBin.bin)
 
 		self._bus = self._pipeline.get_bus()
 		self._bus.set_flushing(True)
@@ -65,7 +71,7 @@ class GstBasePipeline(object):
 		self._busListener.start()
 
 	def __del__(self):
-		self._logger.info('Pipeline destroyed')
+		self._logger.debug('Pipeline destroyed')
 
 	def __fatalErrorManager(self, details):
 		self._onFatalError(details)
@@ -121,6 +127,28 @@ class GstBasePipeline(object):
 
 		self._photoBinAttachDetachLock.release()
 
+	def _onPhotoTaken(self):
+		pass
+
+	def _onStopPhotoSeq(self):
+		self._logger.debug('Stop photo sequence for local video')
+		waitForDetach = Event()
+		def onDetached(success):
+			if not waitForDetach.is_set():
+				if not success:
+					self._logger.warn('There was an error detaching local Video Bin')
+
+				waitForDetach.set()
+
+		self._localVideoBin.pause()
+
+		self._localVideoBinAttachDetachLock.acquire()
+		self._detachBin(self._localVideoBin, onDetached)
+		if not waitForDetach.wait(2.0):
+			self._logger.warn('Timeout detaching local Video Bin')
+
+		self._localVideoBinAttachDetachLock.release()
+
 	def tearDown(self):
 		if not self._toreDownAlready:
 			self._logger.debug("Tearing down...")
@@ -147,6 +175,8 @@ class GstBasePipeline(object):
 			self._busListener.join()
 			self._logger.debug("Tearing down completed")
 
+	## TAKING PHOTO ##
+
 	def takePhoto(self, doneCallback, text=None):
 		if not self._photoCaptureBin.isLinked:
 			if self._attachBin(self._photoCaptureBin):
@@ -156,6 +186,8 @@ class GstBasePipeline(object):
 
 		else:
 			self._photoCaptureBin.addPhotoReq(text, doneCallback)
+
+	## PLAYING VIDEO ##
 
 	def playVideo(self, doneCallback= None):
 		if self.isVideoStreaming():
@@ -169,7 +201,8 @@ class GstBasePipeline(object):
 			if self._videoEncBin.isPlaying:
 				result = True
 			else:
-				self._logger.error('Video Encoding Bin is not playing.')
+				import logging
+				logging.error('Video Encoding Bin is not playing.')
 
 		if doneCallback:
 			doneCallback(result)
@@ -188,6 +221,56 @@ class GstBasePipeline(object):
 
 	def isVideoStreaming(self):
 		return self._videoEncBin.isPlaying
+
+	## PLAYING LOCAL VIDEO ##
+
+	def playLocalVideo(self,id,doneCallback):
+		'''if not self._photoCaptureBin.isLinked:
+			if self._attachBin(self._photoCaptureBin):
+				self._photoCaptureBin.addPhotoReq(text, doneCallback )
+			else:
+				doneCallback(False)
+
+		else:
+			self._photoCaptureBin.addPhotoReq(text, doneCallback)'''
+
+
+		import logging
+		logging.info('playLocalVideo')
+
+		logging.info('100')
+		if not self.isLocalVideoStreaming():#TODO
+			logging.info('200')
+			if self._attachBin(self._localVideoBin):
+				logging.info('300')
+				#self._localVideoBin.startLocalVideo()
+				self._localVideoBin.addPeersReq(id,doneCallback)
+				logging.info('400')
+		else:
+			logging.info('500')
+			self._localVideoBin.addPeersReq(id,doneCallback)
+			logging.info('600')
+		logging.info('700')
+
+	def stopLocalVideo(self, doneCallback= None):
+		if not self.isVideoStreaming():
+			if doneCallback:
+				doneCallback(True)
+			return
+
+		if self._localVideoBin.isLinked:
+			self._detachBin(self._localVideoBin, doneCallback)
+
+		elif doneCallback:
+			doneCallback(True)
+
+	def isLocalVideoStreaming(self):#TODO
+		import logging
+
+		logging.info('isLocalVideoStreaming')
+		a = self._localVideoBin.isPlaying()
+		logging.info(a)
+		return a
 
 	### Signal Handlers and Callbacks
 

@@ -587,6 +587,85 @@ var CameraControlViewWebRTC = CameraControlView.extend({
   }
 });
 
+var CameraControlViewGstreamer = CameraControlView.extend({
+  canStream: true,
+  managerName: 'gstreamer',
+  startStreaming: function()
+  {
+    var promise = $.Deferred();
+
+    this.setState('preparing');
+
+    $.ajax({
+      url: API_BASEURL + 'camera/peer-session',
+      method: 'POST',
+      data: JSON.stringify({
+        sessionId: AP_SESSION_ID
+      }),
+      contentType: 'application/json',
+      type: 'json'
+    })
+      .done(_.bind(function(){
+        this.streaming = true;
+        var videoCont = this.getVideoContainer();
+
+        this.setState('streaming');
+
+        videoCont.on('load', _.bind(function() {
+          this.setState('streaming');
+          this.activateWindowHideListener();
+          videoCont.off('load');
+          promise.resolve();
+        },this));
+
+        videoCont.on('error', _.bind(function(e) {
+          console.error(e)
+          videoCont.off('error');
+          this.videoStreamingError = 'Error while playing video';
+          this.render();
+          promise.reject()
+        },this));
+
+        //videoCont.attr('src', '/webcam/?action=stream&time='+new Date().getTime());
+        videoCont.attr('src', '/camera/localStreaming?apikey='+UI_API_KEY);
+
+
+      }, this))
+      .fail(_.bind(function(xhr){
+        this.videoStreamingError = 'Unable to start video session. (' + xhr.status + ')';
+        this.render();
+        promise.reject()
+      }, this))
+
+    return promise;
+  },
+  stopStreaming: function()
+  {
+    var promise = $.Deferred();
+    clearTimeout(this.timeoutPlayingManager);
+
+    if (this.streaming && this.streamingPlugIn) {
+      this.stoppingPromise = null;
+      this.streamingPlugIn.send(
+        {
+          message: { "request": "stop" },
+          success: _.bind(function() {
+            this.stoppingPromise = promise;
+          }, this),
+          error: function(error){
+            promise.reject(error);
+          }
+        }
+      );
+    } else {
+      promise.resolve();
+    }
+
+    return promise;
+  }
+});
+
+
 var CameraControlViewMac = CameraControlView.extend({
   canStream: true,
   startStreaming: function()
@@ -611,6 +690,6 @@ var CameraControlViewMac = CameraControlView.extend({
 
 var CameraViewBase = {
   mjpeg: CameraControlViewMJPEG,
-  gstreamer: CameraControlViewWebRTC,
+  gstreamer: CameraControlViewGstreamer,
   mac: CameraControlViewMac
 }[CAMERA_MANAGER];

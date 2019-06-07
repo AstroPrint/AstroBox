@@ -120,7 +120,7 @@ class PhotoReqsProcessor(Thread):
 			time.sleep(1.5) #give it time to focus and get light. Only on first photo in the sequence
 			self._alreadyExposed = True
 
-		self._logger.debug('Request Photo from camera')
+		self._logger.info('Request Photo from camera')
 		if waitToReachState(self._appSink, Gst.State.PLAYING, 3.0, 2):
 			sample = self._appSink.emit('pull-sample')
 		else:
@@ -132,7 +132,7 @@ class PhotoReqsProcessor(Thread):
 			success, mapInfo = sampleBuffer.map(Gst.MapFlags.READ)
 
 			if success:
-				self._logger.debug('Photo Received. Size (%d)' % mapInfo.size)
+				self._logger.info('Photo Received. Size (%d)' % mapInfo.size)
 				reqCallback(mapInfo.data)
 				sampleBuffer.unmap(mapInfo)
 				return

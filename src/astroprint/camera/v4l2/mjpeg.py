@@ -155,6 +155,7 @@ class MjpegManager(V4L2Manager):
 		return self._streamer is not None
 
 	def startLocalVideoSession(self, sessionId):
+		self._logger.info('startLocalVideoSession mjpeg')
 		self.open_camera()
 		if self._streamer:
 			if len(self._localClients) == 0:

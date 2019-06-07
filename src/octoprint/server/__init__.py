@@ -63,6 +63,7 @@ from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.camera.local_video_handler import VideoStreamHandler
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
@@ -221,6 +222,36 @@ def camera_snapshot():
 		return Response(pic_buf, mimetype='image/jpeg', headers={"Access-Control-Allow-Origin": "*"})
 	else:
 		return 'Camera not ready', 404
+
+@app.route('/camera/localStreaming')
+#@restricted_access
+def local_streaming():
+	def gen(cameraMgr):
+
+		import logging
+
+		id = cameraMgr.start_local_video_stream()
+
+		while True:
+			logging.info('PLE')
+			logging.info('PLO')
+			frame = cameraMgr.getFrame()
+			logging.info('PLI')
+			yield (b'--frame\r\n'
+						b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+		'''while True:
+			logging.info('GEN')
+			cameraMgr._photos[id] = {}
+
+			#logging.info(photoData)
+			logging.info(index)
+			yield (b'--frame\r\n'
+						b'Content-Type: image/jpeg\r\n\r\n' + cameraMgr._photos[id][index] + b'\r\n')
+			index+=1
+			index=index%25'''
+
+	return Response(gen(cameraManager()), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 @app.route("/status", methods=["GET"])
@@ -518,6 +549,7 @@ class Server():
 			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": s.getBaseFolder("uploads"), "as_attachment": True}),
 			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": s.getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
 			#(r"/downloads/camera/current", UrlForwardHandler, {"url": s.get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
+			(r"/video-stream", VideoStreamHandler),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
 		self._server = HTTPServer(self._tornado_app, max_buffer_size=1048576 * s.getInt(['server', 'maxUploadSize']))

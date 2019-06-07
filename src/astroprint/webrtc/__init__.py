@@ -169,6 +169,7 @@ class WebRtc(object):
 			self._connectedPeers[sessionId].streamingPlugin.send_message({'request':'start'})
 			#able to serve video
 			self.startVideoStream()
+			self._logger.info('1')
 
 
 	def tickleIceCandidate(self, sessionId, candidate, sdp_mid, sdp_mline_index):
@@ -215,7 +216,17 @@ class WebRtc(object):
 
 		cameraManager().start_video_stream(startDone)
 
+	def startLocalVideoStream(self):
+		self._logger.info('startLocalVideoStream')
+		#Start Video Stream
+		#def startDone(success):
+		#	if not success:
+		#		self._logger.error('Managing GStreamer error in local session')
+
+		cameraManager().start_local_video_stream()
+
 	def startJanus(self):
+		self._logger.info('startJanus')
 		with self._janusStartStopCondition:
 			#Start janus command here
 			if self._JanusProcess and self._JanusProcess.returncode is None:
@@ -225,9 +236,10 @@ class WebRtc(object):
 			args = ['/usr/bin/janus', '-F', '/etc/astrobox/janus', '-C']
 
 			nm = networkManager()
-			if nm.isOnline():
+			if not nm.isOnline():#!!!!! REMOVE NOT
 				args.append('/etc/astrobox/janus/janus.cfg')
 			else:
+				self._logger.info('/etc/astrobox/janus/janus.cfg.local')
 				args.append('/etc/astrobox/janus/janus.cfg.local')
 
 			try:
@@ -268,7 +280,7 @@ class WebRtc(object):
 							self._logger.error("Janus failed to start: %s" % error)
 							return False
 
-				self._logger.debug('Janus Started.')
+				self._logger.info('Janus Started.')
 
 				#Connect the signal for fatal errors when they happen
 				ready = signal('manage_fatal_error_webrtc')
