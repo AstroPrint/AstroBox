@@ -83,16 +83,16 @@ class AstroPrintPipeline(object):
 		self._process.start()
 		if onListeningEvent.wait(20.0):
 			if errorState.value:
-				#self._logger.info('Pipeline Failed to start.')
+				self._logger.error('Pipeline Failed to start.')
 				self._kill()
-				#self._logger.info('Pipeline Process killed.')
+				self._logger.debug('Pipeline Process killed.')
 
 			else:
-				#self._logger.info('Pipeline Process Started.')
+				self._logger.debug('Pipeline Process Started.')
 				self._listening = True
 
 		else:
-			#self._logger.info('Timeout while waiting for pipeline process to start')
+			self._logger.debug('Timeout while waiting for pipeline process to start')
 			self._kill()
 
 	def stopProcess(self):
@@ -284,7 +284,7 @@ class AstroPrintPipeline(object):
 
 		else:
 			self._logger.debug('Process not running. Trying to restart')
-			self.startProcess()#
+			self.startProcess()
 			if self.processRunning:
 				self._sendReqToProcess(data, callback)
 

@@ -71,7 +71,7 @@ class GstBasePipeline(object):
 		self._busListener.start()
 
 	def __del__(self):
-		self._logger.debug('Pipeline destroyed')
+		self._logger.info('Pipeline destroyed')
 
 	def __fatalErrorManager(self, details):
 		self._onFatalError(details)

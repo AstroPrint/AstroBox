@@ -87,7 +87,7 @@ class GStreamerManager(V4L2Manager):
 
 	def _doReScan(self):
 		if super(GStreamerManager, self)._doReScan():
-			#self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraInfo['name'], self._settings['encoding'] , self._settings['size'], self._settings['source']))
+			self._logger.info("Found camera %s, encoding: %s and size: %s. Source used: %s" % (self.cameraInfo['name'], self._settings['encoding'] , self._settings['size'], self._settings['source']))
 			self._freeApPipeline()
 
 			return True
@@ -225,6 +225,7 @@ class GStreamerManager(V4L2Manager):
 		done(None)
 
 	def shutdown(self):
+		self._logger.info('Shutting Down GstreamerManager')
 		self._freeApPipeline()
 		self._haltCamera()
 		webRtcManager().shutdown()
