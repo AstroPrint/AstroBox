@@ -223,37 +223,6 @@ def camera_snapshot():
 	else:
 		return 'Camera not ready', 404
 
-@app.route('/camera/localStreaming')
-#@restricted_access
-def local_streaming():
-	def gen(cameraMgr):
-
-		import logging
-
-		id = cameraMgr.start_local_video_stream()
-
-		while True:
-			logging.info('PLE')
-			logging.info('PLO')
-			frame = cameraMgr.getFrame()
-			logging.info('PLI')
-			yield (b'--frame\r\n'
-						b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-
-		'''while True:
-			logging.info('GEN')
-			cameraMgr._photos[id] = {}
-
-			#logging.info(photoData)
-			logging.info(index)
-			yield (b'--frame\r\n'
-						b'Content-Type: image/jpeg\r\n\r\n' + cameraMgr._photos[id][index] + b'\r\n')
-			index+=1
-			index=index%25'''
-
-	return Response(gen(cameraManager()), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-
 @app.route("/status", methods=["GET"])
 @restricted_access
 def getStatus():

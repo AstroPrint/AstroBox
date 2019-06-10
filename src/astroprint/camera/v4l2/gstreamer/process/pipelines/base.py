@@ -127,9 +127,6 @@ class GstBasePipeline(object):
 
 		self._photoBinAttachDetachLock.release()
 
-	def _onPhotoTaken(self):
-		pass
-
 	def _onStopPhotoSeq(self):
 		self._logger.info('Stop photo sequence for local video')
 		waitForDetach = Event()
@@ -201,8 +198,7 @@ class GstBasePipeline(object):
 			if self._videoEncBin.isPlaying:
 				result = True
 			else:
-				import logging
-				logging.error('Video Encoding Bin is not playing.')
+				self._logger.error('Video Encoding Bin is not playing.')
 
 		if doneCallback:
 			doneCallback(result)

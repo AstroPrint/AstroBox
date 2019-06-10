@@ -16,18 +16,13 @@ from ..util import waitToReachState
 
 class EncoderBin(object):
 	def __init__(self, binName):
-		##TO REMOVE##
-		self._binName = binName
-		#############
 		self._isLinked = False
 		self._bin = Gst.Bin.new(binName)
 		self._bin.set_locked_state(True)
 		self._logger = logging.getLogger(__name__)
 
 	def attach(self, teePad):
-		self._logger.info('attach binName %s' % self._binName)
 		if self._isLinked:
-			self._logger.info('EncoderBin is linked')
 			return False
 
 		self._bin.set_state(Gst.State.PLAYING)
@@ -35,7 +30,7 @@ class EncoderBin(object):
 
 		teePad.link(self._bin.get_static_pad('sink'))
 		self._isLinked = True
-		self._logger.info('Attached for %s' % self.__class__.__name__)
+		self._logger.debug('Attached for %s' % self.__class__.__name__)
 
 		return True
 

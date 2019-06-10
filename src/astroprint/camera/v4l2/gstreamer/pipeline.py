@@ -270,20 +270,20 @@ class AstroPrintPipeline(object):
 					id = self._lastReqId
 
 					if preservative:
-						self._preservativePendingReqs[id] = (callback)
+						self._preservativePendingReqs[id] = callback
 					else:
-						self._pendingReqs[id] = (callback)
+						self._pendingReqs[id] = callback
 
 					self._parentConn.send( (id, data) )
-					#self._logger.info('Sent request %s to process [ %s ]' % (id, repr(data)))
+					self._logger.debug('Sent request %s to process [ %s ]' % (id, repr(data)))
 
 				else:
-					#self._logger.info('Process not listening. There was a problem while starting it.')
+					self._logger.debug('Process not listening. There was a problem while starting it.')
 					if callback:
 						callback({'error': 'not_listening', 'details': 'The process is not currently listening to requests'})
 
 		else:
-			#self._logger.info('Process not running. Trying to restart')
+			self._logger.debug('Process not running. Trying to restart')
 			self.startProcess()#
 			if self.processRunning:
 				self._sendReqToProcess(data, callback)
