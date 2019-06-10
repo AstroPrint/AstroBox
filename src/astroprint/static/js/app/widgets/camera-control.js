@@ -263,330 +263,6 @@ var CameraControlViewMJPEG = CameraControlView.extend({
   }
 });
 
-var CameraControlViewWebRTC = CameraControlView.extend({
-  el: null,
-  serverUrl: null,
-  streamingPlugIn: null,
-  streaming: false,
-  managerName: 'webrtc',
-  stoppingPromise: null,
-  events: {
-  'hide':'onHide'
-  },
-  settings: null,
-  print_capture: null,
-  photoSeq: 0,
-  _socket: null,
-  videoStreamingEvent: null,
-  videoStreamingError: null,
-  videoStreamingErrorTitle: null,
-  originalFunctions: null,//this could be contained the original functions
-  //startStreaming, stopStreaming, and onHide for being putted back after changing
-  //settings if new settings ables to get video instead of old settings
-  timeoutPlayingManager: null,
-  manageVideoStreamingEvent: function(value)
-  {//override this for managing this error
-    this.videoStreamingError = value.message;
-    if('camera settings have been changed'.indexOf(value.message) >-1){
-      this.videoStreamingErrorTitle = 'Camera settings changed'
-    } else {
-      this.videoStreamingErrorTitle = null;
-    }
-
-    console.error(value.message);
-    },
-    _onVideoStreamingError: function(e)
-    {
-    if (e.data && e.data['event']) {
-      var data = e.data['event'];
-      var type = data["type"];
-
-      if (type == 'GstreamerFatalErrorManage') {
-        this.manageVideoStreaming(data["message"]);
-      }
-    }
-  },
-  cameraInitialized: function()
-  {
-    //Evaluate if we are able to do WebRTC
-
-    if(Janus.isWebrtcSupported()) {
-      this.setState('ready');
-      this.canStream = true;
-    } else {
-      this.setState('nowebrtc');
-      this.canStream = false;
-    }
-
-    this.canStream = true;
-
-    if( !this.canStream){
-
-      if( !this.originalFunctions) {
-        this.originalFunctions = new Object();
-        this.originalFunctions.startStreaming = this.startStreaming;
-        this.originalFunctions.stopStreaming = this.stopStreaming;
-        this.originalFunctions.onHide = this.onHide;
-        this.originalFunctions.initJanus = this.initJanus;
-      }
-
-      this.initJanus = null;
-
-      this.startStreaming = function(){ this.setState('nowebrtc'); return $.Deferred().resolve(); };
-      this.stopStreaming = function(){ return $.Deferred().resolve(); };
-      this.onHide = function(){ return true; };
-      //this.setState('nowebrtc');
-      this.cameraMode = 'photo';
-    } else {
-
-      if( this.originalFunctions) {
-        this.startStreaming = this.originalFunctions.startStreaming;
-        this.stopStreaming = this.originalFunctions.stopStreaming;
-        this.onHide = this.originalFunctions.onHide;
-        this.initJanus = this.originalFunctions.initJanus;
-      }
-
-      this.serverUrl = "http://" + window.location.hostname + ":8088/janus";
-
-      this.initJanus();
-
-      // Initialize the library (all console debuggers enabled)
-      Janus.init({debug: false});
-    }
-    this.render();
-  },
-  initJanus: function()
-  {
-    this.streaming = false;
-    this.streamingPlugIn = null;
-  },
-  startStreaming: function()
-  {
-    var promise = $.Deferred();
-
-    var videoCont = this.getVideoContainer();
-
-    this.setState('preparing');
-    $.ajax({
-      url: API_BASEURL + "camera/init-janus",
-      type: "POST",
-      dataType: "json",
-      contentType: "application/json; charset=UTF-8",
-      data: ''
-    })
-    .done(_.bind(function(){
-      if(!videoCont.is(':visible')) {
-        // Create session
-        var janus = new Janus({
-          server: this.serverUrl,
-          apisecret: 'd5faa25fe8e3438d826efb1cd3369a50',
-          iceServers: [{
-            "urls": ["stun:turn.astroprint.com:80"]
-          }],
-          success: _.bind(function() {
-            $.ajax({
-              url: API_BASEURL + "camera/peer-session",
-              type: "POST",
-              data: JSON.stringify({
-                sessionId: AP_SESSION_ID
-              }),
-              dataType: "json",
-              contentType: "application/json; charset=UTF-8",
-            })
-            .fail(_.bind(function(){
-              noty({text: "Unable to start WebRTC session.", timeout: 3000});
-              this.setState('error');
-            }, this))
-            .done(_.bind(function() {
-              this.streaming = true;
-
-              var selectedStream = this.settings.encoding == 'h264' ? 1 : 2;
-
-              //Attach to streaming plugin
-              janus.attach({
-                plugin: "janus.plugin.streaming",
-                success: _.bind(function(pluginHandle) {
-                  this.streamingPlugIn = pluginHandle;
-
-                  this.streamingPlugIn.oncleanup = _.bind(function(){
-                    this.streamingPlugIn.send({
-                      message: { "request": "destroy", "id": pluginHandle.session.getSessionId() },
-                      success: _.bind(function() {
-
-                        $.ajax({
-                          url: API_BASEURL + "camera/peer-session",
-                          type: "DELETE",
-                          dataType: "json",
-                          contentType: "application/json; charset=UTF-8",
-                          data: JSON.stringify({
-                            sessionId: AP_SESSION_ID
-                          })
-                        })
-                          .done(_.bind(function(){
-                            janus.sessionId = null;
-                            this.setState('ready');
-
-                            if (this.stoppingPromise) {
-                              this.stoppingPromise.resolve();
-                              this.stoppingPromise = null;
-                            }
-                          },this))
-                          .always(_.bind(function(){
-                            this.initJanus()
-                          }, this))
-                          .fail(_.bind(function(){
-                            this.setState('error');
-                            if (this.stoppingPromise) {
-                              this.stoppingPromise.reject();
-                              this.stoppingPromise = null;
-                            }
-                          },this));
-
-                      }, this),
-                      error: function(){
-                        this.initJanus();
-                        this.setState('error');
-                        if (this.stoppingPromise) {
-                          this.stoppingPromise.reject();
-                          this.stoppingPromise = null;
-                        }
-                      }
-                    });
-                  },this);
-
-                  var body = { "request": "watch", id: selectedStream };
-                  this.streamingPlugIn.send({"message": body});
-                },this),
-                error: function(error) {
-                  console.error(error);
-                  noty({text: "Error communicating with the WebRTC system.", timeout: 3000});
-                },
-                onmessage: _.bind(function(msg, jsep) {
-                  //console.log(" ::: Got a message :::");
-                  //console.log(JSON.stringify(msg));
-                  var result = msg["result"];
-                    if(result !== null && result !== undefined) {
-                      if(result["status"] !== undefined && result["status"] !== null) {
-                        var status = result["status"];
-                        if(status === 'stopped')
-                          this.stopStreaming();
-                      }
-                    } else if(msg["error"] !== undefined && msg["error"] !== null) {
-                      console.error(msg["error"]);
-                      noty({text: "Unable to communicate with the camera.", timeout: 3000});
-                      this.stopStreaming();
-                      return;
-                    }
-                    if(jsep !== undefined && jsep !== null) {
-                      //Answer
-                      this.streamingPlugIn.createAnswer({
-                        jsep: jsep,
-                        media: { audioSend: false, videoSend: false },  // We want recvonly audio/video
-                        success: _.bind(function(jsep) {
-                          var body = { "request": "start" };
-                          this.streamingPlugIn.send({"message": body, "jsep": jsep});
-                        },this),
-                        error: _.bind(function(error) {
-                          console.error(error);
-                          this.setState('error');
-                        },this)
-                      });
-                    }
-                }, this),
-                onremotestream: _.bind(function(stream) {
-                  //Starts GStreamer
-                  $.ajax({
-                    url: API_BASEURL + "camera/start-streaming",
-                    type: "POST"
-                  }).fail(_.bind(function(){
-                    this.setState('error');
-                  },this));
-
-                  this.timeoutPlayingManager = window.setTimeout(_.bind(function(){
-                    if(!isPlaying){
-                      this.stopStreaming();
-                      this.setState('error');
-                      promise.reject();
-                      clearTimeout(this.timeoutPlayingManager);                 }
-                  },this),40000);
-
-                  var isPlaying = false;
-
-                  var onPlay = _.bind(function () {
-                    this.setState('streaming');
-                    isPlaying = true;
-                    this.activateWindowHideListener();
-                    videoCont.off('canplaythrough', onPlay);
-                    promise.resolve();
-                  }, this);
-
-                  videoCont.on("canplaythrough", onPlay);
-                  videoCont.get(0).srcObject = stream;
-
-                  app.eventManager.on('astrobox:videoStreamingEvent', this.manageVideoStreamingEvent, this);
-
-                  this.streamingPlugIn.send({"message": { "request": "watch", id: this.settings.encoding == 'h264' ? 1 : 2, refresh: true }});
-                },this),
-                oncleanup: function() {
-                  Janus.log(" ::: Got a cleanup notification :::");
-                }
-              });
-              },this)
-            );
-          }, this),
-          error: _.bind(function(error) {
-            if(!this.$el.hasClass('ready')
-              && !this.videoStreamingError //prevent if internal gstreamer error is showing
-              && !this.stoppingPromise
-              ){
-                console.error(error);
-                noty({text: "Unable to start the WebRTC session.", timeout: 3000});
-                //This is a fatal error. The application can't recover. We should probably show an error state in the app.
-                this.setState('error');
-              }
-
-            promise.resolve();
-          },this),
-          destroyed: _.bind(this.initJanus, this)
-        });
-      }
-
-      promise.resolve(); //We didn't start it but it wasn't visible anyway
-    },this))
-    .fail(_.bind(function(){
-      noty({text: "Unable to start the WebRTC system.", timeout: 3000});
-      this.initJanus();
-      promise.resolve();
-    }, this));
-
-    return promise;
-  },
-  stopStreaming: function()
-  {
-    var promise = $.Deferred();
-    clearTimeout(this.timeoutPlayingManager);
-
-    if (this.streaming && this.streamingPlugIn) {
-      this.stoppingPromise = null;
-      this.streamingPlugIn.send(
-        {
-          message: { "request": "stop" },
-          success: _.bind(function() {
-            this.stoppingPromise = promise;
-          }, this),
-          error: function(error){
-            promise.reject(error);
-          }
-        }
-      );
-    } else {
-      promise.resolve();
-    }
-
-    return promise;
-  }
-});
-
 var CameraControlViewGstreamer = CameraControlView.extend({
   canStream: true,
   managerName: 'gstreamer',
@@ -595,44 +271,25 @@ var CameraControlViewGstreamer = CameraControlView.extend({
     var promise = $.Deferred();
 
     this.setState('preparing');
-   /* $.ajax({
-      url: API_BASEURL + 'camera/peer-session',
-      method: 'POST',
-      data: JSON.stringify({
-        sessionId: AP_SESSION_ID
-      }),
-      contentType: 'application/json',
-      type: 'json'
-    })
-      .done(_.bind(function(){*/
-        this.streaming = true;
-        var videoCont = this.getVideoContainer();
 
-        videoCont.on('load', _.bind(function(data) {
-          this.setState('streaming');
-          this.activateWindowHideListener();
-          videoCont.off('load');
-          promise.resolve();
-        },this));
+    this.streaming = true;
+    var videoCont = this.getVideoContainer();
 
-        videoCont.on('error', _.bind(function(e) {
-          console.error(e)
-          videoCont.off('error');
-          this.videoStreamingError = 'Error while playing video';
-          this.render();
-          promise.reject()
-        },this));
+    videoCont.on('load', _.bind(function(data) {
+      this.setState('streaming');
+      this.activateWindowHideListener();
+      videoCont.off('load');
+      promise.resolve();
+    },this));
 
-        //videoCont.attr('src', '/webcam/?action=stream&time='+new Date().getTime());
-        videoCont.attr('src', 'video-stream');
+    videoCont.on('error', _.bind(function(e) {
+      videoCont.off('error');
+      this.videoStreamingError = 'Error while playing video';
+      this.render();
+      promise.reject()
+    },this));
 
-
-      /*}, this))
-      .fail(_.bind(function(xhr){
-        this.videoStreamingError = 'Unable to start video session. (' + xhr.status + ')';
-        this.render();
-        promise.reject()
-      }, this))*/
+    videoCont.attr('src', 'video-stream');
 
     return promise;
   },
@@ -649,30 +306,6 @@ var CameraControlViewGstreamer = CameraControlView.extend({
       videoCont.removeAttr('src');
       promise.resolve();
 
-      /*$.ajax({
-        url: API_BASEURL + 'camera/stop-local-video',
-        method: 'POST',
-        data: JSON.stringify({
-          sessionId: 'local'
-        }),
-        contentType: 'application/json',
-        type: 'json'
-      })
-      .done(_.bind(function(){
-        console.log('done');
-        this.setState('ready');
-        var videoCont = this.getVideoContainer();
-        videoCont.off('load');
-        videoCont.off('error');
-        videoCont.removeAttr('src');
-        promise.resolve();
-      }, this))
-      .fail(_.bind(function(xhr){
-        this.videoStreamingError = 'Unable to stop video session. (' + xhr.status + ')';
-        this.render();
-        promise.reject();
-      }, this))*/
-
     } else {
       promise.resolve();
     }
@@ -680,7 +313,6 @@ var CameraControlViewGstreamer = CameraControlView.extend({
     return promise;
   }
 });
-
 
 var CameraControlViewMac = CameraControlView.extend({
   canStream: true,

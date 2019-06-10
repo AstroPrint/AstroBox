@@ -96,15 +96,11 @@ class GStreamerManager(V4L2Manager):
 
 
 	def getNumberOfLocalPeers(self):
-		#self._logger.info('getNumberOfLocalPeers')
 		return len(self._localPeers)
 
 	def addLocalPeerReq(self):
-		self._logger.info('addLocalPeerReq')
-
 		id = uuid.uuid4().hex
 
-		#self._logger.info('addLocalPeerReq')
 		self._localPeers.append(id)
 
 		self._logger.info('number of local peers: %d' % len(self._localPeers))
@@ -115,7 +111,6 @@ class GStreamerManager(V4L2Manager):
 		return id
 
 	def removeLocalPeerReq(self,id):
-		self._logger.info('removeLocalPeerReq: %s' % id)
 		self._localPeers.remove(id)
 
 		if len(self._localPeers) <= 0:
@@ -149,22 +144,12 @@ class GStreamerManager(V4L2Manager):
 		if photoData:
 			#self._logger.info('PHOTODATA RETURNED')
 
-			#self._logger.info(self._localPeers)
-			#self._logger.info(len(self._localPeers))
-			#self._logger.info(not self._localPeers or len(self._localPeers) <= 0)
-			#self._logger.info(not self._localPeers)
-			if not self._localPeers:# or len(self._localPeers) <= 0:
-				self._logger.info('before stop_local_video_stream')
-				self.stop_local_video_stream(None)
-
-			#self._logger.info('11')
+			if not self._localPeers:
+				self.stop_local_video_stream()
 
 			self._responsePeersReq(photoData)
 
 			self.waitForPhoto.set()
-
-				#self._logger.info('22')
-				#self._logger.info('33')
 
 	def start_local_video_stream(self):
 		self._logger.info('start_local_video_stream')
@@ -173,30 +158,19 @@ class GStreamerManager(V4L2Manager):
 			self._cameraInactivity.lastActivity = time.time()#?
 
 		if not self._gstreamerProcessRunning:
-			self._logger.info('1')
-			self._logger.info('--------- open_camera')
 			if not self.open_camera():
 				return
 
-			self._logger.info('open_camera ---------')
-			self._logger.info('3')
 			self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
-
 			return
 
-		self._logger.info('CAMERA OPENED')
 		self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
 		return
 
-	def stop_local_video_stream(self, doneCallback= None):
-		self._logger.info('stop_local_video_stream')
+	def stop_local_video_stream(self):
 		self._apPipeline.stopLocalVideo()
 
-			#if doneCallback:
-			#	doneCallback(result)
-
 	def localSessionAlive(self,id):
-		#self._logger.info('localSessionAlive: %s' % id)
 		return id in self._localPeers
 
 	def _doStartVideoStream(self, doneCallback= None):
