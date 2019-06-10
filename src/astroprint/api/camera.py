@@ -76,7 +76,7 @@ def update_timelapse():
 
 @api.route("/camera/peer-session", methods=["POST", "DELETE"])
 @restricted_access
-def peer_session():
+def peer_session():#?FOR DELETING??
 	data = request.json
 	if data and 'sessionId' in data:
 		sessionId = data['sessionId']

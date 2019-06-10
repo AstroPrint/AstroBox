@@ -595,8 +595,7 @@ var CameraControlViewGstreamer = CameraControlView.extend({
     var promise = $.Deferred();
 
     this.setState('preparing');
-
-    $.ajax({
+   /* $.ajax({
       url: API_BASEURL + 'camera/peer-session',
       method: 'POST',
       data: JSON.stringify({
@@ -605,13 +604,11 @@ var CameraControlViewGstreamer = CameraControlView.extend({
       contentType: 'application/json',
       type: 'json'
     })
-      .done(_.bind(function(){
+      .done(_.bind(function(){*/
         this.streaming = true;
         var videoCont = this.getVideoContainer();
 
-        this.setState('streaming');
-
-        videoCont.on('load', _.bind(function() {
+        videoCont.on('load', _.bind(function(data) {
           this.setState('streaming');
           this.activateWindowHideListener();
           videoCont.off('load');
@@ -627,36 +624,55 @@ var CameraControlViewGstreamer = CameraControlView.extend({
         },this));
 
         //videoCont.attr('src', '/webcam/?action=stream&time='+new Date().getTime());
-        videoCont.attr('src', '/camera/localStreaming?apikey='+UI_API_KEY);
+        videoCont.attr('src', 'video-stream');
 
 
-      }, this))
+      /*}, this))
       .fail(_.bind(function(xhr){
         this.videoStreamingError = 'Unable to start video session. (' + xhr.status + ')';
         this.render();
         promise.reject()
-      }, this))
+      }, this))*/
 
     return promise;
   },
   stopStreaming: function()
   {
     var promise = $.Deferred();
-    clearTimeout(this.timeoutPlayingManager);
 
-    if (this.streaming && this.streamingPlugIn) {
-      this.stoppingPromise = null;
-      this.streamingPlugIn.send(
-        {
-          message: { "request": "stop" },
-          success: _.bind(function() {
-            this.stoppingPromise = promise;
-          }, this),
-          error: function(error){
-            promise.reject(error);
-          }
-        }
-      );
+    if (this.streaming){
+
+      this.setState('ready');
+      var videoCont = this.getVideoContainer();
+      videoCont.off('load');
+      videoCont.off('error');
+      videoCont.removeAttr('src');
+      promise.resolve();
+
+      /*$.ajax({
+        url: API_BASEURL + 'camera/stop-local-video',
+        method: 'POST',
+        data: JSON.stringify({
+          sessionId: 'local'
+        }),
+        contentType: 'application/json',
+        type: 'json'
+      })
+      .done(_.bind(function(){
+        console.log('done');
+        this.setState('ready');
+        var videoCont = this.getVideoContainer();
+        videoCont.off('load');
+        videoCont.off('error');
+        videoCont.removeAttr('src');
+        promise.resolve();
+      }, this))
+      .fail(_.bind(function(xhr){
+        this.videoStreamingError = 'Unable to stop video session. (' + xhr.status + ')';
+        this.render();
+        promise.reject();
+      }, this))*/
+
     } else {
       promise.resolve();
     }

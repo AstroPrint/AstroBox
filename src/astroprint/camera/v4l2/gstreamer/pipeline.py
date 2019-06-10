@@ -83,16 +83,16 @@ class AstroPrintPipeline(object):
 		self._process.start()
 		if onListeningEvent.wait(20.0):
 			if errorState.value:
-				self._logger.info('Pipeline Failed to start.')
+				#self._logger.info('Pipeline Failed to start.')
 				self._kill()
-				self._logger.info('Pipeline Process killed.')
+				#self._logger.info('Pipeline Process killed.')
 
 			else:
-				self._logger.info('Pipeline Process Started.')
+				#self._logger.info('Pipeline Process Started.')
 				self._listening = True
 
 		else:
-			self._logger.info('Timeout while waiting for pipeline process to start')
+			#self._logger.info('Timeout while waiting for pipeline process to start')
 			self._kill()
 
 	def stopProcess(self):
@@ -128,10 +128,8 @@ class AstroPrintPipeline(object):
 		self._responseListener = None
 
 	def startLocalVideo(self, onFrameTakenCallback):
-		self._logger.info('startLocalVideo')
 
 		def postprocesingLocalVideoFrame(resp):
-			self._logger.info('postprocesingLocalVideoFrame')
 			if resp:
 				if isinstance(resp, dict) and 'error' in resp:
 					self._logger.error('Error during photo capture: %s' % resp['error'])
@@ -139,7 +137,6 @@ class AstroPrintPipeline(object):
 				else:
 					from base64 import b64decode
 					try:
-						self._logger.info('callbacking')
 						onFrameTakenCallback(b64decode(resp))
 					except TypeError as e:
 						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
@@ -148,9 +145,9 @@ class AstroPrintPipeline(object):
 				onFrameTakenCallback(None)
 
 		self._sendPreservativeReq({'action': 'startLocalVideo'}, postprocesingLocalVideoFrame)
-		#self._parentConn.send( ('local', {'action': 'startLocalVideo'}) )
 
 	def stopLocalVideo(self, doneCallback = None):
+		self._logger.info('stopLocalVideo')
 		self._sendReqToProcess({'action': 'stopLocalVideo'}, doneCallback)
 
 	def isLocalVideoPlaying(self, doneCallback):
@@ -257,15 +254,15 @@ class AstroPrintPipeline(object):
 				self._logger.error("Problem executing callback response", exc_info= True)
 
 		else:
-			self._logger.error("There's no pending request for response %s" % id)#TODO: id is not integer
+			self._logger.error("There's no pending request for response %s" % id)
 
 	def _sendPreservativeReq(self, data, callback=None):
-		self._addReq(data,callback,True)
+		self.__addReq(data,callback,True)
 
 	def _sendReqToProcess(self, data, callback= None):
-		self._addReq(data,callback,False)
+		self.__addReq(data,callback,False)
 
-	def _addReq(self, data, callback, preservative):
+	def __addReq(self, data, callback, preservative):
 		if self.processRunning:
 			with self._sendCondition:
 				if self._listening:
@@ -278,15 +275,15 @@ class AstroPrintPipeline(object):
 						self._pendingReqs[id] = (callback)
 
 					self._parentConn.send( (id, data) )
-					self._logger.info('Sent request %s to process [ %s ]' % (id, repr(data)))
+					#self._logger.info('Sent request %s to process [ %s ]' % (id, repr(data)))
 
 				else:
-					self._logger.info('Process not listening. There was a problem while starting it.')
+					#self._logger.info('Process not listening. There was a problem while starting it.')
 					if callback:
 						callback({'error': 'not_listening', 'details': 'The process is not currently listening to requests'})
 
 		else:
-			self._logger.info('Process not running. Trying to restart')
+			#self._logger.info('Process not running. Trying to restart')
 			self.startProcess()#
 			if self.processRunning:
 				self._sendReqToProcess(data, callback)

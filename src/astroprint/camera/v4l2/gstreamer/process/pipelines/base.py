@@ -131,21 +131,21 @@ class GstBasePipeline(object):
 		pass
 
 	def _onStopPhotoSeq(self):
-		self._logger.debug('Stop photo sequence for local video')
+		self._logger.info('Stop photo sequence for local video')
 		waitForDetach = Event()
 		def onDetached(success):
 			if not waitForDetach.is_set():
 				if not success:
-					self._logger.warn('There was an error detaching local Video Bin')
+					self._logger.info('There was an error detaching local Video Bin')
 
 				waitForDetach.set()
 
-		self._localVideoBin.pause()
+		self._localVideoBin.pauseLocalVideo()
 
 		self._localVideoBinAttachDetachLock.acquire()
 		self._detachBin(self._localVideoBin, onDetached)
 		if not waitForDetach.wait(2.0):
-			self._logger.warn('Timeout detaching local Video Bin')
+			self._logger.info('Timeout detaching local Video Bin')
 
 		self._localVideoBinAttachDetachLock.release()
 
@@ -220,57 +220,29 @@ class GstBasePipeline(object):
 			doneCallback(True)
 
 	def isVideoStreaming(self):
-		return self._videoEncBin.isPlaying
+		return self._videoEncBin.isPlaying or self._localVideoBin.isPlaying
 
 	## PLAYING LOCAL VIDEO ##
 
 	def playLocalVideo(self,id,doneCallback):
-		'''if not self._photoCaptureBin.isLinked:
-			if self._attachBin(self._photoCaptureBin):
-				self._photoCaptureBin.addPhotoReq(text, doneCallback )
-			else:
-				doneCallback(False)
+		if not self.isLocalVideoStreaming():
+			self._attachBin(self._localVideoBin)
 
-		else:
-			self._photoCaptureBin.addPhotoReq(text, doneCallback)'''
-
-
-		import logging
-		logging.info('playLocalVideo')
-
-		logging.info('100')
-		if not self.isLocalVideoStreaming():#TODO
-			logging.info('200')
-			if self._attachBin(self._localVideoBin):
-				logging.info('300')
-				#self._localVideoBin.startLocalVideo()
-				self._localVideoBin.addPeersReq(id,doneCallback)
-				logging.info('400')
-		else:
-			logging.info('500')
-			self._localVideoBin.addPeersReq(id,doneCallback)
-			logging.info('600')
-		logging.info('700')
+		self._localVideoBin.startLocalVideo(doneCallback)
 
 	def stopLocalVideo(self, doneCallback= None):
-		if not self.isVideoStreaming():
+		if not self.isLocalVideoStreaming():
 			if doneCallback:
 				doneCallback(True)
 			return
 
 		if self._localVideoBin.isLinked:
-			self._detachBin(self._localVideoBin, doneCallback)
-
+			self._localVideoBin.pauseLocalVideo()
 		elif doneCallback:
 			doneCallback(True)
 
-	def isLocalVideoStreaming(self):#TODO
-		import logging
-
-		logging.info('isLocalVideoStreaming')
-		a = self._localVideoBin.isPlaying()
-		logging.info(a)
-		return a
+	def isLocalVideoStreaming(self):
+		return self._localVideoBin.isPlaying
 
 	### Signal Handlers and Callbacks
 
