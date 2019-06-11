@@ -1,86 +1,53 @@
 import logging
 
-
 import tornado.ioloop
 import tornado.web
 import tornado.gen
-import time
-import tornado
+import datetime
 
-import threading
 from astroprint.camera import cameraManager
-from flask import abort
 
 
 class VideoStreamHandler(tornado.web.RequestHandler):
 
+	def initialize(self):
+		self._logger = logging.getLogger(__name__)
+		self.cameraMgr = cameraManager()
+		self.id = self.cameraMgr.addLocalPeerReq()
+
 	def on_finish(self):
-		logging.info('on_finish')
+		self._logger.debug('on_finish id - %s' % self.id)
 
 	def on_connection_close(self):
-		logging.info('on_connection_close')
+		self._logger.debug('on_connection_close id - %s' % self.id)
 
-		cameraMgr = cameraManager()
-		cameraMgr.removeLocalPeerReq(self.id)
+		self.cameraMgr.removeLocalPeerReq(self.id)
 
 	@tornado.web.asynchronous
 	@tornado.gen.coroutine
 	def get(self):
 
-		if cameraManager().startLocalVideoSession('local'):
+		self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0')
+		self.set_header('Connection', 'close')
+		self.set_header('Content-Type', 'multipart/x-mixed-replace;boundary=--boundarydonotcross')
+		self.set_header('Expires', '23 Sep ' + str((datetime.datetime.now().year)+100) + ' 16:43:00 GMT')
+		self.set_header('Pragma', 'no-cache')
 
-			logging.info('N')
+		my_boundary = "--boundarydonotcross\n"
 
-			cameraMgr = cameraManager()
+		stillStreaming = True
 
-			ioloop = tornado.ioloop.IOLoop.current()
+		self.sendNextFrame = True
 
-			self.id = cameraMgr.addLocalPeerReq()
+		while stillStreaming:
 
-			self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0')
-			self.set_header('Connection', 'close')
-			self.set_header('Content-Type', 'multipart/x-mixed-replace;boundary=--boundarydonotcross')
-			self.set_header('Expires', 'Mon, 3 Jan 2100 12:34:56 GMT')
-			self.set_header('Pragma', 'no-cache')
-			self.set_header('Session_id', self.id)
+			stillStreaming = self.cameraMgr.localSessionAlive(self.id)
 
-			self.served_image_timestamp = time.time()
-			my_boundary = "--boundarydonotcross\n"
+			img = self.cameraMgr.getFrame(self.id)
 
-			stillStreaming = True
-
-			'''def frameFlushedCb():
-				logging.info('frameFlushedCb')
-				self.sendNextFrame = True
-
-			self.sendNextFrame = True'''
-
-			from threading import Thread
-
-			while stillStreaming:
-				#if self.sendNextFrame:
-				#logging.info('W')
-				stillStreaming = cameraMgr.localSessionAlive(self.id)
-				logging.info('still streaming peer %s: %s' % (self.id,stillStreaming))
-				img = cameraMgr.getFrame(self.id)
-				interval = 1/25
-				#logging.info('D')
-				if img:# and self.served_image_timestamp + interval < time.time():
-					#logging.info('C')
-					self.write(my_boundary)
-					self.write("Content-type: image/jpeg\r\n")
-					self.write("Content-length: %s\r\n\r\n" % len(img))
-					self.write(str(img))
-					self.served_image_timestamp = time.time()
-					self.sendNextFrame = False
-					#yield tornado.gen.Task(Thread(target = self.flush(callback=frameFlushedCb)).start())
-					yield tornado.gen.Task(self.flush)
-				#else:
-					#logging.info('B')
-				#	yield tornado.gen.Task(ioloop.add_timeout, ioloop.time() + interval)
-				#else:
-				#	logging.info('AD')
-				#	yield tornado.gen.Task(ioloop.add_timeout, ioloop.time() + interval)
-		else:
-			logging.info('O')
-			abort(500)
+			if img:
+				self.write(my_boundary)
+				self.write("Content-type: image/jpeg\r\n")
+				self.write("Content-length: %s\r\n\r\n" % len(img))
+				self.write(str(img))
+				yield tornado.gen.Task(self.flush)

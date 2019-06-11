@@ -103,7 +103,7 @@ class GStreamerManager(V4L2Manager):
 
 		self._localPeers.append(id)
 
-		self._logger.info('number of local peers: %d' % len(self._localPeers))
+		self._logger.debug('number of local peers: %d' % len(self._localPeers))
 
 		if len(self._localPeers) == 1:
 			self.start_local_video_stream()
@@ -117,10 +117,6 @@ class GStreamerManager(V4L2Manager):
 			self.stop_local_video_stream()
 
 	def getFrame(self,id):
-		self._logger.info('getFrame')
-		#self._logger.info(len(self._localPeers[id]))
-		self._logger.info('id %s' % id)
-
 		self.waitForPhoto.wait()
 		self.waitForPhoto.clear()
 
@@ -130,19 +126,11 @@ class GStreamerManager(V4L2Manager):
 		return None
 
 	def _responsePeersReq(self,photoData):
-		#with self._localPeersResponseWaiting:
-
-			#self._localPeersResponseWaiting.acquire()
-
 		self._localFrame = photoData
 
-			#self._localPeersResponseWaiting.release()
-
 	def _onFrameTakenCallback(self,photoData):
-		#self._logger.info('PHOTODATA RECEIVED')
 
 		if photoData:
-			#self._logger.info('PHOTODATA RETURNED')
 
 			if not self._localPeers:
 				self.stop_local_video_stream()
@@ -152,10 +140,9 @@ class GStreamerManager(V4L2Manager):
 			self.waitForPhoto.set()
 
 	def start_local_video_stream(self):
-		self._logger.info('start_local_video_stream')
 
-		if self._cameraInactivity:#?
-			self._cameraInactivity.lastActivity = time.time()#?
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
 
 		if not self._gstreamerProcessRunning:
 			if not self.open_camera():
@@ -231,6 +218,7 @@ class GStreamerManager(V4L2Manager):
 		webRtcManager().shutdown()
 
 	def isVideoStreaming(self):
+		self._logger.info('isVideoStreaming')
 		if self._gstreamerProcessRunning:
 			waitForDone = Event()
 			respCont = [None]
@@ -246,13 +234,6 @@ class GStreamerManager(V4L2Manager):
 
 		else:
 			return False
-
-	def isLocalVideoStreaming(self):
-		return self.isVideoStreaming()# and self._apPipeline.isLocalVideoPlaying()
-
-	def startLocalVideoSession(self, sessionId):
-		return webRtcManager().startLocalSession(sessionId)
-
 
 	def closeLocalVideoSession(self, sessionId):
 		return webRtcManager().closeLocalSession(sessionId)

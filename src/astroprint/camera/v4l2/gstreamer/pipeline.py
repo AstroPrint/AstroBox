@@ -147,7 +147,6 @@ class AstroPrintPipeline(object):
 		self._sendPreservativeReq({'action': 'startLocalVideo'}, postprocesingLocalVideoFrame)
 
 	def stopLocalVideo(self, doneCallback = None):
-		self._logger.info('stopLocalVideo')
 		self._sendReqToProcess({'action': 'stopLocalVideo'}, doneCallback)
 
 	def isLocalVideoPlaying(self, doneCallback):

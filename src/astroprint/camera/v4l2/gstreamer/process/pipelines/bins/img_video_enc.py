@@ -126,9 +126,7 @@ class PhotoSeqProcessor(Thread):
 
 
 	def isPlaying(self):
-		isplaying = waitToReachState(self._appSink, Gst.State.PLAYING, 3.0, 2)
-
-		return isplaying
+		return self._localVideoReq is not None
 
 	def _processPhotoReq(self):
 		time.sleep(0.1) #Wait for the pipeline to stabilize with the new values

@@ -45,11 +45,6 @@ class WebRtc(object):
 		self._logger.info('Shutting Down WebRtcManager')
 		self.stopJanus()
 
-	def startLocalSession(self, sessionId):
-		with self._peerCondition:
-			self._connectedPeers[sessionId] = "local"
-			return True
-
 	def closeLocalSession(self, sessionId):
 		with self._peerCondition:
 			if len(self._connectedPeers.keys()) > 0:
