@@ -63,7 +63,6 @@ class CameraService(PluginService):
 		if data and 'sessionId' in data:
 			sessionId = data['sessionId']
 
-			#if request.method == 'POST':
 			if action == 'init_peer_session':
 				#Initialize the peer session
 				if cameraManager().startLocalVideoSession(sessionId):

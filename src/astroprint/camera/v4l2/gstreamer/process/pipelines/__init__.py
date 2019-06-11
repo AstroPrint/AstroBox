@@ -6,12 +6,13 @@ class InvalidGStreamerPipelineException(Exception):
     pass
 
 def pipelineFactory(device, size, rotation, source, encoder, onFatalError, mainLoop, debugLevel):
+	import logging
 	if source == 'usb':
-		if encoder == 'h264':
+		if encoder == 'h264':#H264
 			from .h264 import GstH264Pipeline
 			return GstH264Pipeline(device, size, rotation, onFatalError, mainLoop, debugLevel)
 
-		elif encoder == 'vp8': # VP8
+		elif encoder == 'vp8':#VP8
 			from .vp8 import GstVp8Pipeline
 			return GstVp8Pipeline(device, size, rotation, onFatalError, mainLoop, debugLevel)
 

@@ -11,6 +11,7 @@ from gi.repository import Gst
 #
 
 def waitToReachState(element, state, timeout= 3.0, attempts= 1):
+	import logging
 	while attempts:
 		stateReturn, currentState, pending = element.get_state( (timeout * Gst.SECOND) if timeout != Gst.CLOCK_TIME_NONE else Gst.CLOCK_TIME_NONE)
 		if currentState == state and ( stateReturn == Gst.StateChangeReturn.SUCCESS or stateReturn == Gst.StateChangeReturn.NO_PREROLL ):

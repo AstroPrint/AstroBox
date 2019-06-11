@@ -84,11 +84,7 @@
       <% } else { %>
            {# Additional Task Media #}
           <div id="img-app" class="columns-small-12 text-center">
-          <% if (currentStep.img_filename ) { %>
-            <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
-          <% } else if (currentStep.vid_filename) { %>
-            <video autoplay="autoplay" loop="loop" src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.vid_filename %>" ></video>
-          <% } %>
+          <img src="/static/img/variant/<%= additionalTaskApp.id %>/<%= currentStep.img_filename %>">
           </div>
       <% } %>
         {# Repeat button #}

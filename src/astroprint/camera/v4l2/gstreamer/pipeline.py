@@ -25,6 +25,7 @@ class AstroPrintPipeline(object):
 		self._logger = logging.getLogger(__name__)
 		self._parentConn, self._processConn = Pipe(True)
 		self._pendingReqs = {}
+		self._preservativePendingReqs = {}
 		self._lastReqId = 0
 		self._device = device
 		self._rotation = rotation
@@ -126,6 +127,31 @@ class AstroPrintPipeline(object):
 
 		self._responseListener = None
 
+	def startLocalVideo(self, onFrameTakenCallback):
+
+		def postprocesingLocalVideoFrame(resp):
+			if resp:
+				if isinstance(resp, dict) and 'error' in resp:
+					self._logger.error('Error during photo capture: %s' % resp['error'])
+					onFrameTakenCallback(None)
+				else:
+					from base64 import b64decode
+					try:
+						onFrameTakenCallback(b64decode(resp))
+					except TypeError as e:
+						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+						onFrameTakenCallback(None)
+			else:
+				onFrameTakenCallback(None)
+
+		self._sendPreservativeReq({'action': 'startLocalVideo'}, postprocesingLocalVideoFrame)
+
+	def stopLocalVideo(self, doneCallback = None):
+		self._sendReqToProcess({'action': 'stopLocalVideo'}, doneCallback)
+
+	def isLocalVideoPlaying(self, doneCallback):
+		self._sendReqToProcess({'action': 'isLocalVideoPlaying'}, doneCallback)
+
 	def startVideo(self, doneCallback = None):
 		self._sendReqToProcess({'action': 'startVideo'}, doneCallback)
 
@@ -160,6 +186,7 @@ class AstroPrintPipeline(object):
 	def _onProcessResponse(self, id, data):
 		if id is 0: # this is a broadcast, likely an error. Inform all pending requests
 			self._logger.warn('Broadcasting error to ALL pending requests [ %s ]' % repr(data))
+
 			if self._pendingReqs:
 				for cb in self._pendingReqs.values():
 					if cb:
@@ -186,6 +213,7 @@ class AstroPrintPipeline(object):
 
 				#shutdown the process
 				self._pendingReqs = {}
+				self._preservativePendingReqs = {}
 				self._onFatalError()
 
 		elif id in self._pendingReqs:
@@ -207,18 +235,46 @@ class AstroPrintPipeline(object):
 			except Exception:
 				self._logger.error("Problem executing callback response", exc_info= True)
 
+		elif id in self._preservativePendingReqs:
+			try:
+				callback = self._preservativePendingReqs[id]
+				if callback:
+					callback(data)
+
+				if self._logger.isEnabledFor(logging.DEBUG):
+					if sys.getsizeof(data) > 50:
+						dataStr = "%d bytes" % sys.getsizeof(data)
+					else:
+						dataStr = repr(data)
+
+					self._logger.debug('Preservative response for %d handled [ %s ]' % (id, dataStr))
+
+			except Exception:
+				self._logger.error("Problem executing callback response", exc_info= True)
+
 		else:
-			self._logger.error("There's no pending request for response %d" % id)
+			self._logger.error("There's no pending request for response %s" % id)
+
+	def _sendPreservativeReq(self, data, callback=None):
+		self.__addReq(data,callback,True)
 
 	def _sendReqToProcess(self, data, callback= None):
+		self.__addReq(data,callback,False)
+
+	def __addReq(self, data, callback, preservative):
 		if self.processRunning:
 			with self._sendCondition:
 				if self._listening:
 					self._lastReqId += 1
 					id = self._lastReqId
-					self._pendingReqs[id] = callback
+
+					if preservative:
+						self._preservativePendingReqs[id] = callback
+					else:
+						self._pendingReqs[id] = callback
+
 					self._parentConn.send( (id, data) )
-					self._logger.debug('Sent request %d to process [ %s ]' % (id, repr(data)))
+					self._logger.debug('Sent request %s to process [ %s ]' % (id, repr(data)))
 
 				else:
 					self._logger.debug('Process not listening. There was a problem while starting it.')
