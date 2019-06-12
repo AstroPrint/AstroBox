@@ -32,16 +32,13 @@ class ImgVideoEncBin(EncoderBin):
 
 		##################
 		self.__videorateLocalVideoElement = Gst.ElementFactory.make('videorate', 'videorate_local_video')
-		#self.__videorateLocalVideoElementCaps = Gst.ElementFactory.make("capsfilter", "caps_filter_local_videorate")
-		#self.__videorateLocalVideoElementCaps.set_property("caps",Gst.Caps.from_string("framerate=1/1"))
-
+		self.__videorateLocalVideoElement.set_property('max-rate',5)#5fps: https://gstreamer.freedesktop.org/documentation/videorate/index.html#videorate:max-rate
 		##################
 
 		##################
 		self.__videoscaleLocalVideoElement = Gst.ElementFactory.make('videoscale', 'vieoscale_local_video')
 		self.__videoscaleLocalVideoElementCaps = Gst.ElementFactory.make("capsfilter", "caps_filter_local_videoscale")
-		self.__videoscaleLocalVideoElementCaps.set_property("caps",Gst.Caps.from_string("video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=640,pixel-aspect-ratio=1/1,framerate=15/2"))
-
+		self.__videoscaleLocalVideoElementCaps.set_property("caps",Gst.Caps.from_string("video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=640,pixel-aspect-ratio=1/1"))
 		##################
 
 
@@ -57,7 +54,6 @@ class ImgVideoEncBin(EncoderBin):
 		self._bin.add(self.__queueLocalVideoImgElement)
 		##################
 		self._bin.add(self.__videorateLocalVideoElement)
-		#self._bin.add(self.__videorateLocalVideoElementCaps)
 		self._bin.add(self.__videoscaleLocalVideoElement)
 		self._bin.add(self.__videoscaleLocalVideoElementCaps)
 		##################
@@ -67,7 +63,6 @@ class ImgVideoEncBin(EncoderBin):
 		#link
 		self.__queueLocalVideoImgElement.link(self.__videorateLocalVideoElement)
 		##################
-		#self.__videorateLocalVideoElement.link(self.__videorateLocalVideoElementCaps)
 		self.__videorateLocalVideoElement.link(self.__videoscaleLocalVideoElement)
 		self.__videoscaleLocalVideoElement.link(self.__videoscaleLocalVideoElementCaps)
 		self.__videoscaleLocalVideoElementCaps.link(self.__jpegEncElement)

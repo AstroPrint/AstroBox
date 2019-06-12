@@ -161,6 +161,9 @@ class AstroPrintPipeline(object):
 	def isVideoPlaying(self, doneCallback):
 		self._sendReqToProcess({'action': 'isVideoPlaying'}, doneCallback)
 
+	def isAnyVideoPlaying(self, doneCallback):
+		self._sendReqToProcess({'action': 'isAnyVideoPlaying'}, doneCallback)
+
 	def takePhoto(self, doneCallback, text=None):
 		def postprocesing(resp):
 			if resp:

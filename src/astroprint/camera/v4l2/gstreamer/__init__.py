@@ -218,7 +218,6 @@ class GStreamerManager(V4L2Manager):
 		webRtcManager().shutdown()
 
 	def isVideoStreaming(self):
-		self._logger.info('isVideoStreaming')
 		if self._gstreamerProcessRunning:
 			waitForDone = Event()
 			respCont = [None]
@@ -227,7 +226,9 @@ class GStreamerManager(V4L2Manager):
 				if not waitForDone.is_set():
 					respCont[0] = isPlaying
 
-			self._apPipeline.isVideoPlaying(onDone)
+			self._apPipeline.isAnyVideoPlaying(onDone)
+
+
 			waitForDone.wait(1.0)
 
 			return respCont[0] is True
