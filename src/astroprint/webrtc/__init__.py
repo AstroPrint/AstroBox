@@ -114,6 +114,9 @@ class WebRtc(object):
 	def closeAllSessions(self, sender= None, message= None):
 		self._logger.info("Closing all streaming sessions")
 
+		#closing local streaming sessions
+		cameraManager().removeAllLocalPeerReqs()
+
 		for sessionId in self._connectedPeers.keys():
 			peer = self._connectedPeers[sessionId]
 			#if peer != 'local':

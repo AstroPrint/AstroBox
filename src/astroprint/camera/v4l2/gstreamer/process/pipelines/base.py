@@ -216,7 +216,7 @@ class GstBasePipeline(object):
 			doneCallback(True)
 
 	def isVideoStreaming(self):
-		return self._videoEncBin.isPlaying or self._localVideoBin.isPlaying
+		return self._videoEncBin.isPlaying
 
 	## PLAYING LOCAL VIDEO ##
 

@@ -116,6 +116,10 @@ class GStreamerManager(V4L2Manager):
 		if len(self._localPeers) <= 0:
 			self.stop_local_video_stream()
 
+	def removeAllLocalPeerReqs(self):
+		self._localPeers = []
+
+
 	def getFrame(self,id):
 		self.waitForPhoto.wait()
 		self.waitForPhoto.clear()
@@ -155,7 +159,8 @@ class GStreamerManager(V4L2Manager):
 		return
 
 	def stop_local_video_stream(self):
-		self._apPipeline.stopLocalVideo()
+		if self._apPipeline:
+			self._apPipeline.stopLocalVideo()
 
 	def localSessionAlive(self,id):
 		return id in self._localPeers
@@ -218,7 +223,6 @@ class GStreamerManager(V4L2Manager):
 		webRtcManager().shutdown()
 
 	def isVideoStreaming(self):
-		self._logger.info('isVideoStreaming')
 		if self._gstreamerProcessRunning:
 			waitForDone = Event()
 			respCont = [None]
@@ -227,7 +231,9 @@ class GStreamerManager(V4L2Manager):
 				if not waitForDone.is_set():
 					respCont[0] = isPlaying
 
-			self._apPipeline.isVideoPlaying(onDone)
+			self._apPipeline.isAnyVideoPlaying(onDone)
+
+
 			waitForDone.wait(1.0)
 
 			return respCont[0] is True
