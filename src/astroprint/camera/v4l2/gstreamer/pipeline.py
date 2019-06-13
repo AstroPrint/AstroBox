@@ -256,8 +256,12 @@ class AstroPrintPipeline(object):
 				self._logger.error("Problem executing callback response", exc_info= True)
 
 		else:
-			del self._pendingReqs[id]
-			del self._preservativePendingReqs[id]
+
+			if id in self._pendingReqs:
+				del self._pendingReqs[id]
+			elif id in self._preservativePendingReqs:
+				del self._preservativePendingReqs[id]
+
 			self._logger.error("There's no pending request for response %s" % id)
 
 	def _sendPreservativeReq(self, data, callback=None):

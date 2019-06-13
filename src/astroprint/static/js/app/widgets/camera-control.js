@@ -279,17 +279,19 @@ var CameraControlViewGstreamer = CameraControlView.extend({
       this.setState('streaming');
       this.activateWindowHideListener();
       videoCont.off('load');
+      app.eventManager.on('astrobox:LocalVideoStreamingStopped', this.stopStreaming, this);
       promise.resolve();
     },this));
 
     videoCont.on('error', _.bind(function(e) {
       videoCont.off('error');
       this.videoStreamingError = 'Error while playing video';
+      app.eventManager.off('astrobox:LocalVideoStreamingStopped',this.stopStreaming, this);
       this.render();
       promise.reject()
     },this));
 
-    videoCont.attr('src', 'video-stream');
+    videoCont.attr('src', 'video-stream?' + Date.now());
 
     return promise;
   },

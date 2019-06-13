@@ -99,6 +99,9 @@ class Events(object):
 	#Webrtc and local video peer managing
 	GSTREAMER_EVENT = "GstreamerEvent"
 
+	#local video streaming Events
+	LOCAL_VIDEO_STREAMING_STOPPED = "LocalVideoStreamingStopped"
+
 def eventManager():
 	global _instance
 	if _instance is None:
