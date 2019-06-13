@@ -32,7 +32,7 @@ class ImgVideoEncBin(EncoderBin):
 
 		##################
 		self.__videorateLocalVideoElement = Gst.ElementFactory.make('videorate', 'videorate_local_video')
-		self.__videorateLocalVideoElement.set_property('max-rate',5)#5fps: https://gstreamer.freedesktop.org/documentation/videorate/index.html#videorate:max-rate
+		self.__videorateLocalVideoElement.set_property('max-rate',15)#15fps: https://gstreamer.freedesktop.org/documentation/videorate/index.html#videorate:max-rate
 		##################
 
 		##################
