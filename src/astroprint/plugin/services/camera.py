@@ -11,10 +11,21 @@ from astroprint.camera import cameraManager
 from astroprint.webrtc import webRtcManager
 
 class CameraService(PluginService):
-	_validEvents = []
+	_validEvents = [
+		#watch if the local video streaming was unexpected stopped
+		'local_video_streaming_stopped'
+	]
 
 	def __init__(self):
 		super(CameraService, self).__init__()
+		self._eventManager.subscribe(Events.LOCAL_VIDEO_STREAMING_STOPPED, self.OnLocalVideoStreamingStopped)
+
+	#EVENTS
+
+	def OnLocalVideoStreamingStopped(self,event,value):
+		self.publishEvent('local_video_streaming_stopped', value)
+
+	#REQUESTS
 
 	def connected(self,sendResponse):
 		cm = cameraManager()

@@ -26,6 +26,7 @@ class GStreamerManager(V4L2Manager):
 		self.pipeline = None
 		self.cameraInfo = None
 		self._openCameraCondition = Condition()
+		self.eventManager = eventManager()
 
 		self._logger = logging.getLogger(__name__)
 
@@ -123,13 +124,16 @@ class GStreamerManager(V4L2Manager):
 
 
 	def getFrame(self,id):
-		self.waitForPhoto.wait()
-		self.waitForPhoto.clear()
-
-		if id in self._localPeers:
-			return self._localFrame
-
-		return None
+		self.waitForPhoto.wait(3)
+		if self.waitForPhoto.isSet():
+			self.waitForPhoto.clear()
+			if id in self._localPeers:
+				return self._localFrame
+		else:#auto set after time
+			self.removeLocalPeerReq(id)
+			self.eventManager.fire(Events.LOCAL_VIDEO_STREAMING_STOPPED,None)
+			self.waitForPhoto.clear()
+			return None
 
 	def _responsePeersReq(self,photoData):
 		self._localFrame = photoData

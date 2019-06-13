@@ -30,8 +30,8 @@ class VideoStreamHandler(tornado.web.RequestHandler):
 		self.set_header('Cache-Control', 'no-store, no-cache, must-revalidate, pre-check=0, post-check=0, max-age=0')
 		self.set_header('Connection', 'close')
 		self.set_header('Content-Type', 'multipart/x-mixed-replace;boundary=--boundarydonotcross')
-		self.set_header('Expires', '23 Sep ' + str((datetime.datetime.now().year)+100) + ' 16:43:00 GMT')
 		self.set_header('Pragma', 'no-cache')
+		self.set_header('Cache-Control', 'no-cache')
 
 		my_boundary = "--boundarydonotcross\n"
 
@@ -51,3 +51,8 @@ class VideoStreamHandler(tornado.web.RequestHandler):
 				self.write("Content-length: %s\r\n\r\n" % len(img))
 				self.write(str(img))
 				yield tornado.gen.Task(self.flush)
+			else:
+				stillStreaming = None
+
+		self.flush()
+		self.finish()

@@ -300,6 +300,10 @@ var SocketData = Backbone.Model.extend({
               this.set('tool', data.tool);
               break;
 
+            case 'LocalVideoStreamingStopped':
+              app.eventManager.trigger('astrobox:LocalVideoStreamingStopped',payload);
+              break;
+
             default:
               console.warn('Unkonwn event received: '+type);
           }
