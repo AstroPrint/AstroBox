@@ -115,9 +115,11 @@ class GStreamerManager(V4L2Manager):
 
 		if len(self._localPeers) <= 0:
 			self.stop_local_video_stream()
+			self._logger.info('There are 0 local peers left')
 
 	def removeAllLocalPeerReqs(self):
 		self._localPeers = []
+		self._logger.info('There are 0 local peers left')
 
 
 	def getFrame(self,id):
