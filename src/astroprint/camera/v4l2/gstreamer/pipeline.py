@@ -257,12 +257,9 @@ class AstroPrintPipeline(object):
 
 		else:
 
-			if id in self._pendingReqs:
-				del self._pendingReqs[id]
-			elif id in self._preservativePendingReqs:
-				del self._preservativePendingReqs[id]
+			self._logger.error("There's no pending [normal/preservative] request for response %s" % id)
 
-			self._logger.error("There's no pending request for response %s" % id)
+
 
 	def _sendPreservativeReq(self, data, callback=None):
 		self.__addReq(data,callback,True)
