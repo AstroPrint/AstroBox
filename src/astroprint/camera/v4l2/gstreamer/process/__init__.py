@@ -77,6 +77,10 @@ class processInterface(Thread):
 			'isVideoPlaying': self._isVideoPlayingAction,
 			'startVideo': self._startVideoAction,
 			'stopVideo': self._stopVideoAction,
+			'isLocalVideoPlaying': self._isLocalVideoPlayingAction,
+			'startLocalVideo': self._startLocalVideoAction,
+			'stopLocalVideo': self._stopLocalVideoAction,
+			'isAnyVideoPlaying': self._isAnyVideoPlayingAction,
 			'takePhoto': self._takePhotoAction,
 			'shutdown': self._shutdownAction
 		}
@@ -129,6 +133,31 @@ class processInterface(Thread):
 		self._pipeline.tearDown()
 		self._pipeline = None
 
+	def _isLocalVideoPlayingAction(self, reqId):#?
+		self.sendResponse(reqId, self._pipeline.isVideoStreaming())
+		return self.RESPONSE_ASYNC
+
+	def _startLocalVideoAction(self, reqId):
+
+		def doneCb(photo):
+			if not photo:
+				self.sendResponse(reqId, None)
+			else:
+				self.sendResponse(reqId, photo, raw= True, b64encode= True)
+
+		self._pipeline.playLocalVideo(reqId,doneCb)
+
+		return self.RESPONSE_ASYNC
+
+	def _stopLocalVideoAction(self, reqId):
+
+		def doneCb(success):
+			self.sendResponse(reqId, success)
+
+		self._pipeline.stopLocalVideo(doneCb)
+
+		return self.RESPONSE_ASYNC
+
 	def _isVideoPlayingAction(self, reqId):
 		self.sendResponse(reqId, self._pipeline.isVideoStreaming())
 		return self.RESPONSE_ASYNC
@@ -149,6 +178,10 @@ class processInterface(Thread):
 
 		self._pipeline.stopVideo(doneCb)
 
+		return self.RESPONSE_ASYNC
+
+	def _isAnyVideoPlayingAction(self, reqId):
+		self.sendResponse(reqId, self._pipeline.isVideoStreaming() or self._pipeline.isLocalVideoStreaming())
 		return self.RESPONSE_ASYNC
 
 	def _takePhotoAction(self, reqId, text=None):

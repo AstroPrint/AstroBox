@@ -74,15 +74,6 @@ def update_timelapse():
 
 	abort(500)
 
-@api.route("/camera/init-janus", methods=["POST"])
-@restricted_access
-def init_janus():
-	#Start session in Janus
-	if webRtcManager().startJanus():
-		return jsonify(SUCCESS)
-
-	abort(500)
-
 @api.route("/camera/peer-session", methods=["POST", "DELETE"])
 @restricted_access
 def peer_session():
@@ -107,10 +98,3 @@ def peer_session():
 
 	else:
 		abort(400)
-
-@api.route("/camera/start-streaming",methods=["POST"])
-@restricted_access
-def start_streaming():
-	webRtcManager().startVideoStream()
-
-	return jsonify(SUCCESS)

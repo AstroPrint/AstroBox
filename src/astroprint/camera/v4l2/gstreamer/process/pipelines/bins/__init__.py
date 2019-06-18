@@ -29,7 +29,6 @@ class EncoderBin(object):
 		self._bin.set_locked_state(False)
 
 		teePad.link(self._bin.get_static_pad('sink'))
-
 		self._isLinked = True
 		self._logger.debug('Attached for %s' % self.__class__.__name__)
 

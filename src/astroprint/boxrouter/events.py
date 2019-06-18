@@ -19,7 +19,7 @@ class EventSender(object):
 			'print_capture': None,
 			'print_file_download': None,
 			'copy_file_to_home': None,
-			'filament_update' : None,
+			'filament_update' : None
 		}
 
 	def sendLastUpdate(self, event):

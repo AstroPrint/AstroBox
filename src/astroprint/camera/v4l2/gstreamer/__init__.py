@@ -4,8 +4,9 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 
 import logging
 import time
+import uuid
 
-from threading import Event, Condition
+from threading import Event, Condition, Lock
 
 from octoprint.events import eventManager, Events
 
@@ -25,10 +26,16 @@ class GStreamerManager(V4L2Manager):
 		self.pipeline = None
 		self.cameraInfo = None
 		self._openCameraCondition = Condition()
+		self.eventManager = eventManager()
 
 		self._logger = logging.getLogger(__name__)
 
 		super(GStreamerManager, self).__init__()
+
+		self._localPeers = []
+		self._localFrame = None
+		self._localPeersResponseWaiting = Lock()
+		self.waitForPhoto = Event()
 
 	@property
 	def _gstreamerProcessRunning(self):
@@ -87,6 +94,82 @@ class GStreamerManager(V4L2Manager):
 			return True
 
 		return False
+
+
+	def getNumberOfLocalPeers(self):
+		return len(self._localPeers)
+
+	def addLocalPeerReq(self):
+		id = uuid.uuid4().hex
+
+		self._localPeers.append(id)
+
+		self._logger.debug('number of local peers: %d' % len(self._localPeers))
+
+		if len(self._localPeers) == 1:
+			self.start_local_video_stream()
+
+		return id
+
+	def removeLocalPeerReq(self,id):
+		self._localPeers.remove(id)
+
+		if len(self._localPeers) <= 0:
+			self.stop_local_video_stream()
+			self._logger.info('There are 0 local peers left')
+
+	def removeAllLocalPeerReqs(self):
+		self._localPeers = []
+		self._logger.info('There are 0 local peers left')
+
+
+	def getFrame(self,id):
+		self.waitForPhoto.wait(3)
+		if self.waitForPhoto.isSet():
+			self.waitForPhoto.clear()
+			if id in self._localPeers:
+				return self._localFrame
+		else:#auto set after time
+			self.removeLocalPeerReq(id)
+			self.eventManager.fire(Events.LOCAL_VIDEO_STREAMING_STOPPED,None)
+			self.waitForPhoto.clear()
+			return None
+
+	def _responsePeersReq(self,photoData):
+		self._localFrame = photoData
+
+	def _onFrameTakenCallback(self,photoData):
+
+		if photoData:
+
+			if not self._localPeers:
+				self.stop_local_video_stream()
+
+			self._responsePeersReq(photoData)
+
+			self.waitForPhoto.set()
+
+	def start_local_video_stream(self):
+
+		if self._cameraInactivity:
+			self._cameraInactivity.lastActivity = time.time()
+
+		if not self._gstreamerProcessRunning:
+			if not self.open_camera():
+				return
+
+			self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
+			return
+
+		self._apPipeline.startLocalVideo(self._onFrameTakenCallback)
+		return
+
+	def stop_local_video_stream(self):
+		if self._apPipeline:
+			self._apPipeline.stopLocalVideo()
+
+	def localSessionAlive(self,id):
+		return id in self._localPeers
 
 	def _doStartVideoStream(self, doneCallback= None):
 		if self.isVideoStreaming():
@@ -154,16 +237,15 @@ class GStreamerManager(V4L2Manager):
 				if not waitForDone.is_set():
 					respCont[0] = isPlaying
 
-			self._apPipeline.isVideoPlaying(onDone)
+			self._apPipeline.isAnyVideoPlaying(onDone)
+
+
 			waitForDone.wait(1.0)
 
 			return respCont[0] is True
 
 		else:
 			return False
-
-	def startLocalVideoSession(self, sessionId):
-		return webRtcManager().startLocalSession(sessionId)
 
 	def closeLocalVideoSession(self, sessionId):
 		return webRtcManager().closeLocalSession(sessionId)

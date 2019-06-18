@@ -136,9 +136,13 @@
 
     #video-stream,
     .camera-image {
-      max-width: 100%;
-      padding: 2px;
       max-height: 100%;
+      display: block;
+      width: auto;
+      height: auto;
+      opacity: 0.5;
+      height: calc(100vh - 240px);
+      min-height: 300px;
     }
   }
 

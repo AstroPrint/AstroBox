@@ -45,11 +45,6 @@ class WebRtc(object):
 		self._logger.info('Shutting Down WebRtcManager')
 		self.stopJanus()
 
-	def startLocalSession(self, sessionId):
-		with self._peerCondition:
-			self._connectedPeers[sessionId] = "local"
-			return True
-
 	def closeLocalSession(self, sessionId):
 		with self._peerCondition:
 			if len(self._connectedPeers.keys()) > 0:
@@ -118,6 +113,9 @@ class WebRtc(object):
 
 	def closeAllSessions(self, sender= None, message= None):
 		self._logger.info("Closing all streaming sessions")
+
+		#closing local streaming sessions
+		cameraManager().removeAllLocalPeerReqs()
 
 		for sessionId in self._connectedPeers.keys():
 			peer = self._connectedPeers[sessionId]
@@ -228,7 +226,8 @@ class WebRtc(object):
 			if nm.isOnline():
 				args.append('/etc/astrobox/janus/janus.cfg')
 			else:
-				args.append('/etc/astrobox/janus/janus.cfg.local')
+				self._logger.error('local video would not be loaded like webrtc video')
+				return False
 
 			try:
 				self._JanusProcess = subprocess.Popen(

@@ -63,6 +63,7 @@ from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
+from astroprint.camera.local_video_handler import VideoStreamHandler
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
@@ -221,7 +222,6 @@ def camera_snapshot():
 		return Response(pic_buf, mimetype='image/jpeg', headers={"Access-Control-Allow-Origin": "*"})
 	else:
 		return 'Camera not ready', 404
-
 
 @app.route("/status", methods=["GET"])
 @restricted_access
@@ -518,6 +518,7 @@ class Server():
 			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": s.getBaseFolder("uploads"), "as_attachment": True}),
 			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": s.getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
 			#(r"/downloads/camera/current", UrlForwardHandler, {"url": s.get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
+			(r"/video-stream", VideoStreamHandler),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
 		self._server = HTTPServer(self._tornado_app, max_buffer_size=1048576 * s.getInt(['server', 'maxUploadSize']))
