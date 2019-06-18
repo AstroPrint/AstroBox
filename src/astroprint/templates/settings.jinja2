@@ -1235,6 +1235,7 @@
       <div class="content"></div>
       <script type="text/template" id="printer-selector-modal-content">
         <div class="modal-actions row">
+            <% if (!manufacturerLocked) { %>
             <div class="small-12 medium-12 columns">
               <!-- Manufacturers -->
               <label for="manufacturers-picker" class="bold">
@@ -1246,10 +1247,12 @@
                 </select>
               </label>
             </div>
+            <% } %>
+
             <div class="small-12 medium-12 columns">
               <!-- Printers -->
               <label for="printer-model-picker" class="bold">
-                2. Pick a Printer
+                <% if (!manufacturerLocked) { %> 2.<% } %> Pick a Printer
                 <select id="printer-model-picker" name="driver">
                   <% _.each(printers, function(p) { %>
                     <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>

@@ -399,6 +399,7 @@
       <script type="text/template" id="step-printer-selection-template">
 
         <!-- Manufacturers -->
+        <% if (!lockedManufacturerId) { %>
         <label for="manufacturers-picker" class="bold">
           1. Choose manufacturer
           <select id="manufacturers-picker" name="driver">
@@ -407,10 +408,12 @@
             <% }) %>
           </select>
         </label>
+        <% } %>
+
 
         <!-- Printers -->
         <label for="printer-model-picker" class="bold">
-          2. Pick a Printer
+           <% if (!lockedManufacturerId) { %>2.<% } %> Pick a Printer
           <select id="printer-model-picker" name="driver" <%= mSelected == 0 ? ' disabled' : '' %> >
             <% _.each(printers, function(p) { %>
               <option value="<%= p.id %>" <%= pSelected == p.id ? ' selected' : '' %> ><%= p.name %></option>
@@ -458,7 +461,7 @@
     var PRODUCT_NAME = "{{product_name}}";
     var WS_TOKEN = "{{ wsToken }}";
     var AP_API_HOST = "{{apApiHost}}";
-    var MF_DEFINITION = "{{ mfDefinition }}";
+    var MANUFACTURER_ID = "{{ mfDefinition.printerProfile.manufacturer_id }}";
     var printerProfileId = "{{ printerProfileId if printerProfileId }}"
   </script>
   {% assets filters="closure_js", output="js/gen/setup.js",

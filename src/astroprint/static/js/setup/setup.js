@@ -646,6 +646,7 @@ var StepPrinterSelection = StepView.extend({
   astroprintApi: null,
   manufacturers: [],
   manufacturerSelected: null,
+  lockedManufacturerId: null,
   printer_models: [],
   printerSelected: null,
   printerInfo: null,
@@ -658,12 +659,13 @@ var StepPrinterSelection = StepView.extend({
   {
     this.eventManager = Backbone.Events;
     this.astroprintApi = new AstroPrintApi(this.eventManager);
+    this.lockedManufacturerId = MANUFACTURER_ID
   },
   onManufacturersChanged: function (e)
   {
     this.manufacturerSelected = $(e.target).val();
 
-    this.updatePrinter();
+    this.updatePrinter(this.manufacturerSelected, null);
   },
   onChangePrinterClicked: function(e)
   {
@@ -741,43 +743,54 @@ var StepPrinterSelection = StepView.extend({
     if (!this.template) {
       this.template = _.template( $("#step-printer-selection-template").html() );
     }
-
      this.$('#picker-container').html(this.template({
       manufacturers: this.manufacturers,
       mSelected: this.manufacturerSelected,
       printers: this.printer_models,
       pSelected: this.printerSelected,
+      lockedManufacturerId: this.lockedManufacturerId
     }));
 
   },
 
   _checkManufacturersAndPrinters: function ()
   {
-    this.$el.removeClass('success settings');
-    this.$el.addClass('checking');
+    var currentPrinterId = this.printerInfo ? this.printerInfo.id : null
+    var currentManufacturerId = this.printerInfo ? this.printerInfo.manufacturer_id : null
+    // Manufacturer selection is open
+    if (!this.lockedManufacturerId) {
+      // Get manufacturers list
+      this.$el.removeClass('success settings');
+      this.$el.addClass('checking');
 
-    $.getJSON(API_BASEURL + 'astroprint/manufacturers')
-      .done(_.bind(function (r) {
-        this.manufacturers = r.manufacturers.data;
-        this.manufacturers.unshift({ id: 0, name: "Select manufacturer" })
-        this.manufacturerSelected = this.printerInfo ? this.printerInfo.manufacturer_id : this.manufacturers[0].id
+      $.getJSON(API_BASEURL + 'astroprint/manufacturers')
+        .done(_.bind(function (r) {
+          this.manufacturers = r.manufacturers.data;
 
-        // Now get printer models from first manufacturer
-        this.updatePrinter();
-      }, this))
-      .fail(_.bind(function (e) {
-        this.$el.addClass('settings');
-        console.error("Error getting manufacturers", e);
-        noty({ text: "Error getting manufacturers", timeout: 3000 });
-      }, this))
+          this.manufacturers.unshift({ id: 0, name: "Select manufacturer" })
+          this.manufacturerSelected = currentManufacturerId ? currentManufacturerId : this.manufacturers[0].id
+
+          // Now get printer models from first manufacturer
+          this.updatePrinter(this.manufacturerSelected, currentPrinterId);
+        }, this))
+        .fail(_.bind(function (e) {
+          this.$el.addClass('settings');
+          console.error("Error getting manufacturers", e);
+          noty({ text: "Error getting manufacturers", timeout: 3000 });
+        }, this))
+    } else {
+      this.updatePrinter(this.lockedManufacturerId, currentPrinterId);
+    }
+    //
+
   },
-  updatePrinter: function ()
+  updatePrinter: function (manufacturerId, printerId)
   {
-    if (this.manufacturerSelected && this.manufacturerSelected != 0) {
-      $.getJSON(API_BASEURL + 'astroprint/manufacturers/' + this.manufacturerSelected + '/models')
+    if (manufacturerId && manufacturerId != 0) {
+      $.getJSON(API_BASEURL + 'astroprint/manufacturers/' + manufacturerId + '/models')
         .done(_.bind(function (r) {
           this.printer_models = r.printer_models.data;
-          this.printerSelected = this.printerInfo ? this.printerInfo.id : this.printer_models[0].id
+          this.printerSelected = printerId ? printerId : this.printer_models[0].id
           this.$el.addClass('settings');
           if (!printerProfileId) {
             this.$el.addClass('show-printer-selection');

@@ -205,7 +205,6 @@ var PrinterProfileView = SettingsPage.extend({
     if (currentPrinterID) {
       var loadingBtn = this.$el.find('.loading-button.check');
       loadingBtn.addClass('loading');
-
       app.astroprintApi.getModelInfo(currentPrinterID)
         .done(_.bind(function (info) {
 
@@ -429,6 +428,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
   el: '#printer-selector-modal',
   manufacturers: null,
   manufacturerSelected: null,
+  lockedManufacturerId: null,
   printer_models: null,
   printerSelected: null,
   contentTemplate: null,
@@ -440,11 +440,12 @@ var PrinterSelectorDialog = Backbone.View.extend({
   },
   initialize: function(params) {
     this.parentView = params.parent;
+    // get manufacturer id
+    this.lockedManufacturerId = this.parentView.settings.get('manufacturer_id')
   },
   open: function(params)
   {
     var printerData = params ? params.printerData : null
-
     this._checkManufacturersAndPrinters(printerData);
 
     this.$el.foundation('reveal', 'open');
@@ -531,44 +532,52 @@ var PrinterSelectorDialog = Backbone.View.extend({
       mSelected: this.manufacturerSelected,
       printers: this.printer_models,
       pSelected: this.printerSelected,
+      manufacturerLocked: this.lockedManufacturerId
     }));
   },
   doClose: function()
   {
     this.$el.foundation('reveal', 'close');
   },
-  _checkManufacturersAndPrinters: function (printerID, manufacturerID)
+  _checkManufacturersAndPrinters: function (currentPrinterInfo)
   {
-    /*printerID = null;
-    manufacturerID = null;
+    var currentPrinterId = currentPrinterInfo ? currentPrinterInfo.printer_id : null
+    var currentManufacturerId = currentPrinterInfo ? currentPrinterInfo.manufacturer_id : null
 
-    if (printerData){
-      printerID = printerData.printer_id;
-      manufacturerID = printerData.manufacturer_id;
-    }*/
-    // Get manufacturers list
-    app.astroprintApi.getManufacturers()
-      .done(_.bind(function (manufacturers) {
-        this.manufacturers = manufacturers.data;
-        this.manufacturerSelected = manufacturerID ? manufacturerID : this.manufacturers[0].id
-        // Now get printer models from first manufacturer
-        app.astroprintApi.getPrinterModels(this.manufacturerSelected)
-          .done(_.bind(function (printerModels) {
-            this.printer_models = printerModels.data;
-            this.printerSelected = printerID ? printerID : this.printer_models[0].id
-            this.render();
-          }, this))
-          .fail(_.bind(function (xhr) {
-            console.error("Error getting printer models", xhr);
-            noty({ text: "Error getting printer models", timeout: 3000 });
-          }, this))
-      }, this))
+    // Manufacturer selection is open
+    if (!this.lockedManufacturerId) {
+      // Get manufacturers list
+      app.astroprintApi.getManufacturers()
+        .done(_.bind(function (manufacturers) {
+          this.manufacturers = manufacturers.data;
+          this.manufacturerSelected = currentManufacturerId ? currentManufacturerId : this.manufacturers[0].id
+          this._setPrinter(this.manufacturerSelected, currentPrinterId)
+        }, this))
 
-      .fail(_.bind(function () {
-        console.error("Error getting manufacturers");
-        noty({ text: "Error getting manufacturers", timeout: 3000 });
-      }, this))
+        .fail(_.bind(function () {
+          console.error("Error getting manufacturers");
+          noty({ text: "Error getting manufacturers", timeout: 3000 });
+        }, this))
+    // Manufacturer selection is locked
+    } else {
+      this._setPrinter(this.lockedManufacturerId, currentPrinterId)
+    }
+
+
   },
+  _setPrinter(manufacturerId, selectedPrinterId)
+  {
+    app.astroprintApi.getPrinterModels(manufacturerId)
+      .done(_.bind(function (printerModels) {
+        this.printer_models = printerModels.data;
+        this.printerSelected = selectedPrinterId ? selectedPrinterId : this.printer_models[0].id
+        this.render();
+      }, this))
+      .fail(_.bind(function (xhr) {
+        console.error("Error getting printer models", xhr);
+        noty({ text: "Error getting printer models", timeout: 3000 });
+      }, this))
+  }
 });
 
 /* FILAMENT SELECTOR MODAL */
