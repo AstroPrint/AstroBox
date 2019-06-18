@@ -324,17 +324,47 @@ var CameraControlViewMac = CameraControlView.extend({
 
     this.setState('preparing');
 
-    setTimeout(_.bind(function(){
+    this.streaming = true;
+    var videoCont = this.getVideoContainer();
+
+    videoCont.on('load', _.bind(function(data) {
       this.setState('streaming');
+      this.activateWindowHideListener();
+      videoCont.off('load');
+      app.eventManager.on('astrobox:LocalVideoStreamingStopped', this.stopStreaming, this);
       promise.resolve();
-    }, this), 1000);
+    },this));
+
+    videoCont.on('error', _.bind(function(e) {
+      videoCont.off('error');
+      this.videoStreamingError = 'Error while playing video';
+      app.eventManager.off('astrobox:LocalVideoStreamingStopped',this.stopStreaming, this);
+      this.render();
+      promise.reject()
+    },this));
+
+    videoCont.attr('src', 'video-stream?' + Date.now());
 
     return promise;
   },
   stopStreaming: function()
   {
-    this.setState('ready');
-    return $.Deferred().resolve();
+    var promise = $.Deferred();
+
+    if (this.streaming){
+
+      this.setState('ready');
+      var videoCont = this.getVideoContainer();
+      videoCont.off('load');
+      videoCont.off('error');
+      videoCont.removeAttr('src');
+      promise.resolve();
+
+    } else {
+      promise.resolve();
+    }
+
+    return promise;
   }
 });
 

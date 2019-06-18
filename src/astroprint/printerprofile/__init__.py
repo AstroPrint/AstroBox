@@ -45,6 +45,7 @@ class PrinterProfileManager(object):
 			'invert_z': False,
 			'invert_x': False,
 			'invert_y': False,
+			'manufacturer_id': None,
 			'printer_model': {
 				'id': None,
 				'name': None

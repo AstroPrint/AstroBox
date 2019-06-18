@@ -6,7 +6,10 @@ import os.path
 import glob
 import logging
 import threading
+import uuid
+import time
 
+from threading import Event
 from random import randrange
 from astroprint.camera import CameraManager
 
@@ -20,7 +23,17 @@ class CameraMacManager(CameraManager):
 		self._files = [f for f in glob.glob(os.path.join(os.path.realpath(os.path.dirname(__file__)+'/../../../local'),"camera_test*.jpeg"))]
 		self.cameraName = 'Test Camera'
 		self._opened = False
+		self._localFrame = None
+		self._localPeers = []
+		self.waitForPhoto = Event()
 		self._logger.info('Mac Simulation Camera Manager initialized')
+
+	def shutdown(self):
+		self._logger.info('Shutting Down Mac Camera Manager')
+		self._opened = False
+		self._localFrame = None
+		self._localPeers = []
+		self.waitForPhoto = Event()
 
 	def settingsStructure(self):
 		return {
@@ -92,3 +105,78 @@ class CameraMacManager(CameraManager):
 
 	def isVideoStreaming(self):
 		return False
+
+	def removeLocalPeerReq(self,id):
+		self._localPeers.remove(id)
+
+		if len(self._localPeers) <= 0:
+			self.stop_local_video_stream()
+			self._logger.info('There are 0 local peers left')
+
+	def addLocalPeerReq(self):
+		id = uuid.uuid4().hex
+
+		self._localPeers.append(id)
+
+		self._logger.debug('number of local peers: %d' % len(self._localPeers))
+
+		if len(self._localPeers) == 1:
+			self.start_local_video_stream()
+
+		return id
+
+	def localSessionAlive(self,id):
+		return id in self._localPeers
+
+	def getFrame(self,id):
+		self.waitForPhoto.wait(2)
+		if self.waitForPhoto.isSet():
+			self.waitForPhoto.clear()
+			if id in self._localPeers:
+				return self._localFrame
+		else:#auto set after time
+			self.removeLocalPeerReq(id)
+			self.waitForPhoto.clear()
+			return None
+
+	def _responsePeersReq(self,photoData):
+		self._localFrame = photoData
+
+	def _onFrameTakenCallback(self,photoData):
+
+		if photoData:
+
+			if not self._localPeers:
+				self.stop_local_video_stream()
+
+			self._responsePeersReq(photoData)
+
+			self.waitForPhoto.set()
+
+	def start_local_video_stream(self):
+
+		fileCount = len(self._files)
+
+		if fileCount:
+
+			def imagesProducer():
+
+				while len(self._localPeers) > 0:
+
+					time.sleep(0.5)
+
+					def getRandomImg():
+						imageFile = self._files[randrange(fileCount)]
+						with open(imageFile, "r") as f:
+							image = f.read()
+
+						self._onFrameTakenCallback(image)
+
+					threading.Timer(0, getRandomImg).start()
+
+			threading.Timer(0, imagesProducer).start()
+
+		return
+
+	def stop_local_video_stream(self):
+		self._localPeers = []
