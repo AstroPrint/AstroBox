@@ -565,7 +565,7 @@ var PrinterSelectorDialog = Backbone.View.extend({
 
 
   },
-  _setPrinter(manufacturerId, selectedPrinterId)
+  _setPrinter: function(manufacturerId, selectedPrinterId)
   {
     app.astroprintApi.getPrinterModels(manufacturerId)
       .done(_.bind(function (printerModels) {
