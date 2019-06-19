@@ -132,14 +132,14 @@ class AstroPrintPipeline(object):
 		def postprocesingLocalVideoFrame(resp):
 			if resp:
 				if isinstance(resp, dict) and 'error' in resp:
-					self._logger.error('Error during photo capture: %s' % resp['error'])
+					self._logger.error('Error during local video\'s frames capture: %s' % resp['error'])
 					onFrameTakenCallback(None)
 				else:
 					from base64 import b64decode
 					try:
 						onFrameTakenCallback(b64decode(resp))
 					except TypeError as e:
-						self._logger.error('Invalid returned photo. Received. Error: %s' % e)
+						self._logger.error('Invalid returned local video\'s frame. Received. Error: %s' % e)
 						onFrameTakenCallback(None)
 			else:
 				onFrameTakenCallback(None)
@@ -192,6 +192,11 @@ class AstroPrintPipeline(object):
 
 			if self._pendingReqs:
 				for cb in self._pendingReqs.values():
+					if cb:
+						cb(data)
+
+			if self._preservativePendingReqs:
+				for cb in self._preservativePendingReqs.values():
 					if cb:
 						cb(data)
 
