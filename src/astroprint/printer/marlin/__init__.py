@@ -59,6 +59,7 @@ class PrinterMarlin(Printer):
 		self._comm = None
 
 		self.estimatedTimeLeft = None
+		self.originalTotalPrintTime = 0
 		self.timePercentPreviousLayers = 0
 
 		super(PrinterMarlin, self).__init__()
@@ -261,6 +262,7 @@ class PrinterMarlin(Printer):
 
 		self.estimatedTimeLeft = None
 		self.timePercentPreviousLayers = 0
+		self.originalTotalPrintTime = self._comm.totalPrintTime
 		self._comm.startPrint()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
@@ -370,6 +372,8 @@ class PrinterMarlin(Printer):
 	def mcLayerChange(self, layer):
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
+		self._adjustTimePerLayers()
+
 		try:
 			if not layer == 1:
 				self.timePercentPreviousLayers += self._comm.timePerLayers[layer-2]['time']
@@ -377,6 +381,46 @@ class PrinterMarlin(Printer):
 				self.timePercentPreviousLayers = 0
 		except: pass
 
+	def _adjustTimePerLayers(self):
+
+		if self._currentLayer > 1:
+
+			realTimeElapsed = self._comm.getPrintTime()
+
+			timeElapsedCalculated = 0
+
+			#self._logger.info('*******************')
+			for i in range(0,self._currentLayer-1):
+				#self._logger.info('i %s' % i)
+				#self._logger.info('self._comm.timePerLayers[i][\'time\'] %s' % self._comm.timePerLayers[i]['time'])
+				timeElapsedCalculated += self._comm.timePerLayers[i]['time'] * self.originalTotalPrintTime
+
+			timeDiff = realTimeElapsed - timeElapsedCalculated
+
+
+			'''self._logger.info('self._currentLayer %s' % self._currentLayer)
+			self._logger.info('realTimeElapsed %s' % realTimeElapsed)
+			self._logger.info('timeElapsedCalculated %s' % timeElapsedCalculated)
+			self._logger.info('timeDiff %s' % timeDiff)'''
+
+			self._comm.totalPrintTime = self.originalTotalPrintTime + timeDiff
+
+			'''self._logger.info('self._comm.totalPrintTime %s' % self._comm.totalPrintTime)
+			self._logger.info('*******************')'''
+
+	def getEstimatedTimeLeftCriteria(self,currentTimePercent):
+		'''self._logger.info('getEstimatedTimeLeftCriteria')
+		self._logger.info('self._currentLayer %s' % self._currentLayer)
+		self._logger.info('self._layerCount %s' % self._layerCount)'''
+
+		timeCalculatingValue = 1- (self._comm.getPrintTime()/self.originalTotalPrintTime)
+
+		if self._currentLayer >= self._layerCount or timeCalculatingValue<0:#lastLayer or time calculating error
+			#self._logger.info('A %s' % (1.0 - currentTimePercent))
+			return 1.0 - currentTimePercent
+		else:
+			#self._logger.info('B %s' % timeCalculatingValue)
+			return timeCalculatingValue
 
 	def mcProgress(self):
 		"""
@@ -399,17 +443,29 @@ class PrinterMarlin(Printer):
 			except:
 				currentLayerPercent = 0
 
+			'''self._logger.info('self._comm.totalPrintTime %s' % self._comm.totalPrintTime)
+			self._logger.info('self._comm.getPrintTime() %s' % self._comm.getPrintTime())
+			self._logger.info('self._comm.getPrintTime()/self._comm.totalPrintTime %s' % (self._comm.getPrintTime()/self._comm.totalPrintTime))'''
+
 			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._currentLayer-1]['time']
 
 			currentTimePercent = self.timePercentPreviousLayers + layerTimePercent
 
-			estimatedTimeLeft = self._comm.totalPrintTime * ( 1.0 - currentTimePercent )
+			strictEstimatedTimeLeft = self.getEstimatedTimeLeftCriteria(currentTimePercent)
+
+			estimatedTimeLeft = self._comm.totalPrintTime * (strictEstimatedTimeLeft)
+
+			#self._logger.info('estimatedTimeLeft %s' % estimatedTimeLeft)
+			#self._logger.info('-------------------------------------')
 
 			elapsedTimeVariance = elapsedTime - ( self._comm.totalPrintTime - estimatedTimeLeft)
 
 			adjustedEstimatedTime = self._comm.totalPrintTime + elapsedTimeVariance
 
-			estimatedTimeLeft = ( adjustedEstimatedTime * ( 1.0 - currentTimePercent ) ) / 60
+			estimatedTimeLeft = ( adjustedEstimatedTime * (strictEstimatedTimeLeft)) /60
+
+			#self._logger.info('self.estimatedTimeLeft %s' % self.estimatedTimeLeft)
+			#self._logger.info('estimatedTimeLeft %s' % estimatedTimeLeft)
 
 			if self.estimatedTimeLeft and self.estimatedTimeLeft < estimatedTimeLeft:
 				estimatedTimeLeft = self.estimatedTimeLeft
