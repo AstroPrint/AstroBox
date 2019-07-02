@@ -413,11 +413,13 @@ class PrinterMarlin(Printer):
 		self._logger.info('self._currentLayer %s' % self._currentLayer)
 		self._logger.info('self._layerCount %s' % self._layerCount)'''
 
-		timeCalculatingValue = 1- (self._comm.getPrintTime()/self.originalTotalPrintTime)
+		timeCalculatingValue = 1- (self._comm.getPrintTime()/self.totalPrintTime)
+		#timeCalculatingValue = 1- (self._comm.getPrintTime()/self.originalTotalPrintTime)
+		fileProgressCalculatingValue = 1.0 - currentTimePercent
 
-		if self._currentLayer >= self._layerCount or timeCalculatingValue<0:#lastLayer or time calculating error
-			#self._logger.info('A %s' % (1.0 - currentTimePercent))
-			return 1.0 - currentTimePercent
+		if self._currentLayer >= self._layerCount or timeCalculatingValue<0 or fileProgressCalculatingValue > timeCalculatingValue:#lastLayer or time calculating error or bigger value
+			#self._logger.info('A %s' % fileProgressCalculatingValue)
+			return fileProgressCalculatingValue
 		else:
 			#self._logger.info('B %s' % timeCalculatingValue)
 			return timeCalculatingValue
