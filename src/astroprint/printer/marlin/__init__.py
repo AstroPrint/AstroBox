@@ -61,6 +61,10 @@ class PrinterMarlin(Printer):
 		self.estimatedTimeLeft = None
 		self.originalTotalPrintTime = 0
 		self.timePercentPreviousLayers = 0
+		self.accPercent = {
+												'upperPercent': 0,
+												'time': 0 }
+
 
 		super(PrinterMarlin, self).__init__()
 
@@ -383,6 +387,9 @@ class PrinterMarlin(Printer):
 
 	def _adjustTimePerLayers(self):
 
+		self.accPercent['upperPercent'] = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
+		self.accPercent['time'] += self._comm.timePerLayers[self._currentLayer-1]['time']
+
 		if self._currentLayer > 1:
 
 			realTimeElapsed = self._comm.getPrintTime()
@@ -413,16 +420,32 @@ class PrinterMarlin(Printer):
 		self._logger.info('self._currentLayer %s' % self._currentLayer)
 		self._logger.info('self._layerCount %s' % self._layerCount)'''
 
-		timeCalculatingValue = 1- (self._comm.getPrintTime()/self.totalPrintTime)
+		timeCalculatingValue = 1- (self._comm.getPrintTime()/self._comm.totalPrintTime)
 		#timeCalculatingValue = 1- (self._comm.getPrintTime()/self.originalTotalPrintTime)
 		fileProgressCalculatingValue = 1.0 - currentTimePercent
 
+		'''self._logger.info("self.accPercent['time'] %s" % self.accPercent['time'])
+		self._logger.info("self.accPercent['upperPercent'] %s" % self.accPercent['upperPercent'])'''
+
+		timeLimitInThisLayer = self.accPercent['time']/self._comm.totalPrintTime
+
 		if self._currentLayer >= self._layerCount or timeCalculatingValue<0 or fileProgressCalculatingValue > timeCalculatingValue:#lastLayer or time calculating error or bigger value
 			#self._logger.info('A %s' % fileProgressCalculatingValue)
-			return fileProgressCalculatingValue
+
+			if fileProgressCalculatingValue <= timeLimitInThisLayer:
+				#self._logger.info('AB %s' % timeLimitInThisLayer)
+				return timeLimitInThisLayer
+			else:
+				#self._logger.info('AC %s' % fileProgressCalculatingValue)
+				return fileProgressCalculatingValue
 		else:
-			#self._logger.info('B %s' % timeCalculatingValue)
-			return timeCalculatingValue
+			self._logger.info('B %s' % timeCalculatingValue)
+			if timeCalculatingValue <= timeLimitInThisLayer:
+				#self._logger.info('BB %s' % timeLimitInThisLayer)
+				return timeLimitInThisLayer
+			else:
+				#self._logger.info('BC %s' % timeCalculatingValue)
+				return timeCalculatingValue
 
 	def mcProgress(self):
 		"""
