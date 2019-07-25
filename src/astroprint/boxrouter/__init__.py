@@ -293,7 +293,7 @@ class AstroprintBoxRouter(object):
 			self._publicKey = None
 			self._privateKey = None
 			self.status = self.STATUS_DISCONNECTED
-			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status);
+			self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 
 			if self._ws:
 				self._ws.unregisterEvents()
@@ -375,7 +375,7 @@ class AstroprintBoxRouter(object):
 				req["callback"](*([data] + args))
 
 		else:
-			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId);
+			self._logger.warn('Attempting to deliver a client response for a request[%s] that\'s no longer pending' % reqId)
 
 	def broadcastEvent(self, event, data):
 		self._eventSender.sendUpdate(event, data)
@@ -430,6 +430,8 @@ class AstroprintBoxRouter(object):
 				self.status = self.STATUS_ERROR
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 				self.close()
+				if 'should_retry' in data and data['should_retry']:
+					self._doRetry()
 
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
