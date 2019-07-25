@@ -4,7 +4,7 @@ from __future__ import absolute_import
 
 __author__ = "AstroPrint Product Team <product@astroprint.com> based on previous work by David Braam & Gina Häußge"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016-2019 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import os
 import time
@@ -1109,7 +1109,8 @@ class MachineCom(object):
 				or 'no checksum with line number' in line_lower \
 				or 'format error' in line_lower \
 				or 'missing checksum' in line_lower \
-				or 'failed to enable bed leveling' in line_lower:
+				or 'failed to enable bed leveling' in line_lower \
+				or 'sd init fail' in line_lower:
 				pass
 			elif not self.isError():
 				self._errorValue = line[6:]
