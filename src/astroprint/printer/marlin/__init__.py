@@ -376,14 +376,16 @@ class PrinterMarlin(Printer):
 	def mcLayerChange(self, layer):
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
-		self._adjustTimePerLayers()
-
 		try:
+			self._adjustTimePerLayers()
+
 			if not layer == 1:
 				self.timePercentPreviousLayers += self._comm.timePerLayers[layer-2]['time']
 			else:
 				self.timePercentPreviousLayers = 0
-		except: pass
+
+		except:
+			self._logger.error('Error in mcLayerChange', exc_info=True)
 
 	def _adjustTimePerLayers(self):
 
