@@ -696,6 +696,9 @@ class MachineCom(object):
 		if self._callback and self._callback.analyzedInfoDecider:
 			self._callback.analyzedInfoDecider()
 
+	def cbGCodeAnalyzerException(self,parameters):
+		self._logger.warn("There was a problem using /usr/bin/astroprint/GCodeAnalyzer... using alternative algorithm")
+
 	def _monitor(self):
 		#Open the serial port.
 		self._changeState(self.STATE_CONNECTING)
@@ -898,7 +901,7 @@ class MachineCom(object):
 						self._oksAfterHeatingUp -= 1
 
 						if not self.timerCalculator and self._currentFile: # It's possible that we just cancelled the print
-							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,None,self)
+							self.timerCalculator = GCodeAnalyzer(self._currentFile._filename,True,self.cbGCodeAnalyzerReady,self.cbGCodeAnalyzerException,self)
 							self.timerCalculator.makeCalcs()
 
 				### Baudrate detection
