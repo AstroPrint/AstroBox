@@ -398,10 +398,14 @@ class AstroPrintCloud(object):
 
 		try:
 			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
-			data = r.json()
+			if r.status_code == 200:
+				data = r.json()
+			else:
+				data = None
+				self._logger.error('Unable to get print file [%s] info. HTTP ERROR: %d' % (print_file_id, r.status_code))
 		except Exception as e:
 			data = None
-			self._logger.error('Unable to get file info: %s' % e , exc_info = True)
+			self._logger.error('Unable to get print file [%s] info: %s' % (print_file_id, e) , exc_info = True)
 
 		printFile = fileManager.getFileByCloudId(print_file_id)
 
