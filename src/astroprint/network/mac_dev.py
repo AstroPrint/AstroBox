@@ -16,15 +16,17 @@ from astroprint.network import NetworkManager
 
 class MacDevNetworkManager(NetworkManager):
 	def __init__(self):
-		self.name = "astrobox-dev"
 		self.logger = logging.getLogger(__name__)
 		self._online = False
 		self._storedWiFiNetworks = []
 		self._config = {
-			"autoConnect" : True
+			"autoConnect" : True,
+			"name": "astrobox-dev"
 		}
 
 		self._loadDevConfig()
+
+		self.name = self._config["name"]
 
 		if self._config['autoConnect']:
 			self._setActiveWifi(self.getWifiNetworks()[0])
