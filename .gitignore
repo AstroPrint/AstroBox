@@ -27,7 +27,7 @@ OctoPrint.egg-info
 *.orig
 build
 debian/AstroBox
-local/*
+local*/*
 
 
 # Auto generated files by webassets
