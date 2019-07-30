@@ -267,7 +267,18 @@ class PrinterMarlin(Printer):
 		self.estimatedTimeLeft = None
 		self.timePercentPreviousLayers = 0
 		self.originalTotalPrintTime = self._comm.totalPrintTime
+
+		self.analyzedInfoDecider()
+
 		self._comm.startPrint()
+
+	def analyzedInfoDecider(self):
+		if self._comm.timePerLayers:
+			self.mcLayerChange = self.mcLayerChangeImproved
+			self.mcProgress = self.mcProgressImproved
+		else:
+			self.mcLayerChange = lambda layer: super(PrinterMarlin, self).mcLayerChange(layer)
+			self.mcProgress = lambda: super(PrinterMarlin, self).mcProgress()
 
 	def executeCancelCommands(self, disableMotorsAndHeater):
 		"""
@@ -349,7 +360,7 @@ class PrinterMarlin(Printer):
 			if oldState == self._comm.STATE_PRINTING:
 				if self._selectedFile is not None:
 					if state == self._comm.STATE_OPERATIONAL:
-						self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime())
+						self._fileManager.printSucceeded(self._selectedFile["filename"], self._comm.getPrintTime(), self.printedLayersCounter if not self._layerCount else None)
 
 					elif state == self._comm.STATE_CLOSED or state == self._comm.STATE_ERROR or state == self._comm.STATE_CLOSED_WITH_ERROR:
 						self._fileManager.printFailed(self._selectedFile["filename"], self._comm.getPrintTime())
@@ -373,7 +384,7 @@ class PrinterMarlin(Printer):
 
 		self.refreshStateData()
 
-	def mcLayerChange(self, layer):
+	def mcLayerChangeImproved(self, layer):
 		super(PrinterMarlin, self).mcLayerChange(layer)
 
 		try:
@@ -383,73 +394,53 @@ class PrinterMarlin(Printer):
 				self.timePercentPreviousLayers += self._comm.timePerLayers[layer-2]['time']
 			else:
 				self.timePercentPreviousLayers = 0
-
 		except:
 			self._logger.error('Error in mcLayerChange', exc_info=True)
 
+
 	def _adjustTimePerLayers(self):
 
-		self.accPercent['upperPercent'] = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
-		self.accPercent['time'] += self._comm.timePerLayers[self._currentLayer-1]['time']
+		try:
 
-		if self._currentLayer > 1:
+			self.accPercent['upperPercent'] = self._comm.timePerLayers[self._currentLayer-1]['upperPercent']
+			self.accPercent['time'] += self._comm.timePerLayers[self._currentLayer-1]['time']
 
-			realTimeElapsed = self._comm.getPrintTime()
+			if self._currentLayer > 1:
 
-			timeElapsedCalculated = 0
+				realTimeElapsed = self._comm.getPrintTime()
 
-			#self._logger.info('*******************')
-			for i in range(0,self._currentLayer-1):
-				#self._logger.info('i %s' % i)
-				#self._logger.info('self._comm.timePerLayers[i][\'time\'] %s' % self._comm.timePerLayers[i]['time'])
-				timeElapsedCalculated += self._comm.timePerLayers[i]['time'] * self.originalTotalPrintTime
+				timeElapsedCalculated = 0
 
-			timeDiff = realTimeElapsed - timeElapsedCalculated
+				for i in range(0,self._currentLayer-1):
+					timeElapsedCalculated += self._comm.timePerLayers[i]['time'] * self.originalTotalPrintTime
 
+				timeDiff = realTimeElapsed - timeElapsedCalculated
 
-			'''self._logger.info('self._currentLayer %s' % self._currentLayer)
-			self._logger.info('realTimeElapsed %s' % realTimeElapsed)
-			self._logger.info('timeElapsedCalculated %s' % timeElapsedCalculated)
-			self._logger.info('timeDiff %s' % timeDiff)'''
+				self._comm.totalPrintTime = self.originalTotalPrintTime + timeDiff
 
-			self._comm.totalPrintTime = self.originalTotalPrintTime + timeDiff
-
-			'''self._logger.info('self._comm.totalPrintTime %s' % self._comm.totalPrintTime)
-			self._logger.info('*******************')'''
+		except:
+			self._logger.error('Error in _adjustTimePerLayers', exc_info=True)
 
 	def getEstimatedTimeLeftCriteria(self,currentTimePercent):
-		'''self._logger.info('getEstimatedTimeLeftCriteria')
-		self._logger.info('self._currentLayer %s' % self._currentLayer)
-		self._logger.info('self._layerCount %s' % self._layerCount)'''
 
 		timeCalculatingValue = 1- (self._comm.getPrintTime()/self._comm.totalPrintTime)
-		#timeCalculatingValue = 1- (self._comm.getPrintTime()/self.originalTotalPrintTime)
 		fileProgressCalculatingValue = 1.0 - currentTimePercent
-
-		'''self._logger.info("self.accPercent['time'] %s" % self.accPercent['time'])
-		self._logger.info("self.accPercent['upperPercent'] %s" % self.accPercent['upperPercent'])'''
 
 		timeLimitInThisLayer = self.accPercent['time']/self._comm.totalPrintTime
 
 		if self._currentLayer >= self._layerCount or timeCalculatingValue<0 or fileProgressCalculatingValue > timeCalculatingValue:#lastLayer or time calculating error or bigger value
-			#self._logger.info('A %s' % fileProgressCalculatingValue)
 
 			if fileProgressCalculatingValue <= timeLimitInThisLayer:
-				#self._logger.info('AB %s' % timeLimitInThisLayer)
 				return timeLimitInThisLayer
 			else:
-				#self._logger.info('AC %s' % fileProgressCalculatingValue)
 				return fileProgressCalculatingValue
 		else:
-			self._logger.info('B %s' % timeCalculatingValue)
 			if timeCalculatingValue <= timeLimitInThisLayer:
-				#self._logger.info('BB %s' % timeLimitInThisLayer)
 				return timeLimitInThisLayer
 			else:
-				#self._logger.info('BC %s' % timeCalculatingValue)
 				return timeCalculatingValue
 
-	def mcProgress(self):
+	def mcProgressImproved(self):
 		"""
 		 Callback method for the comm object, called upon any change in progress of the printjob.
 		 Triggers storage of new values for printTime, printTimeLeft and the current progress.
@@ -470,10 +461,6 @@ class PrinterMarlin(Printer):
 			except:
 				currentLayerPercent = 0
 
-			'''self._logger.info('self._comm.totalPrintTime %s' % self._comm.totalPrintTime)
-			self._logger.info('self._comm.getPrintTime() %s' % self._comm.getPrintTime())
-			self._logger.info('self._comm.getPrintTime()/self._comm.totalPrintTime %s' % (self._comm.getPrintTime()/self._comm.totalPrintTime))'''
-
 			layerTimePercent = currentLayerPercent * self._comm.timePerLayers[self._currentLayer-1]['time']
 
 			currentTimePercent = self.timePercentPreviousLayers + layerTimePercent
@@ -482,17 +469,11 @@ class PrinterMarlin(Printer):
 
 			estimatedTimeLeft = self._comm.totalPrintTime * (strictEstimatedTimeLeft)
 
-			#self._logger.info('estimatedTimeLeft %s' % estimatedTimeLeft)
-			#self._logger.info('-------------------------------------')
-
 			elapsedTimeVariance = elapsedTime - ( self._comm.totalPrintTime - estimatedTimeLeft)
 
 			adjustedEstimatedTime = self._comm.totalPrintTime + elapsedTimeVariance
 
 			estimatedTimeLeft = ( adjustedEstimatedTime * (strictEstimatedTimeLeft)) /60
-
-			#self._logger.info('self.estimatedTimeLeft %s' % self.estimatedTimeLeft)
-			#self._logger.info('estimatedTimeLeft %s' % estimatedTimeLeft)
 
 			if self.estimatedTimeLeft and self.estimatedTimeLeft < estimatedTimeLeft:
 				estimatedTimeLeft = self.estimatedTimeLeft
@@ -506,7 +487,6 @@ class PrinterMarlin(Printer):
 
 		except Exception:
 			super(PrinterMarlin, self).mcProgress()
-
 
 	def mcMessage(self, message):
 		"""
@@ -693,3 +673,4 @@ class PrinterMarlin(Printer):
 	def resetSerialLogging(self):
 		if self._comm:
 			self._comm.resetSerialLogging()
+

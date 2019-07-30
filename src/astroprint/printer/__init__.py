@@ -71,6 +71,8 @@ class Printer(object):
 
 		self._messages = deque([], 300)
 
+		self.printedLayersCounter = 0
+
 		# callbacks
 		self._callbacks = []
 		#self._lastProgressReport = None
@@ -477,6 +479,8 @@ class Printer(object):
 
 		self._currentLayer = 0
 
+		self.printedLayersCounter = 0
+
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -589,6 +593,8 @@ class Printer(object):
 	def mcLayerChange(self, layer):
 		eventManager().fire(Events.LAYER_CHANGE, {"layer": layer})
 		self._currentLayer = layer
+		if not self._layerCount:
+			self.printedLayersCounter += 1
 
 	def mcTempUpdate(self, temp, bedTemp):
 		self._addTemperatureData(temp, bedTemp)

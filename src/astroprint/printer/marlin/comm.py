@@ -376,9 +376,6 @@ class MachineCom(object):
 			self._oksAfterHeatingUp = 3
 			self._pauseInProgress = False
 			self.__pauseInProgress = False
-			#self._currentLayer = 1
-			#sefl._lastLayerHeight
-			#self._callback.mcLayerChange(self._tentativeLayer)
 
 			self._changeState(self.STATE_PRINTING)
 
@@ -695,6 +692,9 @@ class MachineCom(object):
 		self.layer_height = layer_height
 
 		self.total_filament = None#total_filament has not got any information
+
+		if self._callback and self._callback.analyzedInfoDecider:
+			self._callback.analyzedInfoDecider()
 
 	def _monitor(self):
 		#Open the serial port.
