@@ -146,8 +146,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     if (taskFound) {
       task.icon_filename = taskFound.icon_filename;
       task.name = {
-        en: taskFound.strings.en.name,
-        es: taskFound.strings.es.name
+        en: taskFound.strings.en.name
       };
     } else {
       task.name = { en: "not_found" };
