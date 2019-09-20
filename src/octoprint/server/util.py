@@ -440,6 +440,28 @@ def user_validator(request):
 		raise HTTPError(403)
 
 
+def user_or_logout_validator(request):
+
+	if current_user.is_authenticated:
+
+		apikey = getApiKey(request)
+		if settings().get(["api", "enabled"]) and apikey is not None:
+			user = getUserForApiKey(apikey)
+		else:
+			user = current_user
+
+		if user is None or not user.is_authenticated:
+			raise HTTPError(403)
+
+	else:
+		s = settings()
+		loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+
+		if loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
+			if not current_user.is_authenticated:
+				raise HTTPError(403)
+
+
 #~~ reverse proxy compatible wsgi middleware
 
 
