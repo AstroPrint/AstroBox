@@ -434,7 +434,6 @@ def user_validator(request):
 
 	if settings().get(["api", "enabled"]) and apikey is not None:
 		user = getUserForApiKey(apikey)
-		logging.info(user)
 	else:
 		user = current_user
 
