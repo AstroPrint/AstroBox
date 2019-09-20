@@ -281,8 +281,8 @@ def logout():
 
 	# Remove session keys set by Flask-Principal
 	for key in ('identity.id', 'identity.auth_type'):
-		del session[key]
-	#commented: not needed in flask-login 0.4.1
-	#identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
+		session.pop(key,None)
+
+	identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 
 	return NO_CONTENT
