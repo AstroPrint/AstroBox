@@ -105,7 +105,7 @@ def api_access(func):
 
 def getUserForApiKey(apikey):
 	if settings().get(["api", "enabled"]) and apikey is not None:
-		if apikey == settings().get(["api", "key"]):
+		if apikey in [settings().get(["api", "key"]), octoprint.server.UI_API_KEY]:
 			# master key was used
 			return ApiUser()
 		else:
@@ -121,8 +121,8 @@ def getApiKey(request):
 		return request.values["apikey"]
 
 	# Check Tornado GET/POST arguments
-	if hasattr(request, "arguments") and "apikey" in request.arguments and len(request.arguments["apikey"].strip()) > 0:
-		return request.arguments["apikey"]
+	if hasattr(request, "arguments") and "apikey" in request.arguments and len(request.arguments["apikey"][0].strip()) > 0:
+		return request.arguments["apikey"][0]
 
 	# Check Tornado and Flask headers
 	if "X-Api-Key" in request.headers.keys():
@@ -431,8 +431,10 @@ def user_validator(request):
 	"""
 
 	apikey = getApiKey(request)
+
 	if settings().get(["api", "enabled"]) and apikey is not None:
 		user = getUserForApiKey(apikey)
+		logging.info(user)
 	else:
 		user = current_user
 
@@ -442,25 +444,10 @@ def user_validator(request):
 
 def user_or_logout_validator(request):
 
-	if current_user.is_authenticated:
+	loggedUsername = settings().get(["cloudSlicer", "loggedUser"])
 
-		apikey = getApiKey(request)
-		if settings().get(["api", "enabled"]) and apikey is not None:
-			user = getUserForApiKey(apikey)
-		else:
-			user = current_user
-
-		if user is None or not user.is_authenticated:
-			raise HTTPError(403)
-
-	else:
-		s = settings()
-		loggedUsername = s.get(["cloudSlicer", "loggedUser"])
-
-		if loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
-			if not current_user.is_authenticated:
-				raise HTTPError(403)
-
+	if loggedUsername:
+		user_validator(request)
 
 #~~ reverse proxy compatible wsgi middleware
 

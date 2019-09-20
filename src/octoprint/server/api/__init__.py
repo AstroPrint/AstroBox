@@ -276,11 +276,13 @@ def login():
 @api.route("/logout", methods=["POST"])
 @restricted_access
 def logout():
+
+	logout_user()
+
 	# Remove session keys set by Flask-Principal
 	for key in ('identity.id', 'identity.auth_type'):
 		del session[key]
-	identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
-
-	logout_user()
+	#commented: not needed in flask-login 0.4.1
+	#identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 
 	return NO_CONTENT
