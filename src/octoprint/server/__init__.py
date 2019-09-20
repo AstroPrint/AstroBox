@@ -51,7 +51,7 @@ admin_permission = Permission(RoleNeed("admin"))
 user_permission = Permission(RoleNeed("user"))
 
 # only import the octoprint stuff down here, as it might depend on things defined above to be initialized already
-from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, UrlForwardHandler, user_validator
+from octoprint.server.util import LargeResponseHandler, ReverseProxied, restricted_access, PrinterStateConnection, admin_validator, UrlForwardHandler, user_validator, user_or_logout_validator
 from astroprint.printer.manager import printerManager
 from octoprint.settings import settings
 import octoprint.util as util
@@ -518,7 +518,7 @@ class Server():
 			(r"/downloads/files/local/([^/]*\.(gco|gcode))", LargeResponseHandler, {"path": s.getBaseFolder("uploads"), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
 			(r"/downloads/logs/([^/]*)", LargeResponseHandler, {"path": s.getBaseFolder("logs"), "as_attachment": True, "access_validation": access_validation_factory(admin_validator)}),
 			#(r"/downloads/camera/current", UrlForwardHandler, {"url": s.get(["webcam", "snapshot"]), "as_attachment": True, "access_validation": access_validation_factory(user_validator)}),
-			(r"/video-stream", VideoStreamHandler,{"access_validation": access_validation_factory(user_validator)}),
+			(r"/video-stream", VideoStreamHandler,{"access_validation": access_validation_factory(user_or_logout_validator)}),
 			(r".*", FallbackHandler, {"fallback": WSGIContainer(app.wsgi_app)})
 		])
 		self._server = HTTPServer(self._tornado_app, max_buffer_size=1048576 * s.getInt(['server', 'maxUploadSize']))

@@ -35,7 +35,7 @@ var AppMenu = Backbone.View.extend({
       type: "DELETE",
       success: function() {
         app.eventManager.trigger('astrobox:userLoggedOut');
-        setTimeout(function(){ location.reload() }, 0);
+        setTimeout(function(){ location.reload() }, 500);
       },
       complete: function() {
         spinIcon.addClass('hide');

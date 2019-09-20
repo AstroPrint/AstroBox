@@ -59,5 +59,5 @@ class VideoStreamHandler(tornado.web.RequestHandler):
 			self.finish()
 
 		except Exception as e:
-			self._logger.error('local video streaming: %s' % e)
+			self._logger.error('local video streaming: %s' % e, exc_info=True)
 			raise(e)
