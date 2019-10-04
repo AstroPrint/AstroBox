@@ -1489,6 +1489,11 @@ class MachineCom(object):
 
 		return None
 
+	def _gcode_M25(self, cmd): #pause
+		self.setPause(True)
+
+		return None
+
 	#The following are internal commands to ensure an orderly pause and shutdown sequence
 
 	def _apCommand_CANCEL(self, cmd):
