@@ -717,5 +717,9 @@ class SoftwareManager(object):
 		return None
 
 	def capabilities(self):
-		capabilities = ['remotePrint', 'multiExtruders','allowPrintFile']
+		capabilities = ['remotePrint',     # Indicates whether this device supports starting a print job remotely
+		 								'multiExtruders',  # Support for multiple extruders
+										'allowPrintFile',  # Support for printing a printfile not belonging to any design
+										'returnPrintJobId' # It returns the printjob Id after a print action
+									]
 		return capabilities
