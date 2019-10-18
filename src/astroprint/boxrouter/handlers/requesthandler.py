@@ -104,8 +104,6 @@ class RequestHandler(object):
 		from astroprint.printfiles import FileDestinations
 
 		print_file_id = data['printFileId']
-
-		printer = printerManager()
 		em = eventManager()
 
 		def progressCb(progress):
@@ -118,6 +116,7 @@ class RequestHandler(object):
 			)
 
 		def successCb(destFile, fileInfo):
+			printer = printerManager()
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
 			if printer.selectFile(abosluteFilename, False, True):
 				eventData = {
