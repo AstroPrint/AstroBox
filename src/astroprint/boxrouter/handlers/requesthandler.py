@@ -125,6 +125,8 @@ class RequestHandler(object):
 					'progress': 100,
 					'selected': True
 				}
+				if printer.currentPrintJobId:
+					eventData['printjob_id'] = printer.currentPrintJobId
 
 			else:
 				eventData = {
