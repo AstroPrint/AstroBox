@@ -267,7 +267,7 @@ class AstroprintBoxRouter(object):
 							self.connected = True
 
 						except Exception as e:
-							self._logger.error("Error connecting to boxrouter: %s" % e)
+							self._logger.error("Error connecting to boxrouter [%s]: %s" % (self._address, e))
 							self.connected = False
 							self.status = self.STATUS_ERROR
 							self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
