@@ -131,10 +131,11 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._lineCheckThread.start()
 
 	def closed(self, code, reason=None):
-		self._logger.info('BoxRouter socket closed with [%d]: %s' % (code, reason))
-		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
+		self._logger.info('BoxRouter socket closed event with [%d]: %s - server(%d) / client(%d)' % (code, reason, self.server_terminated, self.client_terminated))
+
 		router = self._weakRefRouter()
 
+		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
 		if router and ( self._error or router.connected ):
 			router.close()
 			router._doRetry()
