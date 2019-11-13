@@ -60,7 +60,7 @@ class AccountService(PluginService):
 			callback('invalid_data',True)
 
 	def validate(self, data, callback):
-		email = private_key = password = None
+		email = password = None
 
 		if 'email' in data:
 			email = data['email']

@@ -17,7 +17,7 @@ from octoprint.settings import settings
 from octoprint.server import restricted_access, NO_CONTENT
 from octoprint.server.api import api
 
-from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException, AstroPrintCloudInsufficientPermissionsException
 from astroprint.network.manager import networkManager
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
@@ -132,6 +132,8 @@ def login_astroprint():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			return make_response("AstroPrint.com can't be reached", 503)
+		except (AstroPrintCloudInsufficientPermissionsException):
+			return make_response("Insuficient permissions", 403)
 
 	return make_response('Invalid Credentials', 400)
 

@@ -155,7 +155,6 @@ def index():
 		nm = networkManager()
 		swm = swManager()
 		cm = cameraManager()
-		mmm = maintenanceMenuManager()
 
 		paused = pm.isPaused()
 		printing = pm.isPrinting()

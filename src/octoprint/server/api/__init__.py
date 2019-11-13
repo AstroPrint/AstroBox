@@ -42,7 +42,7 @@ from astroprint.api import maintenancemenu as api_astroprint_maintenancemenu
 from astroprint.api import printer as api_astroprint_printer
 from astroprint.api import connection as api_astroprint_connection
 from astroprint.api import files as api_astroprint_files
-from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException, AstroPrintCloudInsufficientPermissionsException
 from requests import ConnectionError
 
 
@@ -244,6 +244,9 @@ def login():
 
 				except (AstroPrintCloudNoConnectionException, ConnectionError):
 					return make_response(("AstroPrint.com can't be reached", 503, []))
+				except (AstroPrintCloudInsufficientPermissionsException):
+					return make_response(("Insuficient permissions", 403, []))
+
 		return make_response(("User unknown or password incorrect", 401, []))
 	elif "passive" in request.values.keys():
 		user = current_user

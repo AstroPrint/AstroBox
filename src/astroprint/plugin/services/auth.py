@@ -1,10 +1,16 @@
 # coding=utf-8
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2017-2019 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 from . import PluginService
+
+from octoprint.server import UI_API_KEY, create_ws_token, userManager
 from octoprint.events import Events
+from octoprint.settings import settings
+
+from astroprint.cloud import astroprintCloud
+from astroprint.network.manager import networkManager
 
 class AuthService(PluginService):
 	_validEvents = []

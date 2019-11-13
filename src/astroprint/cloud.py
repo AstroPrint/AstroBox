@@ -44,6 +44,9 @@ from astroprint.ro_config import roConfig
 class AstroPrintCloudException(Exception):
 	pass
 
+class AstroPrintCloudInsufficientPermissionsException(AstroPrintCloudException):
+	pass
+
 class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	#There no connection to the astroprint cloud
 	pass
@@ -68,6 +71,7 @@ class AstroPrintCloud(object):
 	def __init__(self):
 		self.settings = settings()
 		self.hmacAuth = None
+		self.boxId = boxrouterManager().boxId
 
 		self.tryingLoggingTimes = 0
 
@@ -331,20 +335,25 @@ class AstroPrintCloud(object):
 			"%s/%s" % (self.apiHost , 'auth/privateKey'),
 			data={
 				"email": email,
-				"password": password
+				"password": password,
+				"box_id": self.boxId
 			},
 			headers={'User-Agent': self._sm.userAgent}
 		)
 
-		try:
-			data = r.json()
-		except:
-			data = None
+		if r.status_code == 200:
+			try:
+				data = r.json()
+			except:
+				data = None
 
-		if data and "private_key" in data:
-			return str(data["private_key"])
-		else:
-			return None
+			if data and "private_key" in data:
+				return str(data["private_key"])
+
+		elif r.status_code == 403:
+			raise AstroPrintCloudInsufficientPermissionsException()
+
+		return None
 
 	def get_public_key(self, email, private_key):
 		r = requests.post(
@@ -588,7 +597,7 @@ class AstroPrintCloud(object):
 		if self.cloud_enabled():
 			try:
 				if data:
-					r = requests.put("%s/astrobox/%s/update-boxrouter-data" % (self.apiHost, boxrouterManager().boxId),
+					r = requests.put("%s/astrobox/%s/update-boxrouter-data" % (self.apiHost, self.boxId),
 						data=json.dumps(data),
 						auth=self.hmacAuth,
 						headers={'Content-Type': 'application/json'}
@@ -647,7 +656,7 @@ class AstroPrintCloud(object):
 				else:
 					#create a print job
 					data = {
-						'box_id': boxrouterManager().boxId,
+						'box_id': self.boxId,
 						'product_variant_id': softwareManager().data['variant']['id']
 					}
 

@@ -15,7 +15,7 @@ from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 
-from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException, AstroPrintCloudInsufficientPermissionsException
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.printer.manager import printerManager
 
@@ -40,6 +40,8 @@ def set_private_key():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
+		except (AstroPrintCloudInsufficientPermissionsException):
+			abort(403, "Insuficient permissions")
 
 	elif email and private_key:
 		try:
@@ -48,6 +50,8 @@ def set_private_key():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
+		except (AstroPrintCloudInsufficientPermissionsException):
+			abort(403, "Insuficient permissions")
 
 	else:
 		abort(400)

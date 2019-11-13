@@ -45,6 +45,8 @@ var LoginModal = Backbone.View.extend({
       if (xhr.status != 0) {
         if (xhr.status == 503) {
           errorContainer.text('AstroPrint.com can\'t be reached').show();
+        } else if (xhr.status == 403) {
+          errorContainer.text('Insufficient permissions').show();
         } else {
           errorContainer.text('Invalid Email/Password').show();
         }
