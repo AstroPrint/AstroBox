@@ -1132,7 +1132,7 @@
         <div class="row bold">
           <div class="small-4 columns" align="right">Available</div>
           <div class="small-4 columns size-free" align="right"><%= size_format(data.driveFree) %></div>
-          <div class="small-4 columns" align="center"><%= Math.round((data.driveTotal / data.driveFree)*100)/100 %> %</div>
+          <div class="small-4 columns" align="center"><%= Math.round((data.driveFree / data.driveTotal)*10000)/100 %> %</div>
         </div>
       </div>
     </script>
