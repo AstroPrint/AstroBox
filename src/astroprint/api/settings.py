@@ -12,7 +12,7 @@ from flask import request, abort, jsonify, make_response
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
-from astroprint.platform import platformManager
+from astroprint.ab_platform import platformManager
 from astroprint.camera import cameraManager
 from astroprint.plugin import pluginManager
 from astroprint.printerprofile import printerProfileManager
