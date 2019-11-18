@@ -41,7 +41,7 @@ var Utils = function() {
             i++;
         } while (fileSizeInBytes > 1024);
 
-        return Math.max(fileSizeInBytes, 0.1).toFixed(1) + byteUnits[i];
+        return Math.round(fileSizeInBytes*10)/10 + byteUnits[i];
       }
 	}
 };

@@ -801,7 +801,7 @@ var UnlinkFilamentDialog = Backbone.View.extend({
 
 var TemperaturePresetsView = SettingsPage.extend({
   el: '#temperature-presets',
-  template: _.template( $("#temperature-presets-settings-page-template").html() ),
+  template: null,
   settings: null,
   presetDeleteDlg : null,
   editPresetDialog : null,
@@ -835,6 +835,10 @@ var TemperaturePresetsView = SettingsPage.extend({
     })
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template($("#temperature-presets-settings-page-template").html());
+    }
+
     this.$el.html(this.template({
       temp_presets: this.settings.attributes.temp_presets,
       heated_bed : this.settings.attributes.heated_bed
@@ -971,7 +975,7 @@ var DeleteTemperaturePresetsDialog = Backbone.View.extend({
 
 var EditPresetsDialog = Backbone.View.extend({
   el: '#add-preset-modal',
-  template: _.template( $("#temperature-presets-add-modal").html() ),
+  template: null,
   preset : null,
   events : {
     "click .cancel-add-preset" : "doClose",
@@ -1003,6 +1007,10 @@ var EditPresetsDialog = Backbone.View.extend({
     this.$el.foundation('reveal', 'close');
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template($("#temperature-presets-add-modal").html());
+    }
+
     this.$el.html(this.template({
       preset: this.preset,
       bed : this.parent.settings.attributes.heated_bed
@@ -1061,7 +1069,7 @@ var EditPresetsDialog = Backbone.View.extend({
 
 var NetworkNameView = SettingsPage.extend({
   el: '#network-name',
-  template: _.template( $("#network-name-settings-page-template").html() ),
+  template: null,
   events: {
     "invalid.fndtn.abide form": 'invalidForm',
     "valid.fndtn.abide form": 'validForm',
@@ -1082,6 +1090,10 @@ var NetworkNameView = SettingsPage.extend({
     }
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template($("#network-name-settings-page-template").html());
+    }
+
     this.$el.html(this.template({
       settings: this.settings
     }));
@@ -1611,7 +1623,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
     'submit form': 'connect',
     'change #show-password': 'onShowPasswordChanged'
   },
-  template: _.template($('#wifi-network-password-modal-template').html()),
+  template: null,
   parent: null,
   initialize: function(params)
   {
@@ -1619,6 +1631,10 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
   },
   render: function(wifiInfo)
   {
+    if (!this.template) {
+      this.template = _.template($('#wifi-network-password-modal-template').html())
+    }
+
     this.$el.html( this.template({wifi: wifiInfo}) );
   },
   open: function(wifiInfo)
@@ -1684,7 +1700,7 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 
 var WiFiNetworksDialog = Backbone.View.extend({
   el: '#wifi-network-list-modal',
-  networksTemplate: _.template( $("#wifi-network-modal-row").html() ),
+  networksTemplate: null,
   passwordDlg: null,
   parent: null,
   networks: null,
@@ -1696,6 +1712,10 @@ var WiFiNetworksDialog = Backbone.View.extend({
     content.empty();
 
     this.networks = networks;
+
+    if (!this.networksTemplate) {
+      this.networksTemplate = _.template($("#wifi-network-modal-row").html());
+    }
 
     content.html(this.networksTemplate({
       networks: this.networks
@@ -1742,7 +1762,7 @@ var WiFiNetworksDialog = Backbone.View.extend({
 
 var WifiHotspotView = SettingsPage.extend({
   el: '#wifi-hotspot',
-  template: _.template( $("#wifi-hotspot-settings-page-template").html() ),
+  template: null,
   settings: null,
   events: {
     'click .loading-button.start-hotspot button': 'startHotspotClicked',
@@ -1764,6 +1784,10 @@ var WifiHotspotView = SettingsPage.extend({
     }
   },
   render: function() {
+    if (!this.template) {
+      this.template = _.template($("#wifi-hotspot-settings-page-template").html());
+    }
+
     this.$el.html(this.template({
       settings: this.settings
     }));
@@ -2258,15 +2282,56 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 });
 
 /************************
+* Software - Storage
+*************************/
+
+var SoftwareStorageView = SettingsPage.extend({
+  el: '#software-storage',
+  template: null,
+  clearLogDialog: null,
+  deleteFilesDialog: null,
+  settings: null,
+  initialize: function () {
+    SettingsPage.prototype.initialize.apply(this, arguments);
+    this.clearLogDialog = new ClearLogsDialog({ parent: this });
+    this.deleteFilesDialog = new DeleteFilesDialog({ parent: this });
+  },
+  show: function () {
+    //Call Super
+    SettingsPage.prototype.show.apply(this);
+    this.refresh();
+  },
+  refresh: function()
+  {
+    $.getJSON(API_BASEURL + 'settings/software/storage', null, _.bind(function (data) {
+      this.settings = data;
+      this.render();
+    }, this))
+      .fail(function () {
+        noty({ text: "There was an error getting internal settings info.", timeout: 3000 });
+      });
+  },
+  render: function () {
+    if (!this.template) {
+      this.template = _.template($("#software-storage-template").html())
+    }
+
+    this.$el.html(this.template({
+      data: this.settings,
+      size_format: app.utils.sizeFormat
+    }));
+  }
+});
+
+/************************
 * Software - Advanced
 *************************/
 
 var SoftwareAdvancedView = SettingsPage.extend({
   el: '#software-advanced',
-  template: _.template( $("#software-advanced-content-template").html() ),
+  template: null,
   resetConfirmDialog: null,
   sendLogDialog: null,
-  clearLogDialog: null,
   settings: null,
   events: {
     'change #serial-logs': 'serialLogChanged',
@@ -2278,7 +2343,6 @@ var SoftwareAdvancedView = SettingsPage.extend({
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.resetConfirmDialog = new ResetConfirmDialog();
     this.sendLogDialog = new SendLogDialog();
-    this.clearLogDialog = new ClearLogsDialog({parent: this});
   },
   show: function()
   {
@@ -2297,6 +2361,10 @@ var SoftwareAdvancedView = SettingsPage.extend({
   },
   render: function()
   {
+    if (!this.template) {
+      this.template = _.template($("#software-advanced-content-template").html());
+    }
+
     this.$el.html(this.template({
       data: this.settings,
       size_format: app.utils.sizeFormat
@@ -2442,19 +2510,55 @@ var ClearLogsDialog = Backbone.View.extend({
   {
     this.$('.loading-button').addClass('loading');
     $.ajax({
-      url: API_BASEURL + 'settings/software/logs',
+      url: API_BASEURL + 'settings/software/storage/logs',
       type: 'DELETE',
       contentType: 'application/json',
       dataType: 'json',
       data: JSON.stringify({}),
       success: _.bind(function() {
-        this.parent.$('.size').text('0 kB');
+        this.parent.refresh();
         this.doClose()
       }, this),
       error: function(){
         noty({text: "There was a problem clearing your logs.", timeout: 3000});
       },
       complete: _.bind(function() {
+        this.$('.loading-button').removeClass('loading');
+      }, this)
+    })
+  }
+});
+
+var DeleteFilesDialog = Backbone.View.extend({
+  el: '#delete-files-modal',
+  events: {
+    'click button.secondary': 'doClose',
+    'click button.alert': 'doDelete',
+    'open.fndtn.reveal': 'onOpen'
+  },
+  parent: null,
+  initialize: function (options) {
+    this.parent = options.parent;
+  },
+  doClose: function () {
+    this.$el.foundation('reveal', 'close');
+  },
+  doDelete: function () {
+    this.$('.loading-button').addClass('loading');
+    $.ajax({
+      url: API_BASEURL + 'settings/software/storage/uploads',
+      type: 'DELETE',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify({}),
+      success: _.bind(function () {
+        this.parent.refresh();
+        this.doClose()
+      }, this),
+      error: function () {
+        noty({ text: "There was a problem deleting your files.", timeout: 3000 });
+      },
+      complete: _.bind(function () {
         this.$('.loading-button').removeClass('loading');
       }, this)
     })
@@ -2547,6 +2651,7 @@ var SettingsView = Backbone.View.extend({
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
       'software-advanced': new SoftwareAdvancedView({parent: this}),
+      'software-storage': new SoftwareStorageView({parent: this}),
       'software-license': new SoftwareLicenseView({parent: this})
     };
     this.menu = new SettingsMenu({subviews: this.subviews});

@@ -12,12 +12,26 @@ from flask import request, abort, jsonify, make_response
 from octoprint.settings import settings
 from astroprint.printer.manager import printerManager
 from astroprint.network.manager import networkManager
+from astroprint.platform import platformManager
 from astroprint.camera import cameraManager
 from astroprint.plugin import pluginManager
 from astroprint.printerprofile import printerProfileManager
 
 from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
 from octoprint.server.api import api
+
+#utils to be used by this file
+
+#empty all folders
+def emptyFolder(folder):
+	if folder and os.path.exists(folder):
+		for f in os.listdir(folder):
+			p = os.path.join(folder, f)
+			try:
+				if os.path.isfile(p):
+					os.unlink(p)
+			except Exception, e:
+				pass
 
 @api.route("/settings", methods=['GET'])
 def handleSettings():
@@ -296,16 +310,29 @@ def getLicenseInfo():
 			'issuer': lcnMgr.issuerName,
 			'expires': lcnMgr.expires,
 			'license_id': lcnMgr.licenseId
-		});
+		})
 
 	return jsonify({'is_valid': False})
+
+@api.route("/settings/software/storage", methods=["GET"])
+@restricted_access
+def getStorageSoftwareSettings():
+	pm = platformManager()
+
+	driveTotal, driveUsed, driveFree = pm.driveStats()
+
+	return jsonify(
+		sizeLogs= pm.logsSize(),
+		sizeUploads= pm.uploadsSize(),
+		driveTotal= driveTotal,
+		driveUsed= driveUsed,
+		driveFree= driveFree
+	)
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access
 def getAdvancedSoftwareSettings():
 	s = settings()
-
-	logsDir = s.getBaseFolder("logs")
 
 	return jsonify(
 		apiKey= {
@@ -313,7 +340,6 @@ def getAdvancedSoftwareSettings():
 			"regenerate": s.getBoolean(['api','regenerate'])
 		},
 		serialActivated= s.getBoolean(['serial', 'log']),
-		sizeLogs= sum([os.path.getsize(os.path.join(logsDir, f)) for f in os.listdir(logsDir)]),
 		updateChannel= s.getInt(['software', 'channel'])
 	)
 
@@ -366,17 +392,6 @@ def resetFactorySettings():
 	astroprintCloud().signout()
 
 	s = settings()
-
-	#empty all folders
-	def emptyFolder(folder):
-		if folder and os.path.exists(folder):
-			for f in os.listdir(folder):
-				p = os.path.join(folder, f)
-				try:
-					if os.path.isfile(p):
-						os.unlink(p)
-				except Exception, e:
-					pass
 
 	emptyFolder(s.get(['folder', 'uploads']) or s.getBaseFolder('uploads'))
 	emptyFolder(s.get(['folder', 'timelapse']) or s.getBaseFolder('timelapse'))
@@ -454,7 +469,7 @@ def updateSoftwareVersion():
 @restricted_access
 def restartServer():
 	if softwareManager.restartServer():
-		return jsonify();
+		return jsonify()
 	else:
 		return ("There was an error trying to restart the server.", 400)
 
@@ -462,7 +477,7 @@ def restartServer():
 @restricted_access
 def sendLogs():
 	if softwareManager.sendLogs(request.values.get('ticket', None), request.values.get('message', None)):
-		return jsonify();
+		return jsonify()
 	else:
 		return ("There was an error trying to send your logs.", 500)
 
@@ -478,18 +493,31 @@ def changeSerialLogs():
 
 		printerManager().setSerialDebugLogging(data['active'])
 
-		return jsonify();
+		return jsonify()
 
 	else:
 		return ("Wrong data sent in.", 400)
 
-@api.route("/settings/software/logs", methods=['DELETE'])
+@api.route("/settings/software/storage/logs", methods=['DELETE'])
 @restricted_access
 def clearLogs():
 	if softwareManager.clearLogs():
-		return jsonify();
+		return jsonify()
 	else:
 		return ("There was an error trying to clear your logs.", 500)
+
+@api.route("/settings/software/storage/uploads", methods=['DELETE'])
+@restricted_access
+def clearUploads():
+	s = settings()
+
+	try:
+		emptyFolder(s.get(['folder', 'uploads']) or s.getBaseFolder('uploads'))
+		return jsonify()
+	except Exception, e:
+		logger = logging.getLogger(__name__)
+		logger.info(e, exc_info= True)
+		return ("There was an error trying to clear your uploads.", 500)
 
 @api.route("/settings/software/system-info", methods=['GET'])
 @restricted_access

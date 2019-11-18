@@ -753,6 +753,26 @@
   }
 }
 
+#software-storage {
+  .element-list {
+    margin-top: 20px;
+
+    .row {
+      padding: 10px 0px;
+
+      &.bold {
+        font-size: 23px;
+        border-top: 2px solid;
+      }
+
+      .icon-trash {
+        color: $alert-color;
+        font-size: 20px;
+      }
+    }
+  }
+}
+
 #temperature-presets{
 
   h5{

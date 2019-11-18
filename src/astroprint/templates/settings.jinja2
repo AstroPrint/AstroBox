@@ -27,6 +27,7 @@
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
         <li class="software-license"><a href="#settings/software-license">License</a></li>
         <li class="software-update"><a href="#settings/software-update">Update</a></li>
+        <li class="software-storage"><a href="#settings/software-storage">Internal Storage</a></li>
         <li class="software-advanced"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
@@ -1104,6 +1105,38 @@
       </div>
     </script>
 
+    <div class="show-for-small zebra">
+      <a href="#settings/software-storage"><h1 class="bold" align="center">Internal Storage</h1></a>
+    </div>
+
+    <div id="software-storage" class="settings-page hide" align="center"></div>
+
+    <script type="text/template" id="software-storage-template">
+      <h4 class="bold">Internal Storage (<%= size_format(data.driveTotal) %>)</h4>
+      <div class="element-list">
+        <div class="row">
+          <div class="small-4 columns" align="right">Logs</div>
+          <div class="small-4 columns size-logs" align="right"><%= size_format(data.sizeLogs) %></div>
+          <div class="small-4 columns"><a href="#" data-reveal-id="delete-logs-modal"><i class="icon-trash"></i></a></div>
+        </div>
+        <div class="row">
+          <div class="small-4 columns" align="right">Uploaded Files</div>
+          <div class="small-4 columns size-files" align="right"><%= size_format(data.sizeUploads) %></div>
+          <div class="small-4 columns"><a data-reveal-id="delete-files-modal"><i class="icon-trash"></i></a></div>
+        </div>
+        <div class="row">
+          <div class="small-4 columns" align="right">System Files</div>
+          <div class="small-4 columns size-files" align="right"><%= size_format( data.driveUsed - data.sizeLogs - data.sizeUploads ) %></div>
+          <div class="small-4 columns"></div>
+        </div>
+        <div class="row bold">
+          <div class="small-4 columns" align="right">Available</div>
+          <div class="small-4 columns size-free" align="right"><%= size_format(data.driveFree) %></div>
+          <div class="small-4 columns" align="center"><%= Math.round((data.driveTotal / data.driveFree)*100)/100 %> %</div>
+        </div>
+      </div>
+    </script>
+
     <div class="show-for-small zebra software">
       <a href="#settings/software-advanced"><h1 class="bold" align="center">Advanced Settings</h1></a>
     </div>
@@ -1137,7 +1170,6 @@
       <hr/>
       <h4 class="bold">Logs</h4>
       <button class="secondary radius" data-reveal-id="send-logs-modal">Send logs to AstroPrint</button><br/>
-      Size of logs directory: <span class="size bold"><%= size_format(data.sizeLogs) %></span> <button class="secondary radius tiny" data-reveal-id="delete-logs-modal">Clear</button>
       <div class="row serial-container">
         <div class="small-2 large-1 columns">
           <input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
@@ -1209,7 +1241,7 @@
       <h2 class="bold">Delete AstroPrint logs</h2>
       <div class="modal-body">
         <p>
-          This will delete all your past AstroPrint logs. It will help save space but might
+          This will delete all your past AstroPrint logs. It will help you free up space but might
           prevent us from researching a past problem you might have had.
         </p>
         <p>
@@ -1223,6 +1255,30 @@
         <div class="small-12 medium-6 columns">
           <div class="loading-button expand">
             <button class="alert radius">Delete Logs</button>
+            <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
+          </div>
+        </div>
+      </div>
+      <a class="close-reveal-modal">&#215;</a>
+    </div>
+
+    <div id="delete-files-modal" class="reveal-modal medium radius" data-reveal>
+      <h2 class="bold">Delete Internal Print Files</h2>
+      <div class="modal-body">
+        <p>
+          This will delete all your stored print files. It will help you free up space but you won't will loose any previously uploaded files directly to the box.
+        </p>
+        <p>
+          Are you sure you want to delete all print files?
+        </p>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand">Cancel</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="alert radius">Delete Files</button>
             <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Deleting...</span>
           </div>
         </div>
