@@ -40,8 +40,10 @@ def set_private_key():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
-		except (AstroPrintCloudInsufficientPermissionsException):
-			abort(403, "Insuficient permissions")
+		except (AstroPrintCloudInsufficientPermissionsException) as e:
+			r = jsonify(e.data)
+			r.status_code = 403
+			return r
 
 	elif email and private_key:
 		try:
@@ -50,8 +52,10 @@ def set_private_key():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
-		except (AstroPrintCloudInsufficientPermissionsException):
-			abort(403, "Insuficient permissions")
+		except (AstroPrintCloudInsufficientPermissionsException) as e:
+			r = jsonify(e.data)
+			r.status_code = 403
+			return r
 
 	else:
 		abort(400)

@@ -45,7 +45,8 @@ class AstroPrintCloudException(Exception):
 	pass
 
 class AstroPrintCloudInsufficientPermissionsException(AstroPrintCloudException):
-	pass
+	def __init__(self, data):
+		self.data = data
 
 class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	#There no connection to the astroprint cloud
@@ -351,7 +352,7 @@ class AstroPrintCloud(object):
 				return str(data["private_key"])
 
 		elif r.status_code == 403:
-			raise AstroPrintCloudInsufficientPermissionsException()
+			raise AstroPrintCloudInsufficientPermissionsException(r.json())
 
 		return None
 

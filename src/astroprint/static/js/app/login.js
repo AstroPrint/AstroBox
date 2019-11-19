@@ -46,7 +46,22 @@ var LoginModal = Backbone.View.extend({
         if (xhr.status == 503) {
           errorContainer.text('AstroPrint.com can\'t be reached').show();
         } else if (xhr.status == 403) {
-          errorContainer.text('Insufficient permissions').show();
+          try {
+            var data = JSON.parse(xhr.responseText);
+          } catch (e) {
+            console.error(e);
+          }
+
+          var error = 'Insufficient Permissions';
+          if (data && data.org && data.org.in_org != undefined) {
+            if (data.org.in_org) {
+              error = "Account doesn't have enough permissions to manage controllers in <b>"+data.org.name+"</b>.";
+            } else {
+              error = "The Controller belongs to the <b>"+data.org.name+"</b> Fleet. Account is not part of it.";
+            }
+          }
+
+          errorContainer.html(error).show();
         } else {
           errorContainer.text('Invalid Email/Password').show();
         }
