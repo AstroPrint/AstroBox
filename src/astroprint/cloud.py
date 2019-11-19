@@ -53,9 +53,10 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	pass
 
 class HMACAuth(requests.auth.AuthBase):
-	def __init__(self, publicKey, privateKey):
+	def __init__(self, publicKey, privateKey, boxId):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
+		self.boxId = boxId
 
 	def __call__(self, r):
 		r.headers['User-Agent'] = softwareManager().userAgent
@@ -65,6 +66,7 @@ class HMACAuth(requests.auth.AuthBase):
 
 		r.headers['X-Public'] = self.publicKey
 		r.headers['X-Hash'] = binascii.b2a_base64(hashed.digest())[:-1]
+		r.headers['X-Box-Id'] = self.boxId
 
 		return r
 
@@ -83,7 +85,7 @@ class AstroPrintCloud(object):
 			user = userManager.findUser(loggedUser)
 
 			if user and user.publicKey and user.privateKey:
-				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
+				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, self.boxId)
 
 		self.apiHost = roConfig('cloud.apiHost')
 		self._print_file_store = None
@@ -336,10 +338,12 @@ class AstroPrintCloud(object):
 			"%s/%s" % (self.apiHost , 'auth/privateKey'),
 			data={
 				"email": email,
-				"password": password,
-				"box_id": self.boxId
+				"password": password
 			},
-			headers={'User-Agent': self._sm.userAgent}
+			headers={
+				'User-Agent': self._sm.userAgent,
+				'X-Box-Id': self.boxId
+			}
 		)
 
 		if r.status_code == 200:
@@ -503,7 +507,11 @@ class AstroPrintCloud(object):
 
 		else:
 			errorCb(destFile, 'Unable to download file')
-			return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
+			if r.status_code == 403:
+				return {"id": "no_permissions", "message": "Unable to retrieve file. Insufficient permissions"}
+
+			else:
+				return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
 
 	def manufacturers(self):
 		try:
