@@ -21,7 +21,6 @@ class AuthService(PluginService):
 	#REQUESTS
 
 	def getAccessKeys(self, data, sendResponse):
-
 		publicKey = email = accessKey = None
 
 		if 'email' in data:

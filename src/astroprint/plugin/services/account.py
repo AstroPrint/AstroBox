@@ -3,9 +3,12 @@ __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
+import json
+
 from . import PluginService
+
 from astroprint.boxrouter import boxrouterManager
-from astroprint.cloud import astroprintCloud
+from astroprint.cloud import astroprintCloud, AstroPrintCloudInsufficientPermissionsException
 from octoprint.events import eventManager, Events
 from octoprint.server import userManager
 from octoprint.settings import settings
@@ -41,6 +44,17 @@ class AccountService(PluginService):
 			try:
 				if astroprintCloud().signin(email, password, hasSessionContext= False):
 					callback('login_success')
+
+			except AstroPrintCloudInsufficientPermissionsException as e:
+				self._logger.error("Not enough permissions to login: %s" % json.dumps(e.data))
+				if 'org' in e.data and 'in_org' in e.data['org']:
+					if e.data['org']['in_org']:
+						callback('in_org_no_permissions',True)
+					else:
+						callback('not_in_org',True)
+
+				else:
+					callback('unkonwn_login_error',True)
 
 			except Exception as e:
 				self._logger.error("Error Signing into AstroPrint Cloud: %s" % e)
