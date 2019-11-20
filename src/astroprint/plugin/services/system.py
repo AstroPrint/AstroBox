@@ -71,6 +71,10 @@ class SystemService(PluginService):
 
 			return False
 
+	def apiKey(self, sendResponse=None):
+		if sendResponse:
+			sendResponse(UI_API_KEY)
+
 	##connection
 	def printerConnectionDriver(self, data, sendMessage):
 
