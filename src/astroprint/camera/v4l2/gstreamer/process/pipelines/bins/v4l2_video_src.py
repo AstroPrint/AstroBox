@@ -2,6 +2,8 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
+import platform
+
 from gi.repository import Gst
 
 from .base_video_src import VideoSrcBinBase
@@ -95,13 +97,21 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 
 class UsbVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		#return 'video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
-		return  'video/x-raw,width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
+		distName, distVersion, id = platform.linux_distribution()
+
+		if distVersion.split('.')[0] <= 9:
+			return 'video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
+		else:
+			return  'video/x-raw,width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
 #
 # Base class for Raspicam Based Video sources
 #
 
 class RaspicamVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		#return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
-		return  'video/x-raw,width=%d,height=%d,framerate=30/1' % self._size
+		distName, distVersion, id = platform.linux_distribution()
+
+		if distVersion.split('.')[0] <= 9:
+			return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
+		else:
+			return  'video/x-raw,width=%d,height=%d,framerate=30/1' % self._size
