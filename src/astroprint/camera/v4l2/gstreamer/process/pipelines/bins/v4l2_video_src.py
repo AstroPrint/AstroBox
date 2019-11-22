@@ -24,20 +24,25 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 		self.__videoSourceElement = Gst.ElementFactory.make('v4l2src', 'video_source')
 		self.__videoSourceElement.set_property("device", self._device)
 
+		self.__videoConvertElement = Gst.ElementFactory.make('videoconvert', 'vconvert')
+
 		self.__videoSourceCaps = Gst.ElementFactory.make("capsfilter", "caps_filter")
 		self.__videoSourceCaps.set_property("caps", Gst.Caps.from_string(self._getVideoSourceCaps()))
 
 		#Add Elements to the pipeline
 		self._bin.add(self.__videoSourceElement)
 		self._bin.add(self.__videoSourceCaps)
+		self._bin.add(self.__videoConvertElement)
+
 
 		self.__videoSourceElement.link(self.__videoSourceCaps)
+		self.__videoSourceCaps.link(self.__videoConvertElement)
 
 		width, height = self._size
 
 		#check if we need to rotate the video
 		if self._rotation == 0:
-			lastLink = self.__videoSourceCaps
+			lastLink = self.__videoConvertElement
 
 		else:
 			if self._rotation in [1,3]:
@@ -48,7 +53,7 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 			self.__videoflipElement.set_property("method", self._rotation)
 
 			self._bin.add(self.__videoflipElement)
-			self.__videoSourceCaps.link(self.__videoflipElement)
+			self.__videoConvertElement.link(self.__videoflipElement)
 
 			lastLink = self.__videoflipElement
 
@@ -90,12 +95,13 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 
 class UsbVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		return 'video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
-
+		#return 'video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
+		return  'video/x-raw,width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
 #
 # Base class for Raspicam Based Video sources
 #
 
 class RaspicamVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
+		#return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
+		return  'video/x-raw,width=%d,height=%d,framerate=30/1' % self._size
