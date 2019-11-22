@@ -112,7 +112,8 @@ class GStreamerManager(V4L2Manager):
 		return id
 
 	def removeLocalPeerReq(self,id):
-		self._localPeers.remove(id)
+		if (id in self._localPeers):
+			self._localPeers.remove(id)
 
 		if len(self._localPeers) <= 0:
 			self.stop_local_video_stream()

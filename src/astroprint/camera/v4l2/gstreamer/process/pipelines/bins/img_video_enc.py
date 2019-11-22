@@ -36,7 +36,7 @@ class ImgVideoEncBin(EncoderBin):
 		##################
 
 		##################
-		self.__videoscaleLocalVideoElement = Gst.ElementFactory.make('videoscale', 'vieoscale_local_video')
+		self.__videoscaleLocalVideoElement = Gst.ElementFactory.make('videoscale', 'videoscale_local_video')
 		self.__videoscaleLocalVideoElementCaps = Gst.ElementFactory.make("capsfilter", "caps_filter_local_videoscale")
 		self.__videoscaleLocalVideoElementCaps.set_property("caps",Gst.Caps.from_string("video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=640,pixel-aspect-ratio=1/1"))
 		##################
