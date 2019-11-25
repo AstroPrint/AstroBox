@@ -113,10 +113,7 @@ class PhotoSeqProcessor(Thread):
 
 	def run(self):
 		while not self._stopped:
-
-			self._paused = self._localVideoReq is None
-
-			if self._paused:
+			if self._paused or self._localVideoReq is None:
 				self._startRecordingEvent.wait()
 				self._startRecordingEvent.clear()
 

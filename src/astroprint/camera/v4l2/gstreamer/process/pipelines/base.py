@@ -234,6 +234,8 @@ class GstBasePipeline(object):
 
 		if self._localVideoBin.isLinked:
 			self._localVideoBin.pauseLocalVideo()
+			if doneCallback:
+				doneCallback(True)
 		elif doneCallback:
 			doneCallback(True)
 
