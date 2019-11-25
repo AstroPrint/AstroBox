@@ -18,8 +18,8 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 	def __init__(self, pipeline, device, size, rotation):
 		distName, distVersion, id = platform.linux_distribution()
 
-		self._linuxDistVersion = distVersion.split('.')
-		self.__useVideoConvert = self._linuxDistVersion[0] > 9
+		self._linuxDistVersion = int(distVersion.split('.')[0])
+		self.__useVideoConvert = self._linuxDistVersion > 9
 		self.__videoSourceElement = None
 		self.__videoConvertElement = None
 		self.__videoLogoElement = None
@@ -107,7 +107,7 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 
 class UsbVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		if self._linuxDistVersion[0] <= 9:
+		if self._linuxDistVersion <= 9:
 			return 'video/x-raw,format={ I420, YV12, Y41B, Y42B, YVYU, Y444, NV21, NV12, RGB, BGR, RGBx, xRGB, BGRx, xBGR, GRAY8 },width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
 		else:
 			return  'video/x-raw,width=%d,height=%d,framerate={ 5/1, 10/1, 15/1, 25/1, 30/1 }' % self._size
@@ -117,7 +117,7 @@ class UsbVideoSrcBin(V4L2VideoSrcBin):
 
 class RaspicamVideoSrcBin(V4L2VideoSrcBin):
 	def _getVideoSourceCaps(self):
-		if self._linuxDistVersion[0] <= 9:
+		if self._linuxDistVersion <= 9:
 			return 'video/x-raw,format=I420,width=%d,height=%d,framerate=30/1' % self._size
 		else:
 			return  'video/x-raw,width=%d,height=%d,framerate=30/1' % self._size
