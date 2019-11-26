@@ -266,16 +266,17 @@ class PrinterMarlin(Printer):
 
 		self.estimatedTimeLeft = None
 		self.timePercentPreviousLayers = 0
-		self.originalTotalPrintTime = self._comm.totalPrintTime
 
-		self.analyzedInfoDecider()
+		self.analyzedInfoDecider(self._comm.timePerLayers, self._comm.totalPrintTime)
 
 		self._comm.startPrint()
 
-	def analyzedInfoDecider(self):
-		if self._comm.timePerLayers:
+	def analyzedInfoDecider(self, timePerLayers, totalPrintTime):
+		if timePerLayers and totalPrintTime:
 			self.mcLayerChange = self.mcLayerChangeImproved
 			self.mcProgress = self.mcProgressImproved
+			self.originalTotalPrintTime = totalPrintTime
+
 		else:
 			self.mcLayerChange = lambda layer: super(PrinterMarlin, self).mcLayerChange(layer)
 			self.mcProgress = lambda: super(PrinterMarlin, self).mcProgress()

@@ -694,7 +694,7 @@ class MachineCom(object):
 		self.total_filament = None#total_filament has not got any information
 
 		if self._callback and self._callback.analyzedInfoDecider:
-			self._callback.analyzedInfoDecider()
+			self._callback.analyzedInfoDecider(self.timePerLayers, self.totalPrintTime)
 
 	def cbGCodeAnalyzerException(self,parameters):
 		self._logger.warn("There was a problem using /usr/bin/astroprint/GCodeAnalyzer... using alternative algorithm")
