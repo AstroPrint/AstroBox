@@ -59,7 +59,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._logger = logging.getLogger(__name__)
 		self._condition = threading.Condition()
 		self._messageHandler = BoxRouterMessageHandler(self._weakRefRouter, self)
-		super(AstroprintBoxRouterClient, self).__init__(hostname)
+		super(AstroprintBoxRouterClient, self).__init__(hostname, headers=[('user-agent',softwareManager().userAgent)])
 
 	def __del__(self):
 		self.unregisterEvents()
