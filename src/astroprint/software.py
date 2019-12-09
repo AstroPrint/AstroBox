@@ -504,7 +504,7 @@ class SoftwareManager(object):
 					data['releases'].append(packageData)
 
 		except Exception as e:
-			self._logger.error('Error getting software release info: %s' % e)
+			self._logger.error('Error getting software release info: %s' % e, exc_info=True)
 			return None
 
 		return data

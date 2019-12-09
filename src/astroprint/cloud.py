@@ -53,12 +53,13 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	pass
 
 class HMACAuth(requests.auth.AuthBase):
-	def __init__(self, publicKey, privateKey, boxId):
+	def __init__(self, publicKey, privateKey):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
-		self.boxId = boxId
 
 	def __call__(self, r):
+		sm = softwareManager()
+
 		r.headers['User-Agent'] = softwareManager().userAgent
 		sig_base = '&'.join((r.method, r.headers['User-Agent']))
 
@@ -66,7 +67,7 @@ class HMACAuth(requests.auth.AuthBase):
 
 		r.headers['X-Public'] = self.publicKey
 		r.headers['X-Hash'] = binascii.b2a_base64(hashed.digest())[:-1]
-		r.headers['X-Box-Id'] = self.boxId
+		r.headers['X-Box-Id'] = astroprintCloud().boxId
 
 		return r
 
@@ -85,7 +86,7 @@ class AstroPrintCloud(object):
 			user = userManager.findUser(loggedUser)
 
 			if user and user.publicKey and user.privateKey:
-				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, self.boxId)
+				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
 
 		self.apiHost = roConfig('cloud.apiHost')
 		self._print_file_store = None
