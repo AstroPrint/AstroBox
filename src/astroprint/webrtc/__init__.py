@@ -224,7 +224,7 @@ class WebRtc(object):
 
 			nm = networkManager()
 			if nm.isOnline():
-				args.append('/etc/astrobox/janus/janus.jcfg')
+				args.append('/etc/astrobox/janus/janus.cfg')
 			else:
 				self._logger.error('local video would not be loaded like webrtc video')
 				return False
