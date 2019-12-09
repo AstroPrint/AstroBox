@@ -220,11 +220,11 @@ class WebRtc(object):
 				self._logger.debug('Janus was already running')
 				return True #already running
 
-			args = ['/usr/bin/janus', '-F', '/etc/astrobox/janus', '-C']
+			args = ['/opt/janus/bin/janus', '-F', '/etc/astrobox/janus', '-C']
 
 			nm = networkManager()
 			if nm.isOnline():
-				args.append('/etc/astrobox/janus/janus.cfg')
+				args.append('/etc/astrobox/janus/janus.jcfg')
 			else:
 				self._logger.error('local video would not be loaded like webrtc video')
 				return False
