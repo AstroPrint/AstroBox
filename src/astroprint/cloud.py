@@ -89,6 +89,7 @@ class AstroPrintCloud(object):
 
 		self.apiHost = roConfig('cloud.apiHost')
 		self._print_file_store = None
+		self._cloudPrintJobDataId = None
 		self._sm = softwareManager()
 		self._logger = logging.getLogger(__name__)
 
@@ -643,9 +644,16 @@ class AstroPrintCloud(object):
 		else:
 			return None
 
+	def setCloudPrintJobData(self, jobId):
+		self._cloudPrintJobDataId = jobId
+
 	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None ):
 		if self.cloud_enabled():
 			try:
+				if not id and self._cloudPrintJobDataId:
+					id = self._cloudPrintJobDataId
+					self.setCloudPrintJobData(None)
+
 				if id:
 
 					data = {'status': status}
