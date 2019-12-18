@@ -120,10 +120,9 @@ class RequestHandler(object):
 			)
 
 		def successCb(destFile, fileInfo):
-			astroprintCloud().setCloudPrintJobData(print_job_id)
 			printer = printerManager()
 			abosluteFilename = printer.fileManager.getAbsolutePath(destFile)
-			if printer.selectFile(abosluteFilename, False, True):
+			if printer.selectFile(abosluteFilename, False, True, print_job_id):
 				eventData = {
 					'id': print_file_id,
 					'progress': 100,
@@ -133,6 +132,7 @@ class RequestHandler(object):
 					eventData['printjob_id'] = printer.currentPrintJobId
 
 			else:
+				astroprintCloud().setCloudPrintJobData(None)
 				eventData = {
 					'id': print_file_id,
 					'progress': 100,

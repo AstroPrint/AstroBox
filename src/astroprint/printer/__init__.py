@@ -447,7 +447,7 @@ class Printer(object):
 		data = self._formatPrintingProgressData(progress, filepos, printTime, printTimeLeft, currentLayer)
 		self._stateMonitor.setProgress(data)
 
-	def startPrint(self):
+	def startPrint(self, printJobId=None):
 		"""
 		 Starts the currently loaded print job.
 		 Only starts if the printer is connected and operational, not currently printing and a printjob is loaded
@@ -461,7 +461,8 @@ class Printer(object):
 		self._setCurrentZ(None)
 
 		kwargs = {
-			'print_file_name': os.path.basename(self._selectedFile['filename'])
+			'print_file_name': os.path.basename(self._selectedFile['filename']),
+			'id': printJobId
 		}
 
 		if self._selectedFile['cloudId']:
@@ -691,7 +692,7 @@ class Printer(object):
 
 	# ~~~ File Management ~~~~
 
-	def selectFile(self, filename, sd, printAfterSelect=False):
+	def selectFile(self, filename, sd, printAfterSelect=False, printJobId=None):
 		if not self.isConnected() or self.isBusy() or self.isStreaming():
 			self._logger.info("Cannot load file: printer not connected or currently busy")
 			return False
@@ -722,7 +723,7 @@ class Printer(object):
 		}
 
 		if printAfterSelect:
-			self.startPrint()
+			self.startPrint(printJobId)
 
 		return True
 

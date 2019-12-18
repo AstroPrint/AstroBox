@@ -647,15 +647,10 @@ class AstroPrintCloud(object):
 	def setCloudPrintJobData(self, jobId):
 		self._cloudPrintJobDataId = jobId
 
-	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None ):
+	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None):
 		if self.cloud_enabled():
 			try:
-				if not id and self._cloudPrintJobDataId:
-					id = self._cloudPrintJobDataId
-					self.setCloudPrintJobData(None)
-
 				if id:
-
 					data = {'status': status}
 
 					if reason:

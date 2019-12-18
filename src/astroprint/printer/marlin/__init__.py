@@ -244,10 +244,10 @@ class PrinterMarlin(Printer):
 		elif type == "bed":
 			self.command("M140 S%f" % min(value, self._profileManager.data.get('max_bed_temp')))
 
-	def selectFile(self, filename, sd, printAfterSelect=False):
+	def selectFile(self, filename, sd, printAfterSelect=False, printJobId=None):
 		if self._comm.selectFile(filename, sd) and super(PrinterMarlin, self).selectFile(filename, sd, False):
 			if printAfterSelect:
-				self.startPrint()
+				self.startPrint(printJobId)
 
 			return True
 
@@ -260,8 +260,8 @@ class PrinterMarlin(Printer):
 		else:
 			return False
 
-	def startPrint(self):
-		if not super(PrinterMarlin, self).startPrint():
+	def startPrint(self, printJobId=None):
+		if not super(PrinterMarlin, self).startPrint(printJobId):
 			return
 
 		self.estimatedTimeLeft = None
