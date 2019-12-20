@@ -132,7 +132,6 @@ class RequestHandler(object):
 					eventData['printjob_id'] = printer.currentPrintJobId
 
 			else:
-				astroprintCloud().setCloudPrintJobData(None)
 				eventData = {
 					'id': print_file_id,
 					'progress': 100,
