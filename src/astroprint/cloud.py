@@ -644,11 +644,10 @@ class AstroPrintCloud(object):
 		else:
 			return None
 
-	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None ):
+	def print_job(self, id= None, print_file_id= None, print_file_name= None, status= 'started', reason= None, materialUsed= None):
 		if self.cloud_enabled():
 			try:
 				if id:
-
 					data = {'status': status}
 
 					if reason:

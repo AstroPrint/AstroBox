@@ -492,11 +492,11 @@ class PrinterS3g(Printer):
 					"origin": self._currentFile['origin']
 				})
 
-	def selectFile(self, filename, sd, printAfterSelect=False):
+	def selectFile(self, filename, sd, printAfterSelect=False, printJobId= None):
 		if sd:
 			raise('Printing from SD card is not supported for the S3G Driver')
 
-		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect)
+		return super(PrinterS3g, self).selectFile(filename, sd, printAfterSelect, printJobId)
 
 	def getPrintTime(self):
 		if self._currentFile is None or self._currentFile['start_time'] is None:
@@ -531,8 +531,8 @@ class PrinterS3g(Printer):
 
 		return self._currentFile['progress']
 
-	def startPrint(self):
-		if not super(PrinterS3g, self).startPrint():
+	def startPrint(self, printJobId=None):
+		if not super(PrinterS3g, self).startPrint(printJobId):
 			return
 
 		if not self.isOperational() or self.isPrinting():

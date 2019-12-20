@@ -69,11 +69,11 @@ class PrinterWithPlugin(Printer):
 		pass
 		#return self._sdFiles
 
-	def selectFile(self, filename, sd, printAfterSelect=False):
+	def selectFile(self, filename, sd, printAfterSelect=False, printJobId=None):
 		if sd and not self._plugin.allowSDCardPrinting:
 			raise('Printing from SD card is not supported on this printer')
 
-		if not super(PrinterWithPlugin, self).selectFile(filename, sd, printAfterSelect):
+		if not super(PrinterWithPlugin, self).selectFile(filename, sd, printAfterSelect, printJobId):
 			return False
 
 		if not os.path.exists(filename) or not os.path.isfile(filename):
@@ -103,8 +103,8 @@ class PrinterWithPlugin(Printer):
 
 		return True
 
-	def startPrint(self):
-		if not super(PrinterWithPlugin, self).startPrint():
+	def startPrint(self, printJobId=None):
+		if not super(PrinterWithPlugin, self).startPrint(printJobId):
 			return
 
 		if not self.isOperational() or self.isPrinting():
