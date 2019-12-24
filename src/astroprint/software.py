@@ -601,7 +601,7 @@ class SoftwareManager(object):
 		if platformStr == "linux" or platformStr == "linux2":
 			actions = self._settings.get(["system", "actions"])
 			for a in actions:
-				if a['action'] == 'astrobox-restart':
+				if a['action'] == 'reboot':
 					#Call to Popen will start the restart command but return inmediately before it completes
 					threading.Timer(1.0, subprocess.Popen, [a['command'].split(' ')]).start()
 					self._logger.info('Restart command scheduled')
