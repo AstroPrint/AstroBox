@@ -199,7 +199,6 @@ var PrinterProfileView = SettingsPage.extend({
   {
     e.preventDefault();
 
-
     var currentPrinterID = $('#printer-name').data("id");
 
     if (currentPrinterID) {
@@ -207,12 +206,10 @@ var PrinterProfileView = SettingsPage.extend({
       loadingBtn.addClass('loading');
       app.astroprintApi.getModelInfo(currentPrinterID)
         .done(_.bind(function (info) {
-
           var data = {
             'currentPrinter_id': currentPrinterID,
             'manufacturer_id': info.manufacturer_id,
           }
-
 
           if (!this.printerSelectorDlg) {
             this.printerSelectorDlg = new PrinterSelectorDialog({parent: this});

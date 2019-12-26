@@ -412,9 +412,10 @@ var WiFiNetworkPasswordDialog = Backbone.View.extend({
 
 var StepAstroprint = StepView.extend({
   el: "#step-astroprint",
-  initialize: function()
+  constructor: function()
   {
     this.events["click a.logout"] = "onLogoutClicked";
+    StepView.apply(this, arguments);
   },
   onShow: function()
   {
@@ -724,7 +725,32 @@ var StepPrinterSelection = StepView.extend({
           loadingBtn.removeClass('loading');
         }, this))
     } else {
-      window.location.href = "/#astroprint";
+      // Update printer profile with selected printer
+      $.ajax({
+        url: API_BASEURL + 'printer-profile',
+        method: 'PATCH',
+        data: JSON.stringify({
+          printer_model: {
+            id: null,
+            name: null
+          }
+        }),
+        contentType: 'application/json',
+        dataType: 'json'
+      }, this)
+        .done(_.bind(function () {
+          window.location.href = "/#astroprint";
+        }, this))
+        .fail(_.bind(function () {
+          loadingBtn.addClass('failed');
+
+          setTimeout(function () {
+            loadingBtn.removeClass('failed');
+          }, 3000);
+        }, this))
+        .always(function () {
+          loadingBtn.removeClass('loading');
+        });
     }
   },
 
