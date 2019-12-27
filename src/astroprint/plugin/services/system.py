@@ -135,11 +135,11 @@ class SystemService(PluginService):
 		sendResponse('invalid_printer_connection_settings',True)
 
 	def connectionCommand(self, data, sendResponse):
-		valid_commands = {
-			"connect": ["autoconnect"],
-			"disconnect": [],
-			"reconnect": []
-		}
+		# valid_commands = {
+		# 	"connect": ["autoconnect"],
+		# 	"disconnect": [],
+		# 	"reconnect": []
+		# }
 
 		command = data['command']
 
@@ -148,7 +148,7 @@ class SystemService(PluginService):
 		if command in ["connect", "reconnect"]:
 			s = settings()
 
-			driver = None
+			#driver = None
 			port = None
 			baudrate = None
 
@@ -447,7 +447,7 @@ class SystemService(PluginService):
 						try:
 							if os.path.isfile(p):
 								os.unlink(p)
-						except Exception, e:
+						except Exception:
 							pass
 
 			emptyFolder(s.get(['folder', 'uploads']) or s.getBaseFolder('uploads'))
@@ -490,7 +490,7 @@ class SystemService(PluginService):
 			else:
 				sendMessage("error_rebooting",True)
 
-		except Exception as e:
+		except Exception:
 			self._logger.error('unsuccessfully factory settings restored', exc_info = True)
 			sendMessage("error_restoring_factory_settings",True)
 
@@ -525,7 +525,7 @@ class SystemService(PluginService):
 		sendResponse("error_init_update", True)
 
 	def sendLogs(self,data,sendResponse):
-		if softwareManager.sendLogs(request.values.get('ticket', None), request.values.get('message', None)):
+		if softwareManager.sendLogs(data['ticket'], data['message']):
 			sendResponse({'success': 'no_error'})
 		else:
 			sendResponse("error_sending_logs",True)
