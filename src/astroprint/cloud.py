@@ -518,13 +518,13 @@ class AstroPrintCloud(object):
 		try:
 			r = requests.get( "%s/v2/manufacturers" % (self.apiHost), auth=self.hmacAuth )
 			data = r.json()
-		except:
+		except Exception:
 			data = None
 
 		if data:
-			return json.dumps({'manufacturers': data})
+			return {'manufacturers': data}
 		else:
-			return { 'error': 'invalid_data'}
+			return { 'error': 'invalid_data' }
 
 	def printerModels(self, manufacturer_id):
 		try:
@@ -534,7 +534,7 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data:
-			return json.dumps({'printer_models': data})
+			return {'printer_models': data}
 		else:
 			return { 'error': 'invalid_data'}
 
@@ -546,9 +546,10 @@ class AstroPrintCloud(object):
 			data = None
 
 		if data:
-			return json.dumps({'printer_model': data})
+			return {'printer_model': data}
 		else:
 			return { 'error': 'invalid_data'}
+
 	def getPrintFile(self, cloudId):
 		if not self._print_file_store:
 			self._sync_print_file_store()

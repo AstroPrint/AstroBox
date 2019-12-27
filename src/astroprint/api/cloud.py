@@ -164,21 +164,30 @@ def designs():
 
 @api.route("/astroprint/manufacturers/", methods=["GET"])
 def manufacturers():
-	manufacturers = json.loads(astroprintCloud().manufacturers())
+	manufacturers = astroprintCloud().manufacturers()
 
-	return json.dumps(manufacturers)
+	if 'error' in manufacturers:
+		return abort(500, manufacturers['error'])
+	else:
+		return json.dumps(manufacturers)
 
 @api.route("/astroprint/manufacturers/<string:manufacturer_id>/models", methods=["GET"])
 def printerModels(manufacturer_id):
-	printerModels = json.loads(astroprintCloud().printerModels(manufacturer_id))
+	printerModels = astroprintCloud().printerModels(manufacturer_id)
 
-	return json.dumps(printerModels)
+	if 'error' in printerModels:
+		return abort(500, printerModels['error'])
+	else:
+		return json.dumps(printerModels)
 
 @api.route("/astroprint/manufacturers/models/<string:model_id>", methods=["GET"])
 def printerModel(model_id):
-	printerModel = json.loads(astroprintCloud().printerModel(model_id))
+	printerModel = astroprintCloud().printerModel(model_id)
 
-	return json.dumps(printerModel)
+	if 'error' in printerModel:
+		return abort(500, printerModel['error'])
+	else:
+		return json.dumps(printerModel)
 
 @api.route("/astroprint/print-files/<string:print_file_id>/download", methods=["GET"])
 @restricted_access

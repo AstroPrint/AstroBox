@@ -19,6 +19,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
 from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.cloud import astroprintCloud
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from octoprint.server import softwareManager, UI_API_KEY
@@ -218,23 +219,18 @@ class SystemService(PluginService):
 			sendMessage( result )
 
 	def manufacturers(self, data, sendMessage):
-		from astroprint.cloud import astroprintCloud
-		import json
-
 		try:
-			manufacturers = json.loads(astroprintCloud().manufacturers())
+			manufacturers = astroprintCloud().manufacturers()
 			sendMessage( manufacturers )
+
 		except Exception as e:
 			self._logger.error('There was an error getting manufacturers', exc_info = True)
 			sendMessage("error_getting_manufacturers",True)
 
 	def printerModelInfo(self, data, sendMessage):
-		from astroprint.cloud import astroprintCloud
-		import json
-
 		if "printer_model_id" in data:
 			try:
-				printerModel = json.loads(astroprintCloud().printerModel(data['printer_model_id']))
+				printerModel = astroprintCloud().printerModel(data['printer_model_id'])
 				sendMessage( printerModel )
 
 			except Exception as e:
@@ -244,12 +240,9 @@ class SystemService(PluginService):
 			sendMessage("invalid_params",True)
 
 	def printerModels(self, data, sendMessage):
-		from astroprint.cloud import astroprintCloud
-		import json
-
 		if "manufacturer_id" in data:
 			try:
-				printerModels = json.loads(astroprintCloud().printerModels(data['manufacturer_id']))
+				printerModels = astroprintCloud().printerModels(data['manufacturer_id'])
 				sendMessage( printerModels )
 			except Exception as e:
 				self._logger.error('There was and error getting printer models', exc_info = True)
