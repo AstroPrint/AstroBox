@@ -469,14 +469,18 @@ def updateSoftwareVersion():
 
 	else:
 		data = request.get_json()
+		total, used, free  = platformManager().driveStats()
 
-		if 'release_ids' in data:
-			if softwareManager.updateSoftware(data['release_ids']):
-				return jsonify()
+		if free > 1073741824: # 1 GB
+			if 'release_ids' in data:
+				if softwareManager.updateSoftware(data['release_ids']):
+					return jsonify()
+				else:
+					return ("Unable to update", 500)
 			else:
-				return ("Unable to update", 500)
+				return ("Invalid data", 400)
 		else:
-			return ("Invalid data", 400)
+			return ("Not enough space", 507)
 
 @api.route("/settings/software/restart", methods=['POST'])
 @restricted_access

@@ -2269,6 +2269,8 @@ var SoftwareUpdateDialog = Backbone.View.extend({
       error: function(xhr) {
         if (xhr.status == 400) {
           noty({text: xhr.responseText, timeout: 3000});
+        } if (xhr.status == 507) {
+          noty({ text: "Available internal storage below 1 GB. Please free up some space to update.", timeout: 6000 });
         } else {
           noty({text: "There was a problem updating to the new version.", timeout: 3000});
         }

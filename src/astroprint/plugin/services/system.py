@@ -19,6 +19,7 @@ from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
 from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.ab_platform import platformManager
 from astroprint.cloud import astroprintCloud
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
@@ -517,10 +518,16 @@ class SystemService(PluginService):
 			sendResponse("error_checking_update",True)
 
 	def updateSoftwareVersion(self,data,sendResponse):
-		if 'release_ids' in data:
-			if softwareManager.updateSoftware(data['release_ids']):
-				sendResponse({'success': 'no_error'})
-				return
+		total, used, free = platformManager().driveStats()
+
+		if free > 1073741824: # 1 GB
+			if 'release_ids' in data:
+				if softwareManager.updateSoftware(data['release_ids']):
+					sendResponse({'success': 'no_error'})
+					return
+		else:
+			sendResponse("error_insufficient_storage", True)
+			return
 
 		sendResponse("error_init_update", True)
 
