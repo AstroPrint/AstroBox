@@ -113,22 +113,21 @@ class MachineCom(object):
 		self._positionWhenPaused = {}
 
 		# regexes
-		floatPattern = "[-+]?[0-9]*\.?[0-9]+"
-		positiveFloatPattern = "[+]?[0-9]*\.?[0-9]+"
-		intPattern = "\d+"
-		self._regex_command = re.compile("^\s*([GM]\d+|T)")
+		floatPattern = r"[-+]?[0-9]*\.?[0-9]+"
+		intPattern = r"\d+"
+		self._regex_command = re.compile(r"^\s*([GM]\d+|T)")
 		self._regex_float = re.compile(floatPattern)
-		self._regex_paramZFloat = re.compile("Z(%s)" % floatPattern)
-		self._regex_paramEFloat = re.compile("E(%s)" % floatPattern)
-		self._regex_paramSInt = re.compile("S(%s)" % intPattern)
-		self._regex_paramNInt = re.compile("N(%s)" % intPattern)
-		self._regex_paramTInt = re.compile("T(%s)" % intPattern)
-		self._regex_extrusion = re.compile("E%s" % positiveFloatPattern)
-		self._regex_extruder = re.compile("E:(%s)" % positiveFloatPattern)
-		self._regex_minMaxError = re.compile("Error:[0-9]\n")
-		#self._regex_sdPrintingByte = re.compile("([0-9]*)/([0-9]*)")
-		#self._regex_sdFileOpened = re.compile("File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
-		self._regex_M114Response = re.compile("X:\s*(%s)\s?Y:\s*(%s)\s?Z:\s*(%s)\s?E:\s*(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
+		self._regex_paramZFloat = re.compile(r"Z(%s)" % floatPattern)
+		self._regex_paramEFloat = re.compile(r"E(%s)" % floatPattern)
+		self._regex_paramSInt = re.compile(r"S(%s)" % intPattern)
+		self._regex_paramNInt = re.compile(r"N(%s)" % intPattern)
+		self._regex_paramTInt = re.compile(r"T(%s)" % intPattern)
+		self._regex_extrusion = re.compile(r"E%s" % positiveFloatPattern)
+		self._regex_extruder = re.compile(r"E:(%s)" % positiveFloatPattern)
+		self._regex_minMaxError = re.compile(r"Error:[0-9]\n")
+		#self._regex_sdPrintingByte = re.compile(r"([0-9]*)/([0-9]*)")
+		#self._regex_sdFileOpened = re.compile(r"File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
+		self._regex_M114Response = re.compile(r"X:\s*(%s)\s?Y:\s*(%s)\s?Z:\s*(%s)\s?E:\s*(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
 
 		# Regex matching temperature entries in line. Groups will be as follows:
 		# - 1: whole tool designator incl. optional toolNumber ("T", "Tn", "B")
@@ -136,9 +135,9 @@ class MachineCom(object):
 		# - 3: actual temperature
 		# - 4: whole target substring, if given (e.g. " / 22.0")
 		# - 5: target temperature
-		self._regex_temp = re.compile("(B|T(\d*)):\s*(%s)(\s*\/?\s*(%s))?" % (positiveFloatPattern, positiveFloatPattern))
-		self._regex_repetierTempExtr = re.compile("TargetExtr([0-9]+):(%s)" % positiveFloatPattern)
-		self._regex_repetierTempBed = re.compile("TargetBed:(%s)" % positiveFloatPattern)
+		self._regex_temp = re.compile(r"(B|T(\d*)):\s*(%s)(\s*\/?\s*(%s))?" % (positiveFloatPattern, positiveFloatPattern))
+		self._regex_repetierTempExtr = re.compile(r"TargetExtr([0-9]+):(%s)" % positiveFloatPattern)
+		self._regex_repetierTempBed = re.compile(r"TargetBed:(%s)" % positiveFloatPattern)
 
 		# multithreading locks as these functions can be called from different threads
 		self._sendingLock = threading.Lock()
@@ -338,6 +337,7 @@ class MachineCom(object):
 
 			self._serial = None
 
+			em = eventManager()
 			# if self._settings.get(["feature", "sdSupport"]):
 			# 	self._sdFileList = []
 
@@ -349,9 +349,9 @@ class MachineCom(object):
 						"filename": os.path.basename(self._currentFile.getFilename()),
 						"origin": self._currentFile.getFileLocation()
 					}
-				eventManager().fire(Events.PRINT_FAILED, payload)
+				em.fire(Events.PRINT_FAILED, payload)
 
-			eventManager().fire(Events.DISCONNECTED)
+			em.fire(Events.DISCONNECTED)
 
 	def sendCommand(self, cmd):
 		cmd = cmd.encode('ascii', 'replace')
@@ -967,7 +967,7 @@ class MachineCom(object):
 
 					elif time.time() > timeout:
 						self._logger.warn('Printer did not respond in time')
-						self.close()
+						self._callback.disconnect()
 
 				### Operational
 				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
