@@ -28,6 +28,7 @@
         <li class="software-license"><a href="#settings/software-license">License</a></li>
         <li class="software-update"><a href="#settings/software-update">Update</a></li>
         <li class="software-storage"><a href="#settings/software-storage">Internal Storage</a></li>
+        <li class="software-logs"><a href="#settings/software-logs">Logs</a></li>
         <li class="software-advanced"><a href="#settings/software-advanced">Advanced</a></li>
       </ul>
     </div>
@@ -1141,6 +1142,44 @@
       <a href="#settings/software-advanced"><h1 class="bold" align="center">Advanced Settings</h1></a>
     </div>
 
+    <div id="software-logs" class="settings-page hide" align="center"></div>
+
+    <script type="text/template" id="software-logs-content-template">
+      <div class="element-list">
+        <% for(var i=0; i<data.files.length; i++) { %>
+          <% var f = data.files[i] %>
+          <div class="row">
+            <div class="small-7 columns" align="left"><%= f.name %></div>
+            <div class="small-3 columns size-logs" align="right"><%= size_format(f.size) %></div>
+            <div class="small-2 columns"><a href="/downloads/logs/<%= f.name %>"><i class="icon-download-cloud"></i></a></div>
+          </div>
+        <% } %>
+      </div>
+      <hr/>
+      <div class="row">
+        <div class="small-12 medium-6 columns">
+          <button class="alert radius expand" data-reveal-id="delete-logs-modal"><i class="icon-trash"></i> Delete Logs</button><br/>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand" data-reveal-id="send-logs-modal"><i class="icon-send"></i> Send logs to AstroPrint</button><br/>
+        </div>
+      </div>
+      <div class="row serial-container">
+        <div class="small-2 large-1 columns">
+          <input id="serial-logs" type="checkbox" <% if (data.serialActivated) { %> value="yes" checked <% } %>/>
+        </div>
+        <div class="small-10 large-11 columns">
+          <label for="serial-off">
+            <b>
+              Turn on serial logs.
+            </b>
+            <i class="icon-attention"></i>You should only use this while helping solve a
+              communication problem with your printer. This generates a large amount of data.
+          </label>
+        </div>
+      </div>
+    </script>
+
     <div id="software-advanced" class="settings-page hide" align="center"></div>
 
     <script type="text/template" id="software-advanced-content-template">
@@ -1217,8 +1256,8 @@
         <p>This sends us your device logs so we can help analyze your problem.</p>
         <p>
           <label>
-            Do you have a support ticket? If not, consider <a href="https://astroprint.zendesk.com" target="_support">creating one</a>.
-            <input type="text" name="ticket" placeholder="Enter support ticket # or leave empty"/>
+            Do you have a support ticket? If not, consider <a href="https://astroprint.zendesk.com/hc" target="_support">creating one</a>.
+            <input type="number" name="ticket" placeholder="Enter support ticket number (optional)"/>
           </label>
           <textarea name="message" placeholder="Let us know what's going on (optional)"></textarea>
         </p>

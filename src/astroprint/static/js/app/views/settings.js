@@ -2321,6 +2321,73 @@ var SoftwareStorageView = SettingsPage.extend({
 });
 
 /************************
+* Software - Logs
+*************************/
+
+var SoftwareLogsView = SettingsPage.extend({
+  el: '#software-logs',
+  template: null,
+  sendLogDialog: null,
+  settings: null,
+  events: {
+    'change #serial-logs': 'serialLogChanged'
+  },
+  initialize: function () {
+    SettingsPage.prototype.initialize.apply(this, arguments);
+    this.sendLogDialog = new SendLogDialog();
+  },
+  show: function () {
+    //Call Super
+    SettingsPage.prototype.show.apply(this);
+
+    if (!this.settings) {
+      $.getJSON(API_BASEURL + 'settings/software/logs', null, _.bind(function (data) {
+        this.settings = data;
+        this.render();
+      }, this))
+        .fail(function () {
+          noty({ text: "There was an error getting software logs settings.", timeout: 3000 });
+        });
+    }
+  },
+  render: function () {
+    if (!this.template) {
+      this.template = _.template($("#software-logs-content-template").html());
+    }
+
+    this.$el.html(this.template({
+      data: this.settings,
+      size_format: app.utils.sizeFormat
+    }));
+  },
+  serialLogChanged: function (e) {
+    var target = $(e.currentTarget);
+    var active = target.is(':checked');
+
+    $.ajax({
+      url: '/api/settings/software/logs/serial',
+      method: 'PUT',
+      data: JSON.stringify({
+        'active': active
+      }),
+      contentType: 'application/json',
+      dataType: 'json'
+    })
+      .done(function () {
+        if (active) {
+          $('#app').addClass('serial-log');
+        } else {
+          $('#app').removeClass('serial-log');
+        }
+      })
+      .fail(function () {
+        noty({ text: "There was an error changing serial logs.", timeout: 3000 });
+        target.prop('checked', !active);
+      });
+  }
+});
+
+/************************
 * Software - Advanced
 *************************/
 
@@ -2647,6 +2714,7 @@ var SettingsView = Backbone.View.extend({
       'wifi-hotspot': new WifiHotspotView({parent: this}),
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
+      'software-logs': new SoftwareLogsView({ parent: this }),
       'software-advanced': new SoftwareAdvancedView({parent: this}),
       'software-storage': new SoftwareStorageView({parent: this}),
       'software-license': new SoftwareLicenseView({parent: this})

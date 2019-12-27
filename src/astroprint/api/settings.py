@@ -343,6 +343,19 @@ def getAdvancedSoftwareSettings():
 		updateChannel= s.getInt(['software', 'channel'])
 	)
 
+@api.route("/settings/software/logs", methods=["GET"])
+@restricted_access
+def getLogSoftwareSettings():
+	s = settings()
+	pm = platformManager()
+
+	#Get files in the logs directory
+
+	return jsonify(
+		serialActivated= s.getBoolean(['serial', 'log']),
+		files= pm.listLogs()
+	)
+
 @api.route("/settings/software/advanced/apikey", methods=["PUT"])
 @restricted_access
 def changeApiKeySettings():

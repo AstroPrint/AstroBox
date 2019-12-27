@@ -17,6 +17,13 @@ def platformManager():
 	return _instance
 
 class PlatformManager(object):
+	def listLogs(self):
+		s = settings()
+
+		logsDir = s.getBaseFolder("logs")
+
+		return [{'name': f, 'size': os.path.getsize(os.path.join(logsDir, f))} for f in os.listdir(logsDir)]
+
 	def logsSize(self):
 		s = settings()
 
