@@ -221,9 +221,13 @@ class SystemService(PluginService):
 	def manufacturers(self, data, sendMessage):
 		try:
 			manufacturers = astroprintCloud().manufacturers()
-			sendMessage( manufacturers )
 
-		except Exception as e:
+			if 'error' in manufacturers:
+				sendMessage("error_getting_manufacturers",True)
+			else:
+				sendMessage( manufacturers )
+
+		except Exception:
 			self._logger.error('There was an error getting manufacturers', exc_info = True)
 			sendMessage("error_getting_manufacturers",True)
 
@@ -231,9 +235,13 @@ class SystemService(PluginService):
 		if "printer_model_id" in data:
 			try:
 				printerModel = astroprintCloud().printerModel(data['printer_model_id'])
-				sendMessage( printerModel )
 
-			except Exception as e:
+				if 'error' in printerModel:
+					sendMessage("error_getting_printer_info",True)
+				else:
+					sendMessage( printerModel )
+
+			except Exception:
 				self._logger.error('There was an error getting Printer model info', exc_info = True)
 				sendMessage("error_getting_printer_info",True)
 		else:
@@ -243,8 +251,13 @@ class SystemService(PluginService):
 		if "manufacturer_id" in data:
 			try:
 				printerModels = astroprintCloud().printerModels(data['manufacturer_id'])
-				sendMessage( printerModels )
-			except Exception as e:
+
+				if 'error' in printerModels:
+					sendMessage("error_getting_printer_models",True)
+				else:
+					sendMessage( printerModels )
+
+			except Exception:
 				self._logger.error('There was and error getting printer models', exc_info = True)
 				sendMessage("error_getting_printer_models",True)
 		else:
