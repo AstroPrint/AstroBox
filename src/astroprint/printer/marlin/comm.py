@@ -114,6 +114,7 @@ class MachineCom(object):
 
 		# regexes
 		floatPattern = r"[-+]?[0-9]*\.?[0-9]+"
+		positiveFloatPattern = r"[+]?[0-9]*\.?[0-9]+"
 		intPattern = r"\d+"
 		self._regex_command = re.compile(r"^\s*([GM]\d+|T)")
 		self._regex_float = re.compile(floatPattern)
