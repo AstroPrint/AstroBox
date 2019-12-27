@@ -123,6 +123,7 @@
 			<div class="small-12<%= p.images.square ? ' medium-7 large-8' : '' %> columns">
 				<div class="actions">
 					<% if (p.local_filename) { %>
+            <a class="download-local" href="/downloads/files/local/<%= p.local_filename %>" title="Save locally"><i class="icon-download"></i></a>
 						<div class="loading-button">
 							<a class="remove idle" href="#">
 								<i class="icon-trash with-separator" title="Remove from {{mfDefinition.variant.product_name}}"></i>

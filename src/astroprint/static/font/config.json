@@ -617,6 +617,12 @@
       "search": [
         "ethernet"
       ]
+    },
+    {
+      "uid": "9a76bc135eac17d2c8b8ad4a5774fc87",
+      "css": "download",
+      "code": 59452,
+      "src": "fontawesome"
     }
   ]
 }
