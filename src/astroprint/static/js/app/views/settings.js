@@ -2287,12 +2287,13 @@ var SoftwareUpdateDialog = Backbone.View.extend({
 var SoftwareStorageView = SettingsPage.extend({
   el: '#software-storage',
   template: null,
-  clearLogDialog: null,
   deleteFilesDialog: null,
   settings: null,
+  events: {
+    'click a.delete-logs': 'onDeleteLogsClicked'
+  },
   initialize: function () {
     SettingsPage.prototype.initialize.apply(this, arguments);
-    this.clearLogDialog = new ClearLogsDialog({ parent: this });
     this.deleteFilesDialog = new DeleteFilesDialog({ parent: this });
   },
   show: function () {
@@ -2302,7 +2303,7 @@ var SoftwareStorageView = SettingsPage.extend({
   },
   refresh: function()
   {
-    $.getJSON(API_BASEURL + 'settings/software/storage', null, _.bind(function (data) {
+    return $.getJSON(API_BASEURL + 'settings/software/storage', null, _.bind(function (data) {
       this.settings = data;
       this.render();
     }, this))
@@ -2319,6 +2320,11 @@ var SoftwareStorageView = SettingsPage.extend({
       data: this.settings,
       size_format: app.utils.sizeFormat
     }));
+  },
+  onDeleteLogsClicked: function(e)
+  {
+    e.preventDefault();
+    ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
   }
 });
 
@@ -2332,7 +2338,8 @@ var SoftwareLogsView = SettingsPage.extend({
   sendLogDialog: null,
   settings: null,
   events: {
-    'change #serial-logs': 'serialLogChanged'
+    'change #serial-logs': 'serialLogChanged',
+    'click button.delete-logs': 'onDeleteLogsClicked'
   },
   initialize: function () {
     SettingsPage.prototype.initialize.apply(this, arguments);
@@ -2343,14 +2350,18 @@ var SoftwareLogsView = SettingsPage.extend({
     SettingsPage.prototype.show.apply(this);
 
     if (!this.settings) {
-      $.getJSON(API_BASEURL + 'settings/software/logs', null, _.bind(function (data) {
-        this.settings = data;
-        this.render();
-      }, this))
-        .fail(function () {
-          noty({ text: "There was an error getting software logs settings.", timeout: 3000 });
-        });
+      this.refresh()
     }
+  },
+  refresh: function()
+  {
+    return $.getJSON(API_BASEURL + 'settings/software/logs', null, _.bind(function (data) {
+      this.settings = data;
+      this.render();
+    }, this))
+      .fail(function () {
+        noty({ text: "There was an error getting software logs settings.", timeout: 3000 });
+      });
   },
   render: function () {
     if (!this.template) {
@@ -2386,6 +2397,10 @@ var SoftwareLogsView = SettingsPage.extend({
         noty({ text: "There was an error changing serial logs.", timeout: 3000 });
         target.prop('checked', !active);
       });
+  },
+  onDeleteLogsClicked: function (e) {
+    e.preventDefault();
+    ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
   }
 });
 
@@ -2558,19 +2573,24 @@ var SendLogDialog = Backbone.View.extend({
 
 var ClearLogsDialog = Backbone.View.extend({
   el: '#delete-logs-modal',
+  onLogsCleared: null,
   events: {
     'click button.secondary': 'doClose',
     'click button.alert': 'doDelete',
-    'open.fndtn.reveal': 'onOpen'
+    'close.fndtn.reveal': 'onClose'
   },
-  parent: null,
-  initialize: function(options)
+  open: function(onLogsCleared)
   {
-    this.parent = options.parent;
+    this.onLogsCleared = onLogsCleared;
+    this.$el.foundation('reveal', 'open');
   },
   doClose: function()
   {
     this.$el.foundation('reveal', 'close');
+  },
+  onClose: function()
+  {
+    this.onLogsCleared = null
   },
   doDelete: function()
   {
@@ -2580,20 +2600,35 @@ var ClearLogsDialog = Backbone.View.extend({
       type: 'DELETE',
       contentType: 'application/json',
       dataType: 'json',
-      data: JSON.stringify({}),
-      success: _.bind(function() {
-        this.parent.refresh();
-        this.doClose()
-      }, this),
-      error: function(){
-        noty({text: "There was a problem clearing your logs.", timeout: 3000});
-      },
-      complete: _.bind(function() {
-        this.$('.loading-button').removeClass('loading');
-      }, this)
+      data: JSON.stringify({})
     })
+      .done(_.bind(function() {
+        var r = null
+
+        if (this.onLogsCleared) {
+          r = this.onLogsCleared()
+        }
+        this.doClose()
+        return r
+      }, this))
+      .fail(function() {
+        noty({text: "There was a problem clearing your logs.", timeout: 3000});
+      })
+      .always(_.bind(function() {
+        this.$('.loading-button').removeClass('loading');
+      }, this))
   }
 });
+
+var clearLogDialog = null
+ClearLogsDialog.getInstance = function()
+{
+  if (!clearLogDialog) {
+    clearLogDialog = new ClearLogsDialog()
+  }
+
+  return clearLogDialog
+}
 
 var DeleteFilesDialog = Backbone.View.extend({
   el: '#delete-files-modal',
