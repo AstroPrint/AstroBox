@@ -2342,13 +2342,11 @@ var SoftwareLogsView = SettingsPage.extend({
     'click button.delete-logs': 'onDeleteLogsClicked',
     'click button.send-logs': 'onSendLogsClicked'
   },
-  show: function () {
+  show: function ()
+  {
     //Call Super
     SettingsPage.prototype.show.apply(this);
-
-    if (!this.settings) {
-      this.refresh()
-    }
+    this.refresh()
   },
   refresh: function()
   {
