@@ -2339,11 +2339,8 @@ var SoftwareLogsView = SettingsPage.extend({
   settings: null,
   events: {
     'change #serial-logs': 'serialLogChanged',
-    'click button.delete-logs': 'onDeleteLogsClicked'
-  },
-  initialize: function () {
-    SettingsPage.prototype.initialize.apply(this, arguments);
-    this.sendLogDialog = new SendLogDialog();
+    'click button.delete-logs': 'onDeleteLogsClicked',
+    'click button.send-logs': 'onSendLogsClicked'
   },
   show: function () {
     //Call Super
@@ -2398,9 +2395,15 @@ var SoftwareLogsView = SettingsPage.extend({
         target.prop('checked', !active);
       });
   },
-  onDeleteLogsClicked: function (e) {
+  onDeleteLogsClicked: function (e)
+  {
     e.preventDefault();
     ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
+  },
+  onSendLogsClicked: function(e)
+  {
+    e.preventDefault();
+    SendLogDialog.getInstance().open()
   }
 });
 
@@ -2417,13 +2420,13 @@ var SoftwareAdvancedView = SettingsPage.extend({
   events: {
     'change #serial-logs': 'serialLogChanged',
     'change #apikey-regenerate': 'regenerateApiKeyChange',
-    'change select.update-channel': 'onUpdateChannelChanged'
+    'change select.update-channel': 'onUpdateChannelChanged',
+    'click button.send-logs': 'onSendLogsClicked'
   },
   initialize: function()
   {
     SettingsPage.prototype.initialize.apply(this, arguments);
     this.resetConfirmDialog = new ResetConfirmDialog();
-    this.sendLogDialog = new SendLogDialog();
   },
   show: function()
   {
@@ -2523,6 +2526,10 @@ var SoftwareAdvancedView = SettingsPage.extend({
       this.settings.updateChannel = oldValue;
       select.val(oldValue);
     }, this));
+  },
+  onSendLogsClicked: function (e) {
+    e.preventDefault();
+    SendLogDialog.getInstance().open()
   }
 });
 
@@ -2532,6 +2539,10 @@ var SendLogDialog = Backbone.View.extend({
     'click button.secondary': 'doClose',
     'click button.success': 'doSend',
     'open.fndtn.reveal': 'onOpen'
+  },
+  open: function ()
+  {
+    this.$el.foundation('reveal', 'open');
   },
   onOpen: function()
   {
@@ -2628,6 +2639,16 @@ ClearLogsDialog.getInstance = function()
   }
 
   return clearLogDialog
+}
+
+var sendLogDialog = null
+SendLogDialog.getInstance = function()
+{
+  if (!sendLogDialog) {
+    sendLogDialog = new SendLogDialog()
+  }
+
+  return sendLogDialog
 }
 
 var DeleteFilesDialog = Backbone.View.extend({
