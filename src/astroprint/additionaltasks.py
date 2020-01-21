@@ -156,6 +156,9 @@ class AdditionalTasksManager(object):
 			tasksDir = settings().getBaseFolder('tasks')
 			taskPath = os.path.join(tasksDir, "%s.yaml" % tId)
 
+			def handlerError(func, path, exc_info):
+				self._logger.info("Unable to remove assets dir from [%s]" % tId)
+
 			# Check if task file exists => remove it
 			if os.path.exists(taskPath) and os.path.isfile(taskPath):
 				os.remove(taskPath)
@@ -164,7 +167,8 @@ class AdditionalTasksManager(object):
 				#remove asset dir
 				taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
 				if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
-					shutil.rmtree((taskAssetsDir), True, self._logger.info("Unable to remove assets dir from [%s]" % tId))
+
+					shutil.rmtree((taskAssetsDir), False, onerror=handlerError)
 
 				return {'removed': tId}
 
@@ -174,7 +178,7 @@ class AdditionalTasksManager(object):
 			taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
 			if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
 				self._logger.info("Found old assets dir from [%s.yaml], removing..." % tId)
-				shutil.rmtree((taskAssetsDir), True, self._logger.info("Unable to remove assets dir from [%s]" % tId))
+				shutil.rmtree((taskAssetsDir), False, onerror=handlerError)
 
 			return {'removed': tId}
 		else:
