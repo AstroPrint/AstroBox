@@ -53,12 +53,14 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	pass
 
 class HMACAuth(requests.auth.AuthBase):
-	def __init__(self, publicKey, privateKey):
+	def __init__(self, publicKey, privateKey, groupId = None, orgId = None):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
+		self.groupId = groupId
+		self.orgId = groupId
+		self.isOnFleet = self.groupId and self.orgId
 
 	def __call__(self, r):
-		sm = softwareManager()
 
 		r.headers['User-Agent'] = softwareManager().userAgent
 		sig_base = '&'.join((r.method, r.headers['User-Agent']))
@@ -68,6 +70,9 @@ class HMACAuth(requests.auth.AuthBase):
 		r.headers['X-Public'] = self.publicKey
 		r.headers['X-Hash'] = binascii.b2a_base64(hashed.digest())[:-1]
 		r.headers['X-Box-Id'] = astroprintCloud().boxId
+		if self.isOnFleet:
+			r.headers['X-Org-Id'] = self.orgId
+			r.headers['X-Group-Id'] = self.groupId
 
 		return r
 
@@ -76,8 +81,14 @@ class AstroPrintCloud(object):
 		self.settings = settings()
 		self.hmacAuth = None
 		self.boxId = boxrouterManager().boxId
+		self._groupId = False
 
 		self.tryingLoggingTimes = 0
+
+		self.apiHost = roConfig('cloud.apiHost')
+		self._print_file_store = None
+		self._sm = softwareManager()
+		self._logger = logging.getLogger(__name__)
 
 		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 		if loggedUser:
@@ -87,11 +98,44 @@ class AstroPrintCloud(object):
 
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
+				self.getFleetInfo()
+				eventManager().subscribe(Events.GROUP_FLEET_INFO, self.updateFleetInfo)
 
-		self.apiHost = roConfig('cloud.apiHost')
-		self._print_file_store = None
-		self._sm = softwareManager()
-		self._logger = logging.getLogger(__name__)
+
+	def updateHmacAuth(self, groupId, orgId):
+		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
+		from octoprint.server import userManager
+		user = userManager.findUser(loggedUser)
+		self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, groupId, orgId)
+
+	@property
+	def groupId(self):
+		if not self._groupId:
+			groupIdFile = "%s/group-id" % self.settings.getConfigFolder()
+
+			if os.path.exists(groupIdFile):
+				with open(groupIdFile, 'r') as f:
+					self._groupId = f.read().strip()
+
+			if self._groupId is False:
+				self.saveGroupId(None)
+
+		return self._groupId
+
+	def saveGroupId(self, groupId):
+		groupIdFile = "%s/group-id" % self.settings.getConfigFolder()
+		with open(groupIdFile, 'w') as f:
+			f.write(groupId)
+		self._groupId = groupId
+
+	def updateFleetInfo(self, event, groupId):
+		if self.groupId != groupId:
+			if groupId:
+				self.getFleetInfo()
+			else:
+				self.orgId = None
+				self.saveGroupId(None)
+
 
 	def cloud_enabled(self):
 		return roConfig('cloud.apiHost') and self.hmacAuth
@@ -623,6 +667,28 @@ class AstroPrintCloud(object):
 			except Exception as e:
 				self._logger.error("Failed to send updateBoxrouterData request: %s" % e)
 		return False
+
+	def getFleetInfo(self):
+		if self.cloud_enabled():
+			try:
+				r = requests.get(
+					"%s/astrobox/%s/fleet-info" % (self.apiHost , self.boxId),
+					auth= self.hmacAuth
+				)
+				data = r.json()
+				r.raise_for_status()
+
+				if self.groupId != data['group_id']:
+					self.saveGroupId(data['group_id'])
+					self.updateHmacAuth(data['group_id'], data['organization_id'])
+
+			except requests.exceptions.HTTPError as err:
+				if (err.response.status_code == 401 or self.groupId):
+					self._logger.warning(err.response.status_code)
+					self.saveGroupId(None)
+					self.remove_logged_user()
+			except requests.exceptions.RequestException as e:
+				self._logger.error(e)
 
 	def uploadImageFile(self, print_id, imageBuf):
 		try:

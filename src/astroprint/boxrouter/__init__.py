@@ -438,6 +438,10 @@ class AstroprintBoxRouter(object):
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.authenticated = True
+				if 'groupId' in data:
+					self._eventManager.fire(Events.ASTROPRINT_STATUS, data['groupId'])
+				else:
+					self._eventManager.fire(Events.ASTROPRINT_STATUS, None)
 				self._retries = 0
 				self._retryTimer = None
 				self.status = self.STATUS_CONNECTED
