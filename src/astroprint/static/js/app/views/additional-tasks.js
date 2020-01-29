@@ -265,7 +265,9 @@ var DeleteTaskDialog = Backbone.View.extend({
         this.parent.refreshTaskList();
         this.doClose();
       }, this))
-      .fail(function(){
+      .fail(function(e){
+        console.error(e.responseText)
+        noty({ text: e.responseText ? e.responseText : 'There was an error removing your file', timeout: 6000 });
         loadingBtn.addClass('failed');
         setTimeout(function(){
           loadingBtn.removeClass('failed');

@@ -31,6 +31,7 @@ class AdditionalTasksManager(object):
 		self._settings = settings()
 		self._logger = logging.getLogger(__name__)
 		self.data = []
+		self.errorOnRemove = None
 
 		self._logger.info("Loading Additional Tasks...")
 
@@ -155,9 +156,11 @@ class AdditionalTasksManager(object):
 
 			tasksDir = settings().getBaseFolder('tasks')
 			taskPath = os.path.join(tasksDir, "%s.yaml" % tId)
+			self.errorOnRemove = None
 
 			def handlerError(func, path, exc_info):
-				self._logger.info("Unable to remove assets dir from [%s]" % tId)
+				self._logger.error("Unable to remove assets from [%s], path '%s': %s" % (tId, path, exc_info[1][1]))
+				self.errorOnRemove = "Error removing assets from '%s': [%s]" % (path, exc_info[1][1])
 
 			# Check if task file exists => remove it
 			if os.path.exists(taskPath) and os.path.isfile(taskPath):
@@ -167,10 +170,12 @@ class AdditionalTasksManager(object):
 				#remove asset dir
 				taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
 				if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
+					shutil.rmtree((taskAssetsDir), False, handlerError)
 
-					shutil.rmtree((taskAssetsDir), False, onerror=handlerError)
-
-				return {'removed': tId}
+				if self.errorOnRemove:
+					return {'error': self.errorOnRemove}
+				else:
+					return {'removed': tId}
 
 			# No task file found, check for assets dir anyway to clean
 			self._logger.info("File [%s.yaml] not found, remove from view." % tId)
@@ -178,8 +183,11 @@ class AdditionalTasksManager(object):
 			taskAssetsDir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'static', 'img', 'variant', tId)
 			if os.path.exists(taskAssetsDir) and os.path.isdir(taskAssetsDir):
 				self._logger.info("Found old assets dir from [%s.yaml], removing..." % tId)
-				shutil.rmtree((taskAssetsDir), False, onerror=handlerError)
+				shutil.rmtree((taskAssetsDir), False, handlerError)
 
-			return {'removed': tId}
+			if self.errorOnRemove:
+				return {'error': self.errorOnRemove}
+			else:
+				return {'removed': tId}
 		else:
 			return {'error': 'not_found'}
