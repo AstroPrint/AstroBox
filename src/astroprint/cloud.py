@@ -9,6 +9,7 @@ def astroprintCloud():
 	global _instance
 	if _instance is None:
 		_instance = AstroPrintCloud()
+		_instance.getFleetInfo()
 	return _instance
 
 import requests
@@ -16,6 +17,7 @@ import hmac
 import binascii
 import uuid
 import os
+import yaml
 import json
 import logging
 
@@ -57,7 +59,7 @@ class HMACAuth(requests.auth.AuthBase):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 		self.groupId = groupId
-		self.orgId = groupId
+		self.orgId = orgId
 		self.isOnFleet = self.groupId and self.orgId
 
 	def __call__(self, r):
@@ -81,6 +83,7 @@ class AstroPrintCloud(object):
 		self.settings = settings()
 		self.hmacAuth = None
 		self.boxId = boxrouterManager().boxId
+		self.fleetInfo =  "%s/fleet-info.yaml" % self.settings.getConfigFolder()
 		self._groupId = False
 
 		self.tryingLoggingTimes = 0
@@ -98,7 +101,6 @@ class AstroPrintCloud(object):
 
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
-				self.getFleetInfo()
 				eventManager().subscribe(Events.GROUP_FLEET_INFO, self.updateFleetInfo)
 
 
@@ -111,11 +113,11 @@ class AstroPrintCloud(object):
 	@property
 	def groupId(self):
 		if not self._groupId:
-			groupIdFile = "%s/group-id" % self.settings.getConfigFolder()
-
-			if os.path.exists(groupIdFile):
-				with open(groupIdFile, 'r') as f:
-					self._groupId = f.read().strip()
+			if os.path.exists(self.fleetInfo):
+				with open(self.fleetInfo, "r") as f:
+					fleetInfo = yaml.safe_load(f)
+					if fleetInfo and fleetInfo['group_id']:
+						self._groupId = fleetInfo['group_id'].encode('rot-13')
 
 			if self._groupId is False:
 				self.saveGroupId(None)
@@ -123,9 +125,10 @@ class AstroPrintCloud(object):
 		return self._groupId
 
 	def saveGroupId(self, groupId):
-		groupIdFile = "%s/group-id" % self.settings.getConfigFolder()
-		with open(groupIdFile, 'w') as f:
-			f.write(groupId)
+		with open(self.fleetInfo, "wb") as infoFile:
+			if groupId:
+				groupId =  groupId.encode('rot-13')
+			yaml.safe_dump({"group_id" : groupId}, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
 		self._groupId = groupId
 
 	def updateFleetInfo(self, event, groupId):
@@ -304,6 +307,7 @@ class AstroPrintCloud(object):
 		self.settings.set(["printerSelected"], None)
 		self.settings.set(["qualitySelected"], None)
 		self.settings.set(["customQualitySelected"], None)
+		self.saveGroupId(None)
 		self.settings.save()
 		boxrouterManager().boxrouter_disconnect()
 
@@ -671,21 +675,19 @@ class AstroPrintCloud(object):
 	def getFleetInfo(self):
 		if self.cloud_enabled():
 			try:
-				r = requests.get(
-					"%s/astrobox/%s/fleet-info" % (self.apiHost , self.boxId),
-					auth= self.hmacAuth
-				)
-				data = r.json()
+				r = requests.get("%s/astrobox/%s/fleetinfo" % (self.apiHost, self.boxId),
+						auth=self.hmacAuth
+					)
 				r.raise_for_status()
+				data = r.json()
 
-				if self.groupId != data['group_id']:
-					self.saveGroupId(data['group_id'])
-					self.updateHmacAuth(data['group_id'], data['organization_id'])
+				self.saveGroupId(data['group_id'])
+				self.updateHmacAuth(data['group_id'], data['organization_id'])
 
 			except requests.exceptions.HTTPError as err:
-				if (err.response.status_code == 401 or self.groupId):
-					self._logger.warning(err.response.status_code)
-					self.saveGroupId(None)
+				self._logger.warning(err.response.status_code)
+				if (err.response.status_code == 401 or (err.response.status_code == 404 and self.groupId)):
+					self._logger.info("Box is not longer in a fleet group where user has permission")
 					self.remove_logged_user()
 			except requests.exceptions.RequestException as e:
 				self._logger.error(e)
