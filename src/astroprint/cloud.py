@@ -101,7 +101,6 @@ class AstroPrintCloud(object):
 
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey)
-				eventManager().subscribe(Events.GROUP_FLEET_INFO, self.updateFleetInfo)
 
 
 	def updateHmacAuth(self, groupId, orgId):
@@ -131,7 +130,7 @@ class AstroPrintCloud(object):
 			yaml.safe_dump({"group_id" : groupId}, infoFile, default_flow_style=False, indent="    ", allow_unicode=True)
 		self._groupId = groupId
 
-	def updateFleetInfo(self, event, groupId):
+	def updateFleetInfo(self, groupId):
 		if self.groupId != groupId:
 			if groupId:
 				self.getFleetInfo()
@@ -685,7 +684,6 @@ class AstroPrintCloud(object):
 				self.updateHmacAuth(data['group_id'], data['organization_id'])
 
 			except requests.exceptions.HTTPError as err:
-				self._logger.warning(err.response.status_code)
 				if (err.response.status_code == 401 or (err.response.status_code == 404 and self.groupId)):
 					self._logger.info("Box is not longer in a fleet group where user has permission")
 					self.remove_logged_user()

@@ -41,6 +41,8 @@ from astroprint.network.manager import networkManager
 from astroprint.software import softwareManager
 from astroprint.printer.manager import printerManager
 from astroprint.ro_config import roConfig
+from astroprint.cloud import astroprintCloud
+
 
 from .handlers import BoxRouterMessageHandler
 from .systemlistener import SystemListener
@@ -439,9 +441,12 @@ class AstroprintBoxRouter(object):
 				self._logger.info("Connected to astroprint service")
 				self.authenticated = True
 				if 'groupId' in data:
-					self._eventManager.fire(Events.ASTROPRINT_STATUS, data['groupId'])
+					astroprintCloud().updateFleetInfo(data['groupId'])
+					self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : data['groupId']})
 				else:
-					self._eventManager.fire(Events.ASTROPRINT_STATUS, None)
+					astroprintCloud().updateFleetInfo(None)
+					self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : None})
+
 				self._retries = 0
 				self._retryTimer = None
 				self.status = self.STATUS_CONNECTED
