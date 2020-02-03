@@ -689,6 +689,9 @@ class AstroPrintCloud(object):
 					self.remove_logged_user()
 			except requests.exceptions.RequestException as e:
 				self._logger.error(e)
+		else:
+			self.orgId = None
+			self.saveGroupId(None)
 
 	def uploadImageFile(self, print_id, imageBuf):
 		try:

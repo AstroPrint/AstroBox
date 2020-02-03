@@ -68,6 +68,7 @@ from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
+from astroprint.cloud import astroprintCloud
 from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
@@ -98,6 +99,7 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+	onFleet = astroprintCloud().groupId
 	publicKey = None
 
 	if loggedUsername:
@@ -163,6 +165,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
+			on_fleet = onFleet,
 			userPublicKey= publicKey,
 			show_bad_shutdown= swm.wasBadShutdown and not swm.badShutdownShown,
 			version= VERSION,

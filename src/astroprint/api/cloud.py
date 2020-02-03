@@ -101,7 +101,9 @@ def upload_data():
 @restricted_access
 def designs():
 	forceSyncCloud = request.args.get('forceSyncCloud')
-	cloud_files = json.loads(astroprintCloud().print_files(forceSyncCloud))
+	cloud_files = None
+	if not astroprintCloud().groupId:
+		cloud_files = json.loads(astroprintCloud().print_files(forceSyncCloud))
 	local_files = list(printerManager().fileManager.getAllFileData())
 
 	if cloud_files:

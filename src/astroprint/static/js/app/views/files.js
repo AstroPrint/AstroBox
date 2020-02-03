@@ -200,6 +200,7 @@ var PrintFileView = Backbone.View.extend({
   printWhenDownloaded: false,
   downloadProgress: null,
   queueAllowed: false,
+  launchingAp : false,
   events: {
     'click .left-section, .middle-section': 'infoClicked',
     'click a.print': 'printClicked',
@@ -372,10 +373,10 @@ var StorageControlView = Backbone.View.extend({
   initialize: function(options)
   {
     this.print_file_view = options.print_file_view;
-    //cloud default selection
+    //local default selection
     this.$('a.active').removeClass('active');
-    this.$('a.cloud').addClass('active');
-    this.selected = 'cloud';
+    this.$('a.local').addClass('active');
+    this.selected = 'local';
   },
   _cleanUrlNavigation: function(location){
     return location.replace(/\/+/g, "/");
@@ -421,12 +422,30 @@ var StorageControlView = Backbone.View.extend({
   cloudClicked: function(e)
   {
     e.preventDefault();
-    $('h3.printablefiles-message').removeClass('hide');
+    $('h3.printablefiles-message').removeClass('hide')
 
     if (LOGGED_USER) {
-      this.selectStorage('cloud');
+      if(ON_FLEET){
+        if (!this.launchingAp) {
+          this.launchingAp = true;
+          $.getJSON(API_BASEURL+'astroprint/login-key')
+            .done(function(data){
+              const url = 'http://cloud.astroprint.test/account/loginKey/'+data.login_key + "?redirect=files&fleetpage=true"
+              const win = window.open(url, '_blank')
+              win.focus();
+            })
+            .fail(function(){
+              location.href = 'http://cloud.astroprint.test/account/login'
+            })
+            .always(_.bind(function(){
+              this.launchingAp = false;
+            }, this));
+        }
+      } else {
+        this.selectStorage('cloud')
+      }
     } else {
-      $('#login-modal').foundation('reveal', 'open');
+      $('#login-modal').foundation('reveal', 'open')
     }
   }
 });
@@ -855,6 +874,7 @@ var PrintFilesListView = Backbone.View.extend({
             break;
 
           case 'cloud':
+            this.refresh('cloud').always(function(){loadingArea.removeClass("loading")});
           case 'local':
             this.refresh('cloud').always(function(){loadingArea.removeClass("loading")});
         }

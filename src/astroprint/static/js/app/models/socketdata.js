@@ -18,6 +18,7 @@ var SocketData = Backbone.Model.extend({
   _autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
   currentState: 0,
   loggedUser: LOGGED_USER, //username or null
+  onFleet: ON_FLEET,
   defaults: {
     box_reachable: 'unreachable', //unreachable, reachable, checking
     online: false,
