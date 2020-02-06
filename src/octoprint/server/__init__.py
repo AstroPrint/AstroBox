@@ -243,6 +243,7 @@ def getStatus():
 		json.dumps({
 			'id': boxrouterManager().boxId,
 			'name': networkManager().getHostname(),
+			'groupId' : astroprintCloud().groupId,
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
 			'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,

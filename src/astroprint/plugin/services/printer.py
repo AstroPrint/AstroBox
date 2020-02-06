@@ -9,6 +9,7 @@ from octoprint.settings import settings
 from astroprint.camera import cameraManager
 from astroprint.network.manager import networkManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.cloud import astroprintCloud
 from astroprint.printer.manager import printerManager
 from astroprint.printerprofile import printerProfileManager
 
@@ -81,6 +82,7 @@ class PrinterService(PluginService):
 		return {
 				'id': boxrouterManager().boxId,
 				'name': networkManager().getHostname(),
+				'groupId' : astroprintCloud().groupId,
 				'printing': printer.isPrinting(),
 				'fileName': fileName,
 				'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,

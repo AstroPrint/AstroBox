@@ -331,7 +331,7 @@ class PluginManager(object):
 			if self._accountService is None:
 				from .services.account import AccountService
 
-				self._accountService = AcoountService()
+				self._accountService = AccountService()
 
 			return self._accountService
 

@@ -22,13 +22,16 @@ class UserManager(object):
 			return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
 		return None
 
-	def addUser(self, username, password, publicKey, privateKey, active, roles):
+	def addUser(self, username, password, publicKey, privateKey, orgId, groupId, active, roles):
 		pass
 
 	def changeUserActivation(self, username, active):
 		pass
 
-	def changeCloudAccessKeys(self, username, publicKey, privateKey):
+	def changeCloudAccessKeys(self, username, publicKey, privateKey, orgId, groupId):
+		pass
+
+	def changeUserFleetInfo(self, username, orgId, groupId):
 		pass
 
 	def changeUserRoles(self, username, roles):
@@ -80,13 +83,19 @@ class FilebasedUserManager(UserManager):
 						apikey = None
 						publicKey = None
 						privateKey = None
+						orgId = None
+						groupId = None
 						if "apikey" in attributes:
 							apikey = attributes["apikey"]
 						if "publicKey" in attributes:
 							publicKey = attributes['publicKey']
 						if 'privateKey' in attributes:
 							privateKey = attributes['privateKey']
-						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey)
+						if 'orgId' in attributes:
+							orgId = attributes['orgId']
+						if 'groupId' in attributes:
+							groupId = attributes['groupId']
+						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey, orgId, groupId)
 		else:
 			self._customized = False
 
@@ -111,17 +120,19 @@ class FilebasedUserManager(UserManager):
 				"roles": user._roles,
 				"apikey": user._apikey,
 				"publicKey": user.publicKey,
-				"privateKey": user.privateKey
+				"privateKey": user.privateKey,
+				"orgId" : user.orgId,
+				"groupId" : user.groupId
 			}
 
 		with open(self._userfile, "wb") as f:
 			yaml.safe_dump(data, f, default_flow_style=False, indent="    ", allow_unicode=True)
 			self._dirty = False
 
-	def addUser(self, username, password, publicKey, privateKey, active=False, roles=["user"], apikey=None):
+	def addUser(self, username, password, publicKey, privateKey, orgId, groupId, active=False, roles=["user"], apikey=None):
 		if username in self._users.keys():
 			raise UserAlreadyExists(username)
-		user = User(username, UserManager.createPasswordHash(password), active, roles, publicKey, privateKey, apikey)
+		user = User(username, UserManager.createPasswordHash(password), active, roles, publicKey, privateKey, apikey, orgId, groupId)
 		self._users[username] = user
 		self._dirty = True
 		self._save()
@@ -136,15 +147,25 @@ class FilebasedUserManager(UserManager):
 			self._dirty = True
 			self._save()
 
-	def changeCloudAccessKeys(self, username, publicKey, privateKey):
+	def changeCloudAccessKeys(self, username, publicKey, privateKey, orgId = None, groupId = None):
 		if not username in self._users.keys():
 			raise UnknownUser(username)
 
 		if publicKey and privateKey:
 			self._users[username].publicKey = str(publicKey)
 			self._users[username].privateKey = str(privateKey)
+			self._users[username].orgId = str(orgId)
+			self._users[username].groupId = str(groupId)
 			self._dirty = True
 			self._save()
+
+	def changeUserFleetInfo(self, username, orgId = None, groupId = None):
+		if not username in self._users.keys():
+			raise UnknownUser(username)
+
+		self._users[username].publicKey = str(orgId)
+		self._users[username].privateKey = str(groupId)
+		self._save()
 
 	def changeUserRoles(self, username, roles):
 		if not username in self._users.keys():
@@ -255,7 +276,7 @@ class UnknownRole(Exception):
 ##~~ User object
 
 class User(UserMixin):
-	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None):
+	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None, orgId = None, groupId = None):
 		self._username = username
 		self._passwordHash = passwordHash
 		self._active = active
@@ -263,6 +284,8 @@ class User(UserMixin):
 		self._apikey = apikey
 		self.publicKey = publicKey
 		self.privateKey = privateKey
+		self.orgId = orgId
+		self.groupId = groupId
 
 	def asDict(self):
 		return {
@@ -272,7 +295,9 @@ class User(UserMixin):
 			"user": self.is_user(),
 			"apikey": self._apikey,
 			"privateKey": self.privateKey,
-			"publicKey": self.publicKey
+			"publicKey": self.publicKey,
+			"orgId" : self.orgId,
+			"groupId" : self.groupId
 		}
 
 	def check_password(self, passwordHash):
