@@ -681,7 +681,7 @@ class AstroPrintCloud(object):
 
 			except requests.exceptions.HTTPError as err:
 				if (err.response.status_code == 401 or (self.hmacAuth.groupId and err.response.status_code == 404)):
-					self._logger.info("Box is not longer in a fleet group where user has permission")
+					self._logger.info("Box is in a fleet group where user does not have permission, logout")
 					#User could be alredy removed by Box Router
 					loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 					if loggedUser:
