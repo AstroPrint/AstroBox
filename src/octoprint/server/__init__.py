@@ -99,7 +99,7 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
-	onFleet = astroprintCloud().groupId
+	onFleet = astroprintCloud().isOnFleet
 	publicKey = None
 
 	if loggedUsername:
@@ -243,7 +243,7 @@ def getStatus():
 		json.dumps({
 			'id': boxrouterManager().boxId,
 			'name': networkManager().getHostname(),
-			'groupId' : astroprintCloud().groupId,
+			'isOnFleet' : astroprintCloud().isOnFleet,
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
 			'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,
@@ -450,10 +450,14 @@ class Server():
 
 		#Start some of the managers here to make sure there are no thread collisions
 		from astroprint.network.manager import networkManager
-		from astroprint.boxrouter import boxrouterManager
+		##from astroprint.boxrouter import boxrouterManager
 
 		networkManager()
-		boxrouterManager()
+		#boxrouterManager()
+		#This call also initialize boxrouter
+		logger.info("Initializing  astroprintCloud on starting")
+		astroprintCloud().callFleetInfo()
+
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()

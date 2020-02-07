@@ -154,8 +154,11 @@ class FilebasedUserManager(UserManager):
 		if publicKey and privateKey:
 			self._users[username].publicKey = str(publicKey)
 			self._users[username].privateKey = str(privateKey)
-			self._users[username].orgId = str(orgId)
-			self._users[username].groupId = str(groupId)
+			if orgId:
+				orgId = str(orgId)
+				groupId = str(groupId)
+			self._users[username].orgId = orgId
+			self._users[username].groupId = groupId
 			self._dirty = True
 			self._save()
 

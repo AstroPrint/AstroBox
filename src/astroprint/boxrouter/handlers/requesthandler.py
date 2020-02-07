@@ -104,7 +104,7 @@ class RequestHandler(object):
 		self._logger.info("Box has been joined to a fleet group")
 		em = eventManager()
 		em.fire(Events.FLEET_STATUS, data)
-		astroprintCloud().updateFleetInfo(data['groupId'])
+		astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
 		done(None)
 
 	def print_file(self, data, clientId, done):

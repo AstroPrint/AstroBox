@@ -436,22 +436,15 @@ class AstroprintBoxRouter(object):
 				self.close()
 				if 'should_retry' in data and data['should_retry']:
 					self._doRetry()
+				if 'type' in data and data['type'] == 'unable_to_authenticate':
+					astroprintCloud().remove_logged_user()
 
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.authenticated = True
 				if 'groupId' in data:
-					#TODO SOON BR WILL PROVIDE ORGID
-					#astroprintCloud().updateFleetInfo(data['groupId'], data['orgId'])
-					print "LETS UPDATE FLEET INFO"
-					astroprintCloud().updateFleetInfo(data['groupId'])
-					#self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : data['groupId'], "orgId" : data['orgId']})
-					self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : data['groupId']})
-				else:
-					print "LETS UPDATE FLEET INFO2"
-					astroprintCloud().updateFleetInfo(None, None)
-					self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : None, "orgId" : None})
-					#self._eventManager.fire(Events.FLEET_STATUS, {"groupId" : data['groupId'], "orgId" : data['orgId']})
+					astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
+					self._eventManager.fire(Events.FLEET_STATUS, {"orgId" : data['orgId'], "groupId" : data['groupId']})
 
 				self._retries = 0
 				self._retryTimer = None

@@ -82,7 +82,7 @@ class PrinterService(PluginService):
 		return {
 				'id': boxrouterManager().boxId,
 				'name': networkManager().getHostname(),
-				'groupId' : astroprintCloud().groupId,
+				'groupId' : astroprintCloud().isOnFleet,
 				'printing': printer.isPrinting(),
 				'fileName': fileName,
 				'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,

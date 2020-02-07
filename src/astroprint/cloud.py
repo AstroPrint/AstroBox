@@ -9,10 +9,6 @@ def astroprintCloud():
 	global _instance
 	if _instance is None:
 		_instance = AstroPrintCloud()
-		_instance.checkFleetInfo()
-		#instance could set none on check fleet info
-		if _instance is None:
-			_instance = AstroPrintCloud()
 	return _instance
 
 import requests
@@ -45,6 +41,7 @@ from astroprint.boxrouter import boxrouterManager
 from astroprint.printer.manager import printerManager
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.ro_config import roConfig
+from astroprint.network.manager import networkManager
 
 class AstroPrintCloudException(Exception):
 	pass
@@ -58,14 +55,15 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	pass
 
 class HMACAuth(requests.auth.AuthBase):
-	def __init__(self, publicKey, privateKey, groupId = None, orgId = None):
+	def __init__(self, publicKey, privateKey, boxId, groupId = None, orgId = None):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 		self.groupId = groupId
 		self.orgId = orgId
+		self.boxId = boxId
 		self.isOnFleet = self.groupId and self.orgId
 
-	def updateFleetInfo(self, groupId = None, orgId = None):
+	def updateFleetInfo(self, orgId = None,  groupId = None):
 		self.groupId = groupId
 		self.orgId = orgId
 		self.isOnFleet = self.groupId and self.orgId
@@ -79,7 +77,7 @@ class HMACAuth(requests.auth.AuthBase):
 
 		r.headers['X-Public'] = self.publicKey
 		r.headers['X-Hash'] = binascii.b2a_base64(hashed.digest())[:-1]
-		r.headers['X-Box-Id'] = astroprintCloud().boxId
+		r.headers['X-Box-Id'] = self.boxId
 		if self.isOnFleet:
 			r.headers['X-Org-Id'] = self.orgId
 			r.headers['X-Group-Id'] = self.groupId
@@ -93,7 +91,6 @@ class AstroPrintCloud(object):
 		self.hmacAuth = None
 		self.boxId = boxrouterManager().boxId
 		self.fleetInfo =  "%s/fleet-info.yaml" % self.settings.getConfigFolder()
-		self._groupId = False
 
 		self.tryingLoggingTimes = 0
 
@@ -109,24 +106,30 @@ class AstroPrintCloud(object):
 			user = userManager.findUser(loggedUser)
 
 			if user and user.publicKey and user.privateKey:
-				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, user.orgId, user.groupId)
+				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, self.boxId, user.orgId, user.groupId)
 
 
-	def updateFleetInfo(self, groupId, orgId = None):
+	def updateFleetInfo(self, orgId, groupId):
 		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 		if loggedUser:
 			from octoprint.server import userManager
 			user = userManager.findUser(loggedUser)
-			if(user.groupId != groupId):
-				userManager.changeUserFleetInfo(user.email, orgId, groupId)
-				self.hmacAuth.updateFleetInfo(groupId, orgId)
+			if(user and user.groupId != groupId):
+				self._logger.info("Box fleet group has changed")
+				userManager.changeUserFleetInfo(loggedUser, orgId, groupId)
+				self.hmacAuth.updateFleetInfo(orgId, groupId)
 
 	def cloud_enabled(self):
 		return roConfig('cloud.apiHost') and self.hmacAuth
 
+	@property
+	def isOnFleet(self):
+		if self.hmacAuth:
+			return self.hmacAuth.isOnFleet
+		return False
+
 	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
-		from astroprint.network.manager import networkManager
 		user = None
 		userLoggedIn = False
 		online = networkManager().isOnline()
@@ -134,8 +137,11 @@ class AstroPrintCloud(object):
 		if online:
 			data_private_key = self.get_private_key(email, password)
 			private_key = str(data_private_key['private_key'])
-			orgId = str(data_private_key['organization_id'])
-			groupId = str(data_private_key['group_id'])
+			orgId = None
+			groupId = None
+			if data_private_key['organization_id']:
+				orgId = str(data_private_key['organization_id'])
+				groupId = str(data_private_key['group_id'])
 
 			if private_key:
 				public_key = self.get_public_key(email, private_key)
@@ -186,7 +192,6 @@ class AstroPrintCloud(object):
 
 	def validatePassword(self, email, password):
 		from octoprint.server import userManager
-		from astroprint.network.manager import networkManager
 		user = None
 		userValidated = False
 
@@ -234,7 +239,6 @@ class AstroPrintCloud(object):
 
 	def signinWithKey(self, email, private_key, hasSessionContext = True):
 		from octoprint.server import userManager
-		from astroprint.network.manager import networkManager
 
 		user = None
 		userLoggedIn = False
@@ -659,30 +663,29 @@ class AstroPrintCloud(object):
 				self._logger.error("Failed to send updateBoxrouterData request: %s" % e)
 		return False
 
-	def checkFleetInfo(self):
-		from astroprint.network.manager import networkManager
-		online = networkManager().isOnline()
-		if online and self.hmacAuth:
-			astroprintCloud().getFleetInfo()
+	def callFleetInfo(self):
+		if networkManager().isOnline():
+			self.getFleetInfo()
 		else:
 			self._eventManager.subscribe(Events.NETWORK_STATUS, self.getFleetInfo)
 
 	def getFleetInfo(self, event = None, payload = None):
 		if self.cloud_enabled():
-			self._logger.info("cloud is enable, lets get the info: FLEET INFO FUNCTION")
 			try:
 				r = requests.get("%s/astrobox/%s/fleetinfo" % (self.apiHost, self.boxId),
 						auth=self.hmacAuth
 					)
 				r.raise_for_status()
 				data = r.json()
-				self.updateFleetInfo(data['group_id'], data['organization_id'])
+				self.updateFleetInfo(data['organization_id'], data['group_id'],)
 
 			except requests.exceptions.HTTPError as err:
-				self._logger.info(err)
-				if (err.response.status_code == 401 or (err.response.status_code == 404 and self.hmacAuth.groupId)):
+				if (err.response.status_code == 401 or (self.hmacAuth.groupId and err.response.status_code == 404)):
 					self._logger.info("Box is not longer in a fleet group where user has permission")
-					self.remove_logged_user()
+					#User could be alredy removed by Box Router
+					loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
+					if loggedUser:
+						self.remove_logged_user()
 			except requests.exceptions.RequestException as e:
 				self._logger.error(e)
 
