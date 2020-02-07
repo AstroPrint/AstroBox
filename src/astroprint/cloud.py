@@ -411,6 +411,9 @@ class AstroPrintCloud(object):
 
 		fileManager = printerManager().fileManager
 
+		# In case request generates an exception and never returns. We can check for None later
+		r = None
+
 		try:
 			r = requests.get('%s/print-files/%s' % (self.apiHost, print_file_id), auth=self.hmacAuth)
 			if r.status_code == 200:
@@ -508,11 +511,16 @@ class AstroPrintCloud(object):
 
 		else:
 			errorCb(destFile, 'Unable to download file')
-			if r.status_code == 403:
-				return {"id": "no_permissions", "message": "Unable to retrieve file. Insufficient permissions"}
+			if r:
+				if r.status_code == 403:
+					return {"id": "no_permissions", "message": "Unable to retrieve file. Insufficient permissions"}
+
+				else:
+					return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
 
 			else:
-				return {"id": "invalid_data", "message": "Invalid data from server. Can't retrieve print file"}
+				# When there was not even a response, it means the server couldn't be reached. DNS issue or network down
+				return {"id": "server_unreachable", "message": "Can reach server to download file"}
 
 	def manufacturers(self):
 		try:
