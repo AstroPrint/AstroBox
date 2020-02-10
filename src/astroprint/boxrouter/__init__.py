@@ -445,7 +445,7 @@ class AstroprintBoxRouter(object):
 				self.authenticated = True
 				if 'groupId' in data:
 					astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
-					self._eventManager.fire(Events.FLEET_STATUS, {"orgId" : data['orgId'], "groupId" : data['groupId']})
+					self._eventManager.fire(Events.FLEET_STATUS, data)
 
 				self._retries = 0
 				self._retryTimer = None

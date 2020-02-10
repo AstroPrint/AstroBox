@@ -55,7 +55,7 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	pass
 
 class HMACAuth(requests.auth.AuthBase):
-	def __init__(self, publicKey, privateKey, boxId, groupId = None, orgId = None):
+	def __init__(self, publicKey, privateKey, boxId, orgId = None,  groupId = None,):
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 		self.groupId = groupId
@@ -127,6 +127,18 @@ class AstroPrintCloud(object):
 		if self.hmacAuth:
 			return self.hmacAuth.isOnFleet
 		return False
+
+	@property
+	def groupId(self):
+		if self.hmacAuth:
+			return self.hmacAuth.groupId
+		return None
+
+	@property
+	def orgId(self):
+		if self.hmacAuth:
+			return self.hmacAuth.orgId
+		return None
 
 	def signin(self, email, password, hasSessionContext = True):
 		from octoprint.server import userManager
@@ -677,7 +689,9 @@ class AstroPrintCloud(object):
 					)
 				r.raise_for_status()
 				data = r.json()
-				self.updateFleetInfo(data['organization_id'], data['group_id'],)
+				self.updateFleetInfo(data['organization_id'], data['group_id'])
+				data = {'orgId' : data['organization_id'], 'groupId' : data['group_id']}
+				self._eventManager.fire(Events.FLEET_STATUS, data)
 
 			except requests.exceptions.HTTPError as err:
 				if (err.response.status_code == 401 or (self.hmacAuth.groupId and err.response.status_code == 404)):

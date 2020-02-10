@@ -150,6 +150,7 @@ class AccountService(PluginService):
 
 	def _onFleetStateChange(self,event,value):
 			data = {
-				'fleetGroupId' :  value['groupId']
+				'orgId' :  value['orgId'],
+				'groupId' :  value['groupId']
 			}
 			self.publishEvent('fleet_state_change',data)
