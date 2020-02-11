@@ -106,7 +106,7 @@ class AccountService(PluginService):
 			callback('user successfully logged out')
 
 		except Exception as e:
-			self._logger.error('user unsuccessfully logged out', exc_info = True)
+			self._logger.error('user unsuccessfully logged out: %s' % e , exc_info = True)
 			callback('logged_out_unsuccess',True)
 
 	def getStatus(self, callback):
@@ -121,7 +121,7 @@ class AccountService(PluginService):
 			callback(payload)
 
 		except Exception as e:
-			self._logger.error('unsuccessfully user status got', exc_info = True)
+			self._logger.error('unsuccessfully user status got: %s' %e, exc_info = True)
 			callback('getting_status_error')
 
 	def connectBoxrouter(self, callback):
@@ -129,7 +129,7 @@ class AccountService(PluginService):
 			boxrouterManager().boxrouter_connect()
 			callback('connect_success')
 		except Exception as e:
-			self._logger.error('boxrouter can not connect', exc_info = True)
+			self._logger.error('boxrouter can not connect: %s' %e, exc_info = True)
 			callback('boxrouter_error', True)
 
 	#EVENTS
