@@ -305,7 +305,9 @@ class AstroPrintCloud(object):
 	def remove_logged_user(self):
 		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 		from octoprint.server import userManager
-		userManager.removeUser(loggedUser)
+		#Method could be call twice (boxrouter, touch), and now user is deleted
+		if loggedUser:
+			userManager.removeUser(loggedUser)
 		self.settings.set(["cloudSlicer", "loggedUser"], None)
 		self.settings.set(["materialSelected"], None)
 		self.settings.set(["printerSelected"], None)
