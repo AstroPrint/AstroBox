@@ -31,7 +31,7 @@ class RequestHandler(object):
 		softwareManager = swManager()
 
 		state = {
-			'printing': printer.isPrinting(),
+			'printing': printer.isPrinting() or printer.isPaused(),
 			'heatingUp': printer.isHeatingUp(),
 			'operational': printer.isOperational(),
 			'paused': printer.isPaused(),
