@@ -16,7 +16,6 @@ import hmac
 import binascii
 import uuid
 import os
-import yaml
 import json
 import logging
 
