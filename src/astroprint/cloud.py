@@ -90,7 +90,6 @@ class AstroPrintCloud(object):
 		self._eventManager = eventManager()
 		self.hmacAuth = None
 		self.boxId = boxrouterManager().boxId
-		self.fleetInfo =  "%s/fleet-info.yaml" % self.settings.getConfigFolder()
 
 		self.tryingLoggingTimes = 0
 
