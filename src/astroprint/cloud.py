@@ -405,7 +405,7 @@ class AstroPrintCloud(object):
 				data = None
 
 			if data and "private_key" in data:
-				return data#str(data["private_key"])
+				return data
 
 		elif r.status_code == 403:
 			raise AstroPrintCloudInsufficientPermissionsException(r.json())
