@@ -112,8 +112,6 @@ class AstroPrintCloud(object):
 		if loggedUser:
 			from octoprint.server import userManager
 			user = userManager.findUser(loggedUser)
-			print user.groupId
-			print groupId
 			if(user and user.groupId != groupId):
 				self._logger.info("Box fleet group has changed")
 				userManager.changeUserFleetInfo(loggedUser, orgId, groupId)
