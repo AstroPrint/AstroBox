@@ -430,8 +430,8 @@ var StorageControlView = Backbone.View.extend({
           this.launchingAp = true;
           $.getJSON(API_BASEURL+'astroprint/login-key')
             .done(function(data){
-              const url =  'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=files&fleetpage=true"
-              const win = window.open(url, '_blank')
+              var url =  'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=files&fleetpage=true"
+              var win = window.open(url, '_blank')
               win.focus();
             })
             .fail(function(){
