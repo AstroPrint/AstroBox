@@ -100,8 +100,14 @@ class RequestHandler(object):
 		threading.Timer(1, astroprintCloud().remove_logged_user).start()
 		done(None)
 
+	def notifyfleet(self, data, clientId, done):
+		self._logger.info("Box has been joined to fleet group: %s" % (data['groupId']))
+		em = eventManager()
+		em.fire(Events.FLEET_STATUS, data)
+		astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
+		done(None)
+
 	def print_file(self, data, clientId, done):
-		from astroprint.printfiles import FileDestinations
 
 		print_file_id = data['printFileId']
 		if 'printJobId' in data :

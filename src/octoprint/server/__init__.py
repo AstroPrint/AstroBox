@@ -68,6 +68,7 @@ from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.webrtc import webRtcManager
 from astroprint.printerprofile import printerProfileManager
 from astroprint.additionaltasks import additionalTasksManager
+from astroprint.cloud import astroprintCloud
 from astroprint.maintenancemenu import maintenanceMenuManager
 from astroprint.discovery import DiscoveryManager
 from astroprint.plugin import pluginManager
@@ -98,6 +99,7 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
+	onFleet = astroprintCloud().isOnFleet
 	publicKey = None
 
 	if loggedUsername:
@@ -163,6 +165,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
+			on_fleet = onFleet,
 			userPublicKey= publicKey,
 			show_bad_shutdown= swm.wasBadShutdown and not swm.badShutdownShown,
 			version= VERSION,
@@ -229,6 +232,7 @@ def getStatus():
 	cm = cameraManager()
 	softwareManager = swManager()
 	ppm = printerProfileManager()
+	cloudInstance = astroprintCloud()
 
 	fileName = None
 
@@ -240,6 +244,8 @@ def getStatus():
 		json.dumps({
 			'id': boxrouterManager().boxId,
 			'name': networkManager().getHostname(),
+			'orgId' : cloudInstance.orgId,
+			'groupId' : cloudInstance.groupId,
 			'printing': printer.isPrinting(),
 			'fileName': fileName,
 			'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,
@@ -446,10 +452,14 @@ class Server():
 
 		#Start some of the managers here to make sure there are no thread collisions
 		from astroprint.network.manager import networkManager
-		from astroprint.boxrouter import boxrouterManager
+		##from astroprint.boxrouter import boxrouterManager
 
 		networkManager()
-		boxrouterManager()
+		#boxrouterManager()
+		#This call also initialize boxrouter
+		logger.info("Initializing  astroprintCloud on starting")
+		astroprintCloud().callFleetInfo()
+
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()

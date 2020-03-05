@@ -710,9 +710,9 @@ class SoftwareManager(object):
 			publicKey = current_user.publicKey
 
 			if privateKey and publicKey:
-				from astroprint.cloud import HMACAuth
+				from astroprint.cloud import astroprintCloud
+				return astroprintCloud().hmacAuth
 
-				return HMACAuth(publicKey, privateKey)
 
 		return None
 

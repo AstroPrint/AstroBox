@@ -18,13 +18,15 @@ class AccountService(PluginService):
 	_validEvents = [
 		#watch the state of the user's account: connecting, connected, disconnected , error
 		'account_state_change',
-		'boxrouter_state_change'
+		'boxrouter_state_change',
+		'fleet_state_change'
 	]
 
 	def __init__(self):
 		super(AccountService, self).__init__()
 		self._eventManager.subscribe(Events.ASTROPRINT_STATUS, self._onBoxrouterStateChange)
 		self._eventManager.subscribe(Events.LOCK_STATUS_CHANGED, self._onAccountStateChange)
+		self._eventManager.subscribe(Events.FLEET_STATUS, self._onFleetStateChange)
 
 	#REQUESTS
 
@@ -104,7 +106,7 @@ class AccountService(PluginService):
 			callback('user successfully logged out')
 
 		except Exception as e:
-			self._logger.error('user unsuccessfully logged out', exc_info = True)
+			self._logger.error('user unsuccessfully logged out: %s' % e , exc_info = True)
 			callback('logged_out_unsuccess',True)
 
 	def getStatus(self, callback):
@@ -119,7 +121,7 @@ class AccountService(PluginService):
 			callback(payload)
 
 		except Exception as e:
-			self._logger.error('unsuccessfully user status got', exc_info = True)
+			self._logger.error('unsuccessfully user status got: %s' %e, exc_info = True)
 			callback('getting_status_error')
 
 	def connectBoxrouter(self, callback):
@@ -127,7 +129,7 @@ class AccountService(PluginService):
 			boxrouterManager().boxrouter_connect()
 			callback('connect_success')
 		except Exception as e:
-			self._logger.error('boxrouter can not connect', exc_info = True)
+			self._logger.error('boxrouter can not connect: %s' %e, exc_info = True)
 			callback('boxrouter_error', True)
 
 	#EVENTS
@@ -145,3 +147,10 @@ class AccountService(PluginService):
 				'boxrouterStatus' :  boxrouterManager().status
 			}
 			self.publishEvent('boxrouter_state_change',data)
+
+	def _onFleetStateChange(self,event,value):
+			data = {
+				'orgId' :  value['orgId'],
+				'groupId' :  value['groupId']
+			}
+			self.publishEvent('fleet_state_change',data)

@@ -41,6 +41,8 @@ from astroprint.network.manager import networkManager
 from astroprint.software import softwareManager
 from astroprint.printer.manager import printerManager
 from astroprint.ro_config import roConfig
+from astroprint.cloud import astroprintCloud
+
 
 from .handlers import BoxRouterMessageHandler
 from .systemlistener import SystemListener
@@ -434,10 +436,17 @@ class AstroprintBoxRouter(object):
 				self.close()
 				if 'should_retry' in data and data['should_retry']:
 					self._doRetry()
+				if 'type' in data and data['type'] == 'unable_to_authenticate':
+					self._logger.info("Unuable to authenticate user in fleet box. Logout")
+					astroprintCloud().remove_logged_user()
 
 			elif 'success' in data:
 				self._logger.info("Connected to astroprint service")
 				self.authenticated = True
+				if 'groupId' in data:
+					astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
+					self._eventManager.fire(Events.FLEET_STATUS, data)
+
 				self._retries = 0
 				self._retryTimer = None
 				self.status = self.STATUS_CONNECTED
