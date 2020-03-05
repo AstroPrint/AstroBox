@@ -161,8 +161,6 @@ class AstroPrintCloud(object):
 					if user:
 						userManager.changeUserPassword(email, password)
 						userManager.changeCloudAccessKeys(email, public_key, private_key, orgId, groupId)
-						self.orgId = orgId
-						self.groupId = groupId
 					else:
 						user = userManager.addUser(email, password, public_key, private_key, orgId, groupId, True)
 
@@ -222,8 +220,6 @@ class AstroPrintCloud(object):
 						if user:
 							userManager.changeUserPassword(email, password)
 							userManager.changeCloudAccessKeys(email, public_key, private_key, orgId, groupId)
-							self.orgId = orgId
-							self.groupId = groupId
 						else:
 							user = userManager.addUser(email, password, public_key, private_key, orgId, groupId, True)
 
