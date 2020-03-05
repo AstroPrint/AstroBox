@@ -72,6 +72,7 @@ class PrinterService(PluginService):
 		printer = printerManager()
 		cm = cameraManager()
 		ppm = printerProfileManager()
+		cloudInstance = astroprintCloud()
 
 		fileName = None
 
@@ -82,8 +83,8 @@ class PrinterService(PluginService):
 		return {
 				'id': boxrouterManager().boxId,
 				'name': networkManager().getHostname(),
-				'orgId' : astroprintCloud().orgId,
-				'groupId' : astroprintCloud().groupId,
+				'orgId' : cloudInstance.orgId,
+				'groupId' : cloudInstance.groupId,
 				'printing': printer.isPrinting(),
 				'fileName': fileName,
 				'printerModel': ppm.data['printer_model'] if ppm.data['printer_model']['id'] else None,

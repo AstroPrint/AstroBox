@@ -102,9 +102,9 @@ def upload_data():
 def designs():
 	forceSyncCloud = request.args.get('forceSyncCloud')
 	cloud_files = None
-	astroprintCloudInstance = astroprintCloud()
-	if not astroprintCloudInstance.isOnFleet:
-		cloud_files = json.loads(astroprintCloudInstance.print_files(forceSyncCloud))
+	cloudInstance = astroprintCloud()
+	if not cloudInstance.isOnFleet:
+		cloud_files = json.loads(cloudInstance.print_files(forceSyncCloud))
 	local_files = list(printerManager().fileManager.getAllFileData())
 
 	if cloud_files:
