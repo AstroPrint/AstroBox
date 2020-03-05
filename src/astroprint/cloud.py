@@ -112,6 +112,8 @@ class AstroPrintCloud(object):
 		if loggedUser:
 			from octoprint.server import userManager
 			user = userManager.findUser(loggedUser)
+			print user.groupId
+			print groupId
 			if(user and user.groupId != groupId):
 				self._logger.info("Box fleet group has changed")
 				userManager.changeUserFleetInfo(loggedUser, orgId, groupId)
@@ -146,15 +148,12 @@ class AstroPrintCloud(object):
 
 		if online:
 			data_private_key = self.get_private_key(email, password)
-			private_key = str(data_private_key['private_key'])
-			orgId = None
-			groupId = None
-			if data_private_key['organization_id']:
-				orgId = str(data_private_key['organization_id'])
-				groupId = str(data_private_key['group_id'])
 
-			if private_key:
+			if data_private_key:
+				private_key = data_private_key['private_key']
 				public_key = self.get_public_key(email, private_key)
+				orgId = data_private_key['organization_id']
+				groupId = data_private_key['group_id']
 
 				if public_key:
 					#Let's protect the box now:
@@ -164,6 +163,8 @@ class AstroPrintCloud(object):
 					if user:
 						userManager.changeUserPassword(email, password)
 						userManager.changeCloudAccessKeys(email, public_key, private_key, orgId, groupId)
+						self.orgId = orgId
+						self.groupId = groupId
 					else:
 						user = userManager.addUser(email, password, public_key, private_key, orgId, groupId, True)
 
@@ -210,19 +211,23 @@ class AstroPrintCloud(object):
 		if online:
 			try:
 				data_private_key = self.get_private_key(email, password)
-				private_key = data_private_key['private_key']
 
-				if private_key:
+				if data_private_key:
+					private_key = data_private_key['private_key']
 					public_key = self.get_public_key(email, private_key)
+					orgId = data_private_key['organization_id']
+					groupId = data_private_key['group_id']
 
 					if public_key:
 						#Let's update the box now:
 						user = userManager.findUser(email)
 						if user:
 							userManager.changeUserPassword(email, password)
-							userManager.changeCloudAccessKeys(email, public_key, private_key)
+							userManager.changeCloudAccessKeys(email, public_key, private_key, orgId, groupId)
+							self.orgId = orgId
+							self.groupId = groupId
 						else:
-							user = userManager.addUser(email, password, public_key, private_key, True)
+							user = userManager.addUser(email, password, public_key, private_key, orgId, groupId, True)
 
 						userValidated = True
 
@@ -405,7 +410,15 @@ class AstroPrintCloud(object):
 				data = None
 
 			if data and "private_key" in data:
-				return data
+				data_private_key = {}
+				data_private_key["private_key"] = str(data['private_key'])
+				if 'group_id' in data and data['group_id']:
+					data_private_key['organization_id'] = str(data['organization_id'])
+					data_private_key['group_id'] = str(data['group_id'])
+				else:
+					data_private_key['organization_id'] = None
+					data_private_key['group_id'] = None
+				return data_private_key
 
 		elif r.status_code == 403:
 			raise AstroPrintCloudInsufficientPermissionsException(r.json())
