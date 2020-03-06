@@ -65,7 +65,7 @@ class V4L2VideoSrcBin(VideoSrcBinBase):
 			self.__videoflipElement.set_property("method", self._rotation)
 
 			self._bin.add(self.__videoflipElement)
-			self.__videoConvertElement.link(self.__videoflipElement)
+			lastLink.link(self.__videoflipElement)
 
 			lastLink = self.__videoflipElement
 
