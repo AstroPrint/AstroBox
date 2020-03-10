@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global PrintFileCollection, USBFileCollection */
+/* global PrintFileCollection, USBFileCollection, ON_FLEET, AP_API_HOST */
 
 /* exported FilesView */
 
@@ -434,7 +434,8 @@ var StorageControlView = Backbone.View.extend({
               var win = window.open(url, '_blank')
               win.focus();
             })
-            .fail(function(){
+            .fail(function(e){
+              console.error('Fail to create login Token', e);
               location.href = AP_API_HOST +'https://cloud.astroprint.com/account/login'
             })
             .always(_.bind(function(){
@@ -460,7 +461,7 @@ var PrintFilesListView = Backbone.View.extend({
   usbfile_list: null,
   refresh_threshold: 1000, //don't allow refreshes faster than this (in ms)
   last_refresh: 0,
-  refreshing: false,
+  refreshing: null,
   need_to_be_refreshed: false,
   filesOnQueue: 0,
   queueAllowed: false,
@@ -716,25 +717,23 @@ var PrintFilesListView = Backbone.View.extend({
     if (this.last_refresh == 0 || this.last_refresh < (now - this.refresh_threshold) ) {
       this.last_refresh = now;
 
-      if ( !this.refreshing ) {
-        this.refreshing = true;
+      if ( this.refreshing == null ) {
         var loadingArea = null;
-        var syncPromise = null;
 
         switch(kindOfSync){
           case 'cloud':
             loadingArea = this.$('.loading-button.sync');
-            syncPromise = this.file_list.syncCloud();
+            this.refreshing = this.file_list.syncCloud();
           break;
 
           case 'local':
             loadingArea = this.$('.local-loading');
-            syncPromise = this.file_list.fetch();
+            this.refreshing= this.file_list.fetch();
           break;
         }
 
         loadingArea.addClass('loading');
-        return syncPromise
+        return this.refreshing
           .done(_.bind(function(){
             this.print_file_views = [];
             this.file_list.each(_.bind(function(print_file) {
@@ -756,7 +755,7 @@ var PrintFilesListView = Backbone.View.extend({
             }
             loadingArea.removeClass('loading');
 
-            this.refreshing = false;
+            this.refreshing = null;
           }, this))
           .fail(_.bind(function(){
             noty({text: "There was an error retrieving print files", timeout: 3000});
@@ -766,10 +765,15 @@ var PrintFilesListView = Backbone.View.extend({
             }
 
             loadingArea.removeClass('loading');
-            this.refreshing = false;
+            this.refreshing = null;
           }, this));
+      } else {
+        return this.refreshing
       }
     }
+
+    //No need to sync as threshold is not met
+    return $.Deferred().resolve();
   },
   downloadProgress: function(data)
   {
@@ -875,8 +879,10 @@ var PrintFilesListView = Backbone.View.extend({
 
           case 'cloud':
             this.refresh('cloud').always(function(){loadingArea.removeClass("loading")});
+            break;
+
           case 'local':
-            this.refresh('cloud').always(function(){loadingArea.removeClass("loading")});
+            this.refresh('local').always(function(){loadingArea.removeClass("loading")});
         }
       }, this));
 
