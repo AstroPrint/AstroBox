@@ -121,10 +121,10 @@ class AstroPrintCloud(object):
 		return roConfig('cloud.apiHost') and self.hmacAuth
 
 	@property
-	def isOnFleet(self):
+	def fleetId(self):
 		if self.hmacAuth:
-			return self.hmacAuth.isOnFleet
-		return False
+			return self.hmacAuth.orgId
+		return None
 
 	@property
 	def groupId(self):

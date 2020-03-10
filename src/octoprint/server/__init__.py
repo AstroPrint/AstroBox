@@ -99,7 +99,7 @@ def box_identify():
 def index():
 	s = settings()
 	loggedUsername = s.get(["cloudSlicer", "loggedUser"])
-	onFleet = astroprintCloud().isOnFleet
+	fleetId = astroprintCloud().fleetId
 	publicKey = None
 
 	if loggedUsername:
@@ -165,7 +165,7 @@ def index():
 		return render_template(
 			"app.jinja2",
 			user_email= loggedUsername,
-			on_fleet = onFleet,
+			fleet_id = fleetId,
 			userPublicKey= publicKey,
 			show_bad_shutdown= swm.wasBadShutdown and not swm.badShutdownShown,
 			version= VERSION,

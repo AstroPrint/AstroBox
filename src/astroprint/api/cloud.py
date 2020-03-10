@@ -103,7 +103,7 @@ def designs():
 	forceSyncCloud = request.args.get('forceSyncCloud')
 	cloud_files = None
 	cloudInstance = astroprintCloud()
-	if not cloudInstance.isOnFleet:
+	if not cloudInstance.fleetId:
 		cloud_files = json.loads(cloudInstance.print_files(forceSyncCloud))
 	local_files = list(printerManager().fileManager.getAllFileData())
 
