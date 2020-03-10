@@ -425,12 +425,12 @@ var StorageControlView = Backbone.View.extend({
     $('h3.printablefiles-message').removeClass('hide')
 
     if (LOGGED_USER) {
-      if(ON_FLEET){
+      if(FLEET_ID){
         if (!this.launchingAp) {
           this.launchingAp = true;
           $.getJSON(API_BASEURL+'astroprint/login-key')
             .done(function(data){
-              var url =  'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=files&fleetpage=true"
+              var url =  'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=files&fleet_id=" + FLEET_ID
               var win = window.open(url, '_blank')
               win.focus();
             })
