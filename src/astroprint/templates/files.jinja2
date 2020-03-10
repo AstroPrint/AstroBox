@@ -79,7 +79,7 @@
         </div>
         {% endif %}
         <div class="design-list">
-          <div class="header-filter unmatch" >{%- if printer_profile.printer_model.id %} Not matching your <i class="icon-3d-printer"></i> <b><span class="printer-name" >{{printer_profile.printer_model.name}}</span></b> {% endif %}</div>
+          <div class="header-filter unmatch">{%- if printer_profile.printer_model.id %} Not matching your <i class="icon-3d-printer"></i> <b><span class="printer-name">{{printer_profile.printer_model.name}}</span></b> {%- endif %}</div>
           <div class="container-files"></div>
         </div>
       </div>

@@ -624,29 +624,37 @@ var PrintFilesListView = Backbone.View.extend({
           var unmatchedFileViews = null;
           var matchedFileViews = null;
           if (selectedStorage == 'cloud') {
-            unmatchedFileViews = [];
-            matchedFileViews = _.filter(this.print_file_views, function(p){
-              if (!p.print_file.get('local_only') && p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
-                return true;
-              } else if (!p.print_file.get('local_only')) {
-                unmatchedFileViews.push(p)
-                return false;
-              }
-              return false
-            });
-          } else {
-            // here ?
-            unmatchedFileViews = []
-            matchedFileViews = _.filter(this.print_file_views, function (p) {
-              if (p.print_file.get('local_filename')) {
-                if (p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
+            if (app.printerProfile.get('printer_model').id != null) {
+              unmatchedFileViews = [];
+              matchedFileViews = _.filter(this.print_file_views, function(p){
+                if (!p.print_file.get('local_only') && p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
                   return true;
-                } else {
+                } else if (!p.print_file.get('local_only')) {
                   unmatchedFileViews.push(p)
                   return false;
                 }
-              }
-            });
+                return false
+              });
+            } else {
+              unmatchedFileViews = _.filter(this.print_file_views, function (p) { return !p.print_file.get('local_only') })
+            }
+          } else {
+            if (app.printerProfile.get('printer_model').id != null) {
+              // here ?
+              unmatchedFileViews = []
+              matchedFileViews = _.filter(this.print_file_views, function (p) {
+                if (p.print_file.get('local_filename')) {
+                  if (p.print_file.get('printer') && p.print_file.get('printer').model_id == app.printerProfile.get('printer_model').id) {
+                    return true;
+                  } else {
+                    unmatchedFileViews.push(p)
+                    return false;
+                  }
+                }
+              });
+            } else {
+              unmatchedFileViews = this.print_file_views;
+            }
           }
         }
       } else {
@@ -728,7 +736,7 @@ var PrintFilesListView = Backbone.View.extend({
 
           case 'local':
             loadingArea = this.$('.local-loading');
-            this.refreshing= this.file_list.fetch();
+            this.refreshing = this.file_list.fetch();
           break;
         }
 
