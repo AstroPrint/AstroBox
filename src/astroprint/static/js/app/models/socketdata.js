@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* globals UI_API_KEY:writable, AP_SESSION_ID:writable */
+/* globals UI_API_KEY:writable, AP_SESSION_ID:writable, FLEET_ID */
 
 /* exported SocketData */
 
@@ -18,7 +18,7 @@ var SocketData = Backbone.Model.extend({
   _autoReconnectTimeouts: [1, 1, 2, 3, 5, 8, 13, 20, 40, 100],
   currentState: 0,
   loggedUser: LOGGED_USER, //username or null
-  onFleet: FLEET_ID,
+  fleetId: FLEET_ID,
   defaults: {
     box_reachable: 'unreachable', //unreachable, reachable, checking
     online: false,

@@ -5,7 +5,7 @@
  */
 
 /* global app:writable, SocketData, Utils, AppRouter, ConnectionView, PrinterProfile, AstroPrintApi,
-          TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal */
+          TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal, FLEET_ID*/
 
 /* exported navigatorPrevent */
 
@@ -164,7 +164,7 @@ var AstroBoxApp = Backbone.View.extend({
         this.launchingAp = true;
         $.getJSON(API_BASEURL+'astroprint/login-key')
           .done(function(data){
-            location.href = 'https://cloud.astroprint.com/account/loginKey/'+data.login_key;
+            location.href = 'https://cloud.astroprint.com/account/loginKey/'+data.login_key + (FLEET_ID ? "?fleet_id=" + FLEET_ID : "");
           })
           .fail(function(){
             location.href = 'https://cloud.astroprint.com/account/login';

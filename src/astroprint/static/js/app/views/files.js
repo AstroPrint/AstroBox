@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global PrintFileCollection, USBFileCollection, ON_FLEET, AP_API_HOST */
+/* global PrintFileCollection, USBFileCollection, FLEET_ID, AP_API_HOST */
 
 /* exported FilesView */
 
@@ -425,12 +425,14 @@ var StorageControlView = Backbone.View.extend({
     $('h3.printablefiles-message').removeClass('hide')
 
     if (LOGGED_USER) {
+      console.log(FLEET_ID)
       if(FLEET_ID){
         if (!this.launchingAp) {
           this.launchingAp = true;
           $.getJSON(API_BASEURL+'astroprint/login-key')
             .done(function(data){
               var url =  'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=files&fleet_id=" + FLEET_ID
+              console.log(url)
               var win = window.open(url, '_blank')
               win.focus();
             })
