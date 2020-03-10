@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global PrintFileCollection, USBFileCollection */
+/* global PrintFileCollection, USBFileCollection, ON_FLEET, AP_API_HOST */
 
 /* exported FilesView */
 
@@ -434,7 +434,8 @@ var StorageControlView = Backbone.View.extend({
               var win = window.open(url, '_blank')
               win.focus();
             })
-            .fail(function(){
+            .fail(function(e){
+              console.error('Fail to create login Token', e);
               location.href = AP_API_HOST +'https://cloud.astroprint.com/account/login'
             })
             .always(_.bind(function(){
