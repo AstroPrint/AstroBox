@@ -81,7 +81,7 @@ class DownloadWorker(threading.Thread):
 			while retries > 0:
 				try:
 					#Perform download here
-					r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 60.0))
+					r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 5.0)) #(connect timeout, read timeout)
 					self._activeRequest = r
 
 					if r.status_code == 200:
@@ -154,6 +154,11 @@ class DownloadWorker(threading.Thread):
 					self._manager._logger.warn('Connection timeout for %s. Retrying...' % printFileId)
 					retries -= 1 #This error can be retried
 
+				except requests.exceptions.ReadTimeout as e:
+					self._manager._logger.warn('Read timeout for %s' % printFileId)
+					not self._canceled and errorCb(destFile, 'Network erros while downloading the print file')
+					retries = 0 #No more retries after this
+
 				except requests.exceptions.RequestException as e:
 					self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e), exc_info=True)
 					not self._canceled and errorCb(destFile, 'Connection Error while downloading the print file')
@@ -178,7 +183,7 @@ class DownloadWorker(threading.Thread):
 			downloadQueue.task_done()
 
 	def cancel(self):
-		if self.activeDownload:
+		if self.activeDownload and not self._canceled:
 			if self._activeRequest:
 				self._activeRequest.close()
 
