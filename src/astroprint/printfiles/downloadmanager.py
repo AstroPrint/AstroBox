@@ -102,10 +102,7 @@ class DownloadWorker(threading.Thread):
 										break
 
 						retries = 0 #No more retries after this
-						if self._canceled:
-							r.close()
-
-						else:
+						if not self._canceled:
 							self._manager._logger.info('Download completed for %s' % printFileId)
 
 							if item['printFileInfo'] is None:
@@ -149,7 +146,6 @@ class DownloadWorker(threading.Thread):
 						retries -= 1 #This error can be retried
 
 					else:
-						r.close()
 						self._manager._logger.error('Download failed for %s with %d' % (printFileId, r.status_code))
 						errorCb(destFile, 'The device is unable to download the print file')
 						retries = 0 #No more retries after this
@@ -169,9 +165,11 @@ class DownloadWorker(threading.Thread):
 						# Ignore above error. It's due to a problem in the underlying library when calling r.close in the cancel routine
 						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e), exc_info=True)
 						not self._canceled and errorCb(destFile, 'The device is unable to download the print file')
+						r.close()
 
 				finally:
 					if self._canceled:
+						retries = 0 #No more retries after this
 						self._manager._logger.warn('Download canceled for %s' % printFileId)
 						errorCb(destFile, 'cancelled')
 
