@@ -88,23 +88,22 @@ class DownloadWorker(threading.Thread):
 						content_length = float(r.headers['Content-Length'])
 						downloaded_size = 0.0
 
-						with open(destFile, 'wb') as fd:
-							for chunk in r.iter_content(100000): #download 100kb at a time
-								if self._canceled: #check right after reading
-									break
+						if not self._canceled:
+							with open(destFile, 'wb') as fd:
+								for chunk in r.iter_content(100000): #download 100kb at a time
+									if self._canceled: #check right after reading
+										break
 
-								downloaded_size += len(chunk)
-								fd.write(chunk)
-								progressCb(2 + round((downloaded_size / content_length) * 98.0, 1))
+									downloaded_size += len(chunk)
+									fd.write(chunk)
+									progressCb(2 + round((downloaded_size / content_length) * 98.0, 1))
 
-								if self._canceled: #check again before going to read next chunk
-									break
+									if self._canceled: #check again before going to read next chunk
+										break
 
 						retries = 0 #No more retries after this
 						if self._canceled:
 							r.close()
-							self._manager._logger.warn('Download canceled for %s' % printFileId)
-							errorCb(destFile, 'cancelled')
 
 						else:
 							self._manager._logger.info('Download completed for %s' % printFileId)
@@ -161,18 +160,20 @@ class DownloadWorker(threading.Thread):
 
 				except requests.exceptions.RequestException as e:
 					self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e), exc_info=True)
-					errorCb(destFile, 'Connection Error while downloading the print file')
+					not self._canceled and errorCb(destFile, 'Connection Error while downloading the print file')
 					retries = 0 #No more retries after this
 
 				except Exception as e:
 					retries = 0 #No more retries after this
-					if "'NoneType' object has no attribute 'recv'" == str(e):
-						#This is due to a problem in the underlying library when calling r.close in the cancel routine
+					if "'NoneType' object has no attribute 'recv'" != str(e):
+						# Ignore above error. It's due to a problem in the underlying library when calling r.close in the cancel routine
+						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e), exc_info=True)
+						not self._canceled and errorCb(destFile, 'The device is unable to download the print file')
+
+				finally:
+					if self._canceled:
 						self._manager._logger.warn('Download canceled for %s' % printFileId)
 						errorCb(destFile, 'cancelled')
-					else:
-						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e), exc_info=True)
-						errorCb(destFile, 'The device is unable to download the print file')
 
 			self.activeDownload = False
 			self._activeRequest = None
