@@ -160,7 +160,7 @@ class DownloadWorker(threading.Thread):
 					retries -= 1 #This error can be retried
 
 				except requests.exceptions.RequestException as e:
-					self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e))
+					self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e), exc_info=True)
 					errorCb(destFile, 'Connection Error while downloading the print file')
 					retries = 0 #No more retries after this
 
@@ -171,7 +171,7 @@ class DownloadWorker(threading.Thread):
 						self._manager._logger.warn('Download canceled for %s' % printFileId)
 						errorCb(destFile, 'cancelled')
 					else:
-						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e))
+						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e), exc_info=True)
 						errorCb(destFile, 'The device is unable to download the print file')
 
 			self.activeDownload = False
