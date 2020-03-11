@@ -867,7 +867,7 @@ var BoxContainerView = Backbone.View.extend({
       "ready": this.pendingFiles ? this.pendingFiles.length : 0,
       "finished": this.finishedFiles ? this.finishedFiles.length : 0
     }
-    console.log('pending')
+
     this.$el.find('.ready-counter-label').html(counter.ready ? counter.ready : 0);
     this.$el.find('.finished-counter-label').html(counter.finished ? counter.finished : 0);
   },
