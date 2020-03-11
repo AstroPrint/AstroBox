@@ -1010,7 +1010,7 @@ class MachineCom(object):
 						#we reset the timeout and try to listen again.
 						#we could be executing a long movement, a G29 command or some other thing longer than the timeout
 						timeout = getNewTimeout("communication")
-						self._serialLoggerEnabled and self._log("Read communication timeout (%.2f) during printing, listen again" % self._settings.getFloat(["serial", "timeout", communication]))
+						self._serialLoggerEnabled and self._log("Read communication timeout (%.2f) during printing, listen again" % self._settings.getFloat(["serial", "timeout", "communication"]))
 						continue
 
 					# if self.isSdPrinting():
