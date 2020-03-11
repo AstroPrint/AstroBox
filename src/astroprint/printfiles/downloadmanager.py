@@ -60,6 +60,7 @@ class DownloadWorker(threading.Thread):
 			quality = None
 			image = None
 			created = None
+			retries = 3
 
 			if "printer" in item:
 				printer = item['printer']
@@ -75,91 +76,106 @@ class DownloadWorker(threading.Thread):
 			self._manager._logger.info('Download started for %s' % printFileId)
 
 			self.activeDownload = printFileId
+			self._canceled = False
 
-			try:
-				#Perform download here
-				r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 60.0))
-				self._activeRequest = r
+			while retries > 0:
+				try:
+					#Perform download here
+					#r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 60.0))
+					r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 5.0))
+					self._activeRequest = r
 
-				if r.status_code == 200:
-					content_length = float(r.headers['Content-Length'])
-					downloaded_size = 0.0
+					if r.status_code == 200:
+						content_length = float(r.headers['Content-Length'])
+						downloaded_size = 0.0
 
-					with open(destFile, 'wb') as fd:
-						for chunk in r.iter_content(100000): #download 100kb at a time
-							if self._canceled: #check right after reading
-								break
+						with open(destFile, 'wb') as fd:
+							for chunk in r.iter_content(100000): #download 100kb at a time
+								if self._canceled: #check right after reading
+									break
 
-							downloaded_size += len(chunk)
-							fd.write(chunk)
-							progressCb(2 + round((downloaded_size / content_length) * 98.0, 1))
+								downloaded_size += len(chunk)
+								fd.write(chunk)
+								progressCb(2 + round((downloaded_size / content_length) * 98.0, 1))
 
-							if self._canceled: #check again before going to read next chunk
-								break
+								if self._canceled: #check again before going to read next chunk
+									break
 
-					if self._canceled:
-						self._manager._logger.warn('Download canceled for %s' % printFileId)
-						errorCb(destFile, 'cancelled')
-
-					else:
-						self._manager._logger.info('Download completed for %s' % printFileId)
-
-						if item['printFileInfo'] is None:
-							printerManager().fileManager._metadataAnalyzer.addFileToQueue(destFile)
-
-						fileInfo = {
-							'id': printFileId,
-							'printFileName': printFileName,
-							'info': item['printFileInfo'],
-							'printer': printer,
-							'material': material,
-							'quality': quality,
-							'image': image,
-							'created': created
-						}
-
-						em = eventManager()
-
-						if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
-							em.fire(
-								Events.CLOUD_DOWNLOAD, {
-									"type": "success",
-									"id": printFileId,
-									"filename": printerManager().fileManager._getBasicFilename(destFile),
-									"info": fileInfo["info"],
-									"printer": fileInfo["printer"],
-									"material": fileInfo["material"],
-									"quality": fileInfo["quality"],
-									"image": fileInfo["image"],
-									"created": fileInfo["created"]
-								}
-							)
-
-							successCb(destFile, fileInfo)
+						retries = 0 #No more retries after this
+						if self._canceled:
+							r.close()
+							self._manager._logger.warn('Download canceled for %s' % printFileId)
+							errorCb(destFile, 'cancelled')
 
 						else:
-							errorCb(destFile, "Couldn't save the file")
+							self._manager._logger.info('Download completed for %s' % printFileId)
 
-				else:
-					r.close()
-					self._manager._logger.error('Download failed for %s' % printFileId)
-					errorCb(destFile, 'The device is unable to download the print file')
+							if item['printFileInfo'] is None:
+								printerManager().fileManager._metadataAnalyzer.addFileToQueue(destFile)
 
-			except requests.exceptions.RequestException as e:
-				self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e))
-				errorCb(destFile, 'Connection Error while downloading the print file')
+							fileInfo = {
+								'id': printFileId,
+								'printFileName': printFileName,
+								'info': item['printFileInfo'],
+								'printer': printer,
+								'material': material,
+								'quality': quality,
+								'image': image,
+								'created': created
+							}
 
-			except Exception as e:
-				if "'NoneType' object has no attribute 'recv'" == str(e):
-					#This is due to a problem in the underlying library when calling r.close in the cancel routine
-					self._manager._logger.warn('Download canceled for %s' % printFileId)
-					errorCb(destFile, 'cancelled')
-				else:
-					self._manager._logger.error('Download exception for %s: %s' % (printFileId, e))
-					errorCb(destFile, 'The device is unable to download the print file')
+							em = eventManager()
+
+							if printerManager().fileManager.saveCloudPrintFile(destFile, fileInfo, FileDestinations.LOCAL):
+								em.fire(
+									Events.CLOUD_DOWNLOAD, {
+										"type": "success",
+										"id": printFileId,
+										"filename": printerManager().fileManager._getBasicFilename(destFile),
+										"info": fileInfo["info"],
+										"printer": fileInfo["printer"],
+										"material": fileInfo["material"],
+										"quality": fileInfo["quality"],
+										"image": fileInfo["image"],
+										"created": fileInfo["created"]
+									}
+								)
+
+								successCb(destFile, fileInfo)
+
+							else:
+								errorCb(destFile, "Couldn't save the file")
+
+					elif r.status_code in [502, 503, 500]:
+						self._manager._logger.warn('Download failed for %s with %d. Retrying...' % (printFileId, r.status_code))
+						retries -= 1 #This error can be retried
+
+					else:
+						r.close()
+						self._manager._logger.error('Download failed for %s' % printFileId)
+						errorCb(destFile, 'The device is unable to download the print file')
+						retries = 0 #No more retries after this
+
+				except requests.exceptions.ConnectTimeout as e:
+					self._manager._logger.warn('Connection timeout for %s. Retrying...' % printFileId)
+					retries -= 1 #This error can be retried
+
+				except requests.exceptions.RequestException as e:
+					self._manager._logger.error('Download connection exception for %s: %s' % (printFileId, e))
+					errorCb(destFile, 'Connection Error while downloading the print file')
+					retries = 0 #No more retries after this
+
+				except Exception as e:
+					retries = 0 #No more retries after this
+					if "'NoneType' object has no attribute 'recv'" == str(e):
+						#This is due to a problem in the underlying library when calling r.close in the cancel routine
+						self._manager._logger.warn('Download canceled for %s' % printFileId)
+						errorCb(destFile, 'cancelled')
+					else:
+						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e))
+						errorCb(destFile, 'The device is unable to download the print file')
 
 			self.activeDownload = False
-			self._canceled = False
 			self._activeRequest = None
 			downloadQueue.task_done()
 
