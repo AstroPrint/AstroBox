@@ -81,8 +81,7 @@ class DownloadWorker(threading.Thread):
 			while retries > 0:
 				try:
 					#Perform download here
-					#r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 60.0))
-					r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 5.0))
+					r = requests.get(item['downloadUrl'], stream= True, timeout= (10.0, 60.0))
 					self._activeRequest = r
 
 					if r.status_code == 200:
