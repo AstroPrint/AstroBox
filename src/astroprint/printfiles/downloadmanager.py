@@ -150,7 +150,7 @@ class DownloadWorker(threading.Thread):
 
 					else:
 						r.close()
-						self._manager._logger.error('Download failed for %s' % printFileId)
+						self._manager._logger.error('Download failed for %s with %d' % (printFileId, r.status_code))
 						errorCb(destFile, 'The device is unable to download the print file')
 						retries = 0 #No more retries after this
 
