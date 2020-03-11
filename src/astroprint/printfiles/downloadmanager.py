@@ -166,8 +166,10 @@ class DownloadWorker(threading.Thread):
 
 				except Exception as e:
 					retries = 0 #No more retries after this
-					if "'NoneType' object has no attribute 'recv'" != str(e):
-						# Ignore above error. It's due to a problem in the underlying library when calling r.close in the cancel routine
+					if "'NoneType' object has no attribute 'recv'" == str(e):
+						# This due to a problem in the underlying library when calling r.close in the cancel routine
+						self._canceled = True
+					else:
 						self._manager._logger.error('Download exception for %s: %s' % (printFileId, e), exc_info=True)
 						not self._canceled and errorCb(destFile, 'The device is unable to download the print file')
 						r.close()
@@ -185,7 +187,7 @@ class DownloadWorker(threading.Thread):
 	def cancel(self):
 		if self.activeDownload and not self._canceled:
 			if self._activeRequest:
-				self._activeRequest.close()
+				self._activeRequest.close() #This can create the exception 'NoneType' object has no attribute 'recv' which is handled above
 
 			self._manager._logger.warn('Download canceled requested for %s' % self.activeDownload)
 			self._canceled = True
