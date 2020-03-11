@@ -722,13 +722,18 @@ class MachineCom(object):
 		while True:
 			try:
 				line = self._readline()
+
 				if line is None:
 					break
-				if line.strip() is not "" and line.isalnum():
+
+				if line.isalnum():
 					timeout = getNewTimeout("communication")
 
 				##~~ Error handling
 				line, lineLower = self._lowerAndHandleErrors(line)
+
+				##~~ Set time when the data was received
+				dataReceivedAt = time.time()
 
 				##~~ SD file list
 				# if we are currently receiving an sd file list, each line is just a filename, so just read it and abort processing
@@ -762,7 +767,7 @@ class MachineCom(object):
 
 					#If we are waiting for an M109 or M190 then measure the time we lost during heatup, so we can remove that time from our printing time estimate.
 					if not 'ok' in lineLower and self._heatupWaitStartTime != 0:
-						t = time.time()
+						t = dataReceivedAt
 						self._heatupWaitTimeLost = t - self._heatupWaitStartTime
 						self._heatupWaitStartTime = t
 				elif supportRepetierTargetTemp and ('TargetExtr' in line or 'TargetBed' in line):
@@ -907,7 +912,7 @@ class MachineCom(object):
 
 				### Baudrate detection
 				# if self._state == self.STATE_DETECT_BAUDRATE:
-				# 	if line == '' or time.time() > timeout:
+				# 	if line == '' or dataReceivedAt > timeout:
 				# 		if len(self._baudrateDetectList) < 1:
 				# 			self.close()
 				# 			self._errorValue = "No more baudrates to test, and no suitable baudrate found."
@@ -966,7 +971,7 @@ class MachineCom(object):
 					elif "echo" in lineLower or "start" in lineLower:
 						timeout = getNewTimeout("communication")
 
-					elif time.time() > timeout:
+					elif dataReceivedAt > timeout:
 						self._logger.warn('Printer did not respond in time')
 						self._callback.disconnect()
 
@@ -978,7 +983,7 @@ class MachineCom(object):
 							self._resendNextCommand()
 						elif len(self._commandQueue) > 0:
 							self._sendCommand(self._commandQueue.pop())
-						elif self._callback.doIdleTempReports and time.time() > tempRequestTimeout:
+						elif self._callback.doIdleTempReports and dataReceivedAt > tempRequestTimeout:
 							self.sendCommand("M105")
 							tempRequestTimeout = getNewTimeout("temperature")
 					# resend -> start resend procedure from requested line
@@ -1001,25 +1006,25 @@ class MachineCom(object):
 
 				### Printing
 				elif self._state == self.STATE_PRINTING:
-					if line == "" and time.time() > timeout:
-						self._serialLoggerEnabled and self._log("Read communication timeout during printing, listen again")
+					if line == "" and dataReceivedAt > timeout:
 						#we reset the timeout and try to listen again.
 						#we could be executing a long movement, a G29 command or some other thing longer than the timeout
 						timeout = getNewTimeout("communication")
+						self._serialLoggerEnabled and self._log("Read communication timeout (%.2f) during printing, listen again" % self._settings.getFloat(["serial", "timeout", communication]))
 						continue
 
 					# if self.isSdPrinting():
-					# 	if time.time() > tempRequestTimeout and not self._heatingUp:
+					# 	if dataReceivedAt > tempRequestTimeout and not self._heatingUp:
 					# 		self._sendCommand("M105")
 					# 		tempRequestTimeout = getNewTimeout("temperature")
 
-					# 	if time.time() > sdStatusRequestTimeout and not self._heatingUp:
+					# 	if dataReceivedAt > sdStatusRequestTimeout and not self._heatingUp:
 					# 		self._sendCommand("M27")
 					# 		sdStatusRequestTimeout = getNewTimeout("sdStatus")
 					# else:
 
 					# Even when printing request the temperature every 5 seconds.
-					if time.time() > tempRequestTimeout:# and not self.isStreaming():
+					if dataReceivedAt > tempRequestTimeout:# and not self.isStreaming():
 						#It there's already a request for temps, don't add a new one....
 						if len(self._commandQueue) == 0 or "M105" not in self._commandQueue[-1]:
 							self._commandQueue.appendleft("M105")
