@@ -723,6 +723,10 @@ class DebianNetworkManager(NetworkManagerBase):
 		except AttributeError:
 			pass
 
+		except IndexError, e:
+			logger.error("Ip4Config invalid. device.Ip4Config.AddressData: %r" % device.Ip4Config.AddressData, exc_info=True)
+			raise e
+
 		return None
 
 	def _getMacAddress(self, device):
