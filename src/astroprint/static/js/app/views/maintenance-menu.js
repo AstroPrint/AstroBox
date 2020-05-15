@@ -63,7 +63,16 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
     if (targetView.maintenanceMenuElement.get('type') == "task") {
-      app.router.navigate("#additional-tasks/"+targetView.maintenanceMenuElement.get('id'), {trigger: true});
+      const instantCommands = targetView.maintenanceMenuElement.get('instant_commands')
+      if (instantCommands) {
+        if (Array.isArray(instantCommands)) {
+          this.sendGCodes(instantCommands)
+        } else {
+          this._sendComm(instantCommands)
+        }
+      } else {
+        app.router.navigate("#additional-tasks/" + targetView.maintenanceMenuElement.get('id'), { trigger: true });
+      }
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
@@ -72,6 +81,53 @@ var MaintenanceMenuListView = Backbone.View.extend({
       this.refreshMaintenanceMenuList(targetSubmenu);
     }
   },
+
+  sendGCodes: function(commandsArray, index)
+  {
+    if (!index) { index = 0 }
+    const gCode = commandsArray[index]
+    var promise = $.Deferred()
+
+    if (gCode) {
+      this._sendComm(gCode)
+        .done(_.bind(function() {
+          setTimeout(_.bind(function(){
+            this.sendGCodes(commandsArray, ++index)
+          },this), 400);
+        },this))
+
+        .fail(function(error) {
+          console.error('error sending command', error)
+          promise.reject(error)
+          return promise
+        });
+    } else {
+      promise.resolve()
+      return promise
+    }
+  },
+
+  _sendComm: function(gCode)
+  {
+    var promise = $.Deferred()
+    $.ajax({
+      url: API_BASEURL + 'printer/comm/send',
+      method: 'POST',
+      data: {
+        command: gCode
+      }
+    })
+    .success(_.bind(function () {
+      promise.resolve()
+    }, this))
+
+    .fail(_.bind(function () {
+      promise.reject()
+    }, this))
+
+    return promise
+  },
+
   onBackClicked: function()
   {
     --this.deepIndex;
@@ -145,13 +201,13 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var taskFound = _.find(this.tasks, function(t) { return t.id == task.id} );
     if (taskFound) {
       task.icon_filename = taskFound.icon_filename;
+      task.instant_commands = taskFound.instant_commands;
       task.name = {
         en: taskFound.strings.en.name
       };
     } else {
       task.name = { en: "not_found" };
     }
-
     return task;
   },
 
