@@ -497,3 +497,9 @@ def sendComm():
 
 	else:
 		return make_response("Command is missing", 400)
+
+
+@api.route("/printer/allowed-features", methods=["GET"])
+def getAllowedFeatures():
+	return jsonify(printerManager().getAllowedFeatures())
+

@@ -250,6 +250,19 @@ class PrinterWithPlugin(Printer):
 	def getPrintingFlow(self):
 		return self._plugin.printingFlow
 
+	def featureIsAllowed(self,feature):
+		features = self.getAllowedFeatures()
+		if feature in features:
+			return self._features[feature]
+
+		return True
+
+	def getAllowedFeatures(self):
+		if hasattr(self._plugin, '_features'):
+			return self._plugin._features
+		else:
+			return {}
+
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):
 		if plugin.pluginId == self._plugin.pluginId:

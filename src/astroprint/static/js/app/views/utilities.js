@@ -667,6 +667,21 @@ var UtilitiesView = Backbone.View.extend({
     }
     this.onPausedChanged(app.socketData, app.socketData.get('paused'));
 
+    var featuresKeys = Object.keys(allowedFeatures);
+
+    if(featuresKeys.indexOf('utilities') >= 0){
+      if(!(allowedFeatures['utilities'] != 'onlyView')){//onlyView
+        this.$('.control-container').addClass('hide')
+        this.$('.buttons-container').addClass('hide')
+      } else {
+        this.$('.control-container').removeClass('hide')
+        this.$('.buttons-container').removeClass('hide')
+      }
+    } else {
+      this.$('.control-container').removeClass('hide')
+      this.$('.buttons-container').removeClass('hide')
+    }
+
     this.extrusionView.render();
   },
   onHide: function()

@@ -186,7 +186,8 @@ def index():
 			mfDefinition= manufacturerPkgManager(),
 			apApiHost= roConfig('cloud.apiHost'),
 			apApiClientId= roConfig('cloud.apiClientId'),
-			boxId= boxrouterManager().boxId
+			boxId= boxrouterManager().boxId,
+			allowedFeatures= pm.getAllowedFeatures()
 		)
 
 @app.route("/discovery.xml")

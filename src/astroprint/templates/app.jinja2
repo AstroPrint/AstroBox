@@ -163,6 +163,7 @@
       userLogged: {% if user_email -%} true {%- else -%} false {%- endif %}
     };
     var initial_printer_profile = {{ printer_profile | tojson | safe }};
+    var allowedFeatures = {{ allowedFeatures | tojson | safe }}
   </script>
   {% assets filters="closure_js", output="js/gen/app.js",
     "js/lib/jquery.js", "js/lib/jquery.ui.widget.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/modernizr.js",
