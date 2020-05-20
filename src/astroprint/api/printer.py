@@ -503,3 +503,30 @@ def sendComm():
 def getAllowedFeatures():
 	return jsonify(printerManager().getAllowedFeatures())
 
+@api.route("/printer/load-filament", methods=["POST"])
+def loadFilament():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("No Printer connected", 404)
+	
+	executedSuccess = pm.executeRoutine('loadFilament')
+
+	if not executedSuccess:
+		return make_response("LoadFilament routine executing failed", 400)
+	else:
+		return make_response("LoadFilament executed successfuly", 200)
+
+@api.route("/printer/unload-filament", methods=["POST"])
+def unloadFilament():
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("No Printer connected", 404)
+	
+	executedSuccess = pm.executeRoutine('unLoadFilament')
+
+	if not executedSuccess:
+		return make_response("UnloadFilament routine executing failed", 400)
+	else:
+		return make_response("UnloadFilament executed successfuly", 200)

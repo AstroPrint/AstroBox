@@ -263,6 +263,17 @@ class PrinterWithPlugin(Printer):
 		else:
 			return {}
 
+	def executeRoutine(self,routine):
+		if hasattr(self._plugin,routine):
+			routine = getattr(self._plugin,routine)
+			try:
+				routine()
+				return True
+			except:
+				e = sys.exc_info()[0]
+				self._logger.error(e)
+				return False
+
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):
 		if plugin.pluginId == self._plugin.pluginId:
