@@ -384,50 +384,72 @@ var AdditionalTaskAppView = Backbone.View.extend({
       }
     }
 
-    var currentCommand = arrayCommands[commandsIndex];
+    if(Array.isArray(arrayCommands)){
 
-    // Check if it's a step-link ID
-    if (type == "action" && currentCommand.startsWith("@")) {
-      linkID = currentCommand.replace('@', '');
-      currentCommand = arrayCommands[++commandsIndex];
+      var currentCommand = arrayCommands[commandsIndex];
 
-      if (!currentCommand) {
-        this.linkTo(linkID);
-        promise.resolve();
-        return promise;
-      }
-    }
-    // Send gcode only if it's not a linkID
-    if (!currentCommand.startsWith("@")) {
-      $.ajax({
-        url: API_BASEURL + 'printer/comm/send',
-        method: 'POST',
-        data: {
-          command: currentCommand
-        }
-      })
-        .success(_.bind(function () {
-          if (arrayCommands[commandsIndex + 1]) {
-            this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
-          } else {
-            promise.resolve();
-            if (linkID) {
-              this.linkTo(linkID);
-            }
-          }
-        }, this))
+      // Check if it's a step-link ID
+      if (type == "action" && currentCommand.startsWith("@")) {
+        linkID = currentCommand.replace('@', '');
+        currentCommand = arrayCommands[++commandsIndex];
 
-        .fail(_.bind(function () {
-          promise.reject()
-        }, this))
-      return promise;
-    } else {
-      if (arrayCommands[commandsIndex + 1]) {
-        this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
-      } else {
-        promise.resolve();
-        if (linkID) {
+        if (!currentCommand) {
           this.linkTo(linkID);
+          promise.resolve();
+          return promise;
+        }
+      }
+      // Send gcode only if it's not a linkID
+      if (!currentCommand.startsWith("@")) {
+        $.ajax({
+          url: API_BASEURL + 'printer/comm/send',
+          method: 'POST',
+          data: {
+            command: currentCommand
+          }
+        })
+          .success(_.bind(function () {
+            if (arrayCommands[commandsIndex + 1]) {
+              this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+            } else {
+              promise.resolve();
+              if (linkID) {
+                this.linkTo(linkID);
+              }
+            }
+          }, this))
+
+          .fail(_.bind(function () {
+            promise.reject()
+          }, this))
+        return promise;
+      } else {
+        if (arrayCommands[commandsIndex + 1]) {
+          this.sendCommands(type, arrayCommands, linkID, ++commandsIndex, promise);
+        } else {
+          promise.resolve();
+          if (linkID) {
+            this.linkTo(linkID);
+          }
+        }
+      }
+    } else {
+      if(Object.keys(arrayCommands).indexOf("api_call") >= 0){
+        const api_call = arrayCommands.api_call
+        if(api_call) {
+          if(api_call.type == 'post'){
+            $.post(API_BASEURL + api_call.endpoint)
+            .done(_.bind(function(){
+              noty({text: "Task executed successfully!", type: 'success', timeout: 3000});
+            },this))
+            .fail(function(e){
+              noty({text: "Task executed failed!", timeout: 3000});
+            })
+          } else {
+            console.log('not implemented')
+          }
+        }else {
+          app.router.navigate("#additional-tasks/" + targetView.maintenanceMenuElement.get('id'), { trigger: true });
         }
       }
     }

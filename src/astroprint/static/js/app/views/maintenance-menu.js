@@ -70,24 +70,9 @@ var MaintenanceMenuListView = Backbone.View.extend({
         } else {
           this._sendComm(instantCommands)
         }
-      } else{ 
-        const api_call = targetView.maintenanceMenuElement.get('api_call')
-        if(api_call) {
-          if(api_call.type == 'post'){
-            $.post(API_BASEURL + api_call.endpoint)
-            .done(_.bind(function(){
-              noty({text: "Task executed successfully!", type: 'success', timeout: 3000});
-            },this))
-            .fail(function(e){
-              noty({text: "Task executed failed!", timeout: 3000});
-            })
-          } else {
-            console.log('not implemented')
-          }
-        }else {
+      } else{
           app.router.navigate("#additional-tasks/" + targetView.maintenanceMenuElement.get('id'), { trigger: true });
-        }
-      }
+       }
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;
