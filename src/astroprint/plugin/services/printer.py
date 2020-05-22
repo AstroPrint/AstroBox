@@ -420,6 +420,34 @@ class PrinterService(PluginService):
 	def getTimelapse(self,data,sendResponse):
 		sendResponse(cameraManager().timelapseInfo)
 
+	def loadFilament(self,data,callback):
+		pm = printerManager()
+
+		if not pm.isOperational():
+			callback("No Printer connected",True)
+
+		executedSuccess = pm.executeRoutine('loadFilament')
+
+		if not executedSuccess:
+			callback("LoadFilament routine executing failed",True)
+		else:
+			#callback("LoadFilament executed successfuly",True)
+			callback({'success': 'no_error'})
+
+	def unloadFilament(self,data,callback):
+		pm = printerManager()
+
+		if not pm.isOperational():
+			callback("No Printer connected",True)
+
+		executedSuccess = pm.executeRoutine('unLoadFilament')
+
+		if not executedSuccess:
+		else:
+			#callback("UnloadFilament executed successfuly",True)
+			callback({'success': 'no_error'})
+
+
 	#EVENTS
 
 	def _onConnect(self,event,value):
