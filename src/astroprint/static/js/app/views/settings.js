@@ -1166,7 +1166,8 @@ var CameraVideoStreamView = SettingsPage.extend({
     "submit form": 'onFormSubmit',
     "click #buttonRefresh": "refreshPluggedCamera",
     "change #video-stream-encoding": "changeEncoding",
-    "change #video-stream-source": "changeSource"
+    "change #video-stream-source": "changeSource",
+    "change #freq-selector" : "changeFreqTimeLapse",
   },
   show: function() {
 
@@ -1269,6 +1270,9 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.$('#video-stream-encoding').prop('disabled', '');
     }
   },
+  changeFreqTimeLapse : function (){
+changeFreqTimeLapse
+  },
   changeEncoding: function(){
 
     if(!this.settings){
@@ -1327,6 +1331,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     } else {
       this.$('#video-stream-encoding').prop('disabled', '');
     }
+    this.$('#time_lapse').val(this.settings.time_lapse)
   },
   onFormSubmit: function(e) {
       e.preventDefault();
@@ -1350,7 +1355,6 @@ var CameraVideoStreamView = SettingsPage.extend({
       } else {
         value = elem.val();
       }
-
       attrs[elem.attr('name')] = value;
     });
 

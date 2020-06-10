@@ -555,6 +555,18 @@
                         <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
                       <% } %>
                     <% } %>
+                    <label for="video-stream-framerate" class="bold">
+                      <i id="printIcon" class="icon-picture"></i> Print capture when start printing
+                    </label>
+                    <select id="time_lapse" name="time_lapse" align="center">
+                      <option value="0">Off</option>
+                      <option value="layer">Ea. layer</option>
+                      <option value="60">1 min</option>
+                      <option value="120">2 mins</option>
+                      <option value="300">5 mins</option>
+                      <option value="900">15 mins</option>
+                      <option value="1800">30 mins</option>
+                    </select>
                     <hr/>
                     <div class="loading-button">
                       <button class="success radius">Save</button>

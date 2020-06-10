@@ -63,6 +63,9 @@ default_settings = {
 		"video-rotation": 0,
 		"inactivitySecs": 90.0 # After 1.5 minutes of inactivity the camera shuts off
 	},
+	"time_lapse": {
+		"freq" : 0 # 0 || "layer" || 60 || 120 || 300 || 900 || 1800
+	},
 	"gcodeViewer": {
 		"enabled": True,
 		"mobileSizeThreshold": 2 * 1024 * 1024, # 2MB
