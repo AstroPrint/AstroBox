@@ -325,14 +325,30 @@ def getStorageSoftwareSettings():
 	pm = platformManager()
 
 	driveTotal, driveUsed, driveFree = pm.driveStats()
+	s = settings()
+	clearFiles = s.getBoolean(['clearFiles'])
 
 	return jsonify(
 		sizeLogs= pm.logsSize(),
 		sizeUploads= pm.uploadsSize(),
 		driveTotal= driveTotal,
 		driveUsed= driveUsed,
-		driveFree= driveFree
+		driveFree= driveFree,
+		clearFiles = clearFiles
 	)
+
+@api.route("/settings/software/storage", methods=["POST"])
+@restricted_access
+def setStorageSoftwareSettings():
+	s = settings()
+
+	if request.values.get('clearFiles', None):
+			s.setBoolean(['clearFiles'], request.values.get('clearFiles', None))
+
+	s.save()
+
+	return jsonify()
+
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access

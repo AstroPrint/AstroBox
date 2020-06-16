@@ -9,6 +9,7 @@ import yaml
 import time
 import octoprint.util as util
 
+from collections import OrderedDict
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
@@ -237,6 +238,17 @@ class PrintFilesManager(object):
 		else:
 			return filename, False
 
+	def clearLeftOverFiles(self):
+		cloudFiles = {}
+		for key in self._metadata:
+			if 'sentFromCloud' in self._metadata[key]:
+				cloudFiles[key] = self._metadata[key]
+
+		od = OrderedDict(sorted(cloudFiles.items(), key=lambda x: x[1]['prints']['last']['date'], reverse=True))
+		for item in list(reversed(list(od)))[0:(len(od)-10)]:
+			self.removeFile(item)
+
+
 	def getFutureFileName(self, file):
 		if not file:
 			return None
@@ -275,6 +287,7 @@ class PrintFilesManager(object):
 		self._metadataDirty = True
 		self._metadata[filename] = {
 			"cloud_id": fileInfo["id"],
+			"sentFromCloud" : fileInfo["sentFromCloud"],
 			"gcodeAnalysis": fileInfo["info"],
 			"printFileName": fileInfo["printFileName"],
 			"printer": fileInfo["printer"],

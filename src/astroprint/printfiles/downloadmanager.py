@@ -55,6 +55,7 @@ class DownloadWorker(threading.Thread):
 			successCb = item['successCb']
 			errorCb = item['errorCb']
 			destFile = item['destFile']
+			sentFromCloud = item['sentFromCloud']
 			printer = None
 			material = None
 			quality = None
@@ -116,7 +117,8 @@ class DownloadWorker(threading.Thread):
 								'material': material,
 								'quality': quality,
 								'image': image,
-								'created': created
+								'created': created,
+								'sentFromCloud' : sentFromCloud
 							}
 
 							em = eventManager()

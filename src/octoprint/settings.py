@@ -66,6 +66,7 @@ default_settings = {
 	"time_lapse": {
 		"freq" : 0 # 0 || "layer" || 60 || 120 || 300 || 900 || 1800
 	},
+	"clearFiles" : False,
 	"gcodeViewer": {
 		"enabled": True,
 		"mobileSizeThreshold": 2 * 1024 * 1024, # 2MB
