@@ -339,6 +339,17 @@ var PrinterProfileView = SettingsPage.extend({
         loadingBtn.removeClass('loading');
         //Make sure we reload next time we load this tab
         this.parent.subviews['printer-connection'].settings = null;
+        $.ajax({
+          url: API_BASEURL + "printer/allowed-features",
+          type: "GET",
+          dataType: "json",
+          success: _.bind(function(response) {
+            allowedFeatures = response
+          },this),
+          error: function () {
+            console.error('waw')
+          }
+        });
       }, this),
       error: function() {
         noty({text: "Failed to save printer profile changes", timeout: 3000});

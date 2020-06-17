@@ -562,6 +562,23 @@ el: '#printing-view',
   {
     this.printing_progress = app.socketData.get('printing_progress');
     this.paused = app.socketData.get('paused');
+    var featuresKeys = Object.keys(allowedFeatures);
+
+    if(featuresKeys.indexOf('printing') >= 0){
+      if(!(allowedFeatures['printing'] != 'onlyView')){//onlyView
+        this.$el.find('#buttons-box').addClass('hide')
+        this.$el.find('.stop-print').addClass('hide')
+        this.$el.find('.buttons-container').addClass('hide')
+      } else {
+        this.$('#buttons-box').removeClass('hide')
+        this.$('.stop-print').removeClass('hide')
+        this.$('.buttons-container').removeClass('hide')
+      }
+    } else {
+      this.$('#buttons-box').removeClass('hide')
+      this.$('.stop-print').removeClass('hide')
+      this.$('.buttons-container').removeClass('hide')
+    }
     this.render();
     if (this.currentTool != app.socketData.attributes.tool) {
       this.currentTool = app.socketData.attributes.tool;

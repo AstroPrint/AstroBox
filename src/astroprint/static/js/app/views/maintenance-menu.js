@@ -70,9 +70,9 @@ var MaintenanceMenuListView = Backbone.View.extend({
         } else {
           this._sendComm(instantCommands)
         }
-      } else {
-        app.router.navigate("#additional-tasks/" + targetView.maintenanceMenuElement.get('id'), { trigger: true });
-      }
+      } else{
+          app.router.navigate("#additional-tasks/" + targetView.maintenanceMenuElement.get('id'), { trigger: true });
+       }
     } else {
       this.parentCollection[this.deepIndex] = new MaintenanceMenuCollection(this.maintenanceMenuCollection.toJSON());
       ++this.deepIndex;

@@ -497,3 +497,27 @@ def sendComm():
 
 	else:
 		return make_response("Command is missing", 400)
+
+
+@api.route("/printer/allowed-features", methods=["GET"])
+def getAllowedFeatures():
+	return jsonify(printerManager().getAllowedFeatures())
+
+
+@api.route("/printer/execute-routine/<string:routine>", methods=["POST"])
+def executeRoutine(routine):
+
+	if not routine:
+		return make_response("Routine name needed", 400)
+
+	pm = printerManager()
+
+	if not pm.isOperational():
+		return make_response("No Printer connected", 404)
+
+	executedSuccess = pm.executeRoutine(routine)
+
+	if not executedSuccess:
+		return make_response(routine +  " routine executing failed", 400)
+	else:
+		return make_response(routine + " executed successfuly", 200)
