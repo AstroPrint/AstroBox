@@ -344,7 +344,6 @@ var PrinterProfileView = SettingsPage.extend({
           type: "GET",
           dataType: "json",
           success: _.bind(function(response) {
-            console.log(response)
             allowedFeatures = response
           },this),
           error: function () {

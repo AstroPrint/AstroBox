@@ -434,7 +434,7 @@ class PrinterService(PluginService):
 			#callback("LoadFilament executed successfuly",True)
 			callback({'success': 'no_error'})
 
-	def unloadFilament(self,data,callback):
+	def unLoadFilament(self,data,callback):
 		pm = printerManager()
 
 		if not pm.isOperational():
@@ -443,7 +443,7 @@ class PrinterService(PluginService):
 		executedSuccess = pm.executeRoutine('unLoadFilament')
 
 		if not executedSuccess:
-			callback("UnloadFilament routine executing failed",True)
+			callback("UnLoadFilament routine executing failed",True)
 		else:
 			#callback("UnloadFilament executed successfuly",True)
 			callback({'success': 'no_error'})
