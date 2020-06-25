@@ -61,9 +61,7 @@ default_settings = {
 		"debug-level": 0,
 		"graphic-debug": False,
 		"video-rotation": 0,
-		"inactivitySecs": 90.0 # After 1.5 minutes of inactivity the camera shuts off
-	},
-	"time_lapse": {
+		"inactivitySecs": 90.0, # After 1.5 minutes of inactivity the camera shuts off
 		"freq" : 0 # 0 || "layer" || 60 || 120 || 300 || 900 || 1800
 	},
 	"clearFiles" : False,

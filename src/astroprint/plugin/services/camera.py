@@ -52,6 +52,7 @@ class CameraService(PluginService):
 				'encoding': s.get(['camera', 'encoding']),
 				'size': s.get(['camera', 'size']),
 				'framerate': s.get(['camera', 'framerate']),
+				'freq' : s.get(['camera', 'freq']),
 				'format': s.get(['camera', 'format']),
 				'source': s.get(['camera', 'source']),
 				'video_rotation': s.getInt(['camera', 'video-rotation']),

@@ -204,7 +204,7 @@ def cameraSettings():
 				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
 
 			if "time_lapse" in data:
-				s.set(['time_lapse', 'freq'], data['time_lapse'])
+				s.set(['camera', 'freq'], data['time_lapse'])
 
 			s.save()
 
@@ -215,7 +215,7 @@ def cameraSettings():
 				'source': s.get(['camera', 'source']),
 				'format': s.get(['camera', 'format']),
 				'video_rotation': s.get(['camera', 'video-rotation']),
-				'time_lapse' : s.get(['time_lapse', 'freq'])
+				'time_lapse' : s.get(['camera', 'freq'])
 			})
 
 	return jsonify(
@@ -226,7 +226,7 @@ def cameraSettings():
 		source= s.get(['camera', 'source']),
 		video_rotation= s.getInt(['camera', 'video-rotation']),
 		structure= cm.settingsStructure(),
-		time_lapse = s.get(['time_lapse', 'freq'])
+		time_lapse = s.get(['camera', 'freq'])
 	)
 
 @api.route("/settings/software/plugins", methods=["GET"])

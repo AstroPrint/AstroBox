@@ -373,6 +373,9 @@ class SystemService(PluginService):
 			if "video_rotation" in data:
 				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
 
+			if "freq" in data:
+				s.set(['camera', 'freq'], data['freq'])
+
 			s.save()
 
 			cm.settingsChanged({
@@ -381,13 +384,15 @@ class SystemService(PluginService):
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
 				'format': s.get(['camera', 'format']),
-				'video_rotation': s.get(['camera', 'video-rotation'])
+				'video_rotation': s.get(['camera', 'video-rotation']),
+				'freq' : s.get(['camera', 'freq'])
 			})
 
 		sendMessage({
 			'encoding': s.get(['camera', 'encoding']),
 			'size': s.get(['camera', 'size']),
 			'framerate': s.get(['camera', 'framerate']),
+			'freq' : s.get(['camera', 'freq']),
 			'format': s.get(['camera', 'format']),
 			'source': s.get(['camera', 'source']),
 			'video_rotation': str(s.getInt(['camera', 'video-rotation'])),
@@ -494,6 +499,55 @@ class SystemService(PluginService):
 		except Exception:
 			self._logger.error('unsuccessfully factory settings restored', exc_info = True)
 			sendMessage("error_restoring_factory_settings",True)
+
+	def deviceStorage(self,data,sendResponse):
+		pm = platformManager()
+
+		driveTotal, driveUsed, driveFree = pm.driveStats()
+		s = settings()
+		clearFiles = s.getBoolean(['clearFiles'])
+
+		sendResponse({
+			"sizeLogs" : pm.logsSize(),
+			"sizeUploads" : pm.uploadsSize(),
+			"driveTotal" : driveTotal,
+			"driveUsed" : driveUsed,
+			"driveFree" : driveFree,
+			"clearFiles" : clearFiles
+		})
+
+	def clearLogStorage(self, data, sendResponse):
+		if softwareManager.clearLogs():
+			sendResponse({'success': 'no_error'})
+		else:
+			sendResponse("error_clearing_logs",True)
+
+	#empty all folders
+	def emptyFolder(self, folder):
+		if folder and os.path.exists(folder):
+			for f in os.listdir(folder):
+				p = os.path.join(folder, f)
+				try:
+					if os.path.isfile(p):
+						os.unlink(p)
+				except Exception, e:
+					pass
+
+	def clearFileStorage(self, data, sendResponse):
+		s = settings()
+		try:
+			self.emptyFolder( s.get(['folder', 'uploads']) or s.getBaseFolder('uploads') )
+			sendResponse({'success': 'no_error'})
+		except Exception, e:
+			logger = logging.getLogger(__name__)
+			logger.info(e, exc_info= True)
+			sendResponse("error_clearing_files",True)
+
+	def setAutoStorage(self,data,sendResponse):
+		s = settings()
+		if 'clearFiles' in data:
+			s.setBoolean(['clearFiles'], data['clearFiles'])
+		sendResponse({'success': 'no_error'})
 
 	def softwareVersion(self,data,sendResponse):
 		sendResponse(softwareManager.versionString)

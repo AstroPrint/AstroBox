@@ -474,7 +474,7 @@ class Printer(object):
 		#start time lapse if is set
 		s = settings()
 		c = cameraManager()
-		freq = s.get(['time_lapse', 'freq'])
+		freq = s.get(['camera', 'freq'])
 
 		if freq and c.isCameraConnected():
 			c.start_timelapse(freq)
