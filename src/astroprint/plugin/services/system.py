@@ -522,21 +522,22 @@ class SystemService(PluginService):
 		else:
 			sendResponse("error_clearing_logs",True)
 
-	#empty all folders
-	def emptyFolder(self, folder):
-		if folder and os.path.exists(folder):
-			for f in os.listdir(folder):
-				p = os.path.join(folder, f)
-				try:
-					if os.path.isfile(p):
-						os.unlink(p)
-				except Exception, e:
-					pass
 
 	def clearFileStorage(self, data, sendResponse):
 		s = settings()
 		try:
-			self.emptyFolder( s.get(['folder', 'uploads']) or s.getBaseFolder('uploads') )
+
+			def emptyFolder(folder):
+				if folder and os.path.exists(folder):
+					for f in os.listdir(folder):
+						p = os.path.join(folder, f)
+						try:
+							if os.path.isfile(p):
+								os.unlink(p)
+						except Exception, e:
+							pass
+
+			emptyFolder( s.get(['folder', 'uploads']) or s.getBaseFolder('uploads') )
 			sendResponse({'success': 'no_error'})
 		except Exception, e:
 			logger = logging.getLogger(__name__)

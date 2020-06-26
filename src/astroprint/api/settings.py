@@ -30,7 +30,7 @@ def emptyFolder(folder):
 			try:
 				if os.path.isfile(p):
 					os.unlink(p)
-			except Exception, e:
+			except Exception:
 				pass
 
 @api.route("/settings", methods=['GET'])
