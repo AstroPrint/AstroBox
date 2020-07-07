@@ -88,6 +88,7 @@ var FileUploadDashboard = FileUploadCombined.extend({
 var HomeView = Backbone.View.extend({
   el: '#home-view',
   uploadBtn: null,
+  lauchingQueues : false,
   events: {
     'show': 'onShow',
     'click .new-release a.check': 'onReleaseInfoClicked',
@@ -131,11 +132,31 @@ var HomeView = Backbone.View.extend({
   onQueueApp: function(e)
   {
     e.preventDefault();
-    if (initial_states.userLogged) {
-      location.href = "#print-queue";
-    } else {
-      $('#login-modal').foundation('reveal', 'open');
-    }
+
+      if (LOGGED_USER) {
+        if (FLEET_ID) {
+          if (!this.lauchingQueues) {
+            this.lauchingQueues = true
+            $.getJSON(API_BASEURL + 'astroprint/login-key')
+              .done(function (data) {
+                var url = 'https://cloud.astroprint.com/account/loginKey/' + data.login_key + "?redirect=printqueues&fleet_id=" + FLEET_ID
+                var win = window.open(url, '_blank')
+                win.focus()
+              })
+              .fail(function (e) {
+                console.error('Fail to create login Token', e)
+                location.href = AP_API_HOST + 'https://cloud.astroprint.com/account/login'
+              })
+              .always(_.bind(function () {
+                this.lauchingQueues = false
+              }, this))
+          }
+        } else {
+          location.href = "#print-queue";
+        }
+      } else {
+        $('#login-modal').foundation('reveal', 'open');
+      }
   },
   onCloseReleaseInfoClicked: function(e)
   {
