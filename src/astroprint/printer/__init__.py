@@ -471,6 +471,14 @@ class Printer(object):
 		#tell astroprint that we started a print
 		result = astroprintCloud().print_job(**kwargs)
 
+		#start time lapse if is set
+		s = settings()
+		c = cameraManager()
+		freq = s.get(['camera', 'freq'])
+
+		if freq and c.isCameraConnected():
+			c.start_timelapse(freq)
+
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']
 

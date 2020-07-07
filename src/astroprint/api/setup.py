@@ -212,6 +212,7 @@ def save_printer_profile_settings():
 def set_setup_done():
 	s = settings()
 	s.setBoolean(['server', 'firstRun'], False)
+	s.setBoolean(['clearFiles'], True)
 	s.save()
 
 	return make_response("OK", 200)

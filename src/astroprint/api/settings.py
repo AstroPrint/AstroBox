@@ -30,7 +30,7 @@ def emptyFolder(folder):
 			try:
 				if os.path.isfile(p):
 					os.unlink(p)
-			except Exception, e:
+			except Exception:
 				pass
 
 @api.route("/settings", methods=['GET'])
@@ -203,6 +203,9 @@ def cameraSettings():
 			if "video_rotation" in data:
 				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
 
+			if "time_lapse" in data:
+				s.set(['camera', 'freq'], data['time_lapse'])
+
 			s.save()
 
 			cm.settingsChanged({
@@ -211,7 +214,8 @@ def cameraSettings():
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
 				'format': s.get(['camera', 'format']),
-				'video_rotation': s.get(['camera', 'video-rotation'])
+				'video_rotation': s.get(['camera', 'video-rotation']),
+				'time_lapse' : s.get(['camera', 'freq'])
 			})
 
 	return jsonify(
@@ -221,7 +225,8 @@ def cameraSettings():
 		format= s.get(['camera', 'format']),
 		source= s.get(['camera', 'source']),
 		video_rotation= s.getInt(['camera', 'video-rotation']),
-		structure= cm.settingsStructure()
+		structure= cm.settingsStructure(),
+		time_lapse = s.get(['camera', 'freq'])
 	)
 
 @api.route("/settings/software/plugins", methods=["GET"])
@@ -320,14 +325,30 @@ def getStorageSoftwareSettings():
 	pm = platformManager()
 
 	driveTotal, driveUsed, driveFree = pm.driveStats()
+	s = settings()
+	clearFiles = s.getBoolean(['clearFiles'])
 
 	return jsonify(
 		sizeLogs= pm.logsSize(),
 		sizeUploads= pm.uploadsSize(),
 		driveTotal= driveTotal,
 		driveUsed= driveUsed,
-		driveFree= driveFree
+		driveFree= driveFree,
+		clearFiles = clearFiles
 	)
+
+@api.route("/settings/software/storage", methods=["POST"])
+@restricted_access
+def setStorageSoftwareSettings():
+	s = settings()
+
+	if request.values.get('clearFiles', None):
+			s.setBoolean(['clearFiles'], request.values.get('clearFiles', None))
+
+	s.save()
+
+	return jsonify()
+
 
 @api.route("/settings/software/advanced", methods=["GET"])
 @restricted_access

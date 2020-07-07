@@ -1177,7 +1177,8 @@ var CameraVideoStreamView = SettingsPage.extend({
     "submit form": 'onFormSubmit',
     "click #buttonRefresh": "refreshPluggedCamera",
     "change #video-stream-encoding": "changeEncoding",
-    "change #video-stream-source": "changeSource"
+    "change #video-stream-source": "changeSource",
+    "change #freq-selector" : "changeFreqTimeLapse",
   },
   show: function() {
 
@@ -1280,6 +1281,9 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.$('#video-stream-encoding').prop('disabled', '');
     }
   },
+  changeFreqTimeLapse : function (){
+changeFreqTimeLapse
+  },
   changeEncoding: function(){
 
     if(!this.settings){
@@ -1338,6 +1342,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     } else {
       this.$('#video-stream-encoding').prop('disabled', '');
     }
+    this.$('#time_lapse').val(this.settings.time_lapse)
   },
   onFormSubmit: function(e) {
       e.preventDefault();
@@ -1361,7 +1366,6 @@ var CameraVideoStreamView = SettingsPage.extend({
       } else {
         value = elem.val();
       }
-
       attrs[elem.attr('name')] = value;
     });
 
@@ -2301,7 +2305,8 @@ var SoftwareStorageView = SettingsPage.extend({
   deleteFilesDialog: null,
   settings: null,
   events: {
-    'click a.delete-logs': 'onDeleteLogsClicked'
+    'click a.delete-logs': 'onDeleteLogsClicked',
+    'click .loading-button' : 'onChangeClearFiles'
   },
   initialize: function () {
     SettingsPage.prototype.initialize.apply(this, arguments);
@@ -2326,7 +2331,6 @@ var SoftwareStorageView = SettingsPage.extend({
     if (!this.template) {
       this.template = _.template($("#software-storage-template").html())
     }
-
     this.$el.html(this.template({
       data: this.settings,
       size_format: app.utils.sizeFormat
@@ -2336,6 +2340,34 @@ var SoftwareStorageView = SettingsPage.extend({
   {
     e.preventDefault();
     ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
+  },
+  onChangeClearFiles: function(e)
+  {
+    var button = this.$('.loading-button');
+    var clearFiles = $("#clearFiles").is(':checked')
+    var data = {
+      clearFiles: clearFiles
+    };
+
+    button.addClass('loading');
+
+    $.post(API_BASEURL + 'settings/software/storage', data)
+      .done(_.bind(function(){
+        var text
+        if (clearFiles){
+          text = "Files are self cleaning now"
+        } else {
+          text = "Files are not self cleaning anymore"
+        }
+        noty({text: text, type: 'success', timeout: 3000});
+      },this))
+      .fail(function(){
+        noty({text: "Fail changing your settings.", timeout: 3000});
+      })
+      .always(function(){
+        button.removeClass('loading');
+      });
+
   }
 });
 

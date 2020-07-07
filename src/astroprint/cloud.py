@@ -459,8 +459,9 @@ class AstroPrintCloud(object):
 
 		return json.dumps(self._print_file_store)
 
-	def download_print_file(self, print_file_id, progressCb, successCb, errorCb):
+	def download_print_file(self, print_file_id, progressCb, successCb, errorCb, sentFromCloud = False):
 		dm = downloadManager()
+		markFile = sentFromCloud and self.settings.get(['clearFiles'])
 
 		if dm.isDownloading(print_file_id):
 			#We just return, there's already a download for this file in process
@@ -562,7 +563,8 @@ class AstroPrintCloud(object):
 					'created': created,
 					'progressCb': progressCb,
 					'successCb': onSuccess,
-					'errorCb': errorCb
+					'errorCb': errorCb,
+					'sentFromCloud' : markFile
 				})
 
 				return True

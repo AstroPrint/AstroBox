@@ -176,7 +176,7 @@ class RequestHandler(object):
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
 
-		res = astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb)
+		res = astroprintCloud().download_print_file(print_file_id, progressCb, successCb, errorCb, True)
 		if res is not True :
 			done({
 				'error': True,
@@ -184,7 +184,10 @@ class RequestHandler(object):
 				'id': res['id']
 			})
 			return
-
+		s = settings()
+		if s.getBoolean(['clearFiles']):
+			printer = printerManager()
+			threading.Timer(1, printer.fileManager.clearLeftOverFiles ).start()
 		done(None)
 
 	def cancel_download(self, data, clientId, done):
