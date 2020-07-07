@@ -63,7 +63,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
     var targetViewID  = $(e.target).closest('.menu-row').attr('id');
     var targetView = this.maintenanceMenu_views[targetViewID];
     if (targetView.maintenanceMenuElement.get('type') == "task") {
-      const instantCommands = targetView.maintenanceMenuElement.get('instant_commands')
+      var instantCommands = targetView.maintenanceMenuElement.get('instant_commands')
       if (instantCommands) {
         if (Array.isArray(instantCommands)) {
           this.sendGCodes(instantCommands)
@@ -85,7 +85,7 @@ var MaintenanceMenuListView = Backbone.View.extend({
   sendGCodes: function(commandsArray, index)
   {
     if (!index) { index = 0 }
-    const gCode = commandsArray[index]
+    var gCode = commandsArray[index]
     var promise = $.Deferred()
 
     if (gCode) {

@@ -435,7 +435,7 @@ var AdditionalTaskAppView = Backbone.View.extend({
       }
     } else {
       if(Object.keys(arrayCommands).indexOf("api_call") >= 0){
-        const api_call = arrayCommands.api_call
+        var api_call = arrayCommands.api_call
         if(api_call) {
           if(api_call.type == 'post'){
             $.post(API_BASEURL + api_call.endpoint)
