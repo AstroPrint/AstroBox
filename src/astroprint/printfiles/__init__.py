@@ -243,12 +243,12 @@ class PrintFilesManager(object):
 		for key in self._metadata:
 			item = self._metadata[key]
 			if item.get('sentFromCloud', False):
-				cloudFiles.append(item)
+				cloudFiles.append((key, item))
 
 		if len(cloudFiles) > self.PRINT_FILE_CACHE_SIZE:
-			cloudFiles = sorted(cloudFiles, key=lambda x: x['prints']['last'].get('date', 0), reverse=True)
+			cloudFiles = sorted(cloudFiles, key=lambda x: x[1]['prints']['last'].get('date', 0), reverse=True)
 			for item in cloudFiles[self.PRINT_FILE_CACHE_SIZE: ]:
-				self.removeFile(item)
+				self.removeFile(item[0])
 
 	def getFutureFileName(self, file):
 		if not file:
