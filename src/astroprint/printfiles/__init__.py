@@ -28,6 +28,7 @@ class PrintFilesManager(object):
 	fileFormat = None
 	SUPPORTED_EXTENSIONS = []
 	SUPPORTED_DESIGN_EXTENSIONS = ["stl"]
+	PRINT_FILE_CACHE_SIZE = 10
 
 	def __init__(self):
 
@@ -244,9 +245,9 @@ class PrintFilesManager(object):
 			if item.get('sentFromCloud', False):
 				cloudFiles.add(item)
 
-		if len(cloudFiles) > 10:
+		if len(cloudFiles) > self.PRINT_FILE_CACHE_SIZE:
 			cloudFiles = sorted(cloudFiles, key=lambda x: x['prints']['last'].get('date', 0), reverse=True)
-			for item in cloudFiles[10:]:
+			for item in cloudFiles[self.PRINT_FILE_CACHE_SIZE: ]:
 				self.removeFile(item)
 
 	def getFutureFileName(self, file):
