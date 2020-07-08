@@ -239,11 +239,11 @@ class PrintFilesManager(object):
 			return filename, False
 
 	def clearLeftOverFiles(self):
-		cloudFiles = set()
+		cloudFiles = []
 		for key in self._metadata:
 			item = self._metadata[key]
 			if item.get('sentFromCloud', False):
-				cloudFiles.add(item)
+				cloudFiles.append(item)
 
 		if len(cloudFiles) > self.PRINT_FILE_CACHE_SIZE:
 			cloudFiles = sorted(cloudFiles, key=lambda x: x['prints']['last'].get('date', 0), reverse=True)
