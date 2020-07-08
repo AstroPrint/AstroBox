@@ -239,15 +239,16 @@ class PrintFilesManager(object):
 			return filename, False
 
 	def clearLeftOverFiles(self):
-		cloudFiles = {}
+		cloudFiles = set()
 		for key in self._metadata:
-			if 'sentFromCloud' in self._metadata[key]:
-				cloudFiles[key] = self._metadata[key]
+			item = self._metadata[key]
+			if item.get('sentFromCloud', False):
+				cloudFiles.add(item)
 
-		od = OrderedDict(sorted(cloudFiles.items(), key=lambda x: x[1]['prints']['last']['date'], reverse=True))
-		for item in list(reversed(list(od)))[0:(len(od)-10)]:
-			self.removeFile(item)
-
+		if len(cloudFiles) > 10:
+			cloudFiles = sorted(cloudFiles, key=lambda x: x['prints']['last'].get('date', 0), reverse=True)
+			for item in cloudFiles[10:]:
+				self.removeFile(item)
 
 	def getFutureFileName(self, file):
 		if not file:

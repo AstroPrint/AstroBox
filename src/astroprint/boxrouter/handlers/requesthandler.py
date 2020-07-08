@@ -187,7 +187,11 @@ class RequestHandler(object):
 		s = settings()
 		if s.getBoolean(['clearFiles']):
 			printer = printerManager()
-			threading.Timer(1, printer.fileManager.clearLeftOverFiles ).start()
+			try:
+				printer.fileManager.clearLeftOverFiles()
+			except Exception:
+				self._logger.error('Error clearing left over print files', exc_info=True)
+
 		done(None)
 
 	def cancel_download(self, data, clientId, done):
