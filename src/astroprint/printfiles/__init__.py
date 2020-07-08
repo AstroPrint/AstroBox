@@ -9,7 +9,6 @@ import yaml
 import time
 import octoprint.util as util
 
-from collections import OrderedDict
 from octoprint.settings import settings
 from octoprint.events import eventManager, Events
 
