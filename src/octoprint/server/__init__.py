@@ -89,7 +89,8 @@ def box_identify():
 		'name': nm.getHostname(),
 		'version': VERSION,
 		'firstRun': s.getBoolean(["server", "firstRun"]),
-		'online': nm.isOnline()
+		'online': nm.isOnline(),
+		'ssl': request.headers.get('x-https-configured') == '1'
 	}),
 	headers= {
 		'Access-Control-Allow-Origin': '*'
