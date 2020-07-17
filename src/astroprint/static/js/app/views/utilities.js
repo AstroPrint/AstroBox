@@ -1,10 +1,10 @@
 /*
- *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) 2014-2020 AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global SemiCircleProgress, TempSemiCircleView, ControlView */
+/* global SemiCircleProgress, TempSemiCircleView, ControlView, allowedFeatures */
 
 /* exported UtilitiesView */
 

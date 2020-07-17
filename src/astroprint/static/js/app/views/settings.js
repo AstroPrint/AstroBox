@@ -1,5 +1,5 @@
 /*
- *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) 2014-2020 AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -344,7 +344,7 @@ var PrinterProfileView = SettingsPage.extend({
           type: "GET",
           dataType: "json",
           success: _.bind(function(response) {
-            allowedFeatures = response
+            window.allowedFeatures = response
           },this),
           error: function () {
             console.error('waw')
@@ -1180,7 +1180,6 @@ var CameraVideoStreamView = SettingsPage.extend({
     "change #video-stream-source": "changeSource"
   },
   show: function() {
-
     var form = this.$('form');
     var loadingBtn = form.find('.loading-button');
 
@@ -2337,7 +2336,7 @@ var SoftwareStorageView = SettingsPage.extend({
     e.preventDefault();
     ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
   },
-  onChangeClearFiles: function(e)
+  onChangeClearFiles: function()
   {
     var button = this.$('.loading-button');
     var clearFiles = $("#clearFiles").is(':checked')
