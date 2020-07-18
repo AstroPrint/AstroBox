@@ -1,6 +1,6 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2016-2019 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016-2020 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 # singleton
 _instance = None
@@ -332,9 +332,19 @@ class AstroPrintCloud(object):
 
 		self.remove_logged_user()
 
+	def get_local_certificate(self):
+		try:
+			#Get credentials to upload the file
+			r = requests.get( "%s/ssl/new-cert" % self.apiHost, auth=self.hmacAuth )
+			return r.text
+
+		except Exception as e:
+			self._logger.error('', exc_info=True)
+			return None
+
 	def get_upload_info(self, filePath):
-		path, filename = split(filePath)
-		path, fileExtension = splitext(filename)
+		_, filename = split(filePath)
+		_, fileExtension = splitext(filename)
 		design_id = uuid.uuid4().hex
 		s3_key = design_id + fileExtension
 

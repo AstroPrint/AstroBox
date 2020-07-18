@@ -1764,6 +1764,58 @@ var WiFiNetworksDialog = Backbone.View.extend({
 });
 
 /*************************
+* Network - SSL
+**************************/
+
+var SslSettingsView = SettingsPage.extend({
+  el: '#ssl-settings',
+  template: null,
+  events: {
+    'click button.toggle': 'onToggleSslClicked',
+  },
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    $.getJSON(API_BASEURL + 'settings/network/ssl', null, _.bind(function (data) {
+      this.render(data);
+    }, this))
+      .fail(function () {
+        noty({ text: "There was an error getting SSL settings.", timeout: 3000 });
+      });
+
+    this.render()
+  },
+  render: function(settings)
+  {
+    if (!this.template) {
+      this.template = _.template($("#ssl-settings-page-template").html());
+    }
+
+    this.$el.html(this.template({
+      settings: settings
+    }));
+  },
+  onToggleSslClicked: function(e)
+  {
+    e.preventDefault()
+
+    $.ajax({
+      url: API_BASEURL + 'settings/network/ssl',
+      data: JSON.stringify({action: 'toggle'}),
+      dataType: 'json',
+      contentType: 'application/json'
+    })
+      .done(_.bind(function (data) {
+        console.log(data)
+      }, this))
+      .fail(function () {
+        noty({ text: "There was an error saving SSL settings.", timeout: 3000 });
+      });
+  }
+})
+
+/*************************
 * Network - Wifi Hotspot
 **************************/
 
@@ -2804,6 +2856,7 @@ var SettingsView = Backbone.View.extend({
       'temperature-presets': new TemperaturePresetsView({parent: this}),
       'network-name': new NetworkNameView({parent: this}),
       'internet-connection': new InternetConnectionView({parent: this}),
+      'ssl': new SslSettingsView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
       'software-plugins': new SoftwarePluginsView({parent: this}),

@@ -22,6 +22,7 @@
         <li class="heading"><i class="icon-signal"></i>Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection"><a href="#settings/internet-connection">Internet</a></li>
+        <li class="ssl"><a href="#settings/ssl">SSL</a></li>
         <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading"><i class="icon-cog"></i> Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
@@ -850,6 +851,15 @@
         </tr>
       <% }); %>
       </table>
+    </script>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/ssl"><h1 class="bold" align="center">SSL</h1></a>
+    </div>
+    <div id="ssl-settings" class="settings-page hide"></div>
+    <script type="text/template" id="ssl-settings-page-template">
+      SSL
+      <button class="toggle">Enable</button>
     </script>
 
     <div class="show-for-small zebra">

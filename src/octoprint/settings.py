@@ -171,7 +171,10 @@ default_settings = {
 	},
 	"network": {
 		"manager": "debianNetworkManager",
-		"interface": 'wlan0'
+		"interface": 'wlan0',
+		"ssl": {
+			"domain": None
+		}
 	},
 	"software": {
 		"infoDir": None,

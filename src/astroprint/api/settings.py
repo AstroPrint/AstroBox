@@ -175,6 +175,32 @@ def handleWifiHotspot():
 		else:
 			return (result, 500)
 
+@api.route("/settings/network/ssl", methods=['GET', "POST"])
+@restricted_access
+def sslSettings():
+	sslm = networkManager().sslManager
+
+	if request.method == 'POST':
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
+			action = data.get('action')
+
+			if action == 'toggle':
+				if sslm.isSslActive():
+					sslm.disable()
+				else:
+					sslm.enable()
+
+				return jsonify(True)
+
+		return ("Invalid Request", 400)
+
+	else:
+		return jsonify(
+			enabled= sslm.isSslActive(),
+			domain= sslm.getDomain()
+		)
+
 @api.route("/settings/camera", methods=["GET", "POST"])
 @restricted_access
 def cameraSettings():
