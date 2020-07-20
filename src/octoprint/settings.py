@@ -1,7 +1,8 @@
 # coding=utf-8
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
+__author__ = "Gina Häußge <osd@foosel.net>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
-__copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2017-2020 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import sys
 import os
@@ -9,6 +10,7 @@ import yaml
 import logging
 import re
 import shutil
+import threading
 
 APPNAME="AstroBox"
 
@@ -200,6 +202,7 @@ class Settings(object):
 
 		self._config = None
 		self._dirty = False
+		self._saveLock = threading.Lock()
 
 		if configfile is not None:
 			self._configfile = configfile
@@ -240,7 +243,7 @@ class Settings(object):
 			with open(self._configfile, "r") as f:
 				self._config = yaml.safe_load(f)
 
-		# chamged from else to handle cases where the file exists, but is empty / 0 bytes
+		# changed from else to handle cases where the file exists, but is empty / 0 bytes
 		if not self._config:
 			self._config = {}
 
@@ -248,10 +251,12 @@ class Settings(object):
 		if not self._dirty and not force:
 			return
 
-		with open(self._configfile, "wb") as configFile:
-			yaml.safe_dump(self._config, configFile, default_flow_style=False, indent="    ", allow_unicode=True)
-			self._dirty = False
-		self.load()
+		with self._saveLock:
+			with open(self._configfile, "wb") as configFile:
+				yaml.safe_dump(self._config, configFile, default_flow_style=False, indent="    ", allow_unicode=True)
+				self._dirty = False
+
+			self.load()
 
 	#~~ getter
 
