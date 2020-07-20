@@ -1177,8 +1177,7 @@ var CameraVideoStreamView = SettingsPage.extend({
     "submit form": 'onFormSubmit',
     "click #buttonRefresh": "refreshPluggedCamera",
     "change #video-stream-encoding": "changeEncoding",
-    "change #video-stream-source": "changeSource",
-    "change #freq-selector" : "changeFreqTimeLapse",
+    "change #video-stream-source": "changeSource"
   },
   show: function() {
 
@@ -1280,9 +1279,6 @@ var CameraVideoStreamView = SettingsPage.extend({
     } else {
       this.$('#video-stream-encoding').prop('disabled', '');
     }
-  },
-  changeFreqTimeLapse : function (){
-changeFreqTimeLapse
   },
   changeEncoding: function(){
 
