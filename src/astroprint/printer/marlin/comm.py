@@ -1119,7 +1119,8 @@ class MachineCom(object):
 				or 'format error' in line_lower \
 				or 'missing checksum' in line_lower \
 				or 'failed to enable bed leveling' in line_lower \
-				or 'sd init fail' in line_lower:
+				or 'sd init fail' in line_lower \
+				or 'probing failed' in line_lower:
 				pass
 			elif not self.isError():
 				self._errorValue = line[6:]
