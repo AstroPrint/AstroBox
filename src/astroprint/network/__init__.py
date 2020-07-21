@@ -1,5 +1,5 @@
 # coding=utf-8
-__author__ = "Daniel Arroyo <daniel@astroprint.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 import socket, urllib2, subprocess
@@ -7,12 +7,14 @@ import socket, urllib2, subprocess
 from sys import platform
 
 from octoprint.settings import settings
-
 from astroprint.ro_config import roConfig
+
+from .ssl import SslManager
 
 class NetworkManager(object):
 	def __init__(self):
 		self.settings = settings()
+		self.sslManager = SslManager()
 
 	def isAstroprintReachable(self):
 		try:

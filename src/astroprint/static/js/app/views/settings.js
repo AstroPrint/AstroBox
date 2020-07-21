@@ -1,5 +1,5 @@
 /*
- *  (c) AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
+ *  (c) 2014-2020 AstroPrint Product Team. 3DaGoGo, Inc. (product@astroprint.com)
  *
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
@@ -344,7 +344,7 @@ var PrinterProfileView = SettingsPage.extend({
           type: "GET",
           dataType: "json",
           success: _.bind(function(response) {
-            allowedFeatures = response
+            window.allowedFeatures = response
           },this),
           error: function () {
             console.error('waw')
@@ -1180,7 +1180,6 @@ var CameraVideoStreamView = SettingsPage.extend({
     "change #video-stream-source": "changeSource"
   },
   show: function() {
-
     var form = this.$('form');
     var loadingBtn = form.find('.loading-button');
 
@@ -1765,6 +1764,140 @@ var WiFiNetworksDialog = Backbone.View.extend({
 });
 
 /*************************
+* Network - SSL
+**************************/
+
+var SslSettingsView = SettingsPage.extend({
+  el: '#ssl-settings',
+  template: null,
+  confirmationModal: null,
+  settings: null,
+  events: {
+    'click label.toggle': 'onToggleSslClicked',
+    'change select.ssl-domain-name': "onDomainChanged",
+    'click button.save': 'onSaveClicked'
+  },
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+
+    $.getJSON(API_BASEURL + 'settings/network/ssl', null, _.bind(function (data) {
+      var location = window.location
+
+      if (location.protocol == 'https:') {
+        var url = location.host.split(':')[0].toLowerCase()
+        if ( data.domains.indexOf(url) < 0 ) {
+          data.domains.push(url)
+        }
+      }
+
+      this.settings = data
+      this.render(data);
+    }, this))
+      .fail(function () {
+        noty({ text: "There was an error getting SSL settings.", timeout: 3000 });
+      });
+  },
+  render: function(settings)
+  {
+    if (!this.template) {
+      this.template = _.template($("#ssl-settings-page-template").html());
+    }
+
+    this.$el.html(this.template({
+      settings: settings
+    }));
+  },
+  onToggleSslClicked: function(e)
+  {
+    e.preventDefault()
+
+    if (!this.confirmationModal) {
+      this.confirmationModal = new SslChangeConfirmation()
+    }
+
+    this.confirmationModal.open(this.settings.enabled)
+  },
+  onDomainChanged: function(e)
+  {
+    e.preventDefault()
+
+    var domain = $(e.target).val().trim()
+
+    if (domain) {
+      var loading = this.$('i.loading-domain').removeClass('hide')
+      $.ajax({
+        url: API_BASEURL + 'settings/network/ssl',
+        data: JSON.stringify({
+          action: 'save',
+          values: {
+            domain: domain
+          }
+        }),
+        dataType: 'json',
+        contentType: 'application/json'
+      })
+        .done( _.bind(function() {
+          var url = 'https://' + domain
+          this.$('.domain-link').attr('href', url).text(url)
+        }, this))
+        .fail(function () {
+          noty({ text: "There was an error saving SSL settings.", timeout: 3000 });
+        })
+        .always(function () {
+          loading.addClass('hide')
+        })
+    }
+  }
+})
+
+var SslChangeConfirmation = Backbone.View.extend({
+  el: '#ssl-change-confirmatin-modal',
+  template: null,
+  enabled: null,
+  events: {
+    'click button.ok': 'onOkClicked',
+    'click button.cancel': 'onCancelClicked'
+  },
+  open: function (enabled) {
+    if (!this.template) {
+      this.template = _.template($("#ssl-change-confirmation-modal-template").html());
+    }
+
+    this.$el.html(this.template({
+      enabled: enabled
+    }))
+
+    this.enabled = enabled
+
+    this.$el.foundation('reveal', 'open');
+  },
+  onOkClicked: function (e) {
+    e.preventDefault()
+
+    var loadingBtn = $(e.target).closest('.loading-button')
+    loadingBtn.addClass('loading')
+
+    $.ajax({
+      url: API_BASEURL + 'settings/network/ssl',
+      data: JSON.stringify({ action: 'toggle' }),
+      dataType: 'json',
+      contentType: 'application/json'
+    })
+      .fail(_.bind(function () {
+        loadingBtn.addClass('failed').removeClass('loading')
+        setTimeout(function() { loadingBtn.removeClass('failed')}, 3000)
+        noty({ text: "There was an error " + (this.enabled ? 'disabling' : 'enabling') + " SSL encryption.", timeout: 3000 });
+      }, this))
+  },
+  onCancelClicked: function(e) {
+    e.preventDefault()
+    this.$el.foundation('reveal', 'close')
+  }
+})
+
+
+/*************************
 * Network - Wifi Hotspot
 **************************/
 
@@ -2337,7 +2470,7 @@ var SoftwareStorageView = SettingsPage.extend({
     e.preventDefault();
     ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
   },
-  onChangeClearFiles: function(e)
+  onChangeClearFiles: function()
   {
     var button = this.$('.loading-button');
     var clearFiles = $("#clearFiles").is(':checked')
@@ -2805,6 +2938,7 @@ var SettingsView = Backbone.View.extend({
       'temperature-presets': new TemperaturePresetsView({parent: this}),
       'network-name': new NetworkNameView({parent: this}),
       'internet-connection': new InternetConnectionView({parent: this}),
+      'ssl': new SslSettingsView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
       'software-plugins': new SoftwarePluginsView({parent: this}),

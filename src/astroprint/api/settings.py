@@ -175,6 +175,47 @@ def handleWifiHotspot():
 		else:
 			return (result, 500)
 
+@api.route("/settings/network/ssl", methods=['GET', "POST"])
+@restricted_access
+def sslSettings():
+	nm = networkManager()
+	sslm = nm.sslManager
+
+	if request.method == 'POST':
+		if "application/json" in request.headers["Content-Type"]:
+			data = request.json
+			action = data.get('action')
+
+			if action == 'toggle':
+				if sslm.isSslActive():
+					sslm.disable()
+				else:
+					sslm.enable()
+
+				return jsonify(True)
+
+			elif action == 'save':
+				values = data.get('values')
+				if values:
+					domain = values.get('domain')
+					s = settings()
+					s.set(['network', 'ssl', 'domain'], domain)
+					s.save()
+
+					return jsonify(True)
+
+		return ("Invalid Request", 400)
+
+	else:
+		ips = [ v.get('ip') for _, v in nm.getActiveConnections().items() if v is not None ]
+		domains = set([ '%s.xip.astroprint.com' % (i.split(':')[0].replace('.','-')) for i in ips if i is not None ] + [ '%s.local' % nm.getHostname() ])
+
+		return jsonify(
+			enabled= sslm.isSslActive(),
+			active_domain= sslm.getDomain(),
+			domains= list(domains)
+		)
+
 @api.route("/settings/camera", methods=["GET", "POST"])
 @restricted_access
 def cameraSettings():

@@ -22,6 +22,7 @@
         <li class="heading"><i class="icon-signal"></i>Network</li>
         <li class="network-name"><a href="#settings/network-name">Name</a></li>
         <li class="internet-connection"><a href="#settings/internet-connection">Internet</a></li>
+        <li class="ssl"><a href="#settings/ssl">SSL</a></li>
         <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading"><i class="icon-cog"></i> Software</li>
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
@@ -851,6 +852,81 @@
       <% }); %>
       </table>
     </script>
+
+    <div class="show-for-small zebra">
+      <a href="#settings/ssl"><h1 class="bold" align="center">SSL</h1></a>
+    </div>
+    <div id="ssl-settings" class="settings-page hide"></div>
+    <script type="text/template" id="ssl-settings-page-template">
+      <h3 class="bold">SSL Encryption</h3>
+      <div class="switch radius">
+        <input id="ssl-enabled" name="ssl-enabled" type="checkbox" <% if (settings.enabled) { %> value="yes" checked <% } %>>
+        <label class="toggle" for="ssl-enabled"></label>
+      </div>
+      <% if (settings.enabled) { %>
+        <div data-alert class="alert-box secondary">
+          <p>
+            SSL encryption is enabled on this device. In order for this to work you need to perform the following actions:
+          </p>
+          <ol>
+            <li>Install and set as trusted the <a href="https://cloud.astroprint.com/ssl/download/ca">AstroPrint Certificate Authority <i class="icon-download"></i></a>.</li>
+            <li>Pick a domain name to use when accessing your controller.</li>
+          </ol>
+        </div>
+        <select class="ssl-domain-name">
+          <% for( var i=0; i<settings.domains.length; i++) { %>
+            <option><%= settings.domains[i] %></option>
+          <% } %>
+        </select>
+        Your SSL protected URL: <a class="domain-link" href="https://<%= settings.active_domain %>">https://<%= settings.active_domain %></a> <i class="icon-rocket-spinner animate-spin loading-domain hide"></i>
+      <% } else { %>
+        <div data-alert class="alert-box secondary">
+          <p>
+            SSL encryption is not enabled on this device. The data you send over to your controller isn't encrypted. This is
+            ok if you're connecting it to a private network (e.g. your home or small business).
+          </p>
+          <p>
+            If you are connecting your controller to a public or shared network (e.g. library, school, corporate), consider enabling
+            SSL to protect the communication between you and your box.
+          </p>
+        </div>
+      <% } %>
+    </script>
+
+    <div id="ssl-change-confirmatin-modal" class="reveal-modal small radius" data-reveal>
+      <script type="text/template" id="ssl-change-confirmation-modal-template">
+        <h2 class="bold"><%= enabled ? 'Disable' : 'Enable' %> SSL Encryption</h2>
+        <div class="modal-body">
+          <% if (enabled) { %>
+            <p>This will disable SSL encryption between your browser and the controller.</p>
+          <% } else { %>
+            <p>
+              This will enable SSL encryption between your browser and the controller.
+            </p>
+            <p>
+              Make sure you have read <a href="https://astroprint.zendesk.com/hc/en-us/articles/360046164952" target="_blank" class="bold">this article</a> explaining the requirements before
+              doing this as it might make your controller unreachable from your browsers.
+            </p>
+          <% } %>
+          <p class="bold">
+            Your controller will reboot.
+          </p>
+        </div>
+        <div class="modal-actions row">
+          <div class="small-12 medium-6 columns">
+            <button class="secondary radius expand cancel">Cancel</button>
+          </div>
+          <div class="small-12 medium-6 columns">
+            <div class="loading-button expand">
+              <button class="alert radius ok">Ok, <%= enabled ? 'disable' : 'enable' %></button>
+              <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> Rebooting...</span>
+              <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+            </div>
+          </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
+      </script>
+    </div>
 
     <div class="show-for-small zebra">
       <a href="#settings/wifi-hotspot"><h1 class="bold" align="center">WiFi Hotspot</h1></a>
