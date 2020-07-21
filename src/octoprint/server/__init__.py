@@ -84,17 +84,26 @@ def box_identify():
 	nm = networkManager()
 	s = settings()
 
-	return Response(json.dumps({
+	sslEnabled = request.headers.get('x-https-configured') == '1'
+
+	r = {
 		'id': boxrouterManager().boxId,
 		'name': nm.getHostname(),
 		'version': VERSION,
 		'firstRun': s.getBoolean(["server", "firstRun"]),
 		'online': nm.isOnline(),
-		'ssl': request.headers.get('x-https-configured') == '1'
-	}),
-	headers= {
-		'Access-Control-Allow-Origin': '*'
-	} if s.getBoolean(['api', 'allowCrossOrigin']) else None)
+		'ssl': sslEnabled
+	}
+
+	if sslEnabled:
+		r['ssl_domain'] = s.get(['network', 'ssl', 'domain'])
+
+	return Response(
+		json.dumps(r),
+		headers= {
+			'Access-Control-Allow-Origin': '*'
+		} if s.getBoolean(['api', 'allowCrossOrigin']) else None
+	)
 
 @app.route("/")
 def index():
