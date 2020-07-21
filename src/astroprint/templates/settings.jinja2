@@ -866,19 +866,23 @@
       <% if (settings.enabled) { %>
         <div data-alert class="alert-box secondary">
           <p>
-            SSL encryption is enabled on this device. In order for this to work you need to perform the following actions:
+            SSL encryption is enabled on this device.
           </p>
-          <ol>
-            <li>Install and set as trusted the <a href="https://cloud.astroprint.com/ssl/download/ca">AstroPrint Certificate Authority <i class="icon-download"></i></a>.</li>
-            <li>Pick a domain name to use when accessing your controller.</li>
-          </ol>
+          <p>
+            Please make sure to <a class="bold" href="https://astroprint.zendesk.com/hc/en-us/articles/360046164952" target="_blank">read this article</a> to understand
+            which other steps are required to be taken in order to have SSL encryption properly working for your controller and browser.
+          </p>
         </div>
+        <h5 class="bold">Domain to access your controller</h5>
         <select class="ssl-domain-name">
           <% for( var i=0; i<settings.domains.length; i++) { %>
             <option><%= settings.domains[i] %></option>
           <% } %>
         </select>
-        Your SSL protected URL: <a class="domain-link" href="https://<%= settings.active_domain %>">https://<%= settings.active_domain %></a> <i class="icon-rocket-spinner animate-spin loading-domain hide"></i>
+        <small>SSL certificates only work for the domain they were created. <a href="https://astroprint.zendesk.com/hc/en-us/articles/360046164952" target="_blank">More info</a></small>
+        <p style="margin-top: 10px">
+          Your SSL protected URL: <a class="domain-link" href="https://<%= settings.active_domain %>">https://<%= settings.active_domain %></a> <i class="icon-rocket-spinner animate-spin loading-domain hide"></i>
+        </p>
       <% } else { %>
         <div data-alert class="alert-box secondary">
           <p>
