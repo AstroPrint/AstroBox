@@ -22,6 +22,11 @@ def roConfig(key):
 				'apiHost': "https://api.astroprint.com",
 				'apiClientId': None,
 				'boxrouter': "wss://boxrouter.astroprint.com"
+			},
+			'network': {
+				'ssl': {
+					'certPath': '/boot/.astrobox/ssl/cert.pem'
+				}
 			}
 		}
 

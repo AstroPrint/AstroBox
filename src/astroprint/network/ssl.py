@@ -7,30 +7,29 @@ import os
 from  distutils.dir_util import mkpath
 
 from octoprint.settings import settings
+from astroprint.ro_config import roConfig
 
 from astroprint.software import softwareManager
-
-#SSL_CERT_PATH = '/boot/.astrobox/ssl/cert.pem'
-SSL_CERT_PATH = '/Users/arroyo/.astrobox/ssl/cert.pem'
 
 class SslManager(object):
 	def __init__(self):
 		self._settings = settings()
+		self.sslCertPath = roConfig('network.ssl.certPath')
 
 	def isSslActive(self):
-		return os.path.isfile(SSL_CERT_PATH)
+		return os.path.isfile(self.sslCertPath)
 
 	def disable(self):
 		if self.isSslActive():
-			dirname = os.path.dirname(SSL_CERT_PATH)
+			dirname = os.path.dirname(self.sslCertPath)
 			os.rename(dirname, dirname.replace('ssl', 'ssl_disabled'))
 			softwareManager().restartServer()
 
 	def enable(self):
 		if not self.isSslActive():
-			disabledPath = SSL_CERT_PATH.replace('ssl', 'ssl_disabled')
+			disabledPath = self.sslCertPath.replace('ssl', 'ssl_disabled')
 			if os.path.isfile(disabledPath):
-				os.rename(os.path.dirname(disabledPath), os.path.dirname(SSL_CERT_PATH))
+				os.rename(os.path.dirname(disabledPath), os.path.dirname(self.sslCertPath))
 
 			else:
 				from astroprint.cloud import astroprintCloud
@@ -38,8 +37,8 @@ class SslManager(object):
 				astroprint = astroprintCloud()
 				cert = astroprint.get_local_certificate()
 				if cert is not None:
-					mkpath(os.path.dirname(SSL_CERT_PATH))
-					with open(SSL_CERT_PATH, 'w') as f:
+					mkpath(os.path.dirname(self.sslCertPath))
+					with open(self.sslCertPath, 'w') as f:
 						f.write(cert)
 				else:
 					raise NoCertException()
