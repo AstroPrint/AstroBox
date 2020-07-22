@@ -213,7 +213,7 @@ def sslSettings():
 
 	else:
 		ips = [ v.get('ip') for _, v in nm.getActiveConnections().items() if v is not None ]
-		domains = set([ '%s.xip.astroprint.com' % (i.split(':')[0].replace('.','-')) for i in ips if i is not None ] + [ '%s.local' % nm.getHostname() ])
+		domains = set([ '%s.xip.astroprint.com' % (i.split(':')[0].replace('.','-')) for i in ips if i is not None ] + [ '%s.ssl.local' % nm.getHostname() ])
 
 		return jsonify(
 			enabled= sslm.isSslActive(),
