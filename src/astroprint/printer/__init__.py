@@ -503,13 +503,20 @@ class Printer(object):
 			cameraManager().stop_timelapse()
 
 			consumedMaterial = self.getTotalConsumedFilament()
+			timeElapsed = self.getPrintTime()
 
 			if self._currentPrintJobId:
 				astroprintCloud().print_job(self._currentPrintJobId, status='failed', materialUsed= consumedMaterial)
 				activePrintJob = self._currentPrintJobId
 				self._currentPrintJobId = None
 
-			self._logger.info("Print job [%s] CANCELED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
+			self._logger.info("Print job [%s] CANCELED. Filament used: %f, Time elapsed: %f" %
+				(
+					os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown',
+					consumedMaterial,
+					timeElapsed
+				)
+			)
 
 			self.executeCancelCommands(disableMotorsAndHeater)
 
@@ -549,8 +556,10 @@ class Printer(object):
 		#stop timelapse if there was one
 		cameraManager().stop_timelapse(True) #True makes it take one last photo
 
+		timeElapsed = self.getPrintTime()
+
 		#Not sure if this is the best way to get the layer count
-		self._setProgressData(1.0, self._selectedFile["filesize"], self.getPrintTime(), 0, self._layerCount)
+		self._setProgressData(1.0, self._selectedFile["filesize"], timeElapsed, 0, self._layerCount)
 		self.refreshStateData()
 
 		consumedMaterial = self.getTotalConsumedFilament()
@@ -559,7 +568,13 @@ class Printer(object):
 			astroprintCloud().print_job(self._currentPrintJobId, status= 'success', materialUsed= consumedMaterial)
 			self._currentPrintJobId = None
 
-		self._logger.info("Print job [%s] COMPLETED. Filament used: %f" % (os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown', consumedMaterial))
+		self._logger.info("Print job [%s] COMPLETED. Filament used: %f, Time elapsed: %f" %
+			(
+				os.path.split(self._selectedFile['filename'])[1] if self._selectedFile else 'unknown',
+				consumedMaterial,
+				timeElapsed
+			)
+		)
 
 	# This should be deprecated, there's no a layer change event
 	def mcZChange(self, newZ):
