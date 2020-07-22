@@ -1807,6 +1807,8 @@ var SslSettingsView = SettingsPage.extend({
     this.$el.html(this.template({
       settings: settings
     }));
+
+    this.$('select.ssl-domain-name').val(settings.active_domain)
   },
   onToggleSslClicked: function(e)
   {
@@ -1816,7 +1818,7 @@ var SslSettingsView = SettingsPage.extend({
       this.confirmationModal = new SslChangeConfirmation()
     }
 
-    this.confirmationModal.open(this.settings.enabled)
+    this.confirmationModal.open(this.settings)
   },
   onDomainChanged: function(e)
   {
@@ -1854,21 +1856,22 @@ var SslSettingsView = SettingsPage.extend({
 var SslChangeConfirmation = Backbone.View.extend({
   el: '#ssl-change-confirmatin-modal',
   template: null,
-  enabled: null,
+  settings: null,
   events: {
     'click button.ok': 'onOkClicked',
     'click button.cancel': 'onCancelClicked'
   },
-  open: function (enabled) {
+  open: function (settings) {
     if (!this.template) {
       this.template = _.template($("#ssl-change-confirmation-modal-template").html());
     }
 
     this.$el.html(this.template({
-      enabled: enabled
+      enabled: settings.enabled,
+      url: ( settings.enabled ? 'http://' : 'https://' ) + settings.domains[0]
     }))
 
-    this.enabled = enabled
+    this.settings = settings
 
     this.$el.foundation('reveal', 'open');
   },

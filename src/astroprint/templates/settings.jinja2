@@ -912,8 +912,12 @@
               doing this as it might make your controller unreachable from your browsers.
             </p>
           <% } %>
-          <p class="bold">
-            Your controller will reboot.
+          <p>
+            <b>Your controller will reboot.</b> You will need to change your url.
+          </p>
+          <p>
+            Your Controller Web UI will be available within your local network at this url after reboot:
+            <br/><a class="bold" href="<%= url %>"><%= url %></a>
           </p>
         </div>
         <div class="modal-actions row">

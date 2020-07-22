@@ -180,6 +180,7 @@ def handleWifiHotspot():
 def sslSettings():
 	nm = networkManager()
 	sslm = nm.sslManager
+	s = settings()
 
 	if request.method == 'POST':
 		if "application/json" in request.headers["Content-Type"]:
@@ -191,6 +192,11 @@ def sslSettings():
 					sslm.disable()
 				else:
 					sslm.enable()
+					if not s.get(['network', 'ssl', 'domain']):
+						ips = [ v.get('ip') for _, v in nm.getActiveConnections().items() if v is not None ]
+						if len(ips) > 0:
+							s.set(['network', 'ssl', 'domain'], "%s.xip.astroprint.com" % ips[0].split(':')[0].replace('.', '-'))
+							s.save()
 
 				return jsonify(True)
 
@@ -198,7 +204,6 @@ def sslSettings():
 				values = data.get('values')
 				if values:
 					domain = values.get('domain')
-					s = settings()
 					s.set(['network', 'ssl', 'domain'], domain)
 					s.save()
 
