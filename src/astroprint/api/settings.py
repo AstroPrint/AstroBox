@@ -249,6 +249,9 @@ def cameraSettings():
 			if "video_rotation" in data:
 				s.set(['camera', 'video-rotation'], int(data['video_rotation']))
 
+			if "idle_timeout" in data:
+				s.setFloat(['camera', 'inactivitySecs'], data['idle_timeout'])
+
 			if "time_lapse" in data:
 				s.set(['camera', 'freq'], data['time_lapse'])
 
@@ -260,8 +263,7 @@ def cameraSettings():
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
 				'format': s.get(['camera', 'format']),
-				'video_rotation': s.get(['camera', 'video-rotation']),
-				'time_lapse' : s.get(['camera', 'freq'])
+				'video_rotation': s.get(['camera', 'video-rotation'])
 			})
 
 	return jsonify(
@@ -272,7 +274,8 @@ def cameraSettings():
 		source= s.get(['camera', 'source']),
 		video_rotation= s.getInt(['camera', 'video-rotation']),
 		structure= cm.settingsStructure(),
-		time_lapse = s.get(['camera', 'freq'])
+		time_lapse = s.get(['camera', 'freq']),
+		idle_timeout = s.get(['camera', 'inactivitySecs'])
 	)
 
 @api.route("/settings/software/plugins", methods=["GET"])

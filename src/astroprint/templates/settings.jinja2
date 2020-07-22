@@ -556,8 +556,20 @@
                         <input type="hidden" name="framerate" value="<%= settings.structure.fps[0].value %>"/>
                       <% } %>
                     <% } %>
-                    <label for="video-stream-framerate" class="bold">
-                      <i id="printIcon" class="icon-picture"></i> Print capture when start printing
+                    <label for="idle_timeout" class="bold">
+                      Camera inactivity turn off timeout
+                    </label>
+                    <select id="idle_timeout" name="idle_timeout" align="center">
+                      <option value="0">Always on</option>
+                      <option value="10">10 secs</option>
+                      <option value="30">30 secs</option>
+                      <option value="120">2 mins</option>
+                      <option value="300">5 mins</option>
+                      <option value="900">15 mins</option>
+                      <option value="1800">30 mins</option>
+                    </select>
+                    <label for="time_lapse" class="bold">
+                      Auto-start print image capture
                     </label>
                     <select id="time_lapse" name="time_lapse" align="center">
                       <option value="0">Off</option>

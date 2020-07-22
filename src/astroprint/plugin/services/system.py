@@ -376,6 +376,9 @@ class SystemService(PluginService):
 			if "freq" in data:
 				s.set(['camera', 'freq'], data['freq'])
 
+			if "idle_timeout" in data:
+				s.setFloat(['camera', 'inactivitySecs'], data['idle_timeout'])
+
 			s.save()
 
 			cm.settingsChanged({
@@ -384,8 +387,7 @@ class SystemService(PluginService):
 				'framerate': s.get(['camera', 'framerate']),
 				'source': s.get(['camera', 'source']),
 				'format': s.get(['camera', 'format']),
-				'video_rotation': s.get(['camera', 'video-rotation']),
-				'freq' : s.get(['camera', 'freq'])
+				'video_rotation': s.get(['camera', 'video-rotation'])
 			})
 
 		sendMessage({
@@ -393,6 +395,7 @@ class SystemService(PluginService):
 			'size': s.get(['camera', 'size']),
 			'framerate': s.get(['camera', 'framerate']),
 			'freq' : s.get(['camera', 'freq']),
+			'idle_timeout' : s.get(['camera', 'inactivitySecs']),
 			'format': s.get(['camera', 'format']),
 			'source': s.get(['camera', 'source']),
 			'video_rotation': str(s.getInt(['camera', 'video-rotation'])),

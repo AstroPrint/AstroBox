@@ -1338,6 +1338,7 @@ var CameraVideoStreamView = SettingsPage.extend({
       this.$('#video-stream-encoding').prop('disabled', '');
     }
     this.$('#time_lapse').val(this.settings.time_lapse)
+    this.$('#idle_timeout').val(this.settings.idle_timeout)
   },
   onFormSubmit: function(e) {
       e.preventDefault();
