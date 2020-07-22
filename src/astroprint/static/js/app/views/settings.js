@@ -2438,7 +2438,7 @@ var SoftwareStorageView = SettingsPage.extend({
   settings: null,
   events: {
     'click a.delete-logs': 'onDeleteLogsClicked',
-    'click .loading-button' : 'onChangeClearFiles'
+    'change #clearFiles' : 'onChangeClearFiles'
   },
   initialize: function () {
     SettingsPage.prototype.initialize.apply(this, arguments);
@@ -2473,33 +2473,30 @@ var SoftwareStorageView = SettingsPage.extend({
     e.preventDefault();
     ClearLogsDialog.getInstance().open(_.bind(this.refresh, this))
   },
-  onChangeClearFiles: function()
+  onChangeClearFiles: function(e)
   {
-    var button = this.$('.loading-button');
-    var clearFiles = $("#clearFiles").is(':checked')
+    var $target = $(e.target)
+    var clearFiles = $target.is(':checked')
+    var loading = $target.closest('.row').find('.loading').removeClass('hide')
     var data = {
       clearFiles: clearFiles
     };
 
-    button.addClass('loading');
-
     $.post(API_BASEURL + 'settings/software/storage', data)
       .done(_.bind(function(){
-        var text
-        if (clearFiles){
-          text = "Files are self cleaning now"
-        } else {
-          text = "Files are not self cleaning anymore"
-        }
-        noty({text: text, type: 'success', timeout: 3000});
+        noty({
+          text: clearFiles ? "Cloud files are automatically been removed" : "Cloud files won't be automatically deleted",
+          type: 'success',
+          timeout: 3000
+        });
       },this))
       .fail(function(){
-        noty({text: "Fail changing your settings.", timeout: 3000});
+        noty({text: "Error when changing setting", timeout: 3000});
+        $target.prop('checked', !clearFiles)
       })
       .always(function(){
-        button.removeClass('loading');
+        loading.addClass('hide')
       });
-
   }
 });
 
