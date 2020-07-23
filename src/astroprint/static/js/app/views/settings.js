@@ -1869,7 +1869,7 @@ var SslChangeConfirmation = Backbone.View.extend({
 
     this.$el.html(this.template({
       enabled: settings.enabled,
-      url: ( settings.enabled ? 'http://' : 'https://' ) + settings.domains[0]
+      url: ( settings.enabled ? 'http://' : 'https://' ) + settings.domains.find( function(url) { return url.indexOf('xip.astroprint.com') >= 0 })
     }))
 
     this.settings = settings
