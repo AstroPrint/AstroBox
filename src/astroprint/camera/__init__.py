@@ -193,9 +193,9 @@ class CameraManager(object):
 		self.videoSize = s.get(["camera", "size"])
 		self.videoFramerate = s.get(["camera", "framerate"])
 
-		inactivitySecs = s.get(["camera", "inactivitySecs"])
-		if inactivitySecs > 0:
-			self._cameraInactivity = CameraInactivity(s.get(["camera", "inactivitySecs"]), self._onInactive)
+		inactivitySecs = s.getFloat(["camera", "inactivitySecs"])
+		if inactivitySecs > 0.0:
+			self._cameraInactivity = CameraInactivity(inactivitySecs, self._onInactive)
 			#self._cameraInactivity = CameraInactivity(10, self._onInactive) # For testing
 		else:
 			self._cameraInactivity = None
