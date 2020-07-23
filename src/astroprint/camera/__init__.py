@@ -193,16 +193,18 @@ class CameraManager(object):
 		self.videoSize = s.get(["camera", "size"])
 		self.videoFramerate = s.get(["camera", "framerate"])
 
-		inactivitySecs = s.getFloat(["camera", "inactivitySecs"])
-		if inactivitySecs > 0.0:
-			self._cameraInactivity = CameraInactivity(inactivitySecs, self._onInactive)
-			#self._cameraInactivity = CameraInactivity(10, self._onInactive) # For testing
-		else:
-			self._cameraInactivity = None
-
 		self.reScan(False) # We don't broadcast here because printer manager is not initialized yet
 
 	def reScan(self, broadcastChange = True):
+		if self._cameraInactivity:
+			self._cameraInactivity.stop()
+
+		inactivitySecs = s.getFloat(["camera", "inactivitySecs"])
+		if inactivitySecs > 0.0:
+			self._cameraInactivity = CameraInactivity(inactivitySecs, self._onInactive)
+		else:
+			self._cameraInactivity = None
+
 		r = self._doReScan()
 
 		if broadcastChange:
