@@ -1842,6 +1842,7 @@ var SslSettingsView = SettingsPage.extend({
       })
         .done( _.bind(function() {
           var url = 'https://' + domain
+          this.settings.active_domain = domain
           this.$('.domain-link').attr('href', url).text(url)
         }, this))
         .fail(function () {
@@ -1867,9 +1868,16 @@ var SslChangeConfirmation = Backbone.View.extend({
       this.template = _.template($("#ssl-change-confirmation-modal-template").html());
     }
 
+    var active_domain = settings.active_domain
+
+    if (active_domain && settings.enabled) {
+      active_domain = active_domain.replace('.ssl.local', '.local')
+    }
+    var url = active_domain ? active_domain : settings.domains.find(function (url) { return url.indexOf('xip.astroprint.com') >= 0 })
+
     this.$el.html(this.template({
       enabled: settings.enabled,
-      url: ( settings.enabled ? 'http://' : 'https://' ) + settings.domains.find( function(url) { return url.indexOf('xip.astroprint.com') >= 0 })
+      url: url ? ( settings.enabled ? 'http://' : 'https://' ) + url : null
     }))
 
     this.settings = settings

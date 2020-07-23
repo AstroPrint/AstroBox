@@ -927,10 +927,12 @@
           <p>
             <b>Your controller will reboot.</b> You will need to change your url.
           </p>
-          <p>
-            Your Controller Web UI will be available within your local network at this url after reboot:
-            <br/><a class="bold" href="<%= url %>"><%= url %></a>
-          </p>
+          <% if (url) { %>
+            <p>
+              Your Controller Web UI will be available within your local network at this url after reboot:
+              <br/><a class="bold" href="<%= url %>"><%= url %></a>
+            </p>
+          <% } %>
         </div>
         <div class="modal-actions row">
           <div class="small-12 medium-6 columns">
