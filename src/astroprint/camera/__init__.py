@@ -200,7 +200,7 @@ class CameraManager(object):
 		if self._cameraInactivity:
 			self._cameraInactivity.stop()
 
-		inactivitySecs = s.getFloat(["camera", "inactivitySecs"])
+		inactivitySecs = settings().getFloat(["camera", "inactivitySecs"])
 		if inactivitySecs > 0.0:
 			self._cameraInactivity = CameraInactivity(inactivitySecs, self._onInactive)
 		else:
