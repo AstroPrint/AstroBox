@@ -185,6 +185,7 @@ class CameraManager(object):
 
 		self._eventManager = eventManager()
 		self._photos = {} # To hold sync photos
+		self._cameraInactivity = None
 
 		self.timelapseWorker = None
 		self.timelapseInfo = None
