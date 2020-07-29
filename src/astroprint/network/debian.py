@@ -715,17 +715,15 @@ class DebianNetworkManager(NetworkManagerBase):
 				if not hasattr(device.Ip4Config, 'AddressData'):
 					if hasattr(device.Ip4Config, 'Addresses'):
 						return device.Ip4Config.Addresses[0][0]
-					elif device.Ip4Address and device.Ip4Address != '0.0.0.0':
-						return device.Ip4Address
-				else:
+				elif len(device.Ip4Config.AddressData) > 0:
 					return device.Ip4Config.AddressData[0]['address']
+
+			#if nothing else works
+			if device.Ip4Address and device.Ip4Address != '0.0.0.0':
+				return device.Ip4Address
 
 		except AttributeError:
 			pass
-
-		except IndexError, e:
-			logger.error("Ip4Config invalid. device.Ip4Config.AddressData: %r" % device.Ip4Config.AddressData, exc_info=True)
-			raise e
 
 		return None
 
