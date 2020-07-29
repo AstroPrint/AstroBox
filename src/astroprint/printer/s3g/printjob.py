@@ -215,7 +215,7 @@ class PrintJobS3G(threading.Thread):
 
 			self._printer._comm.toggle_axes(['x','y','z','a','b'], False)
 
-			self._printer._changeState(self._printer.STATE_OPERATIONAL)
+			self._printer._changeState(self._printer.STATE_NOT_READY_TO_PRINT)
 
 			payload = {
 				"file": self._file['filename'],
@@ -246,7 +246,7 @@ class PrintJobS3G(threading.Thread):
 			}
 			eventManager().fire(Events.PRINT_FAILED, payload)
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
-			self._printer._changeState(self._printer.STATE_OPERATIONAL)
+			self._printer._changeState(self._printer.STATE_NOT_READY_TO_PRINT)
 
 		except ExternalStopError:
 			self._logger.warn('External Stop detected')
@@ -260,7 +260,7 @@ class PrintJobS3G(threading.Thread):
 			}
 			eventManager().fire(Events.PRINT_FAILED, payload)
 			self._printer._fileManager.printFailed(payload['filename'], payload['time'])
-			self._printer._changeState(self._printer.STATE_OPERATIONAL)
+			self._printer._changeState(self._printer.STATE_NOT_READY_TO_PRINT)
 
 		except Exception as e:
 			self._errorValue = getExceptionString()

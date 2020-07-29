@@ -136,7 +136,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 			self.reportHeatingUpChange(False)
 
 		time.sleep(1)
-		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+		self._changePrinterState(PrinterState.STATE_NOT_READY_TO_PRINT)
 
 	def jog(self, axis, amount):
 		self._logger.info('Jog - Axis: %s, Amount: %s', axis, amount)

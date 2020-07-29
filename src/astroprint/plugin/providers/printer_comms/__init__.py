@@ -453,7 +453,7 @@ class PrinterCommsService(CommandPluginInterface):
 
 		self._printerManager.mcPrintjobDone()
 
-		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+		self._changePrinterState(PrinterState.STATE_NOT_READY_TO_PRINT)
 
 		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, currentLayer)
 		eventManager().fire(SystemEvent.PRINT_DONE, {
