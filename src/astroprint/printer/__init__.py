@@ -34,6 +34,7 @@ class Printer(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	driverName = None
 	allowTerminal = None

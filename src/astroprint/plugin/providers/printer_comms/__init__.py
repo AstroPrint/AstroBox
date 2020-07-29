@@ -22,6 +22,7 @@ class PrinterState():
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	def __init__(self, value = 0):
 		self._state = value
@@ -49,6 +50,8 @@ class PrinterState():
 			return "Closed With Error"
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
+		if self._state == self.STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def __eq__(self, value):

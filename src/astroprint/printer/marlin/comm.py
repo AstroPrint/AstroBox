@@ -64,6 +64,7 @@ class MachineCom(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	#STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
@@ -234,6 +235,8 @@ class MachineCom(object):
 			return "Closed with Error: %s" % (self.getShortErrorString())
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
+		if self._state == self.	STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def getShortErrorString(self):

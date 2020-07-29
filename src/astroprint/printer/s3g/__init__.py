@@ -97,6 +97,8 @@ class PrinterS3g(Printer):
 			return "Closed with Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
+		if self._state == self.	STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def getCurrentConnection(self):
