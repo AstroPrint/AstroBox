@@ -34,7 +34,6 @@ class PrinterS3g(Printer):
 	UPDATE_INTERVAL = 3 #secs
 
 	def __init__(self):
-		self._comm = None
 		self._profile = None
 		self._gcodeParser = None
 		self._port = None
@@ -51,6 +50,7 @@ class PrinterS3g(Printer):
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
+		self._comm = None
 
 	def rampdown(self):
 		super(PrinterS3g, self).rampdown()

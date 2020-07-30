@@ -45,7 +45,7 @@ class Printer(object):
 		self.broadcastTraffic = 0 #Number of clients that wish to receive serial link traffic
 		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
-		self._comm = None
+		self._comm = True
 		self._currentFile = None
 		self._selectedFile = None
 		self._currentZ = None # This should probably be deprecated
@@ -400,10 +400,10 @@ class Printer(object):
 		return self._state == self.STATE_CONNECTING
 
 	def isOperational(self):
-		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
+		return self._comm is not None and self._state in [self.STATE_OPERATIONAL, self.STATE_PRINTING, self.STATE_PAUSED, self.STATE_NOT_READY_TO_PRINT]
 
 	def isClosedOrError(self):
-		return self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
+		return self._comm is None or self._state in [self.STATE_ERROR, self.STATE_CLOSED_WITH_ERROR, self.STATE_CLOSED]
 
 	def isError(self):
 		return self._state != self.STATE_CONNECTING and (self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR)
@@ -416,6 +416,9 @@ class Printer(object):
 
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
+
+	def isReadyToPrint(self):
+		return self.isOperational() and not self.isBusy() and self._state != self.STATE_NOT_READY_TO_PRINT
 
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()

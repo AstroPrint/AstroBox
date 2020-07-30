@@ -34,6 +34,7 @@ class RequestHandler(object):
 			'printing': printer.isPrinting() or printer.isPaused(),
 			'heatingUp': printer.isHeatingUp(),
 			'operational': printer.isOperational(),
+			'ready_to_print': printer.isReadyToPrint(),
 			'paused': printer.isPaused(),
 			'camera': printer.isCameraConnected(),
 			'filament' : printerProfileManager().data['filament'],

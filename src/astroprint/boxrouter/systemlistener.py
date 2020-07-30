@@ -5,6 +5,8 @@ __copyright__ = "Copyright (C) 2016-2017 3DaGoGo, Inc - Released under terms of 
 
 from octoprint.events import eventManager, Events
 
+from astroprint.plugin.providers.printer_comms import PrinterState
+
 class SystemListener(object):
 	def __init__(self, weakRefBoxRouter):
 		self._weakRefBoxRouter = weakRefBoxRouter
@@ -44,15 +46,20 @@ class SystemListener(object):
 		pass
 
 	def sendCurrentData(self, data):
-		flags = data['state']['flags']
+		state = data['state']
+		flags = state['flags']
+
+		printing = flags['printing'] or flags['paused']
+		operational = flags['operational']
 
 		payload = {
-			'operational': flags['operational'],
-			'printing': flags['printing'] or flags['paused'],
+			'operational': operational,
+			'printing': printing,
+			'ready_to_print': operational and not printing and state['state'] != PrinterState.STATE_NOT_READY_TO_PRINT,
 			'paused': flags['paused'],
 			'camera': flags['camera'],
 			'heatingUp': flags['heatingUp'],
-			'state': data['state']['text'].lower(),
+			'state': state['text'].lower(),
 			'tool': data['tool']
 		}
 
