@@ -565,6 +565,9 @@ class PrinterS3g(Printer):
 		if self._comm and self._comm.writer:
 			self._comm.writer.resetSerialLogging()
 
+	def changePrinterState(self, state):
+		self._changeState(state)
+
 	# ~~~ Internal Callbacks ~~~~
 
 	def printJobCancelled(self):

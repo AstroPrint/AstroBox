@@ -123,6 +123,12 @@ class Printer(object):
 	def selectedFile(self):
 		return self._currentFile
 
+	def set_bed_clear(self, clear):
+		self._bed_clear = clear
+		if clear:
+			if not self.isReadyToPrint():
+				self.changePrinterState(Printer.STATE_OPERATIONAL)
+
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
 
@@ -863,8 +869,12 @@ class Printer(object):
 	def resetSerialLogging(self):
 		raise NotImplementedError()
 
+	def changePrinterState(self, newState):
+		raise NotImplementedError()
+
 	def featureIsAllowed(self,feature):
 		return True
+
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

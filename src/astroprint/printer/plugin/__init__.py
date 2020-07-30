@@ -4,6 +4,7 @@ __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agp
 __copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import os
+import sys
 
 from octoprint.events import eventManager, Events
 from octoprint.settings import settings
@@ -273,6 +274,10 @@ class PrinterWithPlugin(Printer):
 				e = sys.exc_info()[0]
 				self._logger.error(e)
 				return False
+
+	def changePrinterState(self, newState):
+		if self._plugin:
+			self._plugin._changePrinterState(newState)
 
 	# Plugin Manager Event Listener
 	def onPluginRemoved(self, plugin):

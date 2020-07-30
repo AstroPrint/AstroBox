@@ -676,3 +676,7 @@ class PrinterMarlin(Printer):
 
 	def getAllowedFeatures(self):
 		return {}
+
+	def changePrinterState(self, newState):
+		if self._comm:
+			self._comm._changeState(newState)
