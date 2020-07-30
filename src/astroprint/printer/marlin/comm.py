@@ -399,6 +399,9 @@ class MachineCom(object):
 			#clear the command queue so that it's empty for the print
 			self._commandQueue.clear()
 
+			#From this point on we assume the bed won't be clear
+			self._callback.set_bed_clear(False)
+
 			#start sending gcode from file
 			firstCmd = self._getNextFileCommand()
 			if firstCmd:
@@ -450,7 +453,7 @@ class MachineCom(object):
 		#	self.sendCommand("M26 S0") # reset position in file to byte 0
 
 		self.unselectFile()
-		self._changeState(self.STATE_NOT_READY_TO_PRINT)
+		self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 		self._heatingUp = False
 		self._callback.mcHeatingUpUpdate(self._heatingUp)
 		self._cancelInProgress = False
@@ -964,7 +967,7 @@ class MachineCom(object):
 						self._sendCommand("M105")
 
 					elif "ok" in lineLower:
-						self._changeState(self.STATE_OPERATIONAL)
+						self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 						# if self._sdAvailable:
 						# 	self.refreshSdFiles()
 						# else:
@@ -1192,7 +1195,7 @@ class MachineCom(object):
 				"layerCount": self._currentLayer
 			}
 			self._callback.mcPrintjobDone()
-			self._changeState(self.STATE_NOT_READY_TO_PRINT)
+			self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 			eventManager().fire(Events.PRINT_DONE, payload)
 			return None
 

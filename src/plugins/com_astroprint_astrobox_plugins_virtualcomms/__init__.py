@@ -65,7 +65,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 			if not self._printerManager.shuttingDown:
 				self._temperatureChanger = TempsChanger(self)
 				self._temperatureChanger.start()
-				self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+				self._changePrinterState(PrinterState.STATE_OPERATIONAL if self._printerManager.isBedClear else PrinterState.STATE_NOT_READY_TO_PRINT)
 
 				#set initial temps
 				self.changeTemperature(25, 25)
@@ -112,6 +112,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 				self._heatingUp = False
 				self._heatingUpTimer = None
 				self._printJob = JobSimulator(self, self._printerManager, currentFile)
+
+				#From this point on we assume that there's something on the bed
+				self._printerManager.set_bed_clear(False)
 				self._printJob.start()
 
 		self._printJob = None
@@ -136,7 +139,7 @@ class VirtualComms(Plugin, PrinterCommsService):
 			self.reportHeatingUpChange(False)
 
 		time.sleep(1)
-		self._changePrinterState(PrinterState.STATE_NOT_READY_TO_PRINT)
+		self._changePrinterState(PrinterState.STATE_OPERATIONAL if self._printerManager.isBedClear else PrinterState.STATE_NOT_READY_TO_PRINT)
 
 	def jog(self, axis, amount):
 		self._logger.info('Jog - Axis: %s, Amount: %s', axis, amount)

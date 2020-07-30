@@ -20,6 +20,7 @@ from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.data_store import dataStore
 
 class Printer(object):
 	STATE_NONE = 0
@@ -57,6 +58,7 @@ class Printer(object):
 		self._timeStarted = 0
 		self._secsPaused = 0
 		self._pausedSince = None
+		self._bed_clear = dataStore().get('printer_state.bed_clear')
 
 		self._profileManager = printerProfileManager()
 
@@ -123,11 +125,17 @@ class Printer(object):
 	def selectedFile(self):
 		return self._currentFile
 
+	@property
+	def isBedClear(self):
+		return self._bed_clear
+
 	def set_bed_clear(self, clear):
-		self._bed_clear = clear
-		if clear:
-			if not self.isReadyToPrint():
-				self.changePrinterState(Printer.STATE_OPERATIONAL)
+		if clear != self._bed_clear:
+			self._bed_clear = clear
+			dataStore().set('printer_state.bed_clear', clear)
+			if clear:
+				if not self.isReadyToPrint():
+					self.changePrinterState(Printer.STATE_OPERATIONAL)
 
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
@@ -462,7 +470,7 @@ class Printer(object):
 		 Starts the currently loaded print job.
 		 Only starts if the printer is connected and operational, not currently printing and a printjob is loaded
 		"""
-		if not self.isConnected() or not self.isOperational() or self.isPrinting():
+		if not self.isConnected() or not self.isOperational() or self.isPrinting() or not self.isBedClear:
 			return False
 
 		if self._selectedFile is None:
@@ -499,7 +507,6 @@ class Printer(object):
 		self._currentLayer = 0
 
 		self.printedLayersCounter = 0
-
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):

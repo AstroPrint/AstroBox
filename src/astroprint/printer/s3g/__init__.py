@@ -192,7 +192,7 @@ class PrinterS3g(Printer):
 						self._firmwareVersion = version_info['Version']
 						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
 
-						self._changeState(self.STATE_OPERATIONAL)
+						self._changeState(self.STATE_OPERATIONAL if self.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
 
 						s.set(['serial', 'port'], self._port)
