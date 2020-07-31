@@ -349,7 +349,7 @@ class PrinterCommsService(CommandPluginInterface):
 	#
 	@property
 	def operational(self):
-		return self.connected and self.printerState in [PrinterState.STATE_OPERATIONAL, self.printerState == PrinterState.STATE_PRINTING, PrinterState.STATE_PAUSED, PrinterState.STATE_NOT_READY_TO_PRINT]
+		return self.connected and self.printerState in [PrinterState.STATE_OPERATIONAL, PrinterState.STATE_PRINTING, PrinterState.STATE_PAUSED, PrinterState.STATE_NOT_READY_TO_PRINT]
 
 	#
 	# Returns whether the printer connection has suffered an error and it's no longer connected
