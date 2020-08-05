@@ -113,7 +113,7 @@ class AstroPrintCloud(object):
 			from octoprint.server import userManager
 			user = userManager.findUser(loggedUser)
 			if(user and user.groupId != groupId):
-				self._logger.info("Box fleet group has changed")
+				self._logger.info("Box is part of fleet [%s] in group [%s]" % (orgId, groupId))
 				userManager.changeUserFleetInfo(loggedUser, orgId, groupId)
 				self.hmacAuth.updateFleetInfo(orgId, groupId)
 

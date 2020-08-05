@@ -101,19 +101,17 @@ class RequestHandler(object):
 		done(None)
 
 	def notifyfleet(self, data, clientId, done):
-		self._logger.info("Box has been joined to fleet group: %s" % (data['groupId']))
-		em = eventManager()
-		em.fire(Events.FLEET_STATUS, data)
+		eventManager().fire(Events.FLEET_STATUS, data)
 		astroprintCloud().updateFleetInfo(data['orgId'], data['groupId'])
 		done(None)
 
 	def print_file(self, data, clientId, done):
-
 		print_file_id = data['printFileId']
 		if 'printJobId' in data :
 			print_job_id = data['printJobId']
 		else :
 			print_job_id = None
+
 		em = eventManager()
 
 		def progressCb(progress):
