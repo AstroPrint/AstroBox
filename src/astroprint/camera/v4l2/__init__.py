@@ -133,6 +133,9 @@ class V4L2Manager(CameraManager):
 		spec the ioctl used here is experimental but seems to be well supported.
 		"""
 		try:
+			if self.number_of_video_device is None:
+				return None
+
 			device = '/dev/video%d' % self.number_of_video_device
 			supported_formats = self.__getPixelFormats(device)
 
@@ -200,8 +203,8 @@ class V4L2Manager(CameraManager):
 						frameinterval = v4l2.v4l2_frmivalenum()
 						frameinterval.index = 0
 						frameinterval.pixel_format = supported_format['pixelformat_int']
-						frameinterval.width = resolution[0];
-						frameinterval.height = resolution[1];
+						frameinterval.width = resolution[0]
+						frameinterval.height = resolution[1]
 
 						framerates = []
 
