@@ -154,11 +154,11 @@ class FilebasedUserManager(UserManager):
 		if publicKey and privateKey:
 			self._users[username].publicKey = str(publicKey)
 			self._users[username].privateKey = str(privateKey)
-			if orgId:
+			if orgId and groupId:
 				orgId = str(orgId)
 				groupId = str(groupId)
-			self._users[username].orgId = orgId
-			self._users[username].groupId = groupId
+				self._users[username].orgId = orgId
+				self._users[username].groupId = groupId
 			self._dirty = True
 			self._save()
 
@@ -166,8 +166,9 @@ class FilebasedUserManager(UserManager):
 		if not username in self._users.keys():
 			raise UnknownUser(username)
 
-		self._users[username].publicKey = str(orgId)
-		self._users[username].privateKey = str(groupId)
+		self._users[username].orgId = str(orgId)
+		self._users[username].groupId = str(groupId)
+		self._dirty = True
 		self._save()
 
 	def changeUserRoles(self, username, roles):
