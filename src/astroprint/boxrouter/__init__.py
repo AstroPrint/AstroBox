@@ -56,6 +56,7 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._lastReceived = 0
 		self._lineCheck = None
 		self._error = False
+		self._closing = False
 
 		self._weakRefRouter = weakref.ref(router)
 		self._logger = logging.getLogger(__name__)
@@ -133,14 +134,16 @@ class AstroprintBoxRouterClient(WebSocketClient):
 		self._lineCheckThread.start()
 
 	def closed(self, code, reason=None):
-		self._logger.info('BoxRouter socket closed event with [%d]: %s - server(%d) / client(%d)' % (code, reason, self.server_terminated, self.client_terminated))
+		if not self._closing:
+			self._closing = True
+			self._logger.info('BoxRouter socket closed event with [%d]: %s - server(%d) / client(%d)' % (code, reason, self.server_terminated, self.client_terminated))
 
-		router = self._weakRefRouter()
+			router = self._weakRefRouter()
 
-		#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
-		if router and ( self._error or router.connected ):
-			router.close()
-			router._doRetry()
+			#only retry if the connection was terminated by the remote or a link check failure (silentReconnect)
+			if router and ( self._error or router.connected ):
+				router.close()
+				router._doRetry()
 
 	def received_message(self, m):
 		self._lastReceived = time()
@@ -434,11 +437,9 @@ class AstroprintBoxRouter(object):
 				self.status = self.STATUS_ERROR
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 				self.close()
-
-				if data.get('should_retry'):
+				if 'should_retry' in data and data['should_retry']:
 					self._doRetry()
-
-				elif data.get('type') == 'unable_to_authenticate':
+				if 'type' in data and data['type'] == 'unable_to_authenticate':
 					self._logger.info("Unuable to authenticate user in fleet box. Logout")
 					astroprintCloud().remove_logged_user()
 
