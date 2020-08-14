@@ -37,7 +37,7 @@ class FilesService(PluginService):
 		#watch downloading progress of a print file
 		'progress_download_printfile',
 		#watch if a print file were downloaded: successfully or failed(error or cancelled)
-		'f¡nished_download_printfile',
+		'finished_download_printfile',
 		#watch if an external drive is mounted
 		'external_drive_mounted',
 		#watch if an external drive is ejected
@@ -288,7 +288,7 @@ class FilesService(PluginService):
 					"filename": printerManager().fileManager._getBasicFilename(destFile)
 				}
 
-				self.publishEvent('f¡nished_download_printfile',data)
+				self.publishEvent('finished_download_printfile',data)
 				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
@@ -304,7 +304,7 @@ class FilesService(PluginService):
 					"created": fileInfo["created"]
 				}
 
-				self.publishEvent('f¡nished_download_printfile',data)
+				self.publishEvent('finished_download_printfile',data)
 
 		def errorCb(destFile, error):
 			if error == 'cancelled':
@@ -313,7 +313,7 @@ class FilesService(PluginService):
 					"id": printFileId
 				}
 
-				self.publishEvent('f¡nished_download_printfile',data)
+				self.publishEvent('finished_download_printfile',data)
 				em.fire(Events.CLOUD_DOWNLOAD,data)
 
 			else:
@@ -324,7 +324,7 @@ class FilesService(PluginService):
 				}
 
 				em.fire(Events.CLOUD_DOWNLOAD,data)
-				self.publishEvent('f¡nished_download_printfile',data)
+				self.publishEvent('finished_download_printfile',data)
 
 			if destFile and os.path.exists(destFile):
 				os.remove(destFile)
