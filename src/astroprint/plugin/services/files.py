@@ -209,7 +209,7 @@ class FilesService(PluginService):
 			startPrintingStatus = printer.selectFile(filenameToSelect, sd, True)
 
 			if startPrintingStatus:
-				sendResponse({'success':'no error'})
+				sendResponse({'success': 'no error', 'printjob_id': printer.currentPrintJobId})
 			else:
 				sendResponse('printer_not_responding',True)
 
