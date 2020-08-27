@@ -101,16 +101,17 @@ class AstroPrintPipeline(object):
 				self._sendReqToProcess({'action': 'shutdown'})
 				self._process.join(2.0) #Give it two seconds to exit and kill otherwise
 
-			if self._process.exitcode is None:
-				self._logger.warn('Process did not shutdown properly. Terminating...')
-				self._process.terminate()
-				self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
-				if self._process and self._process.exitcode is None:
-					self._logger.warn('Process did not terminate properly. Sending KILL signal...')
-					self._kill()
+			if self._process: # It's possible that while waiting for the join this has been closed by another process ( Issue https://github.com/AstroPrint/AstroBox/issues/580 )
+				if self._process.exitcode is None:
+					self._logger.warn('Process did not shutdown properly. Terminating...')
+					self._process.terminate()
+					self._process.join(2.0) # Give it another two secods to terminate, otherwise kill
+					if self._process and self._process.exitcode is None:
+						self._logger.warn('Process did not terminate properly. Sending KILL signal...')
+						self._kill()
 
-			self._logger.debug('Process terminated')
-			self._process = None
+				self._logger.debug('Process terminated')
+				self._process = None
 
 	@property
 	def processRunning(self):
