@@ -25,6 +25,7 @@ var SocketData = Backbone.Model.extend({
     printing: false,
     paused: false,
     camera: false,
+    isBedClear : true,
     printing_progress: {
       percent: 0.0,
       time_left: 0
@@ -44,6 +45,7 @@ var SocketData = Backbone.Model.extend({
   extruder_count: null,
   initialize: function()
   {
+    this.set('isBedClear', initial_states.isBedClear)
     this.set('printing', initial_states.printing || initial_states.paused);
     this.set('paused', initial_states.paused);
     this.set('online', initial_states.online);
@@ -189,6 +191,7 @@ var SocketData = Backbone.Model.extend({
 
           this.set('paused', flags.paused);
           this.set('camera', flags.camera);
+          this.set('isBedClear', flags.isBedClear)
 
           if (flags.printing || flags.paused) {
             var progress = data.progress;

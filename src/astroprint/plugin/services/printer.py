@@ -29,6 +29,8 @@ class PrinterService(PluginService):
 		'printing_state_changed',
 		#watch the printer comms
 		'printer_comms_changed'
+		#watch the printer bed status
+		"bed_cleared_change"
 	]
 
 	def __init__(self):
@@ -44,6 +46,8 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.PRINTERPROFILE_CHANGE, self._onPrintingProfileChange)
 
 		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterCommsChange)
+
+		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterClearChange)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -420,6 +424,11 @@ class PrinterService(PluginService):
 	def getTimelapse(self,data,sendResponse):
 		sendResponse(cameraManager().timelapseInfo)
 
+	def clearBed(self,data,sendResponse):
+		pm = printerManager()
+		pm.set_bed_clear(True)
+		sendResponse({'success': 'no_error'})
+
 	def loadFilament(self,data,callback):
 		pm = printerManager()
 
@@ -468,6 +477,9 @@ class PrinterService(PluginService):
 
 	def _onPrinterCommsChange(self,event,value):
 		self.publishEvent('printer_comms_changed', value)
+
+	def _onPrinterClearChange(self,event,value):
+		self.publishEvent('bed_cleared_change', value)
 
 	def _onPrintingFlowChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"flow": value})

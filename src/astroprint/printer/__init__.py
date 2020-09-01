@@ -133,6 +133,7 @@ class Printer(object):
 		if clear != self._bed_clear:
 			self._bed_clear = clear
 			dataStore().set('printer_state.bed_clear', clear)
+			eventManager().fire(Events.BED_CLEARED_CHANGE, clear)
 			if clear:
 				if not self.isReadyToPrint():
 					self.changePrinterState(Printer.STATE_OPERATIONAL)
@@ -329,7 +330,8 @@ class Printer(object):
 			"paused": self.isPaused(),
 			"ready": self.isReady(),
 			"heatingUp": self.isHeatingUp(),
-			"camera": self.isCameraConnected()
+			"camera": self.isCameraConnected(),
+			"isBedClear" : self.isBedClear
 		}
 
 	def _setJobData(self, filename, filesize, sd):
