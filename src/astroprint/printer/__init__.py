@@ -133,7 +133,8 @@ class Printer(object):
 		if clear != self._bed_clear:
 			self._bed_clear = clear
 			dataStore().set('printer_state.bed_clear', clear)
-			eventManager().fire(Events.BED_CLEARED_CHANGE, clear)
+			print ()
+			eventManager().fire(Events.BED_CLEARED_CHANGED, clear)
 			if clear:
 				if not self.isReadyToPrint():
 					self.changePrinterState(Printer.STATE_OPERATIONAL)

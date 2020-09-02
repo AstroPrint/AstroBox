@@ -80,7 +80,7 @@ class Events(object):
 	EJECT = "Eject"
 	E_STOP = "EStop"
 	LAYER_CHANGE = "LayerChange"
-	BED_CLEARED_CHANGE = "BedClearedChange"
+	BED_CLEARED_CHANGED = "BedClearedChanged"
 
 	# Slicing
 	SLICING_STARTED = "SlicingStarted"
