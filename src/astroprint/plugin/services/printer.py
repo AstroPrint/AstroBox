@@ -48,7 +48,7 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterCommsChange)
 
 		#bed
-		self._eventManager.subscribe(Events.BED_CLEARED_CHANGED, self._onPrinterClearChange)
+		self._eventManager.subscribe(Events.BED_CLEARED_CHANGED, self._onPrinterClearChanged)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -480,10 +480,11 @@ class PrinterService(PluginService):
 	def _onPrinterCommsChange(self,event,value):
 		self.publishEvent('printer_comms_changed', value)
 
-	def _onPrinterClearChange(self,event,value):
-		print "_onPrinterClearChange"
+	def _onPrinterClearChanged(self,event,value):
+		print "_onPrinterClearChanged FROM ASTROBOX"
 		pm = printerManager()
-		self.publishEvent('bed_cleared_change', {'isBedClear' : pm.isBedClear})
+		print ("PUBLISH EVENT")
+		self.publishEvent('bed_cleared_changed', {'isBedClear' : pm.isBedClear})
 
 	def _onPrintingFlowChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"flow": value})
