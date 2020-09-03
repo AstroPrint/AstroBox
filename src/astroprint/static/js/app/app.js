@@ -70,13 +70,14 @@ var AstroBoxApp = Backbone.View.extend({
     this.router = new AppRouter();
     this.connectionView = new ConnectionView({socket: this.socketData});
     this.printerProfile = new PrinterProfile(initial_printer_profile);
+    this.clearBed = initial_states.isBedClear
 
     this.eventManager = Backbone.Events;
     this.astroprintApi = new AstroPrintApi(this.eventManager);
     this.socketData.connectionView = this.connectionView;
     this.socketData.connect(WS_TOKEN);
     this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
-    this.listenTo(this.socketData, 'change:isBedClear', this.beadChanged );
+    this.listenTo(this.socketData, 'change:isBedClear', this.bedChanged );
     this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
     this.listenTo(this.socketData, "change:box_reachable", this.onReachableChanged );
   },
@@ -116,11 +117,13 @@ var AstroBoxApp = Backbone.View.extend({
       this.router.navigate("utilities", {replace: true, trigger: true});
     }
   },
-  beadChanged : function (s, bedState)
+  bedChanged : function (s, bedState)
   {
     if(bedState){
+      this.clearBed = true
       $('.dirty-bed').addClass('hide');
     } else {
+      this.clearBed = false
       $('.dirty-bed').removeClass('hide');
     }
   },

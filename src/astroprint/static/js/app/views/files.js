@@ -86,8 +86,16 @@ var PrintFileInfoDialog = Backbone.View.extend({
   },
   onPrintClicked: function(e)
   {
-    this.print_file_view.printClicked(e);
-    this.$el.foundation('reveal', 'close');
+    if (!app.clearBed) {
+      if (!this.clearBedModal) {
+        this.clearBedModal = new ClearBedModal();
+      }
+
+      this.clearBedModal.open();
+    } else {
+      this.print_file_view.printClicked(e);
+      this.$el.foundation('reveal', 'close');
+    }
   },
   onDownloadClicked: function(e)
   {
@@ -281,6 +289,14 @@ var PrintFileView = Backbone.View.extend({
   printClicked: function (evt)
   {
     if (evt) evt.preventDefault();
+
+    if (!app.clearBed) {
+      if (!this.clearBedModal) {
+        this.clearBedModal = new ClearBedModal();
+      }
+      this.clearBedModal.open();
+      return
+    }
 
     var filename = this.print_file.get('local_filename');
 
