@@ -28,7 +28,7 @@ class PrinterService(PluginService):
 		#watch the current printing state
 		'printing_state_changed',
 		#watch the printer comms
-		'printer_comms_changed'
+		'printer_comms_changed',
 		#watch the printer bed status
 		"bed_cleared_changed"
 	]
@@ -481,9 +481,7 @@ class PrinterService(PluginService):
 		self.publishEvent('printer_comms_changed', value)
 
 	def _onPrinterClearChanged(self,event,value):
-		print "_onPrinterClearChanged FROM ASTROBOX"
 		pm = printerManager()
-		print ("PUBLISH EVENT")
 		self.publishEvent('bed_cleared_changed', {'isBedClear' : pm.isBedClear})
 
 	def _onPrintingFlowChange(self,event,value):

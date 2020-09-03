@@ -130,11 +130,9 @@ class Printer(object):
 		return self._bed_clear
 
 	def set_bed_clear(self, clear):
-		print "set_bed_clear"
 		if clear != self._bed_clear:
 			self._bed_clear = clear
 			dataStore().set('printer_state.bed_clear', clear)
-			print "SEND EVENT"
 			eventManager().fire(Events.BED_CLEARED_CHANGED, clear)
 			if clear:
 				if not self.isReadyToPrint():
