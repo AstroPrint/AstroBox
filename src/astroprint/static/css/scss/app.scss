@@ -34,7 +34,56 @@ body, html {
   user-select: text;
 }
 
+.dirty-bed{
+  background: rgba($yellow, 0.7);
+  padding: 16px;
+  font-size: 18px;
+  letter-spacing: 1px;
+  border-radius: 16px 16px 0 0;
+  margin-top: 16px;
+
+  i{
+    position: relative;
+    font-size: 42px;
+    z-index: 1;
+    display: block;
+
+    &::before{
+     // background: rgba($red, 0.3);
+      border-radius: 20px;
+      background:#f8a270;
+    }
+  }
+
+  h4{color: $white; font-family: "nexa_boldregular";}
+
+  button{
+    margin-bottom: 0;
+    margin-top: 11px;
+    background: $white;
+
+    &:hover{
+      background: darken($white, 5%);
+    }
+  }
+
+  .clean-bed-ilustration{
+    position: relative;
+    display: inline-block;
+    padding: 0 6px;
+    margin-right: 8px;
+
+    img{
+      position: absolute;
+      left: 0;
+      bottom: -6px;
+    }
+  }
+}
+
 .tab-bar {
+  box-shadow: 2px 2px 9px rgba(0, 0, 0,0.08);
+
   .tab-bar-section.middle {
     text-align: left;
 
@@ -139,7 +188,7 @@ i.animate-spin {
 }
 
 #main {
-  border-top: 1px solid #e5e5e5;
+  //border-top: 1px solid #e5e5e5;
   -webkit-transform: scale3d(1,1,1);
   padding-bottom: 55px;
 }

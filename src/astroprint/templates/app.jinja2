@@ -40,9 +40,17 @@
           <a class="turn-off" title="Device Shutdown"><i class="icon-off"></i></a>
         </section>
       </nav>
-      <nav class="dirty-bed {% if clean_bed %} hide {% endif %}">
-        <div>
-          Waiting for print platform clean up <button class="right clear-bed small bold"><i class="icon-clean"></i> Mark platform as clean</button>
+      <nav class="dirty-bed row clearfix {% if clean_bed %} hide {% endif %}">
+        <div class="column medium-12 large-9 bold">
+          <h4>
+            <div class="clean-bed-ilustration">
+              <i class="icon-clean swing animated infinite"></i>
+              <img class="icon-bed" src="img/icon-bed.svg">
+            </div>
+            <span>Waiting for print platform clean up</span></h4>
+        </div>
+        <div class="column medium-12 large-3">
+          <button class="right clear-bed small bold secondary radius">Mark platform as clean</button>
         </div>
       </nav>
       <aside class="left-off-canvas-menu">
