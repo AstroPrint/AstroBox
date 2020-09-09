@@ -20,6 +20,7 @@ from astroprint.camera import cameraManager
 from astroprint.printfiles.map import printFileManagerMap
 from astroprint.printfiles import FileDestinations
 from astroprint.manufacturerpkg import manufacturerPkgManager
+from astroprint.data_store import dataStore
 
 class Printer(object):
 	STATE_NONE = 0
@@ -34,6 +35,7 @@ class Printer(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	driverName = None
 	allowTerminal = None
@@ -44,7 +46,7 @@ class Printer(object):
 		self.broadcastTraffic = 0 #Number of clients that wish to receive serial link traffic
 		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
-		self._comm = None
+		self._comm = True
 		self._currentFile = None
 		self._selectedFile = None
 		self._currentZ = None # This should probably be deprecated
@@ -56,6 +58,7 @@ class Printer(object):
 		self._timeStarted = 0
 		self._secsPaused = 0
 		self._pausedSince = None
+		self._bed_clear = dataStore().get('printer_state.bed_clear')
 
 		self._profileManager = printerProfileManager()
 
@@ -121,6 +124,19 @@ class Printer(object):
 	@property
 	def selectedFile(self):
 		return self._currentFile
+
+	@property
+	def isBedClear(self):
+		return self._bed_clear
+
+	def set_bed_clear(self, clear):
+		if clear != self._bed_clear:
+			self._bed_clear = clear
+			dataStore().set('printer_state.bed_clear', clear)
+			eventManager().fire(Events.BED_CLEARED_CHANGED, clear)
+			if clear:
+				if not self.isReadyToPrint():
+					self.changePrinterState(Printer.STATE_OPERATIONAL)
 
 	def getPrintTime(self):
 		return ( time.time() - self._timeStarted - self._secsPaused ) if self.isPrinting() else 0
@@ -314,7 +330,8 @@ class Printer(object):
 			"paused": self.isPaused(),
 			"ready": self.isReady(),
 			"heatingUp": self.isHeatingUp(),
-			"camera": self.isCameraConnected()
+			"camera": self.isCameraConnected(),
+			"isBedClear" : self.isBedClear
 		}
 
 	def _setJobData(self, filename, filesize, sd):
@@ -399,10 +416,10 @@ class Printer(object):
 		return self._state == self.STATE_CONNECTING
 
 	def isOperational(self):
-		return self._comm is not None and (self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED)
+		return self._comm is not None and self._state in [self.STATE_OPERATIONAL, self.STATE_PRINTING, self.STATE_PAUSED, self.STATE_NOT_READY_TO_PRINT]
 
 	def isClosedOrError(self):
-		return self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR or self._state == self.STATE_CLOSED
+		return self._comm is None or self._state in [self.STATE_ERROR, self.STATE_CLOSED_WITH_ERROR, self.STATE_CLOSED]
 
 	def isError(self):
 		return self._state != self.STATE_CONNECTING and (self._comm is None or self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR)
@@ -415,6 +432,9 @@ class Printer(object):
 
 	def isPrinting(self):
 		return self._state == self.STATE_PRINTING
+
+	def isReadyToPrint(self):
+		return self.isOperational() and not self.isBusy() and self._state != self.STATE_NOT_READY_TO_PRINT
 
 	def isCameraConnected(self):
 		return cameraManager().isCameraConnected()
@@ -452,7 +472,7 @@ class Printer(object):
 		 Starts the currently loaded print job.
 		 Only starts if the printer is connected and operational, not currently printing and a printjob is loaded
 		"""
-		if not self.isConnected() or not self.isOperational() or self.isPrinting():
+		if not self.isConnected() or not self.isOperational() or self.isPrinting() or not self.isBedClear:
 			return False
 
 		if self._selectedFile is None:
@@ -489,7 +509,6 @@ class Printer(object):
 		self._currentLayer = 0
 
 		self.printedLayersCounter = 0
-
 		return True
 
 	def cancelPrint(self, disableMotorsAndHeater=True):
@@ -857,6 +876,9 @@ class Printer(object):
 		raise NotImplementedError()
 
 	def resetSerialLogging(self):
+		raise NotImplementedError()
+
+	def changePrinterState(self, newState):
 		raise NotImplementedError()
 
 	def featureIsAllowed(self,feature):

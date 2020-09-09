@@ -174,6 +174,7 @@ def index():
 
 		return render_template(
 			"app.jinja2",
+			clean_bed = pm.isBedClear,
 			user_email= loggedUsername,
 			fleet_id = fleetId,
 			userPublicKey= publicKey,

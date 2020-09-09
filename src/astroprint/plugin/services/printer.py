@@ -28,7 +28,9 @@ class PrinterService(PluginService):
 		#watch the current printing state
 		'printing_state_changed',
 		#watch the printer comms
-		'printer_comms_changed'
+		'printer_comms_changed',
+		#watch the printer bed status
+		"bed_cleared_changed"
 	]
 
 	def __init__(self):
@@ -44,6 +46,9 @@ class PrinterService(PluginService):
 		self._eventManager.subscribe(Events.PRINTERPROFILE_CHANGE, self._onPrintingProfileChange)
 
 		self._eventManager.subscribe(Events.COMMS_CHANGE, self._onPrinterCommsChange)
+
+		#bed
+		self._eventManager.subscribe(Events.BED_CLEARED_CHANGED, self._onPrinterClearChanged)
 
 		#temperature
 		self._eventManager.subscribe(Events.TEMPERATURE_CHANGE, self._onTemperatureChanged)
@@ -93,6 +98,7 @@ class PrinterService(PluginService):
 				'operational': printer.isOperational(),
 				'paused': printer.isPaused(),
 				'camera': cm.isCameraConnected(),
+				'isBedClear' : printer.isBedClear,
 				#'printCapture': cm.timelapseInfo,
 				'remotePrint': True,
 				'capabilities': ['remotePrint'] + cm.capabilities
@@ -420,6 +426,11 @@ class PrinterService(PluginService):
 	def getTimelapse(self,data,sendResponse):
 		sendResponse(cameraManager().timelapseInfo)
 
+	def clearBed(self,data,sendResponse):
+		pm = printerManager()
+		pm.set_bed_clear(True)
+		sendResponse({'success': 'no_error'})
+
 	def loadFilament(self,data,callback):
 		pm = printerManager()
 
@@ -468,6 +479,10 @@ class PrinterService(PluginService):
 
 	def _onPrinterCommsChange(self,event,value):
 		self.publishEvent('printer_comms_changed', value)
+
+	def _onPrinterClearChanged(self,event,value):
+		pm = printerManager()
+		self.publishEvent('bed_cleared_changed', {'isBedClear' : pm.isBedClear})
 
 	def _onPrintingFlowChange(self,event,value):
 		self.publishEvent('printer_state_changed', {"flow": value})
@@ -521,3 +536,9 @@ class PrinterService(PluginService):
 		data = value
 		data['state'] = 'printing_error'
 		self.publishEvent('printing_state_changed', data)
+
+	def _onBedCleared(self,event,value):
+		data = value
+		data['state'] = 'printing_error'
+		self.publishEvent('printing_state_changed', data)
+

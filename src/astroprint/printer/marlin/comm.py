@@ -64,6 +64,7 @@ class MachineCom(object):
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	#STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	def __init__(self, port = None, baudrate = None, callbackObject = None):
 		self._logger = logging.getLogger(__name__)
@@ -234,6 +235,8 @@ class MachineCom(object):
 			return "Closed with Error: %s" % (self.getShortErrorString())
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
+		if self._state == self.	STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def getShortErrorString(self):
@@ -396,6 +399,9 @@ class MachineCom(object):
 			#clear the command queue so that it's empty for the print
 			self._commandQueue.clear()
 
+			#From this point on we assume the bed won't be clear
+			self._callback.set_bed_clear(False)
+
 			#start sending gcode from file
 			firstCmd = self._getNextFileCommand()
 			if firstCmd:
@@ -447,7 +453,7 @@ class MachineCom(object):
 		#	self.sendCommand("M26 S0") # reset position in file to byte 0
 
 		self.unselectFile()
-		self._changeState(self.STATE_OPERATIONAL)
+		self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 		self._heatingUp = False
 		self._callback.mcHeatingUpUpdate(self._heatingUp)
 		self._cancelInProgress = False
@@ -533,7 +539,7 @@ class MachineCom(object):
 		# 	return
 
 		# self.sendCommand("M29 %s" % filename.lower())
-		# self._changeState(self.STATE_OPERATIONAL)
+		# self._changeState(self.STATE_NOT_READY_TO_PRINT)
 		# self.refreshSdFiles()
 
 	def deleteSdFile(self, filename):
@@ -807,7 +813,7 @@ class MachineCom(object):
 				# 	if self.isSdFileSelected() and self.isPrinting():
 				# 		# something went wrong, printer is reporting that we actually are not printing right now...
 				# 		self._sdFilePos = 0
-				# 		self._changeState(self.STATE_OPERATIONAL)
+				# 		self._changeState(self.STATE_NOT_READY_TO_PRINT)
 				# elif 'SD card ok' in line and not self._sdAvailable:
 				# 	self._sdAvailable = True
 				# 	self.refreshSdFiles()
@@ -844,7 +850,7 @@ class MachineCom(object):
 				# 	# printer is reporting file finished printing
 				# 	self._sdFilePos = 0
 				# 	self._callback.mcPrintjobDone()
-				# 	self._changeState(self.STATE_OPERATIONAL)
+				# 	self._changeState(self.STATE_NOT_READY_TO_PRINT)
 				# 	eventManager().fire(Events.PRINT_DONE, {
 				# 		"file": self._currentFile.getFilename(),
 				# 		"filename": os.path.basename(self._currentFile.getFilename()),
@@ -961,7 +967,7 @@ class MachineCom(object):
 						self._sendCommand("M105")
 
 					elif "ok" in lineLower:
-						self._changeState(self.STATE_OPERATIONAL)
+						self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 						# if self._sdAvailable:
 						# 	self.refreshSdFiles()
 						# else:
@@ -1189,7 +1195,7 @@ class MachineCom(object):
 				"layerCount": self._currentLayer
 			}
 			self._callback.mcPrintjobDone()
-			self._changeState(self.STATE_OPERATIONAL)
+			self._changeState(self.STATE_OPERATIONAL if self._callback.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 			eventManager().fire(Events.PRINT_DONE, payload)
 			return None
 

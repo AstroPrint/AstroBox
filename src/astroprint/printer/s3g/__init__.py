@@ -34,7 +34,6 @@ class PrinterS3g(Printer):
 	UPDATE_INTERVAL = 3 #secs
 
 	def __init__(self):
-		self._comm = None
 		self._profile = None
 		self._gcodeParser = None
 		self._port = None
@@ -51,6 +50,7 @@ class PrinterS3g(Printer):
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
+		self._comm = None
 
 	def rampdown(self):
 		super(PrinterS3g, self).rampdown()
@@ -97,6 +97,8 @@ class PrinterS3g(Printer):
 			return "Closed with Error: %s" % (self.getShortErrorString())
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
+		if self._state == self.	STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def getCurrentConnection(self):
@@ -190,7 +192,7 @@ class PrinterS3g(Printer):
 						self._firmwareVersion = version_info['Version']
 						self._logger.info('Connected to Machine running version: %d, variant: 0x%x' % (self._firmwareVersion, version_info['SoftwareVariant']) )
 
-						self._changeState(self.STATE_OPERATIONAL)
+						self._changeState(self.STATE_OPERATIONAL if self.isBedClear else self.STATE_NOT_READY_TO_PRINT)
 						eventManager().fire(Events.CONNECTED, {"port": self._port, "baudrate": self._baudrate})
 
 						s.set(['serial', 'port'], self._port)
@@ -562,6 +564,9 @@ class PrinterS3g(Printer):
 	def resetSerialLogging(self):
 		if self._comm and self._comm.writer:
 			self._comm.writer.resetSerialLogging()
+
+	def changePrinterState(self, state):
+		self._changeState(state)
 
 	# ~~~ Internal Callbacks ~~~~
 

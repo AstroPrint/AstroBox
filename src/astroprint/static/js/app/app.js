@@ -5,7 +5,7 @@
  */
 
 /* global app:writable, SocketData, Utils, AppRouter, ConnectionView, PrinterProfile, AstroPrintApi,
-          TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal, FLEET_ID*/
+          TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal, ClearBedModal, FLEET_ID*/
 
 /* exported navigatorPrevent */
 
@@ -59,7 +59,8 @@ var AstroBoxApp = Backbone.View.extend({
   events: {
     'click button.turn-off, a.turn-off': 'turnOffClicked',
     'click button.reboot': 'rebootClicked',
-    'click a.launch-ap': 'launchAstroPrint'
+    'click a.launch-ap': 'launchAstroPrint',
+    'click button.clear-bed' : 'clearBed'
   },
   initialize: function()
   {
@@ -69,13 +70,14 @@ var AstroBoxApp = Backbone.View.extend({
     this.router = new AppRouter();
     this.connectionView = new ConnectionView({socket: this.socketData});
     this.printerProfile = new PrinterProfile(initial_printer_profile);
+    this.clearBed = initial_states.isBedClear
 
     this.eventManager = Backbone.Events;
     this.astroprintApi = new AstroPrintApi(this.eventManager);
-
     this.socketData.connectionView = this.connectionView;
     this.socketData.connect(WS_TOKEN);
     this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
+    this.listenTo(this.socketData, 'change:isBedClear', this.bedChanged );
     this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
     this.listenTo(this.socketData, "change:box_reachable", this.onReachableChanged );
   },
@@ -104,7 +106,7 @@ var AstroBoxApp = Backbone.View.extend({
       this.setPrinting();
       this.router.navigate("printing", {replace: true, trigger: true});
     } else {
-      //clear current printing data
+      //clean current printing data
       this.socketData.set({
         printing_progress: null,
         print_capture: null,
@@ -113,6 +115,16 @@ var AstroBoxApp = Backbone.View.extend({
       $('body').removeClass('printing');
       this.$('.quick-nav').show();
       this.router.navigate("utilities", {replace: true, trigger: true});
+    }
+  },
+  bedChanged : function (s, bedState)
+  {
+    if(bedState){
+      this.clearBed = true
+      $('.dirty-bed').addClass('hide');
+    } else {
+      this.clearBed = false
+      $('.dirty-bed').removeClass('hide');
     }
   },
   selectQuickNav: function(tab)
@@ -154,6 +166,15 @@ var AstroBoxApp = Backbone.View.extend({
   {
     $('body').addClass('printing');
     this.$('.quick-nav').hide();
+  },
+  clearBed : function (e)
+  {
+    e.preventDefault();
+    if (!this.clearBedModal) {
+      this.clearBedModal = new ClearBedModal();
+    }
+
+    this.clearBedModal.open();
   },
   launchAstroPrint: function(e)
   {

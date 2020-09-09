@@ -34,6 +34,7 @@ class RequestHandler(object):
 			'printing': printer.isPrinting() or printer.isPaused(),
 			'heatingUp': printer.isHeatingUp(),
 			'operational': printer.isOperational(),
+			'ready_to_print': printer.isReadyToPrint(),
 			'paused': printer.isPaused(),
 			'camera': printer.isCameraConnected(),
 			'filament' : printerProfileManager().data['filament'],
@@ -265,7 +266,6 @@ class PrinterCommandHandler(object):
 		done(printerManager().cancelPrint())
 
 	def photo(self, data, clientId, done):
-
 		def doneWithPhoto(pic):
 			if pic is not None:
 				done({
@@ -280,6 +280,9 @@ class PrinterCommandHandler(object):
 
 		cameraManager().get_pic_async(doneWithPhoto)
 
+	def set_bed_clear(self, clear, _, done):
+		printerManager().set_bed_clear(clear)
+		done(None)
 
 # Camera Command Group Handler
 

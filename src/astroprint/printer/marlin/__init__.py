@@ -55,9 +55,6 @@ class PrinterMarlin(Printer):
 		self._sdFilelistAvailable = threading.Event()
 		self._streamingFinishedCallback = None
 
-		# comm
-		self._comm = None
-
 		self.estimatedTimeLeft = None
 		self.originalTotalPrintTime = 0
 		self.timePercentPreviousLayers = 0
@@ -67,6 +64,8 @@ class PrinterMarlin(Printer):
 
 
 		super(PrinterMarlin, self).__init__()
+		# comm
+		self._comm = None
 
 	def rampdown(self):
 		if self._comm:
@@ -674,3 +673,11 @@ class PrinterMarlin(Printer):
 	def resetSerialLogging(self):
 		if self._comm:
 			self._comm.resetSerialLogging()
+
+	def getAllowedFeatures(self):
+		return {}
+
+	def changePrinterState(self, newState):
+		if self._comm:
+			self._comm._changeState(newState)
+

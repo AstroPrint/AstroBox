@@ -14,6 +14,13 @@ from octoprint.server.api import api
 
 from astroprint.printer.manager import printerManager
 
+@api.route("/clearbed", methods=["POST"])
+@restricted_access
+def clearBed():
+	printer = printerManager()
+	printer.set_bed_clear(True)
+	return jsonify({'is_bed_clear': printer.isBedClear})
+
 @api.route("/job", methods=["POST"])
 @restricted_access
 def controlJob():
@@ -53,7 +60,7 @@ def controlJob():
 				'id': 'no_active_print',
 				'msg': "Printer is neither printing nor paused, 'cancel' command cannot be performed"
 			}), 409)
-			response.headers['Content-Type'] = 'application/json';
+			response.headers['Content-Type'] = 'application/json'
 			return response
 
 		return jsonify(printer.cancelPrint())

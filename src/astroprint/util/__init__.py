@@ -3,11 +3,12 @@ import time
 from threading import Thread as thread
 
 def merge_dict(a,b):
-	for key in b:
-		if isinstance(b[key], dict) and isinstance(a.get(key), dict):
-			merge_dict(a[key], b[key])
-		else:
-			a[key] = b[key]
+	if isinstance(b, dict):
+		for key in b:
+			if isinstance(b[key], dict) and isinstance(a.get(key), dict):
+				merge_dict(a[key], b[key])
+			else:
+				a[key] = b[key]
 
 def findProcess(processId ):
   ps= subprocess.Popen("ps -ef | grep "+processId, shell=True, stdout=subprocess.PIPE)

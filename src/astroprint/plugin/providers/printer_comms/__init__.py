@@ -22,6 +22,7 @@ class PrinterState():
 	STATE_ERROR = 9
 	STATE_CLOSED_WITH_ERROR = 10
 	STATE_TRANSFERING_FILE = 11
+	STATE_NOT_READY_TO_PRINT = 12
 
 	def __init__(self, value = 0):
 		self._state = value
@@ -49,6 +50,8 @@ class PrinterState():
 			return "Closed With Error"
 		if self._state == self.STATE_TRANSFERING_FILE:
 			return "Transfering file to SD"
+		if self._state == self.STATE_NOT_READY_TO_PRINT:
+			return "Not ready to print"
 		return "?%d?" % (self._state)
 
 	def __eq__(self, value):
@@ -346,7 +349,7 @@ class PrinterCommsService(CommandPluginInterface):
 	#
 	@property
 	def operational(self):
-		return self.connected and (self.printerState == PrinterState.STATE_OPERATIONAL or self.printerState == PrinterState.STATE_PRINTING or self.printerState == PrinterState.STATE_PAUSED)
+		return self.connected and self.printerState in [PrinterState.STATE_OPERATIONAL, PrinterState.STATE_PRINTING, PrinterState.STATE_PAUSED, PrinterState.STATE_NOT_READY_TO_PRINT]
 
 	#
 	# Returns whether the printer connection has suffered an error and it's no longer connected
@@ -391,7 +394,7 @@ class PrinterCommsService(CommandPluginInterface):
 			self._printerManager.fileManager.resumeAnalysis() # printing done, put those cpu cycles to good use
 		elif self.connected and newState == PrinterState.STATE_PRINTING:
 			self._printerManager.fileManager.pauseAnalysis() # do not analyze gcode while printing
-		elif self.connected and newState == PrinterState.STATE_OPERATIONAL:
+		elif self.connected and newState in [PrinterState.STATE_OPERATIONAL, PrinterState.STATE_NOT_READY_TO_PRINT]:
 			eventManager().fire(SystemEvent.CONNECTED)
 		elif newState == PrinterState.STATE_CONNECTING:
 			eventManager().fire(SystemEvent.CONNECTING)
@@ -450,7 +453,7 @@ class PrinterCommsService(CommandPluginInterface):
 
 		self._printerManager.mcPrintjobDone()
 
-		self._changePrinterState(PrinterState.STATE_OPERATIONAL)
+		self._changePrinterState(PrinterState.STATE_OPERATIONAL if self._printerManager.isBedClear else PrinterState.STATE_NOT_READY_TO_PRINT)
 
 		self._printerManager._fileManager.printSucceeded(currentFile['filename'], printTime, currentLayer)
 		eventManager().fire(SystemEvent.PRINT_DONE, {
