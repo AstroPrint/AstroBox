@@ -680,3 +680,4 @@ class PrinterMarlin(Printer):
 	def changePrinterState(self, newState):
 		if self._comm:
 			self._comm._changeState(newState)
+

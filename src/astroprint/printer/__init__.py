@@ -884,6 +884,8 @@ class Printer(object):
 	def featureIsAllowed(self,feature):
 		return True
 
+	def getAllowedFeatures(self):
+		return {}
 
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):

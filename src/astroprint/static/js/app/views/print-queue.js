@@ -1209,7 +1209,7 @@ var PrintQueueView = Backbone.View.extend({
   {
     var result = null;
     localFiles.forEach(function(localFile) {
-      if (localFile.printFileName == queueElement.get('name')) {
+      if (localFile.printFileName == queueElement.get('filename')) {
         result = localFile;
       }
     }.bind(this));
