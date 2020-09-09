@@ -12,7 +12,7 @@ var ClearBedModal = Backbone.View.extend({
 	el: '#clear-bed-modal',
 	clearBedView: null,
 	events: {
-		'click button.alert': 'onConfirm',
+		'click button.warning': 'onConfirm',
 		'click button.secondary': 'close'
 	},
 	onConfirm: function()
