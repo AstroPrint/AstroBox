@@ -674,9 +674,6 @@ class PrinterMarlin(Printer):
 		if self._comm:
 			self._comm.resetSerialLogging()
 
-	def getAllowedFeatures(self):
-		return {}
-
 	def changePrinterState(self, newState):
 		if self._comm:
 			self._comm._changeState(newState)
