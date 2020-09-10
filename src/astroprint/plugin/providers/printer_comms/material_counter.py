@@ -1,6 +1,6 @@
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2016 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2016-2020 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import logging
 
@@ -14,7 +14,7 @@ class MaterialCounter(object):
 	def __init__(self):
 		self._logger = logging.getLogger(__name__)
 		self._extrusionMode = self.EXTRUSION_MODE_ABSOLUTE
-		self._activeTool = "0";
+		self._activeTool = "0"
 		self._lastExtruderLengthReset = {"0": 0}
 		self._consumedFilament = {"0": 0}
 		self._lastExtrusion = {"0": 0}
@@ -45,7 +45,7 @@ class MaterialCounter(object):
 			return consumedFilament
 
 		else:
-			return self._consumedFilament
+			return { k: max(v,0) for k, v in self._consumedFilament.items() } #It can be negative because of retraction but we can't "consume" negative filament
 
 	@property
 	def totalConsumedFilament(self):
@@ -89,8 +89,8 @@ class MaterialCounter(object):
 
 	def reportExtrusion(self, length):
 		if self._extrusionMode == self.EXTRUSION_MODE_RELATIVE:
-			if length > 0: #never report retractions
-				self._consumedFilament[self._activeTool] += length
+			#if length > 0: #never report retractions
+			self._consumedFilament[self._activeTool] += length
 
 		else: # EXTRUSION_MODE_ABSOLUTE
 			tool = self._activeTool
