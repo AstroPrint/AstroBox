@@ -21,6 +21,8 @@ class PrinterWithPlugin(Printer):
 	driverName = 'plugin'
 
 	def __init__(self, pluginId):
+		self._comm = True # This isn't really used by this plugin but the parent class needs it
+
 		#Register to plugin remove events
 		pm = pluginManager()
 
@@ -253,10 +255,7 @@ class PrinterWithPlugin(Printer):
 
 	def featureIsAllowed(self,feature):
 		features = self.getAllowedFeatures()
-		if feature in features:
-			return self._features[feature]
-
-		return True
+		return features.get(feature, True)
 
 	def getAllowedFeatures(self):
 		if hasattr(self._plugin, '_features'):

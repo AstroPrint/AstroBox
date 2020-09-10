@@ -50,7 +50,6 @@ class PrinterS3g(Printer):
 		self._logger = logging.getLogger(__name__)
 		self._state_condition = threading.Condition()
 		super(PrinterS3g, self).__init__()
-		self._comm = None
 
 	def rampdown(self):
 		super(PrinterS3g, self).rampdown()

@@ -62,10 +62,7 @@ class PrinterMarlin(Printer):
 												'upperPercent': 0,
 												'time': 0 }
 
-
 		super(PrinterMarlin, self).__init__()
-		# comm
-		self._comm = None
 
 	def rampdown(self):
 		if self._comm:
@@ -673,9 +670,6 @@ class PrinterMarlin(Printer):
 	def resetSerialLogging(self):
 		if self._comm:
 			self._comm.resetSerialLogging()
-
-	def getAllowedFeatures(self):
-		return {}
 
 	def changePrinterState(self, newState):
 		if self._comm:

@@ -46,7 +46,7 @@ class Printer(object):
 		self.broadcastTraffic = 0 #Number of clients that wish to receive serial link traffic
 		self.doIdleTempReports = True #Let's the client know if periodic temperature reports should be queries to the printer
 
-		self._comm = True
+		self._comm = None
 		self._currentFile = None
 		self._selectedFile = None
 		self._currentZ = None # This should probably be deprecated

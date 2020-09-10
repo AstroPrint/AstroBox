@@ -187,10 +187,11 @@ class PrinterProfileManager(object):
 							printerManager(changes['driver'])
 
 						except Exception as e:
-							self._logger.error("Error selecting driver %s: %s" % (changes['driver'], e))
+							self._logger.error("Error selecting driver %s: %s" % (changes['driver'], e), exc_info=True)
 							#revent to previous driver
 							printerManager(self.data['driver'])
-							raise e
+							raise Exception("unable_to_change_driver")
+
 					elif k == 'printer_model':
 						data = {
 							"printerModel": changes[k]
