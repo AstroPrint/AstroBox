@@ -40,7 +40,7 @@
           <a class="turn-off" title="Device Shutdown"><i class="icon-off"></i></a>
         </section>
       </nav>
-      <nav class="dirty-bed row clearfix {% if clean_bed %} hide {% endif %}">
+      <nav class="dirty-bed row clearfix hide">
         <div class="column medium-12 large-9 bold">
           <h4>
             <div class="clean-bed-ilustration">
@@ -175,7 +175,7 @@
       checkSoftware: {% if checkSoftware -%} true {%- else -%} false {%- endif %},
       additionalTasks: {% if additionalTasks -%} true {%- else -%} false {%- endif %},
       userLogged: {% if user_email -%} true {%- else -%} false {%- endif %},
-      isBedClear: {% if isBedClear -%} true {%- else -%} false {%- endif %}
+      isBedClear: {% if clean_bed -%} true {%- else -%} false {%- endif %}
     };
     var initial_printer_profile = {{ printer_profile | tojson | safe }};
     var allowedFeatures = {{ allowedFeatures | tojson | safe }}

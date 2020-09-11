@@ -79,6 +79,10 @@ body, html {
       bottom: -6px;
     }
   }
+
+  .printing & {
+    display:none;
+  }
 }
 
 .tab-bar {
