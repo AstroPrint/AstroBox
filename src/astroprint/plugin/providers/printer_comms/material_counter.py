@@ -95,5 +95,5 @@ class MaterialCounter(object):
 		else: # EXTRUSION_MODE_ABSOLUTE
 			tool = self._activeTool
 
-			if length > self._lastExtrusion[tool]: #never report retractions
-				self._lastExtrusion[tool] = length
+			#if length > self._lastExtrusion[tool]: #never report retractions
+			self._lastExtrusion[tool] = length
