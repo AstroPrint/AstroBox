@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask_login import UserMixin
@@ -116,6 +116,7 @@ class FilebasedUserManager(UserManager):
 			user = self._users[name]
 			data[name] = {
 				"password": user._passwordHash,
+				"pin": user._pinHash,
 				"active": user._active,
 				"roles": user._roles,
 				"apikey": user._apikey,
@@ -205,6 +206,17 @@ class FilebasedUserManager(UserManager):
 				self._dirty = True
 		self._save()
 
+	def changeUserPin(self, username, pin):
+		if not username in self._users.keys():
+			raise UnknownUser(username)
+
+		pinHash = UserManager.createPasswordHash(pin)
+		user = self._users[username]
+		if user._pinHash != pinHash:
+			user._pinHash = pinHash
+			self._dirty = True
+			self._save()
+
 	def changeUserPassword(self, username, password):
 		if not username in self._users.keys():
 			raise UnknownUser(username)
@@ -286,6 +298,8 @@ class User(UserMixin):
 		self._active = active
 		self._roles = roles
 		self._apikey = apikey
+		self._pinHash = None
+
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 		self.orgId = orgId
@@ -309,6 +323,12 @@ class User(UserMixin):
 
 	def check_privateKey(self, privateKey):
 		return self.privateKey == privateKey
+
+	def check_pin(self, pin):
+		return self._pinHash == UserManager.createPasswordHash(pin)
+
+	def has_pin(self):
+		return self._pinHash is not None
 
 	def get_id(self):
 		return self._username

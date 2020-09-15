@@ -1,7 +1,7 @@
 # coding=utf-8
 __author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = "GNU Affero General Public License http://www.gnu.org/licenses/agpl.html"
-__copyright__ = "Copyright (C) 2017 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
+__copyright__ = "Copyright (C) 2017-2020 3DaGoGo, Inc - Released under terms of the AGPLv3 License"
 
 import json
 
@@ -27,6 +27,14 @@ class AccountService(PluginService):
 		self._eventManager.subscribe(Events.ASTROPRINT_STATUS, self._onBoxrouterStateChange)
 		self._eventManager.subscribe(Events.LOCK_STATUS_CHANGED, self._onAccountStateChange)
 		self._eventManager.subscribe(Events.FLEET_STATUS, self._onFleetStateChange)
+
+	def __getLoggedUserEmail(self):
+		sets = settings()
+		return sets.get(["cloudSlicer", "loggedUser"])
+
+	def __getLoggedUser(self):
+		email = self.__getLoggedUserEmail()
+		return userManager.findUser(email)
 
 	#REQUESTS
 
@@ -111,8 +119,7 @@ class AccountService(PluginService):
 
 	def getStatus(self, callback):
 		try:
-			sets = settings()
-			user = sets.get(["cloudSlicer", "loggedUser"])
+			user = self.__getLoggedUserEmail()
 
 			payload = {
 				'userLogged': user if user else None,
@@ -132,11 +139,67 @@ class AccountService(PluginService):
 			self._logger.error('boxrouter can not connect: %s' %e, exc_info = True)
 			callback('boxrouter_error', True)
 
+	def setPin(self, data, callback):
+		try:
+			print "setPin"
+			print data
+			pin = data.get('pin', False)
+
+			if pin is not False: # False means that the parameter is missing. None is a valid value as it would mean to clear it
+				user = self.__getLoggedUserEmail()
+				if user:
+					userManager.changeUserPin(user, pin)
+					callback('pin_set')
+
+				else:
+					callback('no_user', True)
+
+			else:
+				callback('invalid_call', True)
+
+		except Exception as e:
+			self._logger.error('Unable to set PIN with: %s' %e, exc_info = True)
+			callback('set_pin_error', True)
+
+	def hasPin(self, callback):
+		try:
+			user = self.__getLoggedUser()
+			if user:
+				callback(user.has_pin())
+
+			else:
+				callback('no_user', True)
+
+		except Exception as e:
+			self._logger.error('Error while checking if PIN exists: %s' %e, exc_info = True)
+			callback('has_pin_error', True)
+
+	def validatePin(self, data, callback):
+		try:
+			print "validatePin"
+			print data
+			pin = data.get('pin')
+
+			if pin:
+				user = self.__getLoggedUser()
+				if user:
+					callback(user.check_pin(pin))
+
+				else:
+					callback('no_user', True)
+
+			else:
+				callback('invalid_call', True)
+
+
+		except Exception as e:
+			self._logger.error('Error while validating PIN with: %s' %e, exc_info = True)
+			callback('validate_pin_error', True)
+
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
-		sets = settings()
-		user = sets.get(["cloudSlicer", "loggedUser"])
+		user = self.__getLoggedUserEmail()
 		data = {
 			'userLogged': user if user else None,
 		}
