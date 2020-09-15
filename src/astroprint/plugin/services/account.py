@@ -141,8 +141,6 @@ class AccountService(PluginService):
 
 	def setPin(self, data, callback):
 		try:
-			print "setPin"
-			print data
 			pin = data.get('pin', False)
 
 			if pin is not False: # False means that the parameter is missing. None is a valid value as it would mean to clear it
@@ -176,8 +174,6 @@ class AccountService(PluginService):
 
 	def validatePin(self, data, callback):
 		try:
-			print "validatePin"
-			print data
 			pin = data.get('pin')
 
 			if pin:

@@ -4,8 +4,6 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global */
-
 /* exported lockedView */
 
 $.ajaxSetup({
@@ -14,8 +12,13 @@ $.ajaxSetup({
 
 var LoginForm = Backbone.View.extend({
   el: '#login-form',
+  view: null,
   events: {
     'submit': 'onSubmit'
+  },
+  initialize: function(options)
+  {
+    this.view = options.view
   },
   onSubmit: function(e)
   {
@@ -24,6 +27,7 @@ var LoginForm = Backbone.View.extend({
     var loadingBtn = this.$('.loading-button');
 
     loadingBtn.addClass('loading');
+    this.view.loggingIn = true
 
     $.ajax({
       type: 'POST',
@@ -49,7 +53,10 @@ var LoginForm = Backbone.View.extend({
 
       noty({text: message , timeout: 3000});
       loadingBtn.removeClass('loading');
-    });
+    })
+    .always(_.bind(function(){
+      this.view.loggingIn = false
+    }, this))
 
     return false;
   }
@@ -57,20 +64,23 @@ var LoginForm = Backbone.View.extend({
 
 var LockedView = Backbone.View.extend({
   form: null,
+  loggingIn: false,
   initialize: function()
   {
-    this.form = new LoginForm();
+    this.form = new LoginForm({view: this});
     this.startPolling();
   },
   startPolling: function()
   {
     setInterval(_.bind(function(){
-      $.ajax({type:'POST', url: '/accessKeys'})
-        .done(function(data){
-          if (_.isObject(data)) {
-            location.reload();
-          }
-        })
+      if (!this.loggingIn) {
+        $.ajax({type:'POST', url: '/accessKeys'})
+          .done(function(data){
+            if (_.isObject(data)) {
+              location.reload();
+            }
+          })
+        }
     }, this), 3000);
   }
 });
