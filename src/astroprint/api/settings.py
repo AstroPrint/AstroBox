@@ -16,8 +16,9 @@ from astroprint.ab_platform import platformManager
 from astroprint.camera import cameraManager
 from astroprint.plugin import pluginManager
 from astroprint.printerprofile import printerProfileManager
+from astroprint.users import InvalidPinException
 
-from octoprint.server import restricted_access, admin_permission, softwareManager, UI_API_KEY
+from octoprint.server import restricted_access, admin_permission, softwareManager, userManager, UI_API_KEY
 from octoprint.server.api import api
 
 #utils to be used by this file
@@ -277,6 +278,72 @@ def cameraSettings():
 		time_lapse = s.get(['camera', 'freq']),
 		idle_timeout = s.get(['camera', 'inactivitySecs'])
 	)
+
+@api.route("/settings/software/pin", methods=["GET", "POST"])
+@restricted_access
+def getSoftwarePin():
+	s = settings()
+	email = s.get(["cloudSlicer", "loggedUser"])
+
+	if email:
+		loggedUser = userManager.findUser(email)
+
+		if loggedUser:
+			if request.method == 'POST':
+				validated = False
+				data = request.json
+				mode = data.get('mode')
+				currentPin = data.get('current_pin')
+
+				if currentPin:
+					validated = loggedUser.check_pin(currentPin)
+
+				try:
+					if mode == 'clear':
+						if validated:
+							userManager.changeUserPin(email, None)
+						else:
+							return make_response("invalid_pin", 401)
+
+					elif mode == 'set':
+						newPin = data.get('new_pin')
+
+						if not loggedUser.has_pin() and newPin is not None:
+							userManager.changeUserPin(email, newPin)
+						else:
+							make_response("Invalid request", 400)
+
+					elif mode == 'change':
+						if validated:
+							newPin = data.get('new_pin')
+
+							if newPin is not None:
+								userManager.changeUserPin(email, newPin)
+							else:
+								make_response("Mising data", 400)
+						else:
+							return make_response("invalid_pin", 401)
+
+					else:
+						return make_response("Invalid mode", 400)
+
+				except InvalidPinException:
+					return make_response("invalid_pin_format", 400)
+
+			response = {
+				'pin_enabled': loggedUser.has_pin()
+			}
+
+			r = make_response(json.dumps(response), 200)
+			r.headers['Content-Type'] = 'application/json'
+
+		else:
+			r = make_response("Invalid user User", 400)
+
+	else:
+		r = make_response("No user", 404)
+
+	return r
 
 @api.route("/settings/software/plugins", methods=["GET"])
 @restricted_access

@@ -85,6 +85,7 @@ class FilebasedUserManager(UserManager):
 						privateKey = None
 						orgId = None
 						groupId = None
+						pin = None
 						if "apikey" in attributes:
 							apikey = attributes["apikey"]
 						if "publicKey" in attributes:
@@ -95,7 +96,10 @@ class FilebasedUserManager(UserManager):
 							orgId = attributes['orgId']
 						if 'groupId' in attributes:
 							groupId = attributes['groupId']
-						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey, orgId, groupId)
+						if 'pin' in attributes:
+							pin = attributes['pin']
+
+						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey, orgId, groupId, pin)
 		else:
 			self._customized = False
 
@@ -210,6 +214,13 @@ class FilebasedUserManager(UserManager):
 		if not username in self._users.keys():
 			raise UnknownUser(username)
 
+		if pin is not None:
+			try:
+				if len(pin) != 4 or int(pin) < 0 or int(pin) > 9999:
+					raise InvalidPinException(pin)
+			except ValueError:
+				raise InvalidPinException(pin)
+
 		pinHash = UserManager.createPasswordHash(pin)
 		user = self._users[username]
 		if user._pinHash != pinHash:
@@ -289,16 +300,20 @@ class UnknownRole(Exception):
 	def _init_(self, role):
 		Exception.__init__(self, "Unknown role: %s" % role)
 
+class InvalidPinException(Exception):
+	def _init_(self, pin):
+		Exception.__init__(self, "Invalid pin: %s" % pin)
+
 ##~~ User object
 
 class User(UserMixin):
-	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None, orgId = None, groupId = None):
+	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None, orgId = None, groupId = None, pinHash= None):
 		self._username = username
 		self._passwordHash = passwordHash
 		self._active = active
 		self._roles = roles
 		self._apikey = apikey
-		self._pinHash = None
+		self._pinHash = pinHash
 
 		self.publicKey = publicKey
 		self.privateKey = privateKey
@@ -325,7 +340,7 @@ class User(UserMixin):
 		return self.privateKey == privateKey
 
 	def check_pin(self, pin):
-		return self._pinHash == UserManager.createPasswordHash(pin)
+		return not self.has_pin() or self._pinHash == UserManager.createPasswordHash(pin)
 
 	def has_pin(self):
 		return self._pinHash is not None

@@ -759,6 +759,17 @@
   }
 }
 
+#change-pin-modal {
+  .pin-form {
+    margin-bottom: 20px;
+    input {
+      max-width: 120px;
+      margin: 10px auto 10px auto;
+      text-align: center;
+    }
+  }
+}
+
 #software-storage,
 #software-logs  {
   .element-list {
