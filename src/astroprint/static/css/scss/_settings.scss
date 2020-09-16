@@ -762,10 +762,13 @@
 #change-pin-modal {
   .pin-form {
     margin-bottom: 20px;
+
     input {
       max-width: 120px;
       margin: 10px auto 10px auto;
       text-align: center;
+      font-size: 25px;
+      font-weight: bold;
     }
   }
 }

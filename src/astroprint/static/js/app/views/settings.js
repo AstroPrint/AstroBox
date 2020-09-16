@@ -2077,7 +2077,8 @@ var ChangePinDialog = Backbone.View.extend({
   events: {
     'click button.close': 'onCloseClicked',
     'click button.do': 'onDoClicked',
-    'open.fndtn.reveal': 'onOpen'
+    'open.fndtn.reveal': 'onOpen',
+    'submit .pin-form': 'onFormSubmit'
   },
   initialize: function(options)
   {
@@ -2132,6 +2133,10 @@ var ChangePinDialog = Backbone.View.extend({
   {
     e.preventDefault()
     this.$el.foundation('reveal', 'close');
+  },
+  onFormSubmit: function()
+  {
+    return false
   },
   onDoClicked: function(e)
   {
