@@ -1002,13 +1002,15 @@
       </div>
       <div id="software-pin" class="settings-page">
         <script type="text/template" id="software-pin-settings-page-template">
-          <div class="row">
-            <div class="small-12 column">
-              <div class="panel warnig">
-                <b>Forgot your PIN?</b> Simply log out and log back in to set a new one.
+          <% if (pin_enabled) { %>
+            <div class="row">
+              <div class="small-12 column">
+                <div class="panel warnig">
+                  <b>Forgot your PIN?</b> Simply log out and log back in to set a new one.
+                </div>
               </div>
             </div>
-          </div>
+          <% } %>
           <div class="row">
             <div class="small-12 medium-6 column text-center">
               <label for="pin-enabled" class="bold">PIN Protected</label>
