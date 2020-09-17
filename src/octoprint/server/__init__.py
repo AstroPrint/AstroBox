@@ -594,8 +594,6 @@ class Server():
 
 	def _checkForRoot(self):
 		return
-		if "geteuid" in dir(os) and os.geteuid() == 0:
-			exit("You should not run OctoPrint as root!")
 
 	def _initSettings(self, configfile, basedir):
 		settings(init=True, basedir=basedir, configfile=configfile)
@@ -658,6 +656,12 @@ class Server():
 
 		config = util.dict_merge(defaultConfig, configFromFile)
 		logging.config.dictConfig(config)
+
+		def flask_log(exc_info):
+			_, exc_value, __ = exc_info
+			logging.getLogger('Flask').exception(exc_value)
+
+		app.log_exception = flask_log
 
 		if settings().getBoolean(["serial", "log"]):
 			# enable debug logging to serial.log
