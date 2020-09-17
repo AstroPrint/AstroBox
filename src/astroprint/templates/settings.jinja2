@@ -25,7 +25,9 @@
         <li class="ssl"><a href="#settings/ssl">SSL</a></li>
         <li class="wifi-hotspot"><a href="#settings/wifi-hotspot">WiFi Hotspot</a></li>
         <li class="heading"><i class="icon-cog"></i> Software</li>
-        <li class="software-pin"><a href="#settings/software-pin">PIN Code</a></li>
+        {% if user_email %}
+          <li class="software-pin"><a href="#settings/software-pin">PIN Code</a></li>
+        {% endif %}
         <li class="software-plugins"><a href="#settings/software-plugins">Apps &amp; Plugins</a></li>
         <li class="software-license"><a href="#settings/software-license">License</a></li>
         <li class="software-update"><a href="#settings/software-update">Update</a></li>
@@ -994,64 +996,73 @@
       <% } %>
     </script>
 
-    <div class="show-for-small zebra">
-      <a href="#settings/software-pin"><h1 class="bold" align="center">PIN Code</h1></a>
-    </div>
-    <div id="software-pin" class="settings-page">
-      <script type="text/template" id="software-pin-settings-page-template">
-        <div class="row">
-          <div class="small-12 medium-6 column text-center">
-            <label for="pin-enabled" class="bold">PIN Protected</label>
-            <div class="switch radius">
-              <input id="pin-enabled" name="pin_enabled" type="checkbox" <% if (pin_enabled) { %> value="yes" checked <% } %>>
-              <label for="pin-enabled"></label>
+    {% if user_email %}
+      <div class="show-for-small zebra">
+        <a href="#settings/software-pin"><h1 class="bold" align="center">PIN Code</h1></a>
+      </div>
+      <div id="software-pin" class="settings-page">
+        <script type="text/template" id="software-pin-settings-page-template">
+          <div class="row">
+            <div class="small-12 column">
+              <div class="panel warnig">
+                <b>Forgot your PIN?</b> Simply log out and log back in to set a new one.
+              </div>
             </div>
           </div>
-          <div class="small-12 medium-6 column text-center">
-            <% if (pin_enabled) { %>
-              <button class="button success radius change-pin">Change PIN</button>
-            <% } %>
+          <div class="row">
+            <div class="small-12 medium-6 column text-center">
+              <label for="pin-enabled" class="bold">PIN Protected</label>
+              <div class="switch radius">
+                <input id="pin-enabled" name="pin_enabled" type="checkbox" <% if (pin_enabled) { %> value="yes" checked <% } %>>
+                <label for="pin-enabled"></label>
+              </div>
+            </div>
+            <div class="small-12 medium-6 column text-center">
+              <% if (pin_enabled) { %>
+                <button class="button success radius change-pin">Change PIN</button>
+              <% } %>
+            </div>
           </div>
-        </div>
-      </script>
-    </div>
+        </script>
+      </div>
 
-    <div id="change-pin-modal" class="reveal-modal small radius" data-reveal>
-      <script type="text/template" id="software-pin-change-modal-template">
-        <h2 class="bold"><%= title %></h2>
-        <div class="modal-body">
-          <p><%= body %></p>
-          <form class="pin-form" autocomplete="off">
-            <% if (['clear', 'change'].indexOf(mode) >= 0) { %>
-              <div align="center">
-                <label for="current_pin_field" class="bold">Current PIN</label>
-                <input id="current_pin_field" name="current_pin" type="text" maxlength="4" class="bold"/>
-              </div>
-            <% } %>
-            <% if (['set', 'change'].indexOf(mode) >= 0) { %>
-              <div align="center">
-                <label for="new_pin_field" class="bold">New PIN</label>
-                <input id="new_pin_field" name="new_pin" type="text" maxlength="4" class="bold"/>
-              </div>
-            <% } %>
-            <input name="mode" type="hidden" value="<%= mode %>"/>
-          </form>
-        </div>
-        <div class="modal-actions row">
-          <div class="small-12 medium-6 columns">
-            <button class="secondary radius expand close">Close</button>
+      <div id="change-pin-modal" class="reveal-modal small radius" data-reveal>
+        <script type="text/template" id="software-pin-change-modal-template">
+          <h2 class="bold"><%= title %></h2>
+          <div class="modal-body">
+            <p><%= body %></p>
+            <form class="pin-form" autocomplete="off">
+              <% if (['clear', 'change'].indexOf(mode) >= 0) { %>
+                <div align="center">
+                  <label for="current_pin_field" class="bold">Current PIN</label>
+                  <input id="current_pin_field" name="current_pin" type="text" maxlength="4" class="bold"/>
+                </div>
+              <% } %>
+              <% if (['set', 'change'].indexOf(mode) >= 0) { %>
+                <div align="center">
+                  <label for="new_pin_field" class="bold">New PIN</label>
+                  <input id="new_pin_field" name="new_pin" type="text" maxlength="4" class="bold"/>
+                </div>
+              <% } %>
+              <input name="mode" type="hidden" value="<%= mode %>"/>
+            </form>
           </div>
-          <div class="small-12 medium-6 columns">
-            <div class="loading-button expand">
-              <button class="alert radius do"><%= cta %></button>
-              <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> <%= cta_loading %>...</span>
-              <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+          <div class="modal-actions row">
+            <div class="small-12 medium-6 columns">
+              <button class="secondary radius expand close">Close</button>
+            </div>
+            <div class="small-12 medium-6 columns">
+              <div class="loading-button expand">
+                <button class="alert radius do"><%= cta %></button>
+                <span class="button disabled alert radius loading"><i class="icon-rocket-spinner animate-spin"></i> <%= cta_loading %>...</span>
+                <span class="button disabled alert radius failed"><i class="icon-attention"></i> Failed</span>
+              </div>
             </div>
           </div>
-        </div>
-        <a class="close-reveal-modal">&#215;</a>
-      </script>
-    </div>
+          <a class="close-reveal-modal">&#215;</a>
+        </script>
+      </div>
+    {% endif %}
 
     <div class="show-for-small zebra">
       <a href="#settings/software-plugins"><h1 class="bold" align="center">Apps &amp; Plugins</h1></a>

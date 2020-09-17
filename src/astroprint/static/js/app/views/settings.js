@@ -2030,8 +2030,12 @@ var SoftwarePinView = SettingsPage.extend({
         this.render(data.pin_enabled)
       }, this))
       .fail(function (xhr) {
-        noty({ text: "There was an error getting PIN Information.", timeout: 3000 });
-        console.error("Request failed with: " + xhr.status);
+        if (xhr.status == 404) {
+          app.router.navigate('#settings', { trigger: true, replace: true })
+        } else {
+          noty({ text: "There was an error getting PIN Information.", timeout: 3000 });
+          console.error("Request failed with: " + xhr.status);
+        }
       })
   },
   render: function(pin_enabled)
