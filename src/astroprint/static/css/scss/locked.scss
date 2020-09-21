@@ -8,7 +8,8 @@
   "foundation/settings",
 	"foundation/components/forms",
 	"foundation/components/grid",
-	"foundation/components/buttons",
+  "foundation/components/buttons",
+  "foundation/components/reveal",
   "common-main",
 	"widgets",
 	"noty";
@@ -52,6 +53,23 @@ body {
 	.button {
 		margin-bottom: 4px;
 	}
+}
+
+#unblock-modal {
+  input#code {
+    max-width: 140px;
+    margin: 4px auto 16px 30px;
+    font-size: 27px;
+    display: inline-block;
+    height: 45px;
+    letter-spacing: 2px;
+    text-align: center;
+
+    &::placeholder {
+      color: #e2e2e2;
+      font-size: 20px;
+    }
+  }
 }
 
 #locked-view {

@@ -13,6 +13,7 @@ $.ajaxSetup({
 var LoginForm = Backbone.View.extend({
   el: '#login-form',
   view: null,
+  unblockModal: null,
   events: {
     'submit': 'onSubmit',
     'click a.pin': 'onPinClicked',
@@ -21,6 +22,7 @@ var LoginForm = Backbone.View.extend({
   initialize: function(options)
   {
     this.view = options.view
+    this.unblockModal = new UnblockModal();
   },
   onPinClicked: function(e)
   {
@@ -30,7 +32,7 @@ var LoginForm = Backbone.View.extend({
   onUnblockClicked: function(e)
   {
     e.preventDefault()
-    alert('unblock')
+    this.unblockModal.open()
   },
   onSubmit: function(e)
   {
@@ -149,6 +151,22 @@ var PinForm = Backbone.View.extend({
         this.view.loggingIn = false
       }, this))
   }
+})
+
+var UnblockModal = Backbone.View.extend({
+  el: "#unblock-modal",
+  events: {
+    'click button.close': 'onCloseClicked'
+  },
+  open: function ()
+  {
+    this.$('input#code').val('')
+    this.$el.foundation('reveal', 'open');
+  },
+  onCloseClicked: function (e) {
+    e.preventDefault()
+    this.$el.foundation('reveal', 'close');
+  },
 })
 
 var LockedView = Backbone.View.extend({
