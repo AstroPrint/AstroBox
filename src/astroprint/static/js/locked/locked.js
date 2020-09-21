@@ -156,17 +156,51 @@ var PinForm = Backbone.View.extend({
 var UnblockModal = Backbone.View.extend({
   el: "#unblock-modal",
   events: {
-    'click button.close': 'onCloseClicked'
+    'click button.close': 'onCloseClicked',
+    'click button.do': 'onConfirmClicked'
   },
   open: function ()
   {
     this.$('input#code').val('')
     this.$el.foundation('reveal', 'open');
   },
-  onCloseClicked: function (e) {
+  onCloseClicked: function (e)
+  {
     e.preventDefault()
     this.$el.foundation('reveal', 'close');
   },
+  onConfirmClicked: function(e)
+  {
+    e.preventDefault()
+
+    var loadingBtn = $(e.target).closest('.loading-button');
+    loadingBtn.addClass('loading');
+
+    $.ajax({
+      type: 'POST',
+      url: '/api/unblock',
+      data: this.$('form.unblock-form').serializeArray(),
+      headers: {
+        "X-Api-Key": UI_API_KEY
+      }
+    })
+      .done(function () {
+        location.reload();
+      })
+      .fail(_.bind(function (xhr) {
+        var message = "Unkonwn error (" + xhr.status + "). Please refresh the page";
+
+        if (xhr.status == 401) {
+          message = "Invalid unblock code";
+        }
+
+        noty({ text: message, timeout: 3000 });
+        loadingBtn.removeClass('loading').addClass('failed');
+        setTimeout(function() {
+          loadingBtn.removeClass('failed')
+        }, 3000)
+      }, this))
+  }
 })
 
 var LockedView = Backbone.View.extend({

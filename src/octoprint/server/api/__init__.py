@@ -308,3 +308,21 @@ def validate_pin():
 		return make_response(("No logged user", 403, []))
 
 	return make_response(("Invalid data", 400, []))
+
+@api.route("/unblock", methods=['POST'])
+def unblock():
+	code = request.values['code']
+
+	if code:
+		ac = astroprintCloud()
+
+		if ac.fleetId:
+			if ac.validateUnblockCode(code):
+				return OK
+			else:
+				return make_response(("Invalid unblock code", 401, []))
+
+		else:
+			return make_response(("Controller not in Fleet", 403, []))
+
+	return make_response(("Invalid data", 400, []))

@@ -106,7 +106,6 @@ class AstroPrintCloud(object):
 			if user and user.publicKey and user.privateKey:
 				self.hmacAuth = HMACAuth(user.publicKey, user.privateKey, self.boxId, user.orgId, user.groupId)
 
-
 	def updateFleetInfo(self, orgId, groupId):
 		loggedUser = self.settings.get(['cloudSlicer', 'loggedUser'])
 		if loggedUser:
@@ -116,6 +115,21 @@ class AstroPrintCloud(object):
 				self._logger.info("Box is part of fleet [%s] in group [%s]" % (orgId, groupId))
 				userManager.changeUserFleetInfo(loggedUser, orgId, groupId)
 				self.hmacAuth.updateFleetInfo(orgId, groupId)
+
+	def validateUnblockCode(self, code):
+		if self.fleetId:
+			try:
+				r = requests.post( "%s/astrobox/%s/check-unblock-code" % (self.apiHost, self.boxId), data= {'code': code}, auth=self.hmacAuth )
+				if r.status_code == 200:
+					self.remove_logged_user()
+					return True
+				else:
+					self._logger.error('Unblock request failed with: %s' % r.status_code)
+
+			except Exception as e:
+				self._logger.exception(e)
+
+		return False
 
 	def cloud_enabled(self):
 		return roConfig('cloud.apiHost') and self.hmacAuth
