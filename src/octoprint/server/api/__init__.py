@@ -297,6 +297,10 @@ def validate_pin():
 		user = octoprint.server.userManager.getLoggedUser()
 		if user:
 			if user.check_pin(pin):
+				#log the use in
+				login_user(user, remember=False)
+				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+
 				return OK
 			else:
 				return make_response(("Invalid PIN", 401, []))
