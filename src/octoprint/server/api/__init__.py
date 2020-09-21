@@ -291,4 +291,16 @@ def logout():
 
 @api.route("/validate-pin", methods=['POST'])
 def validate_pin():
-	return NO_CONTENT
+	pin = request.values["pin"]
+
+	if pin:
+		user = octoprint.server.userManager.getLoggedUser()
+		if user:
+			if user.check_pin(pin):
+				return OK
+			else:
+				return make_response(("Invalid PIN", 401, []))
+
+		return make_response(("No logged user", 403, []))
+
+	return make_response(("Invalid data", 400, []))
