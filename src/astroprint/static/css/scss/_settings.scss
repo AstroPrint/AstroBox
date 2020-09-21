@@ -761,7 +761,7 @@
 
 #software-pin {
   button.change-pin {
-    margin-top: 12px
+    margin-top: 20px;
   }
 }
 
@@ -770,11 +770,13 @@
     margin-bottom: 20px;
 
     input {
+      margin: 4px auto 22px auto;
       max-width: 120px;
-      margin: 10px auto 10px auto;
+      font-size: 27px;
+      display: inline-block;
+      height: 45px;
+      letter-spacing: 2px;
       text-align: center;
-      font-size: 25px;
-      font-weight: bold;
     }
   }
 }

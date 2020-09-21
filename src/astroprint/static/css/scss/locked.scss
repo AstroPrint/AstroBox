@@ -90,7 +90,7 @@ body {
     color: $charcoal;
     font-size: 14px;
     text-decoration: none;
-    padding: 4px 6px;
+    padding: 4px 8px;
 
     &:hover{color:lighten($charcoal, 10%);}
     &:active{color: $blue;}
