@@ -9,7 +9,7 @@
 
 {% block content %}
   <div class="row {%- if has_pin %} pin {%- endif %}" id="locked-view">
-    <div class="small-12 medium-10 large-7 columns small-centered">
+    <div class="small-12 medium-10 large-6 columns small-centered">
       <div class="locked-area">
         <center><img src="/img/astrolock.png"/></center>
         <div class="password-container">
@@ -35,7 +35,9 @@
             <h2 class="bold"><span class="highlight">{{astroboxName}}</span> is PIN protected.</h2>
             Enter PIN for access:
             <form id="pin-form" autocomplete="off">
-              <input type="password" name="pin" class="radius" maxlength="4"/> <a href="#" class="show-pin"><i class="icon-eye"></i></a>
+              <div class="field clearfix">
+              <input type="password" name="pin" class="radius" placeholder="&#9679;&#9679;&#9679;&#9679;" maxlength="4"/> <a href="#" class="show-pin"><i class="icon-eye"></i></a>
+              </div>
               <div class="loading-button expand">
                 <button class="button radius success confirm"><b>Confirm</b></button>
                 <span class="button radius disabled success loading bold"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
