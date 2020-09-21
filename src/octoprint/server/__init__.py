@@ -159,6 +159,7 @@ def index():
 		return render_template(
 			"locked.jinja2",
 			has_pin= user.has_pin(),
+			in_org= astroprintCloud().fleetId is not None,
 			username= loggedUsername,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager().getHostname(),

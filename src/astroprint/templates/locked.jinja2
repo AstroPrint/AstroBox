@@ -27,7 +27,9 @@
             {%- if has_pin %}
               <a href="#" class="pin">Use PIN</a>
             {% endif %}
-            <a href="#" class="unblock">Unblock</a>
+            {% if in_org %}
+              <a href="#" class="unblock">Unblock</a>
+            {% endif %}
           </form>
         </div>
         {% if has_pin %}
@@ -50,28 +52,30 @@
     </div>
   </div>
 
-  <div id="unblock-modal" class="reveal-modal small radius" data-reveal>
-    <h2 class="bold">Unblock {{astroboxName}} controller</h2>
-    <div class="modal-body">
-      <p>Contact with a fleet manager to get a 6 digit unblock code for <b>{{astroboxName}}</b>, and introduce it in the next field:</p>
-      <form class="unblock-form" autocomplete="off">
-        <input name="code" id="code" type="text" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;"/>
-      </form>
-    </div>
-    <div class="modal-actions row">
-      <div class="small-12 medium-6 columns">
-        <button class="secondary radius expand bold close">Close</button>
+  {% if in_org %}
+    <div id="unblock-modal" class="reveal-modal small radius" data-reveal>
+      <h2 class="bold">Unblock {{astroboxName}} controller</h2>
+      <div class="modal-body">
+        <p>Contact with a fleet manager to get a 6 digit unblock code for <b>{{astroboxName}}</b> and introduce it here:</p>
+        <form class="unblock-form" autocomplete="off" align="center">
+          <input name="code" id="code" type="text" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" class="radius"/>
+        </form>
       </div>
-      <div class="small-12 medium-6 columns">
-        <div class="loading-button expand">
-          <button class="success bold radius do">Confirm</button>
-          <span class="button disabled alert bold radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
-          <span class="button disabled alert  bold radius failed"><i class="icon-attention"></i> Failed</span>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand bold close">Close</button>
         </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="success bold radius do">Confirm</button>
+            <span class="button disabled alert bold radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+            <span class="button disabled alert  bold radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
       </div>
     </div>
-    <a class="close-reveal-modal">&#215;</a>
-  </div>
+  {% endif %}
 {% endblock %}
 
 {% block js %}
