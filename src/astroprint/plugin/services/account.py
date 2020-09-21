@@ -19,7 +19,8 @@ class AccountService(PluginService):
 		#watch the state of the user's account: connecting, connected, disconnected , error
 		'account_state_change',
 		'boxrouter_state_change',
-		'fleet_state_change'
+		'fleet_state_change',
+		'pin_state_change'
 	]
 
 	def __init__(self):
@@ -27,6 +28,7 @@ class AccountService(PluginService):
 		self._eventManager.subscribe(Events.ASTROPRINT_STATUS, self._onBoxrouterStateChange)
 		self._eventManager.subscribe(Events.LOCK_STATUS_CHANGED, self._onAccountStateChange)
 		self._eventManager.subscribe(Events.FLEET_STATUS, self._onFleetStateChange)
+		self._eventManager.subscribe(Events.PIN_STATUS, self._onPinStateChange)
 
 	def __getLoggedUserEmail(self):
 		sets = settings()
@@ -200,6 +202,9 @@ class AccountService(PluginService):
 			'userLogged': user if user else None,
 		}
 		self.publishEvent('account_state_change',data)
+
+	def _onPinStateChange(self, event, value):
+		self.publishEvent('pin_state_change',value)
 
 	def _onBoxrouterStateChange(self,event,value):
 			data = {

@@ -11,6 +11,7 @@ import yaml
 import uuid
 
 from octoprint.settings import settings
+from octoprint.events import eventManager, Events
 from astroprint.boxrouter import boxrouterManager
 
 class UserManager(object):
@@ -228,12 +229,18 @@ class FilebasedUserManager(UserManager):
 			except ValueError:
 				raise InvalidPinException(pin)
 
+
 		pinHash = UserManager.createPasswordHash(pin)
 		user = self._users[username]
 		if user._pinHash != pinHash:
 			user._pinHash = pinHash
 			self._dirty = True
 			self._save()
+
+		if pin is None:
+			eventManager().fire(Events.PIN_STATUS, False)
+		else:
+			eventManager().fire(Events.PIN_STATUS, True)
 
 	def changeUserPassword(self, username, password):
 		if not username in self._users.keys():
