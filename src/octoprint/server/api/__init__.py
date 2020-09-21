@@ -279,7 +279,6 @@ def login():
 @api.route("/logout", methods=["POST"])
 @restricted_access
 def logout():
-
 	logout_user()
 
 	# Remove session keys set by Flask-Principal
@@ -288,4 +287,8 @@ def logout():
 
 	identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 
+	return NO_CONTENT
+
+@api.route("/validate-pin", methods=['POST'])
+def validate_pin():
 	return NO_CONTENT

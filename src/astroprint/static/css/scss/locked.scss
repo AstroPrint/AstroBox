@@ -5,7 +5,7 @@
 	"normalize",
 	"fontello",
 	"animations",
-	"foundation/settings",
+  "foundation/settings",
 	"foundation/components/forms",
 	"foundation/components/grid",
 	"foundation/components/buttons",
@@ -18,10 +18,6 @@ body {
 	background-size: cover;
 	height: 100%;
 	width: 100%;
-}
-
-.bold {
-
 }
 
 .locked-area {
@@ -53,6 +49,36 @@ body {
 	.button {
 		margin-bottom: 0;
 	}
+}
+
+#locked-view {
+  .pin-container {
+    display: none;
+  }
+
+  .password-container {
+    display: block;
+  }
+
+  &.pin {
+    .pin-container {
+      display: block;
+    }
+
+    .password-container {
+      display: none;
+    }
+  }
+}
+
+#pin-form {
+  input {
+    max-width: 120px;
+    margin: 20px 0px;
+    padding: 20px 0;
+    font-size: 32px;
+    text-align: center;
+  }
 }
 
 @media #{$medium-up} {

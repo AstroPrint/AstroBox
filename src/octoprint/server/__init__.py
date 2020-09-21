@@ -154,8 +154,11 @@ def index():
 	elif loggedUsername and (current_user is None or not current_user.is_authenticated or current_user.get_id() != loggedUsername):
 		if current_user.is_authenticated:
 			logout_user()
+
+		user = userManager.findUser(loggedUsername)
 		return render_template(
 			"locked.jinja2",
+			has_pin= user.has_pin(),
 			username= loggedUsername,
 			uiApiKey= UI_API_KEY,
 			astroboxName= networkManager().getHostname(),
