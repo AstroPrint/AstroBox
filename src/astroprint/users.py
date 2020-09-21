@@ -22,6 +22,13 @@ class UserManager(object):
 			return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
 		return None
 
+	def getLoggedUser(self):
+		loggedUser = settings().get(['cloudSlicer', 'loggedUser'])
+		if loggedUser:
+			return self.findUser(loggedUser)
+
+		return None
+
 	def addUser(self, username, password, publicKey, privateKey, orgId, groupId, active, roles):
 		pass
 

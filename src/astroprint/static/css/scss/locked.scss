@@ -74,6 +74,12 @@ body {
     display: block;
   }
 
+  &.no-pin {
+    .password-container .pin {
+      display: none;
+    }
+  }
+
   &.pin {
     .pin-container {
       display: block;

@@ -77,6 +77,7 @@ var LoginForm = Backbone.View.extend({
 var PinForm = Backbone.View.extend({
   el: '#pin-form',
   view: null,
+  attempts: 3,
   events: {
     'submit': 'onSubmit',
     'mousedown a.show-pin': "onShow",
@@ -93,6 +94,7 @@ var PinForm = Backbone.View.extend({
   {
     e.preventDefault()
     this.$('input').attr('type', 'text')
+    this.attempts = 3
   },
   onHide: function()
   {
@@ -127,16 +129,22 @@ var PinForm = Backbone.View.extend({
       .done(function () {
         location.reload();
       })
-      .fail(function (xhr) {
+      .fail(_.bind(function (xhr) {
         var message = "Unkonwn error ("+xhr.status+"). Please refresh the page";
 
         if (xhr.status == 401) {
-          message = "Invalid PIN.";
+          message = "Invalid PIN. Remaining attempts: " + this.attempts;
+
+          if (this.attempts <= 0) {
+            this.view.$el.removeClass('pin').addClass('no-pin')
+          } else {
+            this.attempts--
+          }
         }
 
         noty({ text: message, timeout: 3000 });
         loadingBtn.removeClass('loading');
-      })
+      }, this))
       .always(_.bind(function () {
         this.view.loggingIn = false
       }, this))
