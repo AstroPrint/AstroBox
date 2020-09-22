@@ -174,6 +174,23 @@ class AccountService(PluginService):
 			self._logger.error('Error while checking if PIN exists: %s' %e, exc_info = True)
 			callback('has_pin_error', True)
 
+	def unblock(self, data, callback):
+		try:
+			code = data.get('code')
+
+			if code:
+				if astroprintCloud().validateUnblockCode(code):
+					callback('unblocked')
+				else:
+					callback('invalid_code', True)
+
+			else:
+				callback('invalid_call', True)
+
+		except Exception as e:
+			self._logger.error('Unable to unblock controller with: %s' %e, exc_info = True)
+			callback('unblock_error', True)
+
 	def validatePin(self, data, callback):
 		try:
 			pin = data.get('pin')
