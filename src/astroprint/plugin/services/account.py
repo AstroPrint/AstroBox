@@ -211,6 +211,14 @@ class AccountService(PluginService):
 			self._logger.error('Error while validating PIN with: %s' %e, exc_info = True)
 			callback('validate_pin_error', True)
 
+	def isInFleet(self, data, callback):
+		try:
+			callback(astroprintCloud().fleetId is not None)
+
+		except Exception as e:
+			self._logger.error('Error checking if controller is in fleet: %s' %e, exc_info = True)
+			callback('check_infleet_error', True)
+
 	#EVENTS
 
 	def _onAccountStateChange(self,event,value):
