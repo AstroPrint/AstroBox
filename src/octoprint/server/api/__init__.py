@@ -279,7 +279,6 @@ def login():
 @api.route("/logout", methods=["POST"])
 @restricted_access
 def logout():
-
 	logout_user()
 
 	# Remove session keys set by Flask-Principal
@@ -289,3 +288,41 @@ def logout():
 	identity_changed.send(current_app._get_current_object(), identity=AnonymousIdentity())
 
 	return NO_CONTENT
+
+@api.route("/validate-pin", methods=['POST'])
+def validate_pin():
+	pin = request.values["pin"]
+
+	if pin:
+		user = octoprint.server.userManager.getLoggedUser()
+		if user:
+			if user.check_pin(pin):
+				#log the use in
+				login_user(user, remember=False)
+				identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+
+				return OK
+			else:
+				return make_response(("Invalid PIN", 401, []))
+
+		return make_response(("No logged user", 403, []))
+
+	return make_response(("Invalid data", 400, []))
+
+@api.route("/unblock", methods=['POST'])
+def unblock():
+	code = request.values['code']
+
+	if code:
+		ac = astroprintCloud()
+
+		if ac.fleetId:
+			if ac.validateUnblockCode(code):
+				return OK
+			else:
+				return make_response(("Invalid unblock code", 401, []))
+
+		else:
+			return make_response(("Controller not in Fleet", 403, []))
+
+	return make_response(("Invalid data", 400, []))

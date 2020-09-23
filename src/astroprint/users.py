@@ -1,6 +1,6 @@
 # coding=utf-8
 __author__ = "Gina Häußge <osd@foosel.net>"
-__author__ = "Daniel Arroyo <daniel@3dagogo.com>"
+__author__ = "AstroPrint Product Team <product@astroprint.com>"
 __license__ = 'GNU Affero General Public License http://www.gnu.org/licenses/agpl.html'
 
 from flask_login import UserMixin
@@ -11,6 +11,7 @@ import yaml
 import uuid
 
 from octoprint.settings import settings
+from octoprint.events import eventManager, Events
 from astroprint.boxrouter import boxrouterManager
 
 class UserManager(object):
@@ -20,6 +21,13 @@ class UserManager(object):
 	def createPasswordHash(password):
 		if password is not None:
 			return hashlib.sha512(password + boxrouterManager().boxId).hexdigest()
+		return None
+
+	def getLoggedUser(self):
+		loggedUser = settings().get(['cloudSlicer', 'loggedUser'])
+		if loggedUser:
+			return self.findUser(loggedUser)
+
 		return None
 
 	def addUser(self, username, password, publicKey, privateKey, orgId, groupId, active, roles):
@@ -85,6 +93,7 @@ class FilebasedUserManager(UserManager):
 						privateKey = None
 						orgId = None
 						groupId = None
+						pin = None
 						if "apikey" in attributes:
 							apikey = attributes["apikey"]
 						if "publicKey" in attributes:
@@ -95,7 +104,10 @@ class FilebasedUserManager(UserManager):
 							orgId = attributes['orgId']
 						if 'groupId' in attributes:
 							groupId = attributes['groupId']
-						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey, orgId, groupId)
+						if 'pin' in attributes:
+							pin = attributes['pin']
+
+						self._users[name] = User(name, attributes["password"], attributes["active"], attributes["roles"], publicKey, privateKey, apikey, orgId, groupId, pin)
 		else:
 			self._customized = False
 
@@ -116,6 +128,7 @@ class FilebasedUserManager(UserManager):
 			user = self._users[name]
 			data[name] = {
 				"password": user._passwordHash,
+				"pin": user._pinHash,
 				"active": user._active,
 				"roles": user._roles,
 				"apikey": user._apikey,
@@ -205,6 +218,30 @@ class FilebasedUserManager(UserManager):
 				self._dirty = True
 		self._save()
 
+	def changeUserPin(self, username, pin):
+		if not username in self._users.keys():
+			raise UnknownUser(username)
+
+		if pin is not None:
+			try:
+				if len(pin) != 4 or int(pin) < 0 or int(pin) > 9999:
+					raise InvalidPinException(pin)
+			except ValueError:
+				raise InvalidPinException(pin)
+
+
+		pinHash = UserManager.createPasswordHash(pin)
+		user = self._users[username]
+		if user._pinHash != pinHash:
+			user._pinHash = pinHash
+			self._dirty = True
+			self._save()
+
+		if pin is None:
+			eventManager().fire(Events.PIN_STATUS, False)
+		else:
+			eventManager().fire(Events.PIN_STATUS, True)
+
 	def changeUserPassword(self, username, password):
 		if not username in self._users.keys():
 			raise UnknownUser(username)
@@ -277,15 +314,21 @@ class UnknownRole(Exception):
 	def _init_(self, role):
 		Exception.__init__(self, "Unknown role: %s" % role)
 
+class InvalidPinException(Exception):
+	def _init_(self, pin):
+		Exception.__init__(self, "Invalid pin: %s" % pin)
+
 ##~~ User object
 
 class User(UserMixin):
-	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None, orgId = None, groupId = None):
+	def __init__(self, username, passwordHash, active, roles, publicKey=None, privateKey=None, apikey=None, orgId = None, groupId = None, pinHash= None):
 		self._username = username
 		self._passwordHash = passwordHash
 		self._active = active
 		self._roles = roles
 		self._apikey = apikey
+		self._pinHash = pinHash
+
 		self.publicKey = publicKey
 		self.privateKey = privateKey
 		self.orgId = orgId
@@ -309,6 +352,12 @@ class User(UserMixin):
 
 	def check_privateKey(self, privateKey):
 		return self.privateKey == privateKey
+
+	def check_pin(self, pin):
+		return not self.has_pin() or self._pinHash == UserManager.createPasswordHash(pin)
+
+	def has_pin(self):
+		return self._pinHash is not None
 
 	def get_id(self):
 		return self._username

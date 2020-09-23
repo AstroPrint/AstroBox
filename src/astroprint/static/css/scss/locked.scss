@@ -5,10 +5,11 @@
 	"normalize",
 	"fontello",
 	"animations",
-	"foundation/settings",
+  "foundation/settings",
 	"foundation/components/forms",
 	"foundation/components/grid",
-	"foundation/components/buttons",
+  "foundation/components/buttons",
+  "foundation/components/reveal",
   "common-main",
 	"widgets",
 	"noty";
@@ -20,30 +21,29 @@ body {
 	width: 100%;
 }
 
-.bold {
-
-}
-
 .locked-area {
-	margin-top: 50px;
-	padding: 20px;
+	padding: 32px;
 	background: rgba(255,255,255,0.8);
-	border: 1px solid #ccc;
 	font-size: rem-calc(16);
 	@include radius($global-radius);
+
+  .filed input{
+    display: inline-block;
+  }
 
 	form {
 		margin-bottom: 0;
 	}
 
 	img {
-		text-align: center;
-		margin-bottom: 15px;
 		height: 60px;
-	}
+  }
 
-	h2, .button  {
-		font-size: rem-calc(20);
+	h2 {
+    font-size: rem-calc(20);
+    color: $charcoal;
+    margin-top: 8px;
+    margin-bottom: 24px;
 	}
 
 	span.highlight {
@@ -51,19 +51,103 @@ body {
 	}
 
 	.button {
-		margin-bottom: 0;
+		margin-bottom: 4px;
 	}
+}
+
+#unblock-modal {
+  input#code {
+    max-width: 140px;
+    margin: 4px auto 16px 0px;
+    font-size: 27px;
+    display: inline-block;
+    height: 45px;
+    letter-spacing: 2px;
+    text-align: center;
+
+    &::placeholder {
+      color: #e2e2e2;
+      font-size: 20px;
+    }
+  }
+}
+
+#locked-view {
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+  .icon-eye{
+    font-size: 24px;
+    color: $charcoal;
+
+    &:hover{color:lighten($charcoal, 10%);}
+    &:active{color: $blue;}
+  }
+  .pin-container {
+    display: none;
+  }
+
+  .password-container {
+    display: block;
+  }
+
+  &.no-pin {
+    .password-container .pin {
+      display: none;
+    }
+  }
+
+  &.pin {
+    .pin-container {
+      display: block;
+    }
+
+    .password-container {
+      display: none;
+    }
+  }
+}
+
+#pin-form, #login-form{
+  a{
+    color: $charcoal;
+    font-size: 14px;
+    text-decoration: none;
+    padding: 4px 8px;
+
+    &:hover{color:lighten($charcoal, 10%);}
+    &:active{color: $blue;}
+  }
+}
+
+
+#pin-form {
+  input {
+    max-width: 100px;
+    margin: 4px auto 16px 30px;
+    font-size: 27px;
+    display: inline-block;
+    height: 45px;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  input::placeholder {
+    color: #e2e2e2;
+    font-size: 20px;
+  }
+
 }
 
 @media #{$medium-up} {
 	.locked-area {
-		font-size: rem-calc(20);
 
 		img {
 			height: 80px;
 		}
 
-		h2, .button {
+		h2{
 			font-size: rem-calc(26);
 		}
 	}

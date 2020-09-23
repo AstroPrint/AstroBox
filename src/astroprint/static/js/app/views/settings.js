@@ -2011,6 +2011,186 @@ var WifiHotspotView = SettingsPage.extend({
 });
 
 /********************
+* Software - PIN
+*********************/
+
+var SoftwarePinView = SettingsPage.extend({
+  el: '#software-pin',
+  template: null,
+  changeModal: null,
+  events: {
+    'click #pin-enabled': 'onPinEnabledClicked',
+    'click button.change-pin': 'onChangePinClicked'
+  },
+  show: function()
+  {
+    SettingsPage.prototype.show.apply(this);
+    $.getJSON(API_BASEURL + 'settings/software/pin')
+      .done(_.bind(function (data) {
+        this.render(data.pin_enabled)
+      }, this))
+      .fail(function (xhr) {
+        if (xhr.status == 404) {
+          app.router.navigate('#settings', { trigger: true, replace: true })
+        } else {
+          noty({ text: "There was an error getting PIN Information.", timeout: 3000 });
+          console.error("Request failed with: " + xhr.status);
+        }
+      })
+  },
+  render: function(pin_enabled)
+  {
+    if (!this.template) {
+      this.template = _.template($("#software-pin-settings-page-template").html())
+    }
+
+    this.$el.html(this.template({ pin_enabled: pin_enabled}));
+  },
+  getChangeDialog: function ()
+  {
+    if (!this.changeModal) {
+      this.changeModal = new ChangePinDialog({parent: this})
+    }
+
+    return this.changeModal
+  },
+  onPinEnabledClicked: function(e)
+  {
+    e.preventDefault()
+    e.stopPropagation()
+
+    var pin_enabled = $(e.target).is(':checked') //This gives us the opposite of what's in the UI
+
+    if (!pin_enabled) {
+      this.getChangeDialog().open('clear')
+    } else {
+      this.getChangeDialog().open('set')
+    }
+  },
+  onChangePinClicked: function(e)
+  {
+    e.preventDefault()
+    this.getChangeDialog().open('change')
+  }
+})
+
+var ChangePinDialog = Backbone.View.extend({
+  el: '#change-pin-modal',
+  template: null,
+  parent: null,
+  events: {
+    'click button.close': 'onCloseClicked',
+    'click button.do': 'onDoClicked',
+    'open.fndtn.reveal': 'onOpen',
+    'submit .pin-form': 'onFormSubmit'
+  },
+  initialize: function(options)
+  {
+    this.parent = options.parent
+  },
+  open: function (mode)
+  {
+    var data = null
+
+    switch(mode) {
+      case 'change':
+        data = {
+          title: 'Change PIN',
+          body: 'Enter the current PIN and the new one to change it.',
+          cta: "Change",
+          cta_loading: "Changing"
+        }
+      break
+
+      case 'set':
+        data = {
+          title: 'Set new PIN',
+          body: 'Set a PIN for this controller.',
+          cta: 'Set',
+          cta_loading: 'Setting'
+        }
+      break
+
+      case 'clear':
+        data = {
+          title: 'Remove PIN',
+          body: 'Enter the current PIN to remove the PIN for this controller.',
+          cta: 'Remove',
+          cta_loading: 'Removing'
+        }
+      break
+    }
+
+    data.mode = mode
+    this.render(data)
+    this.$el.foundation('reveal', 'open');
+  },
+  render: function(data)
+  {
+    if (!this.template) {
+      this.template = _.template($("#software-pin-change-modal-template").html())
+    }
+
+    this.$el.html(this.template(data));
+  },
+  onCloseClicked: function (e)
+  {
+    e.preventDefault()
+    this.$el.foundation('reveal', 'close');
+  },
+  onFormSubmit: function()
+  {
+    return false
+  },
+  onDoClicked: function(e)
+  {
+    e.preventDefault()
+    var $target = $(e.target)
+    var $loadingBtn = $target.closest('.loading-button')
+
+    $loadingBtn.addClass('loading')
+
+    $.ajax({
+      url: API_BASEURL + 'settings/software/pin',
+      type: 'post',
+      contentType: 'application/json',
+      dataType: 'json',
+      data: JSON.stringify(_.reduce(this.$('form.pin-form').serializeArray(), function(obj, item) {
+        obj[item.name] = item.value;
+        return obj
+      }, {}))
+    })
+      .done(_.bind(function (data) {
+        $loadingBtn.removeClass('loading')
+        this.$el.foundation('reveal', 'close');
+        this.parent.render(data.pin_enabled)
+      }, this))
+      .fail(function (xhr) {
+        var error = xhr.responseText
+        if (xhr.status == 401) {
+          if (error == 'invalid_pin') {
+            noty({ text: "The PIN is invalid.", timeout: 3000 });
+          }
+        } else if (xhr.status == 400) {
+          if (error == 'invalid_pin_format') {
+            noty({ text: "The PIN format is invalid. Use 4 digits.", timeout: 3000 });
+          } else {
+            noty({ text: "There was an error changing PIN Information.", timeout: 3000 });
+          }
+        } else {
+          noty({ text: "There was an error changing PIN Information.", timeout: 3000 });
+        }
+        console.error("Request failed with: " + xhr.status);
+        $loadingBtn.removeClass('loading').addClass('failed')
+        setTimeout(function(){
+          $loadingBtn.removeClass('failed')
+        }, 3000)
+      })
+
+  }
+});
+
+/********************
 * Software - Plugins
 *********************/
 
@@ -2950,6 +3130,7 @@ var SettingsView = Backbone.View.extend({
       'ssl': new SslSettingsView({parent: this}),
       'video-stream': new CameraVideoStreamView({parent: this}),
       'wifi-hotspot': new WifiHotspotView({parent: this}),
+      'software-pin': new SoftwarePinView({parent:this}),
       'software-plugins': new SoftwarePluginsView({parent: this}),
       'software-update': new SoftwareUpdateView({parent: this}),
       'software-logs': new SoftwareLogsView({ parent: this }),

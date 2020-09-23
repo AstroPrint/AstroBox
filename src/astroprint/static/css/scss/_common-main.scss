@@ -9,7 +9,7 @@ body {
 	-webkit-user-select: none;
 	-ms-user-select:none;
   user-select:none;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
 
   .can-select {
     -moz-user-select: text;
@@ -24,6 +24,8 @@ strong,
 .bold {
   font-family: "nexa_boldregular", Helvetica, Arial, sans-serif;
 }
+
+button{letter-spacing: 0.4px;}
 
 .reveal-modal-bg {
 	position: fixed;

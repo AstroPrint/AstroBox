@@ -8,25 +8,75 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row">
-    <div class="small-12 medium-10 large-7 columns small-centered">
+  <div class="row {%- if has_pin %} pin {%- endif %}" id="locked-view">
+    <div class="small-12 medium-10 large-6 columns small-centered">
       <div class="locked-area">
         <center><img src="/img/astrolock.png"/></center>
-        <h2 class="bold"><span class="highlight">{{astroboxName}}</span> is password protected.</h2>
-        User: <span class="highlight">{{username}}</span><br/>
-        Enter your password for access:
-        <form id="login-form" action="/api/login" method="post">
-          <input type="hidden" name="user" value="{{username}}"/>
-          <input type="hidden" name="remember" value="true"/>
-          <input type="password" name="pass" class="radius"/>
-          <div class="loading-button expand">
-            <button class="button radius success"><b>Enter</b></button>
-            <span class="button radius disabled success loading bold"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+        <div class="password-container">
+          <h2 class="bold"><span class="highlight">{{astroboxName}}</span> is password protected.</h2>
+          User: <span class="highlight">{{username}}</span><br/>
+          Enter your password for access:
+          <form id="login-form">
+            <input type="hidden" name="user" value="{{username}}"/>
+            <input type="hidden" name="remember" value="true"/>
+            <input type="password" name="pass" class="radius"/>
+            <div class="loading-button expand">
+              <button class="button radius success"><b>Enter</b></button>
+              <span class="button radius disabled success loading bold"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+            </div>
+            {%- if has_pin %}
+              <a href="#" class="pin">Use PIN</a>
+            {% endif %}
+            {% if in_org %}
+              <a href="#" class="unblock">Unblock</a>
+            {% endif %}
+          </form>
+        </div>
+        {% if has_pin %}
+          <div class="pin-container" align="center">
+            <h2 class="bold"><span class="highlight">{{astroboxName}}</span> is PIN protected.</h2>
+            Enter PIN for access:
+            <form id="pin-form" autocomplete="off">
+              <div class="field clearfix">
+              <input type="password" name="pin" class="radius" placeholder="&#9679;&#9679;&#9679;&#9679;" maxlength="4"/> <a href="#" class="show-pin"><i class="icon-eye"></i></a>
+              </div>
+              <div class="loading-button expand">
+                <button class="button radius success confirm"><b>Confirm</b></button>
+                <span class="button radius disabled success loading bold"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+              </div>
+              <a href="#" class="forgot">Forgot PIN?</a>
+            </form>
           </div>
-        </form>
+        {% endif %}
       </div>
     </div>
   </div>
+
+  {% if in_org %}
+    <div id="unblock-modal" class="reveal-modal small radius" data-reveal>
+      <h2 class="bold">Unblock {{astroboxName}} controller</h2>
+      <div class="modal-body">
+        <p><b>{{username}}</b> will be logged out of the box after unblocking it allowing a new user to login.</p>
+        <p>Contact a fleet manager to get a 6 digit unblock code for <b>{{astroboxName}}</b> and introduce it below.</p>
+        <form class="unblock-form" autocomplete="off" align="center">
+          <input name="code" id="code" type="text" maxlength="6" placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" class="radius"/>
+        </form>
+      </div>
+      <div class="modal-actions row">
+        <div class="small-12 medium-6 columns">
+          <button class="secondary radius expand bold close">Close</button>
+        </div>
+        <div class="small-12 medium-6 columns">
+          <div class="loading-button expand">
+            <button class="success bold radius do">Confirm</button>
+            <span class="button disabled success bold radius loading"><i class="icon-rocket-spinner animate-spin"></i> Sending...</span>
+            <span class="button disabled alert  bold radius failed"><i class="icon-attention"></i> Failed</span>
+          </div>
+        </div>
+        <a class="close-reveal-modal">&#215;</a>
+      </div>
+    </div>
+  {% endif %}
 {% endblock %}
 
 {% block js %}
@@ -35,6 +85,7 @@
   </script>
   {% assets filters="closure_js", output="js/gen/locked.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/locked/locked.js",
+    "js/lib/foundation/foundation.js", "js/lib/foundation/foundation.reveal.js",
     "js/lib/jquery.noty.js", "js/lib/jquery.noty.top.js" -%}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
   {%- endassets %}

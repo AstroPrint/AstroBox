@@ -759,6 +759,28 @@
   }
 }
 
+#software-pin {
+  button.change-pin {
+    margin-top: 20px;
+  }
+}
+
+#change-pin-modal {
+  .pin-form {
+    margin-bottom: 20px;
+
+    input {
+      margin: 4px auto 20px auto;
+      max-width: 120px;
+      font-size: 27px;
+      display: inline-block;
+      height: 45px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+  }
+}
+
 #software-storage,
 #software-logs  {
   .element-list {

@@ -17,6 +17,9 @@ _instance = None
 
 
 class Events(object):
+	# Account
+	PIN_STATUS = "PinStatus"
+
 	# application startup
 	STARTUP = "Startup"
 	# system shutdown
