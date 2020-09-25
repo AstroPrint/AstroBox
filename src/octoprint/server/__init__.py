@@ -268,7 +268,8 @@ def getStatus():
 			'camera': cm.isCameraConnected(),
 			#'printCapture': cm.timelapseInfo,
 			'remotePrint': True,
-			'capabilities': softwareManager.capabilities() + cm.capabilities
+			'capabilities': softwareManager.capabilities() + cm.capabilities,
+			'ready_to_print' : printer.isReadyToPrint()
 		}),
 		mimetype= 'application/json',
 		headers= {
