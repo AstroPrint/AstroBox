@@ -82,6 +82,7 @@
 {% block js %}
   <script type="text/javascript">
     var UI_API_KEY = "{{ uiApiKey }}";
+    var HAS_PIN = {% if has_pin -%} true {%- else -%} false {%- endif %};
   </script>
   {% assets filters="closure_js", output="js/gen/locked.js",
     "js/lib/jquery.js", "js/lib/underscore.js", "js/lib/backbone.js", "js/lib/sockjs.js", "js/lib/fastclick.js", "js/locked/locked.js",

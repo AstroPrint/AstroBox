@@ -221,21 +221,23 @@ def performSystemAction():
 #~~ Login/user handling
 @api.route("/login", methods=["POST"])
 def login():
-	if octoprint.server.userManager is not None and "user" in request.values.keys() and "pass" in request.values.keys():
+	um = octoprint.server.userManager
+	reqKeys = request.values.keys()
+
+	if um is not None and "user" in reqKeys and "pass" in reqKeys:
 		username = request.values["user"]
 		password = request.values["pass"]
+		remember = request.values.get("remember") == 'true'
 
-		if "remember" in request.values.keys() and request.values["remember"] == "true":
-			remember = True
-		else:
-			remember = False
-
-		user = octoprint.server.userManager.findUser(username)
+		user = um.findUser(username)
 		if user is not None:
 			if user.has_password():
 				if astroprintCloud().validatePassword(username, password):
 					login_user(user, remember=remember)
 					identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))
+					if user.has_pin():
+						um.changeUserPin(username, None) # Remove pin
+
 					return jsonify(user.asDict())
 			else :
 				try:
@@ -248,7 +250,8 @@ def login():
 					return make_response(("Insuficient permissions", 403, []))
 
 		return make_response(("User unknown or password incorrect", 401, []))
-	elif "passive" in request.values.keys():
+
+	elif "passive" in reqKeys:
 		user = current_user
 		if user is not None and not user.is_anonymous:
 			identity_changed.send(current_app._get_current_object(), identity=Identity(user.get_id()))

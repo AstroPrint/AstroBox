@@ -266,7 +266,9 @@ var ConnectionView = Backbone.View.extend({
   },
   onMouseOut: function()
   {
-    this.tooltip.addClass('hide');
-    this.tooltip.find('.text').html('');
+    if (this.tooltip) {
+      this.tooltip.addClass('hide');
+      this.tooltip.find('.text').html('');
+    }
   }
 });

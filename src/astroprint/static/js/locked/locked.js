@@ -5,6 +5,7 @@
  */
 
 /* exported lockedView */
+/* global HAS_PIN, UI_API_KEY */
 
 $.ajaxSetup({
   cache: false
@@ -51,8 +52,15 @@ var LoginForm = Backbone.View.extend({
         "X-Api-Key": UI_API_KEY
       }
     })
-    .done(function(){
-      location.reload();
+    .done(function() {
+      if (HAS_PIN) {
+        noty({ text: "PIN Protection disabled", timeout: 3000 });
+        setTimeout(function() {
+          location.reload();
+        }, 1000);
+      } else {
+        location.reload();
+      }
     })
     .fail(function(xhr){
       var message = "Unkonwn error (" + xhr.status + "). Please refresh the page";
