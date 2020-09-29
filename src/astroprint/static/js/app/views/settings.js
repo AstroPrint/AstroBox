@@ -2097,8 +2097,7 @@ var ChangePinDialog = Backbone.View.extend({
         data = {
           title: 'Change PIN',
           body: 'Enter the current PIN and the new one to change it.',
-          cta: "Change",
-          cta_loading: "Changing"
+          cta: "Change"
         }
       break
 
@@ -2106,8 +2105,7 @@ var ChangePinDialog = Backbone.View.extend({
         data = {
           title: 'Set new PIN',
           body: 'Set a PIN for this controller.',
-          cta: 'Set',
-          cta_loading: 'Setting'
+          cta: 'Set'
         }
       break
 
@@ -2115,8 +2113,7 @@ var ChangePinDialog = Backbone.View.extend({
         data = {
           title: 'Remove PIN',
           body: 'Enter the current PIN to remove the PIN for this controller.',
-          cta: 'Remove',
-          cta_loading: 'Removing'
+          cta: 'Remove'
         }
       break
     }
