@@ -50,6 +50,11 @@ class RequestHandler(object):
 		if state['printing'] or state['paused']:
 			#Let's add info about the ongoing print job
 			state['job'] = printer._stateMonitor._jobData
+			if state['job'] is not None:
+				state['job'].update({
+					'cloud_job_id': printer.currentPrintJobId
+				})
+
 			state['progress'] = printer._stateMonitor._progress
 
 		done(state)
