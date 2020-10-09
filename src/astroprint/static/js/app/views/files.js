@@ -301,15 +301,7 @@ var PrintFileView = Backbone.View.extend({
     var filename = this.print_file.get('local_filename');
 
     if (filename) {
-      if ( !app.printerProfile.get('printer_model').id || this.$el.parent().parent().hasClass('design-filtered-list')) {
-        this.doPrint(filename);
-      } else {
-        if (!this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
-          this.doPrint(filename);
-        } else {
-          (new noPrintDialog()).open({printFilePrinterName: this.print_file.get('printer')['name']})
-        }
-      }
+      this.doPrint(filename);
     } else {
       //We need to download and print
       this.printWhenDownloaded = true;
@@ -346,14 +338,10 @@ var PrintFileView = Backbone.View.extend({
   {
     evt.preventDefault();
 
-    if (!app.printerProfile.get('printer_model').id || !this.print_file.get('printer') || this.print_file.get('printer')['model_id']) {
-      this.doAddToQueue().then()
-        .done(_.bind(function () {
-          this.list.doSync()
-        }, this))
-    } else {
-      (new noPrintDialog()).open({ printFilePrinterName: this.print_file.get('printer')['name'] })
-    }
+    this.doAddToQueue().then()
+      .done(_.bind(function () {
+        this.list.doSync()
+      }, this))
   },
   doAddToQueue: function()
   {
@@ -1139,40 +1127,6 @@ var ReplaceFileDialog = Backbone.View.extend({
     this.usbFileView = null;
     this.filename = null;
     this.copyFinishedPromise = null;
-  }
-});
-
-var noPrintDialog = Backbone.View.extend({
-  el: '#no-print-dlg',
-  printFilePrinterName: null,
-  template: _.template( $("#no-print-template").html() ),
-  events: {
-    'closed.fndtn.reveal': 'onClose',
-    'click button.cancel': 'onCancelClicked'
-  },
-  render: function()
-  {
-    this.$('.dlg-content').html(this.template({
-      printFilePrinterName: this.printFilePrinterName,
-      astroboxPrinterName: app.printerProfile.get('printer_model').name
-    }));
-  },
-  open: function(options)
-  {
-    this.printFilePrinterName = options.printFilePrinterName;
-
-    this.render();
-    this.$el.foundation('reveal', 'open');
-  },
-  onCancelClicked: function(e)
-  {
-    e.preventDefault()
-    this.$el.foundation('reveal', 'close');
-  },
-  onClose: function(){
-    this.$('.dlg-content').empty();
-    this.undelegateEvents();
-    this.printFilePrinterName = null;
   }
 });
 
