@@ -235,7 +235,7 @@ class MachineCom(object):
 			return "Closed with Error: %s" % (self.getShortErrorString())
 		#if self._state == self.STATE_TRANSFERING_FILE:
 		#	return "Transfering file to SD"
-		if self._state == self.	STATE_NOT_READY_TO_PRINT:
+		if self._state == self.STATE_NOT_READY_TO_PRINT:
 			return "Not ready to print"
 		return "?%d?" % (self._state)
 
@@ -255,6 +255,9 @@ class MachineCom(object):
 
 	def isError(self):
 		return self._state == self.STATE_ERROR or self._state == self.STATE_CLOSED_WITH_ERROR
+
+	def isWaitingForBedClean(self):
+		return self._state == self.STATE_NOT_READY_TO_PRINT
 
 	def isOperational(self):
 		return self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PRINTING or self._state == self.STATE_PAUSED #or self._state == self.STATE_TRANSFERING_FILE
@@ -361,7 +364,7 @@ class MachineCom(object):
 		cmd = cmd.encode('ascii', 'replace')
 		if self.isPrinting() or self._pauseInProgress:
 			self._commandQueue.appendleft(cmd)
-		elif self.isOperational():
+		elif self.isOperational() or self.isWaitingForBedClean():
 			self._sendCommand(cmd)
 
 	def startPrint(self):
@@ -982,7 +985,7 @@ class MachineCom(object):
 						self._callback.disconnect()
 
 				### Operational
-				elif self._state == self.STATE_OPERATIONAL or self._state == self.STATE_PAUSED:
+				elif self._state in [self.STATE_OPERATIONAL, self.STATE_PAUSED, self.STATE_NOT_READY_TO_PRINT]:
 					#Request the temperature on comm timeout (every 5 seconds) when we are not printing.
 					if line == "" or "wait" in lineLower or "ok" in lineLower:
 						if self._resendDelta is not None:
