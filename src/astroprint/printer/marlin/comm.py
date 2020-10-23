@@ -779,6 +779,7 @@ class MachineCom(object):
 						t = dataReceivedAt
 						self._heatupWaitTimeLost = t - self._heatupWaitStartTime
 						self._heatupWaitStartTime = t
+
 				elif supportRepetierTargetTemp and ('TargetExtr' in line or 'TargetBed' in line):
 					matchExtr = self._regex_repetierTempExtr.match(line)
 					matchBed = self._regex_repetierTempBed.match(line)
@@ -806,6 +807,9 @@ class MachineCom(object):
 							self._callback.mcTempUpdate(self._temp, self._bedTemp)
 						except ValueError:
 							pass
+
+				elif len(line) > 8 and line.startswith('M118 A1'):
+					self._processHostMessage(line[8:].strip())
 
 				##~~ SD Card handling
 				# elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
@@ -1105,6 +1109,16 @@ class MachineCom(object):
 				self._changeState(self.STATE_ERROR)
 				return False
 		return True
+
+	def _processHostMessage(self, message):
+		messageSplit = message.split(':')
+		if len(messageSplit) > 1:
+			if messageSplit[0] == 'action':
+				if messageSplit[1] == 'pause':
+					self.setPause(True)
+					return
+
+		self._logger.warn('Received unkonwn host message [%s]' % message)
 
 	def _lowerAndHandleErrors(self, line):
 		# No matter the state, if we see an error, goto the error state and store the error for reference.
