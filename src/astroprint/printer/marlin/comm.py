@@ -808,8 +808,8 @@ class MachineCom(object):
 						except ValueError:
 							pass
 
-				elif len(line) > 8 and line.startswith('M118 A1'):
-					self._processHostMessage(line[8:].strip())
+				elif len(line) > 3 and line.startswith('// '):
+					self._processHostMessage(line[3:].strip())
 
 				##~~ SD Card handling
 				# elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
