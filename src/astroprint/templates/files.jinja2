@@ -232,6 +232,8 @@
             </a>
             <span class="loading"><i class="icon-rocket-spinner animate-spin"></i></span>
           </div>
+        <% } else { %>
+          <div class="columns small-9 medium-10 large-6"></div>
         <% } %>
 
         <div class="loading-button print columns small-3 medium-2 large-6">
@@ -242,15 +244,17 @@
         </div>
 
 			<% } else { %>
-				<a href="#" class="download">
-					<i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
-				</a>
-				<div class="download-progress">
-					<a href="#" class="dw-cancel"><i class="icon-cancel-circled" title="Cancel download"></i></a>
-					<span class="bold">0<i>%</i></span>
-				</div>
-        <div class="download-failed">
-          <i class="icon-attention"></i>
+        <div class="loading-button print columns small-12">
+          <a href="#" class="download">
+            <i class="icon-download-cloud" title="Download to {{mfDefinition.variant.product_name}}"></i>
+          </a>
+          <div class="download-progress">
+            <a href="#" class="dw-cancel"><i class="icon-cancel-circled" title="Cancel download"></i></a>
+            <span class="bold">0<i>%</i></span>
+          </div>
+          <div class="download-failed">
+            <i class="icon-attention"></i>
+          </div>
         </div>
 			<% } %>
 		</div>

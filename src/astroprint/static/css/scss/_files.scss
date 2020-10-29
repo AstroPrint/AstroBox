@@ -365,9 +365,9 @@
         &.downloading {
           .download-progress {
             display: block;
-            //position: absolute;
-            //top: 3px;
-            //right:0;
+            position: absolute;
+            top: 3px;
+            right:15px;
             margin: 0 auto;
             max-height: 63px;
             padding-top: 4px;
