@@ -62,8 +62,10 @@ var LoginModal = Backbone.View.extend({
           }
 
           errorContainer.html(error).show();
-        } else {
+        } else if (xhr.status == 401) {
           errorContainer.text('Invalid Email/Password').show();
+        } else {
+          errorContainer.text('There was a temporary issue on our server. Try again later.').show();
         }
         this.button.removeClass('loading');
       }

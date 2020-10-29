@@ -15,7 +15,7 @@ from octoprint.server import restricted_access, SUCCESS
 from octoprint.server.api import api
 from octoprint.events import eventManager, Events
 
-from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException, AstroPrintCloudInsufficientPermissionsException
+from astroprint.cloud import astroprintCloud, AstroPrintCloudNoConnectionException, AstroPrintCloudInsufficientPermissionsException, AstroPrintCloudTemporaryErrorException
 from astroprint.printfiles.downloadmanager import downloadManager
 from astroprint.printer.manager import printerManager
 
@@ -40,6 +40,8 @@ def set_private_key():
 
 		except (AstroPrintCloudNoConnectionException, ConnectionError):
 			abort(503, "AstroPrint.com can't be reached")
+		except (AstroPrintCloudTemporaryErrorException) as e:
+			abort(500, "Temporary issue accessing AstroPrint Cloud (%d)" % e.code)
 		except (AstroPrintCloudInsufficientPermissionsException) as e:
 			r = jsonify(e.data)
 			r.status_code = 403

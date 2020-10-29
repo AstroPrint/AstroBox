@@ -53,6 +53,11 @@ class AstroPrintCloudNoConnectionException(AstroPrintCloudException):
 	#There no connection to the astroprint cloud
 	pass
 
+class AstroPrintCloudTemporaryErrorException(AstroPrintCloudException):
+	#Temporary connection or server issue
+	def __init__(self, code):
+		self.code = code
+
 class HMACAuth(requests.auth.AuthBase):
 	def __init__(self, publicKey, privateKey, boxId, orgId = None,  groupId = None,):
 		self.publicKey = publicKey
@@ -440,6 +445,9 @@ class AstroPrintCloud(object):
 
 		elif r.status_code == 403:
 			raise AstroPrintCloudInsufficientPermissionsException(r.json())
+
+		elif r.status_code in [500, 503]:
+			raise AstroPrintCloudTemporaryErrorException(r.status_code)
 
 		return None
 
