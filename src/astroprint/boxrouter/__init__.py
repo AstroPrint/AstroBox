@@ -437,9 +437,9 @@ class AstroprintBoxRouter(object):
 				self.status = self.STATUS_ERROR
 				self._eventManager.fire(Events.ASTROPRINT_STATUS, self.status)
 				self.close()
-				if 'should_retry' in data and data['should_retry']:
+				if data.get('should_retry'):
 					self._doRetry()
-				if 'type' in data and data['type'] == 'unable_to_authenticate':
+				elif data.get('type') == 'unable_to_authenticate':
 					self._logger.info("Unuable to authenticate user in fleet box. Logout")
 					astroprintCloud().remove_logged_user()
 
