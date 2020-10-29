@@ -122,42 +122,45 @@ var PinForm = Backbone.View.extend({
   },
   onConfirmClicked: function(e)
   {
-    e.preventDefault()
-    var loadingBtn = this.$('.loading-button');
+    e.preventDefault();
 
-    loadingBtn.addClass('loading');
-    this.view.loggingIn = true
+    if (this.$('input[name=pin]').val()) {
+      var loadingBtn = this.$('.loading-button');
 
-    $.ajax({
-      type: 'POST',
-      url: '/api/validate-pin',
-      data: this.$el.serializeArray(),
-      headers: {
-        "X-Api-Key": UI_API_KEY
-      }
-    })
-      .done(function () {
-        location.reload();
-      })
-      .fail(_.bind(function (xhr) {
-        var message = "Unkonwn error ("+xhr.status+"). Please refresh the page";
+      loadingBtn.addClass('loading');
+      this.view.loggingIn = true
 
-        if (xhr.status == 401) {
-          message = "Invalid PIN. Remaining attempts: " + this.attempts;
-
-          if (this.attempts <= 0) {
-            this.view.$el.removeClass('pin').addClass('no-pin')
-          } else {
-            this.attempts--
-          }
+      $.ajax({
+        type: 'POST',
+        url: '/api/validate-pin',
+        data: this.$el.serializeArray(),
+        headers: {
+          "X-Api-Key": UI_API_KEY
         }
+      })
+        .done(function () {
+          location.reload();
+        })
+        .fail(_.bind(function (xhr) {
+          var message = "Unkonwn error ("+xhr.status+"). Please refresh the page";
 
-        noty({ text: message, timeout: 3000 });
-        loadingBtn.removeClass('loading');
-      }, this))
-      .always(_.bind(function () {
-        this.view.loggingIn = false
-      }, this))
+          if (xhr.status == 401) {
+            message = "Invalid PIN. Remaining attempts: " + this.attempts;
+
+            if (this.attempts <= 0) {
+              this.view.$el.removeClass('pin').addClass('no-pin')
+            } else {
+              this.attempts--
+            }
+          }
+
+          noty({ text: message, timeout: 3000 });
+          loadingBtn.removeClass('loading');
+        }, this))
+        .always(_.bind(function () {
+          this.view.loggingIn = false
+        }, this))
+    }
   }
 })
 
@@ -181,33 +184,37 @@ var UnblockModal = Backbone.View.extend({
   {
     e.preventDefault()
 
-    var loadingBtn = $(e.target).closest('.loading-button');
-    loadingBtn.addClass('loading');
+    var form = this.$('form.unblock-form');
 
-    $.ajax({
-      type: 'POST',
-      url: '/api/unblock',
-      data: this.$('form.unblock-form').serializeArray(),
-      headers: {
-        "X-Api-Key": UI_API_KEY
-      }
-    })
-      .done(function () {
-        location.reload();
-      })
-      .fail(_.bind(function (xhr) {
-        var message = "Unkonwn error (" + xhr.status + "). Please refresh the page";
+    if (form.find('input[name=code]').val()) {
+      var loadingBtn = $(e.target).closest('.loading-button');
+      loadingBtn.addClass('loading');
 
-        if (xhr.status == 401) {
-          message = "Invalid unblock code";
+      $.ajax({
+        type: 'POST',
+        url: '/api/unblock',
+        data: this.$('form.unblock-form').serializeArray(),
+        headers: {
+          "X-Api-Key": UI_API_KEY
         }
+      })
+        .done(function () {
+          location.reload();
+        })
+        .fail(_.bind(function (xhr) {
+          var message = "Unkonwn error (" + xhr.status + "). Please refresh the page";
 
-        noty({ text: message, timeout: 3000 });
-        loadingBtn.removeClass('loading').addClass('failed');
-        setTimeout(function() {
-          loadingBtn.removeClass('failed')
-        }, 3000)
-      }, this))
+          if (xhr.status == 401) {
+            message = "Invalid unblock code";
+          }
+
+          noty({ text: message, timeout: 3000 });
+          loadingBtn.removeClass('loading').addClass('failed');
+          setTimeout(function() {
+            loadingBtn.removeClass('failed')
+          }, 3000)
+        }, this))
+    }
   }
 })
 
