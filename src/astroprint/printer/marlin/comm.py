@@ -130,6 +130,7 @@ class MachineCom(object):
 		#self._regex_sdPrintingByte = re.compile(r"([0-9]*)/([0-9]*)")
 		#self._regex_sdFileOpened = re.compile(r"File opened:\s*(.*?)\s+Size:\s*(%s)" % intPattern)
 		self._regex_M114Response = re.compile(r"X:\s*(%s)\s?Y:\s*(%s)\s?Z:\s*(%s)\s?E:\s*(%s)" % (floatPattern, floatPattern, floatPattern, floatPattern))
+		self._regex_hostCommand = re.compile(r"^//\s?([\w_]+):([\w_]+)(?:\s(.+))?$")
 
 		# Regex matching temperature entries in line. Groups will be as follows:
 		# - 1: whole tool designator incl. optional toolNumber ("T", "Tn", "B")
@@ -808,8 +809,8 @@ class MachineCom(object):
 						except ValueError:
 							pass
 
-				elif len(line) > 3 and line.startswith('// '):
-					self._processHostMessage(line[3:].strip())
+				elif len(line) > 3 and line.startswith('//'):
+					self._processHostMessage(line)
 
 				##~~ SD Card handling
 				# elif 'SD init fail' in line or 'volume.init failed' in line or 'openRoot failed' in line:
@@ -1111,14 +1112,40 @@ class MachineCom(object):
 		return True
 
 	def _processHostMessage(self, message):
-		messageSplit = message.split(':')
-		if len(messageSplit) > 1:
-			if messageSplit[0] == 'action':
-				if messageSplit[1] == 'pause':
+		pattern = self._regex_hostCommand.match(message)
+
+		if pattern:
+			command = pattern[1]
+			action = pattern[2]
+			#params = pattern[3]
+
+			if command == 'action':
+				if action == 'pause':
 					self.setPause(True)
 					return
 
-		self._logger.warn('Received unkonwn host message [%s]' % message)
+				elif action == 'paused':
+					self._changeState(self.STATE_PAUSED)
+					return
+
+				elif action == 'resume':
+					self.setPause(False)
+					return
+
+				elif action == 'resumed':
+					self._changeState(self.STATE_PRINTING)
+					return
+
+				elif action == 'cancel':
+					self._callback.cancelPrint()
+					return
+
+				elif action == 'disconnect':
+					self._callback.disconnect()
+					return
+
+			self._logger.warn('Received unkonwn host message [%s]' % message)
+
 
 	def _lowerAndHandleErrors(self, line):
 		# No matter the state, if we see an error, goto the error state and store the error for reference.
