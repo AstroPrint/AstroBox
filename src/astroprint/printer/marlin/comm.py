@@ -1117,8 +1117,9 @@ class MachineCom(object):
 		if pattern:
 			command = pattern[1]
 			action = pattern[2]
-			#params = pattern[3]
+			params = pattern[3]
 
+			# https://docs.octoprint.org/en/master/features/action_commands.html
 			if command == 'action':
 				if action == 'pause':
 					self.setPause(True)
@@ -1142,6 +1143,23 @@ class MachineCom(object):
 
 				elif action == 'disconnect':
 					self._callback.disconnect()
+					return
+
+				# https://docs.octoprint.org/en/master/bundledplugins/action_command_prompt.html#sec-bundledplugins-action-command-prompt-action-commands
+				elif action == 'prompt_begin':
+					self._callback._promptManager.begin_prompt(params)
+					return
+
+				elif action == 'prompt_choice' or action == 'prompt_button':
+					self._callback._promptManager.add_choice(params)
+					return
+
+				elif action == 'prompt_show':
+					self._callback._promptManager.show()
+					return
+
+				elif action == 'prompt_end':
+					self._callback._promptManager.end_prompt()
 					return
 
 			self._logger.warn('Received unkonwn host message [%s]' % message)

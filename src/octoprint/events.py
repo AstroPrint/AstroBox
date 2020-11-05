@@ -84,6 +84,7 @@ class Events(object):
 	E_STOP = "EStop"
 	LAYER_CHANGE = "LayerChange"
 	BED_CLEARED_CHANGED = "BedClearedChanged"
+	PRINTER_PROMPT = 'PrinterPrompt'
 
 	# Slicing
 	SLICING_STARTED = "SlicingStarted"
