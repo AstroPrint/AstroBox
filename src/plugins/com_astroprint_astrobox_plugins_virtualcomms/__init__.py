@@ -24,7 +24,8 @@ class VirtualComms(Plugin, PrinterCommsService):
 		self._vpSettings = {
 			'connection': 1.0,
 			'heatingUp': 2.0,
-			'printJob': 10.0
+			'printJob': 10.0,
+			'prompt': {}
 		}
 
 		if os.path.isfile(settings_file):
@@ -69,6 +70,16 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 				#set initial temps
 				self.changeTemperature(25, 25)
+
+				prompt = self._vpSettings.get('prompt')
+				if prompt:
+					self._printerManager._promptManager.end_prompt()
+					self._printerManager._promptManager.begin_prompt(prompt.get('message'))
+					choices = prompt.get('choices') or []
+					for c in choices:
+						self._printerManager._promptManager.add_choice(c)
+
+					self._printerManager._promptManager.show()
 
 		self._changePrinterState(PrinterState.STATE_CONNECTING)
 		t = threading.Timer(self._vpSettings['connection'], doConnect)
@@ -183,6 +194,9 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 	def serialLoggingChanged(self):
 		pass
+
+	def onPromptResponse(self, index):
+		self._logger.info("Prompt index %d selected" % index)
 
 	@property
 	def ports(self):
