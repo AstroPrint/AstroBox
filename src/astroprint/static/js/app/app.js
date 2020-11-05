@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-/* global app:writable, SocketData, Utils, AppRouter, ConnectionView, PrinterProfile, AstroPrintApi,
+/* global app:writable, SocketData, Utils, AppRouter, ConnectionView, PrinterProfile, AstroPrintApi, PrinterPromptController,
           TurnoffConfirmationModal, UnreachableView, RebootConfirmationModal, ClearBedModal, FLEET_ID*/
 
 /* exported navigatorPrevent */
@@ -56,6 +56,7 @@ var AstroBoxApp = Backbone.View.extend({
   turnOffModal: null,
   printerProfile: null,
   astroPrintApi: null,
+  printerPrompts: null,
   events: {
     'click button.turn-off, a.turn-off': 'turnOffClicked',
     'click button.reboot': 'rebootClicked',
@@ -77,6 +78,7 @@ var AstroBoxApp = Backbone.View.extend({
     this.astroprintApi = new AstroPrintApi(this.eventManager);
     this.socketData.connectionView = this.connectionView;
     this.socketData.connect(WS_TOKEN);
+    this.printerPrompts = new PrinterPromptController({eventManager: this.eventManager})
     this.listenTo(this.socketData, 'change:printing', this.reportPrintingChange );
     this.listenTo(this.socketData, 'change:isBedClear', this.bedChanged );
     this.listenTo(this.socketData, 'change:online', this.onlineStatusChange );
