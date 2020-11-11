@@ -308,6 +308,10 @@ var SocketData = Backbone.Model.extend({
               app.eventManager.trigger('astrobox:LocalVideoStreamingStopped',payload);
               break;
 
+            case 'PrinterPrompt':
+              app.eventManager.trigger('astrobox:printer_prompt', payload)
+              break;
+
             default:
               console.warn('Unkonwn event received: '+type);
           }

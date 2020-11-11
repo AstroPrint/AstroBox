@@ -107,6 +107,8 @@ class Printer(object):
 			currentZ=None
 		)
 
+		self.promptManager = PromptManager()
+
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
 	@property
@@ -887,6 +889,11 @@ class Printer(object):
 	def getAllowedFeatures(self):
 		return {}
 
+	#Implement these events if needed
+
+	def onPromptResponse(self, index):
+		pass
+
 class StateMonitor(object):
 	def __init__(self, ratelimit, updateCallback, addTemperatureCallback, addLogCallback, addMessageCallback):
 		self._ratelimit = ratelimit
@@ -1003,3 +1010,35 @@ class StateMonitor(object):
 			"printing_speed": self._printingSpeed,
 			"printing_flow": self._printingFlow
 		}
+
+class PromptManager(object):
+	def __init__(self):
+		self._currentPrompt = None
+
+	def begin_prompt(self, message):
+		if self._currentPrompt is None:
+			self._currentPrompt = {
+				'message': message,
+				'choices': []
+			}
+
+	def end_prompt(self):
+		if self._currentPrompt:
+			eventManager().fire(Events.PRINTER_PROMPT, {"type": 'close'})
+			self._currentPrompt = None
+
+	def add_choice(self, text):
+		if self._currentPrompt:
+			self._currentPrompt['choices'].append(text)
+
+	def show(self):
+		if self._currentPrompt:
+			eventManager().fire(Events.PRINTER_PROMPT, {"type": 'show', 'prompt': self._currentPrompt})
+
+	@property
+	def hasPrompt(self):
+		return self._currentPrompt is not None
+
+	@property
+	def prompt(self):
+		return self._currentPrompt

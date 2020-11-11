@@ -30,7 +30,9 @@ class PrinterService(PluginService):
 		#watch the printer comms
 		'printer_comms_changed',
 		#watch the printer bed status
-		"bed_cleared_changed"
+		"bed_cleared_changed",
+		#Watch for printer initiated prompt events
+		"printer_prompt_event"
 	]
 
 	def __init__(self):
@@ -58,6 +60,9 @@ class PrinterService(PluginService):
 
 		#printing timelapse
 		self._eventManager.subscribe(Events.CAPTURE_INFO_CHANGED, self._onPrintCaptureInfoChanged)
+
+		#host commands (prompts)
+		self._eventManager.subscribe(Events.PRINTER_PROMPT, self._onPromptEvent)
 
 		#printing handling
 		self._eventManager.subscribe(Events.PRINT_STARTED, self._onPrintStarted)
@@ -459,6 +464,18 @@ class PrinterService(PluginService):
 			#callback("UnloadFilament executed successfuly",True)
 			callback({'success': 'no_error'})
 
+	def reportPromptChoice(self, choice, sendResponse):
+		pm = printerManager()
+
+		if choice is not None:
+			if choice != 'close':
+				pm.onPromptResponse(int(choice))
+
+			pm.promptManager.end_prompt()
+			sendResponse({'success': 'no_error'})
+
+		else:
+			sendResponse('invalid_choice',True)
 
 	#EVENTS
 
@@ -542,3 +559,5 @@ class PrinterService(PluginService):
 		data['state'] = 'printing_error'
 		self.publishEvent('printing_state_changed', data)
 
+	def _onPromptEvent(self, event, value):
+		self.publishEvent('printer_prompt_event', value)

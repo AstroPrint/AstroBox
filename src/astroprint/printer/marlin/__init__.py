@@ -675,3 +675,5 @@ class PrinterMarlin(Printer):
 		if self._comm:
 			self._comm._changeState(newState)
 
+	def onPromptResponse(self, index):
+		self.command("M876 S%d" % index)

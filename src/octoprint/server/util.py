@@ -139,7 +139,7 @@ class PrinterStateConnection(SockJSConnection):
 				Events.TRANSFER_STARTED, Events.TRANSFER_DONE, Events.CLOUD_DOWNLOAD, Events.ASTROPRINT_STATUS, Events.SOFTWARE_UPDATE,
 				Events.CAPTURE_INFO_CHANGED, Events.LOCK_STATUS_CHANGED, Events.NETWORK_STATUS, Events.INTERNET_CONNECTING_STATUS,
 				Events.GSTREAMER_EVENT, Events.TOOL_CHANGE, Events.COPY_TO_HOME_PROGRESS, Events.EXTERNAL_DRIVE_MOUNTED,
-				Events.EXTERNAL_DRIVE_EJECTED, Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, Events.LOCAL_VIDEO_STREAMING_STOPPED]
+				Events.EXTERNAL_DRIVE_EJECTED, Events.EXTERNAL_DRIVE_PHISICALLY_REMOVED, Events.LOCAL_VIDEO_STREAMING_STOPPED, Events.PRINTER_PROMPT]
 
 	def __init__(self, userManager, eventManager, session):
 		SockJSConnection.__init__(self, session)
@@ -185,6 +185,12 @@ class PrinterStateConnection(SockJSConnection):
 		self._eventManager.fire(Events.CLIENT_OPENED, {"remoteAddress": remoteAddress})
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
+
+		if printer.promptManager.hasPrompt:
+			self.sendEvent(Events.PRINTER_PROMPT, {
+				'type': 'show',
+				'prompt': printer.promptManager.prompt
+			})
 
 	def on_close(self):
 		self._logger.info("Client connection closed [Session id: %s]", self.session.session_id)

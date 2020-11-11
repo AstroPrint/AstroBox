@@ -521,3 +521,18 @@ def executeRoutine(routine):
 		return make_response(routine +  " routine executing failed", 400)
 	else:
 		return make_response(routine + " executed successfuly", 200)
+
+@api.route("/printer/prompt/choice", methods=['POST'])
+def postHostCommand():
+	choice = request.values.get('choice')
+
+	if choice is not None:
+		pm = printerManager()
+		if choice != 'close':
+			pm.onPromptResponse(int(choice))
+
+		pm.promptManager.end_prompt()
+		return make_response("OK", 200)
+
+	else:
+		return make_response("Invalid data", 400)

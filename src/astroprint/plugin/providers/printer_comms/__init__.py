@@ -265,6 +265,14 @@ class PrinterCommsService(CommandPluginInterface):
 	def printFilePosition(self):
 		raise NotImplementedError()
 
+	## Optionally override this functions
+
+	#
+	# Called when a printer prompt response is to be sent to the printer
+	#
+	def onPromptResponse(self, index):
+		pass
+
 	## You can override these functions but make sure you call this parent ##
 
 	#

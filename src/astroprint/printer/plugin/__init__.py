@@ -286,3 +286,7 @@ class PrinterWithPlugin(Printer):
 
 			self._profileManager.set({'driver': DEFAULT_MANAGER})
 			self._profileManager.save()
+
+	def onPromptResponse(self, index):
+		if self._plugin:
+			self._plugin.onPromptResponse(index)

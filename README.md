@@ -69,6 +69,11 @@ The AstroBox Software comes with a handy virtual printer so that you can test wi
   connection: 3.0
   heatingUp: 5.0
   printJob: 10.0
+  promppt:
+    message: Your prompt message
+    choices:
+      - First choice
+      - Second choice
 </pre>
 
 Setting up development network driver
