@@ -73,13 +73,13 @@ class VirtualComms(Plugin, PrinterCommsService):
 
 				prompt = self._vpSettings.get('prompt')
 				if prompt:
-					self._printerManager._promptManager.end_prompt()
-					self._printerManager._promptManager.begin_prompt(prompt.get('message'))
+					self._printerManager.promptManager.end_prompt()
+					self._printerManager.promptManager.begin_prompt(prompt.get('message'))
 					choices = prompt.get('choices') or []
 					for c in choices:
-						self._printerManager._promptManager.add_choice(c)
+						self._printerManager.promptManager.add_choice(c)
 
-					self._printerManager._promptManager.show()
+					self._printerManager.promptManager.show()
 
 		self._changePrinterState(PrinterState.STATE_CONNECTING)
 		t = threading.Timer(self._vpSettings['connection'], doConnect)

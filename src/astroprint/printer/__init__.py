@@ -107,7 +107,7 @@ class Printer(object):
 			currentZ=None
 		)
 
-		self._promptManager = PromptManager()
+		self.promptManager = PromptManager()
 
 		eventManager().subscribe(Events.METADATA_ANALYSIS_FINISHED, self.onMetadataAnalysisFinished)
 
@@ -1034,3 +1034,11 @@ class PromptManager(object):
 	def show(self):
 		if self._currentPrompt:
 			eventManager().fire(Events.PRINTER_PROMPT, {"type": 'show', 'prompt': self._currentPrompt})
+
+	@property
+	def hasPrompt(self):
+		return self._currentPrompt is not None
+
+	@property
+	def prompt(self):
+		return self._currentPrompt

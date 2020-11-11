@@ -4,7 +4,7 @@
  *  Distributed under the GNU Affero General Public License http://www.gnu.org/licenses/agpl.html
  */
 
-// global app
+// global app, API_BASEURL
 
 var PrinterPromptController = Backbone.View.extend({
   el: '#printer-prompt-modal',
@@ -57,12 +57,11 @@ var PrinterPromptController = Backbone.View.extend({
     var $btn = $(e.target)
     var choiceIdx = $btn.data('choice')
 
-    console.log('choice ' + choiceIdx + ' clicked')
-    this.$el.foundation('reveal', 'close')
+    $.post(API_BASEURL + 'printer/prompt/choice', {choice: choiceIdx})
   },
   onCloseClicked: function(e)
   {
     e.preventDefault()
-    this.$el.foundation('reveal', 'close')
+    $.post(API_BASEURL + 'printer/prompt/choice', { choice: 'close' })
   }
 })

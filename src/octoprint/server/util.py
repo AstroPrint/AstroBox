@@ -186,6 +186,12 @@ class PrinterStateConnection(SockJSConnection):
 		for event in PrinterStateConnection.EVENTS:
 			self._eventManager.subscribe(event, self._onEvent)
 
+		if printer.promptManager.hasPrompt:
+			self.sendEvent(Events.PRINTER_PROMPT, {
+				'type': 'show',
+				'prompt': printer.promptManager.prompt
+			})
+
 	def on_close(self):
 		self._logger.info("Client connection closed [Session id: %s]", self.session.session_id)
 

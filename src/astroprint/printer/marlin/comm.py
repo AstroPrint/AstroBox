@@ -1147,19 +1147,19 @@ class MachineCom(object):
 
 				# https://docs.octoprint.org/en/master/bundledplugins/action_command_prompt.html#sec-bundledplugins-action-command-prompt-action-commands
 				elif action == 'prompt_begin':
-					self._callback._promptManager.begin_prompt(params)
+					self._callback.promptManager.begin_prompt(params)
 					return
 
 				elif action == 'prompt_choice' or action == 'prompt_button':
-					self._callback._promptManager.add_choice(params)
+					self._callback.promptManager.add_choice(params)
 					return
 
 				elif action == 'prompt_show':
-					self._callback._promptManager.show()
+					self._callback.promptManager.show()
 					return
 
 				elif action == 'prompt_end':
-					self._callback._promptManager.end_prompt()
+					self._callback.promptManager.end_prompt()
 					return
 
 			self._logger.warn('Received unkonwn host message [%s]' % message)
