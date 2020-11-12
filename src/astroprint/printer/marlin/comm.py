@@ -1115,9 +1115,9 @@ class MachineCom(object):
 		pattern = self._regex_hostCommand.match(message)
 
 		if pattern:
-			command = pattern[1]
-			action = pattern[2]
-			params = pattern[3]
+			command = pattern.group(1)
+			action = pattern.group(2)
+			params = pattern.group(3)
 
 			# https://docs.octoprint.org/en/master/features/action_commands.html
 			if command == 'action':
