@@ -203,6 +203,52 @@
     }
   }
 
+
+.has-hover{
+  position: relative;
+
+  span:not(.icon-info){
+    position: absolute;
+    border-radius: 3px;
+    background: $oil;
+    color: $white;
+    font-size: 12px;
+    padding: 4px 6px;
+    display: none;
+    font-style: normal;
+    z-index: 9;
+    left: 0;
+    line-height: 100%;
+    width: auto;
+    top: 24px;
+  }
+
+  &:hover span, &:active span{
+    display: block;
+  }
+}
+
+.check-clean{
+  position: relative;
+  display: flex;
+
+  .info-container{
+    width: 22px;
+    height: 22px;
+    border-radius: 100%;
+    background: $base ;
+    color: $white;
+    text-align: center;
+    margin-left: 8px;
+
+    .span{
+      position: relative;
+      top: -3px;
+      font-size: 18px;
+    }
+  }
+}
+
   .movement {
     margin: 20px auto;
     border-radius: 15px;
