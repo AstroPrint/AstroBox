@@ -38,6 +38,7 @@ class PrinterProfileManager(object):
 			'driver': "marlin",
 			'plugin': None,
 			'extruder_count': 1,
+			'check_clear_bed' : True,
 			'max_nozzle_temp': 280,
 			'max_bed_temp': 140,
 			'heated_bed': True,

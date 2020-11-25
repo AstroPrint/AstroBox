@@ -8,6 +8,7 @@ from octoprint.server.api import api
 from octoprint.server import restricted_access
 
 from astroprint.printerprofile import printerProfileManager
+from astroprint.printer.manager import printerManager
 
 
 @api.route('/printer-profile', methods=['PATCH', 'GET'])
@@ -16,6 +17,8 @@ def printer_profile_patch():
 
 	if request.method == "PATCH":
 		changes = request.json
+		if not changes['check_clear_bed'] and ppm.data['check_clear_bed']:
+			printerManager().set_bed_clear(True)
 		ppm.set(changes)
 		ppm.save()
 

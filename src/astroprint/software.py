@@ -720,7 +720,8 @@ class SoftwareManager(object):
 		capabilities = ['remotePrint',     	# Indicates whether this device supports starting a print job remotely
 		 								'multiExtruders',  	# Support for multiple extruders
 										'allowPrintFile',  	# Support for printing a printfile not belonging to any design
-										'acceptPrintJobId', # Accept created print job from cloud,
-										'cleanState'				# Support bed not clean state
+										'acceptPrintJobId' # Accept created print job from cloud,
 									]
+		if settings:
+			capabilities.append('cleanState') # Support bed not clean state
 		return capabilities
