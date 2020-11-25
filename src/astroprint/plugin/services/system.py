@@ -206,6 +206,9 @@ class SystemService(PluginService):
 			if 'allowTerminal' in data:
 				del data['allowTerminal']
 
+			if 'check_clear_bed' in data and data['check_clear_bed'] is False:
+				pm.set_bed_clear(True)
+
 			ppm.set(data)
 			ppm.save()
 
