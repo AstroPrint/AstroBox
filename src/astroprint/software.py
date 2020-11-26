@@ -35,6 +35,7 @@ from octoprint.events import eventManager, Events
 
 from astroprint.boxrouter import boxrouterManager
 from astroprint.ro_config import roConfig
+from astroprint.printerprofile import printerProfileManager
 
 if platformStr != 'darwin':
 	import apt.debfile
@@ -717,10 +718,12 @@ class SoftwareManager(object):
 		return None
 
 	def capabilities(self):
+		ppm = printerProfileManager()
 		capabilities = ['remotePrint',     	# Indicates whether this device supports starting a print job remotely
 		 								'multiExtruders',  	# Support for multiple extruders
 										'allowPrintFile',  	# Support for printing a printfile not belonging to any design
-										'acceptPrintJobId', # Accept created print job from cloud,
-										'cleanState'				# Support bed not clean state
+										'acceptPrintJobId' # Accept created print job from cloud,
 									]
+		if ppm.data['check_clear_bed']:
+			capabilities.append('cleanState') # Support bed not clean state
 		return capabilities

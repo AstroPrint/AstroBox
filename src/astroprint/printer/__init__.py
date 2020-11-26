@@ -129,10 +129,13 @@ class Printer(object):
 
 	@property
 	def isBedClear(self):
-		return self._bed_clear
+		if self._profileManager.data.get('check_clear_bed'):
+			return self._bed_clear
+		else:
+			return True
 
 	def set_bed_clear(self, clear):
-		if clear != self._bed_clear:
+		if clear != self._bed_clear and self._profileManager.data.get('check_clear_bed'):
 			self._bed_clear = clear
 			dataStore().set('printer_state.bed_clear', clear)
 			eventManager().fire(Events.BED_CLEARED_CHANGED, clear)

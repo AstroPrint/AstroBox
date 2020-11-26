@@ -286,7 +286,8 @@ class PrinterCommandHandler(object):
 		cameraManager().get_pic_async(doneWithPhoto)
 
 	def set_bed_clear(self, clear, _, done):
-		printerManager().set_bed_clear(clear)
+		if printerProfileManager().data.get('check_clear_bed'):
+			printerManager().set_bed_clear(clear)
 		done(None)
 
 # Camera Command Group Handler

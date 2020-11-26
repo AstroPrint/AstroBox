@@ -229,6 +229,18 @@
                   </div>
                 </div>
 
+                <div class="row clearfix">
+                  <div class="column medium-6">
+                    <label for="check_clear_bed" class=" check-clean has-hover"><b>Confirm bed clear</b> <div class="info-container"><span class="icon-info">&#8505;</span></div>
+                    <span>Ask operator to confirm that the bed is clear after each print job before they can start a new one</span>
+                    </label>
+                    <div class="switch radius danger">
+                      <input id="check_clear_bed" name="check_clear_bed" type="checkbox" <% if (settings.check_clear_bed) { %> value="yes" checked<% } %>>
+                      <label for="check_clear_bed"></label>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="row movement clearfix">
 
                   <label class="bold column">Movement</label>
