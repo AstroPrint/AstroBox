@@ -148,24 +148,24 @@
   <div id="clear-bed-view" class="app-view hide" data-fullscreen="1"> {%- include 'clear-bed.jinja2' -%} </div>
   <div id="unreachable-view" class="app-view hide" data-fullscreen="1"> {%- include 'unreachable.jinja2' -%} </div>
 
-  <div id="printer-prompt-modal" class="reveal-modal medium radius" data-reveal>
+  <div id="printer-prompt-modal" class="reveal-modal tiny radius" data-reveal>
     <script type="text/template" id="printer-prompt-modal-template">
       <h2 class="bold">Printer Prompt</h2>
-      <div class="modal-body" align="center"><%= message %></div>
-      <div class="modal-actions row">
+      <div class="modal-body"><p class="text-center"> <br><%= message %></p></div>
+      <div class="modal-actions row bold">
         <div class="small-12 columns">
           <% if (choices && choices.length) { %>
             <% for(i=0; i < choices.length; i++) { %>
               <div class="row">
-                <div class="small-12 medium-6 medium-offset-3 columns">
-                  <button class="button button-outline button secondary radius prompt-choice expand" data-choice="<%= i %>"><%= choices[i] %></button>
+                <div class="small-12 columns">
+                  <button class="button button-outline bold button secondary radius prompt-choice expand" data-choice="<%= i %>"><%= choices[i] %></button>
                 </div>
               </div>
             <% } %>
           <% } else { %>
             <div class="row">
-              <div class="small-12 medium-6 medium-offset-3 columns">
-                <button class="button close expand radius">Close</button>
+              <div class="small-12 columns">
+                <button class="button close expand bold radius">Close</button>
               </div>
             </div>
           <% } %>
