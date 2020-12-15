@@ -501,11 +501,11 @@ class Printer(object):
 		c = cameraManager()
 		freq = s.get(['camera', 'freq'])
 
-		if freq and c.isCameraConnected():
-			c.start_timelapse(freq)
-
 		if result and "id" in result:
 			self._currentPrintJobId = result['id']
+
+		if freq and c.isCameraConnected():
+			c.start_timelapse(freq)
 
 		self._timeStarted = time.time()
 		self._secsPaused = 0
