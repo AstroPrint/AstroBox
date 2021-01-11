@@ -17,7 +17,7 @@ def printer_profile_patch():
 
 	if request.method == "PATCH":
 		changes = request.json
-		if not changes['check_clear_bed'] and ppm.data['check_clear_bed']:
+		if changes.get('check_clear_bed') is False and ppm.data.get('check_clear_bed') is True:
 			printerManager().set_bed_clear(True)
 		ppm.set(changes)
 		ppm.save()
