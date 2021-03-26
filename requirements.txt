@@ -1,4 +1,4 @@
-flask==0.12.2
+flask==1.0
 werkzeug==0.9.6
 tornado==4.4.2
 PyYAML==3.11
