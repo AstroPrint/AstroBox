@@ -60,7 +60,14 @@ class RequestHandler(object):
 		done(state)
 
 	def job_info(self, data, clientId, done):
-		done(printerManager()._stateMonitor._jobData)
+		printer = printerManager()
+		jobData = printer._stateMonitor._jobData
+
+		if jobData is not None:
+			jobData.update({
+				'cloud_job_id': printer.currentPrintJobId
+			})
+		done(jobData)
 
 	def printerCommand(self, data, clientId, done):
 		self._handleCommandGroup(PrinterCommandHandler, data, clientId, done)
