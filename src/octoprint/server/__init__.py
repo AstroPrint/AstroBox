@@ -61,6 +61,7 @@ import astroprint.users as users
 
 from astroprint.software import softwareManager as swManager
 from astroprint.boxrouter import boxrouterManager
+from astroprint.mqtt import mqttManager
 from astroprint.network.manager import networkManager
 from astroprint.camera import cameraManager
 from astroprint.camera.local_video_handler import VideoStreamHandler
@@ -473,24 +474,29 @@ class Server():
 
 		networkManager()
 		#boxrouterManager()
+		boxId = boxrouterManager().boxId
+		mqttManager(boxId)
 		#This call also initialize boxrouter
 		logger.info("Initializing  astroprintCloud on starting")
 		astroprintCloud().callFleetInfo()
-
 
 		# configure timelapse
 		#octoprint.timelapse.configureTimelapse()
 
 		app.wsgi_app = ReverseProxied(app.wsgi_app)
 
-		app.secret_key = boxrouterManager().boxId
+		app.secret_key = boxId
 		loginManager = LoginManager()
 		loginManager.session_protection = "strong"
-		loginManager.user_callback = load_user
+		#loginManager.user_callback = load_user
 		if userManager is None:
 			loginManager.anonymous_user = users.DummyUser
 			principals.identity_loaders.appendleft(users.dummy_identity_loader)
 		loginManager.init_app(app)
+
+		@loginManager.user_loader
+		def user_loader(user_id):
+			return load_user(user_id)
 
 		# setup command triggers
 		events.CommandTrigger(printer)
@@ -535,7 +541,6 @@ class Server():
 				wsgi_environ = tornado.wsgi.WSGIContainer.environ(request)
 				with app.request_context(wsgi_environ):
 					app.session_interface.open_session(app, request)
-					loginManager.reload_user()
 					validator(request)
 			return f
 
@@ -683,6 +688,7 @@ class Server():
 		discoveryManager.shutdown()
 		discoveryManager = None
 		boxrouterManager().shutdown()
+		mqttManager().shutdown()
 		cameraManager().shutdown()
 		externalDriveManager().shutdown()
 

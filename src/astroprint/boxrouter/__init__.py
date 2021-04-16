@@ -240,6 +240,7 @@ class AstroprintBoxRouter(object):
 		return self._boxId
 
 	def boxrouter_connect(self):
+		return False
 		if not networkManager().isOnline():
 			return False
 

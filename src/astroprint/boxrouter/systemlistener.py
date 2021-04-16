@@ -23,6 +23,7 @@ class SystemListener(object):
 
 		em.unsubscribe(Events.CAPTURE_INFO_CHANGED, self._onCaptureInfoChanged)
 		em.unsubscribe(Events.CLOUD_DOWNLOAD, self._onDownload)
+		em.unsubscribe(Events.FILAMENT_CHANGE, self._filamentChanged)
 
 	def sendHistoryData(self, data):
 		pass
