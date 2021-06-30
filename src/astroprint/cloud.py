@@ -252,6 +252,7 @@ class AstroPrintCloud(object):
 
 			except ConnectionError as e:
 				self._logger.error('Connection error when trying to validate password: %s' % e)
+				raise AstroPrintCloudNoConnectionException()
 
 		# was offline or couldn't reach astroprint.com
 		if not userValidated:
