@@ -1,5 +1,5 @@
 flask==0.12.2
-werkzeug==0.9.6
+werkzeug==0.15.3
 tornado==4.4.2
 PyYAML==3.11
 Flask-Login==0.4.1
